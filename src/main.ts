@@ -1,6 +1,7 @@
 import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
 import { initChrome } from './chrome';
+import { shortHint } from './short-hint';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
 import { snippets, standaloneDoc } from './demos/snippets';
@@ -367,8 +368,11 @@ function openViewer(id: string): void {
       lines.textContent = 'live';
       note.textContent = 'The HTML + CSS' + (snip.js ? ' + JS' : '') + ' snippet running on its own: exactly what you get when you paste it.';
     } else {
-      panel.innerHTML = `<pre><code>${highlight(pane.code!, pane.lang!)}</code></pre>`;
-      lines.textContent = `${pane.code!.trimEnd().split('\n').length} lines`;
+      const lineCount = (code: string) => code.trimEnd().split('\n').length;
+      const others = Object.fromEntries(panes.filter((p) => p.code && p.key !== 'scss').map((p) => [p.key, lineCount(p.code!)]));
+      const hint = pane.key === 'scss' ? '' : shortHint(pane.key, lineCount(pane.code!), others);
+      panel.innerHTML = `<pre><code>${highlight(pane.code!, pane.lang!)}</code></pre>${hint}`;
+      lines.textContent = `${lineCount(pane.code!)} lines`;
       note.textContent =
         pane.key === 'scss'
           ? 'This site\u2019s own stylesheet for the demo. It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.'

@@ -786,6 +786,11 @@ input {
     height: 380px;
     border: 1px solid var(--border);
     border-radius: 14px;
+    // opaque base: on the glass dialog a see-through stage would muddy the 3D preview
+    background:
+      radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+      radial-gradient(var(--border-strong) 1px, transparent 1.5px) 0 0 / 18px 18px,
+      var(--bg);
 
     .scene:not(.scene--fill) {
       scale: 1.45;
@@ -864,15 +869,27 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   max-height: calc(100dvh - 24px);
   padding: 26px;
   overflow: hidden auto;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--glass-edge);
   border-radius: 22px;
-  background: var(--surface-solid);
+  // Frosted glass: the gallery stays visible as soft colour behind the dialog. It is cheap here
+  // because everything behind an open dialog is paused, so the blur is computed once, not per
+  // frame. The stage and the code window inside stay opaque, so content never loses contrast.
+  background: var(--glass);
+  backdrop-filter: blur(26px) saturate(1.6);
   color: var(--text);
-  box-shadow: 0 40px 120px -20px rgb(0 0 0 / 0.8);
+  box-shadow:
+    0 40px 120px -20px rgb(0 0 0 / 0.8),
+    inset 0 1px 0 var(--glass-edge);
 
+  // Only a light dim: a heavy backdrop would leave nothing for the glass to show.
   &::backdrop {
-    background: rgb(4 5 12 / 0.7);
-    backdrop-filter: blur(6px);
+    background: var(--glass-dim);
+    backdrop-filter: blur(3px);
+  }
+
+  // Browsers without backdrop-filter get a solid panel instead of unreadable see-through text.
+  @supports not (backdrop-filter: blur(1px)) {
+    background: var(--surface-solid);
   }
 
   &[open] {
@@ -1252,6 +1269,48 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       font-weight: 700;
     }
   }
+}
+
+// Shown under a very short tab: says this really is everything and points at the real work.
+.code-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 6px 18px 18px;
+  padding: 14px 16px;
+  border: 1px dashed rgb(255 255 255 / 0.18);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.03);
+  color: #a3aacb;
+  font-size: 13px;
+
+  p {
+    flex: 1 1 220px;
+  }
+
+  &__go {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(120deg, var(--accent), var(--hot));
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+// a short <pre> must not stretch and push its hint to the bottom of the window
+.code__panel pre:has(+ .code-hint),
+.page-pane pre:has(+ .code-hint) {
+  flex: none;
+  min-height: 0;
 }
 
 // Meta row above a title: category badge · group · tags. Dialog and demo pages.

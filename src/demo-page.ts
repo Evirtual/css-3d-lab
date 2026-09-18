@@ -4,6 +4,7 @@ import { initChrome } from './chrome';
 import { demos } from './demos';
 import { icon } from './icons';
 import { lazyMountCards } from './lazy-mount';
+import { shortHint } from './short-hint';
 
 /**
  * Enhances the static demo and group pages. Everything a search engine needs is already in the
@@ -58,6 +59,10 @@ if (box && demo) {
       return;
     }
     lines.textContent = `${body.dataset.lines} lines`;
+    if (key !== 'scss' && !body.querySelector('.code-hint')) {
+      const others = Object.fromEntries(bodies.filter((x) => x.dataset.lines && x.dataset.paneBody !== 'scss').map((x) => [x.dataset.paneBody!, Number(x.dataset.lines)]));
+      body.insertAdjacentHTML('beforeend', shortHint(key, Number(body.dataset.lines), others));
+    }
     note.textContent =
       key === 'scss'
         ? 'This site\u2019s own stylesheet for the demo. It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.'
