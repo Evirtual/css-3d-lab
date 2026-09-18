@@ -111,6 +111,7 @@ function demoCard(d, up, i) {
 
 function demoPage(d, index) {
   const snip = snippets[d.id];
+  const lineCount = (code) => code.trimEnd().split('\n').length;
   const group = GROUPS[d.group];
   const siblings = demos.filter((x) => x.group === d.group && x.id !== d.id);
   const prev = demos[index - 1];
@@ -129,7 +130,6 @@ function demoPage(d, index) {
     ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js', code: snip.js }] : []),
     ...(scss ? [{ key: 'scss', label: 'Sass source', lang: 'scss', code: scss }] : []),
   ];
-  const lineCount = (code) => code.trimEnd().split('\n').length;
 
   // Every pane is real HTML, so crawlers and no-JS visitors get all of the code, stacked with
   // labels. demo-page.ts turns it into the same tabbed window the gallery dialog uses.
@@ -189,32 +189,44 @@ function demoPage(d, index) {
       </nav>
 
       <header class="page-head">
-        <p class="viewer__meta">
-          <span class="badge badge--${d.category}">${CATEGORY_LABEL[d.category]}</span>
-          <a class="card__group" href="../../groups/${d.group}/">${esc(group)}</a>
-          <span class="viewer__tags">${d.tags.map((t) => `#${esc(t)}`).join(' ')}</span>
-        </p>
-        <h1>${esc(d.title)} <small>in ${kind(d)}</small></h1>
-        <p>${esc(d.description)}</p>
-        <p class="page-actions">
-          <button type="button" class="btn btn--accent" data-run>${icon('arrow-up-right')} Open in new tab</button>
-          <button type="button" class="btn" data-copy-file>${icon('copy')} Copy as one HTML file</button>
-          <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
-        </p>
+        <div class="page-head__main">
+          <p class="viewer__meta">
+            <span class="badge badge--${d.category}">${CATEGORY_LABEL[d.category]}</span>
+            <a class="card__group" href="../../groups/${d.group}/">${esc(group)}</a>
+            <span class="viewer__tags">${d.tags.map((t) => `#${esc(t)}`).join(' ')}</span>
+          </p>
+          <h1>${esc(d.title)} <small>in ${kind(d)}</small></h1>
+          <p class="page-head__lead">${esc(d.description)}</p>
+          <ul class="page-facts">
+            <li><b>${lineCount(snip.css)}</b> lines of CSS</li>
+            <li><b>${lineCount(snip.html)}</b> lines of HTML</li>
+            <li>${snip.js ? `<b>${lineCount(snip.js)}</b> lines of JS` : '<b>No</b> JavaScript'}</li>
+            <li>No dependencies</li>
+            <li>MIT licensed</li>
+          </ul>
+        </div>
+        <div class="page-tools" data-tools>
+          <div class="page-tools__row">
+            <button type="button" class="btn btn--accent" data-run>${icon('arrow-up-right')} Open in new tab</button>
+            <button type="button" class="btn" data-copy-file>${icon('copy')} Copy as one HTML file</button>
+          </div>
+          <div class="page-tools__row">
+            <button type="button" class="btn" data-share-link>Share</button>
+            <button type="button" class="btn" data-share-embed>Embed</button>
+            <button type="button" class="btn" data-share-codepen>CodePen ${icon('arrow-up-right')}</button>
+            <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
+          </div>
+        </div>
       </header>
 
       <div class="page-cols">
         <div class="page-left">
-          <div class="stage stage--lg" data-demo="${d.id}">
-            <noscript><p class="page-noscript">The live 3D preview needs JavaScript to load. The explanation and full code are below.</p></noscript>
-          </div>
-
-          <div class="share" data-share="${d.id}" data-title="${esc(d.title)}">
-            <button type="button" class="btn" data-share-link>${icon('arrow-up-right')} Share</button>
-            <button type="button" class="btn" data-share-embed>${icon('copy')} Embed code</button>
-            <button type="button" class="btn" data-share-codepen>Edit on CodePen ${icon('arrow-up-right')}</button>
-            <a class="btn" href="../../media/${d.id}.mp4" download="css-3d-${d.id}.mp4" data-media hidden>MP4</a>
-            <a class="btn" href="../../media/${d.id}.gif" download="css-3d-${d.id}.gif" data-media hidden>GIF</a>
+          <div class="stage-wrap">
+            <div class="stage stage--lg" data-demo="${d.id}">
+              <noscript><p class="page-noscript">The live 3D preview needs JavaScript to load. The explanation and full code are below.</p></noscript>
+            </div>
+            <button type="button" class="stage__fs" data-fullscreen aria-label="Full screen"></button>
+            <p class="stage__edited" data-edited hidden>Your edited version <button type="button" class="link" data-reset>Reset to original</button></p>
           </div>
 
           <h2>How it works</h2>
@@ -239,7 +251,7 @@ function demoPage(d, index) {
       </section>
     </main>`;
 
-  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: `media/${d.id}.png` });
+  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: `media/${d.id}.jpg` });
 }
 
 /* ---------- embed pages: just the demo, for iframes and for the build-time recorder ---------- */
@@ -296,8 +308,16 @@ function groupPage(g) {
     <main class="page-main">
       <nav class="crumbs" aria-label="Breadcrumb"><a href="../../">${esc(site.name)}</a> <span>/</span> <span aria-current="page">${esc(label)}</span></nav>
       <header class="page-head">
-        <h1>${esc(label)} <small>${members.length} CSS 3D effects</small></h1>
-        <p>Every one has a live demo, a step-by-step explanation and code you can paste into your own project.</p>
+        <div class="page-head__main">
+          <h1>${esc(label)} <small>${members.length} CSS 3D effects</small></h1>
+          <p class="page-head__lead">Every one has a live demo, a step-by-step explanation and code you can edit and paste into your own project.</p>
+          <ul class="page-facts">
+            <li><b>${members.filter((d) => d.category === 'css').length}</b> pure CSS</li>
+            <li><b>${members.filter((d) => d.category === 'js').length}</b> CSS + JS</li>
+            <li>No dependencies</li>
+            <li>MIT licensed</li>
+          </ul>
+        </div>
       </header>
       <ul class="page-cards">${members.map((d, i) => demoCard(d, '../../', i)).join('')}</ul>
       <section class="page-related">

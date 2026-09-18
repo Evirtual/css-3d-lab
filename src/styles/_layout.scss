@@ -905,8 +905,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   &__head {
     margin-bottom: 22px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--border);
 
     h2 {
       margin: 12px 0 6px;
@@ -1271,6 +1269,141 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 }
 
+// Live code editor: a transparent <textarea> exactly over the highlighted <pre> (one grid cell),
+// so both always have the same size and scroll together inside their container.
+.editor {
+  display: grid;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  tab-size: 2;
+
+  > pre,
+  > textarea {
+    grid-area: 1 / 1;
+    min-height: 0;
+    margin: 0;
+    padding: 16px 18px;
+    border: 0;
+    overflow: visible;
+    font: inherit;
+    line-height: inherit;
+    tab-size: inherit;
+    letter-spacing: normal;
+    white-space: pre;
+  }
+
+  > pre {
+    height: auto;
+    max-height: none;
+    color: #d8dcf5;
+    pointer-events: none;
+  }
+
+  > textarea {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    resize: none;
+    background: transparent;
+    color: transparent;
+    caret-color: #fff;
+
+    &:focus-visible {
+      outline: none; // the whole window shows focus instead (below)
+    }
+
+    &::selection {
+      background: color-mix(in srgb, var(--accent) 45%, transparent);
+      color: transparent;
+    }
+  }
+}
+
+.codebox:focus-within {
+  border-color: color-mix(in srgb, var(--accent-2) 60%, transparent);
+}
+
+// The stage's wrapper. The stage's children are replaced on every mount, so anything that must
+// survive (full-screen button, "edited" notice) lives here instead.
+.stage-wrap {
+  position: relative;
+
+  // the visitor's edited snippet, running in a sandboxed frame in place of the built-in demo
+  .live-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: inherit;
+  }
+
+  &:fullscreen {
+    background: var(--bg);
+
+    .stage {
+      height: 100vh;
+      border: 0;
+      border-radius: 0;
+    }
+
+    // up close: that is the point of full screen
+    .scene:not(.scene--fill) {
+      scale: 2.8;
+    }
+
+    .scene--fill {
+      zoom: 2.2;
+    }
+  }
+}
+
+.stage__fs {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  opacity: 0.65;
+  transition:
+    opacity 0.2s,
+    border-color 0.2s;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent-2);
+    opacity: 1;
+  }
+}
+
+.stage__edited {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 12px;
+  border: 1px solid color-mix(in srgb, var(--warm) 50%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  color: var(--warm);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
 // Shown under a very short tab: says this really is everything and points at the real work.
 .code-hint {
   display: flex;
@@ -1307,8 +1440,8 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 }
 
 // a short <pre> must not stretch and push its hint to the bottom of the window
-.code__panel pre:has(+ .code-hint),
-.page-pane pre:has(+ .code-hint) {
+.code__panel .editor:has(+ .code-hint),
+.page-pane .editor:has(+ .code-hint) {
   flex: none;
   min-height: 0;
 }

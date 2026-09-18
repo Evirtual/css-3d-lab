@@ -53,8 +53,9 @@ MIT — see [LICENSE](LICENSE). Every snippet is free to use in your own project
 
 ## Media, sharing and embeds
 
-- `npm run media` (after `npm run build`) films every demo in a headless browser and writes a
-  social preview PNG, an MP4 and a GIF per demo into `dist/media/`. It runs in the deploy
-  workflow; MP4/GIF need `ffmpeg`, so locally without it only the PNGs are produced.
-- Every demo has an embeddable page at `/embed/<id>/` and a share row (link, embed code,
-  Edit on CodePen, MP4/GIF download). Download buttons only appear when the file really exists.
+- `npm run media` (after `npm run build`) screenshots every demo in a headless browser into
+  `dist/media/<id>.jpg`: the social preview image (og:image) of each demo page. It runs in the
+  deploy workflow.
+- Every demo has an embeddable page at `/embed/<id>/`, plus Share, Embed and CodePen buttons.
+- The code windows are small live editors: edits re-run the demo, are saved per demo in
+  `localStorage`, and can be reset. Any demo can be viewed full screen.

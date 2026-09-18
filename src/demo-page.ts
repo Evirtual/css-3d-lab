@@ -2,141 +2,151 @@ import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
 import { initChrome } from './chrome';
 import { demos } from './demos';
-import { icon } from './icons';
+import { createEditor, type Editor } from './editor';
+import { initFullscreen } from './fullscreen';
+import type { Lang } from './highlight';
 import { lazyMountCards } from './lazy-mount';
-import { copyText, embedCode, openInCodePen, revealDownloads, shareLink } from './share';
+import { LiveEdit, type Part } from './live-edit';
+import { copyText, embedCode, openInCodePen, shareLink } from './share';
 import { shortHint } from './short-hint';
 
 /**
  * Enhances the static demo and group pages. Everything a search engine needs is already in the
- * HTML; this only mounts the live preview and wires the copy buttons.
+ * HTML; this mounts the live preview and turns the code listings into a small live editor.
  */
 
 initChrome();
 initAnalytics();
 lazyMountCards();
+initFullscreen();
 
 const stage = document.querySelector<HTMLElement>('[data-demo]');
 const demo = stage && demos.find((d) => d.id === stage.dataset.demo);
-if (stage && demo) {
-  const scene = document.createElement('div');
-  scene.className = `scene${demo.fill ? ' scene--fill' : ''}`;
-  scene.innerHTML = demo.html.replaceAll('{{uid}}', 'page');
-  stage.replaceChildren(scene);
-  demo.init?.(scene, stage);
-}
-
-/* ---------- the code window: same tabs as the gallery dialog ---------- */
-
 const box = document.querySelector<HTMLElement>('[data-codebox]');
-if (box && demo) {
+
+if (stage && demo && box) {
+  const PARTS: Part[] = ['html', 'css', 'js'];
   const tabs = [...box.querySelectorAll<HTMLElement>('[data-pane]')];
   const bodies = [...box.querySelectorAll<HTMLElement>('[data-pane-body]')];
+  const body = (key: string) => bodies.find((x) => x.dataset.paneBody === key);
   const copyBtn = box.querySelector<HTMLButtonElement>('[data-copy-code]')!;
   const note = box.querySelector<HTMLElement>('.code__note')!;
   const lines = box.querySelector<HTMLElement>('.codebox__lines')!;
-  let current = 'css';
+  const editedBar = document.querySelector<HTMLElement>('[data-edited]');
+  const lineCount = (code: string) => code.trimEnd().split('\n').length;
 
-  const show = async (key: string) => {
+  // The original code is already in the page as text; no need to download it again.
+  const textOf = (key: string) => body(key)?.querySelector('pre code')?.textContent ?? '';
+  const live = new LiveEdit(demo.id, demo.title, { html: textOf('html'), css: textOf('css'), ...(body('js') ? { js: textOf('js') } : {}) });
+
+  /* ----- the stage shows the site's own demo, or the visitor's edited snippet ----- */
+  let unmount: (() => void) | undefined;
+  // Not "is the stage empty?": it starts with a <noscript> fallback inside it.
+  let showing: 'nothing' | 'original' | 'edit' = 'nothing';
+  const mountOriginal = () => {
+    const scene = document.createElement('div');
+    scene.className = `scene${demo.fill ? ' scene--fill' : ''}`;
+    scene.innerHTML = demo.html.replaceAll('{{uid}}', 'page');
+    stage.replaceChildren(scene);
+    const cleanup = demo.init?.(scene, stage);
+    unmount = () => cleanup?.();
+    showing = 'original';
+  };
+  const refreshStage = () => {
+    if (live.edited) {
+      unmount?.();
+      unmount = undefined;
+      stage.replaceChildren(live.frame());
+      showing = 'edit';
+    } else if (showing !== 'original') {
+      mountOriginal();
+    }
+    if (editedBar) editedBar.hidden = !live.edited;
+  };
+  let timer = 0;
+  const refreshSoon = () => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(refreshStage, 350); // not on every keystroke
+  };
+
+  /* ----- editors replace the static listings ----- */
+  const editors = new Map<Part, Editor>();
+  let current = 'css';
+  for (const part of PARTS) {
+    const pane = body(part);
+    const pre = pane?.querySelector('pre');
+    if (!pane || !pre) continue;
+    const editor = createEditor(part as Lang, part.toUpperCase(), live.current[part] ?? '', (code) => {
+      live.set(part, code);
+      if (current === part) lines.textContent = `${lineCount(code)} lines`;
+      refreshSoon();
+    });
+    pre.replaceWith(editor.el);
+    editors.set(part, editor);
+  }
+
+  const show = (key: string) => {
     current = key;
     for (const t of tabs) t.setAttribute('aria-selected', String(t.dataset.pane === key));
-    for (const body of bodies) body.hidden = body.dataset.paneBody !== key;
+    for (const b of bodies) b.hidden = b.dataset.paneBody !== key;
     copyBtn.hidden = key === 'run';
+    const pane = body(key)!;
 
-    const body = bodies.find((x) => x.dataset.paneBody === key)!;
     if (key === 'run') {
       lines.textContent = 'live';
-      note.textContent = 'The snippet running on its own: exactly what you get when you paste it.';
-      if (!body.firstElementChild) {
-        const doc = await standalone();
-        if (!doc) return;
-        track(`run/${demo.id}`);
-        const frame = document.createElement('iframe');
-        frame.title = `${demo.title} — standalone snippet`;
-        frame.setAttribute('sandbox', 'allow-scripts');
-        frame.srcdoc = doc;
-        body.append(frame);
-      }
+      note.textContent = live.edited ? 'Your edited snippet, running on its own.' : 'The snippet running on its own: exactly what you get when you paste it.';
+      pane.replaceChildren(live.frame()); // rebuilt each time, so it always reflects the latest edits
+      track(`run/${demo.id}`);
       return;
     }
-    lines.textContent = `${body.dataset.lines} lines`;
-    if (key !== 'scss' && !body.querySelector('.code-hint')) {
-      const others = Object.fromEntries(bodies.filter((x) => x.dataset.lines && x.dataset.paneBody !== 'scss').map((x) => [x.dataset.paneBody!, Number(x.dataset.lines)]));
-      body.insertAdjacentHTML('beforeend', shortHint(key, Number(body.dataset.lines), others));
+
+    const editor = editors.get(key as Part);
+    lines.textContent = `${editor ? lineCount(editor.value()) : pane.dataset.lines} lines`;
+    if (editor && !pane.querySelector('.code-hint')) {
+      const others = Object.fromEntries([...editors].map(([p, e]) => [p, lineCount(e.value())]));
+      pane.insertAdjacentHTML('beforeend', shortHint(key, lineCount(editor.value()), others));
     }
     note.textContent =
       key === 'scss'
-        ? 'This site\u2019s own stylesheet for the demo. It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.'
-        : `Standalone snippet \u00b7 plain ${key.toUpperCase()}, no build step, no dependencies.`;
+        ? 'This site’s own stylesheet for the demo (read-only). It needs the project’s Sass mixins, so copy from HTML / CSS instead.'
+        : 'Editable · type here and the demo updates. Saved in this browser only.';
   };
 
   box.addEventListener('click', (e) => {
     const tab = (e.target as HTMLElement).closest<HTMLElement>('[data-pane]');
-    if (tab) void show(tab.dataset.pane!);
+    if (tab) show(tab.dataset.pane!);
   });
 
   copyBtn.addEventListener('click', async () => {
-    const label = copyBtn.innerHTML;
-    const code = bodies.find((x) => x.dataset.paneBody === current)?.querySelector('pre code')?.textContent ?? '';
-    try {
-      await navigator.clipboard.writeText(code);
-      copyBtn.innerHTML = `${icon('check')} Copied`;
-      track(`copy/${demo.id}/${current}`);
-    } catch {
-      copyBtn.textContent = 'Copy blocked — select the text manually';
-    }
-    window.setTimeout(() => (copyBtn.innerHTML = label), 1800);
+    const code = editors.get(current as Part)?.value() ?? textOf(current);
+    if (await copyText(copyBtn, code)) track(`copy/${demo.id}/${current}${live.edited ? '/edited' : ''}`);
+  });
+
+  document.querySelector<HTMLButtonElement>('[data-reset]')?.addEventListener('click', () => {
+    live.reset();
+    for (const [part, editor] of editors) editor.set(live.current[part] ?? '');
+    refreshStage();
+    show(current);
+    track(`reset/${demo.id}`);
+  });
+
+  /* ----- toolbar: everything acts on the CURRENT code, edited or not ----- */
+  document.querySelector<HTMLElement>('[data-tools]')?.addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('button');
+    if (!btn) return;
+    if ('run' in btn.dataset) {
+      track(`run/${demo.id}`);
+      // A blob URL opens the snippet as its own page, exactly as it would run when pasted into a file.
+      window.open(URL.createObjectURL(new Blob([live.doc()], { type: 'text/html' })), '_blank', 'noopener');
+    } else if ('copyFile' in btn.dataset) {
+      if (await copyText(btn, live.doc())) track(`copy/${demo.id}/file`);
+    } else if ('shareLink' in btn.dataset) void shareLink(btn, demo.id, demo.title);
+    else if ('shareEmbed' in btn.dataset) {
+      if (await copyText(btn, embedCode(demo.id, demo.title), 'Embed code copied')) track(`embed/${demo.id}`);
+    } else if ('shareCodepen' in btn.dataset) openInCodePen(demo.id, demo.title, live.current);
   });
 
   box.dataset.enhanced = ''; // CSS switches from "stacked with labels" to "tabbed"
-  void show(current);
-}
-
-/* ---------- page actions: the snippets are only fetched when someone asks for them ---------- */
-
-async function standalone(): Promise<string | null> {
-  if (!demo) return null;
-  const { snippets, standaloneDoc } = await import('./demos/snippets');
-  return standaloneDoc(demo.title, snippets[demo.id]);
-}
-
-document.querySelector<HTMLButtonElement>('[data-run]')?.addEventListener('click', async () => {
-  const doc = await standalone();
-  if (!doc || !demo) return;
-  track(`run/${demo.id}`);
-  // A blob URL opens the snippet as its own page, exactly as it would run when pasted into a file.
-  window.open(URL.createObjectURL(new Blob([doc], { type: 'text/html' })), '_blank', 'noopener');
-});
-
-document.querySelector<HTMLButtonElement>('[data-copy-file]')?.addEventListener('click', async (e) => {
-  const btn = e.currentTarget as HTMLButtonElement;
-  const label = btn.innerHTML;
-  const doc = await standalone();
-  if (!doc || !demo) return;
-  try {
-    await navigator.clipboard.writeText(doc);
-    btn.innerHTML = `${icon('check')} Copied`;
-    track(`copy/${demo.id}/file`);
-  } catch {
-    btn.textContent = 'Copy blocked — select the text manually';
-  }
-  window.setTimeout(() => (btn.innerHTML = label), 1800);
-});
-
-/* ---------- share row ---------- */
-
-const share = document.querySelector<HTMLElement>('[data-share]');
-if (share && demo) {
-  share.addEventListener('click', async (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLElement>('button, a');
-    if (!btn) return;
-    if ('shareLink' in btn.dataset) void shareLink(btn, demo.id, demo.title);
-    else if ('shareEmbed' in btn.dataset) {
-      if (await copyText(btn, embedCode(demo.id, demo.title), 'Embed code copied')) track(`embed/${demo.id}`);
-    } else if ('shareCodepen' in btn.dataset) {
-      const { snippets } = await import('./demos/snippets');
-      openInCodePen(demo.id, demo.title, snippets[demo.id]);
-    } else if ('media' in btn.dataset) track(`download/${demo.id}/${btn.getAttribute('href')?.split('.').pop()}`);
-  });
-  void revealDownloads(share);
+  refreshStage();
+  show(current);
 }

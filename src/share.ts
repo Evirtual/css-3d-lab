@@ -2,7 +2,7 @@ import site from '../site.config.json';
 import { track } from './analytics';
 import { icon } from './icons';
 
-/** Share row: link, embed code, CodePen, and the build-time MP4 / GIF downloads. */
+/** Sharing: link (or the native share sheet), embed code, and CodePen. */
 
 export const pageUrl = (id: string): string => `${site.url}/demos/${id}/`;
 export const embedUrl = (id: string): string => `${site.url}/embed/${id}/`;
@@ -65,21 +65,4 @@ export function openInCodePen(id: string, title: string, snip: { html: string; c
   form.submit();
   form.remove();
   track(`codepen/${id}`);
-}
-
-/**
- * The MP4 / GIF are produced by the build (scripts/generate-media.mjs). A link is only shown if
- * the file is really there and really is media — a static host can answer a missing file with
- * an HTML page and status 200.
- */
-export async function revealDownloads(root: ParentNode): Promise<void> {
-  for (const link of root.querySelectorAll<HTMLAnchorElement>('a[data-media]')) {
-    try {
-      const res = await fetch(link.href, { method: 'HEAD' });
-      const type = res.headers.get('content-type') ?? '';
-      if (res.ok && /^(video|image)\//.test(type)) link.hidden = false;
-    } catch {
-      /* offline or blocked: the link simply stays hidden */
-    }
-  }
 }

@@ -31,32 +31,90 @@
   }
 }
 
+// Header: title block on the left, one toolbar on the right. No divider: the columns below
+// start with two framed boxes, which separate the sections on their own.
 .page-head {
-  margin: 18px 0 28px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px 40px;
+  margin: 18px 0 26px;
 
   h1 {
-    margin: 14px 0 8px;
-    font-size: clamp(32px, 4.8vw, 56px);
+    margin: 14px 0 0;
+    font-size: clamp(34px, 5vw, 60px);
     font-weight: 900;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
 
     small {
-      display: block;
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 0.42em;
-      font-weight: 600;
-      letter-spacing: 0;
+      margin-left: 0.25em;
+      background: linear-gradient(100deg, var(--accent), var(--hot) 60%, var(--warm));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-size: 0.5em;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
     }
   }
 
-  p {
-    max-width: 70ch;
+  &__lead {
+    max-width: 68ch;
+    margin-top: 12px;
     color: var(--muted);
     font-size: 17px;
+  }
+}
+
+.page-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 12.5px;
+
+  li {
+    padding: 4px 11px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+  }
+
+  b {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.page-tools {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 860px) {
+  .page-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .page-tools {
+    justify-items: start;
+
+    &__row {
+      justify-content: flex-start;
+    }
   }
 }
 
@@ -160,21 +218,16 @@
       min-height: 0;
     }
 
-    .page-pane pre,
+    .page-pane > pre,
+    .page-pane > .editor,
     .page-pane--run iframe {
       flex: 1;
       height: auto;
       min-height: 0;
       max-height: none;
+      overflow: auto;
     }
   }
-}
-
-.page-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px !important;
 }
 
 // Keep the live demo and its explanation in view while reading long code — but only when the
@@ -282,14 +335,6 @@
   .page-cols {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-// Share row under the live demo.
-.share {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
 }
 
 // /embed/<id>/ — the demo alone, filling the frame (iframes + the build-time recorder).

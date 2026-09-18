@@ -1,11 +1,14 @@
 import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
 import { initChrome } from './chrome';
+import { createEditor } from './editor';
+import { initFullscreen } from './fullscreen';
+import { LiveEdit, type Part } from './live-edit';
 import { openInCodePen, shareLink } from './share';
 import { shortHint } from './short-hint';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
-import { snippets, standaloneDoc } from './demos/snippets';
+import { snippets } from './demos/snippets';
 import { CATEGORY_LABEL, type Category, type Demo } from './demos/types';
 import { highlight, type Lang } from './highlight';
 import { hydrateIcons, icon } from './icons';
@@ -294,13 +297,17 @@ function openViewer(id: string): void {
   if (!demo) return;
   track(`open/${id}`);
   const snip = snippets[id];
+  // Edits are stored per demo, so they are shared with the demo's full page.
+  const live = new LiveEdit(id, demo.title, { html: snip.html, css: snip.css, ...(snip.js ? { js: snip.js } : {}) });
   const panes: Pane[] = [
-    { key: 'html', label: 'HTML', lang: 'html', code: snip.html },
-    { key: 'css', label: 'CSS', lang: 'css', code: snip.css },
-    ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js' as Lang, code: snip.js }] : []),
+    { key: 'html', label: 'HTML', lang: 'html' },
+    { key: 'css', label: 'CSS', lang: 'css' },
+    ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js' as Lang }] : []),
     { key: 'run', label: `${icon('play')} Preview` },
     { key: 'scss', label: 'Sass source', lang: 'scss', code: scssFor(id) },
   ];
+  const isPart = (key: string): key is Part => key === 'html' || key === 'css' || key === 'js';
+  const lineCount = (code: string) => code.trimEnd().split('\n').length;
 
   const tab = (p: Pane, cls = '', title = ''): string =>
     `<button type="button" role="tab" class="${cls}" data-pane="${p.key}" aria-selected="${p.key === 'css'}"${title ? ` title="${title}"` : ''}>${p.label}</button>`;
@@ -317,7 +324,11 @@ function openViewer(id: string): void {
     </header>
     <div class="viewer__cols">
       <section>
-        <div class="stage stage--lg"></div>
+        <div class="stage-wrap">
+          <div class="stage stage--lg"></div>
+          <button type="button" class="stage__fs" data-fullscreen aria-label="Full screen"></button>
+          <p class="stage__edited" data-edited hidden>Your edited version <button type="button" class="link" data-reset>Reset to original</button></p>
+        </div>
         <h3>How it works</h3>
         <ol class="steps">${snip.how.map((s) => `<li>${s}</li>`).join('')}</ol>
         <h3>Key ingredients</h3>
@@ -327,8 +338,8 @@ function openViewer(id: string): void {
         <div class="codebox">
           <div class="codebox__bar">
             <div class="codebox__tabs" role="tablist">
-              <div class="codebox__seg" title="The standalone snippet: copy these into your project">
-                ${panes.filter((p) => p.lang && p.key !== 'scss').map((p) => tab(p)).join('')}
+              <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
+                ${panes.filter((p) => isPart(p.key)).map((p) => tab(p)).join('')}
               </div>
               ${tab(panes.find((p) => p.key === 'run')!, 'codebox__tab--run', 'Runs the snippet on its own, exactly as it works when pasted')}
               ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'How this site builds the demo, using the project Sass mixins. For reading, not for pasting')}
@@ -340,46 +351,71 @@ function openViewer(id: string): void {
         </div>
         <div class="code__actions">
           <button type="button" class="btn btn--accent" data-copy="file">${icon('copy')} Copy as one HTML file</button>
-          <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
           <button type="button" class="btn" data-act="codepen">Edit on CodePen ${icon('arrow-up-right')}</button>
           <button type="button" class="btn" data-act="share">${icon('arrow-up-right')} Share</button>
+          <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
           <a class="btn" href="demos/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
         <p class="code__thanks" hidden>Glad it helped. This site is free — if you like, <a href="${KOFI}" target="_blank" rel="noopener">buy me a coffee</a> ${icon('coffee')}</p>
       </section>
     </div>`;
 
+  const stageEl = viewerBody.querySelector<HTMLElement>('.stage')!;
+  const editedBar = viewerBody.querySelector<HTMLElement>('[data-edited]')!;
   const panel = viewerBody.querySelector<HTMLElement>('.code__panel')!;
   const note = viewerBody.querySelector<HTMLElement>('.code__note')!;
   const lines = viewerBody.querySelector<HTMLElement>('.codebox__lines')!;
   const copyPane = viewerBody.querySelector<HTMLButtonElement>('[data-copy=pane]')!;
   let current = panes[1];
 
+  /* the stage shows the site's own demo, or the visitor's edited snippet */
+  let showingEdit = false;
+  const refreshStage = () => {
+    if (live.edited) {
+      unmountViewer?.();
+      unmountViewer = undefined;
+      stageEl.replaceChildren(live.frame());
+      showingEdit = true;
+    } else if (showingEdit || !stageEl.firstElementChild) {
+      unmountViewer = mount(demo, stageEl);
+      showingEdit = false;
+    }
+    editedBar.hidden = !live.edited;
+  };
+  let timer = 0;
+  const refreshSoon = () => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(refreshStage, 350); // not on every keystroke
+  };
+
   const show = (pane: Pane) => {
     current = pane;
-    for (const tab of viewerBody.querySelectorAll<HTMLElement>('[data-pane]')) {
-      tab.setAttribute('aria-selected', String(tab.dataset.pane === pane.key));
+    for (const t of viewerBody.querySelectorAll<HTMLElement>('[role=tab]')) {
+      t.setAttribute('aria-selected', String(t.dataset.pane === pane.key));
     }
     copyPane.hidden = pane.key === 'run';
+
     if (pane.key === 'run') {
       track(`run/${id}`);
-      const frame = document.createElement('iframe');
-      frame.title = `${demo.title} — standalone snippet`;
-      frame.setAttribute('sandbox', 'allow-scripts');
-      frame.srcdoc = standaloneDoc(demo.title, snip);
-      panel.replaceChildren(frame);
+      panel.replaceChildren(live.frame());
       lines.textContent = 'live';
-      note.textContent = 'The HTML + CSS' + (snip.js ? ' + JS' : '') + ' snippet running on its own: exactly what you get when you paste it.';
+      note.textContent = live.edited ? 'Your edited snippet, running on its own.' : 'The snippet running on its own: exactly what you get when you paste it.';
+    } else if (isPart(pane.key)) {
+      const part = pane.key;
+      const editor = createEditor(pane.lang!, pane.label, live.current[part] ?? '', (code) => {
+        live.set(part, code);
+        lines.textContent = `${lineCount(code)} lines`;
+        refreshSoon();
+      });
+      panel.replaceChildren(editor.el);
+      const counts = Object.fromEntries(panes.filter((p) => isPart(p.key)).map((p) => [p.key, lineCount(live.current[p.key as Part] ?? '')]));
+      panel.insertAdjacentHTML('beforeend', shortHint(part, counts[part], counts));
+      lines.textContent = `${counts[part]} lines`;
+      note.textContent = 'Editable \u00b7 type here and the demo updates. Saved in this browser only.';
     } else {
-      const lineCount = (code: string) => code.trimEnd().split('\n').length;
-      const others = Object.fromEntries(panes.filter((p) => p.code && p.key !== 'scss').map((p) => [p.key, lineCount(p.code!)]));
-      const hint = pane.key === 'scss' ? '' : shortHint(pane.key, lineCount(pane.code!), others);
-      panel.innerHTML = `<pre><code>${highlight(pane.code!, pane.lang!)}</code></pre>${hint}`;
+      panel.innerHTML = `<pre><code>${highlight(pane.code!, pane.lang!)}</code></pre>`;
       lines.textContent = `${lineCount(pane.code!)} lines`;
-      note.textContent =
-        pane.key === 'scss'
-          ? 'This site\u2019s own stylesheet for the demo. It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.'
-          : `Standalone snippet \u00b7 plain ${pane.label}, no build step, no dependencies.`;
+      note.textContent = 'This site\u2019s own stylesheet for the demo (read-only). It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.';
     }
   };
 
@@ -388,7 +424,7 @@ function openViewer(id: string): void {
     try {
       await navigator.clipboard.writeText(text);
       btn.innerHTML = `${icon('check')} Copied`;
-      track(`copy/${id}/${what}`);
+      track(`copy/${id}/${what}${live.edited ? '/edited' : ''}`);
       viewerBody.querySelector<HTMLElement>('.code__thanks')!.hidden = false;
     } catch {
       btn.textContent = 'Copy blocked — select the text manually';
@@ -397,18 +433,27 @@ function openViewer(id: string): void {
   };
 
   viewerBody.onclick = (e) => {
-    const act = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-act]');
-    if (act?.dataset.act === 'codepen') return openInCodePen(id, demo.title, snip);
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-reset]')) {
+      live.reset();
+      refreshStage();
+      show(current);
+      track(`reset/${id}`);
+      return;
+    }
+    const act = target.closest<HTMLButtonElement>('[data-act]');
+    if (act?.dataset.act === 'codepen') return openInCodePen(id, demo.title, live.current);
     if (act?.dataset.act === 'share') return void shareLink(act, id, demo.title);
-    const el = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-pane],[data-copy]');
+    const el = target.closest<HTMLButtonElement>('[data-pane],[data-copy]');
     if (!el) return;
     if (el.dataset.pane) show(panes.find((p) => p.key === el.dataset.pane)!);
-    else if (el.dataset.copy === 'file') void copy(el, standaloneDoc(demo.title, snip), 'file');
-    else if (current.code) void copy(el, current.code, current.key);
+    else if (el.dataset.copy === 'file') void copy(el, live.doc(), 'file');
+    else void copy(el, isPart(current.key) ? (live.current[current.key] ?? '') : (current.code ?? ''), current.key);
   };
 
+  initFullscreen(viewerBody);
   show(current);
-  unmountViewer = mount(demo, viewerBody.querySelector<HTMLElement>('.stage')!);
+  refreshStage();
   viewer.showModal();
   viewer.scrollTop = 0;
 }
