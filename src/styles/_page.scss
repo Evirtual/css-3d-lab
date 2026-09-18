@@ -641,8 +641,12 @@
 
 // The home page's share image (/embed/cover/?og=1): the site's own cube and headline.
 .og-cover {
+  // held still at a flattering angle (a still image: the tumble would catch it at a random one,
+  // sometimes reaching past the edge), and sized to sit well inside the frame
   .hero__cube {
-    --s: 190px;
+    --s: 150px;
+    animation: none;
+    transform: rotateX(-26deg) rotateY(-38deg);
   }
 
   .embed__og b span {
