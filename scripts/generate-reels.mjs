@@ -18,6 +18,8 @@
 //            --crf 18                     (quality: lower is better and bigger; default 10)
 //            --jobs 3                     (films this many demos at once; default 1)
 //            --resume                     (skip videos already in reels/)
+//            --clean                      (the download version: no title, a small corner mark;
+//                                          written as <id>-9x16-clean.mp4)
 // Default is constant QUALITY (CRF 10, visually lossless): the bitrate then follows the picture —
 // a dark, mostly flat scene needs only ~10-20 Mbit/s for that. --mbps pins the rate instead, for
 // platforms or editors that expect a given upload bitrate.
@@ -53,6 +55,8 @@ const RATE = mbps
   ? ['-b:v', `${mbps}M`, '-minrate', `${mbps}M`, '-maxrate', `${mbps}M`, '-bufsize', `${mbps * 2}M`, '-x264-params', 'nal-hrd=cbr:force-cfr=1']
   : ['-crf', String(opt('crf', 10))];
 const jobs = Math.max(1, opt('jobs', 1));
+const clean = args.includes('--clean');
+const suffix = clean ? '-clean' : '';
 const all = args.includes('--all');
 const ids = args.filter((a) => !a.startsWith('--'));
 
@@ -122,10 +126,10 @@ async function film(demo, { name, reel, W, H }) {
   // draws 3D layers at one pixel per CSS pixel, so device scaling left them blurry.
   const ctx = await browser.newContext({ viewport: { width: W * scale, height: H * scale }, deviceScaleFactor: 1, colorScheme: 'dark' });
   const page = await ctx.newPage();
-  const file = join(OUT, `${demo.id}-${name}.mp4`);
+  const file = join(OUT, `${demo.id}-${name}${suffix}.mp4`);
   try {
     await page.clock.install({ time: new Date('2026-01-01T10:09:30') });
-    await page.goto(`${base}/embed/${demo.id}/?reel=${reel}&zoom=${scale}`);
+    await page.goto(`${base}/embed/${demo.id}/?reel=${reel}&zoom=${scale}${clean ? '&clean=1' : ''}`);
     await page.waitForSelector('html[data-ready]');
     await page.waitForTimeout(300); // fonts and first layout, in real time
     await page.clock.pauseAt(new Date('2026-01-01T10:09:32'));
@@ -193,7 +197,7 @@ async function film(demo, { name, reel, W, H }) {
     await encoded;
     renameSync(`${file}.part`, file); // only a finished video gets the real name (see --resume)
     const mb = statSync(file).size / 1e6;
-    console.log(` ${demo.id}-${name}.mp4  ${W * scale}×${H * scale}  ${seconds.toFixed(1)}s  ${mb.toFixed(1)} MB  ${((mb * 8) / seconds).toFixed(0)} Mbit/s`);
+    console.log(` ${demo.id}-${name}${suffix}.mp4  ${W * scale}×${H * scale}  ${seconds.toFixed(1)}s  ${mb.toFixed(1)} MB  ${((mb * 8) / seconds).toFixed(0)} Mbit/s`);
   } finally {
     await ctx.close();
     rmSync(`${file}.part`, { force: true });
@@ -202,7 +206,7 @@ async function film(demo, { name, reel, W, H }) {
 
 const queue = demos
   .flatMap((demo) => formats.map((format) => [demo, format]))
-  .filter(([demo, format]) => !(args.includes('--resume') && existsSync(join(OUT, `${demo.id}-${format.name}.mp4`))));
+  .filter(([demo, format]) => !(args.includes('--resume') && existsSync(join(OUT, `${demo.id}-${format.name}${suffix}.mp4`))));
 await Promise.all(
   Array.from({ length: jobs }, async () => {
     for (let job = queue.shift(); job; job = queue.shift()) {

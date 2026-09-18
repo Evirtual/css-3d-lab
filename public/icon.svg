@@ -6,9 +6,8 @@
     <linearGradient id="right" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6fb0"/><stop offset="1" stop-color="#e0257a"/></linearGradient>
     <radialGradient id="glow" cx="0.5" cy="0.55" r="0.5"><stop offset="0" stop-color="#8b6cff" stop-opacity="0.55"/><stop offset="1" stop-color="#8b6cff" stop-opacity="0"/></radialGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <circle cx="256" cy="270" r="230" fill="url(#glow)"/>
-  <g stroke="#07080f" stroke-width="6" stroke-linejoin="round">
+  
+  <g transform="translate(256 256) scale(1.5) translate(-256 -256)" stroke="#07080f" stroke-width="4.00" stroke-linejoin="round">
     <polygon points="256,96 394,176 256,256 118,176" fill="url(#top)"/>
     <polygon points="118,176 256,256 256,416 118,336" fill="url(#left)"/>
     <polygon points="256,256 394,176 394,336 256,416" fill="url(#right)"/>

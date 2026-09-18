@@ -596,6 +596,67 @@
   }
 }
 
+// The clean video (&clean=1), the one visitors download: no title or tag, the demo centred and a
+// little larger, and a small "CSS 3D Lab" mark in the corner instead of the signature pill.
+[data-reel][data-reel-clean] {
+  .embed__og-kind,
+  .embed__og b,
+  .embed__og-url {
+    display: none;
+  }
+
+  // the same size as in the branded video: wide demos (a payment card) need the side margin
+  .embed .stage .scene:not(.scene--fill) {
+    zoom: 2.1;
+    translate: none;
+  }
+
+  // a band of 540 × 560 in the middle of the frame (offsets divided by the zoom, as above)
+  .embed .stage .scene--fill {
+    inset: calc(200px / 1.7) 0 calc(200px / 1.7);
+    zoom: 1.7;
+  }
+
+  .embed__og {
+    padding: 0;
+  }
+
+  .embed__og-site {
+    position: fixed;
+    right: 22px;
+    bottom: 26px;
+    display: flex;
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    opacity: 0.8;
+  }
+
+  .embed__og-logo {
+    grid-row: auto;
+    width: 20px;
+    height: 20px;
+  }
+
+  .embed__og-name {
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+[data-reel='wide'][data-reel-clean] {
+  .embed .stage .scene:not(.scene--fill) {
+    zoom: 2;
+  }
+
+  .embed .stage .scene--fill {
+    inset: calc(40px / 1.3) calc(60px / 1.3);
+    zoom: 1.3;
+  }
+}
+
 @media (max-width: 600px) {
   .page-head {
     margin: 12px 0 18px;

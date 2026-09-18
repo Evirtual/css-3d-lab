@@ -23,6 +23,8 @@ const params = new URLSearchParams(location.search);
 if (params.has('og')) document.documentElement.dataset.og = '';
 // ?reel=tall (9:16, Reels / Shorts / TikTok) or ?reel=wide (16:9, YouTube): filmed by generate-reels.mjs
 if (params.has('reel')) document.documentElement.dataset.reel = params.get('reel') === 'wide' ? 'wide' : 'tall';
+// &clean=1: the version visitors download: just the demo and a small corner mark, no title
+if (params.has('reel') && params.has('clean')) document.documentElement.dataset.reelClean = '';
 // ?zoom=4: lay the page out 4x larger instead of filming it at 4x device pixels. Chrome draws 3D
 // layers at one pixel per CSS pixel whatever the device scale, so only real layout size is sharp.
 const zoom = Number(params.get('zoom'));
