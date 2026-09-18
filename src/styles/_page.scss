@@ -141,6 +141,7 @@
   margin-top: 0; // top edge lines up with the demo stage in the other column
 
   .codebox__dots,
+  .codebox__mode,
   .codebox__tabs,
   .codebox__copy,
   .codebox__foot {
@@ -158,6 +159,10 @@
       display: inline-flex;
     }
 
+    .codebox__mode {
+      display: grid;
+    }
+
     .page-pane__label {
       display: none;
     }
@@ -167,7 +172,7 @@
 .page-pane {
   &__label {
     padding: 12px 18px 0;
-    color: #c4c9e6;
+    color: var(--cb-fg);
     font-family: var(--mono);
     font-size: 12px;
     letter-spacing: 0.08em;
@@ -175,7 +180,7 @@
 
     span {
       margin-left: 8px;
-      color: #6f7699;
+      color: var(--cb-faint);
       font-weight: 500;
       letter-spacing: 0;
       text-transform: none;

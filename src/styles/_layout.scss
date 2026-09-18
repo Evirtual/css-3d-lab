@@ -1029,10 +1029,73 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
 // One "code window" look, shared by the gallery dialog and the static demo pages.
 .codebox {
+  // Everything inside the window is coloured through these, so the editor can have its own
+  // dark / light mode and tints, independent of the site theme.
+  --cb-bg: var(--code-bg);
+  --cb-fg: #d8dcf5;
+  --cb-strong: #fff;
+  --cb-dim: #949bc0;
+  --cb-faint: #6f7699;
+  --cb-soft: rgb(255 255 255 / 0.04);
+  --cb-soft-2: rgb(255 255 255 / 0.1);
+  --cb-line: rgb(255 255 255 / 0.14);
+  --cb-line-strong: rgb(255 255 255 / 0.25);
+  --cb-well: rgb(0 0 0 / 0.35);
+  --t-com: #6b7399;
+  --t-kw: #ff7ab8;
+  --t-prop: #7fdcff;
+  --t-var: #ffc46b;
+  --t-num: #b79cff;
+  --t-str: #8ff0b0;
+
+  &[data-mode='light'] {
+    --cb-bg: #ffffff;
+    --cb-fg: #1f2440;
+    --cb-strong: #0d1024;
+    --cb-dim: #5a6188;
+    --cb-faint: #8a90b0;
+    --cb-soft: rgb(20 23 60 / 0.035);
+    --cb-soft-2: rgb(20 23 60 / 0.08);
+    --cb-line: rgb(20 23 60 / 0.14);
+    --cb-line-strong: rgb(20 23 60 / 0.3);
+    --cb-well: rgb(20 23 60 / 0.06);
+    // darker syntax colours: the dark-mode pastels are unreadable on white
+    --t-com: #8088a8;
+    --t-kw: #c2185b;
+    --t-prop: #0b6aa8;
+    --t-var: #a45a00;
+    --t-num: #6a3fd6;
+    --t-str: #1f7a3d;
+  }
+
+  &[data-tint='rose'] {
+    --cb-bg: #200c15;
+  }
+
+  &[data-tint='amber'] {
+    --cb-bg: #1e1606;
+  }
+
+  &[data-tint='green'] {
+    --cb-bg: #07190f;
+  }
+
+  &[data-mode='light'][data-tint='rose'] {
+    --cb-bg: #fff0f4;
+  }
+
+  &[data-mode='light'][data-tint='amber'] {
+    --cb-bg: #fff8e5;
+  }
+
+  &[data-mode='light'][data-tint='green'] {
+    --cb-bg: #edfaf1;
+  }
+
   min-width: 0;
   border: 1px solid var(--border-strong);
   border-radius: 14px;
-  background: var(--code-bg);
+  background: var(--cb-bg);
   overflow: hidden;
   box-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.8);
   transition: background 0.25s;
@@ -1044,7 +1107,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     min-height: 44px;
     padding: 0 8px 0 14px;
     border-bottom: 1px solid var(--border);
-    background: rgb(255 255 255 / 0.03);
+    background: var(--cb-soft);
 
   }
 
@@ -1072,8 +1135,14 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
       &[aria-pressed='true'] {
         box-shadow:
-          0 0 0 2px var(--code-bg),
+          0 0 0 2px var(--cb-bg),
           0 0 0 3.5px currentColor;
+      }
+
+      // default: half dark, half light — "the plain editor", in whichever mode is on
+      &[data-tint-set='default'] {
+        background: linear-gradient(135deg, #2a2f52 50%, #e8eaf6 50%);
+        color: var(--cb-dim);
       }
 
       &[data-tint-set='rose'] {
@@ -1093,22 +1162,10 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     }
   }
 
-  // Tinted backgrounds: still dark enough for the syntax colours to keep their contrast.
-  &[data-tint='rose'] {
-    --code-bg: #200c15;
-  }
-
-  &[data-tint='amber'] {
-    --code-bg: #1e1606;
-  }
-
-  &[data-tint='green'] {
-    --code-bg: #07190f;
-  }
 
   &__label span {
     margin-left: 8px;
-    color: #6f7699;
+    color: var(--cb-faint);
     font-weight: 500;
     letter-spacing: 0;
     text-transform: none;
@@ -1116,7 +1173,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   &__label {
     flex: 1;
-    color: #c4c9e6;
+    color: var(--cb-fg);
     font-family: var(--mono);
     font-size: 12px;
     font-weight: 700;
@@ -1150,7 +1207,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       border: 1px solid transparent;
       border-radius: 8px;
       background: none;
-      color: #a3aacb;
+      color: var(--cb-dim);
       font-size: 12.5px;
       font-weight: 700;
       white-space: nowrap;
@@ -1161,7 +1218,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
         color 0.15s;
 
       &:hover {
-        color: #fff;
+        color: var(--cb-strong);
       }
     }
   }
@@ -1172,9 +1229,9 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     flex: none;
     gap: 2px;
     padding: 3px;
-    border: 1px solid rgb(255 255 255 / 0.12);
+    border: 1px solid var(--cb-line);
     border-radius: 10px;
-    background: rgb(0 0 0 / 0.35);
+    background: var(--cb-well);
 
     button {
       padding: 4px 12px;
@@ -1207,9 +1264,9 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     font-weight: 600 !important;
 
     &[aria-selected='true'] {
-      border-color: rgb(255 255 255 / 0.25);
-      background: rgb(255 255 255 / 0.08);
-      color: #fff;
+      border-color: var(--cb-line-strong);
+      background: var(--cb-soft-2);
+      color: var(--cb-strong);
     }
   }
 
@@ -1221,8 +1278,8 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     gap: 12px;
     padding: 7px 14px;
     border-top: 1px solid var(--border);
-    background: rgb(255 255 255 / 0.03);
-    color: #949bc0;
+    background: var(--cb-soft);
+    color: var(--cb-dim);
     font-size: 12px;
   }
 
@@ -1232,16 +1289,34 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     font-size: 11.5px;
   }
 
+  &__mode {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--cb-line);
+    border-radius: 8px;
+    background: var(--cb-soft);
+    color: var(--cb-fg);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--accent-2);
+    }
+  }
+
   &__copy {
     display: inline-flex;
     flex: none;
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    border: 1px solid rgb(255 255 255 / 0.16);
+    border: 1px solid var(--cb-line);
     border-radius: 8px;
-    background: rgb(255 255 255 / 0.06);
-    color: #eceefb;
+    background: var(--cb-soft);
+    color: var(--cb-fg);
     font-size: 12.5px;
     font-weight: 700;
     white-space: nowrap;
@@ -1260,13 +1335,13 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     margin: 0;
     padding: 16px 18px;
     overflow: auto;
-    color: #d8dcf5;
+    color: var(--cb-fg);
     font-family: var(--mono);
     font-size: 12.5px;
     line-height: 1.7;
     tab-size: 2;
     scrollbar-width: thin;
-    scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+    scrollbar-color: var(--cb-line) transparent;
   }
 }
 
@@ -1354,7 +1429,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   > pre {
     height: auto;
     max-height: none;
-    color: #d8dcf5;
+    color: var(--cb-fg);
     pointer-events: none;
   }
 
@@ -1365,7 +1440,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     resize: none;
     background: transparent;
     color: transparent;
-    caret-color: #fff;
+    caret-color: var(--cb-strong);
 
     &:focus-visible {
       outline: none; // the whole window shows focus instead (below)
@@ -1611,10 +1686,10 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   gap: 10px 16px;
   margin: 6px 18px 18px;
   padding: 14px 16px;
-  border: 1px dashed rgb(255 255 255 / 0.18);
+  border: 1px dashed var(--cb-line);
   border-radius: 12px;
-  background: rgb(255 255 255 / 0.03);
-  color: #a3aacb;
+  background: var(--cb-soft);
+  color: var(--cb-dim);
   font-size: 13px;
 
   p {
@@ -1662,32 +1737,32 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   font-size: 12px;
 }
 
-// syntax tokens (the code panel is dark in both themes)
+// syntax tokens: coloured by the code window's variables, so they follow the editor mode
 .t-com {
-  color: #6b7399;
+  color: var(--t-com, #6b7399);
   font-style: italic;
 }
 
 .t-kw,
 .t-tag {
-  color: #ff7ab8;
+  color: var(--t-kw, #ff7ab8);
 }
 
 .t-prop,
 .t-attr {
-  color: #7fdcff;
+  color: var(--t-prop, #7fdcff);
 }
 
 .t-var {
-  color: #ffc46b;
+  color: var(--t-var, #ffc46b);
 }
 
 .t-num {
-  color: #b79cff;
+  color: var(--t-num, #b79cff);
 }
 
 .t-str {
-  color: #8ff0b0;
+  color: var(--t-str, #8ff0b0);
 }
 
 @media (max-width: 860px) {

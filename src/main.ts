@@ -6,7 +6,7 @@ import { initFullscreen } from './fullscreen';
 import { LiveEdit, type Part } from './live-edit';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
-import { dotsHtml, initTint } from './tint';
+import { dotsHtml, initTint, modeHtml } from './tint';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
 import { snippets } from './demos/snippets';
@@ -344,6 +344,7 @@ function openViewer(id: string): void {
               </div>
               ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'How this site builds the demo, using the project Sass mixins. For reading, not for pasting')}
             </div>
+            ${modeHtml()}
             <button type="button" class="codebox__copy" data-copy="pane">${icon('copy')} Copy</button>
           </div>
           <div class="code__panel"></div>
