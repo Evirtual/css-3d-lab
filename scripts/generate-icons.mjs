@@ -14,6 +14,16 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
+// The tile's backdrop gets the site's faint blueprint grid (the page's --grid lines), a little
+// stronger than on the page so it survives being shrunk to an app icon: 8 cells across.
+const GRID = Array.from({ length: 7 }, (_, i) => {
+  const v = 64 * (i + 1);
+  return `<path d="M${v} 0V512M0 ${v}H512"/>`;
+})
+  .join('')
+  .replace(/^/, '<g stroke="rgb(140 150 220)" stroke-opacity="0.08" stroke-width="2.5" fill="none">')
+  .concat('</g>');
+
 const BARE = { e: 240 };
 const MASKABLE = { e: 179, tile: true };
 const APPLE = { e: 192, tile: true };
@@ -39,7 +49,7 @@ function mark({ e, tile = false }) {
   <linearGradient id="r" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#ff86bd"/><stop offset="1" stop-color="#d81e74"/></linearGradient>
   <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#171a36"/><stop offset="1" stop-color="#07080f"/></linearGradient>
   <radialGradient id="glow" cx="0.5" cy="0.55" r="0.5"><stop offset="0" stop-color="#8b6cff" stop-opacity="0.55"/><stop offset="1" stop-color="#8b6cff" stop-opacity="0"/></radialGradient>
-</defs>${tile ? '<rect width="512" height="512" fill="url(#bg)"/><circle cx="256" cy="270" r="230" fill="url(#glow)"/>' : ''}${far}${near}</svg>
+</defs>${tile ? `<rect width="512" height="512" fill="url(#bg)"/>${GRID}<circle cx="256" cy="270" r="230" fill="url(#glow)"/>` : ''}${far}${near}</svg>
 `;
 }
 
