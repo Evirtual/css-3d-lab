@@ -474,14 +474,11 @@ input {
       @include face(var(--hot), 16%);
     }
 
-    // inside each panel a grid of dots, like the cards' backdrop; the outline stays a line (the
-    // face's border). Hard-edged (colour and transparent at the same radius) so they stay crisp
-    // when the panel is turned and zoomed; faint through their colour, not through a blur.
+    // inside each panel fine scan lines, 1px every 6px, faint (the outline stays the face's
+    // border). Where panels overlap, the lines of a turned one cross them into a fine mesh.
     // :nth-child(n) so it comes after the face colours, which reset the background.
     i:nth-child(n) {
-      background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 36%, transparent) 2.2px, transparent 2.2px);
-      background-position: center;
-      background-size: 20% 20%; // 5 x 5
+      background-image: repeating-linear-gradient(transparent 0 5px, color-mix(in srgb, var(--text) 10%, transparent) 5px 6px);
     }
   }
 }
