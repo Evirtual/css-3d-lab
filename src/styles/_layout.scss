@@ -15,6 +15,13 @@ html {
   &:has(.viewer[open]) {
     overflow: hidden;
   }
+
+  // In full screen the reserved gutter is still there, OUTSIDE the full-screen element: a bare
+  // strip down the right edge. Nothing scrolls in full screen, so release it.
+  &:has(:fullscreen) {
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
 }
 
 body {
@@ -1104,19 +1111,30 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-height: 44px;
-    padding: 0 8px 0 14px;
+    min-height: 46px;
+    padding: 0 8px;
     border-bottom: 1px solid var(--border);
     background: var(--cb-soft);
 
+  }
+
+  // Appearance: background dots + light/dark, grouped and framed like the tabs on the left.
+  &__look {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 3px 3px 10px;
+    border: 1px solid var(--cb-line);
+    border-radius: 10px;
+    background: var(--cb-well);
   }
 
   // The window dots are controls: each tints the editor background; the active one has a ring.
   &__dots {
     display: flex;
     flex: none;
-    gap: 6px;
-    margin-right: 4px;
+    gap: 7px;
 
     button {
       width: 12px;
@@ -1260,7 +1278,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   // Sass source is reference material: quieter, and pushed to the far end.
   &__tab--source {
-    margin-left: auto;
     font-weight: 600 !important;
 
     &[aria-selected='true'] {
@@ -1293,12 +1310,12 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     display: grid;
     flex: none;
     place-items: center;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     padding: 0;
-    border: 1px solid var(--cb-line);
-    border-radius: 8px;
-    background: var(--cb-soft);
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: var(--cb-soft-2);
     color: var(--cb-fg);
     cursor: pointer;
 

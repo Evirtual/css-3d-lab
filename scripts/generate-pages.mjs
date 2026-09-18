@@ -141,14 +141,13 @@ function demoPage(d, index) {
   const codeWindow = `
           <section class="codebox page-codebox" data-codebox>
             <div class="codebox__bar">
-              <div class="codebox__dots" role="group" aria-label="Editor background"><button type="button" data-tint-set="default" aria-pressed="false" aria-label="default background" title="Default background"></button><button type="button" data-tint-set="rose" aria-pressed="false" aria-label="rose background" title="Rose background"></button><button type="button" data-tint-set="amber" aria-pressed="false" aria-label="amber background" title="Amber background"></button><button type="button" data-tint-set="green" aria-pressed="false" aria-label="green background" title="Green background"></button></div>
               <div class="codebox__tabs" role="tablist">
                 <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
                   ${panes.filter((x) => x.key !== 'scss').map((x) => `<button type="button" role="tab" data-pane="${x.key}" aria-selected="${x.key === 'css'}">${x.label}</button>`).join('')}
                 </div>
                 ${scss ? `<button type="button" role="tab" class="codebox__tab--source" data-pane="scss" aria-selected="false" title="How this site builds the demo, using the project Sass mixins. For reading, not for pasting">Sass source</button>` : ''}
               </div>
-              <button type="button" class="codebox__mode" data-editor-mode aria-label="Switch editor to light mode"></button>
+              <div class="codebox__look"><div class="codebox__dots" role="group" aria-label="Editor background"><button type="button" data-tint-set="default" aria-pressed="false" aria-label="default background" title="Default background"></button><button type="button" data-tint-set="rose" aria-pressed="false" aria-label="rose background" title="Rose background"></button><button type="button" data-tint-set="amber" aria-pressed="false" aria-label="amber background" title="Amber background"></button><button type="button" data-tint-set="green" aria-pressed="false" aria-label="green background" title="Green background"></button></div><button type="button" class="codebox__mode" data-editor-mode aria-label="Switch editor to light mode"></button></div>
               <button type="button" class="codebox__copy" data-copy-code>${icon('copy')} Copy</button>
             </div>
             ${panes

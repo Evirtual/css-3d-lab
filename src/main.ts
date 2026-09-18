@@ -337,14 +337,13 @@ function openViewer(id: string): void {
       <section class="code">
         <div class="codebox">
           <div class="codebox__bar">
-            ${dotsHtml()}
             <div class="codebox__tabs" role="tablist">
               <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
                 ${panes.filter((p) => isPart(p.key)).map((p) => tab(p)).join('')}
               </div>
               ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'How this site builds the demo, using the project Sass mixins. For reading, not for pasting')}
             </div>
-            ${modeHtml()}
+            <div class="codebox__look">${dotsHtml()}${modeHtml()}</div>
             <button type="button" class="codebox__copy" data-copy="pane">${icon('copy')} Copy</button>
           </div>
           <div class="code__panel"></div>
