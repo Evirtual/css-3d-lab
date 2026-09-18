@@ -1,4 +1,5 @@
 import './styles/main.scss';
+import { initAnalytics, track } from './analytics';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
 import { snippets, standaloneDoc } from './demos/snippets';
@@ -232,6 +233,7 @@ function applyFilters(): void {
 }
 
 hydrateIcons();
+initAnalytics();
 
 searchEl.value = state.q;
 clearEl.addEventListener('click', () => {
@@ -287,6 +289,7 @@ interface Pane {
 function openViewer(id: string): void {
   const demo = demos.find((d) => d.id === id);
   if (!demo) return;
+  track(`open/${id}`);
   const snip = snippets[id];
   const panes: Pane[] = [
     { key: 'html', label: 'HTML', lang: 'html', code: snip.html },
@@ -338,6 +341,7 @@ function openViewer(id: string): void {
     }
     copyPane.hidden = pane.key === 'run';
     if (pane.key === 'run') {
+      track(`run/${id}`);
       const frame = document.createElement('iframe');
       frame.title = `${demo.title} — standalone snippet`;
       frame.setAttribute('sandbox', 'allow-scripts');
@@ -353,11 +357,12 @@ function openViewer(id: string): void {
     }
   };
 
-  const copy = async (btn: HTMLButtonElement, text: string) => {
+  const copy = async (btn: HTMLButtonElement, text: string, what: string) => {
     const label = btn.innerHTML;
     try {
       await navigator.clipboard.writeText(text);
       btn.innerHTML = `${icon('check')} Copied`;
+      track(`copy/${id}/${what}`);
       viewerBody.querySelector<HTMLElement>('.code__thanks')!.hidden = false;
     } catch {
       btn.textContent = 'Copy blocked — select the text manually';
@@ -369,8 +374,8 @@ function openViewer(id: string): void {
     const el = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-pane],[data-copy]');
     if (!el) return;
     if (el.dataset.pane) show(panes.find((p) => p.key === el.dataset.pane)!);
-    else if (el.dataset.copy === 'file') void copy(el, standaloneDoc(demo.title, snip));
-    else if (current.code) void copy(el, current.code);
+    else if (el.dataset.copy === 'file') void copy(el, standaloneDoc(demo.title, snip), 'file');
+    else if (current.code) void copy(el, current.code, current.key);
   };
 
   show(current);

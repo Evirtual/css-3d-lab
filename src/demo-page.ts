@@ -1,4 +1,5 @@
 import './styles/main.scss';
+import { initAnalytics, track } from './analytics';
 import { demos } from './demos';
 import { icon } from './icons';
 
@@ -13,6 +14,8 @@ try {
 } catch {
   /* private mode: stay on the default theme */
 }
+
+initAnalytics();
 
 const stage = document.querySelector<HTMLElement>('[data-demo]');
 const demo = stage && demos.find((d) => d.id === stage.dataset.demo);
@@ -32,6 +35,7 @@ for (const block of document.querySelectorAll<HTMLElement>('[data-code]')) {
     try {
       await navigator.clipboard.writeText(code.textContent ?? '');
       btn.innerHTML = `${icon('check')} Copied`;
+      track(`copy/${stage?.dataset.demo ?? 'page'}/${block.querySelector('h3')?.textContent?.toLowerCase() ?? 'code'}`);
     } catch {
       btn.textContent = 'Copy blocked — select the text manually';
     }

@@ -2,5 +2,8 @@
   "url": "https://evirtual.github.io/css-3d-lab",
   "name": "CSS 3D Lab",
   "author": "Evirtual",
-  "repo": "https://github.com/Evirtual/css-3d-lab"
+  "repo": "https://github.com/Evirtual/css-3d-lab",
+  "analytics": {
+    "goatcounterCode": ""
+  }
 }

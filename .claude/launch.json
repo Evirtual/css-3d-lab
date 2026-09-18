@@ -6,12 +6,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5183", "--strictPort"],
       "port": 5183
-    },
-    {
-      "name": "pro-workbench",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "C:\\dev\\css-3d-lab-pro", "run", "dev"],
-      "port": 5184
     }
   ]
 }
