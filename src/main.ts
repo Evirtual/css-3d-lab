@@ -7,6 +7,7 @@ import { LiveEdit, type Part } from './live-edit';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { dotsHtml, initTint, modeHtml } from './tint';
+import { initZoom, zoomHtml } from './zoom';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
 import { snippets } from './demos/snippets';
@@ -326,6 +327,7 @@ function openViewer(id: string): void {
       <section>
         <div class="stage-wrap">
           <div class="stage stage--lg"></div>
+          ${zoomHtml()}
           <button type="button" class="stage__fs" data-fullscreen aria-label="Full screen"></button>
           <p class="stage__edited" data-edited hidden>Your edited version <button type="button" class="link" data-reset>Reset to original</button></p>
         </div>
@@ -450,6 +452,7 @@ function openViewer(id: string): void {
 
   initFullscreen(viewerBody);
   initTint();
+  initZoom();
   show(current);
   refreshStage();
   viewer.showModal();

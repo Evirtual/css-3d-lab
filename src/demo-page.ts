@@ -11,6 +11,7 @@ import { copyText, embedCode } from './share';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { initTint } from './tint';
+import { initZoom } from './zoom';
 
 /**
  * Enhances the static demo and group pages. Everything a search engine needs is already in the
@@ -141,6 +142,7 @@ if (stage && demo && box) {
 
   box.dataset.enhanced = ''; // CSS switches from "stacked with labels" to "tabbed"
   initTint();
+  initZoom();
   refreshStage();
   show(current);
 }

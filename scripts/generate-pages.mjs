@@ -228,6 +228,7 @@ function demoPage(d, index) {
             <div class="stage stage--lg" data-demo="${d.id}">
               <noscript><p class="page-noscript">The live 3D preview needs JavaScript to load. The explanation and full code are below.</p></noscript>
             </div>
+            <div class="stage__zoom" role="group" aria-label="Zoom"><button type="button" data-zoom="1" aria-pressed="true">1×</button><button type="button" data-zoom="1.5" aria-pressed="false">1.5×</button><button type="button" data-zoom="2" aria-pressed="false">2×</button></div>
             <button type="button" class="stage__fs" data-fullscreen aria-label="Full screen"></button>
             <p class="stage__edited" data-edited hidden>Your edited version <button type="button" class="link" data-reset>Reset to original</button></p>
           </div>

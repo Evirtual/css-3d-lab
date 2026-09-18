@@ -804,14 +804,51 @@ input {
     height: 380px;
     border: 1px solid var(--border);
     border-radius: 14px;
-    // opaque base: on the glass dialog a see-through stage would muddy the 3D preview
+    // A lit backdrop: a soft spotlight behind the object and darker corners. Opaque base, so on
+    // the glass dialog the 3D preview never gets muddy.
     background:
-      radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-      radial-gradient(var(--border-strong) 1.3px, transparent 2.1px) 0 0 / 18px 18px,
+      radial-gradient(ellipse 60% 55% at 50% 45%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%),
+      radial-gradient(ellipse at 50% 50%, transparent 55%, rgb(0 0 0 / 0.35) 100%),
       var(--bg);
 
+    // the dot grid, fading out toward the edges so it reads as depth rather than wallpaper
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(var(--border-strong) 1.3px, transparent 2.1px) 0 0 / 22px 22px;
+      mask: radial-gradient(ellipse 75% 70% at 50% 50%, #000 25%, transparent 90%);
+      pointer-events: none;
+    }
+
+    // a faint pool of light on the "floor" under the object
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 9%;
+      left: 50%;
+      width: 46%;
+      height: 12%;
+      translate: -50% 0;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, color-mix(in srgb, var(--accent-2) 26%, transparent), transparent 70%);
+      filter: blur(8px);
+      pointer-events: none;
+    }
+
+    // the scene sits above both layers
+    > .scene,
+    > .live-frame {
+      z-index: 1;
+    }
+
+    // --zoom comes from the zoom buttons on the stage wrapper (1 / 1.5 / 2)
     .scene:not(.scene--fill) {
-      scale: 1.45;
+      scale: calc(1.45 * var(--zoom, 1));
+    }
+
+    .scene--fill {
+      zoom: var(--zoom, 1);
     }
   }
 }
@@ -1480,13 +1517,17 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   position: relative;
 
   // the visitor's edited snippet, running in a sandboxed frame in place of the built-in demo
+  // Laid out at 1/zoom of the stage and scaled back up: the snippet inside sees a smaller
+  // viewport, so it stays centred while everything in it appears zoom× larger.
   .live-frame {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    top: 0;
+    left: 0;
+    width: calc(100% / var(--zoom, 1));
+    height: calc(100% / var(--zoom, 1));
     border: 0;
-    border-radius: inherit;
+    transform: scale(var(--zoom, 1));
+    transform-origin: 0 0;
   }
 
   &:fullscreen {
@@ -1496,31 +1537,70 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       height: 100vh;
       border: 0;
       border-radius: 0;
-      // bigger, wider-spaced dots: across a whole monitor the small pattern turns to noise
-      background:
-        radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-        radial-gradient(var(--border-strong) 1.8px, transparent 2.8px) 0 0 / 32px 32px,
-        var(--bg);
+
+      // across a whole monitor the dots need to be bigger and further apart
+      &::before {
+        background-size: 36px 36px;
+        background-image: radial-gradient(var(--border-strong) 1.8px, transparent 2.8px);
+      }
     }
 
     // up close: that is the point of full screen
     .scene:not(.scene--fill) {
-      scale: 2.8;
+      scale: calc(2.8 * var(--zoom, 1));
     }
 
     .scene--fill {
-      zoom: 2.2;
+      zoom: calc(2.2 * var(--zoom, 1));
     }
 
     // a large monitor has room for more
     @media (min-height: 900px) and (min-width: 1400px) {
       .scene:not(.scene--fill) {
-        scale: 4;
+        scale: calc(4 * var(--zoom, 1));
       }
 
       .scene--fill {
-        zoom: 3;
+        zoom: calc(3 * var(--zoom, 1));
       }
+    }
+  }
+}
+
+.stage__zoom {
+  position: absolute;
+  top: 10px;
+  right: 52px;
+  z-index: 3;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  opacity: 0.65;
+  transition: opacity 0.2s;
+
+  &:hover,
+  &:focus-within {
+    opacity: 1;
+  }
+
+  button {
+    min-width: 34px;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 7px;
+    background: none;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &[aria-pressed='true'] {
+      background: linear-gradient(120deg, var(--accent), var(--hot));
+      color: #fff;
     }
   }
 }
