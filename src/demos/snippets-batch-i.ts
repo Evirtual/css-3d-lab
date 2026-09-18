@@ -501,20 +501,21 @@ ${BOOKS.map(
   transform-origin: 50% 50% -36px;
   translate: 0 0 0;
   rotate: y 0deg;
-  /* going back: turn first, then slide in */
+  /* going back: turn straight first, then slide in */
   transition:
-    translate 0.45s cubic-bezier(0.3, 1.2, 0.5, 1) 0.18s,
-    rotate 0.4s ease-in-out;
+    translate 0.4s cubic-bezier(0.3, 0.7, 0.4, 1) 0.35s,
+    rotate 0.35s ease-in-out;
 }
 
 .slot:hover .book,
 .slot:focus-visible .book {
-  translate: 0 -5px 70px;
+  /* out further than the book is deep (72px), so it is clear of its neighbours before it turns */
+  translate: 0 -5px 86px;
   rotate: y -36deg;
-  /* coming out: slide first, then turn */
+  /* coming out: slide all the way first, then turn */
   transition:
-    translate 0.45s cubic-bezier(0.3, 1.2, 0.5, 1),
-    rotate 0.5s cubic-bezier(0.3, 1.2, 0.5, 1) 0.12s;
+    translate 0.4s cubic-bezier(0.3, 0.7, 0.4, 1),
+    rotate 0.5s cubic-bezier(0.3, 1.2, 0.5, 1) 0.4s;
 }
 
 .book i {

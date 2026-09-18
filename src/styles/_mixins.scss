@@ -12,16 +12,17 @@
   }
 }
 
-// Rounded faces leave a hole where their corners meet, and an empty box shows daylight through
-// it. This puts a square plate just behind the face; on all faces together the plates form a
-// slightly smaller, sharp-cornered inner box that plugs every gap and can never poke outside.
+// Rounded faces leave a hole at every corner of a box, and an empty box shows daylight through
+// it. This puts a plate the full size of the face a little way behind it ($inset). On all faces
+// together the plates close the inside: a plate only $inset smaller would leave an open channel
+// along every edge, and at a rounded corner you could look straight down it to the far corner.
 @mixin solid-core($inset, $color) {
   transform-style: preserve-3d;
 
   &::before {
     content: '';
     position: absolute;
-    inset: $inset;
+    inset: 0;
     background: $color;
     transform: translateZ(-$inset);
   }

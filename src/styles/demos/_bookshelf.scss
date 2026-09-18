@@ -1,6 +1,9 @@
 $depth: 72px; // every book is this deep (the width of its covers)
 $shelf: $depth + 18px; // the board runs a little in front of and behind the books
 $ease: cubic-bezier(0.3, 1.2, 0.5, 1);
+// how far a book comes out: its depth, plus what its back corners swing back while it turns, plus
+// a margin (so it is always clear of its neighbours before it turns)
+$pull: $depth + 14px;
 
 // The shelf is one plane seen at an angle. Its slots (one per book, laid out by flexbox) are the
 // hit targets; they are coplanar, so only they may catch the pointer.
@@ -74,8 +77,10 @@ $ease: cubic-bezier(0.3, 1.2, 0.5, 1);
 
   // The book: a box --t wide, --h tall and $depth deep, its spine at the front (z = 0). It turns
   // around its own middle. translate and rotate are separate properties, so each gets its own
-  // transition: out first, then turn; on the way back, turn first, then slide in. That way it
-  // never swings through its neighbours.
+  // transition: out first, then turn; on the way back, turn first, then slide in. Strictly one
+  // after the other (each starts when the other has finished), with no overshoot on the slide,
+  // and it comes out further than it is deep ($pull), so while it turns it is fully clear of the
+  // shelf and can never swing through its neighbours.
   &__book {
     position: absolute;
     inset: 0;
@@ -85,8 +90,8 @@ $ease: cubic-bezier(0.3, 1.2, 0.5, 1);
     translate: 0 0 0;
     rotate: y 0deg;
     transition:
-      translate 0.45s $ease 0.18s,
-      rotate 0.4s ease-in-out;
+      translate 0.4s cubic-bezier(0.3, 0.7, 0.4, 1) 0.35s,
+      rotate 0.35s ease-in-out;
 
     i {
       position: absolute;
@@ -164,10 +169,10 @@ $ease: cubic-bezier(0.3, 1.2, 0.5, 1);
   // Out toward you (translate) and a turn to show the cover (rotate), from a slot that stays put.
   &__slot:hover &__book,
   &__slot:focus-visible &__book {
-    translate: 0 -5px 70px;
+    translate: 0 -5px $pull;
     rotate: y -36deg;
     transition:
-      translate 0.45s $ease,
-      rotate 0.5s $ease 0.12s;
+      translate 0.4s cubic-bezier(0.3, 0.7, 0.4, 1),
+      rotate 0.5s $ease 0.4s;
   }
 }

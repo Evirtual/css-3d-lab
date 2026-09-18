@@ -2,8 +2,10 @@
   <linearGradient id="t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9bfaf1"/><stop offset="1" stop-color="#2ee6d6"/></linearGradient>
   <linearGradient id="l" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#a58cff"/><stop offset="1" stop-color="#5b3be8"/></linearGradient>
   <linearGradient id="r" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#ff86bd"/><stop offset="1" stop-color="#d81e74"/></linearGradient>
-</defs><polygon points="107.0,348.0 256.0,262.0 405.0,348.0 256.0,434.0" fill="url(#t)" fill-opacity="0.5"/>
-    <polygon points="107.0,176.0 256.0,90.0 256.0,262.0 107.0,348.0" fill="url(#r)" fill-opacity="0.45"/>
-    <polygon points="256.0,90.0 405.0,176.0 405.0,348.0 256.0,262.0" fill="url(#l)" fill-opacity="0.45"/><polygon points="256.0,90.0 405.0,176.0 256.0,262.0 107.0,176.0" fill="url(#t)" fill-opacity="0.8" stroke="#ffffff" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/>
-    <polygon points="107.0,176.0 256.0,262.0 256.0,434.0 107.0,348.0" fill="url(#l)" fill-opacity="0.78" stroke="#ffffff" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/>
-    <polygon points="256.0,262.0 405.0,176.0 405.0,348.0 256.0,434.0" fill="url(#r)" fill-opacity="0.78" stroke="#ffffff" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/></svg>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#171a36"/><stop offset="1" stop-color="#07080f"/></linearGradient>
+  <radialGradient id="glow" cx="0.5" cy="0.55" r="0.5"><stop offset="0" stop-color="#8b6cff" stop-opacity="0.55"/><stop offset="1" stop-color="#8b6cff" stop-opacity="0"/></radialGradient>
+</defs><polygon points="48.2,376.0 256.0,256.0 463.8,376.0 256.0,496.0" fill="url(#t)" fill-opacity="0.55"/>
+    <polygon points="48.2,136.0 256.0,16.0 256.0,256.0 48.2,376.0" fill="url(#r)" fill-opacity="0.5"/>
+    <polygon points="256.0,16.0 463.8,136.0 463.8,376.0 256.0,256.0" fill="url(#l)" fill-opacity="0.5"/><polygon points="256.0,16.0 463.8,136.0 256.0,256.0 48.2,136.0" fill="url(#t)" fill-opacity="0.92" stroke="#ffffff" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/>
+    <polygon points="48.2,136.0 256.0,256.0 256.0,496.0 48.2,376.0" fill="url(#l)" fill-opacity="0.9" stroke="#ffffff" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/>
+    <polygon points="256.0,256.0 463.8,136.0 463.8,376.0 256.0,496.0" fill="url(#r)" fill-opacity="0.9" stroke="#ffffff" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/></svg>

@@ -78,9 +78,9 @@ input {
 
 /* ---------- ambient background ---------- */
 
-// The page backdrop: two soft washes of colour from opposite corners (violet from the top left,
-// teal from the bottom right) that meet in the middle, over the faint blueprint grid. They drift a
-// little, very slowly.
+// The page backdrop: two faint washes of colour from opposite corners (violet from the top left,
+// teal from the bottom right), strongest in the corner and gone by the middle of the screen, under
+// the faint blueprint grid. They drift a little, slowly.
 .aurora {
   position: fixed;
   inset: 0;
@@ -102,25 +102,38 @@ input {
     mask: linear-gradient(#000, rgb(0 0 0 / 0.6));
   }
 
-  // the two washes: each a big soft gradient from its corner, fading out before the middle
+  // the two washes. The box is 10% bigger than the screen on every side (room to drift), so
+  // 8.33% is the corner of the screen; a radius of 72% of the box is about 85% of the screen, so
+  // each wash fades out a little past the middle.
   &::after {
     content: '';
     position: absolute;
-    inset: -20%;
+    inset: -10%;
     background:
-      radial-gradient(ellipse 60% 55% at 12% 8%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
-      radial-gradient(ellipse 60% 55% at 88% 92%, color-mix(in srgb, var(--accent-2) 16%, transparent), transparent 70%);
+      radial-gradient(
+        ellipse 72% 72% at 8.33% 8.33%,
+        color-mix(in srgb, var(--accent) 16%, transparent),
+        color-mix(in srgb, var(--accent) 7%, transparent) 50%,
+        transparent
+      ),
+      radial-gradient(
+        ellipse 72% 72% at 91.67% 91.67%,
+        color-mix(in srgb, var(--accent-2) 9%, transparent),
+        color-mix(in srgb, var(--accent-2) 4%, transparent) 50%,
+        transparent
+      );
     animation: aurora-drift 40s ease-in-out infinite alternate;
   }
 
   i {
     display: none;
   }
+
 }
 
 @keyframes aurora-drift {
   to {
-    transform: translate3d(3%, 2%, 0) rotate(4deg);
+    transform: translate3d(2%, 1.5%, 0);
   }
 }
 
@@ -271,18 +284,17 @@ input {
   i {
     position: absolute;
     inset: 0;
-    border: 1px solid rgb(255 255 255 / 0.35);
-    border-radius: 3px;
-    background: linear-gradient(rgb(165 140 255 / 0.72), rgb(91 59 232 / 0.72));
+    border: 1px solid rgb(255 255 255 / 0.35); // sharp corners: a rounded see-through face leaves a gap
+    background: linear-gradient(rgb(165 140 255 / 0.88), rgb(91 59 232 / 0.88));
   }
 
   i:nth-child(2n) {
-    background: linear-gradient(rgb(255 134 189 / 0.72), rgb(216 30 116 / 0.72));
+    background: linear-gradient(rgb(255 134 189 / 0.88), rgb(216 30 116 / 0.88));
   }
 
   i:nth-child(5),
   i:nth-child(6) {
-    background: linear-gradient(135deg, rgb(155 250 241 / 0.78), rgb(46 230 214 / 0.78));
+    background: linear-gradient(135deg, rgb(155 250 241 / 0.9), rgb(46 230 214 / 0.9));
   }
 }
 
@@ -390,38 +402,6 @@ input {
 
     &.is-held {
       cursor: grabbing;
-    }
-
-    // A soft shadow on the "floor" under the shape. It changes with the shape (hero.ts sets
-    // data-shape): wide and square-ish under the cube, broad under the pyramid, a small point
-    // under the diamond, round under the sphere. No glow behind it.
-    &::before {
-      content: '';
-      position: absolute;
-      bottom: 12%;
-      left: 50%;
-      width: calc(var(--shadow-w, 1) * 44%);
-      height: 11%;
-      border-radius: 50%;
-      background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 38%, transparent), transparent);
-      opacity: var(--shadow-o, 0.9);
-      translate: -50% 0;
-      transition:
-        width 1.6s cubic-bezier(0.65, 0, 0.25, 1),
-        opacity 1.6s;
-    }
-
-    &:has([data-shape='pyramid'])::before {
-      --shadow-w: 1.2;
-    }
-
-    &:has([data-shape='diamond'])::before {
-      --shadow-w: 0.45;
-      --shadow-o: 0.7;
-    }
-
-    &:has([data-shape='sphere'])::before {
-      --shadow-w: 0.85;
     }
   }
 
