@@ -103,7 +103,7 @@ input {
   }
 
   // the two washes. The box is 10% bigger than the screen on every side (room to drift), so
-  // 8.33% is the corner of the screen; a radius of 61% of the box is about 73% of the screen, so
+  // 8.33% is the corner of the screen; a radius of 55% of the box is 66% of the screen, so
   // each wash has faded out by the middle, which stays close to untouched.
   &::after {
     content: '';
@@ -111,14 +111,14 @@ input {
     inset: -10%;
     background:
       radial-gradient(
-        ellipse 61% 61% at 8.33% 8.33%,
+        ellipse 55% 55% at 8.33% 8.33%,
         color-mix(in srgb, var(--accent) 18%, transparent),
         color-mix(in srgb, var(--accent) 7%, transparent) 30%,
         color-mix(in srgb, var(--accent) 2%, transparent) 65%,
         transparent
       ),
       radial-gradient(
-        ellipse 61% 61% at 91.67% 91.67%,
+        ellipse 55% 55% at 91.67% 91.67%,
         color-mix(in srgb, var(--accent-2) 12%, transparent),
         color-mix(in srgb, var(--accent-2) 4.5%, transparent) 30%,
         color-mix(in srgb, var(--accent-2) 1.5%, transparent) 65%,
