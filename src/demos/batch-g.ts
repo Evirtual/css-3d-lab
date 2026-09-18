@@ -109,7 +109,7 @@ export const demosG: Demo[] = [
       'A paper cup that is wider at the top: twenty trapezoid strips lean out from the base circle. The sleeve and its logo wrap around without a seam, the lid is a stack of discs and the steam keeps rising.',
     category: 'css',
     tags: ['loop', 'product', 'cone', 'packaging', 'label'],
-    technique: ['frustum: strips hinged at the base, rotateX(−lean)', 'trapezoids with clip-path', 'one lap-long label, background-position by index', 'steam: translate + scale + opacity loop'],
+    technique: ['frustum: strips hinged at the base, rotateX(−lean)', 'trapezoids with clip-path', 'one lap-long label, background-position by index', 'steam from the sip slot, counter-turned to face you'],
     html: `<div class="d-coffeecup">
       <div class="d-coffeecup__spin">
         <i class="d-coffeecup__shadow"></i>
@@ -117,8 +117,8 @@ export const demosG: Demo[] = [
         ${[-1.5, 0, 1.5, 3].map((y) => `<i class="d-coffeecup__lid" style="--y:${y}"></i>`).join('')}
         <i class="d-coffeecup__lid d-coffeecup__lid--top" style="--y:4.5"></i>
         <i class="d-coffeecup__lid d-coffeecup__lid--spout" style="--y:6.5"></i>
+        <i class="d-coffeecup__vent"><i class="d-coffeecup__face">${[-2, 3].map((x, d) => `<i class="d-coffeecup__steam" style="--x:${x};--d:${d}"></i>`).join('')}</i></i>
       </div>
-      ${[-11, 1, 12].map((x, d) => `<i class="d-coffeecup__steam" style="--x:${x};--d:${d}"></i>`).join('')}
     </div>`,
   },
 ];

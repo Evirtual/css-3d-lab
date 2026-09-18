@@ -120,8 +120,8 @@ export const demosH: Demo[] = [
     category: 'css',
     tags: ['controls', 'form-hack', 'stars', 'sass-loop'],
     technique: ['radio:nth-of-type(n):checked ~ label:nth-child(-n + n)', 'clip-path star faces, stacked edge layers', 'rotateY(180deg) + backface-visibility', 'transition-delay from --i'],
-    html: `<div class="d-rating" role="radiogroup" aria-label="Rate this demo">
-      <b class="d-rating__title" aria-hidden="true">Rate this demo</b>
+    html: `<div class="d-rating" role="radiogroup" aria-label="Rate this effect">
+      <b class="d-rating__title" aria-hidden="true">Rate this effect</b>
       ${RATING_WORDS.map(
         (word, i) =>
           `<input type="radio" name="rating-{{uid}}" id="rating-{{uid}}-${i + 1}" value="${i + 1}" aria-label="${i + 1} star${i ? 's' : ''}, ${word}"${i === 3 ? ' checked' : ''} />`,

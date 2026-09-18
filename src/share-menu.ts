@@ -40,7 +40,7 @@ export function openShareMenu(id: string, title: string): void {
   menu ??= Object.assign(document.createElement('dialog'), { className: 'sharemenu' });
   menu.innerHTML = `
     <header class="sharemenu__head">
-      <h2>Share this demo</h2>
+      <h2>Share this effect</h2>
       <form method="dialog"><button class="btn btn--icon" aria-label="Close">${icon('x')}</button></form>
     </header>
     <div class="sharemenu__link">

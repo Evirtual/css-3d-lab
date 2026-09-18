@@ -1420,7 +1420,8 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   max-width: none;
   max-height: none;
   margin: 0;
-  padding: 32px 12px 0;
+  --viewer-pad-top: 32px;
+  padding: var(--viewer-pad-top) 12px 0;
   overflow: hidden auto;
   border: 0;
   background: none;
@@ -1463,9 +1464,11 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     animation: viewer-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
+  // Sticks 12px below the top of the screen once the content scrolls. A sticky offset is measured
+  // inside the dialog's own top padding, so that is taken back off.
   &__close {
     position: sticky;
-    top: 12px;
+    top: calc(12px - var(--viewer-pad-top, 32px));
     z-index: 2;
     float: right;
 
@@ -2387,6 +2390,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 
   .viewer {
+    --viewer-pad-top: 18px;
     padding: 18px;
 
     &__cols {

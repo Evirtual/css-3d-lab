@@ -852,7 +852,7 @@ root.addEventListener('keydown', key);`,
 .cube i::before {
   content: '';
   position: absolute;
-  inset: 6px;
+  inset: 0; /* full size: a smaller plate leaves a channel along each edge you can see into */
   background: hsl(var(--hue) 45% 18%);
   transform: translateZ(-6px);
 }
@@ -1356,13 +1356,13 @@ render();`,
 }
 
 /* violet → teal across the row, with its own phase and tempo so neighbours never move together */
-.bar:nth-child(1) { --hue: 265; --delay: -0.2s; --dur: 1.5s; }
-.bar:nth-child(2) { --hue: 250; --delay: -0.9s; --dur: 1.2s; }
-.bar:nth-child(3) { --hue: 235; --delay: -0.5s; --dur: 1.7s; }
-.bar:nth-child(4) { --hue: 220; --delay: -1.3s; --dur: 1.3s; }
-.bar:nth-child(5) { --hue: 205; --delay: -0.1s; --dur: 1.6s; }
-.bar:nth-child(6) { --hue: 190; --delay: -0.7s; --dur: 1.25s; }
-.bar:nth-child(7) { --hue: 175; --delay: -1.1s; --dur: 1.45s; }
+.bar:nth-child(1) { --hue: 265; --delay: -0.4s; --dur: 2.7s; }
+.bar:nth-child(2) { --hue: 250; --delay: -1.6s; --dur: 2.2s; }
+.bar:nth-child(3) { --hue: 235; --delay: -0.9s; --dur: 3.1s; }
+.bar:nth-child(4) { --hue: 220; --delay: -2.3s; --dur: 2.35s; }
+.bar:nth-child(5) { --hue: 205; --delay: -0.2s; --dur: 2.9s; }
+.bar:nth-child(6) { --hue: 190; --delay: -1.3s; --dur: 2.25s; }
+.bar:nth-child(7) { --hue: 175; --delay: -2s; --dur: 2.6s; }
 
 .bar i {
   position: absolute;

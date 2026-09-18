@@ -677,7 +677,23 @@ $cover-grid: rgb(140 150 220 / 0.075);
     transform: rotateX(-26deg) rotateY(-38deg);
   }
 
+  // "no WebGL required." on one line of its own: a wider text column, the headline a size
+  // smaller, and the cube moved over to make room
+  &.embed .stage {
+    left: 52%;
+  }
+
+  .embed__og {
+    width: 54%;
+
+    b {
+      font-size: 58px;
+    }
+  }
+
   .embed__og b span {
+    display: block;
+    white-space: nowrap;
     background: linear-gradient(100deg, var(--accent), var(--hot) 55%, var(--warm));
     -webkit-background-clip: text;
     background-clip: text;

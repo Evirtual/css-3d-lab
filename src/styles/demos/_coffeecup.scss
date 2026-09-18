@@ -1,7 +1,7 @@
 @use 'sass:math';
 
 // A takeaway cup: a frustum (a cone with its tip cut off) of 20 leaning trapezoid strips, a kraft
-// sleeve whose logo wraps around it, a lid of stacked discs, and steam that rises and fades.
+// sleeve whose logo wraps around it, a lid of stacked discs, and steam that rises from the sip slot.
 $n: 20;
 $rt: 36px; // radius at the rim (to the middle of a strip's top edge)
 $rb: 27px; // radius at the base
@@ -119,16 +119,31 @@ $rim: math.div($rt, math.cos(math.div(180deg, $n))) + 2px; // lid radius, just p
     }
   }
 
-  // --- steam: outside the spinning part, so it always faces you -----------------------------------
+  // --- steam: rises from the sip slot, so it turns round with the cup; a counter-turn on the
+  // inside keeps each wisp facing you (a flat wisp seen edge-on would vanish) -------------------------
+  &__vent {
+    position: absolute;
+    top: -7px; // the top of the spout
+    left: 0;
+    transform-style: preserve-3d;
+    transform: translateZ(24px); // over the slot, near the spout's front
+  }
+
+  &__face {
+    position: absolute;
+    transform-style: preserve-3d;
+    animation: d-coffeecup-spin $turn linear infinite reverse;
+  }
+
   &__steam {
     position: absolute;
-    top: -36px;
-    left: -2px;
-    width: 14px;
-    height: 38px;
+    top: -30px;
+    left: -5px;
+    width: 10px;
+    height: 30px;
     opacity: 0;
     animation: d-coffeecup-steam 3.6s linear infinite;
-    animation-delay: calc(var(--d) * -1.2s);
+    animation-delay: calc(var(--d) * -1.8s);
 
     // two arcs make an S
     &::before,
@@ -138,7 +153,7 @@ $rim: math.div($rt, math.cos(math.div(180deg, $n))) + 2px; // lid radius, just p
       left: 0;
       width: 100%;
       height: 52%;
-      border: 3px solid transparent;
+      border: 2.5px solid transparent;
       border-radius: 50%;
     }
 

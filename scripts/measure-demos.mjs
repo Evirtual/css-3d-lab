@@ -45,49 +45,48 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch();
 
-/** Runs in the page: how far visible parts reach from the scene's middle, in unzoomed px. */
-function reach() {
-  const scene = document.querySelector('.scene');
-  const s = scene.getBoundingClientRect();
-  const cx = s.left + s.width / 2;
-  const cy = s.top + s.height / 2;
-  const zoom = parseFloat(getComputedStyle(scene).zoom) || 1;
-  const out = { l: 0, r: 0, t: 0, b: 0 };
-  for (const el of scene.querySelectorAll('*')) {
-    const cs = getComputedStyle(el);
-    if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) < 0.05) continue;
-    const r = el.getBoundingClientRect();
-    if (r.width < 2 || r.height < 2) continue;
-    // only what is drawn: an invisible hit area or wrapper is not part of the model
-    const alpha = (c) => c !== 'transparent' && !c.endsWith(', 0)') && !c.endsWith('/ 0)');
-    const paints =
-      alpha(cs.backgroundColor) ||
-      cs.backgroundImage !== 'none' ||
-      (parseFloat(cs.borderTopWidth) + parseFloat(cs.borderLeftWidth) > 0 && alpha(cs.borderTopColor)) ||
-      cs.boxShadow !== 'none' ||
-      /^(svg|img|canvas|video)$/i.test(el.tagName) ||
-      // drawn by its ::before / ::after (their box is about the element's)
-      ['::before', '::after'].some((pe) => getComputedStyle(el, pe).content !== 'none') ||
-      [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-    if (!paints) continue;
-    // inside a part that clips it (a glare inside a card): only what shows through counts
-    let { left, right, top, bottom } = r;
-    for (let p = el.parentElement; p && p !== scene; p = p.parentElement) {
-      if (getComputedStyle(p).overflow === 'visible') continue;
-      const c = p.getBoundingClientRect();
-      left = Math.max(left, c.left);
-      right = Math.min(right, c.right);
-      top = Math.max(top, c.top);
-      bottom = Math.min(bottom, c.bottom);
-    }
-    if (right - left < 1 || bottom - top < 1) continue;
-    out.l = Math.max(out.l, cx - left);
-    out.r = Math.max(out.r, right - cx);
-    out.t = Math.max(out.t, cy - top);
-    out.b = Math.max(out.b, bottom - cy);
-  }
-  for (const k in out) out[k] /= zoom;
-  return out;
+/**
+ * How far what is actually drawn reaches from the scene's middle, in unzoomed px: a screenshot on a
+ * transparent page, and the box around every pixel that is clearly there (alpha > ALPHA, about 10%, so a
+ * faint glow or a soft shadow does not count). Pixels, not element boxes: a box misses what a
+ * ::before / ::after draws outside it (a crystal's tip, a lid's knob), and counts what clip-path
+ * cuts away.
+ */
+const ALPHA = 24;
+async function reachOf(page) {
+  const png = (await page.screenshot({ omitBackground: true })).toString('base64');
+  return page.evaluate(
+    async ([png, alpha]) => {
+      const img = new Image();
+      img.src = 'data:image/png;base64,' + png;
+      await img.decode();
+      const c = new OffscreenCanvas(img.width, img.height);
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      const d = g.getImageData(0, 0, img.width, img.height).data;
+      let l = Infinity;
+      let r = -1;
+      let t = Infinity;
+      let b = -1;
+      for (let y = 0; y < img.height; y++) {
+        for (let x = 0; x < img.width; x++) {
+          if (d[(y * img.width + x) * 4 + 3] <= alpha) continue;
+          if (x < l) l = x;
+          if (x > r) r = x;
+          if (y < t) t = y;
+          if (y > b) b = y;
+        }
+      }
+      const scene = document.querySelector('.scene');
+      const s = scene.getBoundingClientRect();
+      const cx = s.left + s.width / 2;
+      const cy = s.top + s.height / 2;
+      const zoom = parseFloat(getComputedStyle(scene).zoom) || 1;
+      if (r < 0) return { l: 0, r: 0, t: 0, b: 0 };
+      return { l: (cx - l) / zoom, r: (r + 1 - cx) / zoom, t: (cy - t) / zoom, b: (b + 1 - cy) / zoom };
+    },
+    [png, ALPHA],
+  );
 }
 
 /** Runs in the page: puts every animation at time t (ms) and pauses it. */
@@ -99,16 +98,24 @@ function at(t) {
   }
 }
 
+// The page is three cards wide and tall with the demo at a card's scale (--fit 1), so what reaches
+// past a card's edge is still on screen to be measured; only the demo is drawn (no backdrop).
+const PW = W * 3;
+const PH = H * 3;
+const BARE =
+  '.embed__credit{display:none!important} html{overflow:hidden} html,body,.embed,.stage{background:transparent!important}' +
+  '.stage::before,.stage::after{display:none!important} .stage{--fit:1!important;overflow:visible!important}';
+
 async function measure(demo) {
-  const page = await browser.newPage({ viewport: { width: W, height: H } });
+  const page = await browser.newPage({ viewport: { width: PW, height: PH } });
   await page.goto(`${base}/embed/${demo.id}/`);
-  await page.addStyleTag({ content: '.embed__credit{display:none!important} html{overflow:hidden}' });
+  await page.addStyleTag({ content: BARE });
   await page.waitForTimeout(500);
   const rest = { l: 0, r: 0, t: 0, b: 0 };
   const played = { l: 0, r: 0, t: 0, b: 0 };
   let max = rest;
   const take = async () => {
-    const m = await page.evaluate(reach);
+    const m = await reachOf(page);
     for (const k in max) max[k] = Math.max(max[k], m[k]);
   };
   // the whole idle animation: 16 moments over 16 s
@@ -121,8 +128,8 @@ async function measure(demo) {
   Object.assign(played, rest);
   max = played;
   const how = interactionOf(demo);
-  const cx = W / 2;
-  const cy = H / 2;
+  const cx = PW / 2;
+  const cy = PH / 2;
   if (how === 'hover' || how === 'move') {
     for (const [x, y] of [[cx, cy], [cx - 60, cy - 40], [cx + 60, cy + 40]]) {
       await page.mouse.move(x, y, { steps: 3 });

@@ -340,7 +340,7 @@ ${key('3D', true)}
 .cube b::before {
   content: '';
   position: absolute;
-  inset: 6px;
+  inset: 0; /* full size: a smaller plate leaves a channel along each edge you can see into */
   background: color-mix(in srgb, #8b6cff, #000 45%);
   transform: translateZ(-6px);
 }
@@ -458,8 +458,8 @@ render();`,
       '<code>transition-delay: calc(var(--i) * 90ms)</code> lights them left to right; the resting style has the reverse delay, so a lower rating empties the row from the right. The delay in the state you go <i>to</i> is the one that counts.',
       'The labels are the static hit targets (only the star inside moves), and the real radios keep arrow keys, forms and screen readers working. A ring bursts once as each star lands: an animation that only starts when its rule starts to match.',
     ],
-    html: `<div class="rating" role="radiogroup" aria-label="Rate this demo">
-  <b class="title" aria-hidden="true">Rate this demo</b>
+    html: `<div class="rating" role="radiogroup" aria-label="Rate this effect">
+  <b class="title" aria-hidden="true">Rate this effect</b>
 ${WORDS.map((w, i) => `  <input type="radio" name="rating" id="star-${i + 1}" aria-label="${i + 1} star${i ? 's' : ''}, ${w}"${i === 3 ? ' checked' : ''} />`).join('\n')}
   <div class="stars">
 ${WORDS.map((_, i) => `    <label for="star-${i + 1}" style="--i:${i}"><span class="lift"><span class="star"><i></i><i></i><i></i><i></i><i></i></span></span></label>`).join('\n')}
@@ -825,7 +825,7 @@ ${CUBE_FACES}
 .cube > i::before {
   content: '';
   position: absolute;
-  inset: 3px;
+  inset: 0; /* full size: a smaller plate leaves a channel along each edge you can see into */
   background: #c9c5e2;
   transform: translateZ(-3px);
 }
@@ -833,13 +833,17 @@ ${CUBE_FACES}
 .cube > i:nth-child(2) { background: linear-gradient(145deg, #eceaf8, #cbc7e3); }
 .cube > i:nth-child(6) { background: linear-gradient(#d9d5ee, #b9b4d6); }
 
+/* the sun and the moon inside a rim of the cube's own colour (like a keycap): at a rounded
+   corner a sliver of the side face shows, and a dark moon there looked like a hole */
 .cube > i:nth-child(1) {
   background: radial-gradient(circle, #fff6df, #ffe3a6);
+  box-shadow: inset 0 0 0 2.5px #dcd9ef;
   color: #e08a00;
 }
 
 .cube > i:nth-child(4) {
   background: radial-gradient(circle at 40% 35%, #34396e, #181b3c);
+  box-shadow: inset 0 0 0 2.5px #d4d0ea;
   color: #e9e4ff;
 }
 
@@ -968,7 +972,7 @@ ${CUBE_FACES}
 .cube b::before {
   content: '';
   position: absolute;
-  inset: 5px;
+  inset: 0; /* full size: a smaller plate leaves a channel along each edge you can see into */
   background: color-mix(in srgb, #8b6cff, #000 50%);
   transform: translateZ(-5px);
 }

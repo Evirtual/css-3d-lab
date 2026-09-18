@@ -112,8 +112,8 @@ if (stage && demo && box) {
     }
     note.textContent =
       key === 'scss'
-        ? 'This site’s own stylesheet for the demo (read-only). It needs the project’s Sass mixins, so copy from HTML / CSS instead.'
-        : 'Editable · type here and the demo updates. Saved in this browser only.';
+        ? 'This site’s own stylesheet for this effect (read-only). It needs the project’s Sass mixins, so copy from HTML / CSS instead.'
+        : 'Editable · type here and the effect updates. Saved in this browser only.';
   };
 
   box.addEventListener('click', (e) => {

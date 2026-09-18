@@ -1011,7 +1011,7 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
       'Each strip is a trapezoid cut with <code>clip-path</code>: 11.4px wide at the rim, 8.6px at the base (both are 2 · r · tan(9°)). Its height is the slant length, √(100² + 9²).',
       'The sleeve and its logo are painted on <b>one</b> canvas, exactly one lap long, and every strip slides it by its index (<code>background-position</code>). The lap is measured at the sleeve\'s middle height, where the strips are 9.86px wide, so the logo wraps round without a seam.',
       'The light stays put while the cup turns: every strip has a dark overlay whose opacity runs one lap, started i/20 of the way round with a negative <code>animation-delay</code>.',
-      'The lid is five discs stacked 1.5px apart plus a raised spout. The steam lives outside the spinning part so it always faces you; each S-shaped wisp rises, grows and fades, and starts and ends invisible so the loop never shows.',
+      'The lid is five discs stacked 1.5px apart plus a raised spout. The steam rises from the sip slot: it sits there inside the spinning part, so it goes round with the cup, and a counter-turn keeps each wisp facing you. Each S-shaped wisp rises, grows and fades, and starts and ends invisible so the loop never shows.',
     ],
     html: `<div class="scene">
   <div class="coffee">
@@ -1021,8 +1021,8 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
       <i class="lid" style="--y:-1.5"></i><i class="lid" style="--y:0"></i><i class="lid" style="--y:1.5"></i><i class="lid" style="--y:3"></i>
       <i class="lid lid-top" style="--y:4.5"></i>
       <i class="lid spout" style="--y:6.5"></i>
+      <i class="vent"><i class="face"><i class="steam" style="--x:-2;--d:0"></i><i class="steam" style="--x:3;--d:1"></i></i></i>
     </div>
-    <i class="steam" style="--x:-11;--d:0"></i><i class="steam" style="--x:1;--d:1"></i><i class="steam" style="--x:12;--d:2"></i>
   </div>
 </div>`,
     css: `.scene {
@@ -1124,16 +1124,32 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   transform: translateY(calc(var(--y) * -1px)) translateZ(19px) rotateX(90deg);
 }
 
-/* steam: two arcs make an S */
+/* steam rises from the sip slot: placed there inside .spin, so it goes round with the cup... */
+.vent {
+  position: absolute;
+  top: -7px;
+  left: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(24px);
+}
+
+/* ...and turned back the other way, so the wisps always face you */
+.face {
+  position: absolute;
+  transform-style: preserve-3d;
+  animation: spin 12s linear infinite reverse;
+}
+
+/* two arcs make an S */
 .steam {
   position: absolute;
-  top: -36px;
-  left: -2px;
-  width: 14px;
-  height: 38px;
+  top: -30px;
+  left: -5px;
+  width: 10px;
+  height: 30px;
   opacity: 0;
   animation: steam 3.6s linear infinite;
-  animation-delay: calc(var(--d) * -1.2s);
+  animation-delay: calc(var(--d) * -1.8s);
 }
 
 .steam::before,
@@ -1144,7 +1160,7 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   box-sizing: border-box;
   width: 100%;
   height: 52%;
-  border: 3px solid transparent;
+  border: 2.5px solid transparent;
   border-radius: 50%;
 }
 

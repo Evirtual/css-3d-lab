@@ -156,13 +156,18 @@ $depth: 5; // layers under the top, 2.4px apart
       background: linear-gradient(#d9d5ee, #b9b4d6);
     }
 
+    // The sun and the moon are painted inside a rim of the cube's own colour, like a keycap: at
+    // a rounded corner you see a sliver of the side face next to it, and a dark moon face there
+    // looked like a hole into the cube.
     i:nth-child(1) {
       background: radial-gradient(circle, #fff6df, #ffe3a6);
+      box-shadow: inset 0 0 0 2.5px #dcd9ef;
       color: #e08a00;
     }
 
     i:nth-child(4) {
       background: radial-gradient(circle at 40% 35%, #34396e, #181b3c);
+      box-shadow: inset 0 0 0 2.5px #d4d0ea;
       color: #e9e4ff;
 
       svg {

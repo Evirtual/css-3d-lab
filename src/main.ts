@@ -238,7 +238,7 @@ function render(): void {
 
   // Announced to screen readers only; on screen the counts on every filter say the same.
   const shown = Math.min(limit, matching);
-  statusEl.textContent = matching === demos.length ? `${demos.length} demos` : `${matching} of ${demos.length} demos match`;
+  statusEl.textContent = matching === demos.length ? `${demos.length} effects` : `${matching} of ${demos.length} effects match`;
 
   emptyEl.hidden = matching > 0;
   clearEl.hidden = !state.q;
@@ -409,7 +409,7 @@ function openViewer(id: string): void {
               <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
                 ${panes.filter((p) => isPart(p.key)).map((p) => tab(p)).join('')}
               </div>
-              ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'How this site builds the demo, using the project Sass mixins. For reading, not for pasting')}
+              ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'How this site builds the effect, using the project Sass mixins. For reading, not for pasting')}
             </div>
             <div class="codebox__look">${dotsHtml()}${modeHtml()}</div>
             <button type="button" class="codebox__copy" data-copy="pane">${icon('copy')} Copy</button>
@@ -474,11 +474,11 @@ function openViewer(id: string): void {
       const counts = Object.fromEntries(panes.filter((p) => isPart(p.key)).map((p) => [p.key, lineCount(live.current[p.key as Part] ?? '')]));
       panel.insertAdjacentHTML('beforeend', shortHint(part, counts[part], counts));
       lines.textContent = `${counts[part]} lines`;
-      note.textContent = 'Editable \u00b7 type here and the demo updates. Saved in this browser only.';
+      note.textContent = 'Editable \u00b7 type here and the effect updates. Saved in this browser only.';
     } else {
       panel.innerHTML = `<pre><code>${highlight(pane.code!, pane.lang!)}</code></pre>`;
       lines.textContent = `${lineCount(pane.code!)} lines`;
-      note.textContent = 'This site\u2019s own stylesheet for the demo (read-only). It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.';
+      note.textContent = 'This site\u2019s own stylesheet for this effect (read-only). It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.';
     }
   };
 

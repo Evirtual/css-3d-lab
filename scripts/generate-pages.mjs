@@ -48,7 +48,7 @@ function siteFooter(up) {
       <div class="site-footer__main">
         <div class="site-footer__brand">
           <a class="topbar__brand" href="${up}">${LOGO}${esc(site.name)}</a>
-          <p>CSS 3D effects to learn from and reuse: live demos, how each one works, and code you can copy. Free and ad-free.</p>
+          <p>CSS 3D effects to learn from and reuse: each one live, how it works, and code you can copy. Free and ad-free.</p>
         </div>
         <div class="site-footer__cta">
           <p>Saved you some time?</p>
@@ -107,7 +107,7 @@ function shell({ path, depth, title, description, jsonLd, body, script, image, i
         ${esc(site.name)}
       </a>
       <div class="topbar__actions">
-        <a class="btn" href="${up}" aria-label="All demos">${icon('chevron-left')} <span class="btn__label">All demos</span></a>
+        <a class="btn" href="${up}" aria-label="All effects">${icon('chevron-left')} <span class="btn__label">All effects</span></a>
         <button id="pause" class="btn" type="button" aria-pressed="false"></button>
         <button id="theme" class="btn" type="button"></button>
         <a class="btn" href="${site.repo}" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
@@ -162,7 +162,7 @@ function demoPage(d, index) {
   const next = demos[index + 1];
   const path = `demos/${d.id}/`;
   const title = `${d.title} in ${kind(d)} — 3D effect with copy-paste code | ${site.name}`;
-  const description = `${d.description} Live demo, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`;
+  const description = `${d.description} Live preview, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`;
 
   // The site's own Sass for this demo: shown for reading, like in the gallery dialog.
   const scssFile = `src/styles/demos/_${d.id}.scss`;
@@ -184,7 +184,7 @@ function demoPage(d, index) {
                 <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
                   ${panes.filter((x) => x.key !== 'scss').map((x) => `<button type="button" role="tab" data-pane="${x.key}" aria-selected="${x.key === 'css'}">${x.label}</button>`).join('')}
                 </div>
-                ${scss ? `<button type="button" role="tab" class="codebox__tab--source" data-pane="scss" aria-selected="false" title="How this site builds the demo, using the project Sass mixins. For reading, not for pasting">Sass source</button>` : ''}
+                ${scss ? `<button type="button" role="tab" class="codebox__tab--source" data-pane="scss" aria-selected="false" title="How this site builds the effect, using the project Sass mixins. For reading, not for pasting">Sass source</button>` : ''}
               </div>
               <div class="codebox__look"><div class="codebox__dots" role="group" aria-label="Editor background"><button type="button" data-tint-set="default" aria-pressed="false" aria-label="default background" title="Default background"></button><button type="button" data-tint-set="rose" aria-pressed="false" aria-label="rose background" title="Rose background"></button><button type="button" data-tint-set="amber" aria-pressed="false" aria-label="amber background" title="Amber background"></button><button type="button" data-tint-set="green" aria-pressed="false" aria-label="green background" title="Green background"></button></div><button type="button" class="codebox__mode" data-editor-mode aria-label="Switch editor to light mode"></button></div>
               <button type="button" class="codebox__copy" data-copy-code>${icon('copy')} Copy</button>
@@ -345,7 +345,7 @@ function coverPage() {
     <div class="embed__og" aria-hidden="true">
       <div class="embed__og-tags"><span class="embed__og-kind">CSS 3D effects</span></div>
       <b>3D on the web, <span>no WebGL required.</span></b>
-      <span class="embed__og-sub">Live demos, how each one works, and code you can copy. Free.</span>
+      <span class="embed__og-sub">Live effects, how each one works, and code you can copy. Free.</span>
       <span class="embed__og-site"><img class="embed__og-logo" src="../../icon.svg" alt="" /><span class="embed__og-name">${esc(site.name)}</span><span class="embed__og-url">${site.url.replace('https://', '')}</span></span>
     </div>
     <script type="module" src="/src/embed.ts"></script>
@@ -364,7 +364,7 @@ function groupPage(g) {
   const description = `${members.length} free ${label.toLowerCase()} built with CSS 3D transforms — ${members
     .slice(0, 4)
     .map((d) => d.title.toLowerCase())
-    .join(', ')} and more. Live demos, explanations and copy-paste code.`;
+    .join(', ')} and more. Live effects, explanations and copy-paste code.`;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -384,7 +384,7 @@ function groupPage(g) {
       <header class="page-head">
         <div class="page-head__main">
           <h1>${esc(label)} <small>${members.length} CSS 3D effects</small></h1>
-          <p class="page-head__lead">Every one has a live demo, a step-by-step explanation and code you can edit and paste into your own project.</p>
+          <p class="page-head__lead">Every one runs live, with a step-by-step explanation and code you can edit and paste into your own project.</p>
           <ul class="page-facts">
             <li><b>${members.filter((d) => d.category === 'css').length}</b> pure CSS</li>
             <li><b>${members.filter((d) => d.category === 'js').length}</b> CSS + JS</li>
@@ -401,7 +401,7 @@ function groupPage(g) {
           .join(' ')}</p>
       </section>
     </main>`;
-  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: 'media/home.jpg', imageAlt: `${site.name}: ${demos.length} CSS 3D effects with live demos and copy-paste code` });
+  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: 'media/home.jpg', imageAlt: `${site.name}: ${demos.length} live CSS 3D effects with copy-paste code` });
 }
 
 /* ---------- write everything ---------- */
@@ -422,8 +422,8 @@ for (const g of GROUP_ORDER) write(`groups/${g}/index.html`, groupPage(g));
 // Plain, crawlable links to every page, injected into the home page by vite.config.ts.
 write(
   'src/generated/all-demos.html',
-  `<nav class="all-demos" aria-label="All demos">
-      <h2>Every demo <span>${demos.length} in ${GROUP_ORDER.length} groups</span></h2>
+  `<nav class="all-demos" aria-label="All effects">
+      <h2>Every effect <span>${demos.length} in ${GROUP_ORDER.length} groups</span></h2>
       <div class="all-demos__groups">
       ${GROUP_ORDER.map((g) => {
         const members = demos.filter((d) => d.group === g);
