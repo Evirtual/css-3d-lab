@@ -3,7 +3,7 @@ import { initAnalytics, track } from './analytics';
 import { initCardLook } from './card-look';
 import { initChrome } from './chrome';
 import { fitStages } from './fit';
-import { demos } from './demos';
+import { demos } from './models';
 import { createEditor, type Editor } from './editor';
 import { initFullscreen } from './fullscreen';
 import type { Lang } from './highlight';
@@ -15,7 +15,7 @@ import { shortHint } from './short-hint';
 import { initTint } from './tint';
 import { trackDownloads } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
-import { sizeScene } from './demos/size';
+import { sizeScene } from './models/size';
 
 /**
  * Enhances the static demo and group pages. Everything a search engine needs is already in the

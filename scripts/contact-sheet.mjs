@@ -16,7 +16,7 @@ const [VW, VH] = reel ? [270, 480] : [380, 280];
 const perAt = args.indexOf('--per');
 const per = perAt === -1 ? 10 : Number(args.splice(perAt, 2)[1]);
 const ids = args.filter((a) => !a.startsWith('--'));
-const known = JSON.parse(readFileSync('src/generated/demo-ids.json', 'utf8'));
+const known = JSON.parse(readFileSync('src/generated/model-ids.json', 'utf8'));
 const demos = ids.length ? ids.map((id) => known.find((d) => d.id === id) ?? { id, pointer: false }) : known;
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };

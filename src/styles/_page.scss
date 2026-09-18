@@ -293,7 +293,7 @@
 // Home page: plain links to every page, for people and for crawlers.
 // Every demo, grouped: a card whose groups flow through balanced columns (no gaps under the short
 // groups), each group with its count.
-.all-demos {
+.all-models {
   width: min(1240px, calc(100% - 40px)); // the same width as the footer below it
   margin: 56px auto 0;
   padding: 28px 30px 8px;
@@ -544,7 +544,7 @@
   }
 
   .embed .stage .scene:not(.scene--fill) {
-    zoom: calc(2.1 * var(--size, 1)); // x the demo's size factor (demos/size.ts)
+    zoom: calc(2.1 * var(--size, 1)); // x the demo's size factor (models/size.ts)
   }
 
   // (offsets divided by the zoom: zoom scales them too)
@@ -723,7 +723,7 @@ $cover-grid: rgb(140 150 220 / 0.075);
   // zoom, not scale: a zoomed scene is laid out (and drawn) big; a scaled one is a stretched bitmap
   .embed .stage .scene:not(.scene--fill) {
     scale: none;
-    zoom: calc(2.1 * var(--size, 1)); // x the demo's size factor (demos/size.ts)
+    zoom: calc(2.1 * var(--size, 1)); // x the demo's size factor (models/size.ts)
   }
 
   // Scenes that fill the stage get the band between the text (540 × 420 on screen). Zoom scales
@@ -805,7 +805,7 @@ $cover-grid: rgb(140 150 220 / 0.075);
 // 16:9: title top-left, site bottom-left, the demo big in the middle
 [data-reel='wide'] {
   .embed .stage .scene:not(.scene--fill) {
-    zoom: calc(1.75 * var(--size, 1)); // x the demo's size factor (demos/size.ts)
+    zoom: calc(1.75 * var(--size, 1)); // x the demo's size factor (models/size.ts)
     translate: 0 12px;
   }
 
@@ -858,7 +858,7 @@ $cover-grid: rgb(140 150 220 / 0.075);
 
   // the same size as in the branded video: wide demos (a payment card) need the side margin
   .embed .stage .scene:not(.scene--fill) {
-    zoom: calc(2.1 * var(--size, 1)); // x the demo's size factor (demos/size.ts)
+    zoom: calc(2.1 * var(--size, 1)); // x the demo's size factor (models/size.ts)
     translate: none;
   }
 
@@ -899,7 +899,7 @@ $cover-grid: rgb(140 150 220 / 0.075);
 
 [data-reel='wide'][data-reel-clean] {
   .embed .stage .scene:not(.scene--fill) {
-    zoom: calc(2 * var(--size, 1)); // x the demo's size factor (demos/size.ts)
+    zoom: calc(2 * var(--size, 1)); // x the demo's size factor (models/size.ts)
   }
 
   .embed .stage .scene--fill {

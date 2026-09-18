@@ -12,8 +12,8 @@ import { chromium } from 'playwright';
 const DIST = resolve('dist');
 const only = process.argv.slice(2);
 const vite = await createVite({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
-const { demos } = await vite.ssrLoadModule('/src/demos/index.ts');
-const { interactionOf } = await vite.ssrLoadModule('/src/demos/interaction.ts');
+const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
+const { interactionOf } = await vite.ssrLoadModule('/src/models/interaction.ts');
 await vite.close();
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
@@ -50,7 +50,7 @@ async function check(demo) {
       if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) === 0) continue;
       const r = el.getBoundingClientRect();
       if (r.width < 2 || r.height < 2) continue;
-      // only what is drawn: an invisible hit area or wrapper may reach further (same rule as measure-demos)
+      // only what is drawn: an invisible hit area or wrapper may reach further (same rule as measure-models)
       const alpha = (c) => c !== 'transparent' && !c.endsWith(', 0)') && !c.endsWith('/ 0)');
       const paints =
         alpha(cs.backgroundColor) ||

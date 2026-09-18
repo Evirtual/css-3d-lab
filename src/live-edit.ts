@@ -1,5 +1,5 @@
-import { standaloneDoc } from './demos/snippet-utils';
-import sizes from './demos/sizes.json';
+import { standaloneDoc } from './models/snippet-utils';
+import sizes from './models/sizes.json';
 
 /**
  * One demo's editable snippet. Edits are kept in localStorage per demo, so they survive a reload

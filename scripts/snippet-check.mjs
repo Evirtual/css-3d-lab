@@ -5,7 +5,7 @@ import { createServer } from 'vite';
 import { chromium } from 'playwright';
 const ids = process.argv.slice(2);
 const vite = await createServer({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
-const { snippets, standaloneDoc } = await vite.ssrLoadModule('/src/demos/snippets.ts');
+const { snippets, standaloneDoc } = await vite.ssrLoadModule('/src/models/snippets.ts');
 await vite.close();
 const b = await chromium.launch();
 const shots = [];

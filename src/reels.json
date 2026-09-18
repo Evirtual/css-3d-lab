@@ -3,10 +3,10 @@
     "bytes": 276334
   },
   "anaglyph": {
-    "bytes": 1039243
+    "bytes": 1179826
   },
   "badge": {
-    "bytes": 1139577
+    "bytes": 980025
   },
   "bars": {
     "bytes": 515379
@@ -15,34 +15,34 @@
     "bytes": 840972
   },
   "book": {
-    "bytes": 623430
+    "bytes": 578412
   },
   "bookshelf": {
-    "bytes": 892868
+    "bytes": 611654
   },
   "boxslider": {
     "bytes": 490921
   },
   "browser": {
-    "bytes": 698584
+    "bytes": 955586
   },
   "businesscard": {
-    "bytes": 2106597
+    "bytes": 2351896
   },
   "button": {
-    "bytes": 297831
+    "bytes": 371501
   },
   "camera": {
-    "bytes": 2565895
+    "bytes": 2932689
   },
   "can": {
-    "bytes": 1098753
+    "bytes": 1549156
   },
   "cardfan": {
     "bytes": 739096
   },
   "cardstack": {
-    "bytes": 754876
+    "bytes": 1031029
   },
   "carousel": {
     "bytes": 2765744
@@ -54,16 +54,16 @@
     "bytes": 2659675
   },
   "clock": {
-    "bytes": 346406
+    "bytes": 375819
   },
   "coffeecup": {
-    "bytes": 1452773
+    "bytes": 1594836
   },
   "coin": {
-    "bytes": 792755
+    "bytes": 1103169
   },
   "cone": {
-    "bytes": 3876954
+    "bytes": 5728067
   },
   "confetti": {
     "bytes": 782635
@@ -75,28 +75,28 @@
     "bytes": 3065879
   },
   "crystal": {
-    "bytes": 2476659
+    "bytes": 2506404
   },
   "cube": {
     "bytes": 1746049
   },
   "cubegrid": {
-    "bytes": 1243388
+    "bytes": 1179907
   },
   "cubeletters": {
     "bytes": 1181791
   },
   "cubeloader": {
-    "bytes": 612929
+    "bytes": 897344
   },
   "cubenav": {
     "bytes": 593999
   },
   "cylinder": {
-    "bytes": 1508897
+    "bytes": 5194116
   },
   "diamond": {
-    "bytes": 2862706
+    "bytes": 4437031
   },
   "dice": {
     "bytes": 1155113
@@ -105,7 +105,7 @@
     "bytes": 403303
   },
   "dotorbit": {
-    "bytes": 3341843
+    "bytes": 3991633
   },
   "drag": {
     "bytes": 3088188
@@ -114,19 +114,19 @@
     "bytes": 384375
   },
   "equalizer": {
-    "bytes": 947043
+    "bytes": 907807
   },
   "explode": {
     "bytes": 2144605
   },
   "ferris": {
-    "bytes": 1565742
+    "bytes": 1473959
   },
   "flaptext": {
     "bytes": 282826
   },
   "flip": {
-    "bytes": 650927
+    "bytes": 740109
   },
   "flipgrid": {
     "bytes": 594506
@@ -144,19 +144,19 @@
     "bytes": 1444559
   },
   "globe": {
-    "bytes": 8905605
+    "bytes": 10163028
   },
   "greeting": {
-    "bytes": 835109
+    "bytes": 918710
   },
   "grid": {
     "bytes": 822236
   },
   "gyro": {
-    "bytes": 1714710
+    "bytes": 1767106
   },
   "headphones": {
-    "bytes": 1985033
+    "bytes": 2153743
   },
   "helix": {
     "bytes": 2160486
@@ -165,7 +165,7 @@
     "bytes": 2612747
   },
   "hovercards": {
-    "bytes": 994176
+    "bytes": 1065956
   },
   "island": {
     "bytes": 1017053
@@ -174,10 +174,10 @@
     "bytes": 777029
   },
   "keycaps": {
-    "bytes": 330749
+    "bytes": 339252
   },
   "laptop": {
-    "bytes": 706010
+    "bytes": 597051
   },
   "lattice": {
     "bytes": 3411690
@@ -186,31 +186,31 @@
     "bytes": 1226756
   },
   "layertext": {
-    "bytes": 812977
+    "bytes": 1119419
   },
   "lighthouse": {
-    "bytes": 1300497
+    "bytes": 1632423
   },
   "lit": {
     "bytes": 614521
   },
   "logo3d": {
-    "bytes": 939335
+    "bytes": 1347484
   },
   "magnet": {
     "bytes": 822634
   },
   "map": {
-    "bytes": 519037
+    "bytes": 613970
   },
   "net": {
     "bytes": 802888
   },
   "octa": {
-    "bytes": 2117820
+    "bytes": 3057928
   },
   "orbit": {
-    "bytes": 918827
+    "bytes": 1062747
   },
   "package": {
     "bytes": 1301532
@@ -219,19 +219,19 @@
     "bytes": 513061
   },
   "paycard": {
-    "bytes": 1735659
+    "bytes": 2403349
   },
   "perfume": {
-    "bytes": 2346370
+    "bytes": 2409895
   },
   "phone": {
     "bytes": 1395638
   },
   "pie": {
-    "bytes": 586054
+    "bytes": 799854
   },
   "planet": {
-    "bytes": 819443
+    "bytes": 1115583
   },
   "playground": {
     "bytes": 282717
@@ -240,25 +240,25 @@
     "bytes": 579499
   },
   "pricing": {
-    "bytes": 674401
+    "bytes": 623530
   },
   "prism": {
-    "bytes": 1216666
+    "bytes": 1486372
   },
   "pyramid": {
-    "bytes": 1029073
+    "bytes": 2417597
   },
   "radial": {
-    "bytes": 240102
+    "bytes": 246706
   },
   "radio": {
     "bytes": 286650
   },
   "rating": {
-    "bytes": 443179
+    "bytes": 426679
   },
   "rings": {
-    "bytes": 1498014
+    "bytes": 1939176
   },
   "ripple": {
     "bytes": 1341654
@@ -285,25 +285,25 @@
     "bytes": 239135
   },
   "shadowtext": {
-    "bytes": 1012933
+    "bytes": 1400259
   },
   "shapeshift": {
     "bytes": 1793663
   },
   "sign": {
-    "bytes": 1468353
+    "bytes": 1517936
   },
   "snow": {
     "bytes": 534232
   },
   "solar": {
-    "bytes": 1373720
+    "bytes": 1669640
   },
   "sphere": {
     "bytes": 3012599
   },
   "stairs": {
-    "bytes": 2847547
+    "bytes": 3044156
   },
   "starfield": {
     "bytes": 1051698
@@ -315,16 +315,16 @@
     "bytes": 1416482
   },
   "switch": {
-    "bytes": 336356
+    "bytes": 336272
   },
   "tabs": {
     "bytes": 270774
   },
   "tetra": {
-    "bytes": 2027857
+    "bytes": 2885047
   },
   "text": {
-    "bytes": 903238
+    "bytes": 1000812
   },
   "textring": {
     "bytes": 1108820
@@ -336,13 +336,13 @@
     "bytes": 996636
   },
   "tiltgallery": {
-    "bytes": 1274845
+    "bytes": 1428812
   },
   "timeline": {
     "bytes": 301417
   },
   "toggle": {
-    "bytes": 517909
+    "bytes": 538997
   },
   "torus": {
     "bytes": 5122147
@@ -369,7 +369,7 @@
     "bytes": 1400936
   },
   "wordcube": {
-    "bytes": 504713
+    "bytes": 549012
   },
   "zones": {
     "bytes": 618976

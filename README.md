@@ -41,7 +41,7 @@ npm run build
 
 ## Add a demo
 
-See [docs/ADDING-DEMOS.md](docs/ADDING-DEMOS.md): the three parts of a demo, the size limits and the
+See [docs/ADDING-MODELS.md](docs/ADDING-MODELS.md): the three parts of a demo, the size limits and the
 rules learned from real bugs. `node scripts/contact-sheet.mjs <id...>` (after a build) photographs
 demos into one image for a quick visual review.
 

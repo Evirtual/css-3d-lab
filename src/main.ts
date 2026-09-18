@@ -14,25 +14,25 @@ import { initStickyBars } from './sticky-bars';
 import { trackDownloads, videoButton } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
-import { interactionHtml } from './demos/interaction';
-import { demos, type GroupedDemo } from './demos';
-import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
-import { snippets } from './demos/snippets';
-import { CATEGORY_LABEL, type Category, type Demo } from './demos/types';
+import { interactionHtml } from './models/interaction';
+import { demos, type GroupedDemo } from './models';
+import { GROUPS, GROUP_ORDER, type Group } from './models/groups';
+import { snippets } from './models/snippets';
+import { CATEGORY_LABEL, type Category, type Demo } from './models/types';
 import { highlight, type Lang } from './highlight';
 import { hydrateIcons, icon } from './icons';
-import { sizeScene } from './demos/size';
+import { sizeScene } from './models/size';
 
 const REPO = 'https://github.com/Evirtual/css-3d-lab';
 const KOFI = 'https://ko-fi.com/edgarasneverdauskas';
 
 // Real SCSS source of every demo, pulled in at build time so it can never drift.
-const scssSources = import.meta.glob<string>('./styles/demos/_*.scss', {
+const scssSources = import.meta.glob<string>('./styles/models/_*.scss', {
   query: '?raw',
   import: 'default',
   eager: true,
 });
-const scssFor = (id: string): string => scssSources[`./styles/demos/_${id}.scss`] ?? '';
+const scssFor = (id: string): string => scssSources[`./styles/models/_${id}.scss`] ?? '';
 
 const $ = <T extends HTMLElement>(sel: string): T => document.querySelector<T>(sel)!;
 
@@ -123,7 +123,7 @@ for (const [i, demo] of demos.entries()) {
     <div class="card__body">
       <span class="card__group">${GROUPS[demo.group]}</span>
       <header>
-        <h2><a href="demos/${demo.id}/">${demo.title}</a></h2>
+        <h2><a href="models/${demo.id}/">${demo.title}</a></h2>
         <span class="badge badge--${demo.category}">${CATEGORY_LABEL[demo.category]}</span>
       </header>
       <p>${demo.description}</p>
@@ -422,8 +422,8 @@ function openViewer(id: string): void {
           ${videoButton(id)}
           <button type="button" class="btn" data-act="share">${icon('share')} Share</button>
           <button type="button" class="btn" data-act="newtab">${icon('arrow-up-right')} Open in new tab</button>
-          <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
-          <a class="btn" href="demos/${id}/">Full page ${icon('arrow-right')}</a>
+          <a class="btn" href="${REPO}/blob/main/src/styles/models/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
+          <a class="btn" href="models/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
         <p class="code__thanks" hidden>Glad it helped. This site is free — if you like, <a href="${KOFI}" target="_blank" rel="noopener">buy me a coffee</a> ${icon('coffee')}</p>
       </section>

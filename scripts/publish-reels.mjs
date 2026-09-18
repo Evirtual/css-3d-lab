@@ -29,7 +29,7 @@ if (!files.length) {
 const missing = files.filter((f) => !existsSync(join('reels', f)));
 if (missing.length) throw new Error(`Not rendered yet (run npm run reels -- <ids> --clean first): ${missing.join(', ')}`);
 
-const known = new Set(JSON.parse(readFileSync('src/generated/demo-ids.json', 'utf8')).map((d) => d.id));
+const known = new Set(JSON.parse(readFileSync('src/generated/model-ids.json', 'utf8')).map((d) => d.id));
 const idOf = (f) => f.replace('-9x16-clean.mp4', '');
 const unknown = files.map(idOf).filter((id) => !known.has(id));
 if (unknown.length) throw new Error(`No such demo: ${unknown.join(', ')}`);

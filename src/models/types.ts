@@ -1,7 +1,7 @@
 export type Category = 'css' | 'js';
 
 export interface Demo {
-  /** Also the SCSS partial name: src/styles/demos/_<id>.scss */
+  /** Also the SCSS partial name: src/styles/models/_<id>.scss */
   id: string;
   title: string;
   description: string;

@@ -5,9 +5,9 @@
 //    drawn low, like a field of cubes seen from above, is moved up), and
 //  - the zoom that makes the full reach fit the same safe area in every card (clear of the corner
 //    badges).
-// Measure a build made with an EMPTY src/demos/sizes.json (echo {} > src/demos/sizes.json &&
+// Measure a build made with an EMPTY src/models/sizes.json (echo {} > src/models/sizes.json &&
 // npm run build), or the current offsets are measured on top of themselves.
-//   npm run build && node scripts/measure-demos.mjs [id ...]  ->  src/demos/sizes.json
+//   npm run build && node scripts/measure-models.mjs [id ...]  ->  src/models/sizes.json
 // Scenes that fill the stage are laid out to it and are not measured.
 import { createReadStream, existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -24,12 +24,12 @@ const SAFE = { x: 136, top: 88, bottom: 100 };
 const EDGE = { x: 162, top: 122, bottom: 124 };
 const MIN = 0.7;
 const MAX = 1.5;
-const OUT = 'src/demos/sizes.json';
+const OUT = 'src/models/sizes.json';
 
 const only = process.argv.slice(2);
 const vite = await createVite({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
-const { demos } = await vite.ssrLoadModule('/src/demos/index.ts');
-const { interactionOf } = await vite.ssrLoadModule('/src/demos/interaction.ts');
+const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
+const { interactionOf } = await vite.ssrLoadModule('/src/models/interaction.ts');
 await vite.close();
 
 const DIST = resolve('dist');

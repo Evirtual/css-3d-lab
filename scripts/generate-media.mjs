@@ -1,6 +1,6 @@
 // Takes the social preview image for every demo from the BUILT site (dist/):
 //   dist/media/<id>.jpg   2400×1260 (1200×630 laid out at 2x, so 3D stays sharp): the og:image of
-//                          /demos/<id>/, text on the left and the demo on the right
+//                          /models/<id>/, text on the left and the demo on the right
 //   dist/media/home.jpg   the same template with the site's cube (/embed/cover/): home and group pages
 //
 // This is what makes a shared link show a picture in chat apps and on social sites. It is done at
@@ -19,7 +19,7 @@ const CONCURRENCY = 4;
 const only = process.argv.slice(2); // optional list of ids, for testing
 
 if (!existsSync(join(DIST, 'embed'))) throw new Error('dist/embed not found — run "npm run build" first');
-const demos = JSON.parse(readFileSync('src/generated/demo-ids.json', 'utf8')).filter((d) => !only.length || only.includes(d.id));
+const demos = JSON.parse(readFileSync('src/generated/model-ids.json', 'utf8')).filter((d) => !only.length || only.includes(d.id));
 
 /* ---------- tiny static server for dist/ ---------- */
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };

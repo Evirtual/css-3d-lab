@@ -35,7 +35,7 @@ for (const group of GROUP_ORDER) for (const id of MEMBERS[group]) GROUP_OF.set(i
 /** Throws for a demo nobody assigned, so a new demo cannot silently fall outside every group. */
 export function groupOf(id: string): Group {
   const group = GROUP_OF.get(id);
-  if (!group) throw new Error(`Demo "${id}" has no group — add it to MEMBERS in src/demos/groups.ts`);
+  if (!group) throw new Error(`Demo "${id}" has no group — add it to MEMBERS in src/models/groups.ts`);
   return group;
 }
 

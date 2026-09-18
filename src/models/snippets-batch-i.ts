@@ -1,6 +1,6 @@
 /**
  * Paste-anywhere versions of batch I: cards that open, lift and slide out, and two 3D loaders.
- * Plain HTML + CSS (+ JS), no Sass, no build step — see docs/ADDING-DEMOS.md.
+ * Plain HTML + CSS (+ JS), no Sass, no build step — see docs/ADDING-MODELS.md.
  */
 import type { Snippet } from './snippet-utils';
 

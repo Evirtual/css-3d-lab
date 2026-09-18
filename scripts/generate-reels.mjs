@@ -61,7 +61,7 @@ const all = args.includes('--all');
 const ids = args.filter((a) => !a.startsWith('--'));
 
 if (!existsSync(join(DIST, 'embed'))) throw new Error('dist/embed not found — run "npm run build" first');
-const known = JSON.parse(readFileSync('src/generated/demo-ids.json', 'utf8'));
+const known = JSON.parse(readFileSync('src/generated/model-ids.json', 'utf8'));
 const unknown = ids.filter((id) => !known.some((d) => d.id === id));
 if (unknown.length) throw new Error(`No such demo: ${unknown.join(', ')}`);
 const demos = all ? known : known.filter((d) => ids.includes(d.id));

@@ -3,7 +3,7 @@ import { icon } from './icons';
 
 /** Sharing helpers: canonical links, the embed snippet, and copy-to-clipboard with honest feedback. */
 
-export const pageUrl = (id: string): string => `${site.url}/demos/${id}/`;
+export const pageUrl = (id: string): string => `${site.url}/models/${id}/`;
 export const embedUrl = (id: string): string => `${site.url}/embed/${id}/`;
 
 export function embedCode(id: string, title: string): string {

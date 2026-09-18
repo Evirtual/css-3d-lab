@@ -1,6 +1,6 @@
 /**
  * Paste-anywhere versions of batch D: card interactions and loaders.
- * Plain HTML + CSS (+ JS), no Sass, no build step — see docs/ADDING-DEMOS.md.
+ * Plain HTML + CSS (+ JS), no Sass, no build step — see docs/ADDING-MODELS.md.
  */
 import type { Snippet } from './snippet-utils';
 

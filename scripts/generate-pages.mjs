@@ -15,10 +15,10 @@ const root = resolve('.');
 // Load the TypeScript sources through Vite, so this script and the app share one source of truth.
 // configFile: false — the real config imports the pages this script is about to create.
 const vite = await createServer({ configFile: false, root, server: { middlewareMode: true }, appType: 'custom', logLevel: 'warn' });
-const { demos } = await vite.ssrLoadModule('/src/demos/index.ts');
-const { snippets } = await vite.ssrLoadModule('/src/demos/snippets.ts');
-const { GROUPS, GROUP_ORDER } = await vite.ssrLoadModule('/src/demos/groups.ts');
-const { interactionHtml, interactionOf } = await vite.ssrLoadModule('/src/demos/interaction.ts');
+const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
+const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
+const { GROUPS, GROUP_ORDER } = await vite.ssrLoadModule('/src/models/groups.ts');
+const { interactionHtml, interactionOf } = await vite.ssrLoadModule('/src/models/interaction.ts');
 const { videoButton } = await vite.ssrLoadModule('/src/video.ts');
 const { logoHtml } = await vite.ssrLoadModule('/src/logo.ts');
 const LOGO = logoHtml();
@@ -27,7 +27,7 @@ const LOGO = logoHtml();
 // window. Stop the build rather than publish that.
 const incomplete = demos.filter((d) => !snippets[d.id]?.css || !snippets[d.id]?.how?.length);
 if (incomplete.length) throw new Error(`No copy-paste snippet for: ${incomplete.map((d) => d.id).join(', ')}`);
-const { CATEGORY_LABEL } = await vite.ssrLoadModule('/src/demos/types.ts');
+const { CATEGORY_LABEL } = await vite.ssrLoadModule('/src/models/types.ts');
 const { highlight } = await vite.ssrLoadModule('/src/highlight.ts');
 const { icon } = await vite.ssrLoadModule('/src/icons.ts');
 await vite.close();
@@ -139,13 +139,13 @@ function demoCard(d, up, i) {
             <div class="card__body">
               <span class="card__group">${esc(GROUPS[d.group])}</span>
               <header>
-                <h3><a href="${up}demos/${d.id}/">${esc(d.title)}</a></h3>
+                <h3><a href="${up}models/${d.id}/">${esc(d.title)}</a></h3>
                 <span class="badge badge--${d.category}">${CATEGORY_LABEL[d.category]}</span>
               </header>
               <p>${esc(d.description)}</p>
               <footer>
                 <span class="card__tags">${d.tags.map((t) => `#${esc(t)}`).join(' ')}</span>
-                <a class="btn btn--accent" href="${up}demos/${d.id}/">Learn &amp; copy ${icon('arrow-right')}</a>
+                <a class="btn btn--accent" href="${up}models/${d.id}/">Learn &amp; copy ${icon('arrow-right')}</a>
               </footer>
             </div>
           </article>
@@ -161,12 +161,12 @@ function demoPage(d, index) {
   const siblings = demos.filter((x) => x.group === d.group && x.id !== d.id);
   const prev = demos[index - 1];
   const next = demos[index + 1];
-  const path = `demos/${d.id}/`;
+  const path = `models/${d.id}/`;
   const title = `${d.title} in ${kind(d)} — 3D effect with copy-paste code | ${site.name}`;
   const description = `${d.description} Live preview, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`;
 
   // The site's own Sass for this demo: shown for reading, like in the gallery dialog.
-  const scssFile = `src/styles/demos/_${d.id}.scss`;
+  const scssFile = `src/styles/models/_${d.id}.scss`;
   const scss = existsSync(scssFile) ? readFileSync(scssFile, 'utf8').replace(/\r\n/g, '\n') : '';
 
   const panes = [
@@ -177,7 +177,7 @@ function demoPage(d, index) {
   ];
 
   // Every pane is real HTML, so crawlers and no-JS visitors get all of the code, stacked with
-  // labels. demo-page.ts turns it into the same tabbed window the gallery dialog uses.
+  // labels. model-page.ts turns it into the same tabbed window the gallery dialog uses.
   const codeWindow = `
           <section class="codebox page-codebox" data-codebox>
             <div class="codebox__bar">
@@ -258,7 +258,7 @@ function demoPage(d, index) {
             ${videoButton(d.id)}
             <button type="button" class="btn" data-share-link>${icon('share')} Share</button>
             <button type="button" class="btn" data-share-embed>Embed</button>
-            <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
+            <a class="btn" href="${site.repo}/blob/main/src/styles/models/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
           </div>
         </div>
       </header>
@@ -297,7 +297,7 @@ function demoPage(d, index) {
       </section>
     </main>`;
 
-  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: `media/${d.id}.jpg`, imageAlt: `${d.title}: a CSS 3D effect, ${kind(d)}` });
+  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'model-page.ts', image: `media/${d.id}.jpg`, imageAlt: `${d.title}: a CSS 3D effect, ${kind(d)}` });
 }
 
 /* ---------- embed pages: just the demo, for iframes and for the build-time recorder ---------- */
@@ -309,7 +309,7 @@ function embedPage(d) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
-    <link rel="canonical" href="${site.url}/demos/${d.id}/" />
+    <link rel="canonical" href="${site.url}/models/${d.id}/" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <title>${esc(d.title)} — ${esc(site.name)}</title>
   </head>
@@ -320,7 +320,7 @@ function embedPage(d) {
       <b>${esc(d.title)}</b>
       <span class="embed__og-site"><img class="embed__og-logo" src="../../icon.svg" alt="" /><span class="embed__og-name">${esc(site.name)}</span><span class="embed__og-url">${site.url.replace('https://', '')}</span></span>
     </div>
-    <a class="embed__credit" href="${site.url}/demos/${d.id}/" target="_blank" rel="noopener">${esc(d.title)} · ${esc(site.name)} ${icon('arrow-up-right')}</a>
+    <a class="embed__credit" href="${site.url}/models/${d.id}/" target="_blank" rel="noopener">${esc(d.title)} · ${esc(site.name)} ${icon('arrow-up-right')}</a>
     <script type="module" src="/src/embed.ts"></script>
   </body>
 </html>
@@ -374,7 +374,7 @@ function groupPage(g) {
         name: `${label} — CSS 3D effects`,
         description,
         url: `${site.url}/${path}`,
-        hasPart: members.map((d) => ({ '@type': 'TechArticle', headline: d.title, url: `${site.url}/demos/${d.id}/` })),
+        hasPart: members.map((d) => ({ '@type': 'TechArticle', headline: d.title, url: `${site.url}/models/${d.id}/` })),
       },
       crumbs([[site.name, `${site.url}/`], [label, `${site.url}/${path}`]]),
     ],
@@ -402,36 +402,60 @@ function groupPage(g) {
           .join(' ')}</p>
       </section>
     </main>`;
-  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: 'media/home.jpg', imageAlt: `${site.name}: ${demos.length} live CSS 3D effects with copy-paste code` });
+  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'model-page.ts', image: 'media/home.jpg', imageAlt: `${site.name}: ${demos.length} live CSS 3D effects with copy-paste code` });
 }
 
 /* ---------- write everything ---------- */
+
+/** The old /demos/<id>/ address: forwards to /models/<id>/, keeping any ?query and #hash. */
+function movedPage(d) {
+  const to = `../../models/${d.id}/`;
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>${esc(d.title)} | ${esc(site.name)}</title>
+    <link rel="canonical" href="${site.url}/models/${d.id}/" />
+    <meta http-equiv="refresh" content="0; url=${to}" />
+    <script>location.replace('${to}' + location.search + location.hash);</script>
+  </head>
+  <body>
+    <p>This page has moved: <a href="${to}">${esc(d.title)}</a>.</p>
+  </body>
+</html>
+`;
+}
 
 function write(file, content) {
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, content);
 }
 
-for (const dir of ['demos', 'groups', 'embed', 'src/generated']) rmSync(dir, { recursive: true, force: true });
+// (demos/ is where the model pages used to be generated: removed if an old build left it)
+for (const dir of ['models', 'demos', 'public/demos', 'groups', 'embed', 'src/generated']) rmSync(dir, { recursive: true, force: true });
 
-demos.forEach((d, i) => write(`demos/${d.id}/index.html`, demoPage(d, i)));
+demos.forEach((d, i) => write(`models/${d.id}/index.html`, demoPage(d, i)));
+// The pages lived at /demos/<id>/ until 2026-09-19. Links to those (shared, bookmarked, indexed)
+// land on a stub that forwards to the new address; its canonical tells search engines where the
+// page is now. Static files in public/, so the build copies them as they are.
+demos.forEach((d) => write(`public/demos/${d.id}/index.html`, movedPage(d)));
 for (const d of demos) write(`embed/${d.id}/index.html`, embedPage(d));
 write('embed/cover/index.html', coverPage());
-write('src/generated/demo-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, how: interactionOf(d), pointer: interactionOf(d) !== 'none', hover: interactionOf(d) === 'hover' }))));
+write('src/generated/model-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, how: interactionOf(d), pointer: interactionOf(d) !== 'none', hover: interactionOf(d) === 'hover' }))));
 for (const g of GROUP_ORDER) write(`groups/${g}/index.html`, groupPage(g));
 
 // Plain, crawlable links to every page, injected into the home page by vite.config.ts.
 write(
-  'src/generated/all-demos.html',
-  `<nav class="all-demos" aria-label="All effects">
+  'src/generated/all-models.html',
+  `<nav class="all-models" aria-label="All effects">
       <h2>Every effect <span>${demos.length} in ${GROUP_ORDER.length} groups</span></h2>
-      <div class="all-demos__groups">
+      <div class="all-models__groups">
       ${GROUP_ORDER.map((g) => {
         const members = demos.filter((d) => d.group === g);
         // every link stays in the page (for search engines); CSS shows the first few, the button the rest
         return `<section><h3><a href="groups/${g}/">${esc(GROUPS[g])} <b>${members.length}</b></a></h3><ul>${members
-          .map((d) => `<li><a href="demos/${d.id}/">${esc(d.title)}</a></li>`)
-          .join('')}</ul>${members.length > 5 ? `<button type="button" class="link all-demos__more" data-group-list="${g}">Show all ${members.length}</button>` : ''}</section>`;
+          .map((d) => `<li><a href="models/${d.id}/">${esc(d.title)}</a></li>`)
+          .join('')}</ul>${members.length > 5 ? `<button type="button" class="link all-models__more" data-group-list="${g}">Show all ${members.length}</button>` : ''}</section>`;
       }).join('\n      ')}
       </div>
     </nav>`,
@@ -440,7 +464,7 @@ write('src/generated/footer.html', siteFooter(''));
 write('src/generated/logo.html', LOGO);
 
 const today = new Date().toISOString().slice(0, 10);
-const urls = ['', ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `demos/${d.id}/`)];
+const urls = ['', ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `models/${d.id}/`)];
 write(
   'public/sitemap.xml',
   `<?xml version="1.0" encoding="UTF-8"?>
@@ -451,4 +475,4 @@ ${urls.map((u) => `  <url><loc>${site.url}/${u}</loc><lastmod>${today}</lastmod>
 );
 write('public/robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${site.url}/sitemap.xml\n`);
 
-console.log(`generated ${demos.length} demo pages, ${GROUP_ORDER.length} group pages, sitemap (${urls.length} urls)`);
+console.log(`generated ${demos.length} model pages, ${GROUP_ORDER.length} group pages, sitemap (${urls.length} urls)`);

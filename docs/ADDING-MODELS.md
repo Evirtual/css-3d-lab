@@ -4,17 +4,17 @@ Every demo is three things with the same `id` (lowercase letters/digits only):
 
 | What | Where | Notes |
 | --- | --- | --- |
-| The demo | a `Demo` object (`src/demos/types.ts`) in a file under `src/demos/` | markup + optional `init` |
-| Its styles | `src/styles/demos/_<id>.scss` | all classes prefixed `d-<id>`, keyframes prefixed `d-<id>-` |
-| Its copy-paste snippet | a `Snippet` (`src/demos/snippet-utils.ts`) keyed by the same id | plain HTML + CSS (+ JS), no Sass |
+| The demo | a `Demo` object (`src/models/types.ts`) in a file under `src/models/` | markup + optional `init` |
+| Its styles | `src/styles/models/_<id>.scss` | all classes prefixed `d-<id>`, keyframes prefixed `d-<id>-` |
+| Its copy-paste snippet | a `Snippet` (`src/models/snippet-utils.ts`) keyed by the same id | plain HTML + CSS (+ JS), no Sass |
 
-Then it is wired in: `src/demos/index.ts` (demo list; `FEATURED` there decides what the gallery
-opens with), `src/demos/snippets.ts` (snippet map), `src/styles/main.scss` (`@use 'demos/<id>'`),
-`src/demos/groups.ts` (`MEMBERS`).
+Then it is wired in: `src/models/index.ts` (demo list; `FEATURED` there decides what the gallery
+opens with), `src/models/snippets.ts` (snippet map), `src/styles/main.scss` (`@use 'models/<id>'`),
+`src/models/groups.ts` (`MEMBERS`).
 
-Read these first, they are the reference for style and quality: `src/demos/pure.ts`,
-`src/demos/interactive2.ts`, `src/demos/snippets.ts` (first 150 lines), `src/styles/_mixins.scss`,
-`src/styles/demos/_cube.scss`, `_dice.scss`, `_rollbutton.scss`, `_bars.scss`.
+Read these first, they are the reference for style and quality: `src/models/pure.ts`,
+`src/models/interactive2.ts`, `src/models/snippets.ts` (first 150 lines), `src/styles/_mixins.scss`,
+`src/styles/models/_cube.scss`, `_dice.scss`, `_rollbutton.scss`, `_bars.scss`.
 
 ## The Demo object
 
@@ -44,9 +44,9 @@ to 700 × 380.
 ## Consistency rules (the site checks these; follow them from the start)
 
 - **Size and centring are automatic.** Design the demo at a card's size (340 × 260); do not
-  hand-tune its size or offset. After the build, `scripts/measure-demos.mjs` measures every
+  hand-tune its size or offset. After the build, `scripts/measure-models.mjs` measures every
   demo over its animation and after it is played with, and records a size and an offset in
-  `src/demos/sizes.json` so all demos look equally big and visually centred. Do not add
+  `src/models/sizes.json` so all demos look equally big and visually centred. Do not add
   `translate` / `scale` hacks to the root to move it.
 - **The camera is the site's.** The stage's scene already has `perspective: 800px`, and it
   scales with the stage, so a demo looks the same in a card, the dialog and full screen. A demo
@@ -106,7 +106,7 @@ centred grid (`#0b0d18`, text `#eceefb`), so:
 
 ## Checks
 
-`npx tsc --noEmit` and `npx sass src/styles/demos/_<id>.scss > /dev/null` must pass.
+`npx tsc --noEmit` and `npx sass src/styles/models/_<id>.scss > /dev/null` must pass.
 `npm run build` regenerates every static page and must pass before committing.
 
 ## Its video (the "Download video" button)

@@ -1,7 +1,7 @@
 import './styles/main.scss';
-import { demos } from './demos';
+import { demos } from './models';
 import { fitStages } from './fit';
-import { sizeScene } from './demos/size';
+import { sizeScene } from './models/size';
 
 /**
  * /embed/<id>/ — just the demo, filling the frame. Used two ways:

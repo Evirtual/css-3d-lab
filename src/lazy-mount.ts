@@ -1,6 +1,6 @@
-import { demos } from './demos';
-import type { Demo } from './demos/types';
-import { sizeScene } from './demos/size';
+import { demos } from './models';
+import type { Demo } from './models/types';
+import { sizeScene } from './models/size';
 
 /**
  * Live previews for statically generated cards (`<article class="card" data-mount="<id>">`).
