@@ -4,11 +4,13 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "generate": "node scripts/generate-pages.mjs",
+    "dev": "npm run generate && vite",
+    "build": "npm run generate && tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/node": "^26.6.1",
     "sass-embedded": "^1.104.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.0"

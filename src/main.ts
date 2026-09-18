@@ -103,7 +103,7 @@ for (const [i, demo] of demos.entries()) {
     <div class="card__body">
       <span class="card__group">${GROUPS[demo.group]}</span>
       <header>
-        <h2>${demo.title}</h2>
+        <h2><a href="demos/${demo.id}/">${demo.title}</a></h2>
         <span class="badge badge--${demo.category}">${CATEGORY_LABEL[demo.category]}</span>
       </header>
       <p>${demo.description}</p>
@@ -319,6 +319,7 @@ function openViewer(id: string): void {
           <button type="button" class="btn btn--accent" data-copy="pane">${icon('copy')} Copy</button>
           <button type="button" class="btn" data-copy="file">Copy as one HTML file</button>
           <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
+          <a class="btn" href="demos/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
         <p class="code__note"></p>
         <p class="code__thanks" hidden>Glad it helped. This site is free — if you like, <a href="${KOFI}" target="_blank" rel="noopener">buy me a coffee</a> ${icon('coffee')}</p>

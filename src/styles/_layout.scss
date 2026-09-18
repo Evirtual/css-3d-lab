@@ -713,6 +713,15 @@ input {
       font-size: 17px;
       font-weight: 750;
       letter-spacing: -0.01em;
+
+      a {
+        color: inherit;
+        text-decoration: none;
+
+        &:hover {
+          color: var(--glow);
+        }
+      }
     }
 
     p {
