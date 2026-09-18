@@ -6,6 +6,7 @@
   "scripts": {
     "generate": "node scripts/generate-pages.mjs",
     "media": "node scripts/generate-media.mjs",
+    "icons": "node scripts/generate-icons.mjs",
     "dev": "npm run generate && vite",
     "build": "npm run generate && tsc && vite build",
     "preview": "vite preview"

@@ -52,7 +52,12 @@ function shell({ path, depth, title, description, jsonLd, body, script, image })
     <meta name="twitter:image" content="${site.url}/${image}" />`
         : '<meta name="twitter:card" content="summary" />'
     }
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧊</text></svg>" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#07080f" />
+    <meta name="apple-mobile-web-app-title" content="CSS 3D Lab" />
     <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
   </head>
   <body class="page">
@@ -136,6 +141,7 @@ function demoPage(d, index) {
   const codeWindow = `
           <section class="codebox page-codebox" data-codebox>
             <div class="codebox__bar">
+              <div class="codebox__dots" role="group" aria-label="Editor background"><button type="button" data-tint-set="rose" aria-pressed="false" aria-label="rose background" title="Rose background"></button><button type="button" data-tint-set="amber" aria-pressed="false" aria-label="amber background" title="Amber background"></button><button type="button" data-tint-set="green" aria-pressed="false" aria-label="green background" title="Green background"></button></div>
               <div class="codebox__tabs" role="tablist">
                 <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
                   ${panes.filter((x) => x.key !== 'scss').map((x) => `<button type="button" role="tab" data-pane="${x.key}" aria-selected="${x.key === 'css'}">${x.label}</button>`).join('')}
@@ -261,6 +267,7 @@ function embedPage(d) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <link rel="canonical" href="${site.url}/demos/${d.id}/" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <title>${esc(d.title)} — ${esc(site.name)}</title>
   </head>
   <body class="embed">

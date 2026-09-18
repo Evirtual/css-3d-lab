@@ -19,7 +19,20 @@ const store = {
   },
 };
 
+/** The brand link always points at the site root, whatever the page depth: that is the SW scope. */
+function registerServiceWorker(): void {
+  if (import.meta.env.DEV || !('serviceWorker' in navigator)) return;
+  const root = document.querySelector<HTMLAnchorElement>('.topbar__brand')?.href;
+  if (!root) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(new URL('sw.js', root), { scope: new URL('./', root).pathname }).catch(() => {
+      /* no offline support then; the site itself is unaffected */
+    });
+  });
+}
+
 export function initChrome(): void {
+  registerServiceWorker();
   const root = document.documentElement;
   const pauseBtn = document.querySelector<HTMLButtonElement>('#pause');
   const themeBtn = document.querySelector<HTMLButtonElement>('#theme');

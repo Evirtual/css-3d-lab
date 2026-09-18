@@ -53,6 +53,26 @@ async function shoot(demo) {
   }
 }
 
+async function shootHome() {
+  const ctx = await browser.newContext({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1, colorScheme: 'dark' });
+  try {
+    const page = await ctx.newPage();
+    await page.goto(`${base}/`);
+    await page.waitForSelector('.hero__cube');
+    await page.waitForTimeout(1200);
+    await page.screenshot({ path: join(OUT, 'home.jpg'), type: 'jpeg', quality: 86 });
+  } finally {
+    await ctx.close();
+  }
+}
+if (!only.length) {
+  try {
+    await shootHome();
+  } catch (err) {
+    failures.push(`home: ${err.message}`);
+  }
+}
+
 const queue = [...demos];
 await Promise.all(
   Array.from({ length: CONCURRENCY }, async () => {

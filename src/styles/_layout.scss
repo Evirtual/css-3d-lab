@@ -256,10 +256,21 @@ input {
   animation: spin-tilted 8s linear infinite;
   @include cube-faces(var(--s));
 
+  // Same three colours as the app icon: teal top, violet and pink sides.
   i {
     position: absolute;
     inset: 0;
-    @include face(var(--accent-2), 35%);
+    border: 1px solid rgb(7 8 15 / 0.55);
+    background: linear-gradient(#9d83ff, #6a45f5);
+  }
+
+  i:nth-child(2n) {
+    background: linear-gradient(#ff6fb0, #e0257a);
+  }
+
+  i:nth-child(5),
+  i:nth-child(6) {
+    background: linear-gradient(135deg, #7ff5ea, #2ee6d6);
   }
 }
 
@@ -779,7 +790,7 @@ input {
   border-bottom: 1px solid var(--border);
   background:
     radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-    radial-gradient(var(--border-strong) 1px, transparent 1.5px) 0 0 / 18px 18px,
+    radial-gradient(var(--border-strong) 1.3px, transparent 2.1px) 0 0 / 18px 18px,
     color-mix(in srgb, var(--bg) 70%, transparent);
 
   &--lg {
@@ -789,7 +800,7 @@ input {
     // opaque base: on the glass dialog a see-through stage would muddy the 3D preview
     background:
       radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-      radial-gradient(var(--border-strong) 1px, transparent 1.5px) 0 0 / 18px 18px,
+      radial-gradient(var(--border-strong) 1.3px, transparent 2.1px) 0 0 / 18px 18px,
       var(--bg);
 
     .scene:not(.scene--fill) {
@@ -1024,6 +1035,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   background: var(--code-bg);
   overflow: hidden;
   box-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.8);
+  transition: background 0.25s;
 
   &__bar {
     display: flex;
@@ -1034,19 +1046,64 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     border-bottom: 1px solid var(--border);
     background: rgb(255 255 255 / 0.03);
 
-    // window dots
-    &::before {
-      content: '';
-      flex: none;
-      width: 10px;
-      height: 10px;
+  }
+
+  // The window dots are controls: each tints the editor background; the active one has a ring.
+  &__dots {
+    display: flex;
+    flex: none;
+    gap: 6px;
+    margin-right: 4px;
+
+    button {
+      width: 12px;
+      height: 12px;
+      padding: 0;
+      border: 0;
       border-radius: 50%;
-      background: #ff5f57;
-      box-shadow:
-        16px 0 0 #febc2e,
-        32px 0 0 #28c840;
-      margin-right: 36px;
+      cursor: pointer;
+      transition:
+        transform 0.15s,
+        box-shadow 0.15s;
+
+      &:hover {
+        transform: scale(1.25);
+      }
+
+      &[aria-pressed='true'] {
+        box-shadow:
+          0 0 0 2px var(--code-bg),
+          0 0 0 3.5px currentColor;
+      }
+
+      &[data-tint-set='rose'] {
+        background: #ff5f57;
+        color: #ff5f57;
+      }
+
+      &[data-tint-set='amber'] {
+        background: #febc2e;
+        color: #febc2e;
+      }
+
+      &[data-tint-set='green'] {
+        background: #28c840;
+        color: #28c840;
+      }
     }
+  }
+
+  // Tinted backgrounds: still dark enough for the syntax colours to keep their contrast.
+  &[data-tint='rose'] {
+    --code-bg: #200c15;
+  }
+
+  &[data-tint='amber'] {
+    --code-bg: #1e1606;
+  }
+
+  &[data-tint='green'] {
+    --code-bg: #07190f;
   }
 
   &__label span {
@@ -1347,6 +1404,11 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       height: 100vh;
       border: 0;
       border-radius: 0;
+      // bigger, wider-spaced dots: across a whole monitor the small pattern turns to noise
+      background:
+        radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+        radial-gradient(var(--border-strong) 1.8px, transparent 2.8px) 0 0 / 32px 32px,
+        var(--bg);
     }
 
     // up close: that is the point of full screen
@@ -1356,6 +1418,17 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
     .scene--fill {
       zoom: 2.2;
+    }
+
+    // a large monitor has room for more
+    @media (min-height: 900px) and (min-width: 1400px) {
+      .scene:not(.scene--fill) {
+        scale: 4;
+      }
+
+      .scene--fill {
+        zoom: 3;
+      }
     }
   }
 }

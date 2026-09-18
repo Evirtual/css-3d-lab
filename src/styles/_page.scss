@@ -140,6 +140,7 @@
 .page-codebox {
   margin-top: 0; // top edge lines up with the demo stage in the other column
 
+  .codebox__dots,
   .codebox__tabs,
   .codebox__copy,
   .codebox__foot {
@@ -147,6 +148,7 @@
   }
 
   &[data-enhanced] {
+    .codebox__dots,
     .codebox__tabs,
     .codebox__foot {
       display: flex;
