@@ -1468,6 +1468,20 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     top: 12px;
     z-index: 2;
     float: right;
+
+    // it stays put while the content scrolls under it: frosted glass, so the code and the demo
+    // behind it blur out instead of mixing with the icon
+    .btn {
+      border-color: var(--glass-edge);
+      background: var(--glass);
+      box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+      backdrop-filter: blur(14px) saturate(1.4);
+
+      &:hover {
+        border-color: var(--accent);
+        box-shadow: 0 8px 20px -10px var(--accent);
+      }
+    }
   }
 
   &__head {
