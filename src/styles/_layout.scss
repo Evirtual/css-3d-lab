@@ -255,78 +255,34 @@ input {
   }
 }
 
-// The brand mark (logo.ts): a cube of 8 little cubes that spins while each little cube drifts
-// outward and back. --s is its size; one little cube is half of it.
+// The brand mark (logo.ts): one glass cube that spins slowly. Tinted, see-through faces, so its
+// inner faces show through the front ones; a thin light edge keeps its shape crisp.
 .logo-cube {
-  --s: 26px;
-  --u: calc(var(--s) / 2);
-  --gap: 0.14; // space around each little cube, as a share of its slot
-  --drift: 0.2; // how far they move out, as a share of a slot
-  --half: calc(var(--u) / 2 - var(--u) * var(--gap) / 2); // centre to face of a little cube
-  display: inline-block;
+  --s: 22px;
+  position: relative;
   flex: none;
   width: var(--s);
   height: var(--s);
-  perspective: calc(var(--s) * 6);
-
-  &__spin {
-    position: relative;
-    display: block;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    animation: logo-spin 14s linear infinite;
-  }
-
-  b {
-    position: absolute;
-    top: calc(50% - var(--u) / 2);
-    left: calc(50% - var(--u) / 2);
-    width: var(--u);
-    height: var(--u);
-    transform-style: preserve-3d;
-    transform: translate3d(calc(var(--x) * var(--u)), calc(var(--y) * var(--u)), calc(var(--z) * var(--u)));
-    animation: logo-drift var(--t) ease-in-out var(--d) infinite alternate;
-  }
+  margin: 3px;
+  transform-style: preserve-3d;
+  animation: logo-spin 10s linear infinite;
+  @include cube-faces(var(--s));
 
   i {
     position: absolute;
-    inset: calc(var(--u) * var(--gap) / 2);
-    border-radius: calc(var(--u) * 0.1);
-    background: linear-gradient(#a58cff, #5b3be8);
-    box-shadow: inset 0 0 0 calc(var(--u) * 0.035) rgb(7 8 15 / 0.35);
-    backface-visibility: hidden; // the far side of each little cube is never drawn
+    inset: 0;
+    border: 1px solid rgb(255 255 255 / 0.35);
+    border-radius: 3px;
+    background: linear-gradient(rgb(165 140 255 / 0.72), rgb(91 59 232 / 0.72));
+  }
 
-    &:nth-child(1) {
-      transform: translateZ(var(--half));
-    }
+  i:nth-child(2n) {
+    background: linear-gradient(rgb(255 134 189 / 0.72), rgb(216 30 116 / 0.72));
+  }
 
-    &:nth-child(2) {
-      transform: rotateY(180deg) translateZ(var(--half));
-    }
-
-    &:nth-child(3),
-    &:nth-child(4) {
-      background: linear-gradient(#ff86bd, #d81e74);
-    }
-
-    &:nth-child(3) {
-      transform: rotateY(90deg) translateZ(var(--half));
-    }
-
-    &:nth-child(4) {
-      transform: rotateY(-90deg) translateZ(var(--half));
-    }
-
-    &:nth-child(5) {
-      background: linear-gradient(135deg, #9bfaf1, #2ee6d6);
-      transform: rotateX(90deg) translateZ(var(--half));
-    }
-
-    &:nth-child(6) {
-      background: linear-gradient(135deg, #2ee6d6, #17a89c);
-      transform: rotateX(-90deg) translateZ(var(--half));
-    }
+  i:nth-child(5),
+  i:nth-child(6) {
+    background: linear-gradient(135deg, rgb(155 250 241 / 0.78), rgb(46 230 214 / 0.78));
   }
 }
 
@@ -340,13 +296,6 @@ input {
   }
 }
 
-// out and back, a little turn on the way (both capped, so neighbours never touch)
-@keyframes logo-drift {
-  to {
-    translate: calc(var(--dx) * var(--u) * var(--drift)) calc(var(--dy) * var(--u) * var(--drift)) calc(var(--dz) * var(--u) * var(--drift));
-    rotate: 1 1 0 var(--r);
-  }
-}
 
 
 /* ---------- hero ---------- */
@@ -443,17 +392,36 @@ input {
       cursor: grabbing;
     }
 
-    // glow behind the cube
+    // A soft shadow on the "floor" under the shape. It changes with the shape (hero.ts sets
+    // data-shape): wide and square-ish under the cube, broad under the pyramid, a small point
+    // under the diamond, round under the sphere. No glow behind it.
     &::before {
       content: '';
       position: absolute;
-      width: 45%;
-      aspect-ratio: 1;
+      bottom: 12%;
+      left: 50%;
+      width: calc(var(--shadow-w, 1) * 44%);
+      height: 11%;
       border-radius: 50%;
-      background: radial-gradient(circle, var(--accent-2), transparent 65%);
-      filter: blur(40px);
-      opacity: 0.22;
-      animation: hero-pulse 6s ease-in-out infinite alternate;
+      background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 38%, transparent), transparent);
+      opacity: var(--shadow-o, 0.9);
+      translate: -50% 0;
+      transition:
+        width 1.6s cubic-bezier(0.65, 0, 0.25, 1),
+        opacity 1.6s;
+    }
+
+    &:has([data-shape='pyramid'])::before {
+      --shadow-w: 1.2;
+    }
+
+    &:has([data-shape='diamond'])::before {
+      --shadow-w: 0.45;
+      --shadow-o: 0.7;
+    }
+
+    &:has([data-shape='sphere'])::before {
+      --shadow-w: 0.85;
     }
   }
 
@@ -622,13 +590,6 @@ $gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) sca
 
   to {
     transform: rotateX(340deg) rotateY(720deg) rotateZ(8deg);
-  }
-}
-
-@keyframes hero-pulse {
-  to {
-    transform: scale(1.15);
-    opacity: 0.32;
   }
 }
 
