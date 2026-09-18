@@ -4,7 +4,6 @@ import { initChrome } from './chrome';
 import { createEditor } from './editor';
 import { initFullscreen } from './fullscreen';
 import { LiveEdit, type Part } from './live-edit';
-import { openInCodePen } from './share';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { demos, type GroupedDemo } from './demos';
@@ -350,7 +349,6 @@ function openViewer(id: string): void {
         </div>
         <div class="code__actions">
           <button type="button" class="btn btn--accent" data-copy="file">${icon('copy')} Copy as one HTML file</button>
-          <button type="button" class="btn" data-act="codepen">Edit on CodePen ${icon('arrow-up-right')}</button>
           <button type="button" class="btn" data-act="share">${icon('share')} Share</button>
           <button type="button" class="btn" data-act="newtab">${icon('arrow-up-right')} Open in new tab</button>
           <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
@@ -435,7 +433,6 @@ function openViewer(id: string): void {
       return;
     }
     const act = target.closest<HTMLButtonElement>('[data-act]');
-    if (act?.dataset.act === 'codepen') return openInCodePen(id, demo.title, live.current);
     if (act?.dataset.act === 'share') return openShareMenu(id, demo.title);
     if (act?.dataset.act === 'newtab') {
       track(`run/${id}`);

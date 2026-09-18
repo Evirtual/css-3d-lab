@@ -56,6 +56,6 @@ MIT — see [LICENSE](LICENSE). Every snippet is free to use in your own project
 - `npm run media` (after `npm run build`) screenshots every demo in a headless browser into
   `dist/media/<id>.jpg`: the social preview image (og:image) of each demo page. It runs in the
   deploy workflow.
-- Every demo has an embeddable page at `/embed/<id>/`, plus Share, Embed and CodePen buttons.
+- Every demo has an embeddable page at `/embed/<id>/`, plus Share and Embed buttons.
 - The code windows are small live editors: edits re-run the demo, are saved per demo in
   `localStorage`, and can be reset. Any demo can be viewed full screen.

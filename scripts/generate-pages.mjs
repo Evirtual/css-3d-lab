@@ -211,7 +211,6 @@ function demoPage(d, index) {
           <div class="page-tools__row">
             <button type="button" class="btn" data-share-link>${icon('share')} Share</button>
             <button type="button" class="btn" data-share-embed>Embed</button>
-            <button type="button" class="btn" data-share-codepen>CodePen ${icon('arrow-up-right')}</button>
             <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
           </div>
         </div>

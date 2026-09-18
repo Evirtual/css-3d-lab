@@ -7,7 +7,7 @@ import { initFullscreen } from './fullscreen';
 import type { Lang } from './highlight';
 import { lazyMountCards } from './lazy-mount';
 import { LiveEdit, type Part } from './live-edit';
-import { copyText, embedCode, openInCodePen } from './share';
+import { copyText, embedCode } from './share';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 
@@ -135,7 +135,7 @@ if (stage && demo && box) {
     } else if ('shareLink' in btn.dataset) openShareMenu(demo.id, demo.title);
     else if ('shareEmbed' in btn.dataset) {
       if (await copyText(btn, embedCode(demo.id, demo.title), 'Embed code copied')) track(`embed/${demo.id}`);
-    } else if ('shareCodepen' in btn.dataset) openInCodePen(demo.id, demo.title, live.current);
+    }
   });
 
   box.dataset.enhanced = ''; // CSS switches from "stacked with labels" to "tabbed"
