@@ -28,8 +28,8 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch();
 
-const W = 340;
-const H = 260;
+const W = Number(process.env.QA_W || 340); // QA_W / QA_H: test a bigger stage (the demo is then zoomed)
+const H = Number(process.env.QA_H || 260);
 const problems = [];
 
 async function check(demo) {
@@ -92,7 +92,9 @@ async function check(demo) {
       await page.mouse.up();
     } else if (how === 'click') {
       // the LAST control: the first is often the one already selected
-      const targets = await page.$$('.scene button:not([disabled]), .scene label, .scene input[type=radio]:not(:checked), .scene input[type=checkbox]');
+      // visible controls first; bare radios / checkboxes only when there is nothing else
+      let targets = await page.$$('.scene button:not([disabled]), .scene label');
+      if (!targets.length) targets = await page.$$('.scene input[type=radio]:not(:checked), .scene input[type=checkbox]');
       if (targets.length) await targets[targets.length - 1].click({ force: true });
       else await page.mouse.click(cx, cy);
       await snap();

@@ -1224,11 +1224,15 @@ input {
     > .live-frame {
       z-index: 1;
     }
-
-    .scene:not(.scene--fill) {
-      scale: 1.45;
-    }
   }
+}
+
+// Every demo scales with its stage: --fit (fit.ts) is how much bigger the stage is than a card's,
+// and the scene is ZOOMED by it: laid out and drawn at that size, sharp at any size. (A scaled
+// scene is a stretched bitmap: 3D layers go soft.) A filling scene keeps inset: 0, so it still
+// fills the stage, laid out at about a card's size.
+.stage > .scene {
+  zoom: var(--fit, 1);
 }
 
 .scene {
@@ -1923,25 +1927,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       }
     }
 
-    // up close: that is the point of full screen
-    .scene:not(.scene--fill) {
-      scale: 2.8;
-    }
-
-    .scene--fill {
-      zoom: 2.2;
-    }
-
-    // a large monitor has room for more
-    @media (min-height: 900px) and (min-width: 1400px) {
-      .scene:not(.scene--fill) {
-        scale: 4;
-      }
-
-      .scene--fill {
-        zoom: 3;
-      }
-    }
+    // (up close comes from --fit: a full-screen stage is several cards big)
   }
 }
 
@@ -2422,10 +2408,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   .stage--lg {
     height: 280px;
-
-    .scene:not(.scene--fill) {
-      scale: 1.2;
-    }
   }
 
   .stage__zoom button {

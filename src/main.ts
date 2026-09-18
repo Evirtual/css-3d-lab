@@ -2,6 +2,7 @@ import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
 import { initChrome } from './chrome';
 import { createEditor } from './editor';
+import { fitStages } from './fit';
 import { initFullscreen } from './fullscreen';
 import { LiveEdit, type Part } from './live-edit';
 import { openShareMenu } from './share-menu';
@@ -134,6 +135,7 @@ for (const [i, demo] of demos.entries()) {
   grid.append(card);
 }
 initCardLook(); // each card's own preview options
+fitStages(grid); // each demo scales with its card
 
 /* ---------- filters ---------- */
 
@@ -510,6 +512,7 @@ function openViewer(id: string): void {
   };
 
   initFullscreen(viewerBody);
+  fitStages(viewerBody);
   initTint();
   initZoom();
   show(current);

@@ -1,16 +1,33 @@
 @use '../mixins' as *;
 
+// A photo gallery on the four sides of a cube: the cube, a caption, and one pill of controls.
 .d-cubenav {
   display: grid;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: 1fr auto auto;
+  justify-items: center;
+  gap: 8px;
   width: 100%;
   height: 100%;
-  padding: 10px 14px;
+  padding: 10px 14px 12px;
 
   &__view {
+    position: relative;
     display: grid;
     place-items: center;
+    width: 100%;
     perspective: 700px;
+
+    // a soft shadow on the floor, drawn before the cube so it is always underneath
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: calc(50% - 76px);
+      left: calc(50% - 64px);
+      width: 128px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
+    }
   }
 
   &__cube {
@@ -22,81 +39,101 @@
     // Read right to left: spin on the vertical axis by --angle (JS only ever adds or subtracts
     // 90° steps, it never wraps back to 0), tip the top toward the viewer a little, then pull the
     // whole cube back by half a side so the front face sits at z = 0 and stays its true size.
-    transform: translateZ(calc(var(--s) / -2)) rotateX(-14deg) rotateY(var(--angle, 0deg));
+    transform: translateZ(calc(var(--s) / -2)) rotateX(-9deg) rotateY(var(--angle, 0deg));
     transition: transform 0.8s cubic-bezier(0.3, 1.2, 0.5, 1);
     @include cube-faces(var(--s));
 
+    // each side is a little landscape photo: sky, sun, two hills, a gloss and a shade for the text
     i {
       position: absolute;
       inset: 0;
       display: grid;
       align-content: end;
-      padding: 10px;
-      border: 1px solid hsl(var(--hue) 90% 80% / 0.6);
+      padding: 9px 10px;
+      border: 1px solid hsl(var(--hue) 90% 85% / 0.55);
       border-radius: 10px;
       background:
-        radial-gradient(circle at 72% 26%, rgb(255 255 255 / 0.55) 0 9%, transparent 10%),
-        linear-gradient(165deg, hsl(var(--hue) 85% 66%), hsl(calc(var(--hue) + 45) 70% 30%));
+        linear-gradient(155deg, rgb(255 255 255 / 0.22), transparent 38%),
+        linear-gradient(transparent 52%, rgb(0 0 0 / 0.42)),
+        radial-gradient(95% 55% at 82% 108%, hsl(var(--hue) 45% 19%) 70%, transparent 71%),
+        radial-gradient(85% 50% at 16% 102%, hsl(var(--hue) 40% 33%) 70%, transparent 71%),
+        radial-gradient(circle at 70% 34%, hsl(calc(var(--hue) + 20) 100% 93%) 0 10%, hsl(calc(var(--hue) + 20) 100% 85% / 0.35) 11% 17%, transparent 18%),
+        linear-gradient(hsl(var(--hue) 80% 72%), hsl(calc(var(--hue) + 35) 70% 46%));
       color: #fff;
       font-size: 15px;
       font-style: normal;
       font-weight: 800;
       line-height: 1.1;
+      text-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
       backface-visibility: hidden;
-      @include solid-core(6px, hsl(var(--hue) 60% 24%));
+      @include solid-core(6px, hsl(var(--hue) 45% 18%));
 
       small {
         font-size: 10px;
         font-weight: 600;
-        opacity: 0.8;
+        opacity: 0.85;
       }
 
-      // top and bottom caps
+      // top and bottom: dark glass, so the photos are what you look at
       &:nth-child(n + 5) {
         --hue: 250;
         border-color: var(--border-strong);
-        background: color-mix(in srgb, var(--accent) 30%, var(--surface-solid));
+        background:
+          linear-gradient(135deg, rgb(255 255 255 / 0.12), transparent 60%),
+          color-mix(in srgb, var(--accent) 18%, var(--surface-solid));
       }
     }
   }
 
+  &__caption {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  // one pill: ‹ dots ›
   &__bar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: 10px;
+    padding: 4px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
 
-    button {
-      padding: 5px 12px;
+    > button {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
       border: 0;
-      border-radius: 8px;
-      background: var(--accent);
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--hot));
       color: #fff;
-      font-weight: 800;
       cursor: pointer;
-    }
-
-    output {
-      margin-left: auto;
-      color: var(--muted);
-      white-space: nowrap;
+      --icon: 16px;
     }
   }
 
   &__dots {
     display: flex;
+    align-items: center;
     gap: 6px;
 
     button {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       padding: 0;
-      border: 1px solid var(--border-strong);
-      border-radius: 50%;
-      background: transparent;
+      border: 0;
+      border-radius: 999px;
+      background: var(--border-strong);
+      cursor: pointer;
 
+      // the current one is a longer pill (changed at once, not animated: width is not a transform)
       &[aria-current='true'] {
-        border-color: var(--accent-2);
+        width: 18px;
         background: var(--accent-2);
       }
     }

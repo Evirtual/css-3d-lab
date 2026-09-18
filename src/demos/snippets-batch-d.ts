@@ -2,7 +2,7 @@
  * Paste-anywhere versions of batch D: card interactions and loaders.
  * Plain HTML + CSS (+ JS), no Sass, no build step — see docs/ADDING-DEMOS.md.
  */
-import { CUBE_FACES, type Snippet } from './snippet-utils';
+import type { Snippet } from './snippet-utils';
 
 export const snippetsD: Record<string, Snippet> = {
   hovercards: {
@@ -750,38 +750,55 @@ root.addEventListener('keydown', key);`,
     html: `<div class="cubenav">
   <div class="view">
     <div class="cube">
-      <i style="--hue:28">Dawn<small>01</small></i>
-      <i style="--hue:178">Reef<small>02</small></i>
-      <i style="--hue:300">Dusk<small>03</small></i>
-      <i style="--hue:240">Night<small>04</small></i>
+      <i style="--hue:28">Dawn<small>01 / 04</small></i>
+      <i style="--hue:178">Reef<small>02 / 04</small></i>
+      <i style="--hue:300">Dusk<small>03 / 04</small></i>
+      <i style="--hue:240">Night<small>04 / 04</small></i>
       <i></i>
       <i></i>
     </div>
   </div>
+  <output class="caption" aria-live="polite">01 · Dawn</output>
   <div class="bar">
-    <button type="button" data-dir="-1">Prev</button>
+    <button type="button" data-dir="-1" aria-label="Previous"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
     <span class="dots">
       <button type="button" data-go="0" aria-label="Go to Dawn"></button>
       <button type="button" data-go="1" aria-label="Go to Reef"></button>
       <button type="button" data-go="2" aria-label="Go to Dusk"></button>
       <button type="button" data-go="3" aria-label="Go to Night"></button>
     </span>
-    <button type="button" data-dir="1">Next</button>
-    <output>1 / 4 · Dawn</output>
+    <button type="button" data-dir="1" aria-label="Next"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
   </div>
 </div>`,
     css: `.cubenav {
   display: grid;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: 1fr auto auto;
+  justify-items: center;
+  gap: 8px;
   width: 320px;
-  height: 260px;
-  padding: 10px 14px;
+  height: 280px;
+  padding: 10px 14px 12px;
+  font-family: system-ui, sans-serif;
 }
 
 .view {
+  position: relative;
   display: grid;
   place-items: center;
+  width: 100%;
   perspective: 700px;
+}
+
+/* a soft shadow on the floor, drawn before the cube so it is always underneath */
+.view::before {
+  content: '';
+  position: absolute;
+  bottom: calc(50% - 76px);
+  left: calc(50% - 64px);
+  width: 128px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
 }
 
 .cube {
@@ -791,30 +808,42 @@ root.addEventListener('keydown', key);`,
   height: var(--s);
   transform-style: preserve-3d;
   /* Read right to left: spin on the vertical axis by --angle (JS only ever adds or subtracts
-     90° steps, it never wraps back to 0), tip the top toward the viewer a little, then pull the
-     whole cube back by half a side so the front face sits at z = 0 and stays its true size. */
-  transform: translateZ(calc(var(--s) / -2)) rotateX(-14deg) rotateY(var(--angle, 0deg));
+     90deg steps, it never wraps back to 0), tip the top toward you a little, then pull the cube
+     back by half a side so the front face sits at z = 0 and stays its true size. */
+  transform: translateZ(calc(var(--s) / -2)) rotateX(-9deg) rotateY(var(--angle, 0deg));
   transition: transform 0.8s cubic-bezier(0.3, 1.2, 0.5, 1);
 }
 
-${CUBE_FACES}
+/* turn each face outward, then push it half a side from the centre */
+.cube > :nth-child(1) { transform: rotateY(0deg)   translateZ(calc(var(--s) / 2)); }
+.cube > :nth-child(2) { transform: rotateY(90deg)  translateZ(calc(var(--s) / 2)); }
+.cube > :nth-child(3) { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
+.cube > :nth-child(4) { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
+.cube > :nth-child(5) { transform: rotateX(90deg)  translateZ(calc(var(--s) / 2)); }
+.cube > :nth-child(6) { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
 
+/* each side is a little landscape photo: sky, sun, two hills, a gloss and a shade for the text */
 .cube i {
   position: absolute;
   inset: 0;
   display: grid;
   align-content: end;
-  padding: 10px;
-  border: 1px solid hsl(var(--hue) 90% 80% / 0.6);
+  padding: 9px 10px;
+  border: 1px solid hsl(var(--hue) 90% 85% / 0.55);
   border-radius: 10px;
   background:
-    radial-gradient(circle at 72% 26%, rgb(255 255 255 / 0.55) 0 9%, transparent 10%),
-    linear-gradient(165deg, hsl(var(--hue) 85% 66%), hsl(calc(var(--hue) + 45) 70% 30%));
+    linear-gradient(155deg, rgb(255 255 255 / 0.22), transparent 38%),
+    linear-gradient(transparent 52%, rgb(0 0 0 / 0.42)),
+    radial-gradient(95% 55% at 82% 108%, hsl(var(--hue) 45% 19%) 70%, transparent 71%),
+    radial-gradient(85% 50% at 16% 102%, hsl(var(--hue) 40% 33%) 70%, transparent 71%),
+    radial-gradient(circle at 70% 34%, hsl(calc(var(--hue) + 20) 100% 93%) 0 10%, hsl(calc(var(--hue) + 20) 100% 85% / 0.35) 11% 17%, transparent 18%),
+    linear-gradient(hsl(var(--hue) 80% 72%), hsl(calc(var(--hue) + 35) 70% 46%));
   color: #fff;
   font-size: 15px;
   font-style: normal;
   font-weight: 800;
   line-height: 1.1;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
   backface-visibility: hidden;
   transform-style: preserve-3d;
 }
@@ -824,62 +853,75 @@ ${CUBE_FACES}
   content: '';
   position: absolute;
   inset: 6px;
-  background: hsl(var(--hue) 60% 24%);
+  background: hsl(var(--hue) 45% 18%);
   transform: translateZ(-6px);
 }
 
 .cube i small {
   font-size: 10px;
   font-weight: 600;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
-/* top and bottom caps */
+/* top and bottom: dark glass, so the photos are what you look at */
 .cube i:nth-child(n + 5) {
   --hue: 250;
   border-color: rgb(140 150 220 / 0.34);
-  background: color-mix(in srgb, #8b6cff 30%, #141830);
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 0.12), transparent 60%),
+    #221f45;
 }
 
+.caption {
+  color: #949bc0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* one pill: previous, dots, next */
 .bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 10px;
+  padding: 4px;
+  border: 1px solid rgb(140 150 220 / 0.34);
+  border-radius: 999px;
+  background: rgb(7 8 15 / 0.7);
 }
 
-.bar button {
-  padding: 5px 12px;
+.bar > button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border: 0;
-  border-radius: 8px;
-  background: #8b6cff;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b6cff, #ff4d9d);
   color: #fff;
-  font-weight: 800;
   cursor: pointer;
-}
-
-.bar output {
-  margin-left: auto;
-  color: #949bc0;
-  white-space: nowrap;
 }
 
 .dots {
   display: flex;
+  align-items: center;
   gap: 6px;
 }
 
 .dots button {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   padding: 0;
-  border: 1px solid rgb(140 150 220 / 0.34);
-  border-radius: 50%;
-  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(140 150 220 / 0.34);
+  cursor: pointer;
 }
 
+/* the current one is a longer pill */
 .dots button[aria-current='true'] {
-  border-color: #2ee6d6;
+  width: 18px;
   background: #2ee6d6;
 }`,
     js: `const cube = document.querySelector('.cube');
@@ -894,7 +936,7 @@ function render() {
   const current = ((index % n) + n) % n;
   // face k sits at +90° × k around the cube, so showing it means turning by -90° × k
   cube.style.setProperty('--angle', index * -90 + 'deg');
-  out.textContent = (current + 1) + ' / ' + n + ' · ' + slides[current];
+  out.textContent = '0' + (current + 1) + ' · ' + slides[current];
   dots.forEach((d, i) => d.setAttribute('aria-current', String(i === current)));
 }
 

@@ -34,6 +34,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    width: min(100%, 280px); // centred under the demo, like every control row
+    margin-inline: auto;
     color: var(--muted);
     font-family: var(--mono);
     font-size: 11px;

@@ -351,18 +351,6 @@
     height: auto;
     border: 0;
   }
-
-  // In a roomy frame the scene gets the same boost as the large stage on the demo pages.
-  // Frame-filling demos are laid out in a smaller box and zoomed, so their contents grow too.
-  @media (min-width: 560px) and (min-height: 380px) {
-    .scene:not(.scene--fill) {
-      scale: 1.45;
-    }
-
-    .scene--fill {
-      zoom: 1.4;
-    }
-  }
 }
 
 .embed__credit {

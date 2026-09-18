@@ -1,5 +1,6 @@
 import './styles/main.scss';
 import { demos } from './demos';
+import { fitStages } from './fit';
 
 /**
  * /embed/<id>/ — just the demo, filling the frame. Used two ways:
@@ -29,6 +30,9 @@ if (params.has('reel') && params.has('clean')) document.documentElement.dataset.
 // layers at one pixel per CSS pixel whatever the device scale, so only real layout size is sharp.
 const zoom = Number(params.get('zoom'));
 if (zoom >= 0.25 && zoom <= 8 && zoom !== 1) document.documentElement.style.zoom = String(zoom);
+
+// An embed scales its demo with the frame; the image and video layouts set their own size.
+if (!params.has('og') && !params.has('reel')) fitStages();
 
 // Signals the recorder that the demo is mounted and styled.
 document.documentElement.dataset.ready = '';

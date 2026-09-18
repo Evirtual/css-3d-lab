@@ -41,11 +41,13 @@
     }
   }
 
+  // the button exactly centred under the dice, its result on a line underneath
   &__bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    font-size: 12px;
+    color: var(--muted);
 
     button {
       padding: 5px 16px;

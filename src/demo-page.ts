@@ -2,6 +2,7 @@ import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
 import { initCardLook } from './card-look';
 import { initChrome } from './chrome';
+import { fitStages } from './fit';
 import { demos } from './demos';
 import { createEditor, type Editor } from './editor';
 import { initFullscreen } from './fullscreen';
@@ -23,6 +24,7 @@ import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 initChrome();
 initAnalytics();
 lazyMountCards();
+fitStages(); // every demo on the page scales with its stage
 initCardLook();
 trackDownloads(track);
 initFullscreen();

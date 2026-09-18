@@ -30,6 +30,8 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
+    width: min(100%, 420px); // centred under the card, like every control row
+    margin-inline: auto;
 
     label {
       display: grid;

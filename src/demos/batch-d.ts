@@ -1,3 +1,4 @@
+import { icon } from '../icons';
 import type { Demo } from './types';
 
 const rep = (n: number, fn: (i: number) => string): string =>
@@ -210,13 +211,13 @@ export const demosD: Demo[] = [
     fill: true,
     html: `<div class="d-cubenav">
       <div class="d-cubenav__view"><div class="d-cubenav__cube">${CUBENAV_SLIDES.map(
-        (t, i) => `<i style="--hue:${[28, 178, 300, 240][i]}">${t}<small>0${i + 1}</small></i>`,
+        (t, i) => `<i style="--hue:${[28, 178, 300, 240][i]}">${t}<small>0${i + 1} / 04</small></i>`,
       ).join('')}<i></i><i></i></div></div>
+      <output class="d-cubenav__caption" aria-live="polite">01 · Dawn</output>
       <div class="d-cubenav__bar">
-        <button type="button" data-dir="-1">Prev</button>
+        <button type="button" data-dir="-1" aria-label="Previous">${icon('chevron-left')}</button>
         <span class="d-cubenav__dots">${CUBENAV_SLIDES.map((t, i) => `<button type="button" data-go="${i}" aria-label="Go to ${t}"></button>`).join('')}</span>
-        <button type="button" data-dir="1">Next</button>
-        <output>1 / 4 · Dawn</output>
+        <button type="button" data-dir="1" aria-label="Next">${icon('chevron-right')}</button>
       </div>
     </div>`,
     init(scene) {
@@ -230,7 +231,7 @@ export const demosD: Demo[] = [
         const current = ((index % n) + n) % n;
         // face k sits at +90° × k around the cube, so showing it means turning by −90° × k
         cube.style.setProperty('--angle', `${index * -90}deg`);
-        out.textContent = `${current + 1} / ${n} · ${CUBENAV_SLIDES[current]}`;
+        out.textContent = `0${current + 1} · ${CUBENAV_SLIDES[current]}`;
         dots.forEach((d, i) => d.setAttribute('aria-current', String(i === current)));
       };
       const click = (e: MouseEvent) => {
