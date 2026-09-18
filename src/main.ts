@@ -1,5 +1,6 @@
 import './styles/main.scss';
-import { demos } from './demos';
+import { demos, type GroupedDemo } from './demos';
+import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
 import { snippets, standaloneDoc } from './demos/snippets';
 import { CATEGORY_LABEL, type Category, type Demo } from './demos/types';
 import { highlight, type Lang } from './highlight';
@@ -23,23 +24,27 @@ const $ = <T extends HTMLElement>(sel: string): T => document.querySelector<T>(s
 interface Filters {
   q: string;
   cat: 'all' | Category;
+  group: 'all' | Group;
   tags: Set<string>;
 }
 
 const params = new URLSearchParams(location.search);
 const catParam = params.get('cat');
+const groupParam = params.get('group') as Group | null;
 const state: Filters = {
   q: params.get('q') ?? '',
   cat: catParam === 'css' || catParam === 'js' ? catParam : 'all',
+  group: groupParam && groupParam in GROUPS ? groupParam : 'all',
   tags: new Set((params.get('tags') ?? '').split(',').filter(Boolean)),
 };
 
-const matches = (d: Demo, f: Filters): boolean => {
+const matches = (d: GroupedDemo, f: Filters): boolean => {
   if (f.cat !== 'all' && d.category !== f.cat) return false;
+  if (f.group !== 'all' && d.group !== f.group) return false;
   for (const t of f.tags) if (!d.tags.includes(t)) return false;
   const q = f.q.trim().toLowerCase();
   if (!q) return true;
-  const haystack = [d.title, d.description, CATEGORY_LABEL[d.category], ...d.tags, ...d.technique].join(' ').toLowerCase();
+  const haystack = [d.title, d.description, CATEGORY_LABEL[d.category], GROUPS[d.group], ...d.tags, ...d.technique].join(' ').toLowerCase();
   return q.split(/\s+/).every((word) => haystack.includes(word));
 };
 
@@ -96,6 +101,7 @@ for (const [i, demo] of demos.entries()) {
   card.innerHTML = `
     <div class="stage"></div>
     <div class="card__body">
+      <span class="card__group">${GROUPS[demo.group]}</span>
       <header>
         <h2>${demo.title}</h2>
         <span class="badge badge--${demo.category}">${CATEGORY_LABEL[demo.category]}</span>
@@ -116,6 +122,7 @@ for (const [i, demo] of demos.entries()) {
 /* ---------- filters ---------- */
 
 const tabsEl = $('#tabs');
+const groupsEl = $('#groups');
 const tagsEl = $('#tags');
 const statusEl = $('#status');
 const emptyEl = $('#empty');
@@ -148,6 +155,7 @@ function syncUrl(): void {
   const p = new URLSearchParams();
   if (state.q.trim()) p.set('q', state.q.trim());
   if (state.cat !== 'all') p.set('cat', state.cat);
+  if (state.group !== 'all') p.set('group', state.group);
   if (state.tags.size) p.set('tags', [...state.tags].join(','));
   const qs = p.toString();
   history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
@@ -160,6 +168,15 @@ function render(): void {
     .map(([cat, label]) => {
       const n = count({ ...state, cat });
       return `<button type="button" class="tab" data-cat="${cat}" aria-pressed="${state.cat === cat}">${label} <b>${n}</b></button>`;
+    })
+    .join('');
+
+  const groups: Array<['all' | Group, string]> = [['all', 'All groups'], ...GROUP_ORDER.map((g): [Group, string] => [g, GROUPS[g]])];
+  groupsEl.innerHTML = groups
+    .map(([group, label]) => {
+      const n = count({ ...state, group });
+      const on = state.group === group;
+      return `<button type="button" class="group" data-group="${group}" aria-pressed="${on}"${n === 0 && !on ? ' disabled' : ''}>${label} <b>${n}</b></button>`;
     })
     .join('');
 
@@ -228,7 +245,7 @@ searchEl.addEventListener('input', () => {
 });
 
 document.addEventListener('click', (e) => {
-  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-cat],[data-tag],[data-clear],[data-open],[data-more]');
+  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-cat],[data-group],[data-tag],[data-clear],[data-open],[data-more]');
   if (!el) return;
   if (el.dataset.open) return openViewer(el.dataset.open);
   if ('more' in el.dataset) {
@@ -236,10 +253,12 @@ document.addEventListener('click', (e) => {
     return render();
   }
   if (el.matches('.tab')) state.cat = el.dataset.cat as Filters['cat'];
+  else if (el.dataset.group) state.group = el.dataset.group as Filters['group'];
   else if (el.dataset.tag) state.tags.has(el.dataset.tag) ? state.tags.delete(el.dataset.tag) : state.tags.add(el.dataset.tag);
   else if ('clear' in el.dataset) {
     state.q = searchEl.value = '';
     state.cat = 'all';
+    state.group = 'all';
     state.tags.clear();
   } else return;
   applyFilters();
