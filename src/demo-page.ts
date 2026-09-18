@@ -22,20 +22,66 @@ if (stage && demo) {
   demo.init?.(scene, stage);
 }
 
-for (const block of document.querySelectorAll<HTMLElement>('[data-code]')) {
-  const btn = block.querySelector<HTMLButtonElement>('[data-copy-code]')!;
-  const code = block.querySelector<HTMLElement>('pre code')!;
-  btn.addEventListener('click', async () => {
-    const label = btn.innerHTML;
-    try {
-      await navigator.clipboard.writeText(code.textContent ?? '');
-      btn.innerHTML = `${icon('check')} Copied`;
-      track(`copy/${stage?.dataset.demo ?? 'page'}/${block.querySelector('h3')?.textContent?.toLowerCase() ?? 'code'}`);
-    } catch {
-      btn.textContent = 'Copy blocked — select the text manually';
+/* ---------- the code window: same tabs as the gallery dialog ---------- */
+
+const box = document.querySelector<HTMLElement>('[data-codebox]');
+if (box && demo) {
+  const tabs = [...box.querySelectorAll<HTMLElement>('[data-pane]')];
+  const bodies = [...box.querySelectorAll<HTMLElement>('[data-pane-body]')];
+  const copyBtn = box.querySelector<HTMLButtonElement>('[data-copy-code]')!;
+  const note = box.querySelector<HTMLElement>('.code__note')!;
+  const lines = box.querySelector<HTMLElement>('.codebox__lines')!;
+  let current = 'css';
+
+  const show = async (key: string) => {
+    current = key;
+    for (const t of tabs) t.setAttribute('aria-selected', String(t.dataset.pane === key));
+    for (const body of bodies) body.hidden = body.dataset.paneBody !== key;
+    copyBtn.hidden = key === 'run';
+
+    const body = bodies.find((x) => x.dataset.paneBody === key)!;
+    if (key === 'run') {
+      lines.textContent = 'live';
+      note.textContent = 'The snippet running on its own: exactly what you get when you paste it.';
+      if (!body.firstElementChild) {
+        const doc = await standalone();
+        if (!doc) return;
+        track(`run/${demo.id}`);
+        const frame = document.createElement('iframe');
+        frame.title = `${demo.title} — standalone snippet`;
+        frame.setAttribute('sandbox', 'allow-scripts');
+        frame.srcdoc = doc;
+        body.append(frame);
+      }
+      return;
     }
-    window.setTimeout(() => (btn.innerHTML = label), 1800);
+    lines.textContent = `${body.dataset.lines} lines`;
+    note.textContent =
+      key === 'scss'
+        ? 'This site\u2019s own stylesheet for the demo. It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.'
+        : `Standalone snippet \u00b7 plain ${key.toUpperCase()}, no build step, no dependencies.`;
+  };
+
+  box.addEventListener('click', (e) => {
+    const tab = (e.target as HTMLElement).closest<HTMLElement>('[data-pane]');
+    if (tab) void show(tab.dataset.pane!);
   });
+
+  copyBtn.addEventListener('click', async () => {
+    const label = copyBtn.innerHTML;
+    const code = bodies.find((x) => x.dataset.paneBody === current)?.querySelector('pre code')?.textContent ?? '';
+    try {
+      await navigator.clipboard.writeText(code);
+      copyBtn.innerHTML = `${icon('check')} Copied`;
+      track(`copy/${demo.id}/${current}`);
+    } catch {
+      copyBtn.textContent = 'Copy blocked — select the text manually';
+    }
+    window.setTimeout(() => (copyBtn.innerHTML = label), 1800);
+  });
+
+  box.dataset.enhanced = ''; // CSS switches from "stacked with labels" to "tabbed"
+  void show(current);
 }
 
 /* ---------- page actions: the snippets are only fetched when someone asks for them ---------- */

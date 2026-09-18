@@ -5,7 +5,7 @@
 // can each answer one specific search ("css 3d pyramid"). Everything that matters for ranking —
 // title, description, heading, explanation, code — is written into the HTML as plain text, so it
 // is readable without running any JavaScript.
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createServer } from 'vite';
 
@@ -93,14 +93,43 @@ function demoPage(d, index) {
   const title = `${d.title} in ${kind(d)} — 3D effect with copy-paste code | ${site.name}`;
   const description = `${d.description} Live demo, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`;
 
-  const codeBlock = (label, lang, code) => `
-        <section class="codebox page-code" data-code>
-          <div class="codebox__bar">
-            <h3 class="codebox__label">${label} <span>${code.trimEnd().split('\n').length} lines</span></h3>
-            <button type="button" class="codebox__copy" data-copy-code>${icon('copy')} Copy</button>
-          </div>
-          <pre><code>${highlight(code, lang)}</code></pre>
-        </section>`;
+  // The site's own Sass for this demo: shown for reading, like in the gallery dialog.
+  const scssFile = `src/styles/demos/_${d.id}.scss`;
+  const scss = existsSync(scssFile) ? readFileSync(scssFile, 'utf8').replace(/\r\n/g, '\n') : '';
+
+  const panes = [
+    { key: 'html', label: 'HTML', lang: 'html', code: snip.html },
+    { key: 'css', label: 'CSS', lang: 'css', code: snip.css },
+    ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js', code: snip.js }] : []),
+    ...(scss ? [{ key: 'scss', label: 'Sass source', lang: 'scss', code: scss }] : []),
+  ];
+  const lineCount = (code) => code.trimEnd().split('\n').length;
+
+  // Every pane is real HTML, so crawlers and no-JS visitors get all of the code, stacked with
+  // labels. demo-page.ts turns it into the same tabbed window the gallery dialog uses.
+  const codeWindow = `
+          <section class="codebox page-codebox" data-codebox>
+            <div class="codebox__bar">
+              <div class="codebox__tabs" role="tablist">
+                <div class="codebox__seg" title="The standalone snippet: copy these into your project">
+                  ${panes.filter((x) => x.key !== 'scss').map((x) => `<button type="button" role="tab" data-pane="${x.key}" aria-selected="${x.key === 'css'}">${x.label}</button>`).join('')}
+                </div>
+                <button type="button" role="tab" class="codebox__tab--run" data-pane="run" aria-selected="false" title="Runs the snippet on its own, exactly as it works when pasted">${icon('play')} Preview</button>
+                ${scss ? `<button type="button" role="tab" class="codebox__tab--source" data-pane="scss" aria-selected="false" title="How this site builds the demo, using the project Sass mixins. For reading, not for pasting">Sass source</button>` : ''}
+              </div>
+              <button type="button" class="codebox__copy" data-copy-code>${icon('copy')} Copy</button>
+            </div>
+            ${panes
+              .map(
+                (x) => `<div class="page-pane" data-pane-body="${x.key}" data-lines="${lineCount(x.code)}">
+              <h3 class="page-pane__label">${x.label} <span>${lineCount(x.code)} lines</span></h3>
+              <pre><code>${highlight(x.code, x.lang)}</code></pre>
+            </div>`,
+              )
+              .join('\n            ')}
+            <div class="page-pane page-pane--run" data-pane-body="run" hidden></div>
+            <div class="codebox__foot"><span class="code__note">Standalone snippet · plain CSS, no build step, no dependencies.</span><span class="codebox__lines"></span></div>
+          </section>`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -142,9 +171,9 @@ function demoPage(d, index) {
         <h1>${esc(d.title)} <small>in ${kind(d)}</small></h1>
         <p>${esc(d.description)}</p>
         <p class="page-actions">
-          <button type="button" class="btn btn--accent" data-run>${icon('play')} Run standalone</button>
+          <button type="button" class="btn btn--accent" data-run>${icon('arrow-up-right')} Open in new tab</button>
           <button type="button" class="btn" data-copy-file>${icon('copy')} Copy as one HTML file</button>
-          <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">SCSS source ${icon('arrow-up-right')}</a>
+          <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
         </p>
       </header>
 
@@ -163,10 +192,7 @@ function demoPage(d, index) {
 
         <div>
           <h2 class="page-codehead">Copy-paste code</h2>
-          <p class="page-note">Minimal standalone version: plain CSS, no build step, no dependencies. MIT licensed.</p>
-          ${codeBlock('HTML', 'html', snip.html)}
-          ${codeBlock('CSS', 'css', snip.css)}
-          ${snip.js ? codeBlock('JavaScript', 'js', snip.js) : ''}
+          <p class="page-note">Minimal standalone version: no build step, no dependencies. MIT licensed.</p>${codeWindow}
         </div>
       </div>
 
