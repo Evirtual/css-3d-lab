@@ -462,7 +462,9 @@ input {
     i {
       position: absolute;
       inset: 0;
-      border-radius: 10px;
+      // square: where three see-through faces meet, rounded corners would leave a hole you can
+      // look through into the empty cube
+      border-radius: 0;
       @include face(var(--accent), 18%);
     }
 
@@ -471,9 +473,11 @@ input {
     }
 
     // inside each panel a grid of dots, like the cards' backdrop; the outline stays a line (the
-    // face's border). :nth-child(n) so it comes after the face colours, which reset the background.
+    // face's border). Hard-edged (colour and transparent at the same radius) so they stay crisp
+    // when the panel is turned and zoomed; faint through their colour, not through a blur.
+    // :nth-child(n) so it comes after the face colours, which reset the background.
     i:nth-child(n) {
-      background-image: radial-gradient(circle, var(--border-strong) 1.8px, transparent 2.6px);
+      background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 36%, transparent) 2.2px, transparent 2.2px);
       background-position: center;
       background-size: 20% 20%; // 5 x 5
     }
