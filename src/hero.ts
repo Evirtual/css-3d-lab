@@ -1,27 +1,32 @@
 /**
- * The hero cube can be played with: drag to turn it (it coasts, then eases back into its own
- * tumble), scroll or pinch to zoom (it springs back to its size when you stop).
+ * The hero cube can be played with: drag to turn it in any direction (it coasts, then eases back
+ * into its own tumble), scroll or pinch to zoom (it springs back to its size when you stop).
  *
- * Three layers, so nothing fights: `.hero__zoom` (scale) > `.hero__turn` (the visitor's rotation,
- * --rx / --ry) > `.hero__cube` (the endless CSS tumble, paused while held). The pointer is caught
- * by `.hero__art`, which never moves (a moving hit area flickers).
+ * Three layers, so nothing fights: `.hero__zoom` (scale) > `.hero__turn` (the visitor's rotation)
+ * > `.hero__cube` (the endless CSS tumble, paused while held). The pointer is caught by
+ * `.hero__art`, which never moves (a moving hit area flickers).
  *
- * Page scrolling always wins where it should: on touch screens a vertical swipe still scrolls the
- * page (touch-action: pan-y; sideways drags and pinches come here), and the wheel only zooms until
- * the zoom reaches its limit, then the page scrolls on as usual.
+ * Turning is a trackball: every drag step rotates the cube about the screen axis at right angles
+ * to the drag, applied on top of the current orientation, so up, down, sideways and diagonal all
+ * behave the same, and the cube can go all the way round in any direction.
+ *
+ * Scrolling: with the pointer ON the cube the wheel only zooms (the page does not move); anywhere
+ * else it scrolls the page. On touch screens a vertical swipe scrolls the page (touch-action:
+ * pan-y); sideways drags and pinches come here.
  */
 const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 2.2;
+const DEG_PER_PX = 0.45;
 
 export function initHero(): void {
   const art = document.querySelector<HTMLElement>('.hero__art');
   const zoomEl = art?.querySelector<HTMLElement>('.hero__zoom');
   const turn = art?.querySelector<HTMLElement>('.hero__turn');
-  if (!art || !zoomEl || !turn) return;
+  const cube = art?.querySelector<HTMLElement>('.hero__cube');
+  if (!art || !zoomEl || !turn || !cube) return;
 
-  let rx = 0;
-  let ry = 0;
-  let vx = 0;
+  let m = new DOMMatrix(); // the visitor's rotation
+  let vx = 0; // last drag step, px: what the coast keeps applying (and letting fade)
   let vy = 0;
   let raf = 0;
   let zoom = 1;
@@ -31,10 +36,15 @@ export function initHero(): void {
   let pinchZoom = 1;
 
   const played = () => art.classList.add('was-played');
-  const setTurn = () => {
-    turn.style.setProperty('--rx', `${rx.toFixed(2)}deg`);
-    turn.style.setProperty('--ry', `${ry.toFixed(2)}deg`);
+
+  // turn by a drag step (dx, dy) in screen pixels, about the axis at right angles to it
+  const rotateBy = (dx: number, dy: number) => {
+    const len = Math.hypot(dx, dy);
+    if (len < 0.01) return;
+    m = new DOMMatrix().rotateAxisAngle(-dy / len, dx / len, 0, len * DEG_PER_PX).multiply(m);
+    turn.style.transform = m.toString();
   };
+
   const setZoom = (z: number, springy: boolean) => {
     zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
     zoomEl.classList.toggle('is-springing', springy);
@@ -46,21 +56,19 @@ export function initHero(): void {
     zoomTimer = window.setTimeout(() => setZoom(1, true), delay);
   };
 
-  // back to its own tumble: the visitor's turn eases out and the CSS animation carries on
+  // back to its own tumble: the visitor's turn eases out (CSS interpolates the rotation) and the
+  // cube's animation carries on from where it was paused
   const settle = () => {
     art.classList.remove('is-held');
     turn.classList.add('is-returning');
-    rx = 0;
-    ry = 0;
-    setTurn();
+    m = new DOMMatrix();
+    turn.style.transform = m.toString();
   };
   const coast = () => {
     vx *= 0.94;
     vy *= 0.94;
-    ry += vx;
-    rx = Math.max(-70, Math.min(70, rx + vy));
-    setTurn();
-    if (Math.abs(vx) + Math.abs(vy) > 0.08) raf = requestAnimationFrame(coast);
+    rotateBy(vx, vy);
+    if (Math.hypot(vx, vy) > 0.15) raf = requestAnimationFrame(coast);
     else settle();
   };
 
@@ -77,7 +85,12 @@ export function initHero(): void {
       /* a pointer that is already gone: nothing to capture */
     }
     cancelAnimationFrame(raf);
-    turn.classList.remove('is-returning');
+    // carry on from wherever the return animation has got to
+    if (turn.classList.contains('is-returning')) {
+      m = new DOMMatrix(getComputedStyle(turn).transform);
+      turn.classList.remove('is-returning');
+      turn.style.transform = m.toString();
+    }
     art.classList.add('is-held');
     played();
     vx = vy = 0;
@@ -98,11 +111,9 @@ export function initHero(): void {
       if (pinchStart > 0) setZoom((pinchZoom * distance()) / pinchStart, false);
       return;
     }
-    vx = dx * 0.45;
-    vy = -dy * 0.45;
-    ry += vx;
-    rx = Math.max(-70, Math.min(70, rx + vy));
-    setTurn();
+    vx = dx;
+    vy = dy;
+    rotateBy(dx, dy);
   });
 
   const release = (e: PointerEvent) => {
@@ -110,6 +121,7 @@ export function initHero(): void {
     if (pointers.size === 1) {
       // one finger of a pinch lifted: keep turning with the other, from where it is now
       pinchStart = 0;
+      vx = vy = 0;
       return;
     }
     if (pointers.size > 0) return;
@@ -120,15 +132,21 @@ export function initHero(): void {
   art.addEventListener('pointerup', release);
   art.addEventListener('pointercancel', release);
 
+  // Is the pointer on the cube itself? A circle round it, never smaller than the cube at its normal
+  // size: zooming out must not shrink the target out from under the pointer (the page would jump).
+  const onCube = (e: MouseEvent): boolean => {
+    const r = art.getBoundingClientRect();
+    const radius = cube.offsetWidth * Math.max(zoom, 1) * 0.85;
+    return Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) <= radius;
+  };
+
   art.addEventListener(
     'wheel',
     (e) => {
-      const next = zoom * Math.exp(-e.deltaY * 0.0015);
-      // at the limit already and still going that way: let the page scroll
-      if ((next <= MIN_ZOOM && zoom <= MIN_ZOOM + 0.001) || (next >= MAX_ZOOM && zoom >= MAX_ZOOM - 0.001)) return;
-      e.preventDefault();
+      if (!onCube(e)) return; // beside the cube: the page scrolls as usual
+      e.preventDefault(); // on the cube: the wheel is for zooming, the page stays put
       played();
-      setZoom(next, false);
+      setZoom(zoom * Math.exp(-e.deltaY * 0.0015), false);
       springBackSoon(450);
     },
     { passive: false },

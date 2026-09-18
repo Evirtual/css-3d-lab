@@ -419,10 +419,10 @@ input {
     }
   }
 
-  // the visitor's turn, on top of the cube's own tumble; eased back to zero after a coast
+  // the visitor's turn (a matrix set by hero.ts), on top of the cube's own tumble; eased back to
+  // none after a coast
   &__turn {
     transform-style: preserve-3d;
-    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
 
     &.is-returning {
       transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
