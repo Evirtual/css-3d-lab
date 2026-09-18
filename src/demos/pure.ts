@@ -61,8 +61,8 @@ export const pureDemos: Demo[] = [
     description: 'Press it. The edge is a generated box-shadow stack that collapses on :active.',
     category: 'css',
     tags: ['hover', 'faux-3d', 'sass-loop'],
-    technique: ['box-shadow stack', ':active', 'rotateX tilt'],
-    html: `<button class="d-button" type="button">PUSH</button>`,
+    technique: ['box-shadow stack', ':active on a static hit target', 'rotateX tilt'],
+    html: `<button class="d-button" type="button"><span>PUSH</span></button>`,
   },
   {
     id: 'fold',

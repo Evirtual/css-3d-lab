@@ -12,29 +12,41 @@
 }
 
 $edge: color-mix(in srgb, var(--hot) 55%, #000);
+$travel: 9px;
 
+// The <button> is a static, invisible hit target; the visible cap is the <span> inside it.
+// A pressed element that moves itself can slide out from under the pointer.
 .d-button {
-  padding: 18px 44px;
+  padding: 0 0 $travel; // the hit area also covers where the cap travels to
   border: 0;
-  border-radius: 16px;
-  background: linear-gradient(var(--hot), color-mix(in srgb, var(--hot) 80%, #000));
-  color: #fff;
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: 0.14em;
+  background: none;
   cursor: pointer;
+  transform-style: preserve-3d;
   transform: rotateX(32deg);
-  box-shadow: edge(12, $edge);
-  transition:
-    transform 0.08s,
-    box-shadow 0.08s;
 
-  &:hover {
+  span {
+    display: block;
+    padding: 18px 44px;
+    border-radius: 16px;
+    background: linear-gradient(var(--hot), color-mix(in srgb, var(--hot) 80%, #000));
+    color: #fff;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    pointer-events: none;
+    box-shadow: edge(12, $edge);
+    transition:
+      transform 0.08s,
+      box-shadow 0.08s,
+      filter 0.2s;
+  }
+
+  &:hover span {
     filter: brightness(1.1);
   }
 
-  &:active {
-    transform: rotateX(32deg) translateY(9px);
+  &:active span {
+    transform: translateY($travel);
     box-shadow: edge(3, $edge);
   }
 }

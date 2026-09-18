@@ -231,27 +231,37 @@ ${CUBE_FACES}
   button: {
     how: [
       'The "side" of the button is a stack of 1px <code>box-shadow</code>s going straight down.',
-      'On <code>:active</code>, move the button down with <code>translateY</code> and shrink the stack by the same amount — the base appears to stay put.',
+      'The <code>&lt;button&gt;</code> is a static, invisible hit target; the visible cap is a <code>&lt;span&gt;</code> inside it. A pressed element that moves itself can slide out from under the pointer.',
+      'On <code>:active</code>, move the cap down with <code>translateY</code> and shrink the stack by the same amount — the base appears to stay put.',
       'Keep the transition very short (≈80ms) so it feels mechanical.',
       'A slight <code>rotateX</code> tilt sells the perspective.',
     ],
     html: `<div class="scene">
-  <button class="push" type="button">PUSH</button>
+  <button class="push" type="button"><span>PUSH</span></button>
 </div>`,
     css: `.scene {
   perspective: 600px;
 }
 
+/* static hit target (its bottom padding covers where the cap travels to) */
 .push {
-  padding: 18px 46px;
+  padding: 0 0 8px;
   border: 0;
+  background: none;
+  cursor: pointer;
+  transform: rotateX(30deg);
+}
+
+/* the visible cap */
+.push span {
+  display: block;
+  padding: 18px 46px;
   border-radius: 16px;
   font: 900 1.4rem system-ui;
   letter-spacing: 0.14em;
   color: #fff;
   background: linear-gradient(#ff4d9d, #d63a80);
-  cursor: pointer;
-  transform: rotateX(30deg);
+  pointer-events: none;
   box-shadow:
     0 1px 0 #8f2a58, 0 2px 0 #8f2a58, 0 3px 0 #8f2a58,
     0 4px 0 #8f2a58, 0 5px 0 #8f2a58, 0 6px 0 #8f2a58,
@@ -261,8 +271,8 @@ ${CUBE_FACES}
   transition: transform 0.08s, box-shadow 0.08s;
 }
 
-.push:active {
-  transform: rotateX(30deg) translateY(8px);
+.push:active span {
+  transform: translateY(8px);
   box-shadow:
     0 1px 0 #8f2a58, 0 2px 0 #8f2a58,
     0 6px 10px rgb(0 0 0 / 0.55);

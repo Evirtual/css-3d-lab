@@ -180,8 +180,8 @@ export const pureDemos2: Demo[] = [
     description: 'The button is a bar with two faces; hover rolls the second one into view.',
     category: 'css',
     tags: ['hover', 'ui'],
-    technique: ['two faces 90° apart', 'rotateX(90deg) on hover', 'translateZ(-h/2) keeps it in place'],
-    html: `<button class="d-rollbutton" type="button"><span>Hover me</span><span>Let’s go →</span></button>`,
+    technique: ['static hit target, moving child', 'two faces 90° apart', 'translateZ(-h/2) keeps it in place'],
+    html: `<button class="d-rollbutton" type="button"><span class="d-rollbutton__bar"><span>Hover me</span><span>Let’s go →</span></span></button>`,
   },
   {
     id: 'switch',

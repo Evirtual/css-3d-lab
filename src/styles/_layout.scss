@@ -117,18 +117,17 @@ input {
   white-space: nowrap;
   cursor: pointer;
   transition:
-    transform 0.2s,
     border-color 0.2s,
     box-shadow 0.2s;
 
+  // No movement on hover: an element that moves under the pointer can lose its own :hover.
   &:hover {
-    transform: translateY(-2px);
     border-color: var(--accent);
     box-shadow: 0 8px 20px -10px var(--accent);
   }
 
   &:active {
-    transform: translateY(0);
+    box-shadow: none;
   }
 
   &--kofi {
@@ -659,6 +658,14 @@ input {
   display: grid;
   place-items: center;
   transform-style: preserve-3d;
+  // Hit-testing is 3D too: this invisible wrapper sits at z = 0, so any part of a demo that
+  // tilts BEHIND that plane would be covered by it and stop receiving hover and clicks.
+  // Take the wrapper out of hit-testing; the demo itself stays interactive.
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
 
   &--fill {
     position: absolute;

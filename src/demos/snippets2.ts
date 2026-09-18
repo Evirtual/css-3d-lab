@@ -905,24 +905,27 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
 
   rollbutton: {
     how: [
-      'The button is a bar with two visible faces: the front, and the bottom (<code>rotateX(-90deg)</code>).',
+      '<b>The hovered element must not be the one that moves.</b> The <code>&lt;button&gt;</code> is a static hit target; the bar inside it rolls and has <code>pointer-events: none</code>. If the button itself rotated, its hit area would turn away from the pointer mid-roll, <code>:hover</code> would drop, and it would snap back and forth.',
+      'The bar has two faces: the front, and the bottom (<code>rotateX(-90deg)</code>).',
       'Both are pushed out by half the bar’s height, so together they form two sides of a square prism.',
       'Hover rotates the whole bar <code>rotateX(90deg)</code>, rolling the bottom face up to the front.',
       'The extra <code>translateZ(-h/2)</code> on the bar keeps the front face at z = 0, so the text stays the same size and sharp.',
     ],
     html: `<div class="scene">
   <button class="roll" type="button">
-    <span>Hover me</span>
-    <span>Let's go →</span>
+    <span class="bar">
+      <span>Hover me</span>
+      <span>Let's go →</span>
+    </span>
   </button>
 </div>`,
     css: `.scene {
   perspective: 600px;
 }
 
+/* the button is the hit target and never moves */
 .roll {
   --h: 56px;
-  position: relative;
   display: block;
   width: 220px;
   height: var(--h);
@@ -933,31 +936,50 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   font: 800 1.1rem system-ui;
   cursor: pointer;
   transform-style: preserve-3d;
+}
+
+/* only the bar inside it rolls */
+.bar {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform-style: preserve-3d;
   transform: translateZ(calc(var(--h) / -2));
   transition: transform 0.45s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
-.roll:hover,
-.roll:focus-visible {
+.roll:hover .bar,
+.roll:focus-visible .bar {
   transform: translateZ(calc(var(--h) / -2)) rotateX(90deg);
 }
 
-.roll span {
+.bar span {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
   border-radius: 6px;
+  backface-visibility: hidden;
 }
 
-.roll span:first-child {
+.bar span:first-child {
   background: #8b6cff;
   transform: translateZ(calc(var(--h) / 2));
 }
 
-.roll span:last-child {
+/* hidden at rest, otherwise its edge shows as a thin line under the button */
+.bar span:last-child {
   background: #ff4d9d;
+  opacity: 0;
   transform: rotateX(-90deg) translateZ(calc(var(--h) / 2));
+  transition: opacity 0.1s;
+}
+
+.roll:hover .bar span:last-child,
+.roll:focus-visible .bar span:last-child {
+  opacity: 1;
 }`,
   },
 
