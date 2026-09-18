@@ -51,12 +51,15 @@
     transform: translateZ(-600px);
   }
 
-  20% {
+  20%,
+  80% {
     opacity: 1;
   }
 
+  // Stop at 2/3 of the perspective distance (3x magnification) and fade out.
+  // At z = perspective the scale would be infinite.
   to {
-    opacity: 1;
-    transform: translateZ(300px);
+    opacity: 0;
+    transform: translateZ(200px);
   }
 }

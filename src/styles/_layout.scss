@@ -69,28 +69,27 @@ input {
     width: 46vmax;
     aspect-ratio: 1;
     border-radius: 50%;
-    filter: blur(90px);
-    opacity: 0.22;
+    opacity: 0.3;
     animation: aurora-drift 26s ease-in-out infinite alternate;
   }
 
   i:nth-child(1) {
     top: -18vmax;
     left: -10vmax;
-    background: var(--accent);
+    background: radial-gradient(circle, var(--accent), transparent 65%);
   }
 
   i:nth-child(2) {
     top: 10vmax;
     right: -18vmax;
-    background: var(--accent-2);
+    background: radial-gradient(circle, var(--accent-2), transparent 65%);
     animation-delay: -9s;
   }
 
   i:nth-child(3) {
     bottom: -24vmax;
     left: 30vw;
-    background: var(--hot);
+    background: radial-gradient(circle, var(--hot), transparent 65%);
     animation-delay: -17s;
   }
 }
@@ -117,7 +116,6 @@ input {
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  backdrop-filter: blur(10px);
   transition:
     transform 0.2s,
     border-color 0.2s,
@@ -300,7 +298,6 @@ input {
       border: 1px solid var(--border);
       border-radius: 14px;
       background: var(--surface);
-      backdrop-filter: blur(10px);
     }
 
     dt {
@@ -553,13 +550,11 @@ input {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
-  backdrop-filter: blur(12px);
   box-shadow: var(--shadow);
   overflow: hidden;
   animation: card-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
   animation-delay: calc(var(--n) * 45ms);
   transition:
-    transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
     border-color 0.3s,
     box-shadow 0.3s;
 
@@ -573,7 +568,6 @@ input {
 
   &:hover,
   &:focus-within {
-    transform: translateY(-5px);
     border-color: color-mix(in srgb, var(--glow) 60%, transparent);
     box-shadow:
       var(--shadow),
@@ -672,9 +666,11 @@ input {
   }
 }
 
-// Global pause switch. The grid also pauses while the detail view covers it.
+// Pause rules: the global switch, cards that are mounted but not on screen, and everything
+// behind the open detail view.
 :root[data-paused] :is(.stage, .hero__art, .logo-cube, .aurora),
-body:has(.viewer[open]) :is(.grid .stage, .hero__art) {
+.card.is-offscreen .stage,
+body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   &,
   *,
   *::before,

@@ -53,12 +53,12 @@
 @keyframes d-wavegrid-bob {
   0%,
   100% {
+    opacity: 0.4;
     transform: translateZ(-14px);
-    filter: brightness(0.55);
   }
 
   50% {
+    opacity: 1;
     transform: translateZ(34px);
-    filter: brightness(1.2);
   }
 }

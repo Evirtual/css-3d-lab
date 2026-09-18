@@ -224,7 +224,7 @@ export const interactiveDemos: Demo[] = [
     fill: true,
     html: `<div class="d-sphere">
       <div class="d-sphere__view"><div class="d-sphere__ball"></div></div>
-      <label>dots <output>120</output><input type="range" min="20" max="300" step="10" value="120" /></label>
+      <label>dots <output>100</output><input type="range" min="20" max="200" step="10" value="100" /></label>
     </div>`,
     init(scene) {
       const ball = scene.querySelector<HTMLElement>('.d-sphere__ball')!;

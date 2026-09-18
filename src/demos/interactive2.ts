@@ -152,7 +152,7 @@ export const interactiveDemos2: Demo[] = [
     fill: true,
     html: `<div class="d-wavegrid">
       <div class="d-wavegrid__view"><div class="d-wavegrid__grid"></div></div>
-      <label>size <output>9</output><input type="range" min="5" max="13" step="2" value="9" /></label>
+      <label>size <output>9</output><input type="range" min="5" max="11" step="2" value="9" /></label>
     </div>`,
     init(scene) {
       const grid = scene.querySelector<HTMLElement>('.d-wavegrid__grid')!;

@@ -31,12 +31,15 @@ $duration: 4s;
     transform: translateZ(-1400px) rotateZ(0deg);
   }
 
-  25% {
+  25%,
+  85% {
     opacity: 1;
   }
 
+  // Perspective is 320px, so z = 200px already magnifies 2.7x (the frame is off-screen).
+  // Never animate up to z = perspective: the scale there is infinite.
   to {
-    opacity: 1;
-    transform: translateZ(320px) rotateZ(90deg);
+    opacity: 0;
+    transform: translateZ(200px) rotateZ(90deg);
   }
 }

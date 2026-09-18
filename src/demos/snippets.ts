@@ -402,17 +402,18 @@ ${CUBE_FACES}
   bars: {
     how: [
       'Each bar is a cuboid made of only the three faces you can actually see: front, right side, top.',
-      'The bar’s <code>height</code> is animated; front and side are <code>height: 100%</code>, so they stretch with it.',
-      'The top is a fixed square, laid flat with <code>rotateX(90deg)</code> and pinned to <code>top: 0</code>, so it rides up as the bar grows.',
+      'Do <b>not</b> animate <code>height</code> — that runs layout on every frame. The bar’s box stays full size; the walls are squashed with <code>scaleY</code> from <code>transform-origin: bottom</code>.',
+      'The lid is a fixed square laid flat with <code>rotateX(90deg)</code>; it slides down with <code>translateY</code> by exactly the height the walls lost, so it stays sitting on top.',
       'Shade the three faces differently (light top, mid front, dark side) — that fake lighting does most of the work.',
     ],
     html: `<div class="scene">
   <div class="chart">
-    <div class="bar" style="--h:70px;  --hue:262"><i></i><i></i><i></i></div>
-    <div class="bar" style="--h:110px; --hue:285"><i></i><i></i><i></i></div>
-    <div class="bar" style="--h:50px;  --hue:320"><i></i><i></i><i></i></div>
-    <div class="bar" style="--h:140px; --hue:175"><i></i><i></i><i></i></div>
-    <div class="bar" style="--h:90px;  --hue:40"><i></i><i></i><i></i></div>
+    <!-- --hn = full height in px, as a plain number -->
+    <div class="bar" style="--hn:70;  --hue:262; --delay:0s"><i></i><i></i><i></i></div>
+    <div class="bar" style="--hn:110; --hue:285; --delay:-0.35s"><i></i><i></i><i></i></div>
+    <div class="bar" style="--hn:50;  --hue:320; --delay:-0.7s"><i></i><i></i><i></i></div>
+    <div class="bar" style="--hn:140; --hue:175; --delay:-1.05s"><i></i><i></i><i></i></div>
+    <div class="bar" style="--hn:90;  --hue:40;  --delay:-1.4s"><i></i><i></i><i></i></div>
   </div>
 </div>`,
     css: `.scene {
@@ -430,17 +431,13 @@ ${CUBE_FACES}
 }
 
 .bar {
+  --h: calc(var(--hn) * 1px);     /* full height */
+  --k: calc(14 / var(--hn));      /* scale of the shortest state: 14px */
   position: relative;
   width: var(--w);
-  height: var(--h);
+  height: var(--h);               /* the box itself never changes size */
   transform-style: preserve-3d;
-  animation: grow 1.8s ease-in-out infinite alternate;
 }
-
-.bar:nth-child(2) { animation-delay: -0.35s; }
-.bar:nth-child(3) { animation-delay: -0.7s; }
-.bar:nth-child(4) { animation-delay: -1.05s; }
-.bar:nth-child(5) { animation-delay: -1.4s; }
 
 .bar i {
   position: absolute;
@@ -448,29 +445,44 @@ ${CUBE_FACES}
   left: 0;
   width: var(--w);
   height: 100%;
+  transform-origin: bottom center;
+  animation: 1.8s ease-in-out var(--delay) infinite alternate;
 }
 
 /* front */
 .bar i:nth-child(1) {
   background: hsl(var(--hue) 80% 60%);
   transform: translateZ(calc(var(--w) / 2));
+  animation-name: grow-front;
 }
 
 /* right side */
 .bar i:nth-child(2) {
   background: hsl(var(--hue) 70% 42%);
   transform: rotateY(90deg) translateZ(calc(var(--w) / 2));
+  animation-name: grow-side;
 }
 
-/* top */
+/* lid */
 .bar i:nth-child(3) {
   height: var(--w);
   background: hsl(var(--hue) 90% 74%);
+  transform-origin: center;
   transform: rotateX(90deg) translateZ(calc(var(--w) / 2));
+  animation-name: grow-lid;
 }
 
-@keyframes grow {
-  from { height: 14px; }
+/* each keyframe gives only the SHORT state; the tall state is the element's own transform */
+@keyframes grow-front {
+  from { transform: translateZ(calc(var(--w) / 2)) scaleY(var(--k)); }
+}
+
+@keyframes grow-side {
+  from { transform: rotateY(90deg) translateZ(calc(var(--w) / 2)) scaleY(var(--k)); }
+}
+
+@keyframes grow-lid {
+  from { transform: translateY(calc(var(--h) - 14px)) rotateX(90deg) translateZ(calc(var(--w) / 2)); }
 }`,
   },
 
@@ -618,7 +630,7 @@ ${CUBE_FACES}`,
     how: [
       'The floor is one big element with two <code>linear-gradient</code>s drawing the grid lines.',
       'Hinge it on the horizon (<code>transform-origin: top</code>) and lay it down with <code>rotateX(80deg)</code>. A short <code>perspective</code> on the parent exaggerates the depth.',
-      'Motion is just <code>background-position</code> sliding by <b>exactly one cell</b>, so the loop is seamless.',
+      'Motion is a child layer sliding by <b>exactly one cell</b> with <code>transform</code>, so the loop is seamless. (Animating <code>background-position</code> looks the same but repaints every frame; transform does not.)',
       'A <code>mask</code> gradient fades the lines out toward the horizon.',
     ],
     html: `<div class="retro">
@@ -657,15 +669,24 @@ ${CUBE_FACES}`,
   height: 300%;
   transform-origin: top center;
   transform: rotateX(80deg);
+  overflow: hidden;
+  mask: linear-gradient(transparent, #000 12%);
+}
+
+/* the lines slide on a child: transform animates on the compositor,
+   background-position would repaint the whole layer every frame */
+.floor::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--cell) * -1) 0 0;
   background:
     linear-gradient(#2ee6d6 2px, transparent 2px) 0 0 / var(--cell) var(--cell),
     linear-gradient(90deg, #2ee6d6 2px, transparent 2px) 50% 0 / var(--cell) var(--cell);
-  mask: linear-gradient(transparent, #000 12%);
   animation: run 0.9s linear infinite;
 }
 
 @keyframes run {
-  to { background-position: 0 var(--cell), 50% var(--cell); }
+  to { transform: translateY(var(--cell)); }
 }`,
   },
 
@@ -1213,8 +1234,7 @@ scene.addEventListener('pointermove', (e) => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ffb547;
-  box-shadow: 0 0 6px #ffb547;
+  background: radial-gradient(circle, #fff 15%, #ffb547 60%);
 }
 
 @keyframes ball-spin {
@@ -1222,7 +1242,7 @@ scene.addEventListener('pointermove', (e) => {
   to   { transform: rotateX(-18deg) rotateY(360deg); }
 }`,
     js: `const ball = document.querySelector('.ball');
-const COUNT = 160;
+const COUNT = 120;
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 for (let i = 0; i < COUNT; i++) {

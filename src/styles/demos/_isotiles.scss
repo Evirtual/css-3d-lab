@@ -5,17 +5,29 @@
   transform-style: preserve-3d;
   transform: rotateX(56deg) rotateZ(-45deg);
 
+  // The cell never moves: it is the hit target. If the hovered element itself lifted, it would
+  // slide out from under the pointer, lose :hover, drop, regain it... and flicker.
   i {
+    position: relative;
     height: 34px;
-    border-radius: 6px;
-    background: color-mix(in srgb, var(--accent) 35%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
-    // slow on the way DOWN (this rule applies once the hover ends)
-    transition:
-      transform 1.4s ease-out,
-      background 1.4s ease-out;
+    transform-style: preserve-3d;
 
-    &:hover {
+    // the visible plate
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--accent) 35%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
+      pointer-events: none;
+      // slow on the way DOWN (this rule applies once the hover ends)
+      transition:
+        transform 1.4s ease-out,
+        background 1.4s ease-out;
+    }
+
+    &:hover::before {
       background: var(--accent-2);
       transform: translateZ(34px);
       // instant on the way UP

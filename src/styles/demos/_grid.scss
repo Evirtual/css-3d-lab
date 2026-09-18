@@ -30,19 +30,26 @@ $cell: 36px;
     height: 300%;
     transform-origin: top center;
     transform: rotateX(80deg);
-    background:
-      linear-gradient(#2ee6d6 2px, transparent 2px) 0 0 / #{$cell} #{$cell},
-      linear-gradient(90deg, #2ee6d6 2px, transparent 2px) 50% 0 / #{$cell} #{$cell};
+    overflow: hidden;
     mask: linear-gradient(transparent, #000 12%);
-    animation: d-grid-run 0.9s linear infinite;
+
+    // The lines live on a child that slides by exactly one cell: a transform animation runs on
+    // the compositor, whereas animating background-position repaints the layer every frame.
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -$cell 0 0;
+      background:
+        linear-gradient(#2ee6d6 2px, transparent 2px) 0 0 / #{$cell} #{$cell},
+        linear-gradient(90deg, #2ee6d6 2px, transparent 2px) 50% 0 / #{$cell} #{$cell};
+      animation: d-grid-run 0.9s linear infinite;
+    }
   }
 }
 
 // Shift by exactly one cell so the loop is seamless.
 @keyframes d-grid-run {
   to {
-    background-position:
-      0 $cell,
-      50% $cell;
+    transform: translateY($cell);
   }
 }

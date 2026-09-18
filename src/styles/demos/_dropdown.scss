@@ -30,6 +30,7 @@
     border: 1px solid var(--border);
     font-size: 14px;
     opacity: 0;
+    pointer-events: none; // folded items must not catch the pointer
     transform-origin: top center;
     transform: rotateX(-90deg);
     transition:
@@ -42,6 +43,7 @@
   &:hover li,
   &:focus li {
     opacity: 1;
+    pointer-events: auto;
     transform: rotateX(0deg);
     // opening: first item first
     transition-delay: calc(var(--i) * 80ms);

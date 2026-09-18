@@ -65,11 +65,12 @@ function mount(demo: Demo, stage: HTMLElement): () => void {
 const grid = $('#grid');
 const cards = new Map<string, HTMLElement>();
 
-// Lazy mounting: a demo only exists in the DOM while its card is near the viewport,
-// so the cost of the page depends on what is on screen, not on how many demos there are.
+// Lazy mounting, in two rings, so the cost of the page follows what is on screen:
+//  - within 600px of the viewport a demo is MOUNTED (so it is already there when it scrolls in),
+//  - only while actually on screen is it RUNNING; the rest sit paused via .is-offscreen.
 const mounted = new Map<Element, () => void>();
 const demoByCard = new Map<Element, Demo>();
-const visibility = new IntersectionObserver(
+const nearby = new IntersectionObserver(
   (entries) => {
     for (const e of entries) {
       if (e.isIntersecting && !mounted.has(e.target)) {
@@ -80,12 +81,15 @@ const visibility = new IntersectionObserver(
       }
     }
   },
-  { rootMargin: '250px' },
+  { rootMargin: '600px' },
 );
+const onScreen = new IntersectionObserver((entries) => {
+  for (const e of entries) e.target.classList.toggle('is-offscreen', !e.isIntersecting);
+});
 
 for (const [i, demo] of demos.entries()) {
   const card = document.createElement('article');
-  card.className = 'card';
+  card.className = 'card is-offscreen';
   card.dataset.cat = demo.category;
   card.style.setProperty('--n', String(i));
   card.innerHTML = `
@@ -102,7 +106,8 @@ for (const [i, demo] of demos.entries()) {
       </footer>
     </div>`;
   demoByCard.set(card, demo);
-  visibility.observe(card);
+  nearby.observe(card);
+  onScreen.observe(card);
   cards.set(demo.id, card);
   grid.append(card);
 }

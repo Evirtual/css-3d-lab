@@ -88,9 +88,9 @@ export const pureDemos: Demo[] = [
     description: 'Each bar is a real cuboid — front, side and top face — growing on a staggered delay.',
     category: 'css',
     tags: ['loop', 'sass-loop'],
-    technique: ['preserve-3d inside flexbox', 'animated height', 'animation-delay stagger'],
+    technique: ['preserve-3d inside flexbox', 'scaleY walls + translateY lid (no layout)', 'animation-delay stagger'],
     html: `<div class="d-bars">${[60, 95, 45, 120, 80]
-      .map((h) => `<div class="d-bars__bar" style="--h:${h}px"><i></i><i></i><i></i></div>`)
+      .map((h) => `<div class="d-bars__bar" style="--hn:${h}"><i></i><i></i><i></i></div>`)
       .join('')}</div>`,
   },
   {
@@ -122,7 +122,7 @@ export const pureDemos: Demo[] = [
     description: 'A gradient-drawn grid laid flat with rotateX, scrolling toward you forever.',
     category: 'css',
     tags: ['loop'],
-    technique: ['perspective on parent', 'rotateX floor plane', 'animated background-position'],
+    technique: ['perspective on parent', 'rotateX floor plane', 'line layer slid with transform (not background-position)'],
     fill: true,
     html: `<div class="d-grid"><div class="d-grid__sun"></div><div class="d-grid__floor"></div></div>`,
   },

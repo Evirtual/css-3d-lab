@@ -318,7 +318,7 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
   tunnel: {
     how: [
       'Ten identical frames, stacked in the centre, all running the same animation: <code>translateZ(-1400px)</code> → <code>translateZ(320px)</code>.',
-      'Perspective is 320px, so at z = 320px a frame has reached the camera and fills the whole view.',
+      'Perspective is 320px. A frame at z = 200px is already magnified 2.7× and off-screen, so stop there and fade out. Never animate all the way to z = perspective: the scale there is infinite and the browser stalls rasterising it.',
       'A negative <code>animation-delay</code> of <code>i × (duration / count)</code> spreads them evenly along the tunnel.',
       'Fading in from 0 opacity hides the moment a frame pops into existence far away.',
     ],
@@ -346,10 +346,11 @@ ${lines(10, (i) => `<i style="--i:${i}"></i>`, '  ')}
   animation-delay: calc(var(--i) * -0.4s);   /* 4s / 10 frames */
 }
 
+/* stop well before z = perspective (320px): the scale there is infinite */
 @keyframes fly {
-  from { opacity: 0; transform: translateZ(-1400px) rotateZ(0deg); }
-  25%  { opacity: 1; }
-  to   { opacity: 1; transform: translateZ(320px) rotateZ(90deg); }
+  from     { opacity: 0; transform: translateZ(-1400px) rotateZ(0deg); }
+  25%, 85% { opacity: 1; }
+  to       { opacity: 0; transform: translateZ(200px) rotateZ(90deg); }
 }`,
   },
 
@@ -395,10 +396,11 @@ ${starShadows(40, 900, 99)};
 ${starShadows(40, 900, 2024)};
 }
 
+/* stop at 2/3 of the perspective distance; at z = perspective the scale is infinite */
 @keyframes warp {
-  from { opacity: 0; transform: translateZ(-600px); }
-  20%  { opacity: 1; }
-  to   { opacity: 1; transform: translateZ(300px); }
+  from     { opacity: 0; transform: translateZ(-600px); }
+  20%, 80% { opacity: 1; }
+  to       { opacity: 0; transform: translateZ(200px); }
 }`,
   },
 
@@ -800,6 +802,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   isotiles: {
     how: [
       'The browser hit-tests in 3D: <code>:hover</code> works on the tile you actually see under the pointer, even on a tilted plane.',
+      'The hovered cell itself never moves — only its <code>::before</code> plate lifts. If the hovered element moved, it would slide out from under the pointer and flicker.',
       'The trail effect is two transition speeds. The base rule has a slow 1.4s transition — that one applies when the hover <b>ends</b>.',
       'The <code>:hover</code> rule overrides <code>transition-duration</code> to 0.08s — that one applies when the hover <b>starts</b>.',
       'Result: tiles pop up instantly and sink back slowly.',
@@ -821,16 +824,26 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   transform: rotateX(56deg) rotateZ(-45deg);
 }
 
+/* the cell is a fixed hit target; only its ::before plate moves */
 .floor i {
+  position: relative;
   height: 46px;
+  transform-style: preserve-3d;
+}
+
+.floor i::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   border-radius: 7px;
   background: rgb(139 108 255 / 0.35);
   border: 1px solid rgb(139 108 255 / 0.7);
+  pointer-events: none;
   /* slow on the way down */
   transition: transform 1.4s ease-out, background 1.4s ease-out;
 }
 
-.floor i:hover {
+.floor i:hover::before {
   background: #2ee6d6;
   transform: translateZ(46px);
   /* instant on the way up */
@@ -1073,6 +1086,7 @@ input:checked ~ em {
   opacity: 0;
   transform-origin: top center;
   transform: rotateX(-90deg);
+  pointer-events: none;                            /* folded items must not catch the pointer */
   transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1), opacity 0.2s;
   transition-delay: calc((3 - var(--i)) * 50ms);   /* closing: bottom-up */
 }
@@ -1080,6 +1094,7 @@ input:checked ~ em {
 .menu:hover li,
 .menu:focus li {
   opacity: 1;
+  pointer-events: auto;
   transform: rotateX(0deg);
   transition-delay: calc(var(--i) * 80ms);         /* opening: top-down */
 }`,
@@ -1435,9 +1450,10 @@ document.querySelector('nav').addEventListener('click', (e) => {
   animation-delay: calc(var(--d) * -0.22s);
 }
 
+/* opacity + transform only: both run on the compositor, even with 100+ cells */
 @keyframes bob {
-  0%, 100% { transform: translateZ(-14px); filter: brightness(0.55); }
-  50%      { transform: translateZ(40px);  filter: brightness(1.2); }
+  0%, 100% { transform: translateZ(-14px); opacity: 0.4; }
+  50%      { transform: translateZ(40px);  opacity: 1; }
 }`,
     js: `const grid = document.querySelector('.grid');
 const N = 11;
