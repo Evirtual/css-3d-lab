@@ -136,10 +136,10 @@
   }
 }
 
-// Two columns: the code window is as tall as the demo + explanation beside it, IF there is
-// that much code; shorter snippets keep a shorter window. It is taken out of the flow so that
-// the left column alone sets the row height (otherwise long code would stretch the row and
-// there would be nothing to match).
+// Two columns: the code window is always exactly as tall as the demo + explanation beside it,
+// like an editor pane; long code scrolls inside it, short code simply leaves room. It is taken
+// out of the flow so that the left column alone sets the row height (otherwise long code would
+// stretch the row and there would be nothing to match).
 @media (min-width: 861px) {
   .page-right {
     position: relative;
@@ -151,11 +151,7 @@
     inset: 0 0 auto;
     display: flex;
     flex-direction: column;
-    max-height: 100%;
-
-    &.is-run {
-      height: 100%;
-    }
+    height: 100%;
 
     .page-pane:not([hidden]) {
       display: flex;
