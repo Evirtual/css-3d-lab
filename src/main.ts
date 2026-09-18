@@ -10,6 +10,7 @@ import { shortHint } from './short-hint';
 import { dotsHtml, initTint, modeHtml } from './tint';
 import { initGroupLists } from './group-list';
 import { initHero, initShapes } from './hero';
+import { initStickyBars } from './sticky-bars';
 import { trackDownloads, videoButton } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
@@ -262,6 +263,7 @@ initAnalytics();
 trackDownloads(track);
 initHero();
 initShapes();
+initStickyBars();
 initGroupLists();
 
 searchEl.value = state.q;

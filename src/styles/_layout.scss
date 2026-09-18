@@ -635,6 +635,12 @@ $gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) sca
   position: sticky;
   top: 0;
   z-index: 5;
+  transition: translate 0.25s ease;
+
+  // phones: tucked away while you scroll down (sticky-bars.ts)
+  &.is-tucked {
+    translate: 0 calc(-100% - 12px);
+  }
   max-width: 1320px;
   margin: 0 auto;
   padding: 14px 20px 10px;
@@ -2364,11 +2370,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       order: -1;
       min-height: 220px;
     }
-  }
-
-  // not sticky on small screens (it would cover half of them); still the frame for its backdrop
-  .filters {
-    position: relative;
   }
 
   .viewer {

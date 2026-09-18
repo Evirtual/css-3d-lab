@@ -11,8 +11,14 @@
   "bars": {
     "bytes": 515379
   },
+  "blockstack": {
+    "bytes": 840972
+  },
   "book": {
     "bytes": 623430
+  },
+  "bookshelf": {
+    "bytes": 892868
   },
   "boxslider": {
     "bytes": 490921
@@ -20,8 +26,14 @@
   "browser": {
     "bytes": 698584
   },
+  "businesscard": {
+    "bytes": 2106597
+  },
   "button": {
     "bytes": 297831
+  },
+  "camera": {
+    "bytes": 2565895
   },
   "can": {
     "bytes": 1098753
@@ -44,6 +56,9 @@
   "clock": {
     "bytes": 346406
   },
+  "coffeecup": {
+    "bytes": 1452773
+  },
   "coin": {
     "bytes": 792755
   },
@@ -59,11 +74,17 @@
   "crawl": {
     "bytes": 3065879
   },
+  "crystal": {
+    "bytes": 2476659
+  },
   "cube": {
     "bytes": 1746049
   },
   "cubegrid": {
     "bytes": 1243388
+  },
+  "cubeletters": {
+    "bytes": 1181791
   },
   "cubeloader": {
     "bytes": 612929
@@ -82,6 +103,9 @@
   },
   "door": {
     "bytes": 403303
+  },
+  "dotorbit": {
+    "bytes": 3341843
   },
   "drag": {
     "bytes": 3088188
@@ -116,8 +140,14 @@
   "foldtext": {
     "bytes": 760722
   },
+  "gauge": {
+    "bytes": 1444559
+  },
   "globe": {
     "bytes": 8905605
+  },
+  "greeting": {
+    "bytes": 835109
   },
   "grid": {
     "bytes": 822236
@@ -125,8 +155,14 @@
   "gyro": {
     "bytes": 1714710
   },
+  "headphones": {
+    "bytes": 1985033
+  },
   "helix": {
     "bytes": 2160486
+  },
+  "hourglass": {
+    "bytes": 2612747
   },
   "hovercards": {
     "bytes": 994176
@@ -137,14 +173,23 @@
   "isotiles": {
     "bytes": 777029
   },
+  "keycaps": {
+    "bytes": 330749
+  },
   "laptop": {
     "bytes": 706010
+  },
+  "lattice": {
+    "bytes": 3411690
   },
   "layers": {
     "bytes": 1226756
   },
   "layertext": {
     "bytes": 812977
+  },
+  "lighthouse": {
+    "bytes": 1300497
   },
   "lit": {
     "bytes": 614521
@@ -176,11 +221,17 @@
   "paycard": {
     "bytes": 1735659
   },
+  "perfume": {
+    "bytes": 2346370
+  },
   "phone": {
     "bytes": 1395638
   },
   "pie": {
     "bytes": 586054
+  },
+  "planet": {
+    "bytes": 819443
   },
   "playground": {
     "bytes": 282717
@@ -203,6 +254,9 @@
   "radio": {
     "bytes": 286650
   },
+  "rating": {
+    "bytes": 443179
+  },
   "rings": {
     "bytes": 1498014
   },
@@ -211,6 +265,9 @@
   },
   "road": {
     "bytes": 634111
+  },
+  "rocket": {
+    "bytes": 1540533
   },
   "rollbutton": {
     "bytes": 353463
@@ -251,6 +308,9 @@
   "starfield": {
     "bytes": 1051698
   },
+  "stepper": {
+    "bytes": 511363
+  },
   "swipe": {
     "bytes": 1416482
   },
@@ -259,6 +319,9 @@
   },
   "tabs": {
     "bytes": 270774
+  },
+  "tetra": {
+    "bytes": 2027857
   },
   "text": {
     "bytes": 903238
@@ -271,6 +334,15 @@
   },
   "tilt": {
     "bytes": 996636
+  },
+  "tiltgallery": {
+    "bytes": 1274845
+  },
+  "timeline": {
+    "bytes": 301417
+  },
+  "toggle": {
+    "bytes": 517909
   },
   "torus": {
     "bytes": 5122147
@@ -292,6 +364,9 @@
   },
   "waveletters": {
     "bytes": 767389
+  },
+  "windmill": {
+    "bytes": 1400936
   },
   "wordcube": {
     "bytes": 504713

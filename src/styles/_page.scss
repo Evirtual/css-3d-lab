@@ -641,6 +641,30 @@
 
 // The home page's share image (/embed/cover/?og=1): the site's own cube and headline.
 .og-cover {
+  // the home page's own backdrop: the corner washes over the blueprint grid (demo images have
+  // the cards' dots instead). Same as [data-og] .embed above, with the dots swapped for the grid.
+  &.embed {
+    background:
+      radial-gradient(ellipse 40% 55% at 72% 50%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+      radial-gradient(
+        ellipse 67% 77% at 0 0,
+        color-mix(in srgb, var(--accent) 18%, transparent),
+        color-mix(in srgb, var(--accent) 7%, transparent) 30%,
+        color-mix(in srgb, var(--accent) 2%, transparent) 65%,
+        transparent
+      ),
+      radial-gradient(
+        ellipse 67% 77% at 100% 100%,
+        color-mix(in srgb, var(--accent-2) 12%, transparent),
+        color-mix(in srgb, var(--accent-2) 4.5%, transparent) 30%,
+        color-mix(in srgb, var(--accent-2) 1.5%, transparent) 65%,
+        transparent
+      ),
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 48px 48px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 48px 48px,
+      var(--bg);
+  }
+
   // held still at a flattering angle (a still image: the tumble would catch it at a random one,
   // sometimes reaching past the edge), and sized to sit well inside the frame
   .hero__cube {
