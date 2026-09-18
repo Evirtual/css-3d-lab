@@ -1,4 +1,6 @@
-:root {
+// Theme colours as mixins: the site uses them on :root, and the large stage of a demo can carry
+// its own (see zoom.ts), independent of the site theme.
+@mixin theme-dark {
   --bg: #07080f;
   --bg-2: #0d1020;
   --surface: rgb(22 26 46 / 0.72);
@@ -17,14 +19,10 @@
   --warm: #ffb547;
   --code-bg: #0a0c18;
   --shadow: 0 20px 50px -20px rgb(0 0 0 / 0.7);
-  --radius: 18px;
-  --icon: 16px;
-  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
   color-scheme: dark;
 }
 
-:root[data-theme='light'] {
+@mixin theme-light {
   --bg: #f3f4fc;
   --bg-2: #e8eafa;
   --surface: rgb(255 255 255 / 0.78);
@@ -44,4 +42,24 @@
   --code-bg: #12142a;
   --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
   color-scheme: light;
+}
+
+:root {
+  @include theme-dark;
+  --radius: 18px;
+  --icon: 16px;
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+}
+
+:root[data-theme='light'] {
+  @include theme-light;
+}
+
+.stage-wrap[data-theme='dark'] {
+  @include theme-dark;
+}
+
+.stage-wrap[data-theme='light'] {
+  @include theme-light;
 }

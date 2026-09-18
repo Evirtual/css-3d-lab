@@ -7,7 +7,13 @@ export interface Snippet {
   js?: string;
 }
 
-export function standaloneDoc(title: string, s: Snippet): string {
+/**
+ * The complete page for a snippet. With `stage`, the page is see-through and its text follows that
+ * theme: that is how an edited snippet runs inside the site's own stage.
+ */
+export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light'): string {
+  const background = stage ? 'transparent' : '#0b0d18';
+  const color = stage === 'light' ? '#14172b' : '#eceefb';
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -21,8 +27,8 @@ body {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #0b0d18;
-  color: #eceefb;
+  background: ${background};
+  color: ${color};
   font-family: system-ui, sans-serif;
 }
 

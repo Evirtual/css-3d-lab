@@ -11,7 +11,7 @@ import { copyText, embedCode } from './share';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { initTint } from './tint';
-import { initZoom } from './zoom';
+import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 
 /**
  * Enhances the static demo and group pages. Everything a search engine needs is already in the
@@ -59,13 +59,15 @@ if (stage && demo && box) {
     if (live.edited) {
       unmount?.();
       unmount = undefined;
-      stage.replaceChildren(live.frame());
+      stage.replaceChildren(live.frame(stageTheme()));
       showing = 'edit';
     } else if (showing !== 'original') {
       mountOriginal();
     }
     if (editedBar) editedBar.hidden = !live.edited;
   };
+  // an edited frame has the stage theme baked in
+  document.addEventListener(STAGE_THEME_EVENT, () => showing === 'edit' && refreshStage());
   let timer = 0;
   const refreshSoon = () => {
     window.clearTimeout(timer);

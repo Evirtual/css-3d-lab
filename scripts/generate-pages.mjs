@@ -228,7 +228,8 @@ function demoPage(d, index) {
             <div class="stage stage--lg" data-demo="${d.id}">
               <noscript><p class="page-noscript">The live 3D preview needs JavaScript to load. The explanation and full code are below.</p></noscript>
             </div>
-            <div class="stage__zoom" role="group" aria-label="Background dot size"><button type="button" data-dots="1" aria-pressed="false" title="Background dots 1×">1×</button><button type="button" data-dots="2" aria-pressed="true" title="Background dots 2×">2×</button><button type="button" data-dots="3" aria-pressed="false" title="Background dots 3×">3×</button></div>
+            <button type="button" class="stage__mode" data-stage-theme aria-label="Switch this preview to light"></button>
+            <div class="stage__zoom" role="group" aria-label="Background dot size"><button type="button" data-dots="0" data-dots-scope="stage" aria-pressed="false" title="No background dots">Off</button><button type="button" data-dots="1" data-dots-scope="stage" aria-pressed="false" title="Background dots 1×">1×</button><button type="button" data-dots="2" data-dots-scope="stage" aria-pressed="true" title="Background dots 2×">2×</button><button type="button" data-dots="3" data-dots-scope="stage" aria-pressed="false" title="Background dots 3×">3×</button></div>
             <button type="button" class="stage__fs" data-fullscreen aria-label="Full screen"></button>
             <p class="stage__edited" data-edited hidden>Your edited version <button type="button" class="link" data-reset>Reset to original</button></p>
           </div>

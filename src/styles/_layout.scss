@@ -660,6 +660,54 @@ input {
   }
 }
 
+.filters__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 14px;
+  margin-top: 8px;
+
+  .status {
+    margin-top: 0;
+  }
+}
+
+.dotctl {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+
+  &__buttons {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--border-strong);
+    border-radius: 9px;
+  }
+
+  button {
+    min-width: 30px;
+    padding: 3px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &[aria-pressed='true'] {
+      background: linear-gradient(120deg, var(--accent), var(--hot));
+      color: #fff;
+    }
+  }
+}
+
 .status {
   margin-top: 8px;
   color: var(--muted);
@@ -786,11 +834,14 @@ input {
   }
 }
 
-// Backdrop dot size: ONE setting for every stage on the site (gallery cards, group pages, demo
-// pages, the dialog). 2x is the default; the 1x / 2x / 3x buttons on any demo change it everywhere.
+// Backdrop dot sizes. Two independent settings (see zoom.ts), both defaulting to 2x:
+//   data-dotsize   the large stage of a single demo   -> --dot-r  / --dot-gap
+//   data-carddots  the small stages of cards          -> --cdot-r / --cdot-gap
 :root {
   --dot-r: 1.1px;
   --dot-gap: 17px;
+  --cdot-r: 1.1px;
+  --cdot-gap: 17px;
 
   &[data-dotsize='1'] {
     --dot-r: 0.9px;
@@ -800,6 +851,27 @@ input {
   &[data-dotsize='3'] {
     --dot-r: 1.3px;
     --dot-gap: 22px;
+  }
+
+  // Off: no dots at all
+  &[data-dotsize='0'] .stage--lg::before {
+    display: none;
+  }
+
+  &[data-carddots='0'] .stage:not(.stage--lg) {
+    background:
+      radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+      color-mix(in srgb, var(--bg) 70%, transparent);
+  }
+
+  &[data-carddots='1'] {
+    --cdot-r: 0.9px;
+    --cdot-gap: 12px;
+  }
+
+  &[data-carddots='3'] {
+    --cdot-r: 1.3px;
+    --cdot-gap: 22px;
   }
 }
 
@@ -814,7 +886,7 @@ input {
   border-bottom: 1px solid var(--border);
   background:
     radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-    radial-gradient(var(--border-strong) var(--dot-r), transparent calc(var(--dot-r) + 0.8px)) 0 0 / var(--dot-gap) var(--dot-gap),
+    radial-gradient(var(--border-strong) var(--cdot-r), transparent calc(var(--cdot-r) + 0.8px)) 0 0 / var(--cdot-gap) var(--cdot-gap),
     color-mix(in srgb, var(--bg) 70%, transparent);
 
   &--lg {
@@ -1528,9 +1600,14 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 // survive (full-screen button, "edited" notice) lives here instead.
 .stage-wrap {
   position: relative;
+  color: var(--text); // its own theme, when it has one
 
   // the visitor's edited snippet, running in a sandboxed frame in place of the built-in demo
+  // The frame's page is transparent, so the stage's backdrop shows behind an edited demo too.
+  // (A frame only stays transparent when its colour scheme matches the page inside it, and a
+  // page that declares none counts as light.)
   .live-frame {
+    color-scheme: light;
     position: absolute;
     inset: 0;
     width: 100%;
@@ -1578,7 +1655,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 .stage__zoom {
   position: absolute;
   top: 10px;
-  right: 52px;
+  right: 94px;
   z-index: 3;
   display: flex;
   gap: 2px;
@@ -1613,7 +1690,8 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 }
 
-.stage__fs {
+.stage__fs,
+.stage__mode {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -1638,6 +1716,10 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     border-color: var(--accent-2);
     opacity: 1;
   }
+}
+
+.stage__mode {
+  right: 52px;
 }
 
 .stage__edited {

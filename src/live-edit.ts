@@ -56,13 +56,13 @@ export class LiveEdit {
     return standaloneDoc(this.title, { how: [], ...this.current });
   }
 
-  /** A sandboxed frame running the current code, for showing an edited version live. */
-  frame(): HTMLIFrameElement {
+  /** A sandboxed frame running the current code, for showing an edited version live on a stage. */
+  frame(stage: 'dark' | 'light'): HTMLIFrameElement {
     const frame = document.createElement('iframe');
     frame.className = 'live-frame';
     frame.title = `${this.title} — your edited version`;
     frame.setAttribute('sandbox', 'allow-scripts');
-    frame.srcdoc = this.doc();
+    frame.srcdoc = standaloneDoc(this.title, { how: [], ...this.current }, stage);
     return frame;
   }
 }

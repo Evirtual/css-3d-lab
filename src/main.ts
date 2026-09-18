@@ -7,7 +7,7 @@ import { LiveEdit, type Part } from './live-edit';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { dotsHtml, initTint, modeHtml } from './tint';
-import { initZoom, zoomHtml } from './zoom';
+import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
 import { snippets } from './demos/snippets';
@@ -286,6 +286,7 @@ document.addEventListener('keydown', (e) => {
 const viewer = $<HTMLDialogElement>('#viewer');
 const viewerBody = $('#viewer-body');
 let unmountViewer: (() => void) | undefined;
+let restage: (() => void) | undefined;
 
 interface Pane {
   key: string;
@@ -375,7 +376,7 @@ function openViewer(id: string): void {
     if (live.edited) {
       unmountViewer?.();
       unmountViewer = undefined;
-      stageEl.replaceChildren(live.frame());
+      stageEl.replaceChildren(live.frame(stageTheme()));
       showingEdit = true;
     } else if (showingEdit || !stageEl.firstElementChild) {
       unmountViewer = mount(demo, stageEl);
@@ -383,6 +384,7 @@ function openViewer(id: string): void {
     }
     editedBar.hidden = !live.edited;
   };
+  restage = () => showingEdit && refreshStage(); // an edited frame has the stage theme baked in
   let timer = 0;
   const refreshSoon = () => {
     window.clearTimeout(timer);
@@ -459,7 +461,10 @@ function openViewer(id: string): void {
   viewer.scrollTop = 0;
 }
 
+document.addEventListener(STAGE_THEME_EVENT, () => restage?.());
+
 viewer.addEventListener('close', () => {
+  restage = undefined;
   unmountViewer?.();
   unmountViewer = undefined;
   viewerBody.replaceChildren();

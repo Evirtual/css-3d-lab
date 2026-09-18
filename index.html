@@ -72,7 +72,13 @@
       </div>
       <div id="groups" class="groups" role="group" aria-label="Group"></div>
       <div id="tags" class="chips" role="group" aria-label="Tags"></div>
-      <p id="status" class="status" aria-live="polite"></p>
+      <div class="filters__foot">
+        <p id="status" class="status" aria-live="polite"></p>
+        <div class="dotctl" role="group" aria-label="Card background dots">
+          <span>Dots</span>
+          <div class="dotctl__buttons"><button type="button" data-dots="0" data-dots-scope="cards" aria-pressed="false" title="No card background dots">Off</button><button type="button" data-dots="1" data-dots-scope="cards" aria-pressed="false" title="Card background dots 1×">1×</button><button type="button" data-dots="2" data-dots-scope="cards" aria-pressed="true" title="Card background dots 2×">2×</button><button type="button" data-dots="3" data-dots-scope="cards" aria-pressed="false" title="Card background dots 3×">3×</button></div>
+        </div>
+      </div>
     </section>
 
     <main id="grid" class="grid"></main>
