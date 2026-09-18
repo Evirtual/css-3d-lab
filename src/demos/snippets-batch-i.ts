@@ -1,0 +1,847 @@
+/**
+ * Paste-anywhere versions of batch I: cards that open, lift and slide out, and two 3D loaders.
+ * Plain HTML + CSS (+ JS), no Sass, no build step — see docs/ADDING-DEMOS.md.
+ */
+import type { Snippet } from './snippet-utils';
+
+const BOOKS: [string, string, number, number, string][] = [
+  ['Depth', 'Depth of field', 20, 112, '#8b6cff'],
+  ['Z', 'The Z axis', 16, 98, '#ffb547'],
+  ['Perspective', 'Perspective', 24, 122, '#2ee6d6'],
+  ['Faces', 'Six faces', 18, 92, '#ff4d9d'],
+  ['Origin', 'Transform origin', 22, 106, '#5846b8'],
+];
+
+// [colour, lap time, direction, axis angle, dots]
+const ORBITS: [string, string, string, string, number][] = [
+  ['#2ee6d6', '1.6s', 'normal', '0deg', 3],
+  ['#ff4d9d', '2.4s', 'reverse', '60deg', 3],
+  ['#ffb547', '3.3s', 'normal', '120deg', 2],
+];
+
+export const snippetsI: Record<string, Snippet> = {
+  greeting: {
+    how: [
+      'The card\'s left edge is its spine. The cover is a two-faced panel (front art, inside pattern, each with <code>backface-visibility: hidden</code>) with <code>transform-origin: 0 50%</code>, so <code>rotateY(var(--open))</code> swings it round the spine.',
+      'The hover target is the static wrapper; the card inside is <code>pointer-events: none</code>. Hovering only changes three custom properties: the cover angle, the viewing angle and <code>--x0</code>. Every part transitions with the same easing, so they stay in step.',
+      'The heart is a <b>floating layer</b>, like in a real pop-up book: each half rides on its own page (the left half is a child of the cover, so it turns with it) and floats 16px in front of it with <code>translateZ</code>.',
+      'Two planes each 16px in front of their page meet on a line <code>16px × cot(half the opening angle)</code> from the spine: 14px when the card is half open, 2px when it is flat. That is <code>--x0</code>, and it is why the halves always join into one heart.',
+      'The left half is turned round with <code>rotateY(180deg)</code> to face the right half, which mirrors it, so its <code>clip-path</code> is the mirror image of the right half\'s.',
+    ],
+    html: `<div class="scene">
+  <div class="greeting" tabindex="0">
+    <div class="card">
+      <i class="shadow"></i>
+      <div class="page"><b>Happy<br>day!</b><span></span><span></span><small>with love, C.</small></div>
+      <i class="pop"></i>
+      <div class="cover">
+        <div class="front"><b>For<br>you</b></div>
+        <div class="inside"><small>open me</small></div>
+        <i class="pop pop-left"></i>
+      </div>
+    </div>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+/* the static hit target: hovering it only changes numbers */
+.greeting {
+  --open: -96deg;  /* cover angle: half open */
+  --view: 40deg;   /* how far round we look at the card */
+  --x0: 14px;      /* where the two heart halves meet (see below) */
+  display: grid;
+  place-items: center;
+  width: 210px;
+  height: 180px;
+  outline: none;
+  cursor: pointer;
+  transform-style: preserve-3d;
+}
+
+.greeting:hover,
+.greeting:focus-visible {
+  --open: -166deg; /* almost flat, so it still stands */
+  --view: 24deg;   /* the card turns to face you as it opens */
+  --x0: 2px;
+}
+
+/* the card's left edge is the spine: move it to the middle, look from above and the left */
+.card {
+  position: relative;
+  width: 92px;
+  height: 124px;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transform-origin: 0 50%;
+  transform: translateX(46px) rotateX(-18deg) rotateY(var(--view));
+  transition: transform 0.9s cubic-bezier(0.3, 1.15, 0.45, 1);
+}
+
+/* a soft shadow lying on the table */
+.shadow {
+  position: absolute;
+  top: 84px;
+  left: -101px;
+  width: 202px;
+  height: 80px;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
+  transform: rotateX(90deg);
+}
+
+/* the inside right page: it stays put */
+.page {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 68px 10px 0 16px;
+  border-radius: 0 6px 6px 0;
+  background:
+    radial-gradient(circle at 78% 16%, #ffb547 0 2.5px, transparent 3.5px),
+    radial-gradient(circle at 60% 9%, #2ee6d6 0 2px, transparent 3px),
+    radial-gradient(circle at 88% 30%, #ff4d9d 0 2px, transparent 3px),
+    linear-gradient(90deg, #e4ddcf, #fbf7ef 18%);
+  color: #5a44b8;
+  backface-visibility: hidden;
+}
+
+.page b { font-size: 17px; font-weight: 800; line-height: 0.95; }
+.page span { height: 3px; border-radius: 2px; background: rgb(20 20 40 / 0.16); }
+.page span:nth-of-type(2) { width: 70%; }
+.page small { color: #6b6478; font-size: 7px; font-style: italic; }
+
+/* the heart's shadow on the page, stronger once it has popped up */
+.page::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 8px;
+  width: 40px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(40 10 50 / 0.4), transparent);
+  opacity: 0.4;
+  transition: opacity 0.9s;
+}
+
+/* the half-open cover shades the page */
+.page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgb(20 10 40 / 0.55), rgb(20 10 40 / 0.1) 85%);
+  transition: opacity 0.9s;
+}
+
+.greeting:is(:hover, :focus-visible) .page::before { opacity: 1; }
+.greeting:is(:hover, :focus-visible) .page::after { opacity: 0.12; }
+
+/* The pop-up is a floating layer: each half stays parallel to its own page, 16px in front of it.
+   Two such planes meet 16px × cot(half the opening angle) from the spine: that is --x0. */
+.pop {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 28px;
+  height: 48px;
+  background:
+    radial-gradient(circle at 50% 22%, rgb(255 255 255 / 0.75) 0 2.5px, transparent 6px),
+    linear-gradient(170deg, #ff4d9d, #ff817a);
+  /* the right half of a heart: its middle line is the left edge */
+  clip-path: path('M0 9 C 3 3 7 0 12 0 C 21 0 28 6 28 16 C 28 28 16 38 0 48 Z');
+  transform: translate3d(var(--x0), 0, 16px);
+  transition: transform 0.9s cubic-bezier(0.3, 1.15, 0.45, 1);
+}
+
+/* the left half rides on the cover's inside, turned round to face the right half
+   (turning it round mirrors it, so its middle line is drawn on its right edge) */
+.pop-left {
+  clip-path: path('M28 9 C 25 3 21 0 16 0 C 7 0 0 6 0 16 C 0 28 12 38 28 48 Z');
+  transform: translate3d(var(--x0), 0, -16px) rotateY(180deg);
+}
+
+/* the front cover: two faces back to back, hinged on the spine */
+.cover {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: 0 50%;
+  transform: translateZ(2px) rotateY(var(--open));
+  transition: transform 0.9s cubic-bezier(0.3, 1.15, 0.45, 1);
+}
+
+.front,
+.inside {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  border-radius: 0 6px 6px 0;
+  backface-visibility: hidden;
+}
+
+.front {
+  place-items: center;
+  background:
+    radial-gradient(circle at 22% 18%, rgb(255 255 255 / 0.75) 0 2px, transparent 3px),
+    radial-gradient(circle at 76% 26%, #ffb547 0 3px, transparent 4px),
+    radial-gradient(circle at 30% 80%, #2ee6d6 0 2.5px, transparent 3.5px),
+    linear-gradient(150deg, #8b6cff, #ff4d9d);
+}
+
+.front b {
+  padding: 10px 12px;
+  border: 2px solid rgb(255 255 255 / 0.85);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  text-align: center;
+}
+
+/* the inside of the cover, seen once it swings past 90° */
+.inside {
+  place-items: end center;
+  padding-bottom: 14px;
+  border-radius: 6px 0 0 6px;
+  background:
+    repeating-linear-gradient(135deg, rgb(139 108 255 / 0.12) 0 6px, transparent 6px 12px),
+    linear-gradient(270deg, #e4ddcf, #fbf7ef 18%);
+  color: #5a44b8;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: rotateY(180deg);
+}`,
+  },
+
+  tiltgallery: {
+    how: [
+      'CSS cannot read the pointer, so JS does exactly two things on <code>pointermove</code>: write <code>--rx</code> / <code>--ry</code> for the board and a <code>--lift</code> between 0 and 1 on every photo. All motion is CSS.',
+      'The pointer is measured against the <b>wrapper</b>, which never moves — only the board inside it tilts. Measuring the tilted board itself would change the numbers you are measuring, and the wall would wobble.',
+      'A photo\'s lift is how close the pointer is to its centre, in tile sizes, eased with a smoothstep: <code>t * t * (3 - 2 * t)</code>. CSS turns it into <code>translateZ(calc(var(--lift) * 42px))</code>, so the nearest photo rises most and its neighbours a little.',
+      'Each photo\'s shadow is a separate layer that stays on the board: as the photo rises, the shadow only fades in and slides away. That gap between them is what reads as height.',
+      'One custom property sets every transition\'s duration: 0.14s while the pointer drives (it tracks tightly), 0.7s after it leaves, so everything eases home together.',
+    ],
+    html: `<div class="scene">
+  <div class="wall">
+    <div class="board">
+      <div class="cell"><i></i></div>
+      <div class="cell"><i></i></div>
+      <div class="cell"><i></i></div>
+      <div class="cell"><i></i></div>
+      <div class="cell"><i></i></div>
+      <div class="cell"><i></i></div>
+    </div>
+  </div>
+</div>`,
+    css: `.scene {
+  display: grid;
+  place-items: center;
+  width: 100vw;
+  height: 100vh;
+  perspective: 800px;
+}
+
+/* the wrapper never moves: JS measures the pointer against it */
+.wall {
+  --rx: 0deg;  /* set from JS */
+  --ry: 0deg;
+  --t: 0.7s;   /* long, soft ease back to rest… */
+  touch-action: none;
+  transform-style: preserve-3d;
+}
+
+.wall.is-live { --t: 0.14s; } /* …but tight while the pointer is driving */
+
+/* the board: leans back a little at rest, then turns to face the pointer */
+.board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 62px);
+  grid-auto-rows: 62px;
+  gap: 9px;
+  padding: 10px;
+  border-radius: 14px;
+  transform-style: preserve-3d;
+  transform: rotateX(calc(12deg + var(--rx))) rotateY(var(--ry));
+  transition: transform var(--t) cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.board::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(140 150 220 / 0.34);
+  border-radius: inherit;
+  background: rgb(20 24 48 / 0.7);
+  transform: translateZ(-1px); /* a hair behind the photos, never in their plane */
+}
+
+.cell {
+  --lift: 0; /* set from JS, 0…1 */
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+/* the shadow stays on the board and spreads as the photo rises */
+.cell::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 10px;
+  background: rgb(0 0 0 / 0.3);
+  box-shadow: 0 0 10px 5px rgb(0 0 0 / 0.3); /* static blur: only opacity and position move */
+  opacity: calc(var(--lift) * 0.9);
+  transform: translate3d(calc(var(--lift) * 5px), calc(var(--lift) * 9px), 1px);
+  transition: transform var(--t), opacity var(--t);
+}
+
+/* the photo: a white print with a gradient "picture" */
+.cell i {
+  position: absolute;
+  inset: 0;
+  border: 3px solid #fdfcf8;
+  border-radius: 7px;
+  transform: translateZ(calc(2px + var(--lift) * 42px)) scale(calc(1 + var(--lift) * 0.06));
+  transition: transform var(--t) cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* a sheen that brightens as the photo comes up */
+.cell i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: linear-gradient(125deg, rgb(255 255 255 / 0.5), transparent 45%);
+  opacity: var(--lift);
+  transition: opacity var(--t);
+}
+
+.cell:nth-child(1) i {
+  background:
+    radial-gradient(circle at 50% 72%, #fff3c4 0 8%, transparent 9%),
+    linear-gradient(180deg, #8b6cff 0%, #ff4d9d 55%, #ffb547 74%, #2a1840 75%);
+}
+
+.cell:nth-child(2) i {
+  background:
+    radial-gradient(circle at 74% 26%, #fff 0 7%, transparent 8%),
+    linear-gradient(180deg, #8fdcff 0 50%, #2ee6d6 51%, #0b5f78 100%);
+}
+
+.cell:nth-child(3) i {
+  background:
+    conic-gradient(from 148deg at 34% 34%, #3b2a78 0 64deg, transparent 0),
+    conic-gradient(from 144deg at 70% 48%, #5a3fb0 0 72deg, transparent 0),
+    linear-gradient(180deg, #ffd9a0, #ff4d9d);
+}
+
+.cell:nth-child(4) i {
+  background:
+    radial-gradient(circle at 26% 30%, #fff 0 2px, transparent 3px),
+    radial-gradient(circle at 62% 18%, #fff 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 82% 52%, #fff 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 76%, #f4f1d0 0 7px, transparent 8px),
+    linear-gradient(180deg, #0b0d2a, #3a2a7a);
+}
+
+.cell:nth-child(5) i {
+  background:
+    radial-gradient(ellipse 90% 40% at 20% 100%, #c9761e 0 60%, transparent 61%),
+    radial-gradient(ellipse 80% 45% at 85% 96%, #e39a3b 0 60%, transparent 61%),
+    radial-gradient(circle at 70% 30%, #fff6d8 0 9%, transparent 10%),
+    linear-gradient(180deg, #ffcf7a, #ffb547);
+}
+
+.cell:nth-child(6) i {
+  background:
+    linear-gradient(170deg, transparent 30%, rgb(46 230 214 / 0.7) 38%, transparent 52%),
+    linear-gradient(160deg, transparent 44%, rgb(139 108 255 / 0.8) 54%, transparent 66%),
+    linear-gradient(180deg, #06142a 0 80%, #0c2a2a 80%);
+}`,
+    js: `const scene = document.querySelector('.scene');
+const wall = document.querySelector('.wall');
+const cells = [...wall.querySelectorAll('.cell')];
+const COLS = 3;
+const ROWS = 2;
+const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+function move(e) {
+  // the wrapper never moves, so its box is a stable ruler: 0…1 across the wall
+  const r = wall.getBoundingClientRect();
+  const u = (e.clientX - r.left) / r.width;
+  const v = (e.clientY - r.top) / r.height;
+
+  // the board turns to face the pointer
+  wall.style.setProperty('--ry', clamp(u * 2 - 1, -1.4, 1.4) * 11 + 'deg');
+  wall.style.setProperty('--rx', clamp(1 - v * 2, -1.4, 1.4) * 9 + 'deg');
+
+  // each photo lifts by how close the pointer is to its centre, in tile sizes
+  cells.forEach((cell, i) => {
+    const dx = u * COLS - ((i % COLS) + 0.5);
+    const dy = v * ROWS - (Math.floor(i / COLS) + 0.5);
+    const t = clamp(1 - Math.hypot(dx, dy) / 1.25, 0, 1);
+    cell.style.setProperty('--lift', t * t * (3 - 2 * t)); // smoothstep
+  });
+  wall.classList.add('is-live');
+}
+
+function leave() {
+  wall.classList.remove('is-live'); // the long transition is back: all eases home
+  wall.style.removeProperty('--rx');
+  wall.style.removeProperty('--ry');
+  cells.forEach((cell) => cell.style.removeProperty('--lift'));
+}
+
+scene.addEventListener('pointerdown', move);
+scene.addEventListener('pointermove', move);
+scene.addEventListener('pointerleave', leave);
+scene.addEventListener('pointercancel', leave);`,
+  },
+
+  bookshelf: {
+    how: [
+      'Each book is a box from four faces around its spine: the spine at the front, two covers turned ±90° on the spine\'s edges with <code>transform-origin</code>, and the page block laid flat on top. The bottom and the back are never seen, so they are not drawn.',
+      'The slots (one per book, laid out by flexbox on the tilted shelf) are the hit targets. They are all in one plane, so the shelf gets <code>pointer-events: none</code> and only the slots <code>auto</code>; the books inside are <code>pointer-events: none</code> and free to move.',
+      'The book turns around its own middle: <code>transform-origin: 50% 50% -36px</code> puts the pivot half its depth <i>behind</i> the spine.',
+      'Pulling out uses the separate <code>translate</code> and <code>rotate</code> properties instead of one <code>transform</code>, so each gets its own transition and delay: slide out first, then turn; on the way back, turn first, then slide in. It never swings through its neighbours.',
+    ],
+    html: `<div class="scene">
+  <div class="shelf">
+    <i class="board"></i><i class="edge"></i><i class="end"></i>
+${BOOKS.map(
+  ([spine, title, t, h, c]) => `    <div class="slot" tabindex="0" style="--t:${t}px; --h:${h}px; --c:${c}">
+      <div class="book"><i>${spine}</i><i></i><i><b>${title}</b></i><i></i></div>
+    </div>`,
+).join('\n')}
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+/* one plane seen at an angle; its slots are coplanar, so only they catch the pointer */
+.shelf {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 0 12px;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transform: rotateX(-16deg) rotateY(-28deg);
+}
+
+/* the back of the bookcase, behind the books (they are 72px deep) */
+.shelf::before {
+  content: '';
+  position: absolute;
+  inset: -18px -6px 0;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #1c1f3c, #262650);
+  transform: translateZ(-80px);
+}
+
+/* the board: its top (laid flat), its front edge and its right end */
+.board, .edge, .end {
+  position: absolute;
+  left: -6px;
+}
+
+.board {
+  right: -6px;
+  bottom: 0;
+  height: 90px;
+  background: linear-gradient(0deg, #b77a33, #6e4520);
+  transform-origin: 50% 100%;
+  transform: translateZ(10px) rotateX(90deg);
+}
+
+.edge {
+  top: 100%;
+  right: -6px;
+  height: 10px;
+  background: #d9953f;
+  transform: translateZ(10px);
+}
+
+.end {
+  top: 100%;
+  left: calc(100% + 6px);
+  width: 90px;
+  height: 10px;
+  background: #8a5a28;
+  transform-origin: 0 50%;
+  transform: translateZ(10px) rotateY(90deg);
+}
+
+/* a slot is exactly the book's spine at rest, and never moves */
+.slot {
+  position: relative;
+  flex: none;
+  width: var(--t);
+  height: var(--h);
+  outline: none;
+  cursor: pointer;
+  pointer-events: auto;
+  transform-style: preserve-3d;
+}
+
+/* the book turns around its own middle, 36px behind the spine */
+.book {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50% -36px;
+  translate: 0 0 0;
+  rotate: y 0deg;
+  /* going back: turn first, then slide in */
+  transition:
+    translate 0.45s cubic-bezier(0.3, 1.2, 0.5, 1) 0.18s,
+    rotate 0.4s ease-in-out;
+}
+
+.slot:hover .book,
+.slot:focus-visible .book {
+  translate: 0 -5px 70px;
+  rotate: y -36deg;
+  /* coming out: slide first, then turn */
+  transition:
+    translate 0.45s cubic-bezier(0.3, 1.2, 0.5, 1),
+    rotate 0.5s cubic-bezier(0.3, 1.2, 0.5, 1) 0.12s;
+}
+
+.book i {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+
+/* the spine */
+.book i:nth-child(1) {
+  left: 0;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, transparent 10px, rgb(255 255 255 / 0.55) 10px 12px, transparent 12px calc(100% - 12px), rgb(255 255 255 / 0.55) calc(100% - 12px) calc(100% - 10px), transparent 0),
+    linear-gradient(90deg, color-mix(in srgb, var(--c) 60%, #000), var(--c) 30%, var(--c) 65%, color-mix(in srgb, var(--c) 70%, #000));
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  backface-visibility: hidden;
+}
+
+/* back cover: hinged on the spine's left edge, turned to face left */
+.book i:nth-child(2) {
+  left: -72px;
+  width: 72px;
+  background: color-mix(in srgb, var(--c) 55%, #000);
+  transform-origin: 100% 50%;
+  transform: rotateY(-90deg);
+}
+
+/* front cover: hinged on the right edge, turned to face right */
+.book i:nth-child(3) {
+  left: 100%;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  padding: 8px;
+  border-radius: 0 3px 3px 0;
+  background:
+    radial-gradient(circle at 50% 36%, rgb(255 255 255 / 0.35) 0 12px, transparent 13px),
+    linear-gradient(160deg, color-mix(in srgb, var(--c) 85%, #fff), color-mix(in srgb, var(--c) 70%, #000));
+  color: #fff;
+  font-size: 9px;
+  text-align: center;
+  transform-origin: 0 50%;
+  transform: rotateY(90deg);
+  backface-visibility: hidden;
+}
+
+/* the top of the page block, laid flat, running back from the spine */
+.book i:nth-child(4) {
+  top: -72px;
+  left: 0;
+  width: 100%;
+  height: 72px;
+  border: solid color-mix(in srgb, var(--c) 70%, #000);
+  border-width: 0 2px 2px;
+  background: repeating-linear-gradient(90deg, #f3ecdc 0 2px, #d9cfb8 2px 3px);
+  transform-origin: 50% 100%;
+  transform: rotateX(90deg);
+}`,
+  },
+
+  dotorbit: {
+    how: [
+      'Each orbit is a circle laid over with <code>rotateX(72deg)</code> and turned with <code>rotateZ(--phi)</code>; the dots live inside it, so they share its tilt and pass in front of and behind the core in real depth.',
+      'A dot goes round with <code>rotateZ(θ) translateX(r) rotateZ(−θ)</code>: step out to the orbit, go round, and turn back by the same angle, so it travels without spinning. Then <code>rotateX(-72deg) rotateZ(-phi)</code> undoes the orbit\'s tilt so it faces the viewer.',
+      'The whole atom turns slowly around Y. The core and every glow turn back by exactly as much with a second animation of the same length (reverse order, reverse signs), so nothing flat ever goes edge-on.',
+      'A trail is just more copies of a dot running the same animation a little later (<code>--lag</code>), each smaller and fainter. Every delay has one full lap subtracted, so all of them are negative and no dot waits at the centre when the page loads.',
+      'Laps are whole turns and the animations are <code>linear</code>, so the loop has no seam; three lap times (1.6s, 2.4s, 3.3s) and one reversed ring keep it from ever looking in sync.',
+    ],
+    html: `<div class="scene">
+  <div class="atom" role="img" aria-label="Loading">
+    <b></b>
+${ORBITS.map(
+  ([c, dur, dir, phi, n]) => `    <div class="orbit" style="--c:${c}; --dur:${dur}; --dir:${dir}; --phi:${phi}">
+${Array.from({ length: n }, (_, d) =>
+  [0, 1, 2].map((lag) => `      <i style="--p:${(d / n).toFixed(3)}; --lag:${lag}"></i>`).join('\n'),
+).join('\n')}
+    </div>`,
+).join('\n')}
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+/* the whole atom turns slowly; everything flat inside turns back by the same amount */
+.atom {
+  position: relative;
+  width: 152px;
+  height: 152px;
+  transform-style: preserve-3d;
+  animation: atom-turn 16s linear infinite;
+}
+
+/* the core */
+.atom b {
+  position: absolute;
+  inset: calc(50% - 20px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 36%, #fff 0 7%, #c5b6ff 20%, #8b6cff 46%, #463680 70%, transparent 72%);
+  animation: atom-face 16s linear infinite;
+}
+
+/* a soft halo that breathes (a gradient, no blur) */
+.atom b::before {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(139 108 255 / 0.45), transparent);
+  animation: atom-breathe 1.6s ease-in-out infinite alternate;
+}
+
+/* an orbit: a circle laid over by 72°, its axis turned by --phi */
+.orbit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform-style: preserve-3d;
+  transform: rotateZ(var(--phi)) rotateX(72deg);
+}
+
+/* the dashed track */
+.orbit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px dashed color-mix(in srgb, var(--c) 45%, transparent);
+  border-radius: 50%;
+}
+
+/* a dot: an invisible carrier going round; --p spaces the dots, --lag makes the trail
+   (same animation, a little later). One whole lap is subtracted so every delay is negative. */
+.orbit i {
+  position: absolute;
+  top: calc(50% - 6px);
+  left: calc(50% - 6px);
+  width: 12px;
+  height: 12px;
+  transform-style: preserve-3d;
+  animation: dot-orbit var(--dur) linear infinite var(--dir);
+  animation-delay: calc(var(--lag) * var(--dur) * 0.017 - var(--p) * var(--dur) - var(--dur));
+}
+
+/* the glow; trail copies are smaller and fainter */
+.orbit i::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--c) 30%, #fff) 0 7%,
+    var(--c) 24% 38%,
+    color-mix(in srgb, var(--c) 30%, transparent) 56%,
+    transparent 70%);
+  opacity: calc(1 - var(--lag) * 0.3);
+  scale: calc(1.25 - var(--lag) * 0.25);
+  animation: atom-face 16s linear infinite;
+}
+
+@keyframes atom-turn {
+  from { transform: rotateX(-16deg) rotateY(0deg); }
+  to   { transform: rotateX(-16deg) rotateY(360deg); }
+}
+
+/* exactly undoes atom-turn: same duration, reversed order and signs */
+@keyframes atom-face {
+  from { transform: rotateY(0deg) rotateX(16deg); }
+  to   { transform: rotateY(-360deg) rotateX(16deg); }
+}
+
+/* read right to left: undo the orbit's tilt, cancel the lap, step out, go round */
+@keyframes dot-orbit {
+  from { transform: rotateZ(0deg) translateX(76px) rotateZ(0deg) rotateX(-72deg) rotateZ(calc(var(--phi) * -1)); }
+  to   { transform: rotateZ(360deg) translateX(76px) rotateZ(-360deg) rotateX(-72deg) rotateZ(calc(var(--phi) * -1)); }
+}
+
+@keyframes atom-breathe {
+  from { opacity: 0.55; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1.1); }
+}`,
+  },
+
+  blockstack: {
+    how: [
+      '<code>rotateX(58deg) rotateZ(45deg)</code> turns a flat 2×2 grid into an isometric floor; from then on "up" is simply <code>translateZ</code>. A block only needs the three faces this camera can ever see: the top, the +x side and the +y side.',
+      'Blocks must arrive one by one but leave in whole columns (a bottom block cannot fly off from under the one on top of it). So the timing is split over <b>two nested animations</b>: the block drops in, and its column (the parent, holding a bottom and a top block) lifts away.',
+      'Both are shared keyframes staggered with <code>animation-delay</code> from <code>--i</code> (block 0…7) and <code>--c</code> (column 0…3), so eight blocks need only one "arrive" and one "leave" animation.',
+      'The invisible resets are timed to happen while something else hides them: a block snaps back up while its column is gone, and the column snaps back while both its blocks are scaled to 0 — so the loop never shows a jump.',
+      'Every keyframe keeps the same function list (<code>translateZ … scale3d</code>), and <code>scale3d(0, 0, 0)</code> rather than <code>scale(0)</code>, because a 2D scale would leave a block\'s height standing as a line.',
+    ],
+    html: `<div class="scene">
+  <div class="stack" role="img" aria-label="Loading">
+${Array.from(
+  { length: 4 },
+  (_, c) => `    <div class="col" style="--c:${c}">
+      <div class="block" style="--i:${c}; --l:0"><i></i><i></i><i></i></div>
+      <div class="block" style="--i:${c + 4}; --l:1"><i></i><i></i><i></i></div>
+    </div>`,
+).join('\n')}
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+/* the floor is the stack's own plane, turned isometric; "up" is translateZ */
+.stack {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, 38px);
+  grid-auto-rows: 38px;
+  transform-style: preserve-3d;
+  transform: rotateX(58deg) rotateZ(45deg);
+}
+
+/* the floor plate with the four landing places */
+.stack::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 1px dashed rgb(140 150 220 / 0.34);
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, transparent calc(50% - 1px), rgb(140 150 220 / 0.16) 0 calc(50% + 1px), transparent 0),
+    linear-gradient(0deg, transparent calc(50% - 1px), rgb(140 150 220 / 0.16) 0 calc(50% + 1px), transparent 0),
+    rgb(139 108 255 / 0.1);
+  transform: translateZ(-1px);
+}
+
+/* a column: lifts away once the cube is complete, one after the other */
+.col {
+  position: relative;
+  margin: 2px;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50% 34px; /* the middle of the two-block column */
+  animation: stack-leave 5s linear infinite;
+  animation-delay: calc(var(--c) * 0.275s - 1.6s);
+}
+
+/* a block: pops up in the air, falls, bounces, sits; bottom layer first */
+.block {
+  --z: calc(var(--l) * 34px); /* resting height */
+  --color: #8b6cff;
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50% 17px;
+  animation: stack-arrive 5s linear infinite;
+  /* minus one loop: every block is already mid-cycle on load */
+  animation-delay: calc(var(--i) * 0.275s - 5s);
+}
+
+.block:nth-child(2) { --color: #2ee6d6; }
+
+/* only the three faces we can ever see */
+.block i {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+}
+
+.block i:nth-child(1) { /* top */
+  background: color-mix(in srgb, var(--color) 55%, #fff);
+  transform: translateZ(34px);
+}
+
+.block i:nth-child(2) { /* +x side, stood up on its right edge */
+  background: color-mix(in srgb, var(--color) 65%, #000);
+  transform-origin: 100% 50%;
+  transform: rotateY(90deg);
+}
+
+.block i:nth-child(3) { /* +y side, stood up on its bottom edge */
+  background: var(--color);
+  transform-origin: 50% 100%;
+  transform: rotateX(-90deg);
+}
+
+@keyframes stack-arrive {
+  0% {
+    transform: translateZ(calc(var(--z) + 56px)) scale3d(0, 0, 0);
+    animation-timing-function: ease-out;
+  }
+  3% {
+    transform: translateZ(calc(var(--z) + 56px)) scale3d(1, 1, 1);
+    animation-timing-function: ease-in; /* gravity */
+  }
+  10% {
+    transform: translateZ(var(--z)) scale3d(1, 1, 1);
+    animation-timing-function: ease-out;
+  }
+  12.5% {
+    transform: translateZ(calc(var(--z) + 5px)) scale3d(1, 1, 1);
+    animation-timing-function: ease-in;
+  }
+  15%, 76.5% {
+    transform: translateZ(var(--z)) scale3d(1, 1, 1);
+  }
+  /* its column is gone by now: reset out of sight */
+  76.6%, 100% {
+    transform: translateZ(calc(var(--z) + 56px)) scale3d(0, 0, 0);
+  }
+}
+
+@keyframes stack-leave {
+  0% {
+    transform: translateZ(0) rotateZ(0deg) scale3d(1, 1, 1);
+    animation-timing-function: ease-in;
+  }
+  7%, 31.25% {
+    transform: translateZ(72px) rotateZ(90deg) scale3d(0, 0, 0);
+  }
+  /* both its blocks have reset by now: come back, still empty */
+  31.35%, 100% {
+    transform: translateZ(0) rotateZ(0deg) scale3d(1, 1, 1);
+  }
+}`,
+  },
+};

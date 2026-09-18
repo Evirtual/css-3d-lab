@@ -8,7 +8,8 @@ import { LiveEdit, type Part } from './live-edit';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { dotsHtml, initTint, modeHtml } from './tint';
-import { initHero } from './hero';
+import { initGroupLists } from './group-list';
+import { initHero, initShapes } from './hero';
 import { trackDownloads, videoButton } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
@@ -260,6 +261,8 @@ hydrateIcons();
 initAnalytics();
 trackDownloads(track);
 initHero();
+initShapes();
+initGroupLists();
 
 searchEl.value = state.q;
 clearEl.addEventListener('click', () => {

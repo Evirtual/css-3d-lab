@@ -13,18 +13,32 @@
     "x": -5,
     "y": -29
   },
+  "blockstack": {
+    "size": 1.15,
+    "x": 0,
+    "y": 45
+  },
   "book": {
     "size": 0.95,
     "x": 6,
     "y": 19
+  },
+  "bookshelf": {
+    "size": 1.2
   },
   "browser": {
     "size": 1.35,
     "x": -4,
     "y": -15
   },
+  "businesscard": {
+    "size": 1.2
+  },
   "button": {
     "size": 1.5
+  },
+  "camera": {
+    "size": 1.25
   },
   "can": {
     "size": 1.25
@@ -50,6 +64,11 @@
     "x": -5,
     "y": 0
   },
+  "coffeecup": {
+    "size": 0.9,
+    "x": 0,
+    "y": 23
+  },
   "coin": {
     "size": 1.2,
     "x": 0,
@@ -60,11 +79,19 @@
     "x": 0,
     "y": -15
   },
+  "crystal": {
+    "size": 1.3,
+    "x": 0,
+    "y": -19
+  },
   "cube": {
     "size": 1.25
   },
   "cubegrid": {
     "size": 1.35
+  },
+  "cubeletters": {
+    "size": 1.25
   },
   "cubeloader": {
     "size": 1.5
@@ -73,6 +100,9 @@
     "size": 1.45
   },
   "door": {
+    "size": 0.95
+  },
+  "dotorbit": {
     "size": 0.95
   },
   "equalizer": {
@@ -112,7 +142,13 @@
   "gyro": {
     "size": 0.9
   },
+  "headphones": {
+    "size": 0.95
+  },
   "helix": {
+    "size": 0.9
+  },
+  "hourglass": {
     "size": 0.9
   },
   "hovercards": {
@@ -120,6 +156,9 @@
   },
   "island": {
     "size": 0.9
+  },
+  "keycaps": {
+    "size": 1.2
   },
   "laptop": {
     "size": 0.9,
@@ -133,6 +172,9 @@
   },
   "layertext": {
     "size": 1.45
+  },
+  "lighthouse": {
+    "size": 0.8
   },
   "logo3d": {
     "size": 1.4
@@ -164,6 +206,11 @@
   "paycard": {
     "size": 1.25
   },
+  "perfume": {
+    "size": 1.1,
+    "x": 0,
+    "y": 12
+  },
   "pie": {
     "size": 1.2
   },
@@ -189,6 +236,9 @@
     "size": 1.5,
     "x": 0,
     "y": -11
+  },
+  "rating": {
+    "size": 1.3
   },
   "rings": {
     "size": 0.95
@@ -231,6 +281,11 @@
   "tabs": {
     "size": 1.15
   },
+  "tetra": {
+    "size": 0.9,
+    "x": 0,
+    "y": -28
+  },
   "text": {
     "size": 1.25
   },
@@ -239,6 +294,11 @@
   },
   "tiles": {
     "size": 1.05
+  },
+  "toggle": {
+    "size": 1.4,
+    "x": 0,
+    "y": 7
   },
   "torus": {
     "size": 1.1
@@ -253,6 +313,9 @@
   },
   "waveletters": {
     "size": 1.05
+  },
+  "windmill": {
+    "size": 0.7
   },
   "wordcube": {
     "size": 1.25

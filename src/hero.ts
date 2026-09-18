@@ -3,7 +3,8 @@
  * into its own tumble), scroll or pinch to zoom (it springs back to its size when you stop).
  *
  * Three layers, so nothing fights: `.hero__zoom` (scale) > `.hero__turn` (the visitor's rotation)
- * > `.hero__cube` (the endless CSS tumble, paused while held). The pointer is caught by
+ * > `.hero__cube` (the endless CSS tumble, paused while held). Every few seconds it changes shape
+ * (initShapes, below). The pointer is caught by
  * `.hero__art`, which never moves (a moving hit area flickers).
  *
  * Turning is a trackball: every drag step rotates the cube about the screen axis at right angles
@@ -151,4 +152,25 @@ export function initHero(): void {
     },
     { passive: false },
   );
+}
+
+const SHAPES = ['cube', 'pyramid', 'diamond', 'sphere'];
+
+/**
+ * Every few seconds the hero cube turns into the next shape (the CSS does the flowing). Only
+ * while it is on screen, not while someone holds it, not when animations are paused, and never
+ * for visitors who prefer reduced motion (it then stays a cube).
+ */
+export function initShapes(): void {
+  const cube = document.querySelector<HTMLElement>('.hero__cube[data-shape]');
+  const art = cube?.closest<HTMLElement>('.hero__art');
+  if (!cube || !art || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let visible = true;
+  new IntersectionObserver((entries) => (visible = entries[0].isIntersecting)).observe(art);
+  let i = 0;
+  window.setInterval(() => {
+    if (!visible || document.hidden || art.classList.contains('is-held') || document.documentElement.hasAttribute('data-paused')) return;
+    i = (i + 1) % SHAPES.length;
+    cube.dataset.shape = SHAPES[i];
+  }, 5000);
 }

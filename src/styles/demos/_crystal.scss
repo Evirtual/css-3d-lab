@@ -1,0 +1,135 @@
+$floor: 44px; // the rock's surface, below the centre so the cluster turns round its middle
+$tip: 40deg; // lean of a tip facet from upright
+$spin: 30s;
+$edge: color-mix(in srgb, var(--c) 85%, #fff);
+
+// Five hexagonal prisms growing out of one rock. Every crystal is set up by the same numbers
+// (--w width of a side, --h height, --az / --tilt / --off where and how it leans) and built the
+// same way: 6 side panels, each carrying its own tip facet as a ::before.
+.d-crystal {
+  position: relative;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  animation: d-crystal-spin $spin linear infinite;
+
+  // one crystal: stand on the floor, face its direction, step out from the centre, lean outward
+  &__c {
+    position: absolute;
+    transform-style: preserve-3d;
+    transform: translateY($floor) rotateY(var(--az)) translateZ(var(--off)) rotateX(calc(var(--tilt) * -1));
+
+    // side panels: a closed hexagonal ring. Apothem = side × √3 / 2.
+    i {
+      position: absolute;
+      top: calc(var(--h) * -1);
+      left: calc(var(--w) / -2);
+      width: var(--w);
+      height: var(--h);
+      transform-style: preserve-3d; // so the tip on top can fold in 3D
+      transform: rotateY(calc(var(--i) * 60deg)) translateZ(calc(var(--w) * 0.866));
+      background:
+        linear-gradient(90deg, transparent 30%, rgb(255 255 255 / 0.2) 42%, transparent 54%),
+        linear-gradient(
+          to top,
+          color-mix(in srgb, var(--c) 62%, transparent),
+          color-mix(in srgb, var(--c) 14%, transparent) 70%,
+          color-mix(in srgb, var(--c) 28%, transparent)
+        );
+      box-shadow:
+        inset 1px 0 color-mix(in srgb, var(--c) 80%, transparent),
+        inset -1px 0 color-mix(in srgb, var(--c) 80%, transparent),
+        inset 0 1px $edge;
+
+      // the tip facet: a triangle hinged on the panel's top edge, leaned in by 40deg.
+      // Its slant height is apothem / sin(40deg) = 1.347 × side, so all six tips meet on the axis.
+      &::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        width: 100%;
+        height: calc(var(--w) * 1.347);
+        transform-origin: 50% 100%;
+        transform: rotateX($tip);
+        clip-path: polygon(50% 0, 0 100%, 100% 100%);
+        background:
+          linear-gradient(to top left, transparent calc(50% - 1px), $edge calc(50% - 1px), $edge 50%, transparent 50%) left /
+            50% 100% no-repeat,
+          linear-gradient(to top right, transparent calc(50% - 1px), $edge calc(50% - 1px), $edge 50%, transparent 50%) right /
+            50% 100% no-repeat,
+          linear-gradient(color-mix(in srgb, var(--c) 20%, #fff 30%), color-mix(in srgb, var(--c) 40%, transparent));
+      }
+
+      &:nth-child(even) {
+        --c: var(--c2);
+      }
+    }
+
+    // the inner glow: two crossed planes of soft light up the middle, breathing on their own beat
+    b {
+      position: absolute;
+      top: calc(var(--h) * -1);
+      left: calc(var(--w) * -0.8);
+      width: calc(var(--w) * 1.6);
+      height: var(--h);
+      transform-style: preserve-3d;
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          50% 60% at 50% 72%,
+          color-mix(in srgb, #fff 60%, var(--c)),
+          color-mix(in srgb, var(--c) 45%, transparent) 40%,
+          transparent 100%
+        );
+        animation: d-crystal-glow 3.6s ease-in-out var(--d) infinite alternate;
+      }
+
+      &::after {
+        transform: rotateY(90deg);
+      }
+    }
+  }
+
+  // the rock: an uneven slab laid flat, lit from the crystals' roots
+  &__rock {
+    position: absolute;
+    top: $floor - 68px;
+    left: -68px;
+    width: 136px;
+    height: 136px;
+    clip-path: polygon(22% 4%, 62% 0, 92% 18%, 100% 55%, 84% 90%, 46% 100%, 12% 86%, 0 48%);
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--accent) 70%, #fff) 0 6%,
+      color-mix(in srgb, var(--accent) 45%, var(--surface-solid)) 24%,
+      color-mix(in srgb, var(--accent) 22%, var(--surface-solid)) 60%,
+      color-mix(in srgb, var(--accent) 34%, var(--surface-solid))
+    );
+    transform: translateY(1px) rotateX(90deg);
+  }
+}
+
+@keyframes d-crystal-spin {
+  from {
+    transform: rotateX(-22deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(-22deg) rotateY(360deg);
+  }
+}
+
+@keyframes d-crystal-glow {
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

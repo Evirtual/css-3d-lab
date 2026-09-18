@@ -3,6 +3,11 @@ import { demosB } from './batch-b';
 import { demosC } from './batch-c';
 import { demosD } from './batch-d';
 import { demosE } from './batch-e';
+import { demosF } from './batch-f';
+import { demosG } from './batch-g';
+import { demosH } from './batch-h';
+import { demosI } from './batch-i';
+import { demosJ } from './batch-j';
 import { groupOf, groupRank, type Group } from './groups';
 import { interactiveDemos } from './interactive';
 import { interactiveDemos2 } from './interactive2';
@@ -27,6 +32,6 @@ const rank = (id: string): number => {
 };
 
 /** Every demo, tagged with its group, best first (see FEATURED). */
-export const demos: GroupedDemo[] = [...pureDemos, ...pureDemos2, ...interactiveDemos, ...interactiveDemos2, ...demosA, ...demosB, ...demosC, ...demosD, ...demosE]
+export const demos: GroupedDemo[] = [...pureDemos, ...pureDemos2, ...interactiveDemos, ...interactiveDemos2, ...demosA, ...demosB, ...demosC, ...demosD, ...demosE, ...demosF, ...demosG, ...demosH, ...demosI, ...demosJ]
   .map((demo) => ({ ...demo, group: groupOf(demo.id) }))
   .sort((a, b) => rank(a.id) - rank(b.id));

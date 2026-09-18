@@ -1,0 +1,417 @@
+@use 'sass:math';
+
+// One 10 s timeline drives everything: ignition, lift-off, off-stage, landing burn, touchdown.
+//
+// The flight layer (__flight) is as big as the whole stage, so translateY(-125%) always takes the
+// rocket clean out of the top, whatever the stage's height. Inside it, the pad point (__craft)
+// carries the camera angle; the same angle is on the ground's pad point (__base), with the same
+// animation, so the two stay in step.
+//
+// Body: 10 strips round a cylinder (rotateY(--a) translateZ(r)). Nose: 10 triangles on the same
+// sides, standing on the body's top edge and leaning in by atan(r / height) so their tips meet.
+$t: 10s;
+$r: 13px;
+$strip: 9px; // a hair wider than 2·r·tan(18°) = 8.45px: no cracks between strips
+$body: 72px;
+$nose-lean: math.atan(math.div(13, 30));
+$nose-side: math.sqrt(13 * 13 + 30 * 30) * 1px;
+$nose-w: 8.45px; // exact here: overlapping triangles would cut through each other near the tip
+$steel: color-mix(in srgb, var(--muted) 75%, var(--text));
+
+.d-rocket {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+
+  &__base,
+  &__craft {
+    position: absolute;
+    left: 50%;
+    top: 76%;
+    transform-style: preserve-3d;
+    animation: d-rocket-sway 16s ease-in-out infinite alternate;
+  }
+
+  // a soft pool of light on the ground
+  &__base::before {
+    content: '';
+    position: absolute;
+    left: -130px;
+    top: -130px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 24%, transparent), transparent);
+    transform: translateY(1px) rotateX(90deg);
+  }
+
+  &__pad,
+  &__glow {
+    position: absolute;
+    left: -46px;
+    top: -46px;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    transform: rotateX(90deg);
+  }
+
+  &__pad {
+    background:
+      radial-gradient(closest-side, #555a7c 0 50%, var(--warm) 51% 55%, #33374f 56% 92%, #5c6186 93% 97%, transparent 98%);
+  }
+
+  // the launch burn lights the pad
+  &__glow {
+    left: -70px;
+    top: -70px;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--warm) 80%, #fff), color-mix(in srgb, var(--hot) 45%, transparent) 45%, transparent);
+    opacity: 0;
+    transform: translateY(-1px) rotateX(90deg);
+    animation: d-rocket-glow $t linear infinite;
+  }
+
+  // service tower: two crossed lattice planes, with a blinking light on top
+  &__tower {
+    position: absolute;
+    transform-style: preserve-3d;
+    transform: translate3d(-40px, 0, -8px);
+
+    i {
+      position: absolute;
+      left: -6px;
+      top: -104px;
+      width: 12px;
+      height: 104px;
+      background:
+        linear-gradient(90deg, $steel 0 2px, transparent 2px calc(100% - 2px), $steel 0),
+        repeating-linear-gradient(40deg, $steel 0 1.2px, transparent 1.2px 10px),
+        repeating-linear-gradient(-40deg, $steel 0 1.2px, transparent 1.2px 10px);
+      opacity: 0.85;
+    }
+
+    i + i {
+      transform: rotateY(90deg);
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: -3px;
+      top: -110px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--hot);
+      box-shadow: 0 0 8px var(--hot);
+      animation: d-rocket-blink 1.4s steps(1) infinite;
+    }
+  }
+
+  // the arm that holds the rocket, swung away before ignition and back after touchdown
+  &__arm {
+    position: absolute;
+    left: -34px;
+    top: -74px;
+    width: 21px;
+    height: 4px;
+    background: $steel;
+    transform-origin: 0 50%;
+    transform: translateZ(-4px);
+    animation: d-rocket-arm $t ease-in-out infinite;
+  }
+
+  // smoke puffs: flat discs at the pad, pushed out sideways by --x at lift-off and at touchdown
+  em {
+    position: absolute;
+    left: -15px;
+    top: -26px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--muted) 45%, #fff), color-mix(in srgb, var(--muted) 75%, transparent) 55%, transparent 71%);
+    opacity: 0;
+    animation: d-rocket-smoke $t linear infinite;
+  }
+
+  &__flight {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    animation: d-rocket-fly $t infinite;
+  }
+
+  // body base 9px above the pad: the fins are the legs
+  &__ship {
+    position: absolute;
+    transform-style: preserve-3d;
+    transform: translateY(-9px);
+
+    // body strips: white, a violet band, a dark skirt; --d shades the side
+    i {
+      position: absolute;
+      left: $strip * -0.5;
+      top: -$body;
+      width: $strip;
+      height: $body;
+      background:
+        linear-gradient(rgb(12 14 34 / var(--d)), rgb(12 14 34 / var(--d))),
+        linear-gradient(#eef0fa 0 12%, var(--accent) 12% 20%, #eef0fa 20% 84%, #3b3f5e 84%);
+      transform: rotateY(var(--a)) translateZ($r);
+      backface-visibility: hidden; // a closed solid: far sides are never drawn, so never mis-sorted
+    }
+
+    // nose cone triangles
+    b {
+      position: absolute;
+      left: $nose-w * -0.5;
+      top: -$body - $nose-side;
+      width: $nose-w;
+      height: $nose-side;
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+      background:
+        linear-gradient(rgb(12 14 34 / var(--d)), rgb(12 14 34 / var(--d))),
+        linear-gradient(color-mix(in srgb, var(--hot) 60%, #fff), var(--hot));
+      transform-origin: 50% 100%;
+      transform: rotateY(var(--a)) translateZ($r) rotateX($nose-lean);
+      backface-visibility: hidden;
+    }
+
+    // fins: planes standing out from the axis, turned round it (origin = the axis)
+    s {
+      position: absolute;
+      left: $r - 2px;
+      top: -30px;
+      width: 20px;
+      height: 39px;
+      clip-path: polygon(0 0, 100% 60%, 100% 100%, 0 78%);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--hot) 70%, #000), var(--hot) 70%);
+      transform-origin: -($r - 2px) 0;
+      transform: rotateY(var(--a));
+    }
+
+    // engine bell: two crossed trapezoids
+    u {
+      position: absolute;
+      left: -7px;
+      top: 0;
+      width: 14px;
+      height: 8px;
+      clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+      background: linear-gradient(#6a6f90, #2a2d42);
+    }
+
+    u + u {
+      transform: rotateY(90deg);
+    }
+  }
+
+  &__window {
+    position: absolute;
+    left: -5px;
+    top: -54px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff 0 12%, var(--accent-2) 42%, color-mix(in srgb, var(--accent-2) 40%, #000));
+    box-shadow: 0 0 0 1.5px #b8bcd6;
+    transform: translateZ($r + 0.6px);
+  }
+
+  // Flame: two crossed planes under the bell. The container scales it on and off with the flight;
+  // each plane's two gradient layers flicker on their own short loops (scale only).
+  &__flame {
+    position: absolute;
+    top: 7px;
+    transform-style: preserve-3d;
+    transform: scale(0.4, 0);
+    animation: d-rocket-burn $t linear infinite;
+
+    i {
+      position: absolute;
+      left: -10px;
+      top: 0;
+      width: 20px;
+      height: 56px;
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 40% 40% 50% 50% / 16% 16% 84% 84%;
+        transform-origin: 50% 0;
+      }
+
+      &::before {
+        background: radial-gradient(ellipse 50% 100% at 50% 0, #fff 0 10%, var(--warm) 32%, color-mix(in srgb, var(--hot) 70%, transparent) 62%, transparent 98%);
+        animation: d-rocket-flicker 0.11s ease-in-out infinite alternate;
+      }
+
+      &::after {
+        inset: 0 5px 38%;
+        background: radial-gradient(ellipse 50% 100% at 50% 0, #fff 0 35%, color-mix(in srgb, #fff 50%, var(--warm)) 60%, transparent 98%);
+        animation: d-rocket-flicker 0.15s ease-in-out infinite alternate-reverse;
+      }
+    }
+
+    i + i {
+      transform: rotateY(90deg);
+    }
+  }
+}
+
+@keyframes d-rocket-sway {
+  from {
+    transform: rotateX(-12deg) rotateY(-28deg);
+  }
+
+  to {
+    transform: rotateX(-12deg) rotateY(28deg);
+  }
+}
+
+// rest · lift-off, speeding up · out of the top · landing burn, slowing down · rest
+@keyframes d-rocket-fly {
+  0%,
+  13% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.55);
+  }
+
+  40%,
+  56% {
+    transform: translateY(-125%);
+    animation-timing-function: cubic-bezier(0.15, 0.55, 0.4, 1);
+  }
+
+  88%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+// The flame only grows as fast as the rocket clears the pad: a long flame under a grounded
+// rocket would poke out below the pad's front edge.
+@keyframes d-rocket-burn {
+  0%,
+  6% {
+    transform: scale(0.4, 0);
+  }
+
+  10% {
+    transform: scale(1, 0.2);
+  }
+
+  20% {
+    transform: scale(1, 0.35);
+  }
+
+  30%,
+  72% {
+    transform: scale(1, 1.15);
+  }
+
+  80% {
+    transform: scale(1, 0.5);
+  }
+
+  86% {
+    transform: scale(0.9, 0.2);
+  }
+
+  90%,
+  100% {
+    transform: scale(0.4, 0);
+  }
+}
+
+@keyframes d-rocket-flicker {
+  from {
+    transform: scale(0.94, 0.86);
+  }
+
+  to {
+    transform: scale(1.04, 1.08);
+  }
+}
+
+@keyframes d-rocket-glow {
+  0%,
+  6%,
+  28%,
+  72%,
+  92%,
+  100% {
+    opacity: 0;
+  }
+
+  12%,
+  17%,
+  82%,
+  87% {
+    opacity: 1;
+  }
+}
+
+@keyframes d-rocket-arm {
+  0%,
+  3%,
+  96%,
+  100% {
+    transform: translateZ(-4px) rotateY(0deg);
+  }
+
+  9%,
+  91% {
+    transform: translateZ(-4px) rotateY(75deg);
+  }
+}
+
+@keyframes d-rocket-smoke {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translate3d(0, 0, var(--z)) scale(0.3);
+  }
+
+  13% {
+    opacity: 0.85;
+    transform: translate3d(calc(var(--x) * 18px), -3px, var(--z)) scale(0.9);
+  }
+
+  32% {
+    opacity: 0;
+    transform: translate3d(calc(var(--x) * 62px), -18px, var(--z)) scale(calc(var(--s) * 1.7));
+  }
+
+  33%,
+  83% {
+    opacity: 0;
+    transform: translate3d(0, 0, var(--z)) scale(0.3);
+  }
+
+  88% {
+    opacity: 0.75;
+    transform: translate3d(calc(var(--x) * 16px), -3px, var(--z)) scale(0.85);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(var(--x) * 54px), -14px, var(--z)) scale(calc(var(--s) * 1.5));
+  }
+}
+
+@keyframes d-rocket-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.15;
+  }
+}

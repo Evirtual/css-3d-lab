@@ -33,6 +33,7 @@ function allDemosLinks(): Plugin {
       return html
         .replace('<!--all-demos-->', readFileSync(file, 'utf8'))
         .replace('<!--site-footer-->', readFileSync(resolve(root, 'src/generated/footer.html'), 'utf8'))
+        .replace('<!--logo-->', readFileSync(resolve(root, 'src/generated/logo.html'), 'utf8'))
         .replaceAll('%DEMO_COUNT%', count)
         .replaceAll('%IMAGE_VERSION%', version);
     },

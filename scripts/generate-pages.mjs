@@ -20,6 +20,8 @@ const { snippets } = await vite.ssrLoadModule('/src/demos/snippets.ts');
 const { GROUPS, GROUP_ORDER } = await vite.ssrLoadModule('/src/demos/groups.ts');
 const { interactionHtml, interactionOf } = await vite.ssrLoadModule('/src/demos/interaction.ts');
 const { videoButton } = await vite.ssrLoadModule('/src/video.ts');
+const { logoHtml } = await vite.ssrLoadModule('/src/logo.ts');
+const LOGO = logoHtml();
 
 // Every published demo must ship its copy-paste code: a demo without it would render an empty code
 // window. Stop the build rather than publish that.
@@ -45,7 +47,7 @@ function siteFooter(up) {
   return `<footer class="site-footer">
       <div class="site-footer__main">
         <div class="site-footer__brand">
-          <a class="topbar__brand" href="${up}"><span class="logo-cube" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>${esc(site.name)}</a>
+          <a class="topbar__brand" href="${up}">${LOGO}${esc(site.name)}</a>
           <p>CSS 3D effects to learn from and reuse: live demos, how each one works, and code you can copy. Free and ad-free.</p>
         </div>
         <div class="site-footer__cta">
@@ -101,7 +103,7 @@ function shell({ path, depth, title, description, jsonLd, body, script, image, i
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
     <nav class="topbar">
       <a class="topbar__brand" href="${up}">
-        <span class="logo-cube" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        ${LOGO}
         ${esc(site.name)}
       </a>
       <div class="topbar__actions">
@@ -425,14 +427,16 @@ write(
       <div class="all-demos__groups">
       ${GROUP_ORDER.map((g) => {
         const members = demos.filter((d) => d.group === g);
+        // every link stays in the page (for search engines); CSS shows the first few, the button the rest
         return `<section><h3><a href="groups/${g}/">${esc(GROUPS[g])} <b>${members.length}</b></a></h3><ul>${members
           .map((d) => `<li><a href="demos/${d.id}/">${esc(d.title)}</a></li>`)
-          .join('')}</ul></section>`;
+          .join('')}</ul>${members.length > 5 ? `<button type="button" class="link all-demos__more" data-group-list="${g}">Show all ${members.length}</button>` : ''}</section>`;
       }).join('\n      ')}
       </div>
     </nav>`,
 );
 write('src/generated/footer.html', siteFooter(''));
+write('src/generated/logo.html', LOGO);
 
 const today = new Date().toISOString().slice(0, 10);
 const urls = ['', ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `demos/${d.id}/`)];

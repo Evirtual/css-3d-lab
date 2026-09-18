@@ -1,56 +1,68 @@
-// Draws the brand mark (an isometric cube in the site's gradient) and renders every icon the
-// platforms ask for into public/. Run once, or again after changing the mark:  npm run icons
-// The outputs are committed, so the normal build does not depend on this script.
+// Draws the brand mark and renders every icon the platforms ask for into public/. Run once, or
+// again after changing the mark:  npm run icons   (the outputs are committed; the build does not
+// depend on this script).
+//
+// The mark: a cube of 8 little cubes (2 x 2 x 2) with small gaps (see src/logo.ts, which animates it on the
+// site). The still version is one moment of that animation: each little cube a little outward.
+//  - bare (favicon, icon.svg, app icons with purpose "any"): just the cube, as big as it fits;
+//  - on a tile (the maskable icon, the Apple touch icon): a dark square to the edge, because
+//    Android crops it to its own shape and iOS fills transparency with black; the cube sits well
+//    inside Android's safe zone.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
-// Cube geometry on a 512 grid: centre (256,256), vertical edge 160, half-width 138.
-const P = { top: '256,96', rt: '394,176', rb: '394,336', bottom: '256,416', lb: '118,336', lt: '118,176', c: '256,256' };
-
-/**
- * Two kinds of icon:
- *  - bare (favicon, app icons with purpose "any", icon.svg): just the cube, no background, as big
- *    as the square allows (it spans about 94% of the height), so it reads at 16-32 px;
- *  - on a background (the maskable icon, the Apple touch icon): a square to the very edge, because
- *    Android crops it to a circle / squircle and iOS fills transparency with black. The cube is
- *    scaled to sit inside Android's safe zone (a circle of 80% of the width) with room to spare.
- * The cube's corners are at most 160 units from the centre of the 512 grid; `scale` sizes it.
- */
-const mark = ({ bleed, scale }) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#171a36"/><stop offset="1" stop-color="#07080f"/></linearGradient>
-    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7ff5ea"/><stop offset="1" stop-color="#2ee6d6"/></linearGradient>
-    <linearGradient id="left" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9d83ff"/><stop offset="1" stop-color="#6a45f5"/></linearGradient>
-    <linearGradient id="right" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6fb0"/><stop offset="1" stop-color="#e0257a"/></linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.55" r="0.5"><stop offset="0" stop-color="#8b6cff" stop-opacity="0.55"/><stop offset="1" stop-color="#8b6cff" stop-opacity="0"/></radialGradient>
-  </defs>
-  ${bleed ? '<rect width="512" height="512" fill="url(#bg)"/><circle cx="256" cy="270" r="230" fill="url(#glow)"/>' : ''}
-  <g transform="translate(256 256) scale(${scale}) translate(-256 -256)" stroke="#07080f" stroke-width="${(6 / scale).toFixed(2)}" stroke-linejoin="round">
-    <polygon points="${P.top} ${P.rt} ${P.c} ${P.lt}" fill="url(#top)"/>
-    <polygon points="${P.lt} ${P.c} ${P.bottom} ${P.lb}" fill="url(#left)"/>
-    <polygon points="${P.c} ${P.rt} ${P.rb} ${P.bottom}" fill="url(#right)"/>
-  </g>
-</svg>
+function mark({ tile = false } = {}) {
+  let seed = 11; // the same layout as src/logo.ts
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647) * 2 - 1;
+  const gap = 0.14;
+  const open = 0.09; // how far out this moment is, as a share of a slot
+  const c = Math.cos(Math.PI / 6);
+  const size = tile ? 250 : 360; // across, in the 512 box
+  const s = size / (2 * c * 2) * 1.02;
+  const P = (x, y, z) => [(x - y) * s * c, (x + y) * s * 0.5 - z * s];
+  const cells = [];
+  for (let x = 0; x < 2; x++) for (let y = 0; y < 2; y++) for (let z = 0; z < 2; z++) {
+    const out = (v) => (v * 2 - 1) * (0.35 + Math.abs(rnd()) * 0.65) * open * 2;
+    const o = [out(x), out(y), out(z)];
+    rnd(); rnd(); rnd(); // turn, time, delay in logo.ts: keep the sequence in step
+    cells.push([x + gap / 2 + o[0], y + gap / 2 + o[1], z + gap / 2 + o[2]]);
+  }
+  const mid = P(1, 1, 1);
+  const Q = (x, y, z) => { const [a, b] = P(x, y, z); return [256 + a - mid[0], 256 + b - mid[1]]; };
+  const pts = (...p) => p.map(([a, b]) => `${a.toFixed(1)},${b.toFixed(1)}`).join(' ');
+  cells.sort((a, b) => a[0] + a[1] + a[2] - (b[0] + b[1] + b[2])); // back to front
+  const w = 1 - gap;
+  const g = 'stroke="#07080f" stroke-opacity="0.45" stroke-width="3" stroke-linejoin="round"';
+  const body = cells
+    .map(([x, y, z]) => {
+      const top = [Q(x, y, z + w), Q(x + w, y, z + w), Q(x + w, y + w, z + w), Q(x, y + w, z + w)];
+      const left = [Q(x, y + w, z + w), Q(x + w, y + w, z + w), Q(x + w, y + w, z), Q(x, y + w, z)];
+      const right = [Q(x + w, y, z + w), Q(x + w, y + w, z + w), Q(x + w, y + w, z), Q(x + w, y, z)];
+      return `<polygon points="${pts(...top)}" fill="url(#t)" ${g}/><polygon points="${pts(...left)}" fill="url(#l)" ${g}/><polygon points="${pts(...right)}" fill="url(#r)" ${g}/>`;
+    })
+    .join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs>
+  <linearGradient id="t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9bfaf1"/><stop offset="1" stop-color="#2ee6d6"/></linearGradient>
+  <linearGradient id="l" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#a58cff"/><stop offset="1" stop-color="#5b3be8"/></linearGradient>
+  <linearGradient id="r" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#ff86bd"/><stop offset="1" stop-color="#d81e74"/></linearGradient>
+</defs>${tile ? '<rect width="512" height="512" fill="#100d26"/>' : ''}${body}</svg>
 `;
+}
 
 mkdirSync('public', { recursive: true });
-const BARE = { bleed: false, scale: 1.5 }; // 160 x 1.5 = 240 of the 256 half-width: nearly edge to edge
-const MASKABLE = { bleed: true, scale: 1.12 }; // 179 of Android's 205 safe radius
-const APPLE = { bleed: true, scale: 1.2 }; // iOS only rounds the corners, so a little bigger
-
-writeFileSync('public/icon.svg', mark(BARE));
+writeFileSync('public/icon.svg', mark());
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-async function png(file, size, look) {
+async function png(file, size, tile) {
   await page.setViewportSize({ width: size, height: size });
-  await page.setContent(`<style>html,body{margin:0;background:transparent}svg{display:block;width:${size}px;height:${size}px}</style>${mark(look)}`);
+  await page.setContent(`<style>html,body{margin:0;background:transparent}svg{display:block;width:${size}px;height:${size}px}</style>${mark({ tile })}`);
   await page.screenshot({ path: `public/${file}`, omitBackground: true });
   console.log('public/' + file);
 }
-await png('favicon-32.png', 32, BARE);
-await png('icon-192.png', 192, BARE);
-await png('icon-512.png', 512, BARE);
-await png('icon-maskable-512.png', 512, MASKABLE); // Android crops this to its own shape
-await png('apple-touch-icon.png', 180, APPLE); // iOS rounds the corners and does not support transparency
+await png('favicon-32.png', 32, false);
+await png('icon-192.png', 192, false);
+await png('icon-512.png', 512, false);
+await png('icon-maskable-512.png', 512, true);
+await png('apple-touch-icon.png', 180, true);
 await browser.close();

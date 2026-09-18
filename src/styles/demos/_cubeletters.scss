@@ -1,0 +1,105 @@
+@use '../mixins' as *;
+
+$s: 44px;
+
+// One cube per letter. Around each cube's X axis: front, bottom, back, top carry the letters of
+// word A, word B, word A, word B, so every quarter turn forward swaps the word.
+.d-cubeletters {
+  display: flex;
+  gap: 9px;
+  transform-style: preserve-3d;
+  // a fixed view: from a little above and to the right
+  transform: rotateX(-16deg) rotateY(-18deg);
+
+  &__cube {
+    position: relative;
+    width: $s;
+    height: $s;
+    transform-style: preserve-3d;
+    // --i staggers the cubes, so the turn runs along the word like a wave
+    animation: d-cubeletters-roll 8s calc(var(--i) * 0.13s) infinite both;
+
+    i,
+    b {
+      position: absolute;
+      inset: 0;
+      border-radius: 8px;
+    }
+
+    // word A faces violet, word B faces pink
+    i {
+      --c: var(--accent);
+      display: grid;
+      place-items: center;
+      border: 1px solid color-mix(in srgb, var(--c), #fff 35%);
+      background:
+        linear-gradient(150deg, rgb(255 255 255 / 0.3), transparent 45%),
+        linear-gradient(color-mix(in srgb, var(--c), #fff 8%), color-mix(in srgb, var(--c), #000 22%));
+      color: #fff;
+      font: 900 26px/1 var(--font);
+      font-style: normal;
+      text-shadow: 0 2px 0 color-mix(in srgb, var(--c), #000 45%);
+      backface-visibility: hidden; // a letter must never show mirrored through the cube
+      @include solid-core(5px, color-mix(in srgb, var(--c), #000 50%));
+
+      &:nth-child(even) {
+        --c: var(--hot);
+      }
+    }
+
+    // Face n is turned n quarter turns BACK around X, then pushed out by half a side: turning
+    // the cube n quarter turns forward brings it to the front, upright.
+    @for $n from 0 through 3 {
+      i:nth-child(#{$n + 1}) {
+        transform: rotateX($n * -90deg) translateZ($s * 0.5);
+      }
+    }
+
+    // the two ends, plain and darker
+    b {
+      border: 1px solid color-mix(in srgb, var(--accent), #fff 10%);
+      background: linear-gradient(color-mix(in srgb, var(--accent), #000 30%), color-mix(in srgb, var(--accent), #000 50%));
+      @include solid-core(5px, color-mix(in srgb, var(--accent), #000 50%));
+    }
+
+    b:nth-of-type(1) {
+      transform: rotateY(-90deg) translateZ($s * 0.5);
+    }
+
+    b:nth-of-type(2) {
+      transform: rotateY(90deg) translateZ($s * 0.5);
+    }
+  }
+}
+
+// Hold, quarter turn, hold... four turns make 360deg, which looks exactly like 0deg: no seam.
+// The easing is set per keyframe and only matters on the turns: a small wind-up and overshoot.
+@keyframes d-cubeletters-roll {
+  0%,
+  17% {
+    transform: rotateX(0deg);
+    animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
+  }
+
+  25%,
+  42% {
+    transform: rotateX(90deg);
+    animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
+  }
+
+  50%,
+  67% {
+    transform: rotateX(180deg);
+    animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
+  }
+
+  75%,
+  92% {
+    transform: rotateX(270deg);
+    animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
+  }
+
+  100% {
+    transform: rotateX(360deg);
+  }
+}

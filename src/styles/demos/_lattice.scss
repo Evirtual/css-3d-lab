@@ -1,0 +1,123 @@
+$u: 50px; // lattice spacing
+$p: 0.3; // how far the outer layers breathe out, as a share of $u
+$spin: 18s;
+$beat: 2.4s;
+
+// A 3 × 3 × 3 lattice as three horizontal layers (each: 6 bars and 9 nodes) plus 9 posts running
+// through all three. The outer layers move out along Y and the posts stretch with them (scaleY),
+// so every joint stays joined.
+.d-lattice {
+  position: relative;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  animation: d-lattice-spin $spin linear infinite;
+
+  // Everything is placed from the lattice's centre. --x / --y / --z are -1, 0 or 1.
+  &__layer,
+  &__posts {
+    position: absolute;
+    transform-style: preserve-3d;
+  }
+
+  &__layer {
+    transform: translateY(calc(var(--y) * #{$u}));
+    animation: d-lattice-out $beat ease-in-out infinite alternate;
+  }
+
+  // the posts stretch by exactly what the layers move: (u + p·u) / u
+  &__posts {
+    animation: d-lattice-stretch $beat ease-in-out infinite alternate;
+  }
+
+  // A bar is two crossed planes (the element and its ::after): a single plane would vanish
+  // whenever it is seen edge-on.
+  i {
+    position: absolute;
+    top: -1px;
+    left: -$u;
+    width: $u * 2;
+    height: 2px;
+    transform-style: preserve-3d;
+    background: linear-gradient(
+      90deg,
+      var(--accent-2),
+      color-mix(in srgb, var(--accent) 85%, transparent) 30% 70%,
+      var(--accent-2)
+    );
+    transform: translateZ(calc(var(--z) * #{$u})); // a bar along X, at depth z
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: inherit;
+      transform: rotateX(90deg);
+    }
+
+    // a bar along Z: the same bar turned a quarter, at x
+    &.is-z {
+      transform: translateX(calc(var(--x) * #{$u})) rotateY(90deg);
+    }
+  }
+
+  // posts: the same bar standing up (rotateZ), at x and z
+  &__posts i {
+    transform: translateX(calc(var(--x) * #{$u})) translateZ(calc(var(--z) * #{$u})) rotateZ(90deg);
+  }
+
+  // nodes: glowing dots that turn back against the spin, so they always face you and stay round
+  b {
+    --glow: var(--accent-2);
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--glow) 25%, #fff) 0 22%, var(--glow) 42%, color-mix(in srgb, var(--glow) 0%, transparent) 72%);
+    animation: d-lattice-face $spin linear infinite;
+  }
+
+  // the middle layer glows pink, its very centre amber
+  .is-mid b {
+    --glow: var(--hot);
+
+    &:nth-of-type(5) {
+      --glow: var(--warm);
+    }
+  }
+}
+
+@keyframes d-lattice-spin {
+  from {
+    transform: rotateZ(-8deg) rotateX(-22deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateZ(-8deg) rotateX(-22deg) rotateY(360deg);
+  }
+}
+
+// --y is 0 for the middle layer, so it stays put while the outer two move out
+@keyframes d-lattice-out {
+  to {
+    transform: translateY(calc(var(--y) * #{$u * (1 + $p)}));
+  }
+}
+
+@keyframes d-lattice-stretch {
+  to {
+    transform: scaleY(1 + $p);
+  }
+}
+
+@keyframes d-lattice-face {
+  from {
+    transform: translate3d(calc(var(--x) * #{$u}), 0, calc(var(--z) * #{$u})) rotateY(0deg);
+  }
+
+  to {
+    transform: translate3d(calc(var(--x) * #{$u}), 0, calc(var(--z) * #{$u})) rotateY(-360deg);
+  }
+}

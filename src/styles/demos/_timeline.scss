@@ -1,0 +1,195 @@
+// Every card stands $step further back than the one before: translateZ(--i · -$step). JS sets one
+// number on the view, --a (the active card). The track of cards moves toward you by --a steps,
+// so card --a lands at z = 0, the front. Each card reads --d = --i − --a: cards ahead fade with
+// distance, the one just passed fades out, and older ones are held back one step behind it, so
+// nothing ever comes closer than one step to the camera.
+//
+// The road does not travel with the cards (its near end would run into the camera and over the
+// controls). It stays put and only its lane layer (dashes + markers) slides. The dash period
+// (22px) divides the step (110px), so at every stop the road looks exactly the same.
+$step: 110px;
+$floor: 36px; // the road, below the track's centre
+$near: 64px; // the road starts this far in front of the front card
+$len: 900px;
+$ease: 0.9s cubic-bezier(0.45, 0.05, 0.25, 1);
+
+.d-timeline {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 14px; // the control dock: the same place in every demo with controls
+
+  // Its own camera: close, and looking down the road from above. Road and track are separate
+  // 3D children, painted in order: the cards stand above the road, so they always go on top.
+  &__view {
+    position: relative;
+    min-height: 0;
+    perspective: 560px;
+    perspective-origin: 50% -80px; // high above: the cards further away climb up the view, clear of the ones in front
+  }
+
+  &__track {
+    position: absolute;
+    left: 50%;
+    top: 62%;
+    transform-style: preserve-3d;
+    transform: translateZ(calc(var(--a) * #{$step}));
+    transition: transform $ease;
+  }
+
+  // The road: one long plane stood on its near edge, then laid back flat with rotateX(90deg)
+  // around that edge. It may clip and mask: it is flat, nothing on it is 3D.
+  &__road {
+    position: absolute;
+    left: calc(50% - 34px);
+    top: calc(62% + #{$floor - $len});
+    width: 68px;
+    height: $len;
+    overflow: hidden;
+    background:
+      linear-gradient(90deg, transparent 3px, var(--accent) 3px 5px, transparent 5px calc(100% - 5px), var(--accent) calc(100% - 5px) calc(100% - 3px), transparent 0),
+      color-mix(in srgb, var(--accent) 16%, var(--surface-solid));
+    mask: linear-gradient(to top, transparent, #000 7%, #000 40%, transparent 80%);
+    transform-origin: 50% 100%;
+    transform: translateZ($near) rotateX(90deg);
+  }
+
+  // dashes and markers: longer than the road by the whole trip, slid toward you by --a steps
+  &__lane {
+    position: absolute;
+    inset: ($step * -4) 0 0;
+    background: linear-gradient(color-mix(in srgb, var(--warm) 80%, transparent) 50%, transparent 0) 50% 100% / 3px 22px repeat-y;
+    transform: translateY(calc(var(--a) * #{$step}));
+    transition: transform $ease;
+
+    // a marker on the road for every event, bright at the active one
+    u {
+      --d: calc(var(--i) - var(--a));
+      position: absolute;
+      left: calc(50% - 7px);
+      bottom: calc(#{$near - 7px} + var(--i) * #{$step});
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--accent-2);
+      border-radius: 50%;
+      background: var(--surface-solid);
+
+      // the fill lights up only where --d is 0: opacity 1 - min(|d|, 1)
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 1px;
+        border-radius: 50%;
+        background: var(--accent-2);
+        box-shadow: 0 0 8px var(--accent-2);
+        opacity: calc(1 - min(max(var(--d), var(--d) * -1), 1));
+        transition: opacity 0.5s;
+      }
+    }
+  }
+
+  &__card {
+    --d: calc(var(--i) - var(--a));
+    position: absolute;
+    left: -50px;
+    top: -52px;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    width: 100px;
+    height: 56px;
+    padding: 0 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 34%, var(--surface-solid)), color-mix(in srgb, var(--accent) 10%, var(--surface-solid)));
+    color: var(--text);
+    backface-visibility: hidden;
+    // 1 at the front, fading 0.2 a step behind it; 0 as soon as it is passed (the second min)
+    opacity: clamp(0, min(1 - var(--d) * 0.2, 1 + var(--d) * 4), 1);
+    // Beside the road (--s: -1 left, 1 right), turned a little toward it, one step back per
+    // index. Passed cards get min(--d + 1, 0) extra steps back, so they stay one step ahead
+    // of the camera at most.
+    transform:
+      translate3d(calc(var(--s) * 62px), 0, calc((var(--i) * -1 + min(var(--d) + 1, 0)) * #{$step}))
+      rotateY(calc(var(--s) * -16deg));
+    transition:
+      opacity 0.6s,
+      transform $ease,
+      border-color 0.4s;
+
+    b {
+      font-size: 20px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      transition: color 0.4s;
+    }
+
+    span {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    // the post down to the road
+    &::before {
+      content: '';
+      position: absolute;
+      left: calc(50% - 1px);
+      top: 100%;
+      width: 2px;
+      height: $floor - 4px;
+      background: linear-gradient(var(--border-strong), color-mix(in srgb, var(--accent) 60%, transparent));
+    }
+
+    &[aria-current='true'] {
+      border-color: var(--accent-2);
+
+      b {
+        color: var(--accent-2);
+      }
+    }
+  }
+
+  &__bar {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    font-size: 12px;
+
+    output {
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    gap: 8px;
+
+    button {
+      padding: 5px 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--bg) 70%, transparent);
+      color: var(--text);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+
+      &:last-child:not(:disabled) {
+        border-color: transparent;
+        background: linear-gradient(135deg, var(--accent), var(--hot));
+        color: #fff;
+      }
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+    }
+  }
+}

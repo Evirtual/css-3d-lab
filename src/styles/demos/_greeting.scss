@@ -1,0 +1,214 @@
+$w: 92px; // one page of the card
+$h: 124px;
+$rest: -96deg; // half open: the cover stands at a right angle to the page
+$open: -166deg; // almost flat, so it still stands
+$ease: 0.9s cubic-bezier(0.3, 1.15, 0.45, 1);
+$paper: #fbf7ef;
+$lift: 16px; // how far the pop-up layer floats in front of the pages
+
+// The root is the static hit target; the card inside is pointer-events: none and free to move.
+.d-greeting {
+  --open: #{$rest};
+  --view: 40deg; // how far round we look at the card
+  --x0: 14px;
+  display: grid;
+  place-items: center;
+  width: 210px;
+  height: 180px;
+  outline: none;
+  cursor: pointer;
+  transform-style: preserve-3d;
+
+  &:hover,
+  &:focus-visible {
+    --open: #{$open};
+    --view: 24deg; // the card turns to face you as it opens
+    --x0: 2px;
+  }
+
+  // The card's left edge is the spine. Move the spine to the middle, then look at the card from
+  // a little above (rotateX) and from the left (rotateY), turning around the spine.
+  &__card {
+    position: relative;
+    width: $w;
+    height: $h;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transform-origin: 0 50%;
+    transform: translateX($w * 0.5) rotateX(-18deg) rotateY(var(--view));
+    transition: transform $ease;
+  }
+
+  // a soft shadow lying on the table under the card
+  &__shadow {
+    position: absolute;
+    top: $h - 40px;
+    left: -$w * 1.1;
+    width: $w * 2.2;
+    height: 80px;
+    background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
+    transform: rotateX(90deg);
+  }
+
+  // the inside right page: it stays put
+  &__page {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 68px 10px 0 16px;
+    border-radius: 0 6px 6px 0;
+    background:
+      radial-gradient(circle at 78% 16%, var(--warm) 0 2.5px, transparent 3.5px),
+      radial-gradient(circle at 60% 9%, var(--accent-2) 0 2px, transparent 3px),
+      radial-gradient(circle at 88% 30%, var(--hot) 0 2px, transparent 3px),
+      linear-gradient(90deg, #e4ddcf, $paper 18%);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+    color: color-mix(in srgb, var(--accent) 80%, #000);
+    backface-visibility: hidden;
+
+    b {
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 0.95;
+    }
+
+    span {
+      height: 3px;
+      border-radius: 2px;
+      background: rgb(20 20 40 / 0.16);
+
+      &:nth-of-type(2) {
+        width: 70%;
+      }
+    }
+
+    small {
+      color: #6b6478;
+      font-size: 7px;
+      font-style: italic;
+    }
+
+    // the shadow the standing heart throws onto the page, stronger as it stands up
+    &::before {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: 8px;
+      width: 40px;
+      height: 46px;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgb(40 10 50 / 0.4), transparent);
+      opacity: 0.4;
+      transition: opacity $ease;
+    }
+
+    // the half-open cover shades the page; it brightens as the card opens
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgb(20 10 40 / 0.55), rgb(20 10 40 / 0.1) 85%);
+      transition: opacity $ease;
+    }
+  }
+
+  // The pop-up: a floating layer. Each half of the heart stays parallel to its own page, $lift
+  // in front of it, and the two halves meet on an inner fold, like a smaller card inside the card.
+  // Where they meet (--x0 from the spine) is $lift × cot(half the opening angle): 14px when the
+  // card is half open, 2px when it is flat. Only that number and the cover's angle change.
+  &__pop {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    width: 28px;
+    height: 48px;
+    background:
+      radial-gradient(circle at 50% 22%, rgb(255 255 255 / 0.75) 0 2.5px, transparent 6px),
+      linear-gradient(170deg, var(--hot), color-mix(in srgb, var(--hot) 50%, var(--warm)));
+    // the right half of a heart: its middle line is the left edge, on the inner fold
+    clip-path: path('M0 9 C 3 3 7 0 12 0 C 21 0 28 6 28 16 C 28 28 16 38 0 48 Z');
+    transform: translate3d(var(--x0), 0, $lift);
+    transition: transform $ease;
+
+    // the left half rides on the cover, on its inside, and is turned round to face the right half
+    // (turning it round mirrors it, so its middle line is drawn on its right edge)
+    &--l {
+      clip-path: path('M28 9 C 25 3 21 0 16 0 C 7 0 0 6 0 16 C 0 28 12 38 28 48 Z');
+      transform: translate3d(var(--x0), 0, -$lift) rotateY(180deg);
+    }
+  }
+
+  // The front cover: two faces back to back, hinged on the spine.
+  &__cover {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform-origin: 0 50%;
+    transform: translateZ(2px) rotateY(var(--open));
+    transition: transform $ease;
+  }
+
+  &__front,
+  &__inside {
+    position: absolute;
+    inset: 0;
+    border-radius: 0 6px 6px 0;
+    backface-visibility: hidden;
+  }
+
+  &__front {
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 22% 18%, rgb(255 255 255 / 0.75) 0 2px, transparent 3px),
+      radial-gradient(circle at 76% 26%, var(--warm) 0 3px, transparent 4px),
+      radial-gradient(circle at 30% 80%, var(--accent-2) 0 2.5px, transparent 3.5px),
+      radial-gradient(circle at 80% 76%, rgb(255 255 255 / 0.6) 0 2px, transparent 3px),
+      linear-gradient(150deg, var(--accent), var(--hot));
+    box-shadow: inset 3px 0 0 rgb(0 0 0 / 0.15);
+
+    b {
+      padding: 10px 12px;
+      border: 2px solid rgb(255 255 255 / 0.85);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1;
+      text-align: center;
+    }
+  }
+
+  // the inside of the cover, seen once it swings past 90°
+  &__inside {
+    display: grid;
+    place-items: end center;
+    padding-bottom: 14px;
+    border-radius: 6px 0 0 6px;
+    background:
+      repeating-linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent) 0 6px, transparent 6px 12px),
+      linear-gradient(270deg, #e4ddcf, $paper 18%);
+    color: color-mix(in srgb, var(--accent) 70%, #000);
+    transform: rotateY(180deg);
+
+    small {
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+  }
+
+  &:hover &__page::after,
+  &:focus-visible &__page::after {
+    opacity: 0.12;
+  }
+
+  &:hover &__page::before,
+  &:focus-visible &__page::before {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,330 @@
+@use 'sass:math';
+@use 'sass:list';
+
+// A faceted perfume bottle: an octagonal glass prism (a box with its four vertical edges cut off)
+// with a smaller octagonal prism of liquid inside, a gold cap and a label.
+$W: 84px; // body width
+$D: 44px; // body depth
+$H: 96px; // body height
+$c: 9px; // how much each vertical edge is cut off
+$g: 5px; // glass wall thickness
+$base: 13px; // the thick glass bottom
+$fill: 50px; // liquid height
+$sway: 8s;
+
+// Eight faces around the Y axis: front, corner, side, corner, back, corner, side, corner. Each
+// face is turned to its angle and pushed out to its distance from the axis (half the depth,
+// half the width, or the corner cut's distance).
+@mixin octa-faces($w, $d, $c, $h) {
+  $wide: $w - 2 * $c;
+  $narrow: $d - 2 * $c;
+  $cut: $c * math.sqrt(2);
+  $cut-z: math.div($w * 0.5 + $d * 0.5 - $c, math.sqrt(2));
+
+  // A corner cut faces 45deg, but when width != depth its middle is NOT on the 45deg ray from
+  // the axis: it also slides sideways, by (w - d) / 2 / sqrt(2), alternately left and right.
+  $slide: math.div(($w - $d) * 0.5, math.sqrt(2));
+  // width, distance and slide for: front / back, a corner, a side, a corner (by $i % 4)
+  $widths: ($wide, $cut, $narrow, $cut);
+  $dists: ($d * 0.5, $cut-z, $w * 0.5, $cut-z);
+  $slides: (0px, $slide, 0px, -$slide);
+
+  @for $i from 0 to 8 {
+    $a: $i * 45deg;
+    $fw: list.nth($widths, $i % 4 + 1);
+    $fz: list.nth($dists, $i % 4 + 1);
+    $fx: list.nth($slides, $i % 4 + 1);
+
+    > i:nth-child(#{$i + 1}) {
+      left: ($w - $fw) * 0.5;
+      width: $fw;
+      transform: rotateY($a) translateX($fx) translateZ($fz);
+    }
+  }
+
+  > i {
+    position: absolute;
+    top: 0;
+    height: $h;
+  }
+}
+
+// An octagon the size of the prism's footprint (for the lid, the floor, the liquid's surface).
+@function octagon($w, $d, $c) {
+  @return polygon($c 0, $w - $c 0, $w $c, $w $d - $c, $w - $c $d, $c $d, 0 $d - $c, 0 $c);
+}
+
+// Four walls and a lid, for the neck and the cap.
+@mixin box-sides($w, $d, $h) {
+  > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: $w;
+    height: $h;
+  }
+
+  > :nth-child(1) {
+    transform: translateZ($d * 0.5);
+  }
+
+  > :nth-child(2) {
+    transform: rotateY(180deg) translateZ($d * 0.5);
+  }
+
+  > :nth-child(3),
+  > :nth-child(4) {
+    left: ($w - $d) * 0.5;
+    width: $d;
+  }
+
+  > :nth-child(3) {
+    transform: rotateY(90deg) translateZ($w * 0.5);
+  }
+
+  > :nth-child(4) {
+    transform: rotateY(-90deg) translateZ($w * 0.5);
+  }
+
+  > :nth-child(5) {
+    top: -$d * 0.5;
+    height: $d;
+    transform: rotateX(90deg);
+  }
+}
+
+.d-perfume {
+  --gold: color-mix(in srgb, var(--warm) 78%, #fff);
+  --gold-deep: color-mix(in srgb, var(--warm) 62%, #3a2200);
+  --edge: color-mix(in srgb, var(--text) 38%, transparent);
+  position: relative;
+  width: $W;
+  height: $H;
+  transform-style: preserve-3d;
+  animation: d-perfume-sway $sway ease-in-out infinite alternate;
+
+  &__shadow {
+    position: absolute;
+    left: -18px;
+    top: $H - 40px;
+    width: $W + 36px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--hot) 30%, rgb(0 0 0 / 0.45)), transparent);
+    transform: rotateX(90deg);
+  }
+
+  // --- glass -------------------------------------------------------------------------------
+  // Faces are see-through and drawn from both sides, so the far walls show through the near
+  // ones. The lower $base px of every wall is the thick, clearer glass bottom.
+  &__glass {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    @include octa-faces($W, $D, $c, $H);
+
+    > i {
+      --lit: 0.1;
+      border: 1px solid var(--edge);
+      border-radius: 2px;
+      background:
+        linear-gradient(transparent calc(100% - #{$base + 1px}), rgb(255 255 255 / 0.35) calc(100% - #{$base}), rgb(255 255 255 / 0.12) calc(100% - #{$base - 3px}), rgb(255 255 255 / 0.2)),
+        linear-gradient(90deg, rgb(255 255 255 / calc(var(--lit) * 1.8)), rgb(255 255 255 / var(--lit)) 30%, rgb(255 255 255 / calc(var(--lit) * 0.5)) 70%, rgb(255 255 255 / var(--lit))),
+        color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+
+    // the corner cuts catch the light
+    > i:nth-child(2n) {
+      --lit: 0.24;
+    }
+
+    > i:nth-child(3),
+    > i:nth-child(7) {
+      --lit: 0.05;
+    }
+
+    // front wall: carries the sweeping glint (overflow is fine, this face is flat)
+    > i:first-child {
+      overflow: hidden;
+    }
+  }
+
+  &__glint {
+    position: absolute;
+    top: -20%;
+    left: 0;
+    width: 22px;
+    height: 140%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7) 45% 55%, transparent);
+    transform: translateX(-40px) rotate(18deg);
+    animation: d-perfume-glint $sway linear infinite;
+  }
+
+  &__top,
+  &__floor {
+    position: absolute;
+    left: 0;
+    top: -$D * 0.5;
+    width: $W;
+    height: $D;
+    clip-path: octagon($W, $D, $c);
+    background:
+      radial-gradient(ellipse 16px 11px, rgb(255 255 255 / 0.3), transparent),
+      color-mix(in srgb, var(--accent) 10%, rgb(255 255 255 / 0.14));
+    transform: rotateX(90deg);
+  }
+
+  &__floor {
+    top: $H - $D * 0.5;
+    background: color-mix(in srgb, var(--accent) 16%, rgb(255 255 255 / 0.1));
+    transform: rotateX(-90deg);
+  }
+
+  // --- liquid: the same prism, smaller, standing on the thick bottom ---------------------------
+  &__liquid {
+    $lw: $W - 2 * $g;
+    $ld: $D - 2 * $g;
+    $lc: $c - $g * (math.sqrt(2) - 1); // a parallel cut, $g further in
+    position: absolute;
+    left: $g;
+    top: $H - $base - $fill;
+    width: $lw;
+    height: $fill;
+    transform-style: preserve-3d;
+    @include octa-faces($lw, $ld, $lc, $fill);
+
+    > i {
+      background:
+        linear-gradient(90deg, rgb(255 255 255 / 0.18), transparent 35% 70%, rgb(0 0 0 / 0.18)),
+        linear-gradient(color-mix(in srgb, var(--hot) 55%, var(--warm)), color-mix(in srgb, var(--hot) 80%, var(--accent)));
+      opacity: 0.82;
+    }
+
+    // the surface of the liquid
+    b {
+      position: absolute;
+      left: 0;
+      top: -$ld * 0.5;
+      width: $lw;
+      height: $ld;
+      clip-path: octagon($lw, $ld, $lc);
+      background:
+        radial-gradient(ellipse 60% 70% at 40% 40%, rgb(255 255 255 / 0.45), transparent),
+        color-mix(in srgb, var(--hot) 45%, var(--warm));
+      opacity: 0.9;
+      transform: rotateX(90deg);
+    }
+  }
+
+  // --- label -------------------------------------------------------------------------------
+  &__label {
+    position: absolute;
+    left: $c + 4px;
+    top: 26px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 3px;
+    width: $W - 2 * $c - 8px;
+    height: 36px;
+    border: 1px solid var(--gold);
+    background: #0d0e17;
+    box-shadow: inset 0 0 0 2px #0d0e17, inset 0 0 0 2.6px var(--gold-deep);
+    color: var(--gold);
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1;
+    backface-visibility: hidden;
+    transform: translateZ($D * 0.5 + 0.6px);
+
+    b {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 2.5px;
+      text-indent: 2.5px; // letter-spacing adds space after the last letter too; this rebalances it
+    }
+
+    small {
+      font-family: system-ui, sans-serif;
+      font-size: 4.5px;
+      letter-spacing: 0.8px;
+      white-space: nowrap;
+      opacity: 0.85;
+    }
+  }
+
+  // --- neck and cap ------------------------------------------------------------------------
+  &__neck {
+    position: absolute;
+    left: ($W - 24px) * 0.5;
+    top: -7px;
+    width: 24px;
+    height: 7px;
+    transform-style: preserve-3d;
+    @include box-sides(24px, 18px, 7px);
+
+    > * {
+      background: linear-gradient(var(--gold-deep), var(--gold) 50%, var(--gold-deep));
+    }
+  }
+
+  &__cap {
+    position: absolute;
+    left: ($W - 42px) * 0.5;
+    top: -7px - 32px;
+    width: 42px;
+    height: 32px;
+    transform-style: preserve-3d;
+    @include box-sides(42px, 30px, 32px);
+
+    // vertical fluting over a lit gold gradient
+    > * {
+      background:
+        repeating-linear-gradient(90deg, rgb(255 255 255 / 0.22) 0 1.5px, transparent 1.5px 3px, rgb(0 0 0 / 0.12) 3px 4.5px, transparent 4.5px 6px),
+        linear-gradient(90deg, var(--gold-deep), var(--gold) 40%, #fff6dc 50%, var(--gold) 60%, var(--gold-deep));
+    }
+
+    > :nth-child(1) {
+      overflow: hidden;
+    }
+
+    > :nth-child(3),
+    > :nth-child(4) {
+      background:
+        repeating-linear-gradient(90deg, rgb(255 255 255 / 0.18) 0 1.5px, transparent 1.5px 3px, rgb(0 0 0 / 0.14) 3px 4.5px, transparent 4.5px 6px),
+        linear-gradient(90deg, var(--gold-deep), color-mix(in srgb, var(--gold) 70%, var(--gold-deep)));
+    }
+
+    > :nth-child(5) {
+      background:
+        radial-gradient(circle, transparent 0 7px, var(--gold-deep) 7.5px 8.5px, transparent 9px),
+        linear-gradient(135deg, #fff6dc, var(--gold) 45%, var(--gold-deep));
+    }
+
+    .d-perfume__glint {
+      animation-delay: $sway * -0.06;
+    }
+  }
+}
+
+@keyframes d-perfume-sway {
+  from {
+    transform: rotateX(-12deg) rotateY(-38deg);
+  }
+
+  to {
+    transform: rotateX(-12deg) rotateY(38deg);
+  }
+}
+
+// One sweep per half swing, while the bottle passes the front (the middle of each half).
+@keyframes d-perfume-glint {
+  0%,
+  36% {
+    transform: translateX(-40px) rotate(18deg);
+  }
+
+  64%,
+  100% {
+    transform: translateX(90px) rotate(18deg);
+  }
+}

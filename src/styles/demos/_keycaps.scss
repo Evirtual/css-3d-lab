@@ -1,0 +1,190 @@
+@use 'sass:math';
+@use 'sass:list';
+
+$k: 44; // key footprint (px)
+$in: 6; // how far the top face is inset from the footprint, on every side
+$h: 13; // cap height
+$slope: math.sqrt($h * $h + $in * $in) * 1px; // true length of a sloped side
+$tilt: math.atan(math.div($h, $in)); // how steeply a side rises from the plate (≈ 65°)
+$press: 7px; // key travel
+
+// A small keyboard plate lying on the floor, seen from above and turned a little.
+.d-keycaps {
+  transform-style: preserve-3d;
+  // The wrapper and the plate are flat boxes at z = 0: parts of the tilted plate lie behind that
+  // plane, and would steal the pointer from the keys there. Only the keys take the pointer.
+  pointer-events: none;
+
+  &__deck {
+    position: relative;
+    display: flex;
+    gap: 7px;
+    padding: 9px;
+    border-radius: 9px;
+    background:
+      linear-gradient(160deg, rgb(255 255 255 / 0.07), transparent 60%),
+      color-mix(in srgb, var(--accent) 12%, var(--surface-solid));
+    box-shadow: inset 0 0 0 1px var(--border-strong);
+    transform-style: preserve-3d;
+    // Read right to left: turn the plate on the floor, then lay the floor back.
+    transform: rotateX(54deg) rotateZ(-30deg);
+
+    // the plate's thickness: its front and left edges hang down from the top (−z)
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      background: color-mix(in srgb, var(--accent) 22%, color-mix(in srgb, var(--surface-solid) 70%, #000));
+    }
+
+    &::before {
+      top: 100%;
+      right: 8px;
+      left: 8px;
+      height: 12px;
+      transform-origin: 50% 0;
+      transform: rotateX(-90deg);
+    }
+
+    &::after {
+      top: 8px;
+      right: 100%;
+      bottom: 8px;
+      width: 12px;
+      background: color-mix(in srgb, var(--accent) 18%, color-mix(in srgb, var(--surface-solid) 55%, #000));
+      transform-origin: 100% 50%;
+      transform: rotateY(90deg);
+    }
+  }
+
+  // The <button> is the hit target and never moves. Its base lies on the plate; a see-through
+  // lid (::after) sits where the cap's top is at rest, so pointing at the top face hits it too.
+  &__key {
+    --c: color-mix(in srgb, var(--accent) 38%, var(--surface-solid));
+    --ink: var(--text);
+    position: relative;
+    width: $k * 1px;
+    height: $k * 1px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--ink);
+    font: 800 16px/1 var(--font);
+    cursor: pointer;
+    pointer-events: auto;
+    transform-style: preserve-3d;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: $in * 1px;
+      transform: translateZ($h * 1px);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--accent-2);
+      outline-offset: 3px;
+    }
+
+    &--hot {
+      --c: var(--hot);
+      --ink: #fff;
+    }
+  }
+
+  // the cap: four sloped sides and a top, moved as one
+  &__cap {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transition: transform 0.16s cubic-bezier(0.3, 0.7, 0.4, 1);
+
+    // a square plate just under the top face: plugs the corners the rounded top leaves open
+    &::before {
+      content: '';
+      position: absolute;
+      inset: ($in + 1) * 1px;
+      background: color-mix(in srgb, var(--c), #000 30%);
+      transform: translateZ(($h - 1) * 1px);
+    }
+
+    // Each side is a trapezoid (wide at the plate, narrow at the top) standing on the front edge
+    // of the footprint, hinged there and tipped up by $tilt, so its top edge lands exactly on the
+    // top face. The other three are the same side, turned around the key's centre.
+    i {
+      position: absolute;
+      top: $k * 1px - $slope;
+      left: 0;
+      width: $k * 1px;
+      height: $slope;
+      clip-path: polygon(0 100%, 100% 100%, calc(100% - #{$in * 1px}) 0, #{$in * 1px} 0);
+      transform-origin: 50% 100%;
+    }
+
+    // front, left, back, right: shaded as if lit from the back right
+    $shades: (26%, 42%, 8%, 14%);
+
+    @for $n from 1 through 4 {
+      i:nth-child(#{$n}) {
+        background: linear-gradient(color-mix(in srgb, var(--c), #000 #{list.nth($shades, $n) - 6%}), color-mix(in srgb, var(--c), #000 list.nth($shades, $n)));
+        transform: translateY($k * -0.5px) rotate(($n - 1) * 90deg) translateY($k * 0.5px) rotateX(-$tilt);
+      }
+    }
+
+    // the top: a slightly dished surface with the legend
+    b {
+      position: absolute;
+      inset: $in * 1px;
+      display: grid;
+      place-items: center;
+      border-radius: 4px;
+      background:
+        radial-gradient(ellipse 80% 70% at 50% 45%, color-mix(in srgb, var(--c), #fff 10%), var(--c) 75%),
+        var(--c);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c), #fff 18%);
+      text-shadow: 0 1px 0 color-mix(in srgb, var(--c), #000 40%);
+      transform: translateZ($h * 1px);
+
+      // the lit legend: a teal wash over the top, faded in when pressed
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle, color-mix(in srgb, var(--accent-2) 45%, transparent), color-mix(in srgb, var(--accent-2) 12%, transparent));
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+    }
+  }
+
+  // light spilling onto the plate around a pressed key
+  &__glow {
+    position: absolute;
+    inset: -9px;
+    border-radius: 14px;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 75%, transparent), color-mix(in srgb, var(--accent-2) 25%, transparent) 70%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateZ(0.5px);
+    transition: opacity 0.2s;
+  }
+
+  &__key:is(:hover, :focus-visible) &__cap {
+    transform: translateZ(-$press);
+
+    b::after {
+      opacity: 1;
+    }
+  }
+
+  &__key:is(:hover, :focus-visible) &__glow {
+    opacity: 1;
+  }
+
+  &__key:active &__cap {
+    transform: translateZ(-$press - 3px);
+  }
+}

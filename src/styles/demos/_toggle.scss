@@ -1,0 +1,212 @@
+@use 'sass:math';
+@use '../mixins' as *;
+
+$s: 34px; // the cube
+$pad: 8px; // space around it inside the track
+$w: $s * 2 + $pad * 2; // track: two cube widths, so one roll is exactly one side long
+$h: $s + $pad * 2;
+$depth: 5; // layers under the top, 2.4px apart
+
+// The whole switch is one <label>: the static hit target around a real checkbox.
+.d-toggle {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 10px; // room for the cube, which stands up out of the tilted track
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  user-select: none;
+
+  * {
+    pointer-events: none;
+  }
+
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+  }
+
+  &__track {
+    position: relative;
+    flex: none;
+    width: $w;
+    height: $h;
+    transform-style: preserve-3d;
+    // lying on the floor, seen from above
+    transform: rotateX(58deg);
+
+    // the housing's thickness: copies of the pill stacked downward, darker as they go
+    > i:not(.d-toggle__shadow) {
+      position: absolute;
+      inset: 0;
+      border-radius: math.div($h, 2);
+    }
+
+    @for $n from 1 through $depth {
+      > i:nth-child(#{$n}) {
+        background: color-mix(in srgb, var(--text) #{12% + $n * 3%}, color-mix(in srgb, var(--surface-solid) 80%, #000));
+        transform: translateZ(-2.4px * ($depth + 1 - $n));
+      }
+    }
+  }
+
+  // The top: a groove the cube rolls in. Off and on colours are two layers; the switch only
+  // fades the "on" one in, so nothing but opacity animates.
+  &__top {
+    position: absolute;
+    inset: 0;
+    border-radius: math.div($h, 2);
+    background: color-mix(in srgb, var(--muted) 30%, var(--surface-solid));
+    box-shadow:
+      inset 0 0 0 1.5px color-mix(in srgb, var(--text) 30%, var(--surface-solid)),
+      inset 0 3px 8px rgb(0 0 0 / 0.35);
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--hot));
+      box-shadow:
+        inset 0 0 0 1.5px color-mix(in srgb, var(--accent), #fff 35%),
+        inset 0 3px 8px rgb(0 0 0 / 0.35);
+      opacity: 0;
+      transition: opacity 0.4s 0.1s;
+    }
+  }
+
+  input:checked ~ &__track &__top::before {
+    opacity: 1;
+  }
+
+  input:focus-visible ~ &__track &__top {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 4px;
+  }
+
+  // the cube's shadow on the groove, sliding along with it
+  &__shadow {
+    position: absolute;
+    top: $pad;
+    left: $pad;
+    width: $s;
+    height: $s;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(0 0 0 / 0.5), transparent);
+    transform: translateZ(0.5px) scale(1.25);
+    transition: transform 0.5s cubic-bezier(0.55, 0, 0.35, 1);
+  }
+
+  input:checked ~ &__track &__shadow {
+    transform: translateZ(0.5px) translateX($s) scale(1.25);
+  }
+
+  // lifted by half a side, so the cube stands on the top instead of sinking through it
+  &__knob {
+    position: absolute;
+    top: $pad;
+    left: $pad;
+    width: $s;
+    height: $s;
+    transform-style: preserve-3d;
+    transform: translateZ($s * 0.5);
+  }
+
+  // The roll: the pivot is the cube's bottom right edge (x = 100%, z = −s/2 from its centre).
+  // A quarter turn about that edge is exactly how a cube tips over: the centre swings up on an
+  // arc and lands one side further on. No translate, no guessing the path.
+  &__cube {
+    --s: #{$s};
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform-origin: 100% 50% ($s * -0.5);
+    transition: transform 0.5s cubic-bezier(0.55, 0, 0.35, 1);
+    @include cube-faces(var(--s));
+
+    // faces in cube-faces order: top (+z, the sun), right, bottom, left (the moon, which ends on
+    // top after the roll), back, front
+    i {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 5px;
+      background: linear-gradient(145deg, #fff, #dcd9ef);
+      @include solid-core(3px, #c9c5e2);
+
+      svg {
+        width: 22px;
+        height: 22px;
+      }
+    }
+
+    i:nth-child(2),
+    i:nth-child(4) {
+      background: linear-gradient(145deg, #eceaf8, #cbc7e3);
+    }
+
+    i:nth-child(6) {
+      background: linear-gradient(#d9d5ee, #b9b4d6);
+    }
+
+    i:nth-child(1) {
+      background: radial-gradient(circle, #fff6df, #ffe3a6);
+      color: #e08a00;
+    }
+
+    i:nth-child(4) {
+      background: radial-gradient(circle at 40% 35%, #34396e, #181b3c);
+      color: #e9e4ff;
+
+      svg {
+        width: 19px;
+        height: 19px;
+      }
+    }
+  }
+
+  input:checked ~ &__track &__cube {
+    transform: rotateY(90deg);
+  }
+
+  // the label and its state word, the two words cross-faded in one grid cell
+  &__text {
+    display: grid;
+    gap: 2px;
+    line-height: 1.1;
+
+    small {
+      display: grid;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    span {
+      grid-area: 1 / 1;
+      transition: opacity 0.3s;
+    }
+
+    span + span {
+      color: var(--accent);
+      opacity: 0;
+    }
+  }
+
+  input:checked ~ &__text span:first-child {
+    opacity: 0;
+  }
+
+  input:checked ~ &__text span + span {
+    opacity: 1;
+  }
+}

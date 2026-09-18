@@ -1,0 +1,246 @@
+@use 'sass:list';
+@use 'sass:math';
+
+// The whole model hangs from one point: the middle of the grass block's top face (__spin).
+// The root holds the camera tilt; __spin turns the model; every part is placed from that point.
+//
+// A tapered side (tower or cap) stands on its bottom edge: rotateY(side) → translateZ(half-width
+// at the base) → rotateX(lean), with transform-origin at that bottom edge. Leaning by
+// atan((base - top) / height) brings its top edge in to the top half-width, and its slanted
+// length is the hypotenuse, so the height comes out exact.
+$hill: 150px;
+$hill-h: 24px;
+
+$base: 24; // tower half-width at the ground
+$top: 15; // … at the top
+$tower-h: 92;
+$tower-lean: math.atan(math.div($base - $top, $tower-h));
+$tower-side: math.sqrt($tower-h * $tower-h + ($base - $top) * ($base - $top)) * 1px;
+$tower-in: math.div($base - $top, 2 * $base) * 100%; // clip inset at the top corners
+
+$cap: 21; // pyramid cap: half-width, height
+$cap-h: 30;
+$cap-lean: math.atan(math.div($cap, $cap-h));
+$cap-side: math.sqrt($cap * $cap + $cap-h * $cap-h) * 1px;
+
+$hub-y: ($tower-h + 8) * -1px; // the sails' hub: a little above the tower, in front of the cap
+$hub-z: 27px;
+$wood: #5b3b25;
+$shade: (0, 0.2, 0.36, 0.12); // front, right, back, left
+
+.d-windmill {
+  --grass: color-mix(in srgb, var(--accent-2) 35%, #4f9a3a);
+  --earth: color-mix(in srgb, var(--warm) 30%, #4a3226);
+  --plaster: color-mix(in srgb, var(--warm) 8%, #f2ede5);
+  --roof: color-mix(in srgb, var(--hot) 70%, #4a1024);
+  position: relative;
+  width: 210px;
+  height: 200px;
+  transform-style: preserve-3d;
+  transform: rotateX(-20deg);
+
+  &__spin {
+    position: absolute;
+    left: 50%;
+    top: 164px;
+    transform-style: preserve-3d;
+    animation: d-windmill-turn 28s linear infinite;
+  }
+
+  // the grass block: four earth sides and a top
+  &__hill {
+    position: absolute;
+    transform-style: preserve-3d;
+
+    i {
+      position: absolute;
+      left: $hill * -0.5;
+      top: 0;
+      width: $hill;
+      height: $hill-h;
+      background:
+        linear-gradient(rgb(0 0 0 / var(--d, 0)), rgb(0 0 0 / var(--d, 0))),
+        linear-gradient(var(--grass) 0 5px, color-mix(in srgb, var(--grass) 50%, var(--earth)) 5px 7px, transparent 7px),
+        radial-gradient(circle at 20% 60%, rgb(0 0 0 / 0.18) 0 2px, transparent 2.5px) 0 0 / 23px 100%,
+        radial-gradient(circle at 70% 80%, rgb(255 255 255 / 0.1) 0 1.5px, transparent 2px) 0 0 / 31px 100%,
+        linear-gradient(var(--earth), color-mix(in srgb, var(--earth) 65%, #000));
+      backface-visibility: hidden;
+    }
+
+    @for $n from 1 through 4 {
+      i:nth-child(#{$n}) {
+        --d: #{list.nth($shade, $n)};
+        transform: rotateY(($n - 1) * 90deg) translateZ($hill * 0.5);
+      }
+    }
+
+    // the top, laid flat: a lighter mound in the middle and a path to the door (front = bottom edge)
+    i:nth-child(5) {
+      top: $hill * -0.5;
+      height: $hill;
+      background:
+        radial-gradient(circle at 30% 70%, #fff6 0 1.5px, transparent 2px) 0 0 / 26px 22px,
+        radial-gradient(circle at 60% 30%, color-mix(in srgb, var(--warm) 80%, #fff) 0 1.5px, transparent 2px) 0 0 / 34px 30px,
+        linear-gradient(color-mix(in srgb, var(--warm) 25%, #b89a6e), color-mix(in srgb, var(--warm) 25%, #b89a6e)) 50% 100% / 12px 50% no-repeat,
+        radial-gradient(closest-side, color-mix(in srgb, var(--grass) 70%, #fff), var(--grass) 70%, color-mix(in srgb, var(--grass) 80%, #000));
+      transform: rotateX(90deg);
+    }
+  }
+
+  // conifers: two crossed planes, each a tree outline cut with clip-path
+  &__tree {
+    position: absolute;
+    transform-style: preserve-3d;
+    transform: translate3d(var(--x), 0, var(--z)) scale(var(--k));
+
+    i {
+      position: absolute;
+      left: -13px;
+      top: -44px;
+      width: 26px;
+      height: 44px;
+      background: linear-gradient(color-mix(in srgb, var(--grass) 80%, #fff) , color-mix(in srgb, var(--grass) 70%, #000) 80%, $wood 80%);
+      clip-path: polygon(50% 0, 70% 32%, 60% 32%, 88% 64%, 74% 64%, 100% 80%, 58% 80%, 58% 100%, 42% 100%, 42% 80%, 0 80%, 26% 64%, 12% 64%, 40% 32%, 30% 32%);
+    }
+
+    i + i {
+      transform: rotateY(90deg);
+    }
+  }
+
+  &__tower {
+    position: absolute;
+    transform-style: preserve-3d;
+
+    i {
+      position: absolute;
+      left: $base * -1px;
+      top: -$tower-side;
+      width: $base * 2px;
+      height: $tower-side;
+      clip-path: polygon($tower-in 0, 100% - $tower-in 0, 100% 100%, 0 100%);
+      transform-origin: 50% 100%;
+      backface-visibility: hidden; // closed solids: far sides are never drawn, so never mis-sorted
+      background:
+        linear-gradient(rgb(0 0 0 / var(--d, 0)), rgb(0 0 0 / var(--d, 0))),
+        linear-gradient($wood 0 6px, transparent 6px),
+        radial-gradient(circle at 50% 38%, var(--warm) 0 3.5px, $wood 4px 5.5px, transparent 6px),
+        repeating-linear-gradient(transparent 0 11px, rgb(0 0 0 / 0.06) 11px 12px),
+        var(--plaster);
+    }
+
+    @for $n from 1 through 4 {
+      i:nth-child(#{$n}) {
+        --d: #{list.nth($shade, $n)};
+        transform: rotateY(($n - 1) * 90deg) translateZ($base * 1px) rotateX($tower-lean);
+      }
+    }
+
+    // the front: an arched door under the window
+    i:first-child {
+      background:
+        linear-gradient($wood 0 6px, transparent 6px),
+        radial-gradient(circle at 50% 38%, var(--warm) 0 3.5px, $wood 4px 5.5px, transparent 6px),
+        radial-gradient(circle at 50% calc(100% - 16px), $wood 0 7.5px, transparent 8px),
+        linear-gradient($wood, $wood) 50% 100% / 15px 16px no-repeat,
+        repeating-linear-gradient(transparent 0 11px, rgb(0 0 0 / 0.06) 11px 12px),
+        var(--plaster);
+    }
+  }
+
+  &__cap {
+    position: absolute;
+    transform-style: preserve-3d;
+
+    i {
+      position: absolute;
+      left: $cap * -1px;
+      top: $tower-h * -1px - $cap-side;
+      width: $cap * 2px;
+      height: $cap-side;
+      clip-path: polygon(50% 0, 100% 100%, 0 100%);
+      transform-origin: 50% 100%;
+      backface-visibility: hidden;
+      background:
+        linear-gradient(rgb(0 0 0 / var(--d, 0)), rgb(0 0 0 / var(--d, 0))),
+        repeating-linear-gradient(transparent 0 5px, rgb(0 0 0 / 0.22) 5px 6px),
+        linear-gradient(color-mix(in srgb, var(--roof) 75%, #fff), var(--roof));
+    }
+
+    @for $n from 1 through 4 {
+      i:nth-child(#{$n}) {
+        --d: #{list.nth($shade, $n)};
+        transform: rotateY(($n - 1) * 90deg) translateZ($cap * 1px) rotateX($cap-lean);
+      }
+    }
+  }
+
+  // the hub point, with an axle reaching back into the cap
+  &__rotor {
+    position: absolute;
+    transform-style: preserve-3d;
+    transform: translate3d(0, $hub-y, $hub-z);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: -2.5px;
+      top: -9px;
+      width: 5px;
+      height: 18px;
+      background: $wood;
+      transform: translateZ(-9px) rotateX(90deg);
+    }
+  }
+
+  // Four sails around the hub. Each one is drawn pointing up from the hub (stock on its left
+  // edge, lattice and cloth beside it) and turned by 90deg steps around the hub point.
+  &__sails {
+    position: absolute;
+    transform-style: preserve-3d; // each sail is sorted on its own (a 0 × 0 flat group is not)
+    animation: d-windmill-sails 6s linear infinite;
+
+    b {
+      position: absolute;
+      left: -2px;
+      bottom: 5px;
+      width: 24px;
+      height: 70px;
+      transform-origin: 2px calc(100% + 5px); // = the hub
+      background:
+        linear-gradient(90deg, $wood 0 4px, transparent 4px),
+        linear-gradient(90deg, transparent calc(100% - 2px), $wood 0) 0 0 / 100% 80% no-repeat,
+        repeating-linear-gradient(transparent 0 7px, $wood 7px 8.5px) 0 0 / 100% 80% no-repeat,
+        linear-gradient(color-mix(in srgb, var(--warm) 12%, #fff), color-mix(in srgb, var(--warm) 30%, #e8e2d6)) 4px 0 / calc(100% - 4px) 80% no-repeat;
+    }
+
+    @for $n from 2 through 4 {
+      b:nth-child(#{$n}) {
+        transform: rotate(($n - 1) * 90deg);
+      }
+    }
+
+    u {
+      position: absolute;
+      left: -6px;
+      top: -6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, color-mix(in srgb, $wood 40%, #fff), $wood 70%);
+      transform: translateZ(1px);
+    }
+  }
+}
+
+@keyframes d-windmill-turn {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes d-windmill-sails {
+  to {
+    transform: rotate(-360deg);
+  }
+}

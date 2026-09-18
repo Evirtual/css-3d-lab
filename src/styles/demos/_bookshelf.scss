@@ -1,0 +1,173 @@
+$depth: 72px; // every book is this deep (the width of its covers)
+$shelf: $depth + 18px; // the board runs a little in front of and behind the books
+$ease: cubic-bezier(0.3, 1.2, 0.5, 1);
+
+// The shelf is one plane seen at an angle. Its slots (one per book, laid out by flexbox) are the
+// hit targets; they are coplanar, so only they may catch the pointer.
+.d-bookshelf {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 0 12px;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transform: rotateX(-16deg) rotateY(-28deg);
+
+  // the back of the bookcase
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -18px -6px 0;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 10%, var(--surface-solid)), color-mix(in srgb, var(--accent) 22%, var(--surface-solid)));
+    transform: translateZ(-$depth - 8px);
+  }
+
+  // the board: its top (laid flat, running back from the front edge), front edge and right end
+  &__board,
+  &__edge,
+  &__end {
+    position: absolute;
+    left: -6px;
+    background: color-mix(in srgb, var(--warm) 45%, #3a2412);
+  }
+
+  &__board {
+    right: -6px;
+    bottom: 0;
+    height: $shelf;
+    background: linear-gradient(0deg, color-mix(in srgb, var(--warm) 60%, #4a2e16), color-mix(in srgb, var(--warm) 30%, #2a180a));
+    transform-origin: 50% 100%;
+    transform: translateZ(10px) rotateX(90deg);
+  }
+
+  &__edge {
+    top: 100%;
+    right: -6px;
+    height: 10px;
+    background: color-mix(in srgb, var(--warm) 75%, #4a2e16);
+    transform: translateZ(10px);
+  }
+
+  &__end {
+    top: 100%;
+    left: calc(100% + 6px);
+    width: $shelf;
+    height: 10px;
+    background: color-mix(in srgb, var(--warm) 40%, #2a180a);
+    transform-origin: 0 50%;
+    transform: translateZ(10px) rotateY(90deg);
+  }
+
+  // A slot is exactly the book's spine at rest, and never moves.
+  &__slot {
+    position: relative;
+    flex: none;
+    width: var(--t);
+    height: var(--h);
+    outline: none;
+    cursor: pointer;
+    pointer-events: auto;
+    transform-style: preserve-3d;
+  }
+
+  // The book: a box --t wide, --h tall and $depth deep, its spine at the front (z = 0). It turns
+  // around its own middle. translate and rotate are separate properties, so each gets its own
+  // transition: out first, then turn; on the way back, turn first, then slide in. That way it
+  // never swings through its neighbours.
+  &__book {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transform-origin: 50% 50% (-$depth * 0.5);
+    translate: 0 0 0;
+    rotate: y 0deg;
+    transition:
+      translate 0.45s $ease 0.18s,
+      rotate 0.4s ease-in-out;
+
+    i {
+      position: absolute;
+      top: 0;
+      height: 100%;
+    }
+
+    // the spine
+    i:nth-child(1) {
+      left: 0;
+      width: 100%;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 2px;
+      background:
+        linear-gradient(180deg, transparent 10px, rgb(255 255 255 / 0.55) 10px 12px, transparent 12px calc(100% - 12px), rgb(255 255 255 / 0.55) calc(100% - 12px) calc(100% - 10px), transparent 0),
+        linear-gradient(90deg, color-mix(in srgb, var(--c) 60%, #000), var(--c) 30%, var(--c) 65%, color-mix(in srgb, var(--c) 70%, #000));
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      writing-mode: vertical-rl;
+      backface-visibility: hidden;
+    }
+
+    // back cover (the -x side), hinged on the spine's left edge and turned to face left
+    i:nth-child(2) {
+      left: -$depth;
+      width: $depth;
+      background: color-mix(in srgb, var(--c) 55%, #000);
+      transform-origin: 100% 50%;
+      transform: rotateY(-90deg);
+    }
+
+    // front cover (the +x side): turned to face right, so the title reads from the spine outward
+    i:nth-child(3) {
+      left: 100%;
+      display: grid;
+      place-items: center;
+      width: $depth;
+      padding: 8px;
+      border-radius: 0 3px 3px 0;
+      background:
+        radial-gradient(circle at 50% 36%, rgb(255 255 255 / 0.35) 0 12px, transparent 13px),
+        linear-gradient(160deg, color-mix(in srgb, var(--c) 85%, #fff), color-mix(in srgb, var(--c) 70%, #000));
+      color: #fff;
+      text-align: center;
+      transform-origin: 0 50%;
+      transform: rotateY(90deg);
+      backface-visibility: hidden;
+
+      b {
+        font-size: 9px;
+        line-height: 1.15;
+      }
+    }
+
+    // the top of the page block, laid flat and running back from the spine
+    i:nth-child(4) {
+      top: -$depth;
+      left: 0;
+      width: 100%;
+      height: $depth;
+      border: solid color-mix(in srgb, var(--c) 70%, #000);
+      border-width: 0 2px 2px;
+      background: repeating-linear-gradient(90deg, #f3ecdc 0 2px, #d9cfb8 2px 3px);
+      transform-origin: 50% 100%;
+      transform: rotateX(90deg);
+    }
+  }
+
+  // Out toward you (translate) and a turn to show the cover (rotate), from a slot that stays put.
+  &__slot:hover &__book,
+  &__slot:focus-visible &__book {
+    translate: 0 -5px 70px;
+    rotate: y -36deg;
+    transition:
+      translate 0.45s $ease,
+      rotate 0.5s $ease 0.12s;
+  }
+}

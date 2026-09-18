@@ -19,14 +19,14 @@ export const GROUP_ORDER = Object.keys(GROUPS) as Group[];
 
 const MEMBERS: Record<Group, string[]> = {
   shapes: ['cube', 'pyramid', 'cylinder', 'coin', 'globe', 'orbit', 'layers', 'explode', 'radio', 'drag', 'dice', 'sphere', 'scrollspin',
-    'prism', 'octa', 'diamond', 'torus', 'cone', 'stairs', 'rubik', 'cubegrid', 'net', 'shapeshift'],
-  product: ['phone', 'paycard', 'package', 'can', 'vinyl', 'logo3d', 'badge', 'watch', 'turntable', 'browser'],
-  text: ['text', 'layertext', 'lit', 'waveletters', 'textring', 'flaptext', 'shadowtext', 'wordcube', 'foldtext', 'crawl', 'anaglyph'],
-  controls: ['button', 'rollbutton', 'switch', 'dropdown', 'zones', 'tilt', 'check', 'tabs', 'radial', 'magnet'],
-  cards: ['flip', 'carousel', 'coverflow', 'boxslider', 'cardstack', 'cardfan', 'book', 'hovercards', 'flipgrid', 'accordion', 'swipe', 'polaroid', 'cubenav', 'pricing'],
-  loaders: ['flipper', 'gyro', 'helix', 'tiles', 'wavegrid', 'ripple', 'cubeloader', 'rings', 'equalizer'],
-  scenes: ['grid', 'tunnel', 'starfield', 'parallax', 'door', 'laptop', 'sign', 'fold', 'isotiles', 'confetti', 'solar', 'city', 'room', 'ferris', 'island', 'road', 'snow', 'map'],
-  data: ['bars', 'clock', 'playground', 'pie', 'scatter'],
+    'prism', 'octa', 'diamond', 'torus', 'cone', 'stairs', 'rubik', 'cubegrid', 'net', 'shapeshift', 'tetra', 'hourglass', 'crystal', 'lattice', 'planet'],
+  product: ['phone', 'paycard', 'package', 'can', 'vinyl', 'logo3d', 'badge', 'watch', 'turntable', 'browser', 'headphones', 'perfume', 'businesscard', 'camera', 'coffeecup'],
+  text: ['text', 'layertext', 'lit', 'waveletters', 'textring', 'flaptext', 'shadowtext', 'wordcube', 'foldtext', 'crawl', 'anaglyph', 'cubeletters'],
+  controls: ['button', 'rollbutton', 'switch', 'dropdown', 'zones', 'tilt', 'check', 'tabs', 'radial', 'magnet', 'keycaps', 'stepper', 'rating', 'toggle'],
+  cards: ['flip', 'carousel', 'coverflow', 'boxslider', 'cardstack', 'cardfan', 'book', 'hovercards', 'flipgrid', 'accordion', 'swipe', 'polaroid', 'cubenav', 'pricing', 'greeting', 'tiltgallery', 'bookshelf'],
+  loaders: ['flipper', 'gyro', 'helix', 'tiles', 'wavegrid', 'ripple', 'cubeloader', 'rings', 'equalizer', 'dotorbit', 'blockstack'],
+  scenes: ['grid', 'tunnel', 'starfield', 'parallax', 'door', 'laptop', 'sign', 'fold', 'isotiles', 'confetti', 'solar', 'city', 'room', 'ferris', 'island', 'road', 'snow', 'map', 'windmill', 'rocket', 'lighthouse'],
+  data: ['bars', 'clock', 'playground', 'pie', 'scatter', 'gauge', 'timeline'],
 };
 
 const GROUP_OF = new Map<string, Group>();

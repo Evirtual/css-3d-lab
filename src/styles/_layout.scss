@@ -78,13 +78,16 @@ input {
 
 /* ---------- ambient background ---------- */
 
+// The page backdrop: two soft washes of colour from opposite corners (violet from the top left,
+// teal from the bottom right) that meet in the middle, over the faint blueprint grid. They drift a
+// little, very slowly.
 .aurora {
   position: fixed;
   inset: 0;
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  background: radial-gradient(ellipse at top, var(--bg-2), var(--bg) 60%);
+  background: var(--bg);
 
   // Blueprint grid: across the whole screen but deliberately very faint, a touch stronger at
   // the top, so it frames the content instead of competing with it.
@@ -92,47 +95,35 @@ input {
     content: '';
     position: absolute;
     inset: 0;
+    z-index: 1;
     background:
       linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 48px 48px,
       linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 48px 48px;
     mask: linear-gradient(#000, rgb(0 0 0 / 0.6));
   }
 
-  i {
+  // the two washes: each a big soft gradient from its corner, fading out before the middle
+  &::after {
+    content: '';
     position: absolute;
-    width: 46vmax;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    opacity: 0.3;
-    animation: aurora-drift 26s ease-in-out infinite alternate;
+    inset: -20%;
+    background:
+      radial-gradient(ellipse 60% 55% at 12% 8%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+      radial-gradient(ellipse 60% 55% at 88% 92%, color-mix(in srgb, var(--accent-2) 16%, transparent), transparent 70%);
+    animation: aurora-drift 40s ease-in-out infinite alternate;
   }
 
-  i:nth-child(1) {
-    top: -18vmax;
-    left: -10vmax;
-    background: radial-gradient(circle, var(--accent), transparent 65%);
-  }
-
-  i:nth-child(2) {
-    top: 10vmax;
-    right: -18vmax;
-    background: radial-gradient(circle, var(--accent-2), transparent 65%);
-    animation-delay: -9s;
-  }
-
-  i:nth-child(3) {
-    bottom: -24vmax;
-    left: 30vw;
-    background: radial-gradient(circle, var(--hot), transparent 65%);
-    animation-delay: -17s;
+  i {
+    display: none;
   }
 }
 
 @keyframes aurora-drift {
   to {
-    transform: translate3d(6vmax, 4vmax, 0) scale(1.15);
+    transform: translate3d(3%, 2%, 0) rotate(4deg);
   }
 }
+
 
 /* ---------- icons ---------- */
 
@@ -264,35 +255,82 @@ input {
   }
 }
 
+// The brand mark (logo.ts): a cube of 8 little cubes that spins while each little cube drifts
+// outward and back. --s is its size; one little cube is half of it.
 .logo-cube {
-  --s: 20px;
-  position: relative;
+  --s: 26px;
+  --u: calc(var(--s) / 2);
+  --gap: 0.14; // space around each little cube, as a share of its slot
+  --drift: 0.2; // how far they move out, as a share of a slot
+  --half: calc(var(--u) / 2 - var(--u) * var(--gap) / 2); // centre to face of a little cube
+  display: inline-block;
+  flex: none;
   width: var(--s);
   height: var(--s);
-  margin: 4px;
-  transform-style: preserve-3d;
-  animation: spin-tilted 8s linear infinite;
-  @include cube-faces(var(--s));
+  perspective: calc(var(--s) * 6);
 
-  // Same three colours as the app icon: teal top, violet and pink sides.
+  &__spin {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: logo-spin 14s linear infinite;
+  }
+
+  b {
+    position: absolute;
+    top: calc(50% - var(--u) / 2);
+    left: calc(50% - var(--u) / 2);
+    width: var(--u);
+    height: var(--u);
+    transform-style: preserve-3d;
+    transform: translate3d(calc(var(--x) * var(--u)), calc(var(--y) * var(--u)), calc(var(--z) * var(--u)));
+    animation: logo-drift var(--t) ease-in-out var(--d) infinite alternate;
+  }
+
   i {
     position: absolute;
-    inset: 0;
-    border: 1px solid rgb(7 8 15 / 0.55);
-    background: linear-gradient(#9d83ff, #6a45f5);
-  }
+    inset: calc(var(--u) * var(--gap) / 2);
+    border-radius: calc(var(--u) * 0.1);
+    background: linear-gradient(#a58cff, #5b3be8);
+    box-shadow: inset 0 0 0 calc(var(--u) * 0.035) rgb(7 8 15 / 0.35);
+    backface-visibility: hidden; // the far side of each little cube is never drawn
 
-  i:nth-child(2n) {
-    background: linear-gradient(#ff6fb0, #e0257a);
-  }
+    &:nth-child(1) {
+      transform: translateZ(var(--half));
+    }
 
-  i:nth-child(5),
-  i:nth-child(6) {
-    background: linear-gradient(135deg, #7ff5ea, #2ee6d6);
+    &:nth-child(2) {
+      transform: rotateY(180deg) translateZ(var(--half));
+    }
+
+    &:nth-child(3),
+    &:nth-child(4) {
+      background: linear-gradient(#ff86bd, #d81e74);
+    }
+
+    &:nth-child(3) {
+      transform: rotateY(90deg) translateZ(var(--half));
+    }
+
+    &:nth-child(4) {
+      transform: rotateY(-90deg) translateZ(var(--half));
+    }
+
+    &:nth-child(5) {
+      background: linear-gradient(135deg, #9bfaf1, #2ee6d6);
+      transform: rotateX(90deg) translateZ(var(--half));
+    }
+
+    &:nth-child(6) {
+      background: linear-gradient(135deg, #2ee6d6, #17a89c);
+      transform: rotateX(-90deg) translateZ(var(--half));
+    }
   }
 }
 
-@keyframes spin-tilted {
+@keyframes logo-spin {
   from {
     transform: rotateX(-28deg) rotateY(0deg);
   }
@@ -301,6 +339,15 @@ input {
     transform: rotateX(-28deg) rotateY(360deg);
   }
 }
+
+// out and back, a little turn on the way (both capped, so neighbours never touch)
+@keyframes logo-drift {
+  to {
+    translate: calc(var(--dx) * var(--u) * var(--drift)) calc(var(--dy) * var(--u) * var(--drift)) calc(var(--dz) * var(--u) * var(--drift));
+    rotate: 1 1 0 var(--r);
+  }
+}
+
 
 /* ---------- hero ---------- */
 
@@ -404,9 +451,9 @@ input {
       aspect-ratio: 1;
       border-radius: 50%;
       background: radial-gradient(circle, var(--accent-2), transparent 65%);
-      filter: blur(30px);
-      opacity: 0.5;
-      animation: hero-pulse 3s ease-in-out infinite alternate;
+      filter: blur(40px);
+      opacity: 0.22;
+      animation: hero-pulse 6s ease-in-out infinite alternate;
     }
   }
 
@@ -456,7 +503,7 @@ input {
   }
 
   &__cube {
-    --s: clamp(120px, 16vw, 190px);
+    --s: clamp(140px, 19vw, 228px);
     position: relative;
     width: var(--s);
     height: var(--s);
@@ -481,6 +528,93 @@ input {
   }
 }
 
+// The hero cube changes shape (hero.ts sets data-shape every few seconds): the same eight glass
+// panels move, turn, and re-cut themselves into a cube, a pyramid, a diamond (octahedron) and a
+// sphere. Every panel keeps a four-point clip-path (a triangle has two points at its tip) and
+// the same list of transforms, so each change is one smooth transition. Unused panels shrink
+// away to the middle.
+.hero__cube[data-shape] {
+  --half: calc(var(--s) / 2);
+
+  > i {
+    --clip: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    clip-path: var(--clip);
+    transition:
+      transform 1.6s cubic-bezier(0.65, 0, 0.25, 1),
+      clip-path 1.6s cubic-bezier(0.65, 0, 0.25, 1),
+      border-radius 1.6s cubic-bezier(0.65, 0, 0.25, 1),
+      opacity 1s;
+  }
+}
+
+// pieces: ry = turn around the upright axis, then out to a face, then a tilt about the face's
+// own bottom edge (0 = upright)
+$tri: polygon(50% 0, 50% 0, 100% 100%, 0 100%); // tall triangle (pyramid sides)
+$equi: polygon(50% 13.4%, 50% 13.4%, 100% 100%, 0 100%); // equilateral (diamond faces)
+$gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) scale(0.01);
+
+.hero__cube[data-shape='cube'] {
+  @for $k from 1 through 4 {
+    > i:nth-child(#{$k}) {
+      transform: rotateY(($k - 1) * 90deg) translateZ(var(--half)) translateY(0) rotateX(0deg) translateY(0) scale(1);
+    }
+  }
+
+  > i:nth-child(5) {
+    transform: rotateX(90deg) translateZ(var(--half)) translateY(0) rotateX(0deg) translateY(0) scale(1);
+  }
+
+  > i:nth-child(6) {
+    transform: rotateX(-90deg) translateZ(var(--half)) translateY(0) rotateX(0deg) translateY(0) scale(1);
+  }
+
+  > i:nth-child(n + 7) {
+    opacity: 0;
+    transform: $gone;
+  }
+}
+
+// a square pyramid: four tall triangles leaning in 30deg from the floor's edges, and the floor
+.hero__cube[data-shape='pyramid'] {
+  @for $k from 1 through 4 {
+    > i:nth-child(#{$k}) {
+      --clip: #{$tri};
+      transform: rotateY(($k - 1) * 90deg) translateZ(var(--half)) translateY(calc(var(--half) * 0.85)) rotateX(30deg) translateY(calc(var(--half) * -1)) scale(1);
+    }
+  }
+
+  > i:nth-child(5) {
+    transform: translateY(calc(var(--half) * 0.85)) rotateX(90deg) translateY(0) rotateX(0deg) translateY(0) scale(1);
+  }
+
+  > i:nth-child(n + 6) {
+    opacity: 0;
+    transform: $gone;
+  }
+}
+
+// a diamond (octahedron): four equilateral triangles leaning in 35.26deg above the middle, and
+// the same four turned upside down below it
+.hero__cube[data-shape='diamond'] {
+  @for $k from 1 through 8 {
+    > i:nth-child(#{$k}) {
+      --clip: #{$equi};
+      // scale first: it shrinks the whole diamond about its centre, not each panel about its own
+      transform: scale(0.82) rotateX(#{if(sass($k > 4): 180deg; else: 0deg)}) rotateY(($k - 1) * 90deg) translateZ(var(--half)) rotateX(35.26deg) translateY(calc(var(--half) * -1));
+    }
+  }
+}
+
+// a sphere: eight round panels through the middle, each turned a little further (a glass globe)
+.hero__cube[data-shape='sphere'] {
+  @for $k from 1 through 8 {
+    > i:nth-child(#{$k}) {
+      border-radius: 50%;
+      transform: rotateY(($k - 1) * 22.5deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) scale(1.05);
+    }
+  }
+}
+
 @keyframes hero-tumble {
   from {
     transform: rotateX(-20deg) rotateY(0deg) rotateZ(8deg);
@@ -493,8 +627,8 @@ input {
 
 @keyframes hero-pulse {
   to {
-    transform: scale(1.5);
-    opacity: 0.6;
+    transform: scale(1.15);
+    opacity: 0.32;
   }
 }
 
@@ -865,9 +999,7 @@ input {
 }
 
 .card[data-dots='0'] .stage {
-  background:
-    radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-    var(--stage-base);
+  background: var(--stage-base);
 }
 
 // How to play with it (demos/interaction.ts): top-left, opposite the ⋯ button. Says "Tap"
@@ -1171,6 +1303,8 @@ input {
 
 /* The 3D viewport every demo renders into. */
 .stage {
+  // the backdrop's dots: faint, so they never blend into the demo in front of them
+  --stage-dot: color-mix(in srgb, var(--border-strong) 45%, transparent);
   // see-through over the card; solid when the stage has its own theme (the card's ⋯ menu)
   --stage-base: color-mix(in srgb, var(--bg) 70%, transparent);
   position: relative;
@@ -1179,45 +1313,27 @@ input {
   height: 260px;
   overflow: hidden; // (the camera, perspective, is on the scene inside: see .stage > .scene)
   border-bottom: 1px solid var(--border);
+  // Plain: dots on a flat backdrop, no glows or gradients, so nothing competes with (or colours)
+  // the demo's own lights.
   background:
-    radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-    radial-gradient(var(--border-strong) var(--cdot-r), transparent calc(var(--cdot-r) + 0.8px)) 0 0 / var(--cdot-gap) var(--cdot-gap),
+    radial-gradient(var(--stage-dot) var(--cdot-r), transparent calc(var(--cdot-r) + 0.8px)) 0 0 / var(--cdot-gap) var(--cdot-gap),
     var(--stage-base);
 
   &--lg {
     height: 380px;
     border: 1px solid var(--border);
     border-radius: 14px;
-    // A lit backdrop: a soft spotlight behind the object and darker corners. Opaque base, so on
-    // the glass dialog the 3D preview never gets muddy.
-    background:
-      radial-gradient(ellipse 60% 55% at 50% 45%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%),
-      radial-gradient(ellipse at 50% 50%, transparent 55%, rgb(0 0 0 / 0.35) 100%),
-      var(--bg);
+    // The same plain backdrop as the cards: an even dot grid on a flat, opaque base (opaque, so on
+    // the glass dialog the preview never gets muddy). No spotlight, no floor glow.
+    background: var(--bg);
 
-    // the dot grid, fading out toward the edges so it reads as depth rather than wallpaper
+    // the dot grid (its own layer: its size has its own setting)
     &::before {
       content: '';
       position: absolute;
       inset: 0;
       // --dot-r / --dot-gap come from the 1x / 2x / 3x buttons on the stage wrapper (below)
-      background: radial-gradient(var(--border-strong) var(--dot-r), transparent calc(var(--dot-r) + 0.8px)) 0 0 / var(--dot-gap) var(--dot-gap);
-      mask: radial-gradient(ellipse 75% 70% at 50% 50%, #000 25%, transparent 90%);
-      pointer-events: none;
-    }
-
-    // a faint pool of light on the "floor" under the object
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 9%;
-      left: 50%;
-      width: 46%;
-      height: 12%;
-      translate: -50% 0;
-      border-radius: 50%;
-      background: radial-gradient(ellipse, color-mix(in srgb, var(--accent-2) 26%, transparent), transparent 70%);
-      filter: blur(8px);
+      background: radial-gradient(var(--stage-dot) var(--dot-r), transparent calc(var(--dot-r) + 0.8px)) 0 0 / var(--dot-gap) var(--dot-gap);
       pointer-events: none;
     }
 
@@ -1933,7 +2049,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
       // across a whole monitor the dots need to be bigger and further apart
       &::before {
-        background: radial-gradient(var(--border-strong) calc(var(--dot-r) * 1.5), transparent calc(var(--dot-r) * 1.5 + 1px)) 0 0 /
+        background: radial-gradient(var(--stage-dot) calc(var(--dot-r) * 1.5), transparent calc(var(--dot-r) * 1.5 + 1px)) 0 0 /
           calc(var(--dot-gap) * 1.6) calc(var(--dot-gap) * 1.6);
       }
     }

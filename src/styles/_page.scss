@@ -364,6 +364,16 @@
     list-style: none;
   }
 
+  // the first five of each group; "Show all" opens the rest in a dialog, so the footer keeps its shape
+  li:nth-child(n + 6) {
+    display: none;
+  }
+
+  &__more {
+    margin-top: 6px;
+    font-size: 13px;
+  }
+
   li a {
     display: block;
     padding: 3px 0;
@@ -864,5 +874,55 @@
 
   .page-cards {
     gap: 14px;
+  }
+}
+
+// "Show all" from the footer list: one group's demos in a small glass dialog
+.grouplist {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(80vh, 720px);
+  padding: 24px 26px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 20px;
+  background: var(--glass);
+  backdrop-filter: blur(26px) saturate(1.6);
+  box-shadow: 0 40px 120px -20px rgb(0 0 0 / 0.8);
+  color: var(--text);
+
+  &::backdrop {
+    background: var(--glass-dim);
+    backdrop-filter: blur(10px);
+  }
+
+  h2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 14px;
+    font-size: 20px;
+  }
+
+  ul {
+    columns: 2 200px;
+    column-gap: 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li a {
+    display: block;
+    padding: 4px 0;
+    color: var(--muted);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--text);
+    }
+  }
+
+  footer {
+    margin-top: 16px;
   }
 }
