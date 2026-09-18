@@ -1,0 +1,49 @@
+.d-dropdown {
+  position: relative;
+  align-self: start;
+  width: 170px;
+  margin-top: 26px;
+  cursor: pointer;
+
+  > span {
+    display: block;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: linear-gradient(120deg, var(--accent), var(--hot));
+    color: #fff;
+    font-weight: 800;
+  }
+
+  ul {
+    position: absolute;
+    inset: 100% 0 auto;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    perspective: 500px;
+  }
+
+  // --i is 0…3 from the markup
+  li {
+    padding: 8px 14px;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    font-size: 14px;
+    opacity: 0;
+    transform-origin: top center;
+    transform: rotateX(-90deg);
+    transition:
+      transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1),
+      opacity 0.2s;
+    // closing: last item first
+    transition-delay: calc((3 - var(--i)) * 50ms);
+  }
+
+  &:hover li,
+  &:focus li {
+    opacity: 1;
+    transform: rotateX(0deg);
+    // opening: first item first
+    transition-delay: calc(var(--i) * 80ms);
+  }
+}

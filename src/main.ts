@@ -64,12 +64,22 @@ function mount(demo: Demo, stage: HTMLElement): () => void {
 const grid = $('#grid');
 const cards = new Map<string, HTMLElement>();
 
-// Demos scrolled out of view get their animations paused.
+// Lazy mounting: a demo only exists in the DOM while its card is near the viewport,
+// so the cost of the page depends on what is on screen, not on how many demos there are.
+const mounted = new Map<Element, () => void>();
+const demoByCard = new Map<Element, Demo>();
 const visibility = new IntersectionObserver(
   (entries) => {
-    for (const e of entries) e.target.classList.toggle('is-offscreen', !e.isIntersecting);
+    for (const e of entries) {
+      if (e.isIntersecting && !mounted.has(e.target)) {
+        mounted.set(e.target, mount(demoByCard.get(e.target)!, e.target.querySelector<HTMLElement>('.stage')!));
+      } else if (!e.isIntersecting) {
+        mounted.get(e.target)?.();
+        mounted.delete(e.target);
+      }
+    }
   },
-  { rootMargin: '100px' },
+  { rootMargin: '250px' },
 );
 
 for (const [i, demo] of demos.entries()) {
@@ -90,7 +100,7 @@ for (const [i, demo] of demos.entries()) {
         <button class="btn btn--accent" type="button" data-open="${demo.id}">Learn &amp; copy →</button>
       </footer>
     </div>`;
-  mount(demo, card.querySelector<HTMLElement>('.stage')!);
+  demoByCard.set(card, demo);
   visibility.observe(card);
   cards.set(demo.id, card);
   grid.append(card);

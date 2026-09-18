@@ -1,0 +1,31 @@
+.d-textring {
+  --r: 92px;
+  position: relative;
+  width: 20px;
+  height: 34px;
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 800;
+  transform-style: preserve-3d;
+  animation: d-textring-spin 12s linear infinite;
+
+  // --n (character count) and --i (index) come from the markup.
+  span {
+    position: absolute;
+    inset: 0;
+    text-align: center;
+    color: var(--accent-2);
+    backface-visibility: hidden; // hide the mirrored letters on the far side
+    transform: rotateY(calc(var(--i) * 360deg / var(--n))) translateZ(var(--r));
+  }
+}
+
+@keyframes d-textring-spin {
+  from {
+    transform: rotateX(-12deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(-12deg) rotateY(-360deg);
+  }
+}

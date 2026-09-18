@@ -1,0 +1,44 @@
+$h: 50px;
+
+.d-rollbutton {
+  position: relative;
+  display: block;
+  width: 190px;
+  height: $h;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  // Pull the bar back by half its depth so the front face sits exactly at z = 0.
+  transform: translateZ($h * -0.5);
+  transition: transform 0.45s cubic-bezier(0.3, 1.3, 0.5, 1);
+
+  &:hover,
+  &:focus-visible {
+    transform: translateZ($h * -0.5) rotateX(90deg);
+  }
+
+  span {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+  }
+
+  // front face
+  span:first-child {
+    background: var(--accent);
+    transform: translateZ($h * 0.5);
+  }
+
+  // bottom face: rolls up to the front on hover
+  span:last-child {
+    background: var(--hot);
+    transform: rotateX(-90deg) translateZ($h * 0.5);
+  }
+}

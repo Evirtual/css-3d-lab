@@ -1,0 +1,48 @@
+$size: 120px;
+$half-thickness: 5px;
+
+.d-coin {
+  position: relative;
+  width: $size;
+  height: $size;
+  transform-style: preserve-3d;
+  animation: d-coin-spin 4s linear infinite;
+
+  b,
+  i {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+  }
+
+  // The "edge": seven plain discs spread between the two faces. --i is 0…6.
+  i {
+    background: #a8741a;
+    transform: translateZ(calc((var(--i) - 3) * 1.4px));
+  }
+
+  b {
+    display: grid;
+    place-items: center;
+    border: 5px solid #e2a93b;
+    background: radial-gradient(circle at 35% 30%, #fff1b8, #f1b93d 55%, #c98a1b);
+    color: #8a5a0c;
+    font-size: 58px;
+    backface-visibility: hidden;
+    transform: translateZ($half-thickness);
+
+    &:last-child {
+      transform: rotateY(180deg) translateZ($half-thickness);
+    }
+  }
+}
+
+@keyframes d-coin-spin {
+  from {
+    transform: rotateX(12deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(12deg) rotateY(360deg);
+  }
+}

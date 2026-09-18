@@ -1,0 +1,44 @@
+@use 'sass:math';
+
+$n: 24;
+$r: 62px;
+// Width of one flat strip so that $n of them close the circle (+1px overlap against seams).
+$strip: 2 * $r * math.tan(math.div(180deg, $n)) + 1px;
+
+.d-cylinder {
+  position: relative;
+  width: $strip;
+  height: 130px;
+  transform-style: preserve-3d;
+  animation: d-cylinder-spin 9s linear infinite;
+
+  // --i (0…23) comes from the markup
+  i {
+    position: absolute;
+    inset: 0;
+    background: hsl(calc(170 + var(--i) * 15) 80% 58%);
+    transform: rotateY(calc(var(--i) * #{math.div(360deg, $n)})) translateZ($r);
+  }
+
+  // lid
+  b {
+    position: absolute;
+    top: -$r;
+    left: calc(50% - #{$r});
+    width: $r * 2;
+    height: $r * 2;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff3, transparent 70%), #17506e;
+    transform: rotateX(90deg);
+  }
+}
+
+@keyframes d-cylinder-spin {
+  from {
+    transform: rotateX(-22deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(-22deg) rotateY(360deg);
+  }
+}

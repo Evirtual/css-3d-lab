@@ -1,0 +1,25 @@
+.d-isotiles {
+  display: grid;
+  grid-template-columns: repeat(5, 34px);
+  gap: 4px;
+  transform-style: preserve-3d;
+  transform: rotateX(56deg) rotateZ(-45deg);
+
+  i {
+    height: 34px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
+    // slow on the way DOWN (this rule applies once the hover ends)
+    transition:
+      transform 1.4s ease-out,
+      background 1.4s ease-out;
+
+    &:hover {
+      background: var(--accent-2);
+      transform: translateZ(34px);
+      // instant on the way UP
+      transition-duration: 0.08s;
+    }
+  }
+}

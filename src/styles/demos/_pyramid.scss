@@ -1,0 +1,49 @@
+@use 'sass:math';
+
+$base: 110px;
+$slant: 110px; // height of each triangular face
+// Lean each face inward until its tip reaches the centre line.
+$lean: math.asin(math.div($base * 0.5, $slant));
+
+.d-pyramid {
+  position: relative;
+  width: $base;
+  height: $slant;
+  transform-style: preserve-3d;
+  animation: d-pyramid-spin 10s linear infinite;
+
+  i {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(50% 0, 0 100%, 100% 100%);
+    transform-origin: bottom center;
+
+    @for $i from 1 through 4 {
+      &:nth-child(#{$i}) {
+        background: linear-gradient(hsl(30 + $i * 8, 95%, 62%), hsl(20 + $i * 8, 85%, 30% + $i * 4%));
+        transform: rotateY(($i - 1) * 90deg) translateZ($base * 0.5) rotateX($lean);
+      }
+    }
+  }
+
+  // base
+  b {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: $base;
+    height: $base;
+    background: hsl(25, 70%, 22%);
+    transform: translateY(50%) rotateX(90deg);
+  }
+}
+
+@keyframes d-pyramid-spin {
+  from {
+    transform: translateY(8px) rotateX(-18deg) rotateY(0deg);
+  }
+
+  to {
+    transform: translateY(8px) rotateX(-18deg) rotateY(360deg);
+  }
+}

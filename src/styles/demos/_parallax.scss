@@ -1,0 +1,62 @@
+.d-parallax {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  perspective: 500px;
+  background: linear-gradient(#0c1033, #3a1d5e 60%, #ff7a59);
+
+  &__world {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 0.25s ease-out;
+  }
+
+  // Far layers are pushed back AND scaled up so they still fill the frame.
+  i {
+    position: absolute;
+    inset: -20%;
+  }
+
+  // moon
+  i:nth-child(1) {
+    inset: 14% auto auto 62%;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #fff4d1;
+    box-shadow: 0 0 40px #fff4d1;
+    transform: translateZ(-300px) scale(1.6);
+  }
+
+  // far mountains
+  i:nth-child(2) {
+    background: #4a2a73;
+    clip-path: polygon(0 100%, 0 62%, 18% 44%, 34% 60%, 52% 38%, 70% 58%, 86% 42%, 100% 60%, 100% 100%);
+    transform: translateZ(-160px) scale(1.32);
+  }
+
+  // near hills
+  i:nth-child(3) {
+    background: #2a1648;
+    clip-path: polygon(0 100%, 0 70%, 22% 58%, 44% 72%, 66% 56%, 84% 70%, 100% 62%, 100% 100%);
+    transform: translateZ(-40px) scale(1.08);
+  }
+
+  // foreground trees
+  i:nth-child(4) {
+    background: #0d0820;
+    clip-path: polygon(0 100%, 0 78%, 6% 78%, 10% 60%, 14% 78%, 80% 80%, 85% 58%, 90% 80%, 100% 80%, 100% 100%);
+    transform: translateZ(70px) scale(0.9);
+  }
+
+  b {
+    position: absolute;
+    inset: auto 0 12px;
+    color: #fff;
+    font-size: 13px;
+    text-align: center;
+    transform: translateZ(110px);
+  }
+}

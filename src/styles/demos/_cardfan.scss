@@ -1,0 +1,42 @@
+.d-cardfan {
+  position: relative;
+  width: 84px;
+  height: 120px;
+  transform-style: preserve-3d;
+  transform: translateY(10px) rotateX(26deg);
+
+  // --i runs -2…2 from the markup, so the middle card stays upright.
+  i {
+    position: absolute;
+    inset: 0;
+    padding: 6px 9px;
+    border-radius: 9px;
+    background: linear-gradient(160deg, #fff, #d9dcec);
+    color: #14172b;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 8px 16px -8px #000;
+    // The pivot sits well below the card, like the wrist holding the hand.
+    transform-origin: 50% 170%;
+    animation: d-cardfan 3s ease-in-out infinite alternate;
+
+    small {
+      display: block;
+      font-size: 16px;
+    }
+  }
+}
+
+@keyframes d-cardfan {
+  0%,
+  15% {
+    transform: translateZ(calc(var(--i) * 1px)) rotateZ(0deg);
+  }
+
+  85%,
+  100% {
+    transform: translateZ(calc(var(--i) * 6px)) rotateZ(calc(var(--i) * 16deg));
+  }
+}

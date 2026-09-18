@@ -1,0 +1,35 @@
+.d-confetti {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  perspective: 500px;
+  cursor: pointer;
+  user-select: none;
+
+  span {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  // Every particle gets --x --y --z --spin --hue from JS and runs the same animation.
+  i {
+    position: absolute;
+    width: 8px;
+    height: 12px;
+    margin: -6px 0 0 -4px;
+    border-radius: 2px;
+    background: hsl(var(--hue) 90% 62%);
+    pointer-events: none;
+    animation: d-confetti-fly 1.3s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+  }
+}
+
+@keyframes d-confetti-fly {
+  to {
+    opacity: 0;
+    // + 120px on Y is the "gravity"
+    transform: translate3d(var(--x), calc(var(--y) + 120px), var(--z)) rotate3d(1, 1, 0.4, var(--spin));
+  }
+}

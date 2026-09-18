@@ -1,0 +1,63 @@
+@use '../mixins' as *;
+
+.d-dice {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    perspective: 600px;
+  }
+
+  &__cube {
+    --s: 92px;
+    position: relative;
+    width: var(--s);
+    height: var(--s);
+    transform-style: preserve-3d;
+    // A fixed camera tilt first, then the roll. JS only ever changes --rx / --ry;
+    // the long transition is the "tumble".
+    transform: rotateX(-22deg) rotateY(-28deg) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+    @include cube-faces(var(--s));
+
+    i {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      border: 2px solid #c9cbe0;
+      border-radius: 14px;
+      background: radial-gradient(circle at 30% 30%, #fff, #dfe1f0);
+      color: #1a1d33;
+      font-size: 44px;
+      font-style: normal;
+      font-weight: 900;
+    }
+  }
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+
+    button {
+      padding: 5px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--warm);
+      color: #1b1408;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    output {
+      color: var(--muted);
+    }
+  }
+}

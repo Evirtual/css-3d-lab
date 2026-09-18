@@ -5,14 +5,14 @@ copy-paste snippets.
 
 **Live:** https://evirtual.github.io/css-3d-lab/
 
-Demos are split into two honest categories:
+50 demos, split into two honest categories:
 
-- **Pure CSS** — markup + SCSS only, zero JavaScript (cube, flip card, ring carousel, extruded
-  text, exploded layers, push button, folding map, atom orbits, 3D bar chart, opening book,
-  radio-button cube, synthwave floor, DNA helix, tile wave).
-- **CSS + JS** — JavaScript only feeds values in (pointer position, time, generated DOM); CSS
-  still does all the rendering (pointer tilt card, drag-to-rotate cube, coverflow, perspective
-  playground, pointer-lit text, point sphere, flip clock).
+- **Pure CSS (35)** — markup + SCSS only, zero JavaScript: solids (cube, pyramid, cylinder, coin,
+  globe), text effects, loaders, a tunnel and starfield, hover pieces (door, tiles, rolling
+  button, fold-down menu) and form-state tricks (radio-button cube, rocker switch, no-JS tilt).
+- **CSS + JS (15)** — JavaScript only feeds values in (pointer position, time, random numbers,
+  generated DOM); CSS still does all the rendering: tilt card, drag cube, coverflow, dice,
+  card stack, parallax, box slideshow, confetti, scroll-linked spin and more.
 
 ## Features
 
@@ -23,8 +23,10 @@ Demos are split into two honest categories:
   - **▶ Run snippet** — the snippet running on its own in a sandboxed iframe,
   - the **real SCSS source** used on the page (imported with `?raw`, so it cannot drift).
 - "Copy" and "Copy as one HTML file" buttons.
-- Pause-all-animations switch (on by default when the OS asks for reduced motion), off-screen
-  demos pause automatically, light / dark theme.
+- **Lazy mounting**: a demo only exists in the DOM while its card is near the viewport, so
+  rendering cost follows what is on screen, not the total count (about 8 of 50 mounted at a time).
+- Pause-all-animations switch (on by default when the OS asks for reduced motion), light / dark
+  theme.
 
 ## Develop
 
@@ -39,8 +41,12 @@ npm run build
 
 ## Add a demo
 
-1. Add an entry to `src/demos/pure.ts` or `src/demos/interactive.ts`.
+1. Add an entry to one of the `src/demos/pure*.ts` / `src/demos/interactive*.ts` files.
 2. Create `src/styles/demos/_<id>.scss` and `@use` it in `src/styles/main.scss`.
-3. Add the standalone snippet + explanation under the same id in `src/demos/snippets.ts`.
+3. Add the standalone snippet + explanation under the same id in `src/demos/snippets2.ts`.
 
 Pushing to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`.
+
+## License
+
+MIT — see [LICENSE](LICENSE). Every snippet is free to use in your own projects.

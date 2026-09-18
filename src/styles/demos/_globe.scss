@@ -1,0 +1,36 @@
+.d-globe {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  transform-style: preserve-3d;
+  animation: d-globe-spin 14s linear infinite;
+
+  i,
+  b {
+    position: absolute;
+    inset: 0;
+    border: 1.5px solid var(--accent-2);
+    border-radius: 50%;
+  }
+
+  // meridians: 9 × 20° covers the half turn (each ring shows on both sides). --i from markup.
+  i {
+    transform: rotateY(calc(var(--i) * 20deg));
+  }
+
+  // equator
+  b {
+    border-color: var(--hot);
+    transform: rotateX(90deg);
+  }
+}
+
+@keyframes d-globe-spin {
+  from {
+    transform: rotateZ(18deg) rotateX(-14deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateZ(18deg) rotateX(-14deg) rotateY(360deg);
+  }
+}

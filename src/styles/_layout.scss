@@ -662,9 +662,9 @@ input {
   }
 }
 
-// Global pause switch + automatic pause for off-screen cards.
+// Global pause switch. The grid also pauses while the detail view covers it.
 :root[data-paused] :is(.stage, .hero__art, .logo-cube, .aurora),
-.card.is-offscreen .stage {
+body:has(.viewer[open]) :is(.grid .stage, .hero__art) {
   &,
   *,
   *::before,
@@ -689,6 +689,14 @@ input {
   color: var(--muted);
   font-size: 13px;
   text-align: center;
+
+  p + p {
+    margin-top: 6px;
+  }
+
+  a {
+    color: var(--accent-2);
+  }
 }
 
 /* ---------- detail viewer ---------- */

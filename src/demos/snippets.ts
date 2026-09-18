@@ -2,51 +2,10 @@
  * Paste-anywhere versions of every demo: plain HTML + CSS (+ JS), no Sass, no build step.
  * The detail view runs each one in an isolated iframe, so what is shown is what gets copied.
  */
-export interface Snippet {
-  /** Step-by-step explanation. May contain <code>. */
-  how: string[];
-  html: string;
-  css: string;
-  js?: string;
-}
+import { snippets2 } from './snippets2';
+import { CUBE_FACES, type Snippet } from './snippet-utils';
 
-export function standaloneDoc(title: string, s: Snippet): string {
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title}</title>
-<style>
-body {
-  margin: 0;
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  background: #0b0d18;
-  color: #eceefb;
-  font-family: system-ui, sans-serif;
-}
-
-${s.css}
-</style>
-</head>
-<body>
-
-${s.html}
-${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
-</body>
-</html>`;
-}
-
-const CUBE_FACES = `/* turn each face outward, then push it half a side from the centre */
-.cube > :nth-child(1) { transform: rotateY(0deg)   translateZ(calc(var(--s) / 2)); }
-.cube > :nth-child(2) { transform: rotateY(90deg)  translateZ(calc(var(--s) / 2)); }
-.cube > :nth-child(3) { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
-.cube > :nth-child(4) { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
-.cube > :nth-child(5) { transform: rotateX(90deg)  translateZ(calc(var(--s) / 2)); }
-.cube > :nth-child(6) { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }`;
+export { standaloneDoc, type Snippet } from './snippet-utils';
 
 const CUBE_FACE_LOOK = `.cube > * {
   position: absolute;
@@ -58,7 +17,7 @@ const CUBE_FACE_LOOK = `.cube > * {
   border: 1px solid rgb(139 108 255 / 0.8);
 }`;
 
-export const snippets: Record<string, Snippet> = {
+const snippets1: Record<string, Snippet> = {
   cube: {
     how: [
       'Put <code>perspective</code> on the <b>parent</b>. It is the camera distance — smaller means more dramatic.',
@@ -1340,3 +1299,5 @@ tick();
 setInterval(tick, 250);`,
   },
 };
+
+export const snippets: Record<string, Snippet> = { ...snippets1, ...snippets2 };

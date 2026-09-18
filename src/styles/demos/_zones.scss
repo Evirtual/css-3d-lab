@@ -1,0 +1,47 @@
+$tilt: 22deg;
+
+.d-zones {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  transform-style: preserve-3d;
+
+  // nine invisible hover targets covering the stage
+  i {
+    z-index: 1;
+  }
+
+  &__card {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 2px;
+    width: 200px;
+    height: 124px;
+    margin: auto;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    color: #fff;
+    font-weight: 800;
+    text-align: center;
+    box-shadow: 0 22px 36px -16px var(--accent);
+    pointer-events: none; // let the pointer reach the zones underneath
+    transition: transform 0.35s ease-out;
+
+    small {
+      font-weight: 500;
+      opacity: 0.85;
+    }
+  }
+
+  // zone (row, col) tilts the card toward that corner
+  @for $row from 0 through 2 {
+    @for $col from 0 through 2 {
+      i:nth-child(#{$row * 3 + $col + 1}):hover ~ &__card {
+        transform: rotateX((1 - $row) * $tilt) rotateY(($col - 1) * $tilt);
+      }
+    }
+  }
+}
