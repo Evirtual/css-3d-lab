@@ -816,7 +816,8 @@ input {
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(var(--border-strong) 1.3px, transparent 2.1px) 0 0 / 22px 22px;
+      // --dot-r / --dot-gap come from the 1x / 2x / 3x buttons on the stage wrapper (below)
+      background: radial-gradient(var(--border-strong) var(--dot-r), transparent calc(var(--dot-r) + 0.8px)) 0 0 / var(--dot-gap) var(--dot-gap);
       mask: radial-gradient(ellipse 75% 70% at 50% 50%, #000 25%, transparent 90%);
       pointer-events: none;
     }
@@ -842,13 +843,8 @@ input {
       z-index: 1;
     }
 
-    // --zoom comes from the zoom buttons on the stage wrapper (1 / 1.5 / 2)
     .scene:not(.scene--fill) {
-      scale: calc(1.45 * var(--zoom, 1));
-    }
-
-    .scene--fill {
-      zoom: var(--zoom, 1);
+      scale: 1.45;
     }
   }
 }
@@ -1515,19 +1511,27 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 // survive (full-screen button, "edited" notice) lives here instead.
 .stage-wrap {
   position: relative;
+  // Backdrop dot sizes. 2x is the default; 3x is the size the dots used to be.
+  --dot-r: 1.1px;
+  --dot-gap: 17px;
+
+  &[data-dotsize='1'] {
+    --dot-r: 0.9px;
+    --dot-gap: 12px;
+  }
+
+  &[data-dotsize='3'] {
+    --dot-r: 1.3px;
+    --dot-gap: 22px;
+  }
 
   // the visitor's edited snippet, running in a sandboxed frame in place of the built-in demo
-  // Laid out at 1/zoom of the stage and scaled back up: the snippet inside sees a smaller
-  // viewport, so it stays centred while everything in it appears zoom× larger.
   .live-frame {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: calc(100% / var(--zoom, 1));
-    height: calc(100% / var(--zoom, 1));
+    inset: 0;
+    width: 100%;
+    height: 100%;
     border: 0;
-    transform: scale(var(--zoom, 1));
-    transform-origin: 0 0;
   }
 
   &:fullscreen {
@@ -1540,28 +1544,28 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
       // across a whole monitor the dots need to be bigger and further apart
       &::before {
-        background-size: 36px 36px;
-        background-image: radial-gradient(var(--border-strong) 1.8px, transparent 2.8px);
+        background: radial-gradient(var(--border-strong) calc(var(--dot-r) * 1.5), transparent calc(var(--dot-r) * 1.5 + 1px)) 0 0 /
+          calc(var(--dot-gap) * 1.6) calc(var(--dot-gap) * 1.6);
       }
     }
 
     // up close: that is the point of full screen
     .scene:not(.scene--fill) {
-      scale: calc(2.8 * var(--zoom, 1));
+      scale: 2.8;
     }
 
     .scene--fill {
-      zoom: calc(2.2 * var(--zoom, 1));
+      zoom: 2.2;
     }
 
     // a large monitor has room for more
     @media (min-height: 900px) and (min-width: 1400px) {
       .scene:not(.scene--fill) {
-        scale: calc(4 * var(--zoom, 1));
+        scale: 4;
       }
 
       .scene--fill {
-        zoom: calc(3 * var(--zoom, 1));
+        zoom: 3;
       }
     }
   }
@@ -1887,5 +1891,135 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   .stage--lg {
     height: 300px;
+  }
+}
+
+/* ---------- phones ---------- */
+
+@media (max-width: 600px) {
+  // top bar: icon-only buttons (each has an aria-label), one row
+  .topbar {
+    flex-wrap: nowrap;
+    padding: 12px 16px;
+
+    &__brand {
+      min-width: 0;
+      gap: 10px;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    &__actions {
+      flex: none;
+      flex-wrap: nowrap;
+      gap: 6px;
+    }
+
+    .btn {
+      padding: 9px 11px;
+    }
+
+    // the repository is one tap away from every demo's "Source on GitHub"; the bar has no room
+    a[href*='github.com'] {
+      display: none;
+    }
+
+    #pause .btn__label,
+    #theme .btn__label,
+    .btn--kofi .btn__label {
+      display: none;
+    }
+  }
+
+  .hero {
+    padding: 8px 16px 28px;
+  }
+
+  // filters: each row scrolls sideways instead of stacking into a wall of chips
+  .filters {
+    padding: 12px 16px 8px;
+  }
+
+  .tabs,
+  .groups,
+  .chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    // bleed to the screen edge so it is obvious the row continues
+    margin-inline: -16px;
+    padding-inline: 16px;
+    -webkit-overflow-scrolling: touch;
+
+    > * {
+      flex: none;
+    }
+  }
+
+  .tabs {
+    // the segmented control keeps its frame; only its content scrolls
+    margin-inline: 0;
+    padding-inline: 3px;
+  }
+
+  .grid,
+  .page-main {
+    padding-inline: 16px;
+  }
+
+  // code window bar: tabs on the first row, appearance + copy on the second
+  .codebox__bar {
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    padding: 6px 8px;
+  }
+
+  .codebox__tabs {
+    flex: 1 1 100%;
+    padding: 0;
+  }
+
+  .codebox__look {
+    margin-right: auto;
+  }
+
+  .codebox__foot {
+    align-items: flex-start;
+  }
+
+  // dialog: use the whole screen
+  .viewer {
+    width: 100vw;
+    max-width: none;
+    max-height: 100dvh;
+    height: 100dvh;
+    margin: 0;
+    padding: 16px;
+    border: 0;
+    border-radius: 0;
+
+    &__head h2 {
+      padding-right: 44px; // room for the close button
+    }
+  }
+
+  .stage--lg {
+    height: 280px;
+
+    .scene:not(.scene--fill) {
+      scale: 1.2;
+    }
+  }
+
+  .stage__zoom button {
+    min-width: 30px;
+  }
+
+  .code .codebox {
+    min-height: 360px;
+  }
+
+  .sharemenu__targets {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

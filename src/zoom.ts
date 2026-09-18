@@ -1,44 +1,46 @@
 /**
- * Zoom control on a stage: 1× / 1.5× / 2×. It only sets `--zoom` on the `.stage-wrap`; CSS
- * multiplies the scene's scale by it (and resizes an edited preview frame to match). The labels
- * are the real factors. Remembered per visitor.
+ * Backdrop control on a stage: how big the dot grid is. Three steps — 1× fine, 2× (default),
+ * 3× large — set as `data-dotsize` on the `.stage-wrap`; CSS holds the actual sizes. The demo itself
+ * is not resized (full screen is for a closer look). Remembered per visitor.
  */
-const KEY = 'c3d-zoom';
-export const ZOOMS = ['1', '1.5', '2'] as const;
+const KEY = 'c3d-dots';
+export const DOT_SIZES = ['1', '2', '3'] as const;
 
 export const zoomHtml = (): string =>
-  `<div class="stage__zoom" role="group" aria-label="Zoom">${ZOOMS.map((z) => `<button type="button" data-zoom="${z}" aria-pressed="false">${z}×</button>`).join('')}</div>`;
+  `<div class="stage__zoom" role="group" aria-label="Background dot size">${DOT_SIZES.map(
+    (z) => `<button type="button" data-dots="${z}" aria-pressed="false" title="Background dots ${z}×">${z}×</button>`,
+  ).join('')}</div>`;
 
 function stored(): string {
   try {
     const v = localStorage.getItem(KEY);
-    return (ZOOMS as readonly string[]).includes(v ?? '') ? v! : '1';
+    return (DOT_SIZES as readonly string[]).includes(v ?? '') ? v! : '2';
   } catch {
-    return '1';
+    return '2';
   }
 }
 
-function apply(zoom: string): void {
+function apply(size: string): void {
   for (const wrap of document.querySelectorAll<HTMLElement>('.stage-wrap')) {
-    wrap.style.setProperty('--zoom', zoom);
-    for (const btn of wrap.querySelectorAll<HTMLElement>('[data-zoom]')) btn.setAttribute('aria-pressed', String(btn.dataset.zoom === zoom));
+    wrap.dataset.dotsize = size; // not data-dots: that attribute marks the buttons
+    for (const btn of wrap.querySelectorAll<HTMLElement>('[data-dots]')) btn.setAttribute('aria-pressed', String(btn.dataset.dots === size));
   }
 }
 
-/** Call after a stage with zoom buttons is added to the page. */
+/** Call after a stage with the control is added to the page. */
 export function initZoom(): void {
   apply(stored());
 }
 
 document.addEventListener('click', (e) => {
-  const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-zoom]');
+  const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-dots]');
   if (!btn) return;
-  const zoom = btn.dataset.zoom!;
+  const size = btn.dataset.dots!;
   try {
-    if (zoom === '1') localStorage.removeItem(KEY);
-    else localStorage.setItem(KEY, zoom);
+    if (size === '2') localStorage.removeItem(KEY);
+    else localStorage.setItem(KEY, size);
   } catch {
     /* applies for this visit only */
   }
-  apply(zoom);
+  apply(size);
 });

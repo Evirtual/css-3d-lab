@@ -435,3 +435,35 @@
     font-size: 22px;
   }
 }
+
+@media (max-width: 600px) {
+  .page-head {
+    margin: 12px 0 18px;
+
+    h1 small {
+      display: block;
+      margin: 4px 0 0;
+    }
+
+    &__lead {
+      font-size: 15.5px;
+    }
+  }
+
+  .page-tools__row .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  // one column: the code window is a normal block again, with a fixed comfortable height
+  .page-pane > pre,
+  .page-pane > .editor {
+    height: 420px;
+    max-height: 70vh;
+    overflow: auto;
+  }
+
+  .page-cards {
+    gap: 14px;
+  }
+}

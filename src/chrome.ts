@@ -41,11 +41,16 @@ export function initChrome(): void {
     root.toggleAttribute('data-paused', paused);
     if (!pauseBtn) return;
     pauseBtn.setAttribute('aria-pressed', String(paused));
-    pauseBtn.innerHTML = paused ? `${icon('play')} Play animations` : `${icon('pause')} Pause animations`;
+    const label = paused ? 'Play animations' : 'Pause animations';
+    pauseBtn.innerHTML = `${icon(paused ? 'play' : 'pause')} <span class="btn__label">${label}</span>`;
+    pauseBtn.setAttribute('aria-label', label);
   };
   const setTheme = (theme: string) => {
     root.dataset.theme = theme;
-    if (themeBtn) themeBtn.innerHTML = theme === 'dark' ? `${icon('sun')} Light` : `${icon('moon')} Dark`;
+    if (!themeBtn) return;
+    const label = theme === 'dark' ? 'Light' : 'Dark';
+    themeBtn.innerHTML = `${icon(theme === 'dark' ? 'sun' : 'moon')} <span class="btn__label">${label}</span>`;
+    themeBtn.setAttribute('aria-label', `${label} theme`);
   };
 
   // Respect the OS "reduce motion" setting: start paused, but leave the choice to the visitor.

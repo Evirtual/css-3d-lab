@@ -68,11 +68,11 @@ function shell({ path, depth, title, description, jsonLd, body, script, image })
         ${esc(site.name)}
       </a>
       <div class="topbar__actions">
-        <a class="btn" href="${up}">${icon('chevron-left')} All demos</a>
+        <a class="btn" href="${up}" aria-label="All demos">${icon('chevron-left')} <span class="btn__label">All demos</span></a>
         <button id="pause" class="btn" type="button" aria-pressed="false"></button>
         <button id="theme" class="btn" type="button"></button>
         <a class="btn" href="${site.repo}" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
-        <a class="btn btn--kofi" href="${site.kofi}" target="_blank" rel="noopener">${icon('coffee')} Buy me a coffee</a>
+        <a class="btn btn--kofi" href="${site.kofi}" target="_blank" rel="noopener" aria-label="Buy me a coffee">${icon('coffee')} <span class="btn__label">Buy me a coffee</span></a>
       </div>
     </nav>
 ${body}
@@ -228,7 +228,7 @@ function demoPage(d, index) {
             <div class="stage stage--lg" data-demo="${d.id}">
               <noscript><p class="page-noscript">The live 3D preview needs JavaScript to load. The explanation and full code are below.</p></noscript>
             </div>
-            <div class="stage__zoom" role="group" aria-label="Zoom"><button type="button" data-zoom="1" aria-pressed="true">1×</button><button type="button" data-zoom="1.5" aria-pressed="false">1.5×</button><button type="button" data-zoom="2" aria-pressed="false">2×</button></div>
+            <div class="stage__zoom" role="group" aria-label="Background dot size"><button type="button" data-dots="1" aria-pressed="false" title="Background dots 1×">1×</button><button type="button" data-dots="2" aria-pressed="true" title="Background dots 2×">2×</button><button type="button" data-dots="3" aria-pressed="false" title="Background dots 3×">3×</button></div>
             <button type="button" class="stage__fs" data-fullscreen aria-label="Full screen"></button>
             <p class="stage__edited" data-edited hidden>Your edited version <button type="button" class="link" data-reset>Reset to original</button></p>
           </div>
