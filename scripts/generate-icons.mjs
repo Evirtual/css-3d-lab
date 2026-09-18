@@ -6,24 +6,14 @@
 // Its far faces are drawn too and show through the tinted near ones.
 //  - bare (favicon, icon.svg, app icons with purpose "any"): just the cube, no background, nearly
 //    edge to edge (its corners 240 of the 256 half-width from the centre), so it reads at 16-32 px;
-//  - on a tile (the maskable icon, the Apple touch icon): a dark square to the edge, because
+//  - on a tile (the maskable icon, the Apple touch icon): a flat square to the edge in the splash
+//    screen's colour (manifest background_color, the page's --bg), just the cube on it, because
 //    Android crops it to its own shape and iOS fills transparency with black. On the maskable icon
 //    the cube stays inside Android's safe zone (a circle of 80% of the width: radius 205); iOS
 //    only rounds the corners, so there it is a little bigger.
 // These sizes are the ones the icons have always had; only the look of the cube changed.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
-
-// The tile's backdrop gets the site's faint blueprint grid (the page's --grid lines). A launcher
-// shows the icon at about 48px, so the lines are fewer and heavier than on the page (4 cells
-// across, 6 units thick): thinner ones vanish at that size.
-const GRID = Array.from({ length: 3 }, (_, i) => {
-  const v = 128 * (i + 1);
-  return `<path d="M${v} 0V512M0 ${v}H512"/>`;
-})
-  .join('')
-  .replace(/^/, '<g stroke="rgb(140 150 220)" stroke-opacity="0.16" stroke-width="6" fill="none">')
-  .concat('</g>');
 
 const BARE = { e: 240 };
 const MASKABLE = { e: 179, tile: true };
@@ -48,9 +38,7 @@ function mark({ e, tile = false }) {
   <linearGradient id="t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9bfaf1"/><stop offset="1" stop-color="#2ee6d6"/></linearGradient>
   <linearGradient id="l" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#a58cff"/><stop offset="1" stop-color="#5b3be8"/></linearGradient>
   <linearGradient id="r" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#ff86bd"/><stop offset="1" stop-color="#d81e74"/></linearGradient>
-  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#171a36"/><stop offset="1" stop-color="#07080f"/></linearGradient>
-  <radialGradient id="glow" cx="0.5" cy="0.55" r="0.5"><stop offset="0" stop-color="#8b6cff" stop-opacity="0.55"/><stop offset="1" stop-color="#8b6cff" stop-opacity="0"/></radialGradient>
-</defs>${tile ? `<rect width="512" height="512" fill="url(#bg)"/>${GRID}<circle cx="256" cy="270" r="230" fill="url(#glow)"/>` : ''}${far}${near}</svg>
+</defs>${tile ? '<rect width="512" height="512" fill="#07080f"/>' : ''}${far}${near}</svg>
 `;
 }
 

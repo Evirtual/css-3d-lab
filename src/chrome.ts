@@ -47,6 +47,9 @@ export function initChrome(): void {
   };
   const setTheme = (theme: string) => {
     root.dataset.theme = theme;
+    // the phone's status bar / the installed app's title bar follow the chosen theme (the page's --bg)
+    const bar = theme === 'dark' ? '#07080f' : '#f3f4fc';
+    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => (m.content = bar));
     if (!themeBtn) return;
     const label = theme === 'dark' ? 'Light' : 'Dark';
     themeBtn.innerHTML = `${icon(theme === 'dark' ? 'sun' : 'moon')} <span class="btn__label">${label}</span>`;
