@@ -1,0 +1,58 @@
+$panel: 54px;
+
+.d-fold {
+  width: $panel * 4;
+  height: 124px;
+  transform-style: preserve-3d;
+  transform: rotateX(28deg) rotateY(-8deg);
+
+  .p {
+    width: $panel;
+    height: 100%;
+    transform-style: preserve-3d;
+    background: linear-gradient(90deg, var(--accent-2), color-mix(in srgb, var(--accent-2) 55%, #000));
+    border: 1px solid rgb(255 255 255 / 0.25);
+  }
+
+  // Every nested panel hangs off its parent's right edge and hinges on its own left edge.
+  .p .p {
+    position: absolute;
+    top: -1px;
+    left: 100%;
+    transform-origin: left center;
+    animation: d-fold-back 3.4s ease-in-out infinite alternate;
+  }
+
+  // Alternate the direction to get a zig-zag.
+  .p .p .p {
+    animation-name: d-fold-front;
+  }
+
+  .p .p .p .p {
+    animation-name: d-fold-back;
+  }
+}
+
+@keyframes d-fold-back {
+  0%,
+  12% {
+    transform: rotateY(0deg);
+  }
+
+  88%,
+  100% {
+    transform: rotateY(150deg);
+  }
+}
+
+@keyframes d-fold-front {
+  0%,
+  12% {
+    transform: rotateY(0deg);
+  }
+
+  88%,
+  100% {
+    transform: rotateY(-150deg);
+  }
+}

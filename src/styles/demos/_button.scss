@@ -1,0 +1,40 @@
+@use 'sass:list';
+
+// A solid edge made from $depth stacked 1px shadows, plus one soft drop shadow.
+@function edge($depth, $color) {
+  $shadows: ();
+
+  @for $i from 1 through $depth {
+    $shadows: list.append($shadows, 0 #{$i}px 0 $color, comma);
+  }
+
+  @return list.append($shadows, 0 #{$depth + 8}px 22px rgb(0 0 0 / 0.55), comma);
+}
+
+$edge: color-mix(in srgb, var(--hot) 55%, #000);
+
+.d-button {
+  padding: 18px 44px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(var(--hot), color-mix(in srgb, var(--hot) 80%, #000));
+  color: #fff;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+  transform: rotateX(32deg);
+  box-shadow: edge(12, $edge);
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    transform: rotateX(32deg) translateY(9px);
+    box-shadow: edge(3, $edge);
+  }
+}

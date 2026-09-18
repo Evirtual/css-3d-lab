@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Learn 3D effects in CSS/SCSS — live demos, how-it-works notes and copy-paste snippets. Pure CSS and CSS + JavaScript, side by side." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧊</text></svg>" />
+    <title>CSS 3D Lab</title>
+  </head>
+  <body>
+    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+    <nav class="topbar">
+      <a class="topbar__brand" href="./">
+        <span class="logo-cube" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        CSS 3D Lab
+      </a>
+      <div class="topbar__actions">
+        <button id="pause" class="btn" type="button" aria-pressed="false"></button>
+        <button id="theme" class="btn" type="button"></button>
+        <a class="btn" href="https://github.com/Evirtual/css-3d-lab" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="hero__copy">
+        <p class="hero__eyebrow">Learn by poking at it</p>
+        <h1>3D on the web,<br /><span>no WebGL required.</span></h1>
+        <p class="hero__lead">
+          Live 3D effects built with SCSS. See what works with <b>zero JavaScript</b>, what JavaScript adds,
+          how each one works — then copy a paste-anywhere snippet into your own project.
+        </p>
+        <dl class="hero__stats">
+          <div><dt>demos</dt><dd id="stat-total">–</dd></div>
+          <div><dt>pure CSS</dt><dd id="stat-css">–</dd></div>
+          <div><dt>CSS + JS</dt><dd id="stat-js">–</dd></div>
+        </dl>
+      </div>
+      <div class="hero__art" aria-hidden="true">
+        <div class="hero__cube"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+    </header>
+
+    <section class="filters" aria-label="Filters">
+      <div class="filters__row">
+        <label class="search">
+          <span class="visually-hidden">Search demos</span>
+          <input id="search" type="search" placeholder="Search effects, properties, tags…" autocomplete="off" />
+          <kbd>/</kbd>
+        </label>
+        <div id="tabs" class="tabs" role="group" aria-label="Category"></div>
+      </div>
+      <div id="tags" class="chips" role="group" aria-label="Tags"></div>
+      <p id="status" class="status" aria-live="polite"></p>
+    </section>
+
+    <main id="grid" class="grid"></main>
+    <div id="empty" class="empty" hidden>
+      <p>No demos match these filters.</p>
+      <button class="btn btn--accent" type="button" data-clear>Clear filters</button>
+    </div>
+
+    <dialog id="viewer" class="viewer">
+      <form method="dialog" class="viewer__close"><button class="btn" aria-label="Close">✕</button></form>
+      <div id="viewer-body"></div>
+    </dialog>
+
+    <footer class="footer">Built with Vite, TypeScript and SCSS · every demo ships with a standalone snippet you can run and copy.</footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

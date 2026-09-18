@@ -1,0 +1,48 @@
+$cell: 36px;
+
+.d-grid {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  perspective: 260px;
+  perspective-origin: 50% 40%;
+  background: linear-gradient(#12062e 0%, #3b0f5c 38%, #ff4d9d 50%, #0a0618 50.5%);
+
+  &__sun {
+    position: absolute;
+    top: 14%;
+    left: 50%;
+    width: 110px;
+    height: 110px;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: linear-gradient(#ffd34d, #ff4d9d 70%);
+    // the classic striped lower half
+    mask: linear-gradient(#000 55%, transparent 55% 60%, #000 60% 70%, transparent 70% 77%, #000 77% 85%, transparent 85%);
+    box-shadow: 0 0 60px #ff4d9d;
+  }
+
+  &__floor {
+    position: absolute;
+    top: 50%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    transform-origin: top center;
+    transform: rotateX(80deg);
+    background:
+      linear-gradient(#2ee6d6 2px, transparent 2px) 0 0 / #{$cell} #{$cell},
+      linear-gradient(90deg, #2ee6d6 2px, transparent 2px) 50% 0 / #{$cell} #{$cell};
+    mask: linear-gradient(transparent, #000 12%);
+    animation: d-grid-run 0.9s linear infinite;
+  }
+}
+
+// Shift by exactly one cell so the loop is seamless.
+@keyframes d-grid-run {
+  to {
+    background-position:
+      0 $cell,
+      50% $cell;
+  }
+}

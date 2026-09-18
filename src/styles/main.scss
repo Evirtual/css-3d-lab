@@ -1,0 +1,27 @@
+@use 'tokens';
+@use 'layout';
+
+// pure CSS demos
+@use 'demos/cube';
+@use 'demos/flip';
+@use 'demos/carousel';
+@use 'demos/text';
+@use 'demos/layers';
+@use 'demos/button';
+@use 'demos/fold';
+@use 'demos/orbit';
+@use 'demos/bars';
+@use 'demos/book';
+@use 'demos/radio';
+@use 'demos/grid';
+@use 'demos/helix';
+@use 'demos/tiles';
+
+// CSS + JS demos
+@use 'demos/tilt';
+@use 'demos/drag';
+@use 'demos/coverflow';
+@use 'demos/playground';
+@use 'demos/lit';
+@use 'demos/sphere';
+@use 'demos/clock';

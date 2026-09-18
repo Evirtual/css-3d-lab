@@ -1,0 +1,23 @@
+.d-layers {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  transform-style: preserve-3d;
+  transform: translateY(24px) rotateX(58deg) rotateZ(-45deg);
+
+  i {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    border: 1px solid rgb(255 255 255 / 0.35);
+    // --i (0…3) comes from the markup; it drives both colour and lift.
+    background: hsl(calc(255 + var(--i) * 32) 85% 62% / 0.78);
+    animation: d-layers-lift 2.6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes d-layers-lift {
+  to {
+    transform: translateZ(calc(var(--i) * 38px));
+  }
+}

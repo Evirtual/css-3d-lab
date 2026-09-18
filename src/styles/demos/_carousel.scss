@@ -1,0 +1,44 @@
+@use 'sass:math';
+
+$count: 8;
+$width: 72px;
+// Distance from the centre so that $count panels of $width form a closed ring (+ a gap).
+$radius: math.div($width * 0.5, math.tan(math.div(180deg, $count))) + 16px;
+
+.d-carousel {
+  transform-style: preserve-3d;
+  transform: rotateX(-14deg);
+
+  &__ring {
+    position: relative;
+    width: $width;
+    height: 96px;
+    transform-style: preserve-3d;
+    animation: d-carousel-spin 14s linear infinite;
+  }
+
+  i {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 22px;
+    font-style: normal;
+    font-weight: 800;
+
+    @for $i from 1 through $count {
+      &:nth-child(#{$i}) {
+        background: hsla(250 + $i * 18, 80%, 60%, 0.85);
+        transform: rotateY(math.div(360deg, $count) * $i) translateZ($radius);
+      }
+    }
+  }
+}
+
+@keyframes d-carousel-spin {
+  to {
+    transform: rotateY(-360deg);
+  }
+}

@@ -1,0 +1,56 @@
+.d-play {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px;
+
+  // Its own perspective container, so the slider value is the only one in play.
+  &__view {
+    display: grid;
+    place-items: center;
+    perspective: var(--p, 400px);
+  }
+
+  &__box {
+    display: grid;
+    place-items: center;
+    width: 110px;
+    height: 110px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--warm), var(--hot));
+    color: #fff;
+    font-size: 30px;
+    font-weight: 900;
+    box-shadow: 0 20px 30px -16px var(--hot);
+    transform: rotateX(var(--rx, 20deg)) rotateY(var(--ry, -35deg));
+  }
+
+  &__controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+
+    label {
+      display: grid;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    input {
+      width: 100%;
+      accent-color: var(--warm);
+    }
+  }
+
+  &__out {
+    margin-top: 4px;
+    overflow: hidden;
+    color: var(--accent-2);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

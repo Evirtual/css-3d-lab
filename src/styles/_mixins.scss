@@ -1,0 +1,20 @@
+@use 'sass:list';
+
+// Places the six direct children of a preserve-3d box as cube faces.
+// $size may be a length or a var() — the maths happens in calc().
+@mixin cube-faces($size) {
+  $turns: (rotateY(0deg), rotateY(90deg), rotateY(180deg), rotateY(-90deg), rotateX(90deg), rotateX(-90deg));
+
+  @for $i from 1 through 6 {
+    > :nth-child(#{$i}) {
+      transform: #{list.nth($turns, $i)} translateZ(calc(#{$size} / 2));
+    }
+  }
+}
+
+// A translucent "glass" face used by most solids.
+@mixin face($color: var(--accent), $alpha: 28%) {
+  background: color-mix(in srgb, #{$color} #{$alpha}, transparent);
+  border: 1px solid color-mix(in srgb, #{$color} 75%, transparent);
+  box-shadow: inset 0 0 24px color-mix(in srgb, #{$color} 30%, transparent);
+}

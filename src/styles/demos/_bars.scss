@@ -1,0 +1,61 @@
+@use 'sass:list';
+
+$w: 26px;
+$hues: (262, 285, 320, 175, 40);
+
+.d-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  height: 130px;
+  transform-style: preserve-3d;
+  transform: translateY(10px) rotateX(-22deg) rotateY(-32deg);
+
+  &__bar {
+    position: relative;
+    width: $w;
+    height: var(--h);
+    transform-style: preserve-3d;
+    animation: d-bars-grow 1.8s ease-in-out infinite alternate;
+
+    @for $i from 1 through 5 {
+      &:nth-child(#{$i}) {
+        --hue: #{list.nth($hues, $i)};
+        animation-delay: $i * -0.35s;
+      }
+    }
+
+    i {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: $w;
+      height: 100%;
+    }
+
+    // front
+    i:nth-child(1) {
+      background: hsl(var(--hue) 80% 60%);
+      transform: translateZ($w * 0.5);
+    }
+
+    // right side — a little darker
+    i:nth-child(2) {
+      background: hsl(var(--hue) 70% 42%);
+      transform: rotateY(90deg) translateZ($w * 0.5);
+    }
+
+    // top — a $w × $w square laid flat, lightest
+    i:nth-child(3) {
+      height: $w;
+      background: hsl(var(--hue) 90% 74%);
+      transform: rotateX(90deg) translateZ($w * 0.5);
+    }
+  }
+}
+
+@keyframes d-bars-grow {
+  from {
+    height: 14px;
+  }
+}

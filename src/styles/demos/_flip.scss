@@ -1,0 +1,47 @@
+.d-flip {
+  width: 190px;
+  height: 125px;
+  cursor: pointer;
+  outline-offset: 6px;
+
+  &__inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  &:hover &__inner,
+  &:focus &__inner {
+    transform: rotateY(180deg);
+  }
+
+  &__face {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 2px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent), var(--hot));
+    color: #fff;
+    text-align: center;
+    backface-visibility: hidden;
+    box-shadow: 0 16px 30px -14px var(--accent);
+
+    b {
+      font-size: 22px;
+    }
+
+    span {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    &--back {
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      transform: rotateY(180deg);
+    }
+  }
+}
