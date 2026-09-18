@@ -640,6 +640,10 @@
 }
 
 // The home page's share image (/embed/cover/?og=1): the site's own cube and headline.
+// the grid a little stronger than the page's (--grid): squeezed into a small preview, and
+// through JPEG, the page's own lines all but disappear
+$cover-grid: rgb(140 150 220 / 0.075);
+
 .og-cover {
   // the home page's own backdrop: the corner washes over the blueprint grid (demo images have
   // the cards' dots instead). Same as [data-og] .embed above, with the dots swapped for the grid.
@@ -660,8 +664,8 @@
         color-mix(in srgb, var(--accent-2) 1.5%, transparent) 65%,
         transparent
       ),
-      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 48px 48px,
-      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 48px 48px,
+      linear-gradient($cover-grid 1px, transparent 1px) 0 0 / 48px 48px,
+      linear-gradient(90deg, $cover-grid 1px, transparent 1px) 0 0 / 48px 48px,
       var(--bg);
   }
 
