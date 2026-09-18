@@ -4,7 +4,8 @@ import { initChrome } from './chrome';
 import { createEditor } from './editor';
 import { initFullscreen } from './fullscreen';
 import { LiveEdit, type Part } from './live-edit';
-import { openInCodePen, shareLink } from './share';
+import { openInCodePen } from './share';
+import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
@@ -303,7 +304,6 @@ function openViewer(id: string): void {
     { key: 'html', label: 'HTML', lang: 'html' },
     { key: 'css', label: 'CSS', lang: 'css' },
     ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js' as Lang }] : []),
-    { key: 'run', label: `${icon('play')} Preview` },
     { key: 'scss', label: 'Sass source', lang: 'scss', code: scssFor(id) },
   ];
   const isPart = (key: string): key is Part => key === 'html' || key === 'css' || key === 'js';
@@ -341,7 +341,6 @@ function openViewer(id: string): void {
               <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
                 ${panes.filter((p) => isPart(p.key)).map((p) => tab(p)).join('')}
               </div>
-              ${tab(panes.find((p) => p.key === 'run')!, 'codebox__tab--run', 'Runs the snippet on its own, exactly as it works when pasted')}
               ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'How this site builds the demo, using the project Sass mixins. For reading, not for pasting')}
             </div>
             <button type="button" class="codebox__copy" data-copy="pane">${icon('copy')} Copy</button>
@@ -352,7 +351,8 @@ function openViewer(id: string): void {
         <div class="code__actions">
           <button type="button" class="btn btn--accent" data-copy="file">${icon('copy')} Copy as one HTML file</button>
           <button type="button" class="btn" data-act="codepen">Edit on CodePen ${icon('arrow-up-right')}</button>
-          <button type="button" class="btn" data-act="share">${icon('arrow-up-right')} Share</button>
+          <button type="button" class="btn" data-act="share">${icon('share')} Share</button>
+          <button type="button" class="btn" data-act="newtab">${icon('arrow-up-right')} Open in new tab</button>
           <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
           <a class="btn" href="demos/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
@@ -365,7 +365,6 @@ function openViewer(id: string): void {
   const panel = viewerBody.querySelector<HTMLElement>('.code__panel')!;
   const note = viewerBody.querySelector<HTMLElement>('.code__note')!;
   const lines = viewerBody.querySelector<HTMLElement>('.codebox__lines')!;
-  const copyPane = viewerBody.querySelector<HTMLButtonElement>('[data-copy=pane]')!;
   let current = panes[1];
 
   /* the stage shows the site's own demo, or the visitor's edited snippet */
@@ -393,14 +392,8 @@ function openViewer(id: string): void {
     for (const t of viewerBody.querySelectorAll<HTMLElement>('[role=tab]')) {
       t.setAttribute('aria-selected', String(t.dataset.pane === pane.key));
     }
-    copyPane.hidden = pane.key === 'run';
 
-    if (pane.key === 'run') {
-      track(`run/${id}`);
-      panel.replaceChildren(live.frame());
-      lines.textContent = 'live';
-      note.textContent = live.edited ? 'Your edited snippet, running on its own.' : 'The snippet running on its own: exactly what you get when you paste it.';
-    } else if (isPart(pane.key)) {
+    if (isPart(pane.key)) {
       const part = pane.key;
       const editor = createEditor(pane.lang!, pane.label, live.current[part] ?? '', (code) => {
         live.set(part, code);
@@ -443,7 +436,12 @@ function openViewer(id: string): void {
     }
     const act = target.closest<HTMLButtonElement>('[data-act]');
     if (act?.dataset.act === 'codepen') return openInCodePen(id, demo.title, live.current);
-    if (act?.dataset.act === 'share') return void shareLink(act, id, demo.title);
+    if (act?.dataset.act === 'share') return openShareMenu(id, demo.title);
+    if (act?.dataset.act === 'newtab') {
+      track(`run/${id}`);
+      window.open(URL.createObjectURL(new Blob([live.doc()], { type: 'text/html' })), '_blank', 'noopener');
+      return;
+    }
     const el = target.closest<HTMLButtonElement>('[data-pane],[data-copy]');
     if (!el) return;
     if (el.dataset.pane) show(panes.find((p) => p.key === el.dataset.pane)!);

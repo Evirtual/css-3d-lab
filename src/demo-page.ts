@@ -7,7 +7,8 @@ import { initFullscreen } from './fullscreen';
 import type { Lang } from './highlight';
 import { lazyMountCards } from './lazy-mount';
 import { LiveEdit, type Part } from './live-edit';
-import { copyText, embedCode, openInCodePen, shareLink } from './share';
+import { copyText, embedCode, openInCodePen } from './share';
+import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 
 /**
@@ -89,16 +90,7 @@ if (stage && demo && box) {
     current = key;
     for (const t of tabs) t.setAttribute('aria-selected', String(t.dataset.pane === key));
     for (const b of bodies) b.hidden = b.dataset.paneBody !== key;
-    copyBtn.hidden = key === 'run';
     const pane = body(key)!;
-
-    if (key === 'run') {
-      lines.textContent = 'live';
-      note.textContent = live.edited ? 'Your edited snippet, running on its own.' : 'The snippet running on its own: exactly what you get when you paste it.';
-      pane.replaceChildren(live.frame()); // rebuilt each time, so it always reflects the latest edits
-      track(`run/${demo.id}`);
-      return;
-    }
 
     const editor = editors.get(key as Part);
     lines.textContent = `${editor ? lineCount(editor.value()) : pane.dataset.lines} lines`;
@@ -140,7 +132,7 @@ if (stage && demo && box) {
       window.open(URL.createObjectURL(new Blob([live.doc()], { type: 'text/html' })), '_blank', 'noopener');
     } else if ('copyFile' in btn.dataset) {
       if (await copyText(btn, live.doc())) track(`copy/${demo.id}/file`);
-    } else if ('shareLink' in btn.dataset) void shareLink(btn, demo.id, demo.title);
+    } else if ('shareLink' in btn.dataset) openShareMenu(demo.id, demo.title);
     else if ('shareEmbed' in btn.dataset) {
       if (await copyText(btn, embedCode(demo.id, demo.title), 'Embed code copied')) track(`embed/${demo.id}`);
     } else if ('shareCodepen' in btn.dataset) openInCodePen(demo.id, demo.title, live.current);

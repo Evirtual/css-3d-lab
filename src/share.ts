@@ -28,21 +28,6 @@ export async function copyText(btn: HTMLElement, text: string, okLabel = 'Copied
   }
 }
 
-/** Native share sheet where the browser has one (phones), otherwise copy the link. */
-export async function shareLink(btn: HTMLElement, id: string, title: string): Promise<void> {
-  const url = pageUrl(id);
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: `${title} — CSS 3D Lab`, url });
-      track(`share/${id}/native`);
-    } catch {
-      /* the visitor closed the share sheet: nothing to report */
-    }
-    return;
-  }
-  if (await copyText(btn, url, 'Link copied')) track(`share/${id}/link`);
-}
-
 /** Opens the snippet in CodePen, prefilled, via their documented POST endpoint. No server needed. */
 export function openInCodePen(id: string, title: string, snip: { html: string; css: string; js?: string }): void {
   const form = document.createElement('form');

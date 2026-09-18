@@ -137,10 +137,9 @@ function demoPage(d, index) {
           <section class="codebox page-codebox" data-codebox>
             <div class="codebox__bar">
               <div class="codebox__tabs" role="tablist">
-                <div class="codebox__seg" title="The standalone snippet: copy these into your project">
+                <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
                   ${panes.filter((x) => x.key !== 'scss').map((x) => `<button type="button" role="tab" data-pane="${x.key}" aria-selected="${x.key === 'css'}">${x.label}</button>`).join('')}
                 </div>
-                <button type="button" role="tab" class="codebox__tab--run" data-pane="run" aria-selected="false" title="Runs the snippet on its own, exactly as it works when pasted">${icon('play')} Preview</button>
                 ${scss ? `<button type="button" role="tab" class="codebox__tab--source" data-pane="scss" aria-selected="false" title="How this site builds the demo, using the project Sass mixins. For reading, not for pasting">Sass source</button>` : ''}
               </div>
               <button type="button" class="codebox__copy" data-copy-code>${icon('copy')} Copy</button>
@@ -153,7 +152,6 @@ function demoPage(d, index) {
             </div>`,
               )
               .join('\n            ')}
-            <div class="page-pane page-pane--run" data-pane-body="run" hidden></div>
             <div class="codebox__foot"><span class="code__note">Standalone snippet · plain CSS, no build step, no dependencies.</span><span class="codebox__lines"></span></div>
           </section>`;
 
@@ -211,7 +209,7 @@ function demoPage(d, index) {
             <button type="button" class="btn" data-copy-file>${icon('copy')} Copy as one HTML file</button>
           </div>
           <div class="page-tools__row">
-            <button type="button" class="btn" data-share-link>Share</button>
+            <button type="button" class="btn" data-share-link>${icon('share')} Share</button>
             <button type="button" class="btn" data-share-embed>Embed</button>
             <button type="button" class="btn" data-share-codepen>CodePen ${icon('arrow-up-right')}</button>
             <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
