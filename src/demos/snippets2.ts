@@ -25,15 +25,16 @@ const RING_TEXT = 'CSS 3D LAB • NO WEBGL • ';
 export const snippets2: Record<string, Snippet> = {
   pyramid: {
     how: [
-      'Each side is a rectangle cut into a triangle with <code>clip-path: polygon(50% 0, 0 100%, 100% 100%)</code>.',
-      'Like a cube face: <code>rotateY(n × 90deg) translateZ(base / 2)</code> puts it on one side of the base.',
-      'Then <code>rotateX</code> with <code>transform-origin: bottom</code> leans it inward. The angle that makes all four tips meet is <code>asin((base / 2) / slant)</code> — 30° when base and slant height are equal.',
-      'The floor is a square laid flat with <code>rotateX(90deg)</code>.',
+      "Each side is a rectangle cut into a triangle with <code>clip-path: polygon(50% 0, 0 100%, 100% 100%)</code>.",
+      "Like a cube face: <code>rotateY(n × 90deg) translateZ(base / 2)</code> puts it on one side of the floor.",
+      "Then <code>rotateX</code> with <code>transform-origin: bottom</code> leans it inward. The angle that makes all four tips meet is <code>asin((base / 2) / slant)</code>: 30° when base and slant height are equal.",
+      "The faces are <b>see-through</b> (colours with transparency), so the far faces and the glowing core inside show through. The core spins back against the pyramid (<code>rotateY(-360deg)</code> on the same timing), so it always faces you and stays round.",
     ],
     html: `<div class="scene">
   <div class="pyramid">
     <i></i><i></i><i></i><i></i>
     <b></b>
+    <u></u>
   </div>
 </div>`,
     css: `.scene {
@@ -46,62 +47,83 @@ export const snippets2: Record<string, Snippet> = {
   width: var(--base);
   height: var(--base);        /* slant height = base → lean is exactly 30deg */
   transform-style: preserve-3d;
-  animation: pyramid-spin 10s linear infinite;
+  animation: pyramid-spin 12s linear infinite;
 }
 
+/* glass faces: see-through, so the far faces and the core show through */
 .pyramid i {
+  --c: #2ee6d6;
   position: absolute;
   inset: 0;
   clip-path: polygon(50% 0, 0 100%, 100% 100%);
   transform-origin: bottom center;
+  background:
+    linear-gradient(90deg, transparent 44%, rgb(255 255 255 / 0.18) 50%, transparent 56%),
+    linear-gradient(color-mix(in srgb, var(--c) 78%, transparent), rgb(139 108 255 / 0.22));
 }
 
-.pyramid i:nth-child(1) {
-  background: linear-gradient(#ffb547, #b3651a);
-  transform: rotateY(0deg) translateZ(calc(var(--base) / 2)) rotateX(30deg);
+.pyramid i:nth-child(even) {
+  --c: #ff4d9d;
 }
 
-.pyramid i:nth-child(2) {
-  background: linear-gradient(#ffc257, #c27420);
-  transform: rotateY(90deg) translateZ(calc(var(--base) / 2)) rotateX(30deg);
-}
+.pyramid i:nth-child(1) { transform: rotateY(0deg)   translateZ(calc(var(--base) / 2)) rotateX(30deg); }
+.pyramid i:nth-child(2) { transform: rotateY(90deg)  translateZ(calc(var(--base) / 2)) rotateX(30deg); }
+.pyramid i:nth-child(3) { transform: rotateY(180deg) translateZ(calc(var(--base) / 2)) rotateX(30deg); }
+.pyramid i:nth-child(4) { transform: rotateY(270deg) translateZ(calc(var(--base) / 2)) rotateX(30deg); }
 
-.pyramid i:nth-child(3) {
-  background: linear-gradient(#ffcf6b, #d18427);
-  transform: rotateY(180deg) translateZ(calc(var(--base) / 2)) rotateX(30deg);
-}
-
-.pyramid i:nth-child(4) {
-  background: linear-gradient(#ffdb80, #df942f);
-  transform: rotateY(270deg) translateZ(calc(var(--base) / 2)) rotateX(30deg);
-}
-
-/* floor */
+/* floor: dark glass with a glowing rim */
 .pyramid b {
   position: absolute;
   inset: auto 0 0;
   height: var(--base);
-  background: #5f3311;
+  border: 1px solid rgb(46 230 214 / 0.7);
+  background: rgb(139 108 255 / 0.3);
+  box-shadow: 0 0 34px rgb(139 108 255 / 0.6);
   transform: translateY(50%) rotateX(90deg);
 }
 
+/* the core: a third of the way up (the pyramid stands base × cos 30deg ≈ 121px tall). It turns
+   back against the spin, so it always faces you and stays round. */
+.pyramid u {
+  position: absolute;
+  top: 101px;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 18%, #ffb547 42%, transparent 72%);
+  animation: face-you 12s linear infinite, pulse 2.4s ease-in-out infinite alternate;
+}
+
 @keyframes pyramid-spin {
-  from { transform: rotateX(-18deg) rotateY(0deg); }
-  to   { transform: rotateX(-18deg) rotateY(360deg); }
+  from { transform: translateY(-20px) rotateX(-16deg) rotateY(0deg); }
+  to   { transform: translateY(-20px) rotateX(-16deg) rotateY(360deg); }
+}
+
+@keyframes face-you {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(-360deg); }
+}
+
+@keyframes pulse {
+  from { opacity: 0.75; scale: 0.85; }
+  to   { opacity: 1; scale: 1.15; }
 }`,
   },
 
   cylinder: {
     how: [
-      'There are no curved surfaces in CSS 3D, so approximate: 24 flat strips arranged in a circle.',
-      'Strip width for a closed ring is <code>2 × r × tan(180° / n)</code>. For r = 80px and n = 24 that is ≈ 21px; add 1px so no seams show.',
-      'Placement is the carousel trick: <code>rotateY(i × 15deg) translateZ(r)</code>.',
-      'Shift the hue per strip and the flat facets read as a smooth shaded surface.',
+      "There are no curved surfaces in CSS 3D, so approximate: 24 flat strips arranged in a circle.",
+      "Strip width for a closed ring is <code>2 × r × tan(180° / n)</code>. For r = 80px and n = 24 that is ≈ 21px; add 1px so no seams show.",
+      "Placement is the carousel trick: <code>rotateY(i × 15deg) translateZ(r)</code>. Semi-transparent strips let the far side show through, which is what makes it read as glass.",
+      "The rings of light are circles laid flat with <code>rotateX(90deg)</code>. They rise by animating <code>translate</code>, which is applied before <code>transform</code>, so \"up\" is the tube's own vertical.",
     ],
     html: `<div class="scene">
   <div class="cylinder">
 ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
-    <b></b>
+    <b></b><s></s>
+    <u></u><u></u><u></u>
   </div>
 </div>`,
     css: `.scene {
@@ -110,35 +132,74 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
 
 .cylinder {
   --r: 80px;
+  --h: 180px;
   position: relative;
   width: 22px;                 /* 2 × 80 × tan(7.5deg) + 1px */
-  height: 170px;
+  height: var(--h);
   transform-style: preserve-3d;
-  animation: cylinder-spin 9s linear infinite;
+  animation: cylinder-spin 14s linear infinite;
 }
 
+/* see-through strips: the far side of the tube shows through the near one */
 .cylinder i {
   position: absolute;
   inset: 0;
-  background: hsl(calc(170 + var(--i) * 15) 80% 58%);
+  background:
+    linear-gradient(rgb(255 255 255 / 0.55) 0 2px, transparent 2px calc(100% - 2px), rgb(255 255 255 / 0.4) calc(100% - 2px)),
+    linear-gradient(hsl(calc(170 + var(--i) * 6) 85% 62% / 0.5), hsl(calc(250 + var(--i) * 3) 80% 58% / 0.14));
   transform: rotateY(calc(var(--i) * 15deg)) translateZ(var(--r));
 }
 
-/* lid */
-.cylinder b {
+/* lid (b) and floor (s): glass discs laid flat */
+.cylinder b,
+.cylinder s {
   position: absolute;
-  top: calc(var(--r) * -1);
   left: calc(50% - var(--r));
   width: calc(var(--r) * 2);
   height: calc(var(--r) * 2);
+  box-sizing: border-box;
+  border: 1px solid rgb(255 255 255 / 0.4);
   border-radius: 50%;
-  background: #17506e;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.16), rgb(139 108 255 / 0.22) 70%);
   transform: rotateX(90deg);
 }
 
+.cylinder b { top: calc(var(--r) * -1); }
+
+.cylinder s {
+  top: calc(var(--h) - var(--r));
+  box-shadow: 0 0 40px rgb(46 230 214 / 0.55);
+}
+
+/* rings of light rising through the tube. \`translate\` moves them up the tube's own vertical,
+   before the rotateX that lays them flat. */
+.cylinder u {
+  position: absolute;
+  top: calc(var(--h) - var(--r) + 8px);
+  left: calc(50% - var(--r) + 8px);
+  width: calc(var(--r) * 2 - 16px);
+  height: calc(var(--r) * 2 - 16px);
+  box-sizing: border-box;
+  border: 2px solid #2ee6d6;
+  border-radius: 50%;
+  box-shadow: 0 0 14px #2ee6d6, inset 0 0 14px #2ee6d6;
+  opacity: 0;
+  transform: rotateX(90deg);
+  animation: rise 3.6s linear infinite;
+}
+
+.cylinder u:nth-of-type(2) { animation-delay: -1.2s; }
+.cylinder u:nth-of-type(3) { animation-delay: -2.4s; }
+
 @keyframes cylinder-spin {
-  from { transform: rotateX(-22deg) rotateY(0deg); }
-  to   { transform: rotateX(-22deg) rotateY(360deg); }
+  from { transform: rotateX(-20deg) rotateY(0deg); }
+  to   { transform: rotateX(-20deg) rotateY(360deg); }
+}
+
+@keyframes rise {
+  0%       { opacity: 0; translate: 0 -4px; }
+  15%, 80% { opacity: 1; }
+  100%     { opacity: 0; translate: 0 calc(var(--h) * -1 + 12px); }
 }`,
   },
 

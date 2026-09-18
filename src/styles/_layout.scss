@@ -1174,8 +1174,7 @@ input {
   display: grid;
   place-items: center;
   height: 260px;
-  perspective: 800px;
-  overflow: hidden;
+  overflow: hidden; // (the camera, perspective, is on the scene inside: see .stage > .scene)
   border-bottom: 1px solid var(--border);
   background:
     radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
@@ -1232,8 +1231,12 @@ input {
 // scene is a stretched bitmap: 3D layers go soft.) A filling scene keeps inset: 0, so it still
 // fills the stage, laid out at about a card's size.
 .stage > .scene {
-  zoom: var(--fit, 1);
+  zoom: calc(var(--fit, 1) * var(--size, 1));
+  // The camera is on the scene, INSIDE the zoom, so its distance grows with the demo: a demo
+  // looks the same (not more dramatic) in a card, the dialog, the page and full screen.
+  perspective: 800px;
 }
+// (a visitor's edited version runs in a frame that scales its own content: see standaloneDoc)
 
 .scene {
   display: grid;
@@ -1284,49 +1287,56 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 }
 
-.footer {
-  padding: 30px 20px 50px;
-  color: var(--muted);
-  font-size: 13px;
-  text-align: center;
-
-  p + p {
-    margin-top: 6px;
-  }
-
-  a {
-    color: var(--accent-2);
-  }
-}
-
 /* ---------- detail viewer ---------- */
 
+// The dialog is the overlay: it covers the screen and is what scrolls. The glass panel inside is
+// a sheet: some air above it, and it runs to the bottom edge (and on, as you scroll), so there is
+// never a second scrollbar inside the panel.
 .viewer {
-  width: min(1180px, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px);
-  padding: 26px;
+  // 100vw, not 100%: the page keeps its scrollbar space reserved (so it does not jump when it
+  // is locked), and a 100%-wide overlay left that strip uncovered at the right edge
+  width: 100vw;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 32px 12px 0;
   overflow: hidden auto;
-  border: 1px solid var(--glass-edge);
-  border-radius: 22px;
-  // Frosted glass: the gallery stays visible as soft colour behind the dialog. It is cheap here
-  // because everything behind an open dialog is paused, so the blur is computed once, not per
-  // frame. The stage and the code window inside stay opaque, so content never loses contrast.
-  background: var(--glass);
-  backdrop-filter: blur(26px) saturate(1.6);
+  border: 0;
+  background: none;
   color: var(--text);
-  box-shadow:
-    0 40px 120px -20px rgb(0 0 0 / 0.8),
-    inset 0 1px 0 var(--glass-edge);
+  overscroll-behavior: contain;
 
-  // Only a light dim: a heavy backdrop would leave nothing for the glass to show.
+  &__panel {
+    width: min(1180px, 100%);
+    min-height: 100%; // reaches the bottom edge even when the content is short
+    margin: 0 auto;
+    padding: 26px;
+    border: 1px solid var(--glass-edge);
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+    // Frosted glass: the gallery stays visible as soft colour behind the dialog. It is cheap
+    // here because everything behind an open dialog is paused, so the blur is computed once, not
+    // per frame. The stage and the code window inside stay opaque, so content keeps its contrast.
+    background: var(--glass);
+    backdrop-filter: blur(26px) saturate(1.6);
+    box-shadow:
+      0 40px 120px -20px rgb(0 0 0 / 0.8),
+      inset 0 1px 0 var(--glass-edge);
+  }
+
+  // The page behind goes well out of focus, so the dialog is clearly the thing to look at; the
+  // glass still shows its colours softly.
   &::backdrop {
     background: var(--glass-dim);
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(10px) saturate(1.2);
   }
 
   // Browsers without backdrop-filter get a solid panel instead of unreadable see-through text.
   @supports not (backdrop-filter: blur(1px)) {
-    background: var(--surface-solid);
+    &__panel {
+      background: var(--surface-solid);
+    }
   }
 
   &[open] {
@@ -1335,7 +1345,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   &__close {
     position: sticky;
-    top: 0;
+    top: 12px;
     z-index: 2;
     float: right;
   }
@@ -2262,8 +2272,9 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
 /* ---------- phones ---------- */
 
-@media (max-width: 600px) {
-  // top bar: icon-only buttons (each has an aria-label), one row
+// Top bar: below this width the labelled buttons no longer fit on one row beside the name, so
+// they turn into icon-only buttons (each has an aria-label). One row at every width.
+@media (max-width: 960px) {
   .topbar {
     flex-wrap: nowrap;
     padding: 12px 16px;
@@ -2290,13 +2301,14 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       display: none;
     }
 
-    #pause .btn__label,
-    #theme .btn__label,
-    .btn--kofi .btn__label {
+    .btn__label {
       display: none;
     }
   }
 
+}
+
+@media (max-width: 600px) {
   .hero {
     padding: 8px 16px 28px;
   }
@@ -2390,16 +2402,15 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     align-items: flex-start;
   }
 
-  // dialog: use the whole screen
+  // dialog: the panel uses the whole screen
   .viewer {
-    width: 100vw;
-    max-width: none;
-    max-height: 100dvh;
-    height: 100dvh;
-    margin: 0;
-    padding: 16px;
-    border: 0;
-    border-radius: 0;
+    padding: 0;
+
+    &__panel {
+      padding: 16px;
+      border: 0;
+      border-radius: 0;
+    }
 
     &__head h2 {
       padding-right: 44px; // room for the close button

@@ -1,0 +1,260 @@
+{
+  "accordion": {
+    "size": 0.9
+  },
+  "anaglyph": {
+    "size": 1.25
+  },
+  "badge": {
+    "size": 0.9
+  },
+  "bars": {
+    "size": 1.25,
+    "x": -5,
+    "y": -29
+  },
+  "book": {
+    "size": 0.95,
+    "x": 6,
+    "y": 19
+  },
+  "browser": {
+    "size": 1.35,
+    "x": -4,
+    "y": -15
+  },
+  "button": {
+    "size": 1.5
+  },
+  "can": {
+    "size": 1.25
+  },
+  "cardfan": {
+    "size": 0.9,
+    "x": 0,
+    "y": -28
+  },
+  "cardstack": {
+    "size": 1.45,
+    "x": -9,
+    "y": 0
+  },
+  "carousel": {
+    "size": 1.2
+  },
+  "check": {
+    "size": 1.3
+  },
+  "clock": {
+    "size": 1,
+    "x": -5,
+    "y": 0
+  },
+  "coin": {
+    "size": 1.2,
+    "x": 0,
+    "y": 4
+  },
+  "cone": {
+    "size": 1.2,
+    "x": 0,
+    "y": -15
+  },
+  "cube": {
+    "size": 1.25
+  },
+  "cubegrid": {
+    "size": 1.35
+  },
+  "cubeloader": {
+    "size": 1.5
+  },
+  "diamond": {
+    "size": 1.45
+  },
+  "door": {
+    "size": 0.95
+  },
+  "equalizer": {
+    "size": 1.2
+  },
+  "explode": {
+    "size": 1.15
+  },
+  "ferris": {
+    "size": 0.8,
+    "x": -4,
+    "y": 8
+  },
+  "flaptext": {
+    "size": 1.25
+  },
+  "flip": {
+    "size": 1.4
+  },
+  "flipgrid": {
+    "size": 1.3
+  },
+  "flipper": {
+    "size": 1.5
+  },
+  "fold": {
+    "size": 1.15,
+    "x": 0,
+    "y": -15
+  },
+  "foldtext": {
+    "size": 1.5
+  },
+  "globe": {
+    "size": 0.9
+  },
+  "gyro": {
+    "size": 0.9
+  },
+  "helix": {
+    "size": 0.9
+  },
+  "hovercards": {
+    "size": 1.15
+  },
+  "island": {
+    "size": 0.9
+  },
+  "laptop": {
+    "size": 0.9,
+    "x": -7,
+    "y": 12
+  },
+  "layers": {
+    "size": 0.9,
+    "x": 0,
+    "y": 20
+  },
+  "layertext": {
+    "size": 1.45
+  },
+  "logo3d": {
+    "size": 1.4
+  },
+  "magnet": {
+    "size": 1.1
+  },
+  "map": {
+    "size": 1.2,
+    "x": -6,
+    "y": -14
+  },
+  "net": {
+    "size": 1.15,
+    "x": -17,
+    "y": 0
+  },
+  "octa": {
+    "size": 1.15
+  },
+  "orbit": {
+    "size": 0.8
+  },
+  "package": {
+    "size": 1.1,
+    "x": 0,
+    "y": -13
+  },
+  "paycard": {
+    "size": 1.25
+  },
+  "pie": {
+    "size": 1.2
+  },
+  "polaroid": {
+    "size": 1.2,
+    "x": 0,
+    "y": -8
+  },
+  "pricing": {
+    "size": 1.15,
+    "x": 0,
+    "y": 4
+  },
+  "prism": {
+    "size": 1.05
+  },
+  "pyramid": {
+    "size": 1.35,
+    "x": 0,
+    "y": 6
+  },
+  "radial": {
+    "size": 1.5,
+    "x": 0,
+    "y": -11
+  },
+  "rings": {
+    "size": 0.95
+  },
+  "ripple": {
+    "size": 1.1
+  },
+  "rollbutton": {
+    "size": 1.4
+  },
+  "rubik": {
+    "size": 1.3
+  },
+  "shadowtext": {
+    "size": 1.45,
+    "x": 0,
+    "y": -17
+  },
+  "sign": {
+    "size": 1.1,
+    "x": 6,
+    "y": 21
+  },
+  "solar": {
+    "size": 0.95,
+    "x": 0,
+    "y": -8
+  },
+  "stairs": {
+    "size": 1.2,
+    "x": 0,
+    "y": 4
+  },
+  "swipe": {
+    "size": 0.95
+  },
+  "switch": {
+    "size": 1.15
+  },
+  "tabs": {
+    "size": 1.15
+  },
+  "text": {
+    "size": 1.25
+  },
+  "textring": {
+    "size": 1.45
+  },
+  "tiles": {
+    "size": 1.05
+  },
+  "torus": {
+    "size": 1.1
+  },
+  "vinyl": {
+    "size": 1.4,
+    "x": 7,
+    "y": 0
+  },
+  "watch": {
+    "size": 1.05
+  },
+  "waveletters": {
+    "size": 1.05
+  },
+  "wordcube": {
+    "size": 1.25
+  }
+}

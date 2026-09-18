@@ -17,11 +17,14 @@
     <meta property="og:title" content="CSS 3D Lab — %DEMO_COUNT% CSS 3D effects with copy-paste code" />
     <meta property="og:description" content="Cubes, pyramids, flip cards, carousels, loaders and more, built with CSS 3D transforms. Each with a live demo, an explanation and code you can copy." />
     <meta property="og:url" content="https://css3dlab.edgarasneverdauskas.com/" />
-    <meta property="og:image" content="https://css3dlab.edgarasneverdauskas.com/media/home.jpg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image" content="https://css3dlab.edgarasneverdauskas.com/media/home.jpg?v=%IMAGE_VERSION%" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:image:alt" content="CSS 3D Lab: %DEMO_COUNT% CSS 3D effects with live demos and copy-paste code" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://css3dlab.edgarasneverdauskas.com/media/home.jpg" />
+    <meta name="twitter:image" content="https://css3dlab.edgarasneverdauskas.com/media/home.jpg?v=%IMAGE_VERSION%" />
+    <meta name="twitter:image:alt" content="CSS 3D Lab: %DEMO_COUNT% CSS 3D effects with live demos and copy-paste code" />
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"CSS 3D Lab","url":"https://css3dlab.edgarasneverdauskas.com/","description":"A free, open-source gallery of CSS 3D effects with live demos, explanations and copy-paste code.","inLanguage":"en","license":"https://opensource.org/licenses/MIT"}</script>
   </head>
   <body>
@@ -101,17 +104,15 @@
     </div>
 
     <dialog id="viewer" class="viewer">
-      <form method="dialog" class="viewer__close"><button class="btn btn--icon" aria-label="Close" data-icon="x"></button></form>
-      <div id="viewer-body"></div>
+      <div class="viewer__panel">
+        <form method="dialog" class="viewer__close"><button class="btn btn--icon" aria-label="Close" data-icon="x"></button></form>
+        <div id="viewer-body"></div>
+      </div>
     </dialog>
 
     <!--all-demos-->
 
-    <footer class="footer">
-      <p>Built with Vite, TypeScript and SCSS · every demo ships with a standalone snippet you can run and copy.</p>
-      <p>© 2026 Evirtual · <a href="https://github.com/Evirtual/css-3d-lab/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a> — all snippets are free to use in your own projects, no attribution needed.</p>
-      <p>Free and ad-free. If it saved you time, you can <a href="https://ko-fi.com/edgarasneverdauskas" target="_blank" rel="noopener">support it on Ko-fi</a>.</p>
-    </footer>
+    <!--site-footer-->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

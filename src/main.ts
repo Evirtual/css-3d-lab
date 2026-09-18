@@ -19,6 +19,7 @@ import { snippets } from './demos/snippets';
 import { CATEGORY_LABEL, type Category, type Demo } from './demos/types';
 import { highlight, type Lang } from './highlight';
 import { hydrateIcons, icon } from './icons';
+import { sizeScene } from './demos/size';
 
 const REPO = 'https://github.com/Evirtual/css-3d-lab';
 const KOFI = 'https://ko-fi.com/edgarasneverdauskas';
@@ -71,6 +72,7 @@ let uid = 0;
 function mount(demo: Demo, stage: HTMLElement): () => void {
   const scene = document.createElement('div');
   scene.className = `scene${demo.fill ? ' scene--fill' : ''}`;
+  sizeScene(scene, demo.id);
   scene.innerHTML = demo.html.replaceAll('{{uid}}', String(++uid));
   stage.replaceChildren(scene);
   const cleanup = demo.init?.(scene, stage);

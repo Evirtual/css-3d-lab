@@ -3,7 +3,7 @@
   grid-template-rows: 1fr auto;
   width: 100%;
   height: 100%;
-  padding: 8px 14px 10px;
+  padding: 10px 14px 14px; // the control dock: the same place in every demo with controls
 
   &__view {
     display: grid;
@@ -30,11 +30,14 @@
     }
   }
 
+  // the site's control pattern: the text centred on top, the slider under it
   label {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-    width: min(100%, 280px); // centred under the demo, like every control row
+    justify-content: center;
+    gap: 4px 6px;
+    width: min(100%, 260px);
     margin-inline: auto;
     color: var(--muted);
     font-family: var(--mono);
@@ -47,7 +50,7 @@
   }
 
   input {
-    flex: 1;
+    flex: 1 1 100%;
     accent-color: var(--warm);
   }
 }

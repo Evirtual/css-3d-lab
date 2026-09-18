@@ -5,7 +5,7 @@
   grid-template-rows: 1fr auto;
   width: 100%;
   height: 100%;
-  padding: 10px 14px;
+  padding: 10px 14px 14px; // the control dock: the same place in every demo with controls
 
   &__view {
     display: grid;
@@ -73,28 +73,34 @@
     }
   }
 
+  // the site's control pattern: the status centred on top, the control centred under it
   &__bar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
-    width: min(100%, 320px); // centred under the prism, like every control row
+    justify-content: center;
+    gap: 4px 10px;
+    width: min(100%, 300px);
     margin-inline: auto;
     color: var(--muted);
     font-size: 13px;
 
     input {
-      flex: 1;
+      flex: 1 1 100%;
       min-width: 0;
       accent-color: var(--accent);
     }
 
-    // wide enough for "11 · hendecagon", so the slider does not jump as the text changes
+    label {
+      order: -2;
+    }
+
     output {
-      min-width: 15ch;
+      order: -1;
       color: var(--text);
       font-family: var(--mono);
       font-size: 12px;
-      text-align: right;
+      text-align: center;
     }
   }
 }

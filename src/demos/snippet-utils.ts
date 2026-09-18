@@ -9,9 +9,24 @@ export interface Snippet {
 
 /**
  * The complete page for a snippet. With `stage`, the page is see-through and its text follows that
- * theme: that is how an edited snippet runs inside the site's own stage.
+ * theme: that is how an edited snippet runs inside the site's own stage. It then also scales its
+ * content with the frame, like every stage does (`size` is the demo's own size factor): the frame
+ * does it itself, because zooming an iframe from outside behaves differently between browsers.
  */
-export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light'): string {
+export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light', size = 1): string {
+  const fit = stage
+    ? `<style>body > * { zoom: var(--fit, 1); }</style>
+<script>
+(function () {
+  function fit() {
+    var f = Math.max(0.85, Math.min(6, innerWidth / 340, innerHeight / 260)) * ${size};
+    document.documentElement.style.setProperty('--fit', f.toFixed(3));
+  }
+  fit();
+  addEventListener('resize', fit);
+})();
+</script>`
+    : '';
   const background = stage ? 'transparent' : '#0b0d18';
   const color = stage === 'light' ? '#14172b' : '#eceefb';
   return `<!doctype html>
@@ -34,6 +49,7 @@ body {
 
 ${s.css}
 </style>
+${fit}
 </head>
 <body>
 

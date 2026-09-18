@@ -11,6 +11,9 @@ $step: $head + $gap;
   height: $step * 3 + $panel;
   transform-style: preserve-3d;
   transform: rotateY(-18deg) rotateX(4deg);
+  // the frame is coplanar with the headers: take it out of hit-testing so a header always gets
+  // the click (at some sizes the frame won over the last one)
+  pointer-events: none;
 
   // Real radios keep it keyboard-friendly (arrow keys move between sections); they are only hidden.
   > input {
@@ -33,6 +36,7 @@ $step: $head + $gap;
   }
 
   label {
+    pointer-events: auto;
     display: flex;
     align-items: center;
     justify-content: space-between;

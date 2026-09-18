@@ -109,6 +109,7 @@ export const pureDemos: Demo[] = [
     category: 'css',
     tags: ['form-hack', 'controls'],
     technique: [':checked ~ sibling selector', 'transition on transform', 'appearance: none'],
+    fill: true,
     html: `<div class="d-radio">
       ${['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']
         .map((l, i) => `<input type="radio" name="face-{{uid}}" aria-label="${l}" title="${l}"${i === 0 ? ' checked' : ''} />`)

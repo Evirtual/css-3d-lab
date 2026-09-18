@@ -34,7 +34,34 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 const strip = (html) => html.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 const kind = (d) => (d.category === 'css' ? 'pure CSS' : 'CSS + JavaScript');
 
-function shell({ path, depth, title, description, jsonLd, body, script, image }) {
+// Share images are 2400 × 1260 (1200 × 630 laid out at 2x): see scripts/generate-media.mjs.
+// ?v= changes with every build, so a link shared after a deploy gets the current image instead of
+// a copy the sharing site kept from before. (Posts shared earlier keep their old picture: nobody
+// can change that.)
+const IMAGE_VERSION = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+/** The footer on every page: brand, what the site is, Ko-fi, then licence, GitHub, copyright. */
+function siteFooter(up) {
+  const year = new Date().getFullYear();
+  return `<footer class="site-footer">
+      <div class="site-footer__main">
+        <div class="site-footer__brand">
+          <a class="topbar__brand" href="${up}"><span class="logo-cube" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>${esc(site.name)}</a>
+          <p>CSS 3D effects to learn from and reuse: live demos, how each one works, and code you can copy. Free and ad-free.</p>
+        </div>
+        <div class="site-footer__cta">
+          <p>Saved you some time?</p>
+          <a class="btn btn--kofi" href="${site.kofi}" target="_blank" rel="noopener">${icon('coffee')} Buy me a coffee</a>
+        </div>
+      </div>
+      <div class="site-footer__legal">
+        <span>© ${year} ${esc(site.author)}</span>
+        <a href="${site.repo}/blob/main/LICENSE" target="_blank" rel="noopener">MIT licence: every snippet is free to use</a>
+        <a href="${site.repo}" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
+      </div>
+    </footer>`;
+}
+
+function shell({ path, depth, title, description, jsonLd, body, script, image, imageAlt }) {
   const up = '../'.repeat(depth);
   const url = `${site.url}/${path}`;
   return `<!doctype html>
@@ -52,11 +79,14 @@ function shell({ path, depth, title, description, jsonLd, body, script, image })
     <meta property="og:url" content="${url}" />
     ${
       image
-        ? `<meta property="og:image" content="${site.url}/${image}" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+        ? `<meta property="og:image" content="${site.url}/${image}?v=${IMAGE_VERSION}" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:image:alt" content="${esc(imageAlt)}" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="${site.url}/${image}" />`
+    <meta name="twitter:image" content="${site.url}/${image}?v=${IMAGE_VERSION}" />
+    <meta name="twitter:image:alt" content="${esc(imageAlt)}" />`
         : '<meta name="twitter:card" content="summary" />'
     }
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
@@ -83,9 +113,7 @@ function shell({ path, depth, title, description, jsonLd, body, script, image })
       </div>
     </nav>
 ${body}
-    <footer class="footer">
-      <p>© 2026 ${esc(site.author)} · <a href="${site.repo}/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a> — every snippet is free to use in your own projects.</p>
-    </footer>
+    ${siteFooter(up)}
     <script type="module" src="/src/${script}"></script>
   </body>
 </html>
@@ -266,7 +294,7 @@ function demoPage(d, index) {
       </section>
     </main>`;
 
-  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: `media/${d.id}.jpg` });
+  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: `media/${d.id}.jpg`, imageAlt: `${d.title}: a CSS 3D effect, ${kind(d)}` });
 }
 
 /* ---------- embed pages: just the demo, for iframes and for the build-time recorder ---------- */
@@ -285,11 +313,39 @@ function embedPage(d) {
   <body class="embed">
     <div class="stage" data-demo="${d.id}"></div>
     <div class="embed__og" aria-hidden="true">
-      <span class="embed__og-kind">${kind(d)}</span>
+      <div class="embed__og-tags"><span class="embed__og-kind">${kind(d)}</span></div>
       <b>${esc(d.title)}</b>
       <span class="embed__og-site"><img class="embed__og-logo" src="../../icon.svg" alt="" /><span class="embed__og-name">${esc(site.name)}</span><span class="embed__og-url">${site.url.replace('https://', '')}</span></span>
     </div>
     <a class="embed__credit" href="${site.url}/demos/${d.id}/" target="_blank" rel="noopener">${esc(d.title)} · ${esc(site.name)} ${icon('arrow-up-right')}</a>
+    <script type="module" src="/src/embed.ts"></script>
+  </body>
+</html>
+`;
+}
+
+/* ---------- the home page's share image: the embed template with the site's own cube ---------- */
+
+// Nothing in a share image may go stale (a count, a group name): every site that shows a shared
+// link keeps its own copy of the image, and an old post never picks up a new one.
+function coverPage() {
+  return `<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <title>${esc(site.name)}: share image</title>
+  </head>
+  <body class="embed og-cover">
+    <div class="stage"><div class="scene"><div class="hero__cube"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>
+    <div class="embed__og" aria-hidden="true">
+      <div class="embed__og-tags"><span class="embed__og-kind">CSS 3D effects</span></div>
+      <b>3D on the web, <span>no WebGL required.</span></b>
+      <span class="embed__og-sub">Live demos, how each one works, and code you can copy. Free.</span>
+      <span class="embed__og-site"><img class="embed__og-logo" src="../../icon.svg" alt="" /><span class="embed__og-name">${esc(site.name)}</span><span class="embed__og-url">${site.url.replace('https://', '')}</span></span>
+    </div>
     <script type="module" src="/src/embed.ts"></script>
   </body>
 </html>
@@ -343,7 +399,7 @@ function groupPage(g) {
           .join(' ')}</p>
       </section>
     </main>`;
-  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts' });
+  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: 'media/home.jpg', imageAlt: `${site.name}: ${demos.length} CSS 3D effects with live demos and copy-paste code` });
 }
 
 /* ---------- write everything ---------- */
@@ -357,6 +413,7 @@ for (const dir of ['demos', 'groups', 'embed', 'src/generated']) rmSync(dir, { r
 
 demos.forEach((d, i) => write(`demos/${d.id}/index.html`, demoPage(d, i)));
 for (const d of demos) write(`embed/${d.id}/index.html`, embedPage(d));
+write('embed/cover/index.html', coverPage());
 write('src/generated/demo-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, how: interactionOf(d), pointer: interactionOf(d) !== 'none', hover: interactionOf(d) === 'hover' }))));
 for (const g of GROUP_ORDER) write(`groups/${g}/index.html`, groupPage(g));
 
@@ -364,15 +421,18 @@ for (const g of GROUP_ORDER) write(`groups/${g}/index.html`, groupPage(g));
 write(
   'src/generated/all-demos.html',
   `<nav class="all-demos" aria-label="All demos">
-      <h2>All ${demos.length} demos</h2>
-      ${GROUP_ORDER.map(
-        (g) => `<section><h3><a href="groups/${g}/">${esc(GROUPS[g])}</a></h3><ul>${demos
-          .filter((d) => d.group === g)
+      <h2>Every demo <span>${demos.length} in ${GROUP_ORDER.length} groups</span></h2>
+      <div class="all-demos__groups">
+      ${GROUP_ORDER.map((g) => {
+        const members = demos.filter((d) => d.group === g);
+        return `<section><h3><a href="groups/${g}/">${esc(GROUPS[g])} <b>${members.length}</b></a></h3><ul>${members
           .map((d) => `<li><a href="demos/${d.id}/">${esc(d.title)}</a></li>`)
-          .join('')}</ul></section>`,
-      ).join('\n      ')}
+          .join('')}</ul></section>`;
+      }).join('\n      ')}
+      </div>
     </nav>`,
 );
+write('src/generated/footer.html', siteFooter(''));
 
 const today = new Date().toISOString().slice(0, 10);
 const urls = ['', ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `demos/${d.id}/`)];

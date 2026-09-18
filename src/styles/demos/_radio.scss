@@ -4,11 +4,18 @@
 // Rotation that brings each face to the front: Front, Right, Back, Left, Top, Bottom.
 $views: (rotateY(0deg), rotateY(-90deg), rotateY(-180deg), rotateY(90deg), rotateX(-90deg), rotateX(90deg));
 
+// The cube in the middle of the stage, the six squares in the control dock at the bottom (the
+// same place as every demo's controls). They stay the cube's siblings: that is what lets
+// `:checked ~ .d-radio__cube` steer it without JavaScript.
 .d-radio {
   display: grid;
   grid-template-columns: repeat(6, auto);
+  grid-template-rows: minmax(0, 1fr) auto;
   justify-content: center;
-  gap: 18px 6px;
+  gap: 0 8px;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 14px;
   transform-style: preserve-3d;
 
   input {
@@ -36,11 +43,10 @@ $views: (rotateY(0deg), rotateY(-90deg), rotateY(-180deg), rotateY(90deg), rotat
     --s: 92px;
     grid-row: 1;
     grid-column: 1 / -1;
-    justify-self: center;
+    place-self: center;
     position: relative;
     width: var(--s);
     height: var(--s);
-    margin: 14px 0 8px;
     transform-style: preserve-3d;
     transform: rotateX(-18deg) rotateY(-22deg);
     transition: transform 0.9s cubic-bezier(0.3, 1.3, 0.5, 1);

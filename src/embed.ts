@@ -1,6 +1,7 @@
 import './styles/main.scss';
 import { demos } from './demos';
 import { fitStages } from './fit';
+import { sizeScene } from './demos/size';
 
 /**
  * /embed/<id>/ — just the demo, filling the frame. Used two ways:
@@ -15,6 +16,7 @@ const demo = stage && demos.find((d) => d.id === stage.dataset.demo);
 if (stage && demo) {
   const scene = document.createElement('div');
   scene.className = `scene${demo.fill ? ' scene--fill' : ''}`;
+  sizeScene(scene, demo.id);
   scene.innerHTML = demo.html.replaceAll('{{uid}}', 'embed');
   stage.replaceChildren(scene);
   demo.init?.(scene, stage);

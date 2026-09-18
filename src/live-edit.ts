@@ -1,4 +1,5 @@
 import { standaloneDoc } from './demos/snippet-utils';
+import sizes from './demos/sizes.json';
 
 /**
  * One demo's editable snippet. Edits are kept in localStorage per demo, so they survive a reload
@@ -62,7 +63,7 @@ export class LiveEdit {
     frame.className = 'live-frame';
     frame.title = `${this.title} — your edited version`;
     frame.setAttribute('sandbox', 'allow-scripts');
-    frame.srcdoc = standaloneDoc(this.title, { how: [], ...this.current }, stage);
+    frame.srcdoc = standaloneDoc(this.title, { how: [], ...this.current }, stage, (sizes as Record<string, { size: number }>)[this.id]?.size ?? 1);
     return frame;
   }
 }

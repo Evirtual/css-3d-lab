@@ -28,7 +28,13 @@ function allDemosLinks(): Plugin {
       const ids = resolve(root, 'src/generated/demo-ids.json');
       if (!existsSync(file) || !existsSync(ids)) throw new Error(`${ctx.filename}: run "npm run generate" first (missing ${file})`);
       const count = String(JSON.parse(readFileSync(ids, 'utf8')).length);
-      return html.replace('<!--all-demos-->', readFileSync(file, 'utf8')).replaceAll('%DEMO_COUNT%', count);
+      // %IMAGE_VERSION%: a new share-image address per build (see IMAGE_VERSION in generate-pages)
+      const version = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+      return html
+        .replace('<!--all-demos-->', readFileSync(file, 'utf8'))
+        .replace('<!--site-footer-->', readFileSync(resolve(root, 'src/generated/footer.html'), 'utf8'))
+        .replaceAll('%DEMO_COUNT%', count)
+        .replaceAll('%IMAGE_VERSION%', version);
     },
   };
 }

@@ -50,6 +50,17 @@ async function check(demo) {
       if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) === 0) continue;
       const r = el.getBoundingClientRect();
       if (r.width < 2 || r.height < 2) continue;
+      // only what is drawn: an invisible hit area or wrapper may reach further (same rule as measure-demos)
+      const alpha = (c) => c !== 'transparent' && !c.endsWith(', 0)') && !c.endsWith('/ 0)');
+      const paints =
+        alpha(cs.backgroundColor) ||
+        cs.backgroundImage !== 'none' ||
+        (parseFloat(cs.borderTopWidth) + parseFloat(cs.borderLeftWidth) > 0 && alpha(cs.borderTopColor)) ||
+        cs.boxShadow !== 'none' ||
+        /^(svg|img|canvas|video|input)$/i.test(el.tagName) ||
+        ['::before', '::after'].some((pe) => getComputedStyle(el, pe).content !== 'none') ||
+        [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+      if (!paints) continue;
       // clipped by a parent inside the demo (a glare inside a card): not visible outside it
       let clipped = false;
       for (let p = el.parentElement; p && !p.classList.contains('scene'); p = p.parentElement) {
@@ -90,6 +101,11 @@ async function check(demo) {
       await page.mouse.down();
       await page.mouse.move(cx + 90, cy + 10, { steps: 8 });
       await page.mouse.up();
+    } else if (how === 'click' && (await page.$('.scene input[type=range]'))) {
+      // a slider: move it with the keyboard, the way a label click cannot
+      await page.focus('.scene input[type=range]');
+      for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
+      await snap();
     } else if (how === 'click') {
       // the LAST control: the first is often the one already selected
       // visible controls first; bare radios / checkboxes only when there is nothing else

@@ -1,5 +1,7 @@
 // Takes the social preview image for every demo from the BUILT site (dist/):
-//   dist/media/<id>.jpg   1200×630, with a title strip — the og:image of /demos/<id>/
+//   dist/media/<id>.jpg   2400×1260 (1200×630 laid out at 2x, so 3D stays sharp): the og:image of
+//                          /demos/<id>/, text on the left and the demo on the right
+//   dist/media/home.jpg   the same template with the site's cube (/embed/cover/): home and group pages
 //
 // This is what makes a shared link show a picture in chat apps and on social sites. It is done at
 // build time because a web page cannot screenshot itself (and DOM-to-canvas libraries do not
@@ -39,28 +41,28 @@ const browser = await chromium.launch();
 const failures = [];
 
 async function shoot(demo) {
-  const ctx = await browser.newContext({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1, colorScheme: 'dark' });
+  const ctx = await browser.newContext({ viewport: { width: 2400, height: 1260 }, deviceScaleFactor: 1, colorScheme: 'dark' });
   try {
     const page = await ctx.newPage();
-    await page.goto(`${base}/embed/${demo.id}/?og=1`);
+    await page.goto(`${base}/embed/${demo.id}/?og=1&zoom=2`);
     await page.waitForSelector('html[data-ready]');
     // hover / pointer demos look alive with the pointer parked off-centre over them
-    if (demo.pointer) await page.mouse.move(600 + 140, 315 - 60);
+    if (demo.pointer) await page.mouse.move(1740, 560); // over the demo (the right side), a little off centre
     await page.waitForTimeout(1400); // let entrance transitions settle and loops get going
-    await page.screenshot({ path: join(OUT, `${demo.id}.jpg`), type: 'jpeg', quality: 86 });
+    await page.screenshot({ path: join(OUT, `${demo.id}.jpg`), type: 'jpeg', quality: 88 });
   } finally {
     await ctx.close();
   }
 }
 
 async function shootHome() {
-  const ctx = await browser.newContext({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1, colorScheme: 'dark' });
+  const ctx = await browser.newContext({ viewport: { width: 2400, height: 1260 }, deviceScaleFactor: 1, colorScheme: 'dark' });
   try {
     const page = await ctx.newPage();
-    await page.goto(`${base}/`);
-    await page.waitForSelector('.hero__cube');
+    await page.goto(`${base}/embed/cover/?og=1&zoom=2`);
+    await page.waitForSelector('html[data-ready]');
     await page.waitForTimeout(1200);
-    await page.screenshot({ path: join(OUT, 'home.jpg'), type: 'jpeg', quality: 86 });
+    await page.screenshot({ path: join(OUT, 'home.jpg'), type: 'jpeg', quality: 88 });
   } finally {
     await ctx.close();
   }

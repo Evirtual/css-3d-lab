@@ -27,9 +27,9 @@ export function initAnalytics(): void {
   document.head.append(script);
 
   // Say so, where people can see it. Only shown when counting is really on.
-  const note = document.createElement('p');
-  note.innerHTML = 'Visits are counted with <a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a>: no cookies, no personal data.';
-  document.querySelector('.footer')?.append(note);
+  const note = document.createElement('span');
+  note.innerHTML = 'Visits counted with <a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a>: no cookies, no personal data';
+  document.querySelector('.site-footer__legal')?.append(note);
 
   document.addEventListener('click', (e) => {
     if ((e.target as HTMLElement).closest('a[href*="ko-fi.com"]')) track('kofi-click');

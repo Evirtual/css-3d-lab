@@ -36,9 +36,10 @@
     transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
+  // the control dock: the same place as in every demo with controls
   &__nav {
     position: absolute;
-    bottom: 10px;
+    bottom: 14px;
     display: flex;
     gap: 8px;
 

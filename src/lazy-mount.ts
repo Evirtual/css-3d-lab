@@ -1,5 +1,6 @@
 import { demos } from './demos';
 import type { Demo } from './demos/types';
+import { sizeScene } from './demos/size';
 
 /**
  * Live previews for statically generated cards (`<article class="card" data-mount="<id>">`).
@@ -11,6 +12,7 @@ let uid = 0;
 function mount(demo: Demo, stage: HTMLElement): () => void {
   const scene = document.createElement('div');
   scene.className = `scene${demo.fill ? ' scene--fill' : ''}`;
+  sizeScene(scene, demo.id);
   scene.innerHTML = demo.html.replaceAll('{{uid}}', `m${++uid}`);
   stage.replaceChildren(scene);
   const cleanup = demo.init?.(scene, stage);
