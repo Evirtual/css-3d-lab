@@ -112,14 +112,14 @@ input {
     background:
       radial-gradient(
         ellipse 72% 72% at 8.33% 8.33%,
-        color-mix(in srgb, var(--accent) 16%, transparent),
-        color-mix(in srgb, var(--accent) 7%, transparent) 50%,
+        color-mix(in srgb, var(--accent) 10%, transparent),
+        color-mix(in srgb, var(--accent) 4%, transparent) 50%,
         transparent
       ),
       radial-gradient(
         ellipse 72% 72% at 91.67% 91.67%,
-        color-mix(in srgb, var(--accent-2) 9%, transparent),
-        color-mix(in srgb, var(--accent-2) 4%, transparent) 50%,
+        color-mix(in srgb, var(--accent-2) 6%, transparent),
+        color-mix(in srgb, var(--accent-2) 2.5%, transparent) 50%,
         transparent
       );
     animation: aurora-drift 40s ease-in-out infinite alternate;
@@ -464,14 +464,18 @@ input {
       inset: 0;
       border-radius: 10px;
       @include face(var(--accent), 18%);
-      background-image:
-        linear-gradient(var(--border-strong) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border-strong) 1px, transparent 1px);
-      background-size: 25% 25%;
     }
 
     i:nth-child(2n) {
       @include face(var(--hot), 16%);
+    }
+
+    // inside each panel a grid of dots, like the cards' backdrop; the outline stays a line (the
+    // face's border). :nth-child(n) so it comes after the face colours, which reset the background.
+    i:nth-child(n) {
+      background-image: radial-gradient(circle, var(--border-strong) 1.8px, transparent 2.6px);
+      background-position: center;
+      background-size: 20% 20%; // 5 x 5
     }
   }
 }

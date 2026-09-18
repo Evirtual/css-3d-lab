@@ -521,14 +521,14 @@
       radial-gradient(ellipse 40% 55% at 72% 50%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
       radial-gradient(
         ellipse 85% 95% at 0 0,
-        color-mix(in srgb, var(--accent) 16%, transparent),
-        color-mix(in srgb, var(--accent) 7%, transparent) 50%,
+        color-mix(in srgb, var(--accent) 10%, transparent),
+        color-mix(in srgb, var(--accent) 4%, transparent) 50%,
         transparent
       ),
       radial-gradient(
         ellipse 85% 95% at 100% 100%,
-        color-mix(in srgb, var(--accent-2) 9%, transparent),
-        color-mix(in srgb, var(--accent-2) 4%, transparent) 50%,
+        color-mix(in srgb, var(--accent-2) 6%, transparent),
+        color-mix(in srgb, var(--accent-2) 2.5%, transparent) 50%,
         transparent
       ),
       radial-gradient(var(--border-strong) 1.3px, transparent 2px) 0 0 / 26px 26px,
