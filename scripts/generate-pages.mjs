@@ -5,6 +5,7 @@
 // can each answer one specific search ("css 3d pyramid"). Everything that matters for ranking —
 // title, description, heading, explanation, code — is written into the HTML as plain text, so it
 // is readable without running any JavaScript.
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createServer } from 'vite';
@@ -463,13 +464,40 @@ write(
 write('src/generated/footer.html', siteFooter(''));
 write('src/generated/logo.html', LOGO);
 
+// <lastmod> is when a page's content last really changed, not when the site was last deployed:
+// a date that is always "today" teaches search engines to ignore it. Each page's generated HTML
+// is fingerprinted (minus the image version, which is the build date) and src/sitemap-dates.json
+// keeps the fingerprint and the day it last changed. Commit that file with the change; a page it
+// has not seen yet, or whose content differs, gets today's date. The home page is as new as the
+// newest page it lists, or its own template, whichever changed last.
 const today = new Date().toISOString().slice(0, 10);
+const DATES = 'src/sitemap-dates.json';
+const known = existsSync(DATES) ? JSON.parse(readFileSync(DATES, 'utf8')) : {};
+const fingerprint = (...files) =>
+  createHash('sha256')
+    .update(files.map((f) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n').replaceAll(`?v=${IMAGE_VERSION}`, '')).join('\n'))
+    .digest('hex')
+    .slice(0, 16);
+const dates = {};
+const dated = (url, ...files) => {
+  const hash = fingerprint(...files);
+  dates[url] = known[url]?.hash === hash ? known[url] : { hash, date: today };
+  return dates[url].date;
+};
+for (const g of GROUP_ORDER) dated(`groups/${g}/`, `groups/${g}/index.html`);
+for (const d of demos) dated(`models/${d.id}/`, `models/${d.id}/index.html`);
+const newest = Object.values(dates).reduce((a, b) => (b.date > a ? b.date : a), '');
+const own = dated('', 'index.html', 'src/generated/all-models.html');
+const lastmod = (u) => (u === '' ? (own > newest ? own : newest) : dates[u].date);
+const datesJson = JSON.stringify(dates, null, 2) + '\n';
+if (!existsSync(DATES) || readFileSync(DATES, 'utf8').replace(/\r\n/g, '\n') !== datesJson) writeFileSync(DATES, datesJson);
+
 const urls = ['', ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `models/${d.id}/`)];
 write(
   'public/sitemap.xml',
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u) => `  <url><loc>${site.url}/${u}</loc><lastmod>${today}</lastmod></url>`).join('\n')}
+${urls.map((u) => `  <url><loc>${site.url}/${u}</loc><lastmod>${lastmod(u)}</lastmod></url>`).join('\n')}
 </urlset>
 `,
 );
