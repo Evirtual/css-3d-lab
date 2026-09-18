@@ -154,7 +154,7 @@ export function initHero(): void {
   );
 }
 
-const SHAPES = ['cube', 'pyramid', 'diamond', 'sphere'];
+const SHAPES = ['cube', 'pyramid', 'sphere'];
 
 /**
  * Every few seconds the hero cube turns into the next shape (the CSS does the flowing). Only

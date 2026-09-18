@@ -468,42 +468,100 @@ input {
       // see-through faces meet, rounded corners would leave a hole you can look through into the
       // empty cube.
       border-radius: 0;
+      --edge-c: var(--accent);
       @include face(var(--accent), 18%);
     }
 
     i:nth-child(2n) {
+      --edge-c: var(--hot);
       @include face(var(--hot), 16%);
+    }
+
+    // a faint 4 x 4 grid inside each panel, dimmer than the outline so it stays in the
+    // background. :nth-child(n) so it comes after the face colours, which reset the background.
+    i:nth-child(n) {
+      --grid-c: color-mix(in srgb, var(--border-strong) 20%, transparent);
+      --grid:
+        linear-gradient(var(--grid-c) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-c) 1px, transparent 1px);
+      background-image: var(--grid);
+      background-size: 25% 25%;
     }
 
   }
 }
 
 // The hero cube changes shape (hero.ts sets data-shape every few seconds): the same eight glass
-// panels move, turn, and re-cut themselves into a cube, a pyramid, a diamond (octahedron) and a
-// sphere. Every panel keeps a four-point clip-path (a triangle has two points at its tip) and
+// panels move, turn, and re-cut themselves into a cube, a pyramid and a sphere. Every panel keeps a four-point clip-path (a triangle has two points at its tip) and
 // the same list of transforms, so each change is one smooth transition. Unused panels shrink
 // away to the middle.
+//
+// Sizes: the same panels make very different sizes of shape (averaged over every angle it
+// tumbles through, the cube covers about 2x the area of the pyramid), so each is scaled to look
+// the same size. Its size here: the average of how much it covers and how wide it is, over all
+// angles, in half-panels: cube 2.88, pyramid 2.04, sphere 2.1; the cube and the sphere are scaled
+// to about 2.35. The pyramid is sized by how far it reaches instead (below): seen from below its
+// base is a big square, so sizing it by its average made it look too big at times.
+//
+// Edges: a triangle is a square panel cut by clip-path, and a cut has no border, so only its
+// bottom edge would have a line. Its two slanted edges get the same line drawn as a thin stripe
+// just inside the cut (a gradient at right angles to it), thin and faint: the faces on either side
+// of an edge each draw one, side by side. It fades in once the triangle has
+// formed (--edge-a) and out before it turns back into something else.
+@property --edge-a {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+$morph: cubic-bezier(0.65, 0, 0.25, 1);
+
 .hero__cube[data-shape] {
   --half: calc(var(--s) / 2);
+  transition: scale 1.6s $morph;
 
   > i {
     --clip: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    --edge: color-mix(in srgb, var(--edge-c) calc(var(--edge-a) * 0.55), transparent);
     clip-path: var(--clip);
     transition:
-      transform 1.6s cubic-bezier(0.65, 0, 0.25, 1),
-      clip-path 1.6s cubic-bezier(0.65, 0, 0.25, 1),
-      border-radius 1.6s cubic-bezier(0.65, 0, 0.25, 1),
-      opacity 1s;
+      transform 1.6s $morph,
+      clip-path 1.6s $morph,
+      border-radius 1.6s $morph,
+      opacity 1s,
+      --edge-a 0.25s;
+  }
+
+  // a triangle's slanted edges (it has come to shape: fade the lines in at the end)
+  &[data-shape='pyramid'] > i:nth-child(-n + 4) {
+    --edge-a: 100%;
+    transition:
+      transform 1.6s $morph,
+      clip-path 1.6s $morph,
+      border-radius 1.6s $morph,
+      opacity 1s,
+      --edge-a 0.5s 1.3s;
+  }
+
+  // tall triangle (50% 0, 100% 100%, 0 100%) in a square: the gradient's direction is at right
+  // angles to the edge (atan 2 = 63.43deg), and the edge lies at 66.67% along it
+  &[data-shape='pyramid'] > i:nth-child(-n + 4) {
+    background-image:
+      linear-gradient(63.43deg, transparent calc(66.67% - 0.8px), var(--edge) 0),
+      linear-gradient(-63.43deg, transparent calc(66.67% - 0.8px), var(--edge) 0),
+      var(--grid);
+    background-size: 100% 100%, 100% 100%, 25% 25%;
   }
 }
 
 // pieces: ry = turn around the upright axis, then out to a face, then a tilt about the face's
 // own bottom edge (0 = upright)
 $tri: polygon(50% 0, 50% 0, 100% 100%, 0 100%); // tall triangle (pyramid sides)
-$equi: polygon(50% 13.4%, 50% 13.4%, 100% 100%, 0 100%); // equilateral (diamond faces)
 $gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) scale(0.01);
 
 .hero__cube[data-shape='cube'] {
+  scale: 0.82;
+
   @for $k from 1 through 4 {
     > i:nth-child(#{$k}) {
       transform: rotateY(($k - 1) * 90deg) translateZ(var(--half)) translateY(0) rotateX(0deg) translateY(0) scale(1);
@@ -525,16 +583,22 @@ $gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) sca
 }
 
 // a square pyramid: four tall triangles leaning in 30deg from the floor's edges, and the floor
+// It turns about the middle of the sphere around it (the point as far from the tip as from the
+// base corners): its floor sits 0.29 half-panels below the centre, the tip 1.44 above. Turning
+// about a point higher up made it swing out and look bigger at some angles. Scaled so it reaches
+// about as far from the centre as the cube's corners do (1.44 x 0.95 against 1.73 x 0.82).
 .hero__cube[data-shape='pyramid'] {
+  scale: 0.95;
+
   @for $k from 1 through 4 {
     > i:nth-child(#{$k}) {
       --clip: #{$tri};
-      transform: rotateY(($k - 1) * 90deg) translateZ(var(--half)) translateY(calc(var(--half) * 0.85)) rotateX(30deg) translateY(calc(var(--half) * -1)) scale(1);
+      transform: rotateY(($k - 1) * 90deg) translateZ(var(--half)) translateY(calc(var(--half) * 0.29)) rotateX(30deg) translateY(calc(var(--half) * -1)) scale(1);
     }
   }
 
   > i:nth-child(5) {
-    transform: translateY(calc(var(--half) * 0.85)) rotateX(90deg) translateY(0) rotateX(0deg) translateY(0) scale(1);
+    transform: translateY(calc(var(--half) * 0.29)) rotateX(90deg) translateY(0) rotateX(0deg) translateY(0) scale(1);
   }
 
   > i:nth-child(n + 6) {
@@ -543,20 +607,10 @@ $gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) sca
   }
 }
 
-// a diamond (octahedron): four equilateral triangles leaning in 35.26deg above the middle, and
-// the same four turned upside down below it
-.hero__cube[data-shape='diamond'] {
-  @for $k from 1 through 8 {
-    > i:nth-child(#{$k}) {
-      --clip: #{$equi};
-      // scale first: it shrinks the whole diamond about its centre, not each panel about its own
-      transform: scale(0.82) rotateX(#{if(sass($k > 4): 180deg; else: 0deg)}) rotateY(($k - 1) * 90deg) translateZ(var(--half)) rotateX(35.26deg) translateY(calc(var(--half) * -1));
-    }
-  }
-}
-
 // a sphere: eight round panels through the middle, each turned a little further (a glass globe)
 .hero__cube[data-shape='sphere'] {
+  scale: 1.12;
+
   @for $k from 1 through 8 {
     > i:nth-child(#{$k}) {
       border-radius: 50%;
