@@ -14,14 +14,15 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
-// The tile's backdrop gets the site's faint blueprint grid (the page's --grid lines), a little
-// stronger than on the page so it survives being shrunk to an app icon: 8 cells across.
-const GRID = Array.from({ length: 7 }, (_, i) => {
-  const v = 64 * (i + 1);
+// The tile's backdrop gets the site's faint blueprint grid (the page's --grid lines). A launcher
+// shows the icon at about 48px, so the lines are fewer and heavier than on the page (4 cells
+// across, 6 units thick): thinner ones vanish at that size.
+const GRID = Array.from({ length: 3 }, (_, i) => {
+  const v = 128 * (i + 1);
   return `<path d="M${v} 0V512M0 ${v}H512"/>`;
 })
   .join('')
-  .replace(/^/, '<g stroke="rgb(140 150 220)" stroke-opacity="0.08" stroke-width="2.5" fill="none">')
+  .replace(/^/, '<g stroke="rgb(140 150 220)" stroke-opacity="0.16" stroke-width="6" fill="none">')
   .concat('</g>');
 
 const BARE = { e: 240 };

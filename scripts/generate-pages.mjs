@@ -93,8 +93,8 @@ function shell({ path, depth, title, description, jsonLd, body, script, image, i
     }
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/manifest.webmanifest?v=3" />
     <meta name="theme-color" content="#07080f" />
     <meta name="apple-mobile-web-app-title" content="CSS 3D Lab" />
     <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
