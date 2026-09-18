@@ -224,7 +224,7 @@ function demoPage(d, index) {
             <button type="button" class="btn" data-copy-file>${icon('copy')} Copy as one HTML file</button>
           </div>
           <div class="page-tools__row">
-            ${videoButton(d.id, '../../')}
+            ${videoButton(d.id)}
             <button type="button" class="btn" data-share-link>${icon('share')} Share</button>
             <button type="button" class="btn" data-share-embed>Embed</button>
             <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>

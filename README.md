@@ -67,6 +67,6 @@ MIT — see [LICENSE](LICENSE). Every snippet is free to use in your own project
   `--mbps 60` pins a bitrate instead. Needs ffmpeg on PATH or `npm i --no-save ffmpeg-static`.
 - Download buttons: `npm run reels -- --all --scale 2 --crf 18 --jobs 3` (1080 × 1920), then
   `node scripts/publish-reels.mjs --all` uploads them to the `reels` GitHub release and records
-  their sizes in `src/reels.json`; commit that file. The deploy copies them into
-  `media/reels/` and fails if one is missing, so a button always has its file. Videos are never
-  committed to git.
+  their sizes in `src/reels.json`; commit that file. The buttons link straight to the release
+  (its downloads do not count toward GitHub Pages bandwidth); the deploy fails if a listed file
+  is missing or a different size, so a button always has its file. Videos are never in git.

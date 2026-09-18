@@ -31,12 +31,12 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Social preview images
         run: npm run media
-      # The "Download video" files: from the repo's "reels" release into dist/media/reels, each
-      # checked against the size recorded in src/reels.json (a mismatch fails the deploy).
+      # The "Download video" buttons link to files of the repo's "reels" release: check every
+      # listed one is there at the size recorded in src/reels.json (a mismatch fails the deploy).
       - name: Demo videos
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/fetch-reels.mjs
+        run: node scripts/verify-reels.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

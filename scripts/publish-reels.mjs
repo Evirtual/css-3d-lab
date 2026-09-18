@@ -1,8 +1,9 @@
 // Publishes demo videos for the site's "Download video" button:
-//   1. uploads reels/<id>-9x16.mp4 to the GitHub release "reels" (created if missing; replaces
-//      an older file of the same name),
+//   1. uploads reels/<id>-9x16.mp4 to the GitHub release "reels" as css-3d-lab-<id>.mp4 (the name
+//      people's download gets; the release is created if missing; an older file is replaced),
 //   2. records each file's exact size in src/reels.json — commit that file afterwards.
-// The videos themselves never go into git; the deploy downloads them (scripts/fetch-reels.mjs).
+// The videos never go into git or into the Pages site: the buttons link to the release, whose
+// downloads do not count toward Pages bandwidth. The deploy checks them (scripts/verify-reels.mjs).
 //
 //   npm run build
 //   npm run reels -- <id ...> --scale 2 --crf 18     (or --all; 1080 × 1920 is what the site offers)
@@ -10,7 +11,7 @@
 //
 // Needs the GitHub CLI (gh), signed in to an account that can write to the repo.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const TAG = 'reels';
@@ -43,12 +44,18 @@ if (spawnSync('gh', ['release', 'view', TAG], { stdio: 'ignore' }).status !== 0)
 
 // in batches: one gh call per file would take ages, one call for everything is fragile
 const manifest = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, 'utf8')) : {};
+const STAGE = join('reels', 'upload');
+mkdirSync(STAGE, { recursive: true });
+const asset = (f) => join(STAGE, `css-3d-lab-${f.replace('-9x16.mp4', '')}.mp4`);
 for (let i = 0; i < files.length; i += 10) {
   const batch = files.slice(i, i + 10);
-  gh('release', 'upload', TAG, '--clobber', ...batch.map((f) => join('reels', f)));
+  for (const f of batch) copyFileSync(join('reels', f), asset(f));
+  gh('release', 'upload', TAG, '--clobber', ...batch.map(asset));
   for (const f of batch) manifest[f.replace('-9x16.mp4', '')] = { bytes: statSync(join('reels', f)).size };
   process.stdout.write(`uploaded ${Math.min(i + 10, files.length)} of ${files.length}\r`);
 }
+
+rmSync(STAGE, { recursive: true, force: true });
 
 const sorted = Object.fromEntries(Object.entries(manifest).sort(([a], [b]) => a.localeCompare(b)));
 writeFileSync(MANIFEST, JSON.stringify(sorted, null, 2) + '\n');
