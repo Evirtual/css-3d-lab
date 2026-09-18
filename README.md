@@ -3,7 +3,7 @@
 A learning gallery of 3D effects built with SCSS — live demos, "how it works" notes and
 copy-paste snippets.
 
-**Live:** https://evirtual.github.io/css-3d-lab/
+**Live:** https://css3dlab.edgarasneverdauskas.com/
 
 50 demos, split into two honest categories:
 
