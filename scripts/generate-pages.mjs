@@ -191,8 +191,7 @@ function demoPage(d, index) {
         </div>
 
         <div>
-          <h2 class="page-codehead">Copy-paste code</h2>
-          <p class="page-note">Minimal standalone version: no build step, no dependencies. MIT licensed.</p>${codeWindow}
+          <h2 class="visually-hidden">Copy-paste code</h2>${codeWindow}
         </div>
       </div>
 
