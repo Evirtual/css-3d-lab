@@ -12,7 +12,7 @@
 //    the cube stays inside Android's safe zone (a circle of 80% of the width: radius 205); iOS
 //    only rounds the corners, so there it is a little bigger.
 // These sizes are the ones the icons have always had; only the look of the cube changed.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const BARE = { e: 240 };
@@ -53,9 +53,33 @@ async function png(file, size, look) {
   await page.screenshot({ path: `public/${file}`, omitBackground: true });
   console.log('public/' + file);
 }
+await png('favicon-16.png', 16, BARE);
 await png('favicon-32.png', 32, BARE);
+await png('favicon-48.png', 48, BARE); // Google wants a favicon a multiple of 48px
 await png('icon-192.png', 192, BARE);
 await png('icon-512.png', 512, BARE);
 await png('icon-maskable-512.png', 512, MASKABLE); // Android crops this to its own shape
 await png('apple-touch-icon.png', 180, APPLE); // iOS rounds the corners and does not support transparency
 await browser.close();
+
+// favicon.ico at the root: search engines and old browsers ask for it by that name whatever the
+// page says. An ICO can simply hold PNGs: a 6-byte header, a 16-byte entry per size, the files.
+const sizes = [16, 32, 48];
+const pngs = sizes.map((n) => readFileSync(`public/favicon-${n}.png`));
+const head = Buffer.alloc(6 + 16 * sizes.length);
+head.writeUInt16LE(0, 0);
+head.writeUInt16LE(1, 2); // 1 = icon
+head.writeUInt16LE(sizes.length, 4);
+let offset = head.length;
+sizes.forEach((n, i) => {
+  const e = 6 + 16 * i;
+  head.writeUInt8(n, e); // width
+  head.writeUInt8(n, e + 1); // height
+  head.writeUInt16LE(1, e + 4); // colour planes
+  head.writeUInt16LE(32, e + 6); // bits per pixel
+  head.writeUInt32LE(pngs[i].length, e + 8);
+  head.writeUInt32LE(offset, e + 12);
+  offset += pngs[i].length;
+});
+writeFileSync('public/favicon.ico', Buffer.concat([head, ...pngs]));
+console.log('public/favicon.ico');
