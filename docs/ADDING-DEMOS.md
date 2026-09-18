@@ -41,6 +41,25 @@ can be as narrow as 300 px; the large stage scales non-fill scenes by 1.45. **A 
 fit inside about 220 × 190 px including its motion.** Fill demos must look right from 300 × 260 up
 to 700 × 380.
 
+## Consistency rules (the site checks these; follow them from the start)
+
+- **Size and centring are automatic.** Design the demo at a card's size (340 × 260); do not
+  hand-tune its size or offset. After the build, `scripts/measure-demos.mjs` measures every
+  demo over its animation and after it is played with, and records a size and an offset in
+  `src/demos/sizes.json` so all demos look equally big and visually centred. Do not add
+  `translate` / `scale` hacks to the root to move it.
+- **The camera is the site's.** The stage's scene already has `perspective: 800px`, and it
+  scales with the stage, so a demo looks the same in a card, the dialog and full screen. A demo
+  may set its own `perspective` on an inner wrapper when it needs a different one.
+- **Controls live in the dock.** A demo with controls (buttons, swatches, sliders, arrows, dots)
+  is `fill: true` and uses the dock layout: root `display: grid; grid-template-rows:
+  minmax(0, 1fr) auto; width: 100%; height: 100%; padding: 10px 14px 14px;`, the model centred in
+  the first row, the controls centred in the last row. A status text (`<output>`) or a slider's
+  label goes **above** the controls, centred, never beside them. See `_dice.scss`,
+  `_turntable.scss`, `_cubenav.scss`, `_shapeshift.scss`.
+- **Hover demos**: the hover target never moves (rule 2), coplanar containers get
+  `pointer-events: none` (rule 3). A demo with nothing to play with just animates.
+
 ## Styles (SCSS)
 
 - Start with `@use '../mixins' as *;` when you use `cube-faces($size)`, `face($color, $alpha)` or

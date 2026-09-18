@@ -11,9 +11,12 @@ html {
   // Keep the scrollbar's space reserved so locking the page (below) does not shift the layout.
   scrollbar-gutter: stable;
 
-  // The page must not scroll behind the open detail view (it showed two scrollbars side by side).
+  // Behind the open detail view the page does not scroll, and gives up its reserved scrollbar
+  // space, so the overlay (the dialog, which scrolls itself) reaches the very right edge and its
+  // scrollbar is the only one. The page behind shifts by that width, unseen under the blur.
   &:has(.viewer[open]) {
     overflow: hidden;
+    scrollbar-gutter: auto;
   }
 
   // In full screen the reserved gutter is still there, OUTSIDE the full-screen element: a bare
@@ -1293,9 +1296,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 // a sheet: some air above it, and it runs to the bottom edge (and on, as you scroll), so there is
 // never a second scrollbar inside the panel.
 .viewer {
-  // 100vw, not 100%: the page keeps its scrollbar space reserved (so it does not jump when it
-  // is locked), and a 100%-wide overlay left that strip uncovered at the right edge
-  width: 100vw;
+  width: 100%;
   height: 100%;
   max-width: none;
   max-height: none;
