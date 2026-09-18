@@ -1,7 +1,7 @@
 // Review tool: photographs demos from the BUILT site into contact sheets, two moments per demo,
 // so a batch of new demos can be checked by eye in one look.
 //   npm run build && node scripts/contact-sheet.mjs [id ...]      -> .media-tmp/sheet-<n>.jpg
-// Options: --light (light theme)  --per 10 (demos per sheet)
+// Options: --light (light theme)  --per 10 (demos per sheet)  --reel (the 9:16 video layout)
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
@@ -11,6 +11,8 @@ const DIST = resolve('dist');
 const OUT = resolve('.media-tmp');
 const args = process.argv.slice(2);
 const light = args.includes('--light');
+const reel = args.includes('--reel');
+const [VW, VH] = reel ? [270, 480] : [380, 280];
 const perAt = args.indexOf('--per');
 const per = perAt === -1 ? 10 : Number(args.splice(perAt, 2)[1]);
 const ids = args.filter((a) => !a.startsWith('--'));
@@ -35,16 +37,16 @@ const queue = [...demos];
 await Promise.all(
   Array.from({ length: 4 }, async () => {
     for (let demo = queue.shift(); demo; demo = queue.shift()) {
-      const ctx = await browser.newContext({ viewport: { width: 380, height: 280 }, deviceScaleFactor: 1 });
+      const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 1 });
       const page = await ctx.newPage();
       const errors = [];
       page.on('pageerror', (e) => errors.push(e.message));
       page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-      await page.goto(`${base}/embed/${demo.id}/`);
+      await page.goto(`${base}/embed/${demo.id}/${reel ? '?reel=tall&zoom=0.5' : ''}`);
       if (light) await page.evaluate(() => (document.documentElement.dataset.theme = 'light'));
       await page.waitForTimeout(900);
       const a = await page.screenshot({ type: 'jpeg', quality: 80 });
-      if (demo.pointer) await page.mouse.move(190 + 70, 140 - 40);
+      if (demo.pointer) await page.mouse.move(VW / 2 + 40, VH / 2 - 30);
       await page.waitForTimeout(1300);
       const b = await page.screenshot({ type: 'jpeg', quality: 80 });
       shots.push({ id: demo.id, a, b, errors });
@@ -59,7 +61,7 @@ const sheet = await (await browser.newContext({ viewport: { width: 1560, height:
 for (let n = 0; n * per < shots.length; n++) {
   const group = shots.slice(n * per, (n + 1) * per);
   const img = (buf) => `<img src="data:image/jpeg;base64,${buf.toString('base64')}">`;
-  await sheet.setContent(`<style>body{margin:0;padding:8px;background:#222;color:#fff;font:700 15px system-ui;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  await sheet.setContent(`<style>body{margin:0;padding:8px;background:#222;color:#fff;font:700 15px system-ui;display:grid;grid-template-columns:repeat(${reel ? 4 : 2},1fr);gap:8px}
     figure{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:2px}figcaption{grid-column:1/-1}img{width:100%;display:block}em{color:#f66;font-weight:400}</style>
     ${group.map((s) => `<figure><figcaption>${s.id} ${s.errors.length ? `<em>${s.errors.join(' | ').slice(0, 160)}</em>` : ''}</figcaption>${img(s.a)}${img(s.b)}</figure>`).join('')}`);
   await sheet.screenshot({ path: join(OUT, `sheet-${n + 1}.jpg`), type: 'jpeg', quality: 82, fullPage: true });

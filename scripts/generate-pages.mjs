@@ -19,6 +19,7 @@ const { demos } = await vite.ssrLoadModule('/src/demos/index.ts');
 const { snippets } = await vite.ssrLoadModule('/src/demos/snippets.ts');
 const { GROUPS, GROUP_ORDER } = await vite.ssrLoadModule('/src/demos/groups.ts');
 const { interactionHtml, interactionOf } = await vite.ssrLoadModule('/src/demos/interaction.ts');
+const { videoButton } = await vite.ssrLoadModule('/src/video.ts');
 
 // Every published demo must ship its copy-paste code: a demo without it would render an empty code
 // window. Stop the build rather than publish that.
@@ -223,6 +224,7 @@ function demoPage(d, index) {
             <button type="button" class="btn" data-copy-file>${icon('copy')} Copy as one HTML file</button>
           </div>
           <div class="page-tools__row">
+            ${videoButton(d.id, '../../')}
             <button type="button" class="btn" data-share-link>${icon('share')} Share</button>
             <button type="button" class="btn" data-share-embed>Embed</button>
             <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
@@ -355,7 +357,7 @@ for (const dir of ['demos', 'groups', 'embed', 'src/generated']) rmSync(dir, { r
 
 demos.forEach((d, i) => write(`demos/${d.id}/index.html`, demoPage(d, i)));
 for (const d of demos) write(`embed/${d.id}/index.html`, embedPage(d));
-write('src/generated/demo-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, pointer: interactionOf(d) !== 'none', hover: interactionOf(d) === 'hover' }))));
+write('src/generated/demo-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, how: interactionOf(d), pointer: interactionOf(d) !== 'none', hover: interactionOf(d) === 'hover' }))));
 for (const g of GROUP_ORDER) write(`groups/${g}/index.html`, groupPage(g));
 
 // Plain, crawlable links to every page, injected into the home page by vite.config.ts.

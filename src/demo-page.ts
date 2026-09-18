@@ -12,6 +12,7 @@ import { copyText, embedCode } from './share';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { initTint } from './tint';
+import { trackDownloads } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 
 /**
@@ -23,6 +24,7 @@ initChrome();
 initAnalytics();
 lazyMountCards();
 initCardLook();
+trackDownloads(track);
 initFullscreen();
 
 const stage = document.querySelector<HTMLElement>('[data-demo]');

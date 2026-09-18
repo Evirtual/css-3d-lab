@@ -65,3 +65,8 @@ MIT — see [LICENSE](LICENSE). Every snippet is free to use in your own project
   rendered one by one with time stepped by hand, so motion is perfectly smooth; the page is laid
   out at 4K (not upscaled), so 3D layers stay sharp. Quality is visually lossless (CRF 10);
   `--mbps 60` pins a bitrate instead. Needs ffmpeg on PATH or `npm i --no-save ffmpeg-static`.
+- Download buttons: `npm run reels -- --all --scale 2 --crf 18 --jobs 3` (1080 × 1920), then
+  `node scripts/publish-reels.mjs --all` uploads them to the `reels` GitHub release and records
+  their sizes in `src/reels.json`; commit that file. The deploy copies them into
+  `media/reels/` and fails if one is missing, so a button always has its file. Videos are never
+  committed to git.

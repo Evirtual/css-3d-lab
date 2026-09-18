@@ -400,7 +400,7 @@
   }
 
   .embed .stage .scene--fill {
-    inset: 0 0 60px; // keep the subject clear of the title strip
+    inset: 0 0 calc(60px / 1.9); // keep the subject clear of the title strip (zoom scales offsets too)
     zoom: 1.9;
   }
 
@@ -461,9 +461,12 @@
     zoom: 2.1;
   }
 
+  // Scenes that fill the stage get the band between the text (540 × 420 on screen). Zoom scales
+  // the box's own offsets too, so they are divided by it: the scene lays out at about a card's
+  // size (337 × 262) and is drawn 1.6x.
   .embed .stage .scene--fill {
-    inset: 250px 0 290px;
-    zoom: 1.5;
+    inset: calc(250px / 1.6) 0 calc(290px / 1.6);
+    zoom: 1.6;
   }
 
   .embed__og {
@@ -513,7 +516,7 @@
   }
 
   .embed .stage .scene--fill {
-    inset: 100px 60px 50px;
+    inset: calc(100px / 1.25) calc(60px / 1.25) calc(50px / 1.25);
     zoom: 1.25;
   }
 

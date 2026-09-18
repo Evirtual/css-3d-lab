@@ -26,7 +26,7 @@ if (params.has('reel')) document.documentElement.dataset.reel = params.get('reel
 // ?zoom=4: lay the page out 4x larger instead of filming it at 4x device pixels. Chrome draws 3D
 // layers at one pixel per CSS pixel whatever the device scale, so only real layout size is sharp.
 const zoom = Number(params.get('zoom'));
-if (zoom > 1 && zoom <= 8) document.documentElement.style.zoom = String(zoom);
+if (zoom >= 0.25 && zoom <= 8 && zoom !== 1) document.documentElement.style.zoom = String(zoom);
 
 // Signals the recorder that the demo is mounted and styled.
 document.documentElement.dataset.ready = '';

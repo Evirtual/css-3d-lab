@@ -15,13 +15,16 @@
 //            --fps 30   --seconds 8       (default: 60 fps; length fitted to the demo's loop)
 //            --scale 2                    (1080p instead of 4K: 4x fewer pixels, much faster)
 //            --mbps 60                    (constant bitrate instead of constant quality)
+//            --crf 18                     (quality: lower is better and bigger; default 10)
+//            --jobs 3                     (films this many demos at once; default 1)
+//            --resume                     (skip videos already in reels/)
 // Default is constant QUALITY (CRF 10, visually lossless): the bitrate then follows the picture —
 // a dark, mostly flat scene needs only ~10-20 Mbit/s for that. --mbps pins the rate instead, for
 // platforms or editors that expect a given upload bitrate.
 //
 // Needs ffmpeg: either on PATH, or `npm i --no-save ffmpeg-static`.
 import { spawn, spawnSync } from 'node:child_process';
-import { createReadStream, existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { extname, join, resolve } from 'node:path';
@@ -48,7 +51,8 @@ const mbps = opt('mbps', 0);
 // prettier-ignore
 const RATE = mbps
   ? ['-b:v', `${mbps}M`, '-minrate', `${mbps}M`, '-maxrate', `${mbps}M`, '-bufsize', `${mbps * 2}M`, '-x264-params', 'nal-hrd=cbr:force-cfr=1']
-  : ['-crf', '10'];
+  : ['-crf', String(opt('crf', 10))];
+const jobs = Math.max(1, opt('jobs', 1));
 const all = args.includes('--all');
 const ids = args.filter((a) => !a.startsWith('--'));
 
@@ -136,7 +140,7 @@ async function film(demo, { name, reel, W, H }) {
       // prettier-ignore
       ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-',
        '-c:v', 'libx264', '-preset', 'slow', ...RATE, '-profile:v', 'high', '-pix_fmt', 'yuv420p',
-       '-r', String(fps), '-movflags', '+faststart', file],
+       '-r', String(fps), '-movflags', '+faststart', '-f', 'mp4', `${file}.part`],
       { stdio: ['pipe', 'inherit', 'inherit'] },
     );
     const encoded = new Promise((ok, fail) => ffmpeg.on('close', (code) => (code === 0 ? ok() : fail(new Error(`ffmpeg exited with ${code}`)))));
@@ -155,7 +159,15 @@ async function film(demo, { name, reel, W, H }) {
         await page.mouse.move(x * scale, y * scale); // the viewport is in 4K pixels
       }
       // demos with a button (roll, next...): press it every two seconds
-      if (demo.pointer && f % (fps * 2) === fps) await page.evaluate(() => document.querySelector('.scene button')?.click());
+      // (a click demo with no button, like confetti: click the scene itself)
+      if (demo.pointer && f % (fps * 2) === fps) {
+        const pressed = await page.evaluate(() => {
+          const btn = document.querySelector('.scene button');
+          btn?.click();
+          return Boolean(btn);
+        });
+        if (!pressed && demo.how === 'click') await page.mouse.click((W / 2) * scale, (H / 2) * scale);
+      }
       const due = Math.round(t) - clock;
       if (due > 0) await page.clock.runFor(due);
       clock += Math.max(due, 0);
@@ -166,23 +178,31 @@ async function film(demo, { name, reel, W, H }) {
     }
     ffmpeg.stdin.end();
     await encoded;
+    renameSync(`${file}.part`, file); // only a finished video gets the real name (see --resume)
     const mb = statSync(file).size / 1e6;
     console.log(` ${demo.id}-${name}.mp4  ${W * scale}×${H * scale}  ${seconds.toFixed(1)}s  ${mb.toFixed(1)} MB  ${((mb * 8) / seconds).toFixed(0)} Mbit/s`);
   } finally {
     await ctx.close();
+    rmSync(`${file}.part`, { force: true });
   }
 }
 
-for (const demo of demos) {
-  for (const format of formats) {
-    try {
-      await film(demo, format);
-    } catch (err) {
-      failures.push(`${demo.id} ${format.name}: ${err.message}`);
-      console.log(` ${demo.id}-${format.name} FAILED`);
+const queue = demos
+  .flatMap((demo) => formats.map((format) => [demo, format]))
+  .filter(([demo, format]) => !(args.includes('--resume') && existsSync(join(OUT, `${demo.id}-${format.name}.mp4`))));
+await Promise.all(
+  Array.from({ length: jobs }, async () => {
+    for (let job = queue.shift(); job; job = queue.shift()) {
+      const [demo, format] = job;
+      try {
+        await film(demo, format);
+      } catch (err) {
+        failures.push(`${demo.id} ${format.name}: ${err.message}`);
+        console.log(` ${demo.id}-${format.name} FAILED`);
+      }
     }
-  }
-}
+  }),
+);
 
 await browser.close();
 server.close();

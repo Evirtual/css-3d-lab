@@ -1,0 +1,59 @@
+{
+  "browser": {
+    "bytes": 733250
+  },
+  "can": {
+    "bytes": 1121972
+  },
+  "city": {
+    "bytes": 2283801
+  },
+  "diamond": {
+    "bytes": 2914658
+  },
+  "dice": {
+    "bytes": 1140705
+  },
+  "equalizer": {
+    "bytes": 974467
+  },
+  "ferris": {
+    "bytes": 1590056
+  },
+  "flaptext": {
+    "bytes": 316010
+  },
+  "hovercards": {
+    "bytes": 1000522
+  },
+  "logo3d": {
+    "bytes": 981602
+  },
+  "magnet": {
+    "bytes": 857878
+  },
+  "package": {
+    "bytes": 1336418
+  },
+  "paycard": {
+    "bytes": 1785518
+  },
+  "phone": {
+    "bytes": 1454172
+  },
+  "pricing": {
+    "bytes": 696113
+  },
+  "rubik": {
+    "bytes": 1297102
+  },
+  "solar": {
+    "bytes": 1428576
+  },
+  "vinyl": {
+    "bytes": 741185
+  },
+  "wordcube": {
+    "bytes": 555626
+  }
+}

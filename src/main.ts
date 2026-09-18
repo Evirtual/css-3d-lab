@@ -7,6 +7,7 @@ import { LiveEdit, type Part } from './live-edit';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { dotsHtml, initTint, modeHtml } from './tint';
+import { trackDownloads, videoButton } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
 import { interactionHtml } from './demos/interaction';
@@ -252,6 +253,7 @@ function applyFilters(): void {
 
 hydrateIcons();
 initAnalytics();
+trackDownloads(track);
 
 searchEl.value = state.q;
 clearEl.addEventListener('click', () => {
@@ -406,6 +408,7 @@ function openViewer(id: string): void {
         </div>
         <div class="code__actions">
           <button type="button" class="btn btn--accent" data-copy="file">${icon('copy')} Copy as one HTML file</button>
+          ${videoButton(id, '')}
           <button type="button" class="btn" data-act="share">${icon('share')} Share</button>
           <button type="button" class="btn" data-act="newtab">${icon('arrow-up-right')} Open in new tab</button>
           <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>

@@ -65,6 +65,14 @@ input {
   clip-path: inset(50%);
 }
 
+// a quiet detail inside a button, e.g. the file size on "Video 1.4 MB"
+.btn small {
+  font-size: 0.85em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
 /* ---------- ambient background ---------- */
 
 .aurora {
