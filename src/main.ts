@@ -296,9 +296,12 @@ function openViewer(id: string): void {
     { key: 'html', label: 'HTML', lang: 'html', code: snip.html },
     { key: 'css', label: 'CSS', lang: 'css', code: snip.css },
     ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js' as Lang, code: snip.js }] : []),
-    { key: 'run', label: `${icon('play')} Run snippet` },
-    { key: 'scss', label: 'SCSS used here', lang: 'scss', code: scssFor(id) },
+    { key: 'run', label: `${icon('play')} Preview` },
+    { key: 'scss', label: 'Sass source', lang: 'scss', code: scssFor(id) },
   ];
+
+  const tab = (p: Pane, cls = '', title = ''): string =>
+    `<button type="button" role="tab" class="${cls}" data-pane="${p.key}" aria-selected="${p.key === 'css'}"${title ? ` title="${title}"` : ''}>${p.label}</button>`;
 
   viewerBody.innerHTML = `
     <header class="viewer__head">
@@ -322,24 +325,29 @@ function openViewer(id: string): void {
         <div class="codebox">
           <div class="codebox__bar">
             <div class="codebox__tabs" role="tablist">
-              ${panes.map((p, i) => `<button type="button" role="tab" data-pane="${p.key}" aria-selected="${i === 1}">${p.label}</button>`).join('')}
+              <div class="codebox__seg" title="The standalone snippet: copy these into your project">
+                ${panes.filter((p) => p.lang && p.key !== 'scss').map((p) => tab(p)).join('')}
+              </div>
+              ${tab(panes.find((p) => p.key === 'run')!, 'codebox__tab--run', 'Runs the snippet on its own, exactly as it works when pasted')}
+              ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'How this site builds the demo, using the project Sass mixins. For reading, not for pasting')}
             </div>
             <button type="button" class="codebox__copy" data-copy="pane">${icon('copy')} Copy</button>
           </div>
           <div class="code__panel"></div>
+          <div class="codebox__foot"><span class="code__note"></span><span class="codebox__lines"></span></div>
         </div>
         <div class="code__actions">
           <button type="button" class="btn btn--accent" data-copy="file">${icon('copy')} Copy as one HTML file</button>
           <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
           <a class="btn" href="demos/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
-        <p class="code__note"></p>
         <p class="code__thanks" hidden>Glad it helped. This site is free — if you like, <a href="${KOFI}" target="_blank" rel="noopener">buy me a coffee</a> ${icon('coffee')}</p>
       </section>
     </div>`;
 
   const panel = viewerBody.querySelector<HTMLElement>('.code__panel')!;
   const note = viewerBody.querySelector<HTMLElement>('.code__note')!;
+  const lines = viewerBody.querySelector<HTMLElement>('.codebox__lines')!;
   const copyPane = viewerBody.querySelector<HTMLButtonElement>('[data-copy=pane]')!;
   let current = panes[1];
 
@@ -356,13 +364,15 @@ function openViewer(id: string): void {
       frame.setAttribute('sandbox', 'allow-scripts');
       frame.srcdoc = standaloneDoc(demo.title, snip);
       panel.replaceChildren(frame);
-      note.textContent = 'This is the HTML + CSS' + (snip.js ? ' + JS' : '') + ' snippet running on its own in an isolated frame — exactly what you get when you paste it.';
+      lines.textContent = 'live';
+      note.textContent = 'The HTML + CSS' + (snip.js ? ' + JS' : '') + ' snippet running on its own: exactly what you get when you paste it.';
     } else {
       panel.innerHTML = `<pre><code>${highlight(pane.code!, pane.lang!)}</code></pre>`;
+      lines.textContent = `${pane.code!.trimEnd().split('\n').length} lines`;
       note.textContent =
         pane.key === 'scss'
-          ? 'The actual stylesheet behind the demo on this page. It leans on this project’s Sass mixins and colour tokens — use the HTML/CSS tabs for a paste-anywhere version.'
-          : 'Minimal standalone version: plain CSS, no build step, no dependencies.';
+          ? 'This site\u2019s own stylesheet for the demo. It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.'
+          : `Standalone snippet \u00b7 plain ${pane.label}, no build step, no dependencies.`;
     }
   };
 

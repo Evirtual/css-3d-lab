@@ -96,7 +96,7 @@ function demoPage(d, index) {
   const codeBlock = (label, lang, code) => `
         <section class="codebox page-code" data-code>
           <div class="codebox__bar">
-            <h3 class="codebox__label">${label}</h3>
+            <h3 class="codebox__label">${label} <span>${code.trimEnd().split('\n').length} lines</span></h3>
             <button type="button" class="codebox__copy" data-copy-code>${icon('copy')} Copy</button>
           </div>
           <pre><code>${highlight(code, lang)}</code></pre>
