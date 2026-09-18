@@ -1203,8 +1203,18 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   flex-direction: column;
   min-width: 0;
 
+  // In the dialog the window stretches to the height of the demo + explanation beside it (the
+  // grid row is as tall as the left column); the panel scrolls inside whatever height that is.
+  .codebox {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 420px;
+  }
+
   &__panel {
-    height: 440px;
+    flex: 1 1 0;
+    min-height: 0;
     overflow: auto;
     scrollbar-width: thin;
     scrollbar-color: rgb(255 255 255 / 0.2) transparent;
