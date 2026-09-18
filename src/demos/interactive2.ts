@@ -95,17 +95,20 @@ export const interactiveDemos2: Demo[] = [
     tags: ['pointer'],
     technique: ['translateZ per layer', 'scale() to compensate for distance', 'pointer → two rotation variables'],
     fill: true,
-    html: `<div class="d-parallax"><div class="d-parallax__world"><i></i><i></i><i></i><i></i><b>Move me</b></div></div>`,
+    html: `<div class="d-parallax"><div class="d-parallax__world"><i></i><i></i><i></i><i></i></div><b>Move your pointer</b></div>`,
     init(scene, stage) {
       const world = scene.querySelector<HTMLElement>('.d-parallax__world')!;
       const move = (e: PointerEvent) => {
         const r = stage.getBoundingClientRect();
         const x = clamp((e.clientX - r.left) / r.width - 0.5, -0.5, 0.5);
         const y = clamp((e.clientY - r.top) / r.height - 0.5, -0.5, 0.5);
-        world.style.setProperty('--ry', `${x * 24}deg`);
-        world.style.setProperty('--rx', `${-y * 16}deg`);
+        world.style.setProperty('--ry', `${x * 30}deg`);
+        world.style.setProperty('--rx', `${-y * 20}deg`);
+        world.classList.add('is-live');
+        world.parentElement!.classList.add('is-touched');
       };
       const leave = () => {
+        world.classList.remove('is-live');
         world.style.removeProperty('--rx');
         world.style.removeProperty('--ry');
       };

@@ -11,6 +11,7 @@
     height: 120px;
     margin-bottom: 26px;
     transform-style: preserve-3d;
+    pointer-events: none; // coplanar with the active cover: let the covers take the pointer
   }
 
   i {
@@ -26,6 +27,7 @@
     font-style: normal;
     font-weight: 900;
     cursor: pointer;
+    pointer-events: auto;
     box-shadow: 0 16px 24px -14px #000;
     transform:
       translateX(calc(var(--o) * 46px + var(--sign) * 34px))

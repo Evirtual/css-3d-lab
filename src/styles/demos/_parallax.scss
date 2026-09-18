@@ -10,7 +10,13 @@
     inset: 0;
     transform-style: preserve-3d;
     transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-    transition: transform 0.25s ease-out;
+    // Slow ease back to rest. While the pointer is driving, the transition is almost off:
+    // a long one restarts on every pointer event and makes the scene lag behind the hand.
+    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    &.is-live {
+      transition-duration: 0.1s;
+    }
   }
 
   // Far layers are pushed back AND scaled up so they still fill the frame.
@@ -51,12 +57,22 @@
     transform: translateZ(70px) scale(0.9);
   }
 
+  // The hint is a flat overlay, NOT part of the 3D world: inside the world, near the bottom edge
+  // and close to the camera, perspective pushed it out of frame until the scene tilted.
   b {
     position: absolute;
     inset: auto 0 12px;
     color: #fff;
     font-size: 13px;
+    font-weight: 600;
     text-align: center;
-    transform: translateZ(110px);
+    text-shadow: 0 1px 6px rgb(0 0 0 / 0.7);
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+
+  // once the visitor has moved the scene, the hint has done its job
+  &.is-touched b {
+    opacity: 0;
   }
 }

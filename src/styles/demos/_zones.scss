@@ -6,10 +6,15 @@ $tilt: 22deg;
   display: grid;
   grid-template: repeat(3, 1fr) / repeat(3, 1fr);
   transform-style: preserve-3d;
+  // The container lies on exactly the same 3D plane as its children. Coplanar surfaces have no
+  // stable front-to-back order, so in patches the browser hit-tests the (invisible) container
+  // instead of the child: wrong cursor, ignored hover. Only the children should catch the pointer.
+  pointer-events: none;
 
   // nine invisible hover targets covering the stage
   i {
     z-index: 1;
+    pointer-events: auto;
   }
 
   &__card {

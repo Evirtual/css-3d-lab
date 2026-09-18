@@ -837,10 +837,13 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   gap: 5px;
   transform-style: preserve-3d;
   transform: rotateX(56deg) rotateZ(-45deg);
+  /* same plane as its cells: keep the floor itself out of hit-testing, or hover misses in patches */
+  pointer-events: none;
 }
 
 /* the cell is a fixed hit target; only its ::before plate moves */
 .floor i {
+  pointer-events: auto;
   position: relative;
   height: 46px;
   transform-style: preserve-3d;
@@ -1332,7 +1335,14 @@ layout();`,
   inset: 0;
   transform-style: preserve-3d;
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform 0.25s ease-out;
+  /* slow ease back to rest... */
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ...but nearly instant while the pointer is driving: a long transition restarts on every
+   pointer event and makes the scene lag behind the hand */
+.world.is-live {
+  transition-duration: 0.1s;
 }
 
 .world i {
@@ -1377,11 +1387,13 @@ const world = document.querySelector('.world');
 view.addEventListener('pointermove', (e) => {
   const x = e.clientX / innerWidth - 0.5;    // -0.5 … 0.5
   const y = e.clientY / innerHeight - 0.5;
-  world.style.setProperty('--ry', x * 24 + 'deg');
-  world.style.setProperty('--rx', -y * 16 + 'deg');
+  world.style.setProperty('--ry', x * 30 + 'deg');
+  world.style.setProperty('--rx', -y * 20 + 'deg');
+  world.classList.add('is-live');
 });
 
 view.addEventListener('pointerleave', () => {
+  world.classList.remove('is-live');
   world.style.removeProperty('--rx');
   world.style.removeProperty('--ry');
 });`,
@@ -1670,6 +1682,7 @@ onScroll();`,
       'That single attribute would flip them all at once. The ripple comes from <code>transition-delay: calc(var(--d) * 70ms)</code>.',
       'On click, JS works out each tile’s distance from the clicked one, writes it to <code>--d</code>, <b>then</b> toggles the attribute.',
       'Order matters: the delays must be in place before the change that triggers the transition.',
+      'The grid has <code>pointer-events: none</code> and the tiles <code>auto</code>. Both lie on the same 3D plane, and coplanar surfaces have no stable front-to-back order — without this the browser hit-tests the invisible grid in patches, and the cursor and clicks fail there.',
     ],
     html: `<div class="scene">
   <div class="tiles"></div>
@@ -1684,11 +1697,15 @@ onScroll();`,
   gap: 5px;
   transform-style: preserve-3d;
   transform: rotateX(30deg);
+  /* the grid is on the same 3D plane as its tiles; coplanar surfaces have no stable order, so
+     in patches the browser would hit-test the grid instead of the tile (wrong cursor, dead clicks) */
+  pointer-events: none;
 }
 
 .tiles i {
   position: relative;
   height: 42px;
+  pointer-events: auto;
   cursor: pointer;
   transform-style: preserve-3d;
   transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1);

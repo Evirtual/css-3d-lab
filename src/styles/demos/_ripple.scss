@@ -4,9 +4,14 @@
   gap: 4px;
   transform-style: preserve-3d;
   transform: rotateX(30deg);
+  // The container lies on exactly the same 3D plane as its children. Coplanar surfaces have no
+  // stable front-to-back order, so in patches the browser hit-tests the (invisible) container
+  // instead of the child: wrong cursor, ignored hover. Only the children should catch the pointer.
+  pointer-events: none;
 
   i {
     position: relative;
+    pointer-events: auto;
     height: 30px;
     cursor: pointer;
     transform-style: preserve-3d;

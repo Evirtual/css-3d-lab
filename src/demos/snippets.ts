@@ -1039,6 +1039,7 @@ scene.addEventListener('pointercancel', release);`,
   width: 130px;
   height: 165px;
   transform-style: preserve-3d;
+  pointer-events: none;   /* same plane as the active cover: let the covers take the pointer */
 }
 
 .track i {
@@ -1051,6 +1052,7 @@ scene.addEventListener('pointercancel', release);`,
   font: 900 2.2rem system-ui;
   color: #fff;
   cursor: pointer;
+  pointer-events: auto;
   background: linear-gradient(160deg, hsl(var(--hue) 85% 64%), hsl(var(--hue) 70% 36%));
   box-shadow: 0 16px 24px -14px #000;
   transform:
