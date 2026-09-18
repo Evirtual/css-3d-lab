@@ -193,12 +193,7 @@ export const interactiveDemos2: Demo[] = [
     html: `<div class="d-confetti"><span>click anywhere</span></div>`,
     init(scene, stage) {
       const root = scene.querySelector<HTMLElement>('.d-confetti')!;
-      const burst = (e: PointerEvent) => {
-        const r = root.getBoundingClientRect();
-        // getBoundingClientRect is in screen pixels; divide out any CSS scale on the stage.
-        const scale = r.width / root.offsetWidth || 1;
-        const x = (e.clientX - r.left) / scale;
-        const y = (e.clientY - r.top) / scale;
+      const burstAt = (x: number, y: number) => {
         for (let i = 0; i < 36; i++) {
           const p = document.createElement('i');
           p.style.left = `${x}px`;
@@ -212,8 +207,20 @@ export const interactiveDemos2: Demo[] = [
           root.append(p);
         }
       };
+      const burst = (e: PointerEvent) => {
+        const r = root.getBoundingClientRect();
+        // getBoundingClientRect is in screen pixels; divide out any CSS scale on the stage.
+        const scale = r.width / root.offsetWidth || 1;
+        burstAt((e.clientX - r.left) / scale, (e.clientY - r.top) / scale);
+      };
+      // One burst on arrival, so the card shows what it does before anyone clicks. (Only one: a
+      // card off screen is paused, so a repeating burst would pile up particles that never finish.)
+      const hello = window.setTimeout(() => burstAt(root.offsetWidth / 2, root.offsetHeight * 0.55), 250);
       stage.addEventListener('pointerdown', burst);
-      return () => stage.removeEventListener('pointerdown', burst);
+      return () => {
+        window.clearTimeout(hello);
+        stage.removeEventListener('pointerdown', burst);
+      };
     },
   },
   {

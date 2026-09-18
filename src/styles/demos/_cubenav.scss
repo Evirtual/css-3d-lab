@@ -1,0 +1,104 @@
+@use '../mixins' as *;
+
+.d-cubenav {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    perspective: 700px;
+  }
+
+  &__cube {
+    --s: 116px;
+    position: relative;
+    width: var(--s);
+    height: var(--s);
+    transform-style: preserve-3d;
+    // Read right to left: spin on the vertical axis by --angle (JS only ever adds or subtracts
+    // 90° steps, it never wraps back to 0), tip the top toward the viewer a little, then pull the
+    // whole cube back by half a side so the front face sits at z = 0 and stays its true size.
+    transform: translateZ(calc(var(--s) / -2)) rotateX(-14deg) rotateY(var(--angle, 0deg));
+    transition: transform 0.8s cubic-bezier(0.3, 1.2, 0.5, 1);
+    @include cube-faces(var(--s));
+
+    i {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-content: end;
+      padding: 10px;
+      border: 1px solid hsl(var(--hue) 90% 80% / 0.6);
+      border-radius: 10px;
+      background:
+        radial-gradient(circle at 72% 26%, rgb(255 255 255 / 0.55) 0 9%, transparent 10%),
+        linear-gradient(165deg, hsl(var(--hue) 85% 66%), hsl(calc(var(--hue) + 45) 70% 30%));
+      color: #fff;
+      font-size: 15px;
+      font-style: normal;
+      font-weight: 800;
+      line-height: 1.1;
+      backface-visibility: hidden;
+      @include solid-core(6px, hsl(var(--hue) 60% 24%));
+
+      small {
+        font-size: 10px;
+        font-weight: 600;
+        opacity: 0.8;
+      }
+
+      // top and bottom caps
+      &:nth-child(n + 5) {
+        --hue: 250;
+        border-color: var(--border-strong);
+        background: color-mix(in srgb, var(--accent) 30%, var(--surface-solid));
+      }
+    }
+  }
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+
+    button {
+      padding: 5px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    output {
+      margin-left: auto;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+  }
+
+  &__dots {
+    display: flex;
+    gap: 6px;
+
+    button {
+      width: 10px;
+      height: 10px;
+      padding: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: 50%;
+      background: transparent;
+
+      &[aria-current='true'] {
+        border-color: var(--accent-2);
+        background: var(--accent-2);
+      }
+    }
+  }
+}

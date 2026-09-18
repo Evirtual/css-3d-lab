@@ -3,6 +3,11 @@
  * The detail view runs each one in an isolated iframe, so what is shown is what gets copied.
  */
 import { snippets2 } from './snippets2';
+import { snippetsA } from './snippets-batch-a';
+import { snippetsB } from './snippets-batch-b';
+import { snippetsC } from './snippets-batch-c';
+import { snippetsD } from './snippets-batch-d';
+import { snippetsE } from './snippets-batch-e';
 import { CUBE_FACES, type Snippet } from './snippet-utils';
 
 export { standaloneDoc, type Snippet } from './snippet-utils';
@@ -1344,4 +1349,4 @@ setInterval(tick, 250);`,
   },
 };
 
-export const snippets: Record<string, Snippet> = { ...snippets1, ...snippets2 };
+export const snippets: Record<string, Snippet> = { ...snippets1, ...snippets2, ...snippetsA, ...snippetsB, ...snippetsC, ...snippetsD, ...snippetsE };

@@ -1,0 +1,117 @@
+// The plane is laid back with rotateX and turned a little on screen with rotateZ.
+// Each orbit ring spins on Z inside that plane; its planet undoes the spin AND the plane's
+// tilt, in reverse order, so it always faces the camera (billboarding).
+$tilt: 68deg;
+$roll: -16deg;
+$face: rotateX(-$tilt) rotateZ(-$roll); // the inverse of the plane, applied last
+
+.d-solar {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  transform-style: preserve-3d;
+  transform: rotateZ($roll) rotateX($tilt);
+
+  &__sun {
+    position: absolute;
+    inset: calc(50% - 13px);
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 34%, #fff8e1, var(--warm) 45%, var(--hot) 100%);
+    box-shadow:
+      0 0 16px color-mix(in srgb, var(--warm) 80%, transparent),
+      0 0 40px color-mix(in srgb, var(--hot) 45%, transparent);
+    transform: $face;
+
+    // a soft corona that breathes (opacity + scale only)
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -9px;
+      border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--warm) 55%, transparent) 40%, transparent 70%);
+      animation: d-solar-glow 3s ease-in-out infinite alternate;
+    }
+  }
+
+  &__orbit {
+    position: absolute;
+    inset: calc(50% - var(--r));
+    border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+    border-radius: 50%;
+    transform-style: preserve-3d;
+    animation: d-solar-orbit var(--t) linear var(--d) infinite;
+
+    // A fading trail on the ring behind the planet: a conic gradient cut to a thin ring.
+    // It has no children, so the mask cannot flatten anything.
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      background: conic-gradient(transparent 62%, color-mix(in srgb, var(--c) 85%, transparent));
+      mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+    }
+
+    b {
+      position: absolute;
+      top: calc(var(--s) / -2);
+      left: calc(50% - var(--s) / 2);
+      width: var(--s);
+      height: var(--s);
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 34% 30%,
+        #fff 0 6%,
+        var(--c) 42%,
+        color-mix(in srgb, var(--c) 45%, #000) 100%
+      );
+      box-shadow: 0 0 10px color-mix(in srgb, var(--c) 55%, transparent);
+      // same duration and delay as the ring, so the two rotations cancel at every moment
+      animation: d-solar-face var(--t) linear var(--d) infinite;
+    }
+
+    // Saturn-ish: the ring is 2D (the planet always faces us). Hiding the top border
+    // makes the ring's far half look like it passes behind the planet.
+    .is-ringed::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 180%;
+      height: 50%;
+      border: 2px solid color-mix(in srgb, var(--c) 80%, #fff);
+      border-top-color: transparent;
+      border-radius: 50%;
+      transform: translate(-50%, -50%) rotate(-18deg);
+    }
+  }
+}
+
+@keyframes d-solar-orbit {
+  to {
+    transform: rotateZ(360deg);
+  }
+}
+
+// rotateZ(-angle) undoes the ring; then the plane's tilt and roll are undone
+@keyframes d-solar-face {
+  from {
+    transform: rotateZ(0deg) $face;
+  }
+
+  to {
+    transform: rotateZ(-360deg) $face;
+  }
+}
+
+@keyframes d-solar-glow {
+  from {
+    opacity: 0.55;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}

@@ -1,0 +1,108 @@
+@use '../mixins' as *;
+
+.d-shapeshift {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    perspective: 700px;
+  }
+
+  // JS sets --n (sides), --R (corner radius), --r (apothem = R·cos(180°/n)),
+  // --w (side = 2R·sin(180°/n)) and --cap (the n-gon as a clip-path polygon).
+  // CSS only places things from those numbers.
+  &__prism {
+    --h: 92px;
+    position: relative;
+    width: calc(var(--R) * 2);
+    height: var(--h);
+    transform-style: preserve-3d;
+    animation: d-shapeshift-spin 14s linear infinite;
+
+    // side panel i: turn to its own angle, then walk out by the apothem
+    i {
+      --c: color-mix(in srgb, var(--accent-2) var(--mix, 50%), var(--accent));
+      position: absolute;
+      top: 0;
+      left: calc(50% - var(--w) / 2);
+      width: var(--w);
+      height: 100%;
+      transform: rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(var(--r));
+      // panels are rebuilt on every change; @starting-style (below) makes new ones fly in
+      transition:
+        transform 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.1),
+        opacity 0.35s;
+      transition-delay: calc(var(--i) * 30ms);
+      @include face(var(--c), 26%);
+
+      @starting-style {
+        opacity: 0;
+        transform: rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(calc(var(--r) + 70px));
+      }
+    }
+
+    // caps: a 2R square cut to the n-gon, laid flat at the top and bottom. Both use rotateX(90deg)
+    // and only differ in the push, so the (not always symmetric) polygon lines up on both ends.
+    b {
+      position: absolute;
+      left: calc(50% - var(--R));
+      top: calc(50% - var(--R));
+      width: calc(var(--R) * 2);
+      height: calc(var(--R) * 2);
+      clip-path: var(--cap);
+      background: radial-gradient(
+        circle,
+        color-mix(in srgb, var(--hot) 10%, transparent) 15%,
+        color-mix(in srgb, var(--hot) 50%, transparent) 100%
+      );
+      transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
+      transition: opacity 0.4s 0.25s;
+
+      & + b {
+        transform: rotateX(90deg) translateZ(calc(var(--h) / -2));
+      }
+
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 13px;
+
+    input {
+      flex: 1;
+      min-width: 0;
+      accent-color: var(--accent);
+    }
+
+    // wide enough for "11 · hendecagon", so the slider does not jump as the text changes
+    output {
+      min-width: 15ch;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      text-align: right;
+    }
+  }
+}
+
+@keyframes d-shapeshift-spin {
+  from {
+    transform: rotateX(-22deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(-22deg) rotateY(360deg);
+  }
+}

@@ -3,22 +3,19 @@ import { icon } from './icons';
 /**
  * The look of the stages, separate from the site theme and remembered per visitor.
  *
- * Backdrop dots — two independent settings, each Off / 1× fine / 2× (default) / 3× large:
- *   stage  the large stage of a single demo (demo page, dialog); buttons sit on that stage
- *   cards  the small stages of cards (gallery, group pages, "more in this group"); buttons sit in
- *          the gallery's filter bar
- * written to <html> as data-dotsize / data-carddots; CSS holds the actual sizes.
+ * Backdrop dots on the large stage of a demo (demo page, dialog): Off / 1× fine / 2× (default) /
+ * 3× large, written to <html> as data-dotsize; CSS holds the actual sizes. (Cards have their own
+ * per-card menu: card-look.ts.)
  *
  * Stage theme — the large stage can be switched to light or dark on its own, whatever the site
  * theme is. Written to every `.stage-wrap` as data-theme (absent = follow the site).
  *
  * The demo itself is never resized (full screen is for a closer look).
  */
-type Scope = 'stage' | 'cards';
+type Scope = 'stage';
 type Theme = 'dark' | 'light';
-const SCOPES: Record<Scope, { key: string; attr: 'dotsize' | 'carddots' }> = {
+const SCOPES: Record<Scope, { key: string; attr: 'dotsize' }> = {
   stage: { key: 'c3d-dots', attr: 'dotsize' },
-  cards: { key: 'c3d-card-dots', attr: 'carddots' },
 };
 const THEME_KEY = 'c3d-stage-theme';
 /** Fired on `document` when the large stage's effective theme changes. */
@@ -95,7 +92,6 @@ function applyTheme(): void {
 /** Call after a stage or buttons are added to the page, so they show the current choices. */
 export function initZoom(): void {
   applyDots('stage', storedDots('stage'));
-  applyDots('cards', storedDots('cards'));
   applyTheme();
 }
 
@@ -108,7 +104,7 @@ document.addEventListener('click', (e) => {
   }
   const btn = target.closest<HTMLElement>('[data-dots]');
   if (!btn) return;
-  const scope: Scope = btn.dataset.dotsScope === 'cards' ? 'cards' : 'stage';
+  const scope: Scope = 'stage';
   const size = btn.dataset.dots!;
   write(SCOPES[scope].key, size === '2' ? null : size);
   applyDots(scope, size);

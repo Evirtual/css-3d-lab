@@ -8,6 +8,8 @@ import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { dotsHtml, initTint, modeHtml } from './tint';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
+import { cardMenuHtml, initCardLook } from './card-look';
+import { interactionHtml } from './demos/interaction';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
 import { snippets } from './demos/snippets';
@@ -109,6 +111,8 @@ for (const [i, demo] of demos.entries()) {
   card.style.setProperty('--n', String(i));
   card.innerHTML = `
     <div class="stage"></div>
+    ${interactionHtml(demo)}
+    ${cardMenuHtml(demo.id)}
     <div class="card__body">
       <span class="card__group">${GROUPS[demo.group]}</span>
       <header>
@@ -127,6 +131,7 @@ for (const [i, demo] of demos.entries()) {
   cards.set(demo.id, card);
   grid.append(card);
 }
+initCardLook(); // each card's own preview options
 
 /* ---------- filters ---------- */
 
@@ -134,6 +139,7 @@ const tabsEl = $('#tabs');
 const groupsEl = $('#groups');
 const tagsEl = $('#tags');
 const statusEl = $('#status');
+const tagsBtn = $<HTMLButtonElement>('#tags-toggle');
 const emptyEl = $('#empty');
 const searchEl = $<HTMLInputElement>('#search');
 const clearEl = $<HTMLButtonElement>('#search-clear');
@@ -188,11 +194,25 @@ function render(): void {
       return `<button type="button" class="group" data-group="${group}" aria-pressed="${on}"${n === 0 && !on ? ' disabled' : ''}>${label} <b>${n}</b></button>`;
     })
     .join('');
+  const hiddenByFilters = demos.length - count(state);
+  if (hiddenByFilters) {
+    groupsEl.insertAdjacentHTML(
+      'afterbegin',
+      `<button type="button" class="group group--clear" data-clear title="Clear every filter">${icon('x')} Clear <b>${hiddenByFilters} hidden</b></button>`,
+    );
+  }
+  // the tag list lives behind a button; the button says how many tags are on
+  tagsBtn.innerHTML = `${icon('hash')} <span class="btn__label">Tags</span>${state.tags.size ? ` <b>${state.tags.size}</b>` : ''}`;
+  tagsBtn.setAttribute('aria-label', state.tags.size ? `Tags, ${state.tags.size} selected` : 'Tags');
+  tagsBtn.classList.toggle('is-on', state.tags.size > 0);
+  queueMicrotask(revealSelectedGroup);
 
+  // Tags that would leave nothing to show are left out (the selected ones always stay).
   tagsEl.innerHTML = allTags
     .map((tag) => {
       const on = state.tags.has(tag);
       const n = on ? count(state) : count({ ...state, tags: new Set([...state.tags, tag]) });
+      if (n === 0 && !on) return '';
       return `<button type="button" class="chip" data-tag="${tag}" aria-pressed="${on}"${n === 0 && !on ? ' disabled' : ''}>#${tag} <b>${n}</b></button>`;
     })
     .join('');
@@ -208,20 +228,10 @@ function render(): void {
     if (isMatch) matching++;
   }
 
-  // The status line always says how many are on screen, how many match, and how many filters hide.
+  // Announced to screen readers only; on screen the counts on every filter say the same.
   const shown = Math.min(limit, matching);
-  const filteredOut = demos.length - matching;
-  const parts = [
-    shown < matching
-      ? `Showing <b>${shown}</b> of ${matching} ${filteredOut ? 'matching' : 'demos'} · more load as you scroll`
-      : filteredOut
-        ? `Showing all <b>${matching}</b> matching`
-        : `Showing all <b>${demos.length}</b> demos`,
-  ];
-  if (filteredOut) {
-    parts.push(`${filteredOut} hidden by your filters <button type="button" class="link" data-clear>Show all</button>`);
-  }
-  statusEl.innerHTML = parts.join(' · ');
+  statusEl.textContent = matching === demos.length ? `${demos.length} demos` : `${matching} of ${demos.length} demos match`;
+
   emptyEl.hidden = matching > 0;
   clearEl.hidden = !state.q;
   moreEl.hidden = shown >= matching;
@@ -273,6 +283,48 @@ document.addEventListener('click', (e) => {
   } else return;
   applyFilters();
 });
+
+/* ---------- groups and tags rows: fades / arrows only where there is more to scroll ---------- */
+function scrollRow(row: HTMLElement): { update: () => void; reveal: (el: HTMLElement | null) => void } {
+  const track = row.querySelector<HTMLElement>('.scrollrow__track')!;
+  const update = () => {
+    const { scrollLeft, scrollWidth, clientWidth } = track;
+    row.classList.toggle('can-prev', scrollLeft > 2);
+    row.classList.toggle('can-next', scrollLeft + clientWidth < scrollWidth - 2);
+  };
+  track.addEventListener('scroll', update, { passive: true });
+  new ResizeObserver(update).observe(track);
+  for (const [sel, dir] of [['.scrollrow__arrow--prev', -1], ['.scrollrow__arrow--next', 1]] as const) {
+    row.querySelector(sel)!.addEventListener('click', () => track.scrollBy({ left: dir * track.clientWidth * 0.7, behavior: 'smooth' }));
+  }
+  // bring a chosen pill into view, clear of the fading edges
+  const reveal = (el: HTMLElement | null) => {
+    if (el) {
+      const { offsetLeft, offsetWidth } = el;
+      const { scrollLeft, clientWidth } = track;
+      if (offsetLeft < scrollLeft + 48) track.scrollLeft = offsetLeft - 48;
+      else if (offsetLeft + offsetWidth > scrollLeft + clientWidth - 48) track.scrollLeft = offsetLeft + offsetWidth - clientWidth + 48;
+    }
+    update();
+  };
+  return { update, reveal };
+}
+const tagsRow = $('#tags-row');
+const groupsScroll = scrollRow(groupsEl.closest<HTMLElement>('.scrollrow')!);
+const tagsScroll = scrollRow(tagsRow);
+function revealSelectedGroup(): void {
+  groupsScroll.reveal(groupsEl.querySelector<HTMLElement>('.group[aria-pressed="true"]'));
+  tagsScroll.update();
+}
+
+tagsBtn.addEventListener('click', () => {
+  const open = tagsRow.hidden;
+  tagsRow.hidden = !open;
+  tagsBtn.setAttribute('aria-expanded', String(open));
+  tagsScroll.update();
+});
+// arriving with tags in the URL: show them
+if (state.tags.size) tagsBtn.click();
 
 document.addEventListener('keydown', (e) => {
   if (e.key === '/' && !(e.target as HTMLElement).matches('input, textarea')) {

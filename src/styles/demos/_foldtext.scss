@@ -1,0 +1,113 @@
+$pw: 66px; // one panel
+$ph: 104px;
+$a: 52deg; // fold angle
+
+// The static hit area: it takes :hover / :focus and never moves (the paper inside does).
+.d-foldtext {
+  display: grid;
+  place-items: center;
+  width: $pw * 3 + 16px;
+  height: $ph + 40px;
+  border-radius: 12px;
+  cursor: pointer;
+  transform-style: preserve-3d;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 2px;
+  }
+
+  // Every panel is a "hinge" box that may hold the next panel; the visible paper is its <b>.
+  // Hinges must not clip (that would flatten the panels hanging off them), the paper may.
+  &__panel {
+    position: relative;
+    width: $pw;
+    height: $ph;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.3, 1.25, 0.5, 1);
+  }
+
+  // The middle panel is the root: it swings one way...
+  &__panel--mid {
+    transform: rotateX(8deg) rotateY($a);
+  }
+
+  // ...and its neighbours hang on its left and right edges and swing back twice as far, so
+  // in absolute terms they end up at -$a: a Z seen from above.
+  &__panel--left,
+  &__panel--right {
+    position: absolute;
+    top: 0;
+    transform: rotateY($a * -2);
+  }
+
+  &__panel--left {
+    right: 100%;
+    transform-origin: 100% 50%;
+  }
+
+  &__panel--right {
+    left: 100%;
+    transform-origin: 0 50%;
+  }
+
+  &:hover &__panel,
+  &:focus-visible &__panel {
+    transform: none;
+  }
+
+  // The paper: a window one panel wide...
+  &__panel > b {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    backface-visibility: hidden;
+
+    // ...onto a sheet three panels wide, shifted left by --i panels. All three show the same
+    // sheet, each its own third, so the print lines up across the folds.
+    > span {
+      position: absolute;
+      top: 0;
+      left: calc(var(--i) * -100%);
+      display: grid;
+      place-content: center;
+      gap: 4px;
+      width: 300%;
+      height: 100%;
+      background: linear-gradient(115deg, var(--accent), var(--hot) 60%, var(--warm));
+      color: #fff;
+      font-size: 41px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.03em;
+      text-align: center;
+
+      small {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        opacity: 0.85;
+      }
+    }
+
+    // Shading that sells the fold: panels facing away from the light are darker. Fades out
+    // as the paper flattens (opacity is cheap to animate, a gradient change is not).
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgb(0 0 0 / 0.45), rgb(0 0 0 / 0.1));
+      transition: opacity 0.9s;
+    }
+  }
+
+  &__panel--mid > b::after {
+    background: linear-gradient(90deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0));
+  }
+
+  &:hover &__panel > b::after,
+  &:focus-visible &__panel > b::after {
+    opacity: 0;
+  }
+}

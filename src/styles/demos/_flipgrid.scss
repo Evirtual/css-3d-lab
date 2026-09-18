@@ -1,0 +1,69 @@
+@use '../mixins' as *;
+
+.d-flipgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 62px);
+  gap: 9px;
+  transform-style: preserve-3d;
+  transform: rotateX(16deg);
+  // The grid and its tiles share one 3D plane, and coplanar surfaces have no stable hit-test
+  // order. Take the grid out of hit-testing so the pointer always lands on a tile.
+  pointer-events: none;
+
+  // The tile is the hit target and never moves; only __inner flips.
+  &__tile {
+    // odd tiles flip sideways, even tiles flip head over heels
+    --flip: rotateY(180deg);
+    position: relative;
+    height: 62px;
+    outline: none;
+    cursor: pointer;
+    pointer-events: auto;
+    transform-style: preserve-3d;
+
+    &:nth-child(even) {
+      --flip: rotateX(180deg);
+    }
+  }
+
+  &__inner {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1);
+
+    > * {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      backface-visibility: hidden;
+    }
+
+    // front
+    b {
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 900;
+      @include face(var(--c), 26%);
+    }
+
+    // back: pre-turned with the same rotation the tile will make, so it lands the right way up
+    span {
+      background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 45%, #000));
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      transform: var(--flip);
+    }
+  }
+
+  &__tile:hover &__inner,
+  &__tile:focus-visible &__inner {
+    // lift first (toward the viewer), then flip in place
+    transform: translateZ(30px) var(--flip);
+  }
+}

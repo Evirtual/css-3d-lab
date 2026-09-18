@@ -1,0 +1,177 @@
+// The map lies on a tilted, slightly turned plane. Each pin anchor (<i>) is a zero-size point
+// ON the map, so its pulse ring stays in the ground plane. The pin itself (<b>) undoes the
+// plane's rotations in reverse order around its own tip, so it stands up and faces you.
+$tilt: 54deg;
+$turn: -14deg;
+$stand: rotateZ(-$turn) rotateX(-$tilt); // the inverse of the plane
+$beat: 2.4s; // one full round: each of the three pins bounces once
+
+.d-map {
+  position: relative;
+  width: 210px;
+  height: 180px;
+  transform-style: preserve-3d;
+
+  &__plane {
+    --land: color-mix(in srgb, var(--accent-2) 34%, var(--surface-solid));
+    --water: color-mix(in srgb, var(--accent) 24%, var(--surface-solid));
+    --road: color-mix(in srgb, var(--warm) 60%, transparent);
+    position: absolute;
+    left: 10px;
+    top: 34px;
+    width: 190px;
+    height: 150px;
+    border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent);
+    border-radius: 14px;
+    background:
+      // roads
+      linear-gradient(28deg, transparent calc(50% - 1.5px), var(--road) 0 calc(50% + 1.5px), transparent 0),
+      linear-gradient(90deg, transparent 63%, var(--road) 0 calc(63% + 3px), transparent 0),
+      // a river: a thin slice of a big ring
+      radial-gradient(circle at 115% 125%, transparent 56%, var(--water) 0 59%, transparent 0),
+      // land masses
+      radial-gradient(ellipse 30% 25% at 26% 32%, var(--land) 98%, transparent),
+      radial-gradient(ellipse 26% 22% at 66% 68%, var(--land) 98%, transparent),
+      radial-gradient(ellipse 15% 13% at 82% 24%, var(--land) 98%, transparent),
+      radial-gradient(ellipse 12% 10% at 26% 80%, var(--land) 98%, transparent),
+      // a faint grid over the sea
+      linear-gradient(90deg, color-mix(in srgb, var(--text) 7%, transparent) 1px, transparent 1px) 0 0 / 19px 19px,
+      linear-gradient(color-mix(in srgb, var(--text) 7%, transparent) 1px, transparent 1px) 0 0 / 19px 19px,
+      var(--water);
+    box-shadow: 0 0 30px color-mix(in srgb, var(--accent-2) 20%, transparent);
+    transform-style: preserve-3d;
+    transform: rotateX($tilt) rotateZ($turn);
+
+    // pin anchor: a point on the map, lifted 1px so its ring never fights the map surface
+    i {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: 0;
+      height: 0;
+      transform-style: preserve-3d;
+      transform: translateZ(1px);
+
+      // pulse ring, flat on the ground
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+      }
+
+      &::before {
+        top: -16px;
+        left: -16px;
+        width: 32px;
+        height: 32px;
+        border: 2px solid var(--c);
+        opacity: 0;
+        animation: d-map-ring $beat ease-out infinite;
+        animation-delay: calc(var(--i) * #{$beat * 0.3333});
+      }
+
+      // contact shadow, shrinks while the pin is up
+      &::after {
+        top: -4px;
+        left: -7px;
+        width: 14px;
+        height: 8px;
+        background: rgb(0 0 0 / 0.45);
+        animation: d-map-shadow $beat ease-in-out infinite;
+        animation-delay: calc(var(--i) * #{$beat * 0.3333});
+      }
+    }
+
+    // The pin. Its box sits on the anchor with the tip at bottom centre, which is also
+    // the transform-origin, so the inverse rotation stands it up ON the point.
+    b {
+      position: absolute;
+      bottom: 0;
+      left: -13px;
+      width: 26px;
+      height: 32px;
+      transform-origin: 50% 100%;
+      transform: $stand;
+      animation: d-map-bounce $beat ease-in-out infinite;
+      animation-delay: calc(var(--i) * #{$beat * 0.3333});
+
+      // head: a square with three round corners, turned 45deg so the sharp one points down
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 26px;
+        height: 26px;
+        border-radius: 50% 50% 50% 0;
+        background: radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--c) 40%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 60%, #000));
+        box-shadow: 0 0 10px color-mix(in srgb, var(--c) 50%, transparent);
+        transform: rotate(-45deg);
+      }
+
+      // the white dot
+      &::after {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #fff;
+      }
+    }
+  }
+}
+
+// Each pin: a quick hop at the start of its third of the beat, then rest.
+// Rest (0% / 36% / 100%) is the plain standing transform, so the loop is seamless.
+@keyframes d-map-bounce {
+  0%,
+  36%,
+  100% {
+    transform: $stand translateY(0) scale(1, 1);
+  }
+
+  14% {
+    transform: $stand translateY(-16px) scale(0.94, 1.06);
+  }
+
+  26% {
+    transform: $stand translateY(0) scale(1.14, 0.86);
+  }
+}
+
+@keyframes d-map-shadow {
+  0%,
+  36%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  14% {
+    opacity: 0.45;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes d-map-ring {
+  0%,
+  24% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  27% {
+    opacity: 1;
+    transform: scale(0.3);
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}

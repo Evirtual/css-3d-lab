@@ -1,0 +1,126 @@
+$s: 120px; // sleeve
+$gap: 3px; // half the sleeve thickness
+
+// Static hit area; the moving parts inside ignore the pointer.
+.d-vinyl {
+  display: grid;
+  place-items: center;
+  width: 216px;
+  height: 160px;
+  border-radius: 16px;
+  outline-offset: -4px;
+  cursor: pointer;
+  transform-style: preserve-3d;
+
+  &__set {
+    position: relative;
+    width: $s;
+    height: $s;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transform: translateX(-8px) rotateX(4deg) rotateY(18deg);
+    transition: transform 0.7s cubic-bezier(0.3, 1.2, 0.5, 1);
+  }
+
+  // The sleeve is two boards with the record between them: a real sandwich in Z, so the
+  // record is hidden by the front board and hides the back one without any z-index.
+  &__front,
+  &__back {
+    position: absolute;
+    inset: 0;
+    border-radius: 3px;
+  }
+
+  &__back {
+    background: color-mix(in srgb, var(--accent) 30%, #0b0d18);
+    transform: translateZ(-$gap);
+  }
+
+  &__front {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.22);
+    background:
+      radial-gradient(circle at 78% 72%, transparent 0 17px, rgb(255 255 255 / 0.9) 17.5px 19px, transparent 19.5px 27px, rgb(255 255 255 / 0.55) 27.5px 29px, transparent 29.5px 38px, rgb(255 255 255 / 0.3) 38.5px 40px, transparent 40.5px),
+      radial-gradient(circle at 78% 72%, var(--warm) 0 17px, transparent 17.5px),
+      linear-gradient(150deg, var(--accent), var(--hot) 85%);
+    color: #fff;
+    backface-visibility: hidden;
+    transform: translateZ($gap);
+
+    b {
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.5px;
+    }
+
+    span {
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+  }
+
+  // closes the sleeve on the left; centred on the left edge and turned side-on
+  &__spine {
+    position: absolute;
+    top: 0;
+    left: -$gap;
+    width: $gap * 2;
+    height: 100%;
+    background: color-mix(in srgb, var(--accent) 60%, #0b0d18);
+    transform: rotateY(90deg);
+  }
+
+  &__disc {
+    position: absolute;
+    inset: 6px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    // The grooves and the light streaks do NOT spin: on a real record the reflections stay
+    // put while the disc turns. Only the label below rotates.
+    background:
+      conic-gradient(from 35deg, transparent 0 6%, rgb(255 255 255 / 0.22) 11%, transparent 17% 56%, rgb(255 255 255 / 0.16) 61%, transparent 67%),
+      repeating-radial-gradient(circle, #0c0c12 0 1.5px, #1f1f2a 1.5px 3px);
+    transform: translateX(12px);
+    transition: transform 0.7s cubic-bezier(0.3, 1.1, 0.5, 1);
+  }
+
+  &__label {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, #0c0c12 0 2.5px, transparent 3px),
+      conic-gradient(var(--warm) 0 25%, var(--hot) 0 50%, var(--warm) 0 75%, var(--hot) 0);
+    animation: d-vinyl-spin 1.8s linear infinite paused;
+  }
+
+  &:hover &__set,
+  &:focus-visible &__set {
+    transform: translateX(-36px) rotateX(6deg) rotateY(-22deg);
+  }
+
+  &:hover &__disc,
+  &:focus-visible &__disc {
+    transform: translateX(70px);
+  }
+
+  &:hover &__label,
+  &:focus-visible &__label {
+    animation-play-state: running;
+  }
+}
+
+@keyframes d-vinyl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -436,6 +436,107 @@
   }
 }
 
+// Video layouts (?reel=tall / ?reel=wide), filmed at 540 x 960 / 960 x 540 CSS px, 4x (4K).
+// Tall: apps cover the top ~110px and the bottom ~210px with their own UI, so the text stays
+// inside that.
+[data-reel] {
+  .embed__credit {
+    display: none;
+  }
+
+  .embed {
+    background:
+      radial-gradient(ellipse 80% 45% at 50% 50%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 70%),
+      radial-gradient(var(--border-strong) 1.2px, transparent 2px) 0 0 / 24px 24px,
+      var(--bg);
+  }
+
+  .embed .stage {
+    background: none;
+  }
+
+  // zoom, not scale: a zoomed scene is laid out (and drawn) big; a scaled one is a stretched bitmap
+  .embed .stage .scene:not(.scene--fill) {
+    scale: none;
+    zoom: 2.1;
+  }
+
+  .embed .stage .scene--fill {
+    inset: 250px 0 290px;
+    zoom: 1.5;
+  }
+
+  .embed__og {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 130px 36px 225px;
+    color: #fff;
+    text-align: center;
+    pointer-events: none;
+
+    b {
+      font-size: 46px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+  }
+
+  .embed__og-kind {
+    padding: 5px 14px;
+    border: 1px solid color-mix(in srgb, var(--accent-2) 60%, transparent);
+    border-radius: 999px;
+    color: var(--accent-2);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .embed__og-site {
+    margin-top: auto;
+    color: #c4c9e6;
+    font-size: 19px;
+    font-weight: 600;
+  }
+}
+
+// 16:9: title top-left, site bottom-left, the demo big in the middle
+[data-reel='wide'] {
+  .embed .stage .scene:not(.scene--fill) {
+    zoom: 1.75;
+    translate: 0 12px;
+  }
+
+  .embed .stage .scene--fill {
+    inset: 100px 60px 50px;
+    zoom: 1.25;
+  }
+
+  .embed__og {
+    align-items: flex-start;
+    gap: 6px;
+    padding: 34px 44px 30px;
+    text-align: left;
+
+    b {
+      font-size: 34px;
+    }
+  }
+
+  .embed__og-kind {
+    font-size: 12px;
+  }
+
+  .embed__og-site {
+    font-size: 15px;
+  }
+}
+
 @media (max-width: 600px) {
   .page-head {
     margin: 12px 0 18px;

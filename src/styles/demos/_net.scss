@@ -1,0 +1,113 @@
+@use '../mixins' as *;
+
+$s: 40px;
+
+// static camera: look down at the floor the net lies on
+.d-net {
+  transform-style: preserve-3d;
+  transform: translateY(12px) rotateX(58deg);
+
+  // The bottom face never moves; it only turns slowly so every side gets seen.
+  &__base {
+    position: relative;
+    width: $s;
+    height: $s;
+    transform-style: preserve-3d;
+    animation: d-net-turn 24s linear infinite;
+    @include face(var(--accent), 30%);
+  }
+
+  // Every other face lies flat NEXT to the edge it shares with its parent and hinges on that
+  // edge. --fx / --fy hold the folded angle; the keyframes swing between it and 0 (flat).
+  // :where() keeps this rule at the specificity of a single class, so the per-face rules below
+  // (also one class, later in the file) can override --fx / --fy and the lid's animation-name.
+  :where(i) {
+    --fx: 0deg;
+    --fy: 0deg;
+    position: absolute;
+    width: $s;
+    height: $s;
+    transform-style: preserve-3d;
+    animation: d-net-fold 8s ease-in-out infinite;
+  }
+
+  // Faces are positioned against the parent's padding box, which sits 1px inside its border:
+  // -1px / calc(100% + 1px) put every hinge exactly on the parent's outer edge.
+  &__n {
+    --fx: -90deg;
+    left: -1px;
+    bottom: calc(100% + 1px);
+    transform-origin: 50% 100%;
+    @include face(var(--hot), 28%);
+  }
+
+  &__s {
+    --fx: 90deg;
+    left: -1px;
+    top: calc(100% + 1px);
+    transform-origin: 50% 0;
+    @include face(var(--accent-2), 28%);
+  }
+
+  &__e {
+    --fy: -90deg;
+    top: -1px;
+    left: calc(100% + 1px);
+    transform-origin: 0 50%;
+    @include face(var(--warm), 28%);
+  }
+
+  &__w {
+    --fy: 90deg;
+    top: -1px;
+    right: calc(100% + 1px);
+    transform-origin: 100% 50%;
+    @include face(var(--warm), 28%);
+  }
+
+  // The lid is a CHILD of the north wall, so its 90deg adds to the wall's 90deg: hinges compound.
+  // It gets its own, wider keyframes: first to open, last to close.
+  &__lid {
+    --fx: -90deg;
+    left: -1px;
+    bottom: calc(100% + 1px);
+    transform-origin: 50% 100%;
+    animation-name: d-net-lid;
+    @include face(var(--accent), 30%);
+  }
+}
+
+@keyframes d-net-turn {
+  to {
+    transform: rotateZ(360deg);
+  }
+}
+
+// walls: closed, wait for the lid, open, rest flat, close again. Mirror-symmetric, so it loops.
+@keyframes d-net-fold {
+  0%,
+  22%,
+  78%,
+  100% {
+    transform: rotateX(var(--fx)) rotateY(var(--fy));
+  }
+
+  44%,
+  56% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+}
+
+@keyframes d-net-lid {
+  0%,
+  4%,
+  96%,
+  100% {
+    transform: rotateX(var(--fx)) rotateY(var(--fy));
+  }
+
+  26%,
+  74% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+}

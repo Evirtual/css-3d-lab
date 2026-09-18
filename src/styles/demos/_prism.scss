@@ -1,0 +1,59 @@
+@use 'sass:math';
+@use '../mixins' as *;
+
+$n: 6;
+$w: 52px; // width of one side panel = side of the hexagon
+$h: 96px;
+$r: math.div($w * 0.5, math.tan(math.div(180deg, $n))); // apothem: centre to the middle of a side
+$R: $w; // a regular hexagon's corner radius equals its side
+
+.d-prism {
+  position: relative;
+  width: $w;
+  height: $h;
+  transform-style: preserve-3d;
+  animation: d-prism-tumble 18s linear infinite;
+
+  // side panels: a six-panel ring, exactly like a carousel with no gaps
+  i {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(calc(var(--i) * #{math.div(360deg, $n)})) translateZ($r);
+    @include face(var(--accent), 24%);
+
+    &:nth-child(even) {
+      @include face(var(--accent-2), 20%);
+    }
+  }
+
+  // caps: a flat-topped hexagon cut out of a 2R x 2r box, laid flat on each end.
+  // clip-path is safe here because the caps are leaves (no 3D children to flatten).
+  b {
+    position: absolute;
+    left: calc(50% - #{$R});
+    top: calc(50% - #{$r});
+    width: $R * 2;
+    height: $r * 2;
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--hot) 12%, transparent) 20%,
+      color-mix(in srgb, var(--hot) 55%, transparent) 100%
+    );
+    transform: rotateX(90deg) translateZ($h * 0.5);
+
+    & + b {
+      transform: rotateX(-90deg) translateZ($h * 0.5);
+    }
+  }
+}
+
+@keyframes d-prism-tumble {
+  from {
+    transform: rotateX(-25deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(335deg) rotateY(360deg);
+  }
+}

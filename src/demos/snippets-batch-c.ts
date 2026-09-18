@@ -1,0 +1,1277 @@
+/**
+ * Paste-anywhere versions of the batch-c demos: plain HTML + CSS (+ JS), no Sass, no build step.
+ * See snippets.ts for the format this file follows.
+ */
+import type { Snippet } from './snippet-utils';
+
+export const snippetsC: Record<string, Snippet> = {
+  flaptext: {
+    how: [
+      'Every cell is four half-height leaves: static <code>top</code>/<code>bottom</code> show the current split, and <code>fall</code>/<code>land</code> are the ones that animate between the old and new character.',
+      'All four leaves read the same letter from <code>content: attr(data-c)</code>, so JS never touches a text node — it only ever writes a <code>data-c</code> attribute.',
+      'To replay a CSS animation, JS removes the <code>.is-flip</code> class, reads a layout property to force the browser to flush styles, then re-adds the class.',
+      '<code>animation-fill-mode: both</code> matters: outside its delay the falling leaf sits parked edge-on at <code>rotateX(-90deg)</code>, and the landing leaf holds its open pose until its own delay ends.',
+      '<code>--i</code> staggers each cell by 45ms so the flips ripple across the row instead of firing together.',
+    ],
+    html: `<div class="board">
+  <div class="board-head"><span>Departures</span><b>Gate 3D</b></div>
+  <div class="board-row" role="img" aria-label="Split-flap display cycling through city names">
+    <span class="cell" style="--i:0"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:1"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:2"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:3"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:4"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:5"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:6"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:7"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+  </div>
+</div>`,
+    css: `.board {
+  display: grid;
+  gap: 8px;
+  padding: 12px 12px 10px;
+  border: 1px solid #3a4070;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #211c3c, #0b0d18 70%);
+  box-shadow: 0 18px 30px -18px rgb(0 0 0 / 0.8);
+}
+
+.board-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #949bc0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.board-head b {
+  color: #ffb547;
+  font-weight: 800;
+}
+
+.board-row {
+  display: flex;
+  gap: 3px;
+}
+
+.cell {
+  position: relative;
+  width: 21px;
+  height: 34px;
+  perspective: 140px; /* its own close camera: a 17px leaf needs a strong one to read as falling */
+}
+
+/* the slit between the two halves */
+.cell::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - 0.5px);
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: #05060c;
+}
+
+.cell i {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 50%;
+  overflow: hidden; /* a leaf, so clipping here flattens nothing */
+  backface-visibility: hidden;
+}
+
+/* the whole character, twice the leaf's height; the leaf shows one half of it */
+.cell i::before {
+  content: attr(data-c);
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 200%;
+  color: #f4f1e6;
+  font: 800 22px/34px ui-monospace, monospace;
+  text-align: center;
+}
+
+.cell-top,
+.cell-fall {
+  top: 0;
+  border-radius: 4px 4px 0 0;
+  background: #1a1e36;
+}
+
+.cell-top::before,
+.cell-fall::before {
+  top: 0;
+}
+
+/* bottom halves: slightly lighter, as if lit from above */
+.cell-bottom,
+.cell-land {
+  bottom: 0;
+  border-radius: 0 0 4px 4px;
+  background: #20254a;
+}
+
+.cell-bottom::before,
+.cell-land::before {
+  bottom: 0;
+}
+
+.cell-fall {
+  transform: rotateX(-90deg); /* parked edge-on = invisible */
+  transform-origin: 50% 100%;
+}
+
+.cell-land {
+  transform-origin: 50% 0;
+}
+
+/* "both": during its delay the landing leaf waits edge-on at 90deg, afterwards it stays down
+   and simply covers the static bottom half */
+.cell.is-flip .cell-fall {
+  animation: flap-fall 0.17s ease-in calc(var(--i) * 45ms) both;
+}
+
+.cell.is-flip .cell-land {
+  animation: flap-land 0.17s ease-out calc(var(--i) * 45ms + 0.17s) both;
+}
+
+@keyframes flap-fall {
+  from { transform: rotateX(0deg); }
+  to   { transform: rotateX(-90deg); }
+}
+
+@keyframes flap-land {
+  from { transform: rotateX(90deg); }
+  to   { transform: rotateX(0deg); }
+}`,
+    js: `var WORDS = ['NEW YORK', 'HELSINKI', 'LISBON', 'BANGKOK', 'SAN JOSE', 'CSS 3D'];
+
+var cells = Array.prototype.map.call(document.querySelectorAll('.cell'), function (cell) {
+  return { cell: cell, leaves: cell.querySelectorAll('i'), char: ' ' }; // top, bottom, fall, land
+});
+
+function show(word, animate) {
+  var text = word + '        '; // pad so every cell always has a character
+  cells.forEach(function (c, i) {
+    var next = text[i];
+    if (next === c.char && animate) return;
+    var top = c.leaves[0];
+    var bottom = c.leaves[1];
+    var fall = c.leaves[2];
+    var land = c.leaves[3];
+    top.dataset.c = next; // revealed as the old top half falls
+    land.dataset.c = next; // lands on top of the old bottom half
+    fall.dataset.c = c.char;
+    bottom.dataset.c = c.char;
+    c.char = next;
+    if (!animate) return;
+    // restart the CSS animation: drop the class, force a style flush, add it again
+    c.cell.classList.remove('is-flip');
+    void c.cell.offsetWidth;
+    c.cell.classList.add('is-flip');
+  });
+}
+
+var index = 0;
+show(WORDS[0], false);
+setInterval(function () {
+  index = (index + 1) % WORDS.length;
+  show(WORDS[index], true);
+}, 2600);`,
+  },
+
+  shadowtext: {
+    how: [
+      'The same word is stacked 21 times, each copy one step further down the Z axis via <code>translateZ(calc(var(--i) * -1.2px))</code>. Seen at an angle the copies merge into a solid extrusion.',
+      '<code>rotateX(54deg) rotateZ(-32deg)</code> lays the whole stack on an isometric-looking floor: tip it back, then turn it on the floor.',
+      'Each copy gets slightly darker as <code>--i</code> grows (<code>hsl(... calc(46% - var(--i) * 1.3%))</code>) — a cheap ambient shadow down the "sides" with no lighting math.',
+      'The front copy carries a gradient clipped to the text with <code>background-clip: text</code>; the last, deepest copy is blurred into a floor shadow instead.',
+      '<code>alternate</code> + <code>ease-in-out</code> makes the sway loop seamless: the way back is the mirror image of the way there.',
+    ],
+    html: `<div class="scene">
+  <div class="depth">
+    <span style="--i:0">Depth</span>
+    <span aria-hidden="true" style="--i:1">Depth</span>
+    <span aria-hidden="true" style="--i:2">Depth</span>
+    <span aria-hidden="true" style="--i:3">Depth</span>
+    <span aria-hidden="true" style="--i:4">Depth</span>
+    <span aria-hidden="true" style="--i:5">Depth</span>
+    <span aria-hidden="true" style="--i:6">Depth</span>
+    <span aria-hidden="true" style="--i:7">Depth</span>
+    <span aria-hidden="true" style="--i:8">Depth</span>
+    <span aria-hidden="true" style="--i:9">Depth</span>
+    <span aria-hidden="true" style="--i:10">Depth</span>
+    <span aria-hidden="true" style="--i:11">Depth</span>
+    <span aria-hidden="true" style="--i:12">Depth</span>
+    <span aria-hidden="true" style="--i:13">Depth</span>
+    <span aria-hidden="true" style="--i:14">Depth</span>
+    <span aria-hidden="true" style="--i:15">Depth</span>
+    <span aria-hidden="true" style="--i:16">Depth</span>
+    <span aria-hidden="true" style="--i:17">Depth</span>
+    <span aria-hidden="true" style="--i:18">Depth</span>
+    <span aria-hidden="true" style="--i:19">Depth</span>
+    <span aria-hidden="true" style="--i:20">Depth</span>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.depth {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(54deg) rotateZ(-32deg);
+  animation: sway 7s ease-in-out infinite alternate;
+  font-size: 50px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.depth span {
+  position: absolute;
+  inset: 0;
+  /* 1.2px per step: at this tilt that is about one screen pixel, so no gaps show */
+  transform: translateZ(calc(var(--i) * -1.2px));
+  color: hsl(252 62% calc(46% - var(--i) * 1.3%));
+}
+
+/* the front copy gives the element its size and carries the gradient */
+.depth span:first-child {
+  position: relative;
+  display: block;
+  background: linear-gradient(100deg, #2ee6d6, #8b6cff 45%, #ff4d9d);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* the last copy is the soft shadow on the floor: static, so the blur costs nothing per frame */
+.depth span:last-child {
+  color: rgb(0 0 0 / 0.55);
+  text-shadow: 0 0 10px rgb(0 0 0 / 0.6);
+  transform: translateZ(-25px) translate(-5px, 7px);
+}
+
+@keyframes sway {
+  from { transform: rotateX(56deg) rotateZ(-40deg); }
+  to   { transform: rotateX(48deg) rotateZ(-22deg); }
+}`,
+  },
+
+  wordcube: {
+    how: [
+      'Face <code>n</code> is turned <code>n</code> quarter turns backwards around X, then pushed out with <code>translateZ</code> by half the prism’s depth — the same "turn, then push" recipe as a basic cube, just on one axis.',
+      'The whole prism is pulled back by half its depth (<code>translateZ(-18px)</code>) so the face currently in front sits exactly at z&nbsp;=&nbsp;0 and stays crisp.',
+      'The keyframes hold on each face for a stretch, then turn 90deg with their own <code>cubic-bezier</code> — a snappy, springy turn rather than a constant spin.',
+      '<code>backface-visibility: hidden</code> stops a word from showing mirrored through the box while it turns.',
+      '<code>360deg</code> looks exactly like <code>0deg</code>, so the loop has no seam.',
+    ],
+    html: `<div class="scene">
+  <div class="wordcube">
+    <span>We make</span>
+    <span class="prism">
+      <span style="--i:0;--c:#8b6cff">design</span>
+      <span style="--i:1;--c:#2ee6d6">code</span>
+      <span style="--i:2;--c:#ff4d9d">motion</span>
+      <span style="--i:3;--c:#ffb547">brands</span>
+    </span>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.wordcube {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #eceefb;
+  font-size: 21px;
+  font-weight: 800;
+  white-space: nowrap;
+  transform-style: preserve-3d;
+}
+
+.prism {
+  position: relative;
+  display: inline-block;
+  width: 104px;
+  height: 36px; /* face height = prism depth: its cross-section is a square */
+  transform-style: preserve-3d;
+  animation: cube-turn 9s infinite;
+}
+
+.prism span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  border: 1px solid color-mix(in srgb, var(--c) 80%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--c) 26%, transparent);
+  box-shadow: inset 0 0 18px color-mix(in srgb, var(--c) 32%, transparent);
+  color: var(--c);
+  backface-visibility: hidden;
+  transform: rotateX(calc(var(--i) * -90deg)) translateZ(18px);
+}
+
+@keyframes cube-turn {
+  0%, 19% {
+    transform: translateZ(-18px) rotateX(0deg);
+    animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
+  }
+
+  25%, 44% {
+    transform: translateZ(-18px) rotateX(90deg);
+    animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
+  }
+
+  50%, 69% {
+    transform: translateZ(-18px) rotateX(180deg);
+    animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
+  }
+
+  75%, 94% {
+    transform: translateZ(-18px) rotateX(270deg);
+    animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
+  }
+
+  100% {
+    transform: translateZ(-18px) rotateX(360deg);
+  }
+}`,
+  },
+
+  foldtext: {
+    how: [
+      'Panels are nested inside a fixed "hinge": the middle panel swings <code>rotateY(52deg)</code>, and its left/right neighbours hang off its edges and swing back <b>twice</b> as far — so in absolute terms they land at <code>-52deg</code>, folding like a &ldquo;Z&rdquo; seen from above.',
+      'Every hinge needs <code>transform-style: preserve-3d</code> or the fold flattens at that level; the visible paper inside each hinge is a separate element that is allowed to clip.',
+      'All three panels are windows onto the <b>same</b> sheet, three panels wide, each shifted left by <code>calc(var(--i) * -100%)</code> — so the printed headline lines up across the folds.',
+      'A dark gradient over each panel fades to <code>opacity: 0</code> on hover/focus — cheap, since only opacity is animating, not the gradient itself.',
+      'On <code>:hover</code>/<code>:focus-visible</code> every panel’s <code>transform</code> resets to <code>none</code>, flattening the whole sheet in one shared transition.',
+    ],
+    html: `<div class="scene">
+  <div class="fold" tabindex="0" aria-label="Unfold: a headline on folded paper, flattens on hover or focus">
+    <div class="panel panel-mid">
+      <b style="--i:1" aria-hidden="true"><span><small>HOVER TO</small>UNFOLD</span></b>
+      <div class="panel panel-left"><b style="--i:0" aria-hidden="true"><span><small>HOVER TO</small>UNFOLD</span></b></div>
+      <div class="panel panel-right"><b style="--i:2" aria-hidden="true"><span><small>HOVER TO</small>UNFOLD</span></b></div>
+    </div>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+/* the static hit area: it takes :hover / :focus and never moves (the paper inside does) */
+.fold {
+  display: grid;
+  place-items: center;
+  width: 214px; /* 3 panels x 66px, plus a little breathing room */
+  height: 144px;
+  border-radius: 12px;
+  cursor: pointer;
+  transform-style: preserve-3d;
+}
+
+.fold:focus-visible {
+  outline: 2px solid #2ee6d6;
+  outline-offset: 2px;
+}
+
+/* every panel is a hinge that may hold the next panel; the visible paper is its <b> */
+.panel {
+  position: relative;
+  width: 66px;
+  height: 104px;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+
+/* the middle panel is the root: it swings one way... */
+.panel-mid {
+  transform: rotateX(8deg) rotateY(52deg);
+}
+
+/* ...and its neighbours hang on its edges and swing back twice as far */
+.panel-left,
+.panel-right {
+  position: absolute;
+  top: 0;
+  transform: rotateY(-104deg);
+}
+
+.panel-left {
+  right: 100%;
+  transform-origin: 100% 50%;
+}
+
+.panel-right {
+  left: 100%;
+  transform-origin: 0 50%;
+}
+
+.fold:hover .panel,
+.fold:focus-visible .panel {
+  transform: none;
+}
+
+/* the paper: a window one panel wide... */
+.panel > b {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+
+/* ...onto a sheet three panels wide, shifted left by --i panels, so the same sheet lines up */
+.panel > b > span {
+  position: absolute;
+  top: 0;
+  left: calc(var(--i) * -100%);
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  width: 300%;
+  height: 100%;
+  background: linear-gradient(115deg, #8b6cff, #ff4d9d 60%, #ffb547);
+  color: #fff;
+  font-size: 41px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+.panel > b > span small {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  opacity: 0.85;
+}
+
+/* shading that sells the fold: fades out as the paper flattens (opacity is cheap to animate) */
+.panel > b::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.45), rgb(0 0 0 / 0.1));
+  transition: opacity 0.9s;
+}
+
+.panel-mid > b::after {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0));
+}
+
+.fold:hover .panel > b::after,
+.fold:focus-visible .panel > b::after {
+  opacity: 0;
+}`,
+  },
+
+  crawl: {
+    how: [
+      'The camera is moved to the bottom edge with <code>perspective-origin: 50% 100%</code>, instead of the default centre, so everything converges toward a vanishing point above the text rather than the middle of the box.',
+      'The "floor" is hinged on its own bottom edge (<code>transform-origin: 50% 100%</code>) and tipped away from the viewer with <code>rotateX(55deg)</code>.',
+      'Two copies of the text sit on that floor, half an animation apart (<code>animation-delay: -15s</code> on the second), so the crawl is never empty while one copy finishes and the other is only half way up.',
+      'The fade into the distance is a plain gradient overlay <b>on top of</b> the tipped plane, not a mask on it — masking a 3D ancestor would flatten the whole scene.',
+      'Only <code>transform: translateY(...)</code> animates the text, so the scroll runs on the compositor even though the paragraphs are long.',
+    ],
+    html: `<div class="crawl">
+  <div class="plane">
+    <div class="text">
+      <h4>Episode 3D</h4>
+      <p>It is a period of flat design. Rebel stylesheets, striking from a hidden folder, have won their first victory against the evil Canvas Empire.</p>
+      <p>During the battle, a single rotateX managed to tip an entire paragraph back into the distance, using nothing but perspective and a parent that owns it.</p>
+      <p>Pursued by heavy JavaScript bundles, the text now scrolls home along its plane, with no script on board at all...</p>
+    </div>
+    <div class="text" aria-hidden="true">
+      <h4>Episode 3D</h4>
+      <p>It is a period of flat design. Rebel stylesheets, striking from a hidden folder, have won their first victory against the evil Canvas Empire.</p>
+      <p>During the battle, a single rotateX managed to tip an entire paragraph back into the distance, using nothing but perspective and a parent that owns it.</p>
+      <p>Pursued by heavy JavaScript bundles, the text now scrolls home along its plane, with no script on board at all...</p>
+    </div>
+  </div>
+  <div class="fade"></div>
+</div>`,
+    css: `.crawl {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #05060f;
+  /* the camera sits at the bottom edge; with the plane tipped back 55deg the text converges on
+     a vanishing line above the bottom, whatever the box's own size */
+  perspective: 420px;
+  perspective-origin: 50% 100%;
+}
+
+/* hinged on the bottom edge and tipped away from the viewer; it clips its own flat content
+   (fine here: nothing 3D lives inside it), so text never passes in front of the hinge */
+.plane {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: min(74%, 310px);
+  height: 950px;
+  margin: 0 auto;
+  overflow: hidden;
+  transform: rotateX(55deg);
+  transform-origin: 50% 100%;
+}
+
+/* two copies of the text, half a loop apart, so the floor is never empty: each one starts just
+   below the near edge and leaves completely past the far edge, so both ends stay invisible */
+.text {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  margin: 0;
+  color: #ffb547;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: justify;
+  animation: crawl-roll 30s linear infinite;
+}
+
+.text + .text {
+  animation-delay: -15s;
+}
+
+.text h4 {
+  margin: 0 0 0.6em;
+  font-size: 1.5em;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.text p {
+  margin: 0 0 1em;
+}
+
+/* the fade is a plain overlay ABOVE the plane: a mask on the plane's ancestor would flatten it */
+.fade {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 12% 18%, #fff 0.7px, transparent 1.3px),
+    radial-gradient(circle at 31% 9%, #cfd6ff 0.7px, transparent 1.3px),
+    radial-gradient(circle at 55% 22%, #fff 1px, transparent 1.7px),
+    radial-gradient(circle at 72% 12%, #ffe9c2 0.7px, transparent 1.3px),
+    radial-gradient(circle at 88% 27%, #fff 0.7px, transparent 1.3px),
+    radial-gradient(circle at 22% 34%, #cfd6ff 0.7px, transparent 1.3px),
+    radial-gradient(circle at 93% 6%, #fff 1px, transparent 1.7px),
+    linear-gradient(to top, transparent 90px, #05060f 185px);
+  pointer-events: none;
+}
+
+@keyframes crawl-roll {
+  from { transform: translateY(950px); }
+  to   { transform: translateY(-100%); }
+}`,
+  },
+
+  anaglyph: {
+    how: [
+      'Two copies of the word sit in the same spot, one red and one cyan, each shifted apart with <code>translate()</code> and blended with <code>mix-blend-mode: screen</code> — like old red/cyan 3D glasses, where the overlap reads near-white and the fringes stay coloured.',
+      'The card itself is a single flat plane that only rotates (<code>rotateY</code> / <code>rotateX</code>); it is deliberately <b>not</b> <code>preserve-3d</code>, because a blend mode only combines elements painted into the same flat surface.',
+      'JS reports one thing — the pointer position over the stage — and writes it into four custom properties (<code>--sx</code>, <code>--sy</code>, <code>--ry</code>, <code>--rx</code>); every animated value in the CSS just reads one of them.',
+      'While the pointer is over the card the transition is fast and linear (<code>.is-live</code>); once it leaves, the slower springy transition takes over for the way back to rest.',
+    ],
+    html: `<div class="scene">
+  <div class="anaglyph">
+    <div class="word">
+      <span>STEREO</span>
+      <span aria-hidden="true">STEREO</span>
+    </div>
+    <small>move your pointer</small>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.anaglyph {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  width: 214px;
+  padding: 24px 0 16px;
+  border: 1px solid #3a4070;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 30%, #171b38, #07080f 75%);
+  box-shadow: 0 22px 34px -22px rgb(0 0 0 / 0.85);
+  /* the card turns as ONE flat plane in the stage's perspective; not preserve-3d, because the
+     screen blend below only works among elements painted into the same flat surface */
+  transform: rotateY(var(--ry, -14deg)) rotateX(var(--rx, 6deg));
+  transition: transform 0.7s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+
+.word {
+  position: relative;
+  font-size: 43px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+/* two copies of the word, one per eye, pushed apart horizontally; screen adds their light,
+   so where red and cyan overlap you get near-white and the fringes stay coloured */
+.word span {
+  display: block;
+  color: #ff1744;
+  mix-blend-mode: screen;
+  transform: translate(calc(var(--sx, 3px) * -1), calc(var(--sy, 0px) * -1));
+  transition: transform 0.7s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+
+.word span + span {
+  position: absolute;
+  inset: 0;
+  color: #00e5ff;
+  transform: translate(var(--sx, 3px), var(--sy, 0px));
+}
+
+.anaglyph small {
+  color: #949bc0;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* while the pointer is over the stage, follow it almost directly; the slow springy transition
+   above is only used on the way back */
+.anaglyph.is-live,
+.anaglyph.is-live span {
+  transition-duration: 0.12s;
+  transition-timing-function: ease-out;
+}`,
+    js: `var stage = document.querySelector('.scene');
+var card = document.querySelector('.anaglyph');
+
+function clamp(v, min, max) {
+  return Math.min(max, Math.max(min, v));
+}
+
+function move(e) {
+  var r = stage.getBoundingClientRect();
+  var x = clamp((e.clientX - r.left) / r.width - 0.5, -0.5, 0.5);
+  var y = clamp((e.clientY - r.top) / r.height - 0.5, -0.5, 0.5);
+  card.style.setProperty('--sx', (x * 16).toFixed(2) + 'px');
+  card.style.setProperty('--sy', (y * 5).toFixed(2) + 'px');
+  card.style.setProperty('--ry', (x * 44).toFixed(1) + 'deg');
+  card.style.setProperty('--rx', (-y * 30).toFixed(1) + 'deg');
+  card.classList.add('is-live');
+}
+
+function leave() {
+  card.classList.remove('is-live');
+  ['--sx', '--sy', '--ry', '--rx'].forEach(function (p) {
+    card.style.removeProperty(p);
+  });
+}
+
+stage.addEventListener('pointermove', move);
+stage.addEventListener('pointerdown', move);
+stage.addEventListener('pointerleave', leave);
+stage.addEventListener('pointercancel', leave);`,
+  },
+
+  check: {
+    how: [
+      'The real <code>&lt;input type="checkbox"&gt;</code> stays in the page — keyboard, forms and screen readers all keep working — it is only made invisible with <code>opacity: 0</code>. The <code>&lt;label&gt;</code> next to it is the static hit target, since the pressed element must never be the one that moves.',
+      'Each cube is placed with the same "turn, then push half a side out" recipe as a plain CSS cube, in its own tiny <code>perspective: 160px</code> stage so all three read from the same angle.',
+      'The 6th face is the cube’s <b>bottom</b>: it carries the tick and starts out of sight, tucked underneath.',
+      '<code>input:checked + label .cube</code> adds one more <code>rotateX(90deg)</code> on top of the resting view angle — a quarter turn forward brings that bottom face round to the front.',
+      'The strike-through line animates <code>scaleX(0 → 1)</code> from a fixed-width element instead of animating <code>width</code>, so it costs only a compositor transform.',
+    ],
+    html: `<ul class="check-list">
+  <li>
+    <input type="checkbox" id="check-0" checked />
+    <label for="check-0">
+      <span class="box">
+        <span class="cube"><i></i><i></i><i></i><i></i><i></i><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></i></span>
+      </span>
+      <span class="text">Set the perspective</span>
+    </label>
+  </li>
+  <li>
+    <input type="checkbox" id="check-1" />
+    <label for="check-1">
+      <span class="box">
+        <span class="cube"><i></i><i></i><i></i><i></i><i></i><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></i></span>
+      </span>
+      <span class="text">Preserve the 3D</span>
+    </label>
+  </li>
+  <li>
+    <input type="checkbox" id="check-2" />
+    <label for="check-2">
+      <span class="box">
+        <span class="cube"><i></i><i></i><i></i><i></i><i></i><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></i></span>
+      </span>
+      <span class="text">Flip the cube</span>
+    </label>
+  </li>
+</ul>`,
+    css: `.check-list {
+  display: grid;
+  gap: 7px;
+  width: 204px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check-list li {
+  position: relative;
+}
+
+/* the real checkbox stays for keyboard/forms/screen readers, only made invisible */
+.check-list input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the label is the static hit target: nothing the pointer can touch ever moves */
+.check-list label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid #262b4a;
+  border-radius: 12px;
+  background: rgb(22 26 51 / 0.6);
+  color: #eceefb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.check-list label:hover {
+  border-color: #3a4070;
+}
+
+.check-list input:focus-visible + label {
+  outline: 2px solid #2ee6d6;
+  outline-offset: 2px;
+}
+
+/* a tiny stage of its own for every box, so all three cubes are seen from the same angle */
+.box {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  perspective: 160px;
+  pointer-events: none;
+}
+
+.cube {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 22px;
+  transform-style: preserve-3d;
+  /* view angle first, then the flip happens around the cube's own X axis */
+  transform: rotateX(-16deg) rotateY(-24deg) rotateX(0deg);
+  transition: transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+/* turn each face outward, then push it half a side out from the centre */
+.cube i:nth-child(1) { transform: rotateY(0deg)   translateZ(11px); }
+.cube i:nth-child(2) { transform: rotateY(90deg)  translateZ(11px); }
+.cube i:nth-child(3) { transform: rotateY(180deg) translateZ(11px); }
+.cube i:nth-child(4) { transform: rotateY(-90deg) translateZ(11px); }
+.cube i:nth-child(5) { transform: rotateX(90deg)  translateZ(11px); }
+.cube i:nth-child(6) { transform: rotateX(-90deg) translateZ(11px); }
+
+.cube i {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: rgb(139 108 255 / 0.22);
+  border: 1px solid rgb(139 108 255 / 0.75);
+  box-shadow: inset 0 0 12px rgb(139 108 255 / 0.3);
+}
+
+/* the 6th face is the BOTTOM of the cube: it carries the tick and is out of sight at rest */
+.cube i:last-child {
+  display: grid;
+  place-items: center;
+  border-color: #2ee6d6;
+  background: #2ee6d6;
+  box-shadow: 0 0 12px rgb(46 230 214 / 0.6);
+  color: #062b28;
+  backface-visibility: hidden; /* looking down into the glass cube you'd see the inside otherwise */
+}
+
+.cube i:last-child svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* a quarter turn forward brings the bottom face to the front */
+.check-list input:checked + label .cube {
+  transform: rotateX(-16deg) rotateY(-24deg) rotateX(90deg);
+}
+
+.text {
+  position: relative;
+  transition: opacity 0.3s;
+}
+
+/* the strike-through is a line scaled from 0 to 1: transform only, no layout, no repaint */
+.text::after {
+  content: '';
+  position: absolute;
+  top: 52%;
+  right: -3px;
+  left: -3px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: #2ee6d6;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.35s ease-out;
+}
+
+.check-list input:checked + label .text {
+  opacity: 0.55;
+}
+
+.check-list input:checked + label .text::after {
+  transform: scaleX(1);
+  transition-delay: 0.15s;
+}`,
+  },
+
+  tabs: {
+    how: [
+      'Four real radios come <b>before</b> the content in the markup, invisible but focusable, so the <code>~</code> general sibling combinator can reach both the nav and the prism from any of them.',
+      'Each tab panel is a face of a prism, placed with the same "turn backwards, then push out" recipe as a cube: face <code>n</code> gets <code>rotateX(n * -90deg) translateZ(46px)</code>.',
+      'The prism is pulled back by half its own depth (<code>translateZ(-46px)</code>) so the panel currently in front sits exactly at z&nbsp;=&nbsp;0 and its text stays sharp.',
+      'Checking radio <code>n</code> sets <code>--step</code> to <code>n - 1</code> on the prism; <code>rotateX(calc(var(--step) * 90deg))</code> turns to that face, and one shared <code>transition</code> animates every possible jump.',
+      '<code>backface-visibility: hidden</code> on the panels stops the back faces from showing through as the prism turns.',
+    ],
+    html: `<div class="tabs">
+  <input type="radio" name="tabs" id="tab-0" aria-label="Front" checked />
+  <input type="radio" name="tabs" id="tab-1" aria-label="Bottom" />
+  <input type="radio" name="tabs" id="tab-2" aria-label="Back" />
+  <input type="radio" name="tabs" id="tab-3" aria-label="Top" />
+  <div class="tabs-nav">
+    <label for="tab-0">Front</label>
+    <label for="tab-1">Bottom</label>
+    <label for="tab-2">Back</label>
+    <label for="tab-3">Top</label>
+  </div>
+  <div class="tabs-view">
+    <div class="tabs-prism">
+      <section style="--i:0;--c:#8b6cff"><b>Front</b><p>The face you start on. It sits at z = 0, so its text stays sharp.</p></section>
+      <section style="--i:1;--c:#2ee6d6"><b>Bottom</b><p>A quarter turn forward brings the bottom face up to the front.</p></section>
+      <section style="--i:2;--c:#ff4d9d"><b>Back</b><p>Half a turn. Placed with a half turn too, so it reads upright.</p></section>
+      <section style="--i:3;--c:#ffb547"><b>Top</b><p>Three quarter turns, all driven by one custom property.</p></section>
+    </div>
+  </div>
+</div>`,
+    css: `.tabs {
+  position: relative;
+  display: grid;
+  gap: 20px;
+  width: 204px;
+}
+
+/* real radios, invisible but focusable; they come first so ~ can reach everything else */
+.tabs input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tabs-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #262b4a;
+  border-radius: 10px;
+  background: rgb(22 26 51 / 0.6);
+}
+
+.tabs-nav label {
+  padding: 5px 0;
+  border-radius: 7px;
+  color: #949bc0;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+
+.tabs-nav label:hover {
+  color: #eceefb;
+}
+
+/* the window the prism is seen through: static, and NOT clipped (clipping would flatten it) */
+.tabs-view {
+  height: 92px;
+  perspective: 520px;
+  pointer-events: none;
+}
+
+/* pulled back by half its depth so the face in front sits exactly at z = 0 */
+.tabs-prism {
+  position: relative;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform: translateZ(-46px) rotateX(calc(var(--step, 0) * 90deg));
+  transition: transform 0.75s cubic-bezier(0.3, 1.2, 0.4, 1);
+}
+
+/* face n: n quarter turns backward, then out by half the depth -> front, bottom, back, top */
+.tabs-prism section {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 0 16px;
+  border: 1px solid color-mix(in srgb, var(--c) 70%, transparent);
+  border-radius: 10px;
+  background:
+    linear-gradient(140deg, color-mix(in srgb, var(--c) 34%, transparent), transparent 70%),
+    rgb(11 13 24 / 0.88);
+  backface-visibility: hidden;
+  transform: rotateX(calc(var(--i) * -90deg)) translateZ(46px);
+}
+
+.tabs-prism section b {
+  color: var(--c);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.tabs-prism section p {
+  margin: 0;
+  color: #949bc0;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+/* one rule per tab: the nth radio turns the prism n-1 steps */
+.tabs input:nth-of-type(1):checked ~ .tabs-view .tabs-prism { --step: 0; }
+.tabs input:nth-of-type(2):checked ~ .tabs-view .tabs-prism { --step: 1; }
+.tabs input:nth-of-type(3):checked ~ .tabs-view .tabs-prism { --step: 2; }
+.tabs input:nth-of-type(4):checked ~ .tabs-view .tabs-prism { --step: 3; }
+
+/* ...and lights the matching label */
+.tabs input:nth-of-type(1):checked ~ .tabs-nav label:nth-of-type(1),
+.tabs input:nth-of-type(2):checked ~ .tabs-nav label:nth-of-type(2),
+.tabs input:nth-of-type(3):checked ~ .tabs-nav label:nth-of-type(3),
+.tabs input:nth-of-type(4):checked ~ .tabs-nav label:nth-of-type(4) {
+  background: #8b6cff;
+  color: #fff;
+}
+
+.tabs input:nth-of-type(1):focus-visible ~ .tabs-nav label:nth-of-type(1),
+.tabs input:nth-of-type(2):focus-visible ~ .tabs-nav label:nth-of-type(2),
+.tabs input:nth-of-type(3):focus-visible ~ .tabs-nav label:nth-of-type(3),
+.tabs input:nth-of-type(4):focus-visible ~ .tabs-nav label:nth-of-type(4) {
+  outline: 2px solid #2ee6d6;
+  outline-offset: 2px;
+}`,
+  },
+
+  radial: {
+    how: [
+      'A real checkbox holds the open/closed state and takes the keyboard; the button visitors see is its <code>&lt;label&gt;</code>, which is why only the plus icon inside needs to rotate on <code>:checked</code>, not the whole button.',
+      'Every item starts tucked directly behind the button (<code>scale(0.4)</code>, pulled back in Z, flipped with <code>rotateX(-100deg)</code>). <code>:checked</code> swaps in a transform list with the <b>same functions</b> but different numbers, so the browser animates each one independently.',
+      '<code>rotate(a) translateX(r) rotate(-a)</code> walks a point out along a straight spoke at angle <code>a</code> while the trailing <code>rotate(-a)</code> cancels the turn, so every icon stays upright as it travels its own arc.',
+      '<code>--i</code> staggers the opening so the items fan out one after another; on close the delay is reversed (<code>(4 - var(--i))</code>) so the <b>last</b> item to open is the <b>first</b> to leave.',
+      'Closed items get <code>visibility: hidden</code> and <code>pointer-events: none</code> so Tab and clicks skip them until the menu is actually open.',
+    ],
+    html: `<div class="scene">
+  <div class="radial">
+    <input type="checkbox" id="radial-toggle" aria-label="Open the action menu" />
+    <span class="ring"></span>
+    <button type="button" class="item" style="--i:0;--c:#ff4d9d" aria-label="Like" title="Like"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/></svg></button>
+    <button type="button" class="item" style="--i:1;--c:#ffb547" aria-label="Edit" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+    <button type="button" class="item" style="--i:2;--c:#2ee6d6" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m7 8 5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>
+    <button type="button" class="item" style="--i:3;--c:#8b6cff" aria-label="Copy" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="13" height="13" x="8" y="8" rx="2"/><path d="M5 16a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2"/></svg></button>
+    <button type="button" class="item" style="--i:4;--c:#ff4d9d" aria-label="Search" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.5-4.5"/></svg></button>
+    <label class="fab" for="radial-toggle" title="Actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></label>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.radial {
+  position: relative;
+  width: 212px;
+  height: 134px;
+  transform-style: preserve-3d;
+  transform: rotateX(16deg); /* lean the whole menu back a little so the depth can be seen */
+}
+
+/* the real checkbox: invisible, but it holds the open/closed state and takes the keyboard */
+.radial > input {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the button is the label: it is the hit target and stays put, only the plus inside turns */
+.fab {
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 24px);
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #8b6cff, #ff4d9d);
+  box-shadow: 0 10px 22px -8px rgb(139 108 255 / 0.8);
+  color: #fff;
+  cursor: pointer;
+  transform: translateZ(1px); /* just in front of the items' resting place */
+}
+
+.fab svg {
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.radial > input:focus-visible ~ .fab {
+  outline: 2px solid #2ee6d6;
+  outline-offset: 3px;
+}
+
+.radial > input:checked ~ .fab svg {
+  transform: rotate(135deg);
+}
+
+/* a faint ring that shows the arc the items travel to */
+.ring {
+  position: absolute;
+  bottom: 24px;
+  left: calc(50% - 80px);
+  width: 160px;
+  height: 80px; /* the upper half of a circle around the button */
+  border: 1px dashed rgb(139 108 255 / 0.55);
+  border-bottom: 0;
+  border-radius: 80px 80px 0 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.3);
+  transform-origin: 50% 100%;
+  transition: transform 0.5s cubic-bezier(0.3, 1.3, 0.5, 1), opacity 0.3s;
+}
+
+.radial > input:checked ~ .ring {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* every item starts hidden behind the button, centre on centre; its place on the arc is
+   turn-to-angle, walk out, turn back (so the icon stays upright) */
+.item {
+  --a: calc(-160deg + var(--i) * 35deg);
+  position: absolute;
+  bottom: 6px;
+  left: calc(50% - 18px);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--c) 80%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c) 30%, #0b0d18);
+  color: #eceefb;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden; /* closed items must not be reachable by Tab */
+  pointer-events: none;
+  transform: rotate(var(--a)) translateX(0) rotate(calc(var(--a) * -1)) translateZ(-30px) rotateX(-100deg) scale(0.4);
+  /* closing: the last item leaves first */
+  transition:
+    transform 0.35s ease-in calc((4 - var(--i)) * 35ms),
+    opacity 0.25s linear calc((4 - var(--i)) * 35ms + 0.1s),
+    visibility 0s linear 0.55s;
+}
+
+.item svg {
+  width: 17px;
+  height: 17px;
+}
+
+.item:hover,
+.item:focus-visible {
+  background: color-mix(in srgb, var(--c) 65%, #0b0d18);
+}
+
+.radial > input:checked ~ .item {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: rotate(var(--a)) translateX(80px) rotate(calc(var(--a) * -1)) translateZ(26px) rotateX(0deg) scale(1);
+  /* opening: staggered by index, with a little overshoot */
+  transition:
+    transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) calc(var(--i) * 45ms),
+    opacity 0.2s linear calc(var(--i) * 45ms),
+    visibility 0s;
+}`,
+  },
+
+  magnet: {
+    how: [
+      'JS only ever reports one thing: the pointer’s position inside the field, remapped to two numbers <code>--mx</code> / <code>--my</code> from -1 to 1. Every visible motion is CSS reading those two custom properties.',
+      '<code>translate3d(...)</code> plus two <code>rotate</code>s built from the same <code>--mx</code>/<code>--my</code> shift the button toward the pointer and lean it the way it is being pulled, all in one <code>transform</code>.',
+      'The label inside the button sits at a deeper <code>translateZ</code> than the button’s own lift — same tilt, more travel — so it visibly slides apart from its cap: parallax from one shared tilt.',
+      'While the pointer is inside the field (<code>.is-live</code>) the transition is quick and linear so it tracks directly; on release a long <code>cubic-bezier</code> with overshoot takes over, reading as a spring pulling the button home.',
+    ],
+    html: `<div class="magnet">
+  <i class="glow"></i>
+  <button type="button" class="btn"><span>Pull me</span></button>
+</div>`,
+    css: `.magnet {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 220px;
+  height: 160px;
+  border: 1px dashed #262b4a;
+  border-radius: 18px;
+  perspective: 800px;
+  transform-style: preserve-3d;
+  touch-action: none; /* let a finger drag inside the field instead of scrolling the page */
+}
+
+/* the glow lies on the floor of the field, behind the button, and runs further than it */
+.glow {
+  position: absolute;
+  top: calc(50% - 60px);
+  left: calc(50% - 60px);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(46 230 214 / 0.55), transparent 68%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(calc(var(--mx, 0) * 70px), calc(var(--my, 0) * 44px), 0);
+  transition: transform 0.7s cubic-bezier(0.3, 1.6, 0.5, 1), opacity 0.4s;
+}
+
+/* the button shifts toward the pointer and leans the way it is pulled; it floats 34px above
+   the field so its far, tipped-back edge still stays in front of the field's own plane */
+.btn {
+  position: relative;
+  width: 138px;
+  height: 50px;
+  padding: 0;
+  border: 1px solid #a996ff;
+  border-radius: 14px;
+  background: linear-gradient(140deg, #8b6cff, #bf5ed3);
+  box-shadow: 0 16px 26px -14px rgb(139 108 255 / 0.9);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transform:
+    translate3d(calc(var(--mx, 0) * 24px), calc(var(--my, 0) * 16px), 34px)
+    rotateY(calc(var(--mx, 0) * 20deg))
+    rotateX(calc(var(--my, 0) * -18deg));
+  /* the way home: slow, with a big overshoot = a spring */
+  transition: transform 0.7s cubic-bezier(0.3, 1.9, 0.5, 1);
+}
+
+.btn:focus-visible {
+  outline: 2px solid #2ee6d6;
+  outline-offset: 4px;
+}
+
+/* the label floats above the button's face; same tilt, more depth = it slides further than
+   the face under it: parallax */
+.btn span {
+  display: block;
+  pointer-events: none;
+  text-shadow: 0 6px 10px rgb(0 0 0 / 0.35);
+  transform: translateZ(30px);
+  transition: transform 0.2s;
+}
+
+.btn:active span {
+  transform: translateZ(8px); /* pressed flat */
+}
+
+/* while the pointer is inside, follow it closely; the springy transitions above are the release */
+.magnet.is-live .btn,
+.magnet.is-live .glow {
+  transition-duration: 0.14s, 0.4s;
+  transition-timing-function: ease-out;
+}
+
+.magnet.is-live .glow {
+  opacity: 1;
+}`,
+    js: `var field = document.querySelector('.magnet');
+
+function clamp(v, min, max) {
+  return Math.min(max, Math.max(min, v));
+}
+
+function move(e) {
+  // a ratio of the on-screen box, so any CSS scale on the page cancels out
+  var r = field.getBoundingClientRect();
+  field.style.setProperty('--mx', clamp(((e.clientX - r.left) / r.width) * 2 - 1, -1, 1).toFixed(3));
+  field.style.setProperty('--my', clamp(((e.clientY - r.top) / r.height) * 2 - 1, -1, 1).toFixed(3));
+  field.classList.add('is-live');
+}
+
+function release() {
+  field.classList.remove('is-live');
+  field.style.removeProperty('--mx');
+  field.style.removeProperty('--my');
+}
+
+field.addEventListener('pointermove', move);
+field.addEventListener('pointerdown', move);
+field.addEventListener('pointerleave', release);
+field.addEventListener('pointercancel', release);`,
+  },
+};

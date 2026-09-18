@@ -5,7 +5,8 @@ import { demos } from './demos';
  * /embed/<id>/ — just the demo, filling the frame. Used two ways:
  *  - in an <iframe> on someone else's site ("Copy embed code"),
  *  - as the camera target for scripts/generate-media.mjs, which films every demo at build time
- *    (`?og=1` adds the title strip used for the social preview image).
+ *    (`?og=1` adds the title strip used for the social preview image),
+ *  - as the camera target for scripts/generate-reels.mjs (`?reel=1`, a vertical video layout).
  */
 const stage = document.querySelector<HTMLElement>('[data-demo]');
 const demo = stage && demos.find((d) => d.id === stage.dataset.demo);
@@ -18,7 +19,14 @@ if (stage && demo) {
   demo.init?.(scene, stage);
 }
 
-if (new URLSearchParams(location.search).has('og')) document.documentElement.dataset.og = '';
+const params = new URLSearchParams(location.search);
+if (params.has('og')) document.documentElement.dataset.og = '';
+// ?reel=tall (9:16, Reels / Shorts / TikTok) or ?reel=wide (16:9, YouTube): filmed by generate-reels.mjs
+if (params.has('reel')) document.documentElement.dataset.reel = params.get('reel') === 'wide' ? 'wide' : 'tall';
+// ?zoom=4: lay the page out 4x larger instead of filming it at 4x device pixels. Chrome draws 3D
+// layers at one pixel per CSS pixel whatever the device scale, so only real layout size is sharp.
+const zoom = Number(params.get('zoom'));
+if (zoom > 1 && zoom <= 8) document.documentElement.style.zoom = String(zoom);
 
 // Signals the recorder that the demo is mounted and styled.
 document.documentElement.dataset.ready = '';

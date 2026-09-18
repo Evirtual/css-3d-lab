@@ -1,0 +1,73 @@
+@use '../mixins' as *;
+
+$time: 2.4s;
+
+// The classic "folding cube" spinner, but laid on a floor in real perspective so the flaps
+// genuinely stand up out of the plane while they fold.
+.d-cubeloader {
+  --s: 92px;
+  position: relative;
+  width: var(--s);
+  height: var(--s);
+  transform-style: preserve-3d;
+  transform: rotateX(58deg) rotateZ(45deg);
+
+  // the floor plate
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -9px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+    transform: translateZ(-1px);
+  }
+
+  // All four quadrants are the SAME top-left square, turned around the centre of the loader in
+  // 90° steps (--i = 0…3). So one keyframe animation serves all four.
+  i {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 50%;
+    transform-origin: 100% 100%;
+    transform: rotateZ(calc(var(--i) * 90deg));
+    transform-style: preserve-3d;
+
+    // the flap, hinged on the corner that touches the loader's centre
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border-radius: 5px;
+      transform-origin: calc(100% + 2px) calc(100% + 2px);
+      // a negative delay starts each flap part-way through: no waiting, and the four run in a chase
+      animation: d-cubeloader-fold $time ease-in-out calc(var(--i) * #{$time * 0.125} - #{$time}) infinite;
+      @include face(var(--c), 45%);
+    }
+  }
+}
+
+// Fold in over the bottom edge, rest, fold out over the right edge. Both ends are invisible,
+// so the loop has no seam. Both functions appear in every keyframe so the browser interpolates
+// the two angles separately instead of blending matrices.
+@keyframes d-cubeloader-fold {
+  0%,
+  10% {
+    opacity: 0;
+    transform: rotateX(-180deg) rotateY(0deg);
+  }
+
+  25%,
+  75% {
+    opacity: 1;
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+
+  90%,
+  100% {
+    opacity: 0;
+    transform: rotateX(0deg) rotateY(180deg);
+  }
+}

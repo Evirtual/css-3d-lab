@@ -15,15 +15,20 @@ function generatedPages(): Record<string, string> {
   return pages;
 }
 
-/** Puts the generated plain-link list of every demo into the home page. */
+/**
+ * Home page: puts in the generated plain-link list of every demo, and the real number of demos
+ * wherever the markup says %DEMO_COUNT% (title, description), so the count can never go stale.
+ */
 function allDemosLinks(): Plugin {
   return {
     name: 'all-demos-links',
     transformIndexHtml(html, ctx) {
       if (!html.includes('<!--all-demos-->')) return html;
       const file = resolve(root, 'src/generated/all-demos.html');
-      if (!existsSync(file)) throw new Error(`${ctx.filename}: run "npm run generate" first (missing ${file})`);
-      return html.replace('<!--all-demos-->', readFileSync(file, 'utf8'));
+      const ids = resolve(root, 'src/generated/demo-ids.json');
+      if (!existsSync(file) || !existsSync(ids)) throw new Error(`${ctx.filename}: run "npm run generate" first (missing ${file})`);
+      const count = String(JSON.parse(readFileSync(ids, 'utf8')).length);
+      return html.replace('<!--all-demos-->', readFileSync(file, 'utf8')).replaceAll('%DEMO_COUNT%', count);
     },
   };
 }

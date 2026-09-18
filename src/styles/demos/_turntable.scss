@@ -1,0 +1,172 @@
+$w: 86px; // speaker width
+$h: 124px; // height
+$d: 72px; // depth
+
+.d-turntable {
+  --c: var(--accent);
+  display: grid;
+  grid-template-rows: 1fr auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    border-radius: 14px;
+    outline-offset: -4px;
+    perspective: 700px;
+    cursor: grab;
+    user-select: none;
+    touch-action: pan-y; // sideways drags turn the speaker, vertical ones still scroll the page
+
+    &.is-dragging {
+      cursor: grabbing;
+    }
+  }
+
+  // JS writes only --ry. No transition: during a drag and during the glide JS sets a new
+  // angle every frame, and a transition would only add lag.
+  &__product {
+    position: relative;
+    width: $w;
+    height: $h;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transform: rotateX(-14deg) rotateY(var(--ry, -32deg));
+  }
+
+  &__f {
+    position: absolute;
+    border: 1px solid color-mix(in srgb, var(--c) 55%, #fff);
+    // woven fabric: a fine dot grid over a vertical light falloff
+    background:
+      radial-gradient(rgb(0 0 0 / 0.22) 0.7px, transparent 1.2px) 0 0 / 4px 4px,
+      linear-gradient(color-mix(in srgb, var(--c) 85%, #fff), color-mix(in srgb, var(--c) 70%, #0b0d18));
+
+    // a box, not a cube: every face gets its own size, then turns and steps out by half the
+    // dimension it faces
+    &--front,
+    &--back {
+      inset: 0;
+    }
+
+    &--front {
+      display: grid;
+      place-items: center;
+      align-content: space-evenly;
+      transform: translateZ($d * 0.5);
+    }
+
+    &--back {
+      background:
+        radial-gradient(circle at 50% 72%, #05060c 0 9px, color-mix(in srgb, var(--c) 40%, #05060c) 10px 12px, transparent 12.5px),
+        linear-gradient(color-mix(in srgb, var(--c) 55%, #0b0d18), color-mix(in srgb, var(--c) 35%, #0b0d18));
+      transform: rotateY(180deg) translateZ($d * 0.5);
+    }
+
+    &--left,
+    &--right {
+      top: 0;
+      left: ($w - $d) * 0.5;
+      width: $d;
+      height: $h;
+      background:
+        radial-gradient(rgb(0 0 0 / 0.22) 0.7px, transparent 1.2px) 0 0 / 4px 4px,
+        linear-gradient(color-mix(in srgb, var(--c) 65%, #0b0d18), color-mix(in srgb, var(--c) 45%, #0b0d18));
+    }
+
+    &--left {
+      transform: rotateY(-90deg) translateZ($w * 0.5);
+    }
+
+    &--right {
+      transform: rotateY(90deg) translateZ($w * 0.5);
+    }
+
+    &--top,
+    &--bottom {
+      top: ($h - $d) * 0.5;
+      left: 0;
+      width: $w;
+      height: $d;
+    }
+
+    // top: lighter, with a row of three buttons
+    &--top {
+      background:
+        radial-gradient(circle at 30% 50%, rgb(255 255 255 / 0.8) 0 3px, transparent 3.5px),
+        radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.8) 0 3px, transparent 3.5px),
+        radial-gradient(circle at 70% 50%, rgb(255 255 255 / 0.8) 0 3px, transparent 3.5px),
+        color-mix(in srgb, var(--c) 70%, #fff);
+      transform: rotateX(90deg) translateZ($h * 0.5);
+    }
+
+    &--bottom {
+      background: color-mix(in srgb, var(--c) 30%, #05060c);
+      transform: rotateX(-90deg) translateZ($h * 0.5);
+    }
+
+    // two drivers: a tweeter and a woofer
+    b {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 40% 35%, rgb(255 255 255 / 0.5), transparent 30%),
+        radial-gradient(circle, #d4d7ea 0 18%, #1a1c2b 22% 58%, #34374f 62% 72%, #05060c 76% 84%, color-mix(in srgb, var(--c) 40%, #fff) 88%);
+
+      & + b {
+        width: 58px;
+        height: 58px;
+        background:
+          radial-gradient(circle at 40% 35%, rgb(255 255 255 / 0.3), transparent 30%),
+          radial-gradient(circle, #d4d7ea 0 12%, #1a1c2b 15% 50%, #2b2e44 52% 60%, #1a1c2b 62% 72%, #05060c 76% 86%, color-mix(in srgb, var(--c) 40%, #fff) 90%);
+      }
+    }
+  }
+
+  // a round shadow on the floor: round, so it does not care about the rotation
+  &__shadow {
+    position: absolute;
+    top: calc(50% - 80px);
+    left: calc(50% - 80px);
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.18) 60%, transparent);
+    transform: rotateX(90deg) translateZ($h * -0.5 - 2px);
+  }
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 6px;
+    font-size: 13px;
+
+    button {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 2px solid var(--surface-solid);
+      border-radius: 50%;
+      background: var(--sw);
+      box-shadow: 0 0 0 1px var(--border-strong);
+      cursor: pointer;
+
+      &[aria-pressed='true'] {
+        box-shadow: 0 0 0 2px var(--text);
+      }
+    }
+
+    output {
+      width: 12ch; // fixed, so the swatches do not jump when the text changes
+      color: var(--muted);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}

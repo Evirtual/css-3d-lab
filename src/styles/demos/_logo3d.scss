@@ -1,0 +1,99 @@
+$n: 14; // layers
+$gap: 2px; // distance between layers: 14 × 2px ≈ 26px of extrusion
+$s: 116px;
+
+// Hexagon with a "play" triangle cut out of it. With `evenodd` the path runs round the outer
+// hexagon, jumps in to trace the triangle, and every area enclosed twice becomes a hole.
+$shape: polygon(
+  evenodd,
+  50% 0,
+  93.3% 25%,
+  93.3% 75%,
+  50% 100%,
+  6.7% 75%,
+  6.7% 25%,
+  50% 0,
+  39% 31%,
+  71% 50%,
+  39% 69%,
+  39% 31%
+);
+
+.d-logo3d {
+  position: relative;
+  width: $s;
+  height: $s;
+  transform-style: preserve-3d;
+  // `alternate` + ease-in-out: seamless, and it lingers on the two angles that show the depth.
+  animation: d-logo3d-sway 6s ease-in-out infinite alternate;
+
+  // soft coloured glow far behind the mark
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -26px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 38%, transparent), transparent);
+    transform: translateZ(-60px);
+  }
+
+  // Sass only hands out the index; the depth and the shading are one calc() each.
+  @for $i from 0 to $n {
+    > i:nth-child(#{$i + 1}) {
+      --i: #{$i};
+    }
+  }
+
+  > i {
+    // back layers are darker: the extrusion reads as a side lit from the front
+    --shade: calc(0.6 - var(--i) * 0.033);
+    position: absolute;
+    inset: 0;
+    clip-path: $shape;
+    background:
+      linear-gradient(rgb(6 7 20 / var(--shade)), rgb(6 7 20 / var(--shade))),
+      linear-gradient(135deg, var(--accent), var(--hot));
+    transform: translateZ(calc((var(--i) - #{($n - 1) * 0.5}) * #{$gap}));
+  }
+
+  // the front layer is the face: brighter, with a glassy top light and the moving shine
+  > i:last-child {
+    background:
+      radial-gradient(circle at 30% 18%, rgb(255 255 255 / 0.45), transparent 45%),
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--hot) 70%, var(--warm));
+
+    // clip-path on the layer also clips this child, so the shine never leaves the logo
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.7) 50%, transparent 65%);
+      transform: translateX(-100%);
+      animation: d-logo3d-shine 4s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes d-logo3d-sway {
+  from {
+    transform: rotateX(-10deg) rotateY(-40deg);
+  }
+
+  to {
+    transform: rotateX(-4deg) rotateY(40deg);
+  }
+}
+
+// Off to the left, wait, sweep, off to the right. Both ends are invisible, so the jump back
+// is never seen.
+@keyframes d-logo3d-shine {
+  0%,
+  45% {
+    transform: translateX(-100%);
+  }
+
+  80%,
+  100% {
+    transform: translateX(100%);
+  }
+}

@@ -1,0 +1,84 @@
+// JS writes --mx / --my (-1 ... 1, pointer position inside the field) and toggles .is-live.
+// Everything that moves is CSS reading those two numbers.
+.d-magnet {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 220px;
+  height: 160px;
+  border: 1px dashed var(--border);
+  border-radius: 18px;
+  transform-style: preserve-3d;
+  touch-action: none; // let a finger drag inside the field instead of scrolling the page
+
+  // The glow lies on the floor of the field, behind the button, and runs further than it.
+  &__glow {
+    position: absolute;
+    top: calc(50% - 60px);
+    left: calc(50% - 60px);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent-2) 55%, transparent), transparent 68%);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(calc(var(--mx, 0) * 70px), calc(var(--my, 0) * 44px), 0);
+    transition:
+      transform 0.7s cubic-bezier(0.3, 1.6, 0.5, 1),
+      opacity 0.4s;
+  }
+
+  // The button shifts toward the pointer and leans the way it is pulled. It floats 34px above
+  // the field so that even its far edge, tipped back, stays in front of the field's own plane;
+  // otherwise that plane would swallow clicks on the tipped-back half.
+  &__btn {
+    position: relative;
+    width: 138px;
+    height: 50px;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--accent) 80%, #fff);
+    border-radius: 14px;
+    background: linear-gradient(140deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--hot)));
+    box-shadow: 0 16px 26px -14px color-mix(in srgb, var(--accent) 90%, transparent);
+    color: #fff;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transform: translate3d(calc(var(--mx, 0) * 24px), calc(var(--my, 0) * 16px), 34px) rotateY(calc(var(--mx, 0) * 20deg))
+      rotateX(calc(var(--my, 0) * -18deg));
+    // The way home: slow, with a big overshoot = a spring.
+    transition: transform 0.7s cubic-bezier(0.3, 1.9, 0.5, 1);
+
+    &:focus-visible {
+      outline: 2px solid var(--accent-2);
+      outline-offset: 4px;
+    }
+
+    // The label floats above the button's face. Same tilt, more depth = it slides further than
+    // the face under it: parallax.
+    span {
+      display: block;
+      pointer-events: none;
+      text-shadow: 0 6px 10px rgb(0 0 0 / 0.35);
+      transform: translateZ(30px);
+      transition: transform 0.2s;
+    }
+
+    &:active span {
+      transform: translateZ(8px); // pressed flat
+    }
+  }
+
+  // While the pointer is inside follow it closely; the springy transitions above are the release.
+  &.is-live &__btn,
+  &.is-live &__glow {
+    transition-duration: 0.14s, 0.4s;
+    transition-timing-function: ease-out;
+  }
+
+  &.is-live &__glow {
+    opacity: 1;
+  }
+}

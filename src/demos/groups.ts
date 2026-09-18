@@ -4,6 +4,7 @@
  */
 export const GROUPS = {
   shapes: 'Shapes & solids',
+  product: 'Products & branding',
   text: 'Text effects',
   controls: 'Buttons & forms',
   cards: 'Cards & galleries',
@@ -17,13 +18,15 @@ export type Group = keyof typeof GROUPS;
 export const GROUP_ORDER = Object.keys(GROUPS) as Group[];
 
 const MEMBERS: Record<Group, string[]> = {
-  shapes: ['cube', 'pyramid', 'cylinder', 'coin', 'globe', 'orbit', 'layers', 'explode', 'radio', 'drag', 'dice', 'sphere', 'scrollspin'],
-  text: ['text', 'layertext', 'lit', 'waveletters', 'textring'],
-  controls: ['button', 'rollbutton', 'switch', 'dropdown', 'zones', 'tilt'],
-  cards: ['flip', 'carousel', 'coverflow', 'boxslider', 'cardstack', 'cardfan', 'book'],
-  loaders: ['flipper', 'gyro', 'helix', 'tiles', 'wavegrid', 'ripple'],
-  scenes: ['grid', 'tunnel', 'starfield', 'parallax', 'door', 'laptop', 'sign', 'fold', 'isotiles', 'confetti'],
-  data: ['bars', 'clock', 'playground'],
+  shapes: ['cube', 'pyramid', 'cylinder', 'coin', 'globe', 'orbit', 'layers', 'explode', 'radio', 'drag', 'dice', 'sphere', 'scrollspin',
+    'prism', 'octa', 'diamond', 'torus', 'cone', 'stairs', 'rubik', 'cubegrid', 'net', 'shapeshift'],
+  product: ['phone', 'paycard', 'package', 'can', 'vinyl', 'logo3d', 'badge', 'watch', 'turntable', 'browser'],
+  text: ['text', 'layertext', 'lit', 'waveletters', 'textring', 'flaptext', 'shadowtext', 'wordcube', 'foldtext', 'crawl', 'anaglyph'],
+  controls: ['button', 'rollbutton', 'switch', 'dropdown', 'zones', 'tilt', 'check', 'tabs', 'radial', 'magnet'],
+  cards: ['flip', 'carousel', 'coverflow', 'boxslider', 'cardstack', 'cardfan', 'book', 'hovercards', 'flipgrid', 'accordion', 'swipe', 'polaroid', 'cubenav', 'pricing'],
+  loaders: ['flipper', 'gyro', 'helix', 'tiles', 'wavegrid', 'ripple', 'cubeloader', 'rings', 'equalizer'],
+  scenes: ['grid', 'tunnel', 'starfield', 'parallax', 'door', 'laptop', 'sign', 'fold', 'isotiles', 'confetti', 'solar', 'city', 'room', 'ferris', 'island', 'road', 'snow', 'map'],
+  data: ['bars', 'clock', 'playground', 'pie', 'scatter'],
 };
 
 const GROUP_OF = new Map<string, Group>();

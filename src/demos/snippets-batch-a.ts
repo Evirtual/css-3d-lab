@@ -1,0 +1,799 @@
+import type { Snippet } from './snippet-utils';
+
+/** n lines of markup, one per index. */
+const lines = (n: number, fn: (i: number) => string): string => Array.from({ length: n }, (_, i) => fn(i)).join('\n');
+
+/** Copy-paste versions of batch A (solids built from flat faces). */
+export const snippetsA: Record<string, Snippet> = {
+  prism: {
+    how: [
+      'The six side panels are a carousel with no gaps: each gets <code>rotateY(i × 60deg)</code>, then <code>translateZ</code> by the <b>apothem</b>, the distance from the centre to the middle of a side.',
+      'Apothem = <code>(side / 2) / tan(180° / 6)</code>. For 60px panels that is 51.96px. Any less and the panels cross; any more and the corners open.',
+      'A cap is a <code>2 × side</code> by <code>2 × apothem</code> box cut to a hexagon with <code>clip-path</code>. <code>clip-path</code> would flatten a 3D container, but the caps have no 3D children, so it is safe here.',
+      '<code>rotateX(90deg)</code> lays a cap flat; <code>translateZ(height / 2)</code> then lifts it along its new normal to the top (and <code>-90deg</code> for the bottom).',
+    ],
+    html: `<div class="scene">
+  <div class="prism">
+${lines(6, (i) => `    <i style="--i:${i}"></i>`)}
+    <b></b>
+    <b></b>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.prism {
+  --w: 60px;    /* one side of the hexagon = one panel */
+  --h: 110px;
+  --r: 51.96px; /* apothem = (w / 2) / tan(180deg / 6) */
+  position: relative;
+  width: var(--w);
+  height: var(--h);
+  transform-style: preserve-3d;
+  animation: tumble 18s linear infinite;
+}
+
+.prism i {
+  position: absolute;
+  inset: 0;
+  background: rgb(139 108 255 / 0.24);
+  border: 1px solid rgb(139 108 255 / 0.75);
+  box-shadow: inset 0 0 24px rgb(139 108 255 / 0.3);
+  /* turn to face outward, THEN step out along that direction */
+  transform: rotateY(calc(var(--i) * 60deg)) translateZ(var(--r));
+}
+
+.prism i:nth-child(even) {
+  background: rgb(46 230 214 / 0.2);
+  border-color: rgb(46 230 214 / 0.75);
+  box-shadow: inset 0 0 24px rgb(46 230 214 / 0.3);
+}
+
+/* caps: a regular hexagon's corner radius equals its side, so the box is 2w by 2r */
+.prism b {
+  position: absolute;
+  left: calc(50% - var(--w));
+  top: calc(50% - var(--r));
+  width: calc(var(--w) * 2);
+  height: calc(var(--r) * 2);
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  background: radial-gradient(circle, rgb(255 77 157 / 0.12) 20%, rgb(255 77 157 / 0.55));
+  transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
+}
+
+.prism b + b {
+  transform: rotateX(-90deg) translateZ(calc(var(--h) / 2));
+}
+
+/* -25deg + 360deg = 335deg: the end pose equals the start pose, so the loop is seamless */
+@keyframes tumble {
+  from { transform: rotateX(-25deg) rotateY(0deg); }
+  to   { transform: rotateX(335deg) rotateY(360deg); }
+}`,
+  },
+
+  octa: {
+    how: [
+      'An octahedron is two square pyramids glued at their base. Every face is the same equilateral triangle (<code>clip-path</code>), standing on one edge of the square "equator".',
+      'Hinge each triangle on its bottom edge (<code>transform-origin: 50% 100%</code>) and lean it in by <code>90° − atan(√2) ≈ 35.26°</code>: exactly enough for four tips to meet on the axis.',
+      'The bottom pyramid reuses the same rule. <code>--s: -1</code> flips the triangle to point down with <code>scaleY(-1)</code> and reverses the lean, so one line of CSS builds all eight faces.',
+      '<code>clip-path</code> also clips borders away, so the slanted edges are painted: a <code>to top left</code> gradient\'s 50% line runs exactly along its box diagonal.',
+    ],
+    html: `<div class="scene">
+  <div class="octa">
+${lines(8, (i) => `    <i style="--i:${i % 4}; --s:${i < 4 ? 1 : -1}"></i>`)}
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.octa {
+  --a: 110px; /* edge length */
+  position: relative;
+  width: var(--a);
+  height: var(--a);
+  transform-style: preserve-3d;
+  animation: spin 12s linear infinite;
+}
+
+.octa i {
+  --c: 139 108 255;
+  --alpha: 0.22;
+  --edge: rgb(var(--c) / 0.85);
+  position: absolute;
+  left: 0;
+  bottom: 50%;             /* bottom edge on the equator, through the centre */
+  width: var(--a);
+  height: 95.26px;         /* triangle height = a × √3 / 2 */
+  transform-origin: 50% 100%;
+  transform:
+    rotateY(calc(var(--i) * 90deg))
+    translateZ(calc(var(--a) / 2))
+    rotateX(calc(var(--s) * 35.26deg))  /* lean in: 90deg - atan(√2) */
+    scaleY(var(--s));                   /* -1 flips the bottom four downward */
+  clip-path: polygon(50% 0, 0 100%, 100% 100%);
+  background:
+    linear-gradient(to top left, transparent calc(50% - 1.5px), var(--edge) calc(50% - 1.5px) 50%, transparent 50%) left / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 1.5px), var(--edge) calc(50% - 1.5px) 50%, transparent 50%) right / 50% 100% no-repeat,
+    linear-gradient(var(--edge), var(--edge)) bottom / 100% 1.5px no-repeat,
+    linear-gradient(to top, rgb(var(--c) / var(--alpha)), rgb(var(--c) / 0.08));
+}
+
+.octa i:nth-child(n + 5) {
+  --c: 46 230 214;
+}
+
+/* checkerboard the brightness so neighbouring faces always differ */
+.octa i:nth-child(-n + 4):nth-child(odd),
+.octa i:nth-child(n + 5):nth-child(even) {
+  --alpha: 0.42;
+}
+
+@keyframes spin {
+  from { transform: rotateZ(14deg) rotateX(-16deg) rotateY(0deg); }
+  to   { transform: rotateZ(14deg) rotateX(-16deg) rotateY(360deg); }
+}`,
+  },
+
+  diamond: {
+    how: [
+      'The widest ring (the <b>girdle</b>) is 8 edges, 60px from the axis. Every facet is hinged on one of those edges: <code>rotateY(i × 45deg) translateZ(60px)</code>.',
+      '<b>Crown</b> facets stand on the girdle and lean in 45°: they rise 24px while stepping 24px inward, so their top edge is 36/60 as long. That ratio is the trapezoid\'s <code>clip-path</code>: 20% to 80%.',
+      '<b>Pavilion</b> facets hang from the girdle (<code>transform-origin: top</code>) and lean in by <code>atan(60 / 72)</code> ≈ 39.8°, so a 72px-deep point forms where the tips meet.',
+      'The glint is a white streak on every facet that only fades in and out. Its <code>animation-delay</code> grows with <code>--i</code>, so the sparkle walks around the stone. Only <code>opacity</code> animates.',
+    ],
+    html: `<div class="scene">
+  <div class="gem">
+${lines(8, (i) => `    <i class="crown" style="--i:${i}"></i>`)}
+${lines(8, (i) => `    <i class="pav" style="--i:${i}"></i>`)}
+    <b></b>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.gem {
+  position: relative;
+  width: 49.71px; /* one girdle edge = 2 × 60px × tan(180deg / 8) */
+  height: 96px;   /* crown 24px + pavilion 72px */
+  transform-style: preserve-3d;
+  animation: spin 14s linear infinite;
+}
+
+.gem i {
+  --alpha: 0.2;
+  position: absolute;
+  left: 0;
+  width: 100%;
+}
+
+.gem i:nth-child(odd) {
+  --alpha: 0.4;
+}
+
+/* the glint: fades in and out, one facet after another */
+.gem i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.8) 50%, transparent 70%);
+  opacity: 0;
+  animation: glint 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.4s + var(--late, 0s));
+}
+
+/* crown: trapezoids standing on the girdle, leaning 45deg inward */
+.gem .crown {
+  bottom: 72px;
+  height: 33.94px; /* slant = √2 × 24px */
+  transform-origin: 50% 100%;
+  transform: rotateY(calc(var(--i) * 45deg)) translateZ(60px) rotateX(45deg);
+  clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%); /* top edge = 36 / 60 of the bottom */
+  background:
+    linear-gradient(rgb(46 230 214 / 0.8), rgb(46 230 214 / 0.8)) top / 100% 1.5px no-repeat,
+    linear-gradient(rgb(46 230 214 / 0.8), rgb(46 230 214 / 0.8)) bottom / 100% 1.5px no-repeat,
+    linear-gradient(to top, rgb(46 230 214 / var(--alpha)), rgb(46 230 214 / 0.12));
+}
+
+/* pavilion: triangles hanging from the girdle, leaning in by atan(60 / 72) */
+.gem .pav {
+  --late: -1.7s;
+  top: 24px;
+  height: 93.72px; /* slant = √(72² + 60²) */
+  transform-origin: 50% 0;
+  transform: rotateY(calc(var(--i) * 45deg)) translateZ(60px) rotateX(-39.81deg);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background:
+    linear-gradient(to top right, transparent 50%, rgb(139 108 255 / 0.8) 50% calc(50% + 1.2px), transparent calc(50% + 1.2px)) left / 50% 100% no-repeat,
+    linear-gradient(to top left, transparent 50%, rgb(139 108 255 / 0.8) 50% calc(50% + 1.2px), transparent calc(50% + 1.2px)) right / 50% 100% no-repeat,
+    linear-gradient(rgb(139 108 255 / var(--alpha)), rgb(255 77 157 / 0.14));
+}
+
+/* table: a flat octagon on top, 36px from the axis */
+.gem b {
+  position: absolute;
+  left: calc(50% - 36px);
+  top: -36px;
+  width: 72px;
+  height: 72px;
+  clip-path: polygon(29.29% 0, 70.71% 0, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0 70.71%, 0 29.29%);
+  background: linear-gradient(135deg, rgb(46 230 214 / 0.55), rgb(255 255 255 / 0.35), rgb(46 230 214 / 0.3));
+  transform: rotateX(90deg);
+}
+
+@keyframes spin {
+  from { transform: rotateX(-18deg) rotateY(0deg); }
+  to   { transform: rotateX(-18deg) rotateY(360deg); }
+}
+
+@keyframes glint {
+  0%, 55%, 100% { opacity: 0; }
+  78%           { opacity: 0.9; }
+}`,
+  },
+
+  torus: {
+    how: [
+      'A torus is a circle swept around an axis, so build it from its cross-sections: 24 identical circles (<code>border-radius: 50%</code>).',
+      'Each ring gets <code>rotateY(i × 15deg)</code> and then <code>translateX</code>, <b>not</b> <code>translateZ</code>. That keeps it in the plane through the axis, edge-on to the path, like a slice of the tube. (<code>translateZ</code> would lay it tangent, like a carousel panel.)',
+      'The <code>translateX</code> distance is the radius from the hole\'s centre to the tube\'s centre; the ring size is the tube\'s thickness.',
+      'Colour follows <code>cos(i × 15deg)</code>: teal at ring 0, violet halfway round, teal again at the end, so there is no seam.',
+    ],
+    html: `<div class="scene">
+  <div class="torus">
+${lines(24, (i) => `    <i style="--i:${i}"></i>`)}
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.torus {
+  position: relative;
+  width: 40px;  /* tube thickness */
+  height: 40px;
+  transform-style: preserve-3d;
+  animation: tumble 16s linear infinite;
+}
+
+.torus i {
+  --hue: calc(214 - 39 * cos(var(--i) * 15deg)); /* 175 teal ... 253 violet ... 175 */
+  position: absolute;
+  inset: 0;
+  border: 2px solid hsl(var(--hue) 85% 64%);
+  border-radius: 50%;
+  background: hsl(var(--hue) 85% 64% / 0.14);
+  box-shadow: inset 0 0 10px hsl(var(--hue) 85% 64% / 0.45);
+  /* 24 × 15deg = 360deg; translateX keeps each ring edge-on to the circle */
+  transform: rotateY(calc(var(--i) * 15deg)) translateX(56px);
+}
+
+/* spins on two axes; both end 360deg after they start, so the loop is seamless */
+@keyframes tumble {
+  from { transform: rotateZ(24deg) rotateX(-60deg) rotateY(0deg); }
+  to   { transform: rotateZ(24deg) rotateX(300deg) rotateY(360deg); }
+}`,
+  },
+
+  cone: {
+    how: [
+      'Place 16 thin triangles on a circle like carousel panels: <code>rotateY(i × 22.5deg) translateZ(r)</code>. Each is <code>2r × tan(180° / 16)</code> wide, so their bottom edges close the ring.',
+      'Hinge them on the bottom edge and lean them back by <code>atan(r / h)</code>. That is exactly the angle at which every tip lands on the axis, <code>h</code> above the base.',
+      'The triangle element must be as tall as the <b>slant</b>, <code>√(h² + r²)</code>, not <code>h</code>, because leaning shortens it.',
+      'One element cannot run two transform animations, so the rocking lives on a wrapper and the spin on its child.',
+    ],
+    html: `<div class="scene">
+  <div class="cone">
+    <div class="cone-body">
+${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
+      <b></b>
+    </div>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+/* wrapper: rocks back and forth */
+.cone {
+  transform-style: preserve-3d;
+  animation: rock 7s ease-in-out infinite alternate;
+}
+
+/* child: spins */
+.cone-body {
+  position: relative;
+  width: 19.89px; /* triangle base = 2 × 50px × tan(180deg / 16) */
+  height: 110px;  /* cone height */
+  transform-style: preserve-3d;
+  animation: spin 10s linear infinite;
+}
+
+.cone-body i {
+  --hue: calc(293 + 40 * cos(var(--i) * 22.5deg)); /* pink ... violet ... pink */
+  --edge: hsl(var(--hue) 90% 68% / 0.8);
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 120.83px; /* slant = √(110² + 50²) */
+  transform-origin: 50% 100%;
+  /* stand on the base circle, then lean in by atan(50 / 110) */
+  transform: rotateY(calc(var(--i) * 22.5deg)) translateZ(50px) rotateX(24.44deg);
+  clip-path: polygon(50% 0, 0 100%, 100% 100%);
+  background:
+    linear-gradient(to top left, transparent calc(50% - 1px), var(--edge) calc(50% - 1px) 50%, transparent 50%) left / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 1px), var(--edge) calc(50% - 1px) 50%, transparent 50%) right / 50% 100% no-repeat,
+    linear-gradient(to top, hsl(var(--hue) 90% 68% / 0.45), hsl(var(--hue) 90% 68% / 0.14));
+}
+
+/* base disc through the triangles' corners: 2 × 50px / cos(180deg / 16) */
+.cone-body b {
+  position: absolute;
+  left: calc(50% - 50.98px);
+  top: calc(100% - 50.98px);
+  width: 101.96px;
+  height: 101.96px;
+  border-radius: 50%;
+  background: rgb(46 230 214 / 0.26);
+  border: 1px solid rgb(46 230 214 / 0.75);
+  box-shadow: inset 0 0 24px rgb(46 230 214 / 0.3);
+  transform: rotateX(90deg);
+}
+
+@keyframes rock {
+  from { transform: rotateX(-30deg) rotateZ(-6deg); }
+  to   { transform: rotateX(24deg) rotateZ(6deg); }
+}
+
+@keyframes spin {
+  to { transform: rotateY(360deg); }
+}`,
+  },
+
+  stairs: {
+    how: [
+      'Every tread is the same flat slab: a rectangle laid down with <code>rotateX(90deg)</code>.',
+      'The trick is <code>transform-origin: -5px 50%</code>, a point 5px to the left of the slab, which is where the pole\'s axis is. Every rotation now pivots around the pole.',
+      'One index does the rest: <code>rotateY(i × 30deg)</code> turns the tread around the pole, <code>translateY(i × -8px)</code> lifts it one step. Turn + lift = spiral.',
+      'The riser is a <code>::before</code> hinged on the tread\'s edge and folded straight down. The pole is two crossed planes, which read as a round post from any angle.',
+    ],
+    html: `<div class="scene">
+  <div class="stairs">
+    <b></b>
+    <b></b>
+${lines(14, (i) => `    <i style="--i:${i}"></i>`)}
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.stairs {
+  position: relative;
+  width: 130px;
+  height: 136px;
+  transform-style: preserve-3d;
+  animation: spin 16s linear infinite;
+}
+
+.stairs i {
+  --hue: calc(253 - var(--i) * 6); /* violet at the bottom, teal at the top */
+  position: absolute;
+  left: calc(50% + 5px); /* start just outside the pole */
+  top: 98px;
+  width: 58px;
+  height: 28px;
+  border: 1px solid hsl(var(--hue) 90% 82%);
+  border-radius: 0 6px 6px 0;
+  background: hsl(var(--hue) 85% 64% / 0.62);
+  transform-origin: -5px 50%; /* on the pole's axis */
+  transform-style: preserve-3d;
+  transform:
+    translateY(calc(var(--i) * -8px))   /* one step up ... */
+    rotateY(calc(var(--i) * 30deg))     /* ... and 30deg further round */
+    rotateX(90deg);                     /* lie flat */
+}
+
+/* riser: hinged on the tread's edge, folded straight down by one step */
+.stairs i::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: 8px;
+  background: hsl(var(--hue) 45% 28%);
+  transform-origin: top;
+  transform: rotateX(-90deg);
+}
+
+/* pole: two crossed planes */
+.stairs b {
+  position: absolute;
+  left: calc(50% - 4px);
+  top: 0;
+  width: 8px;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #3a3f63, #eceefb, #3a3f63);
+  opacity: 0.85;
+}
+
+.stairs b + b {
+  transform: rotateY(90deg);
+}
+
+@keyframes spin {
+  from { transform: rotateX(-20deg) rotateY(0deg); }
+  to   { transform: rotateX(-20deg) rotateY(360deg); }
+}`,
+  },
+
+  rubik: {
+    how: [
+      '27 cubelets would be 162 faces. But a horizontal layer only ever turns as one piece, so each layer is <b>one</b> flat box (6 faces), and the 3 × 3 stickers are painted on with two repeating gradients.',
+      'All three layers run the same 12-second timeline: a quarter turn at 0%, 25%, 50% and 75%, holding in between. Negative delays of <code>-11s</code> and <code>-10s</code> shift layers 2 and 3 one and two seconds later, so they take turns.',
+      'After four quarter turns every layer is back at 360°, the same as 0°, so the loop is seamless and the cube solves itself each cycle.',
+      'The black faces between layers use <code>backface-visibility: hidden</code>: the two touching faces point in opposite directions, so only one is ever drawn and they never flicker.',
+    ],
+    html: `<div class="scene">
+  <div class="rubik">
+    <div class="layer"><i></i><i></i><i></i><i></i><b class="top"></b><b></b></div>
+    <div class="layer"><i></i><i></i><i></i><i></i><b></b><b></b></div>
+    <div class="layer"><i></i><i></i><i></i><i></i><b></b><b class="bottom"></b></div>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.rubik {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  transform-style: preserve-3d;
+  transform: rotateX(-28deg) rotateY(-38deg);
+}
+
+/* one layer = one flat box, 120 x 40 x 120 */
+.layer {
+  position: absolute;
+  left: 0;
+  width: 120px;
+  height: 40px;
+  transform-style: preserve-3d;
+  animation: twist 12s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.layer:nth-child(1) { top: 0; }
+.layer:nth-child(2) { top: 40px; animation-delay: -11s; } /* one second later */
+.layer:nth-child(3) { top: 80px; animation-delay: -10s; } /* two seconds later */
+
+/* stickers: black lines on the tile edges, 3 across and --row down */
+.layer > * {
+  position: absolute;
+  left: 0;
+  background-color: var(--c, #10121f);
+  background-image:
+    linear-gradient(90deg, #10121f 3px, transparent 3px calc(100% - 3px), #10121f calc(100% - 3px)),
+    linear-gradient(#10121f 3px, transparent 3px calc(100% - 3px), #10121f calc(100% - 3px));
+  background-size: 33.334% 100%, 100% var(--row, 100%);
+  backface-visibility: hidden;
+}
+
+/* four sides: strips of three stickers */
+.layer i { top: 0; width: 120px; height: 40px; }
+.layer i:nth-child(1) { --c: #8b6cff; transform: translateZ(60px); }
+.layer i:nth-child(2) { --c: #2ee6d6; transform: rotateY(90deg) translateZ(60px); }
+.layer i:nth-child(3) { --c: #ff4d9d; transform: rotateY(180deg) translateZ(60px); }
+.layer i:nth-child(4) { --c: #ffb547; transform: rotateY(-90deg) translateZ(60px); }
+
+/* top and bottom of a layer: black inside the cube, stickers only on the outside */
+.layer b {
+  --row: 33.334%;
+  top: -40px;
+  width: 120px;
+  height: 120px;
+  transform: rotateX(90deg) translateZ(20px);
+}
+
+.layer b + b {
+  transform: rotateX(-90deg) translateZ(20px);
+}
+
+.layer .top    { --c: #f2f3ff; }
+.layer .bottom { --c: #4d8dff; }
+
+/* a quarter turn in the first 6% of each quarter, then hold */
+@keyframes twist {
+  0%       { transform: rotateY(0deg); }
+  6%, 25%  { transform: rotateY(90deg); }
+  31%, 50% { transform: rotateY(180deg); }
+  56%, 75% { transform: rotateY(270deg); }
+  81%, 100% { transform: rotateY(360deg); }
+}`,
+  },
+
+  cubegrid: {
+    how: [
+      'Isometric view: turn a flat grid <code>rotateZ(-45deg)</code>, then tip it back with <code>rotateX</code>. "Up" is now the grid\'s own Z axis, so <code>translateZ</code> lifts a cube straight off the floor.',
+      'From this angle only the top and two sides of a cube can ever be seen. So each cube is <b>one</b> element: the element is the top, and <code>::before</code> / <code>::after</code> are the sides, hinged on its edges and folded down.',
+      'Every cube runs the same up-and-down animation. <code>--d</code> is row + column, so cubes on the same diagonal share a delay and the wave travels corner to corner.',
+      'The cube never leaves its grid cell and only <code>transform</code> animates, so 16 cubes stay cheap.',
+    ],
+    html: `<div class="scene">
+  <div class="field">
+${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: repeat(4, 36px);
+  gap: 10px;
+  transform-style: preserve-3d;
+  /* isometric floor: turn 45deg, then tip back */
+  transform: translateY(18px) rotateX(58deg) rotateZ(-45deg);
+}
+
+/* the element itself is the top of the cube */
+.field i {
+  --hue: calc(253 - var(--d) * 13); /* violet corner to teal corner */
+  position: relative;
+  width: 36px;
+  height: 36px;
+  background: hsl(var(--hue) 90% 80%);
+  transform-style: preserve-3d;
+  animation: wave 2.6s ease-in-out infinite;
+  animation-delay: calc(var(--d) * -0.28s);
+}
+
+.field i::before,
+.field i::after {
+  content: '';
+  position: absolute;
+}
+
+/* side hinged on the bottom edge, folded down */
+.field i::before {
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: 36px;
+  background: hsl(var(--hue) 85% 64%);
+  transform-origin: top;
+  transform: rotateX(-90deg);
+}
+
+/* side hinged on the left edge, folded down */
+.field i::after {
+  right: 100%;
+  top: 0;
+  width: 36px;
+  height: 100%;
+  background: hsl(var(--hue) 55% 36%);
+  transform-origin: right;
+  transform: rotateY(-90deg);
+}
+
+@keyframes wave {
+  0%, 100% { transform: translateZ(0); }
+  50%      { transform: translateZ(44px); }
+}`,
+  },
+
+  net: {
+    how: [
+      'Lay the six faces out flat as the cross-shaped net. Each face sits <b>next to</b> the edge it shares with its parent and uses that edge as <code>transform-origin</code>.',
+      'Folding is then one <code>rotateX(±90deg)</code> or <code>rotateY(±90deg)</code> per face. The angle lives in <code>--fx</code> / <code>--fy</code>, and one shared keyframe rule reads it, so every wall folds its own way.',
+      'The lid is a <b>child</b> of the north wall, not of the base. Its hinge rides along as the wall stands up, and its 90° adds to the wall\'s: nested transforms compound.',
+      'The lid has its own, wider keyframes: it opens first and closes last, so it never folds through a wall. Both timelines are mirror-symmetric, so the loop is seamless.',
+    ],
+    html: `<div class="scene">
+  <div class="net">
+    <div class="base">
+      <i class="n"><i class="lid"></i></i>
+      <i class="s"></i>
+      <i class="e"></i>
+      <i class="w"></i>
+    </div>
+  </div>
+</div>`,
+    css: `.scene {
+  perspective: 800px;
+}
+
+/* static camera looking down at the floor */
+.net {
+  transform-style: preserve-3d;
+  transform: translateY(20px) rotateX(58deg);
+}
+
+/* the bottom face only turns, so every side gets seen */
+.base {
+  --c: 139 108 255;
+  position: relative;
+  width: 60px;
+  height: 60px;
+  transform-style: preserve-3d;
+  animation: turn 24s linear infinite;
+}
+
+.base,
+.base i {
+  background: rgb(var(--c) / 0.28);
+  /* inset shadows instead of a border: no layout offset, so hinges sit exactly on the edges */
+  box-shadow: inset 0 0 0 1px rgb(var(--c) / 0.75), inset 0 0 24px rgb(var(--c) / 0.3);
+}
+
+.base i {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  transform-style: preserve-3d; /* the north wall carries the lid */
+  animation: fold 8s ease-in-out infinite;
+}
+
+/* each face lies next to its shared edge and hinges on it */
+.n   { --c: 255 77 157;  --fx: -90deg; left: 0; bottom: 100%; transform-origin: bottom; }
+.s   { --c: 46 230 214;  --fx: 90deg;  left: 0; top: 100%;    transform-origin: top; }
+.e   { --c: 255 181 71;  --fy: -90deg; top: 0;  left: 100%;   transform-origin: left; }
+.w   { --c: 255 181 71;  --fy: 90deg;  top: 0;  right: 100%;  transform-origin: right; }
+.lid { --c: 139 108 255; --fx: -90deg; left: 0; bottom: 100%; transform-origin: bottom; }
+
+.base .lid {
+  animation-name: lid;
+}
+
+@keyframes turn {
+  to { transform: rotateZ(360deg); }
+}
+
+/* walls: closed, wait for the lid, open, rest flat, close again */
+@keyframes fold {
+  0%, 22%, 78%, 100% { transform: rotateX(var(--fx, 0deg)) rotateY(var(--fy, 0deg)); }
+  44%, 56%           { transform: rotateX(0deg) rotateY(0deg); }
+}
+
+/* lid: first to open, last to close */
+@keyframes lid {
+  0%, 4%, 96%, 100% { transform: rotateX(var(--fx, 0deg)) rotateY(var(--fy, 0deg)); }
+  26%, 74%          { transform: rotateX(0deg) rotateY(0deg); }
+}`,
+  },
+
+  shapeshift: {
+    how: [
+      'Keep the corner radius <code>R</code> fixed and derive the rest: side = <code>2R × sin(180° / n)</code>, apothem = <code>R × cos(180° / n)</code>. JS computes both and hands them to CSS as <code>--w</code> and <code>--r</code>.',
+      'CSS places every panel from those numbers: <code>rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(var(--r))</code>. JS never touches a transform.',
+      'The caps are a <code>2R</code> square cut to the polygon. JS writes the <code>clip-path</code>: one corner every <code>360° / n</code>, starting half a side from the centre of panel 0.',
+      'Changing <code>n</code> rebuilds the panels. <code>@starting-style</code> gives brand-new elements a first frame to transition from, so they fly in without any animation JS.',
+    ],
+    html: `<div class="app">
+  <div class="scene">
+    <div class="prism"></div>
+  </div>
+  <label>Sides <input type="range" min="3" max="12" value="6" /> <output>6</output></label>
+</div>`,
+    css: `.app {
+  display: grid;
+  justify-items: center;
+  gap: 48px;
+}
+
+.scene {
+  perspective: 800px;
+}
+
+.prism {
+  --h: 120px;
+  position: relative;
+  width: calc(var(--R) * 2);
+  height: var(--h);
+  transform-style: preserve-3d;
+  animation: spin 14s linear infinite;
+}
+
+/* JS sets --n, --R, --r (apothem), --w (side) and --cap; CSS only places things */
+.prism i {
+  --hue: calc(214 - 39 * cos(var(--i) * 1turn / var(--n))); /* teal ... violet ... teal */
+  position: absolute;
+  top: 0;
+  left: calc(50% - var(--w) / 2);
+  width: var(--w);
+  height: 100%;
+  background: hsl(var(--hue) 85% 64% / 0.26);
+  border: 1px solid hsl(var(--hue) 85% 64% / 0.75);
+  box-shadow: inset 0 0 24px hsl(var(--hue) 85% 64% / 0.3);
+  transform: rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(var(--r));
+  transition: transform 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.1), opacity 0.35s;
+  transition-delay: calc(var(--i) * 30ms);
+}
+
+/* the first frame of a newly inserted panel: further out and invisible */
+@starting-style {
+  .prism i {
+    opacity: 0;
+    transform: rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(calc(var(--r) + 70px));
+  }
+}
+
+/* caps: both rotateX(90deg), pushed up or down, so an odd polygon lines up on both ends */
+.prism b {
+  position: absolute;
+  left: calc(50% - var(--R));
+  top: calc(50% - var(--R));
+  width: calc(var(--R) * 2);
+  height: calc(var(--R) * 2);
+  clip-path: var(--cap);
+  background: radial-gradient(circle, rgb(255 77 157 / 0.1) 15%, rgb(255 77 157 / 0.5));
+  transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
+  transition: opacity 0.4s 0.25s;
+}
+
+.prism b + b {
+  transform: rotateX(90deg) translateZ(calc(var(--h) / -2));
+}
+
+@starting-style {
+  .prism b { opacity: 0; }
+}
+
+label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #949bc0;
+  font: 14px system-ui;
+}
+
+output {
+  min-width: 2ch;
+  color: #eceefb;
+  font-family: ui-monospace, monospace;
+}
+
+@keyframes spin {
+  from { transform: rotateX(-22deg) rotateY(0deg); }
+  to   { transform: rotateX(-22deg) rotateY(360deg); }
+}`,
+    js: `const prism = document.querySelector('.prism');
+const input = document.querySelector('input');
+const output = document.querySelector('output');
+const R = 80; // corner radius: the prism keeps this footprint for every n
+
+function build() {
+  const n = Number(input.value);
+  const half = Math.PI / n; // half the angle one side spans
+
+  prism.style.setProperty('--n', n);
+  prism.style.setProperty('--R', R + 'px');
+  prism.style.setProperty('--r', R * Math.cos(half) + 'px');     // apothem
+  prism.style.setProperty('--w', 2 * R * Math.sin(half) + 'px'); // side length
+
+  // cap outline: a corner half a side either side of every panel's centre
+  const corners = [];
+  for (let k = 0; k < n; k++) {
+    const a = (2 * k + 1) * half;
+    corners.push((50 + 50 * Math.sin(a)) + '% ' + (50 + 50 * Math.cos(a)) + '%');
+  }
+  prism.style.setProperty('--cap', 'polygon(' + corners.join(', ') + ')');
+
+  // brand-new elements, so @starting-style flies them in
+  let html = '';
+  for (let i = 0; i < n; i++) html += '<i style="--i:' + i + '"></i>';
+  prism.innerHTML = html + '<b></b><b></b>';
+  output.textContent = n;
+}
+
+input.addEventListener('input', build);
+build();`,
+  },
+};

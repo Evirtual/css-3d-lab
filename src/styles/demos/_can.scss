@@ -1,0 +1,142 @@
+@use 'sass:math';
+
+$n: 20; // strips
+$w: 11px; // the slice of label each strip shows
+$h: 118px;
+$turn: 8s;
+// A closed ring: the strips are the sides of a regular 20-gon, so radius = (w / 2) / tan(180° / n).
+$radius: math.div($w * 0.5, math.tan(math.div(180deg, $n))); // ≈ 34.7px
+$label: $w * $n; // the label is exactly one lap long: 220px
+
+.d-can {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(-16deg) rotateZ(-9deg);
+
+  &__spin {
+    position: relative;
+    width: 70px;
+    height: $h;
+    transform-style: preserve-3d;
+    animation: d-can-spin $turn linear infinite;
+
+    // Sass only hands every strip its index; all the geometry below is one calc() each.
+    @for $i from 0 to $n {
+      > i:nth-child(#{$i + 1}) {
+        --i: #{$i};
+      }
+    }
+
+    > i {
+      position: absolute;
+      top: 0;
+      left: calc(50% - #{$w * 0.5} - 0.25px);
+      width: $w + 0.5px; // a hair wider than its slice so no seams show between strips
+      height: 100%;
+      backface-visibility: hidden; // the far side of the can is hidden by the near side anyway
+      // Every strip carries the WHOLE label (background-size = one lap) and slides it left by
+      // its own index, so strip 7 shows slice 7. Neighbours line up and the art wraps around.
+      background-image:
+        linear-gradient(#e6e9f5 0 3%, #9aa1bd 5%, transparent 5% 95%, #9aa1bd 95%, #e6e9f5 97%),
+        radial-gradient(circle at 55px 50%, var(--hot) 0 8px, #fff 8.5px 15px, transparent 15.5px),
+        radial-gradient(circle at 165px 50%, var(--accent-2) 0 8px, #fff 8.5px 15px, transparent 15.5px),
+        linear-gradient(100deg, transparent 0 18%, rgb(255 255 255 / 0.28) 18% 24%, transparent 24% 68%, rgb(255 255 255 / 0.28) 68% 74%, transparent 74%),
+        linear-gradient(90deg, var(--accent), var(--hot) 50%, var(--accent)); // same colour at both ends = no seam
+      background-size: $label 100%;
+      background-position: calc(var(--i) * #{-$w} + 0.25px) 0;
+      transform: rotateY(calc(var(--i) * #{math.div(360deg, $n)})) translateZ($radius);
+
+      // Lighting must stay put while the can turns. Each strip darkens and brightens over one
+      // lap; the negative delay starts strip i already i/20 of the way round.
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: #05060f;
+        animation: d-can-shade $turn linear infinite;
+        animation-delay: calc(var(--i) * #{math.div($turn, -$n)});
+      }
+    }
+  }
+
+  // Discs centred ON the top / bottom edge, then laid flat: no translate needed.
+  &__top,
+  &__bottom {
+    position: absolute;
+    left: 0;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+  }
+
+  &__top {
+    top: -35px;
+    background:
+      radial-gradient(ellipse 9px 13px at 50% 68%, #3a3f5c 0 95%, transparent 100%),
+      radial-gradient(circle, #cfd3e6 0 52%, #8f96b3 54% 60%, #eef0fa 62% 86%, #a3a9c4 88%);
+    transform: rotateX(90deg);
+  }
+
+  &__bottom {
+    top: calc(100% - 35px);
+    background: radial-gradient(circle, #6d7391 0 50%, #a3a9c4 52%);
+    transform: rotateX(-90deg);
+  }
+
+  // A fixed specular streak floating just in front of the surface. It is outside the spinning
+  // element, so it stays where the "lamp" is.
+  &__streak {
+    position: absolute;
+    top: 9%;
+    left: calc(50% - 19px);
+    width: 8px;
+    height: 82%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
+    transform: translateZ($radius + 1px);
+    pointer-events: none;
+  }
+}
+
+@keyframes d-can-spin {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+// 0% = strip facing the viewer. The lamp sits front-left, so the brightest point is at about
+// 330° (91%). Between 25% and 75% the strip faces away and is not drawn at all.
+@keyframes d-can-shade {
+  0% {
+    opacity: 0.08;
+  }
+
+  6.25% {
+    opacity: 0.23;
+  }
+
+  12.5% {
+    opacity: 0.44;
+  }
+
+  25%,
+  50% {
+    opacity: 0.62;
+  }
+
+  75% {
+    opacity: 0.34;
+  }
+
+  87.5% {
+    opacity: 0.04;
+  }
+
+  91.5% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0.08;
+  }
+}

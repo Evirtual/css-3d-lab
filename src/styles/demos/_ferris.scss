@@ -1,0 +1,199 @@
+@use 'sass:list';
+
+// Every cabin is a zero-size pivot at the wheel's centre:
+//   rotate(--a) → translateY(-$r) → rotate(-(--a))   puts it on the rim, upright.
+// The wheel spins 0 → 360deg; each cabin adds 0 → -360deg at the end of its transform, with the
+// same duration, so at every moment the two rotations cancel and the cabin hangs straight down.
+$r: 68px; // pivot radius
+$depth: 7px; // half the distance between the two rims
+$spin: 24s;
+$colors: (var(--accent-2), var(--hot), var(--warm), var(--accent));
+
+.d-ferris {
+  position: relative;
+  width: 200px;
+  height: 188px;
+  transform-style: preserve-3d;
+  transform: rotateX(-8deg) rotateY(-28deg);
+
+  // a glowing pad on the ground, laid flat
+  &__base {
+    position: absolute;
+    left: 20px;
+    top: 150px; // centre on the ground line (y = 178px) before it is laid flat
+    width: 160px;
+    height: 56px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 40%, transparent), transparent);
+    transform: rotateX(90deg);
+  }
+
+  // two A-frames, one behind and one in front of the wheel
+  &__stand {
+    position: absolute;
+    left: 38px;
+    top: 74px;
+    width: 124px;
+    height: 104px;
+    transform-style: preserve-3d;
+
+    s {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(color-mix(in srgb, var(--accent) 70%, var(--text)), color-mix(in srgb, var(--accent) 40%, transparent));
+      // an inverted V with thin legs, in one polygon
+      clip-path: polygon(0 100%, 48% 0, 52% 0, 100% 100%, 95.5% 100%, 50% 5%, 4.5% 100%);
+      transform: translateZ($depth * -2);
+    }
+
+    s + s {
+      transform: translateZ($depth * 2);
+    }
+  }
+
+  &__wheel {
+    position: absolute;
+    left: 100px - $r;
+    top: 78px - $r;
+    width: $r * 2;
+    height: $r * 2;
+    transform-style: preserve-3d;
+    animation: d-ferris-spin $spin linear infinite;
+
+    // the two rims, at different depths
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 3px solid var(--accent);
+      border-radius: 50%;
+      box-shadow:
+        0 0 10px color-mix(in srgb, var(--accent) 60%, transparent),
+        inset 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
+      transform: translateZ($depth);
+    }
+
+    // back rim: dimmer, with a dotted string of lights
+    &::after {
+      border: 3px dotted color-mix(in srgb, var(--warm) 80%, transparent);
+      box-shadow: none;
+      transform: translateZ(-$depth);
+    }
+
+    // Spokes: each <i> is a diameter drawn twice, once per rim.
+    i {
+      position: absolute;
+      top: 0;
+      left: calc(50% - 1px);
+      width: 2px;
+      height: 100%;
+      transform-style: preserve-3d;
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: color-mix(in srgb, var(--accent) 60%, transparent);
+        transform: translateZ($depth);
+      }
+
+      &::after {
+        transform: translateZ(-$depth);
+      }
+    }
+
+    @for $n from 1 through 4 {
+      i:nth-of-type(#{$n}) {
+        transform: rotate(($n - 1) * 45deg);
+      }
+    }
+
+    // Cabins: a pivot point with the body hanging from it.
+    b {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      animation: d-ferris-cabin $spin linear infinite;
+
+      // the body, swinging gently on its hook
+      &::before {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: -9px;
+        width: 18px;
+        height: 15px;
+        border-radius: 3px 3px 7px 7px;
+        background: linear-gradient(
+          var(--c) 0 30%,
+          color-mix(in srgb, var(--c) 30%, #fff) 30% 62%,
+          var(--c) 62%
+        );
+        box-shadow: 0 0 8px color-mix(in srgb, var(--c) 50%, transparent);
+        transform-origin: 50% -3px;
+        animation: d-ferris-swing 1.6s ease-in-out infinite alternate;
+      }
+
+      // the hook
+      &::after {
+        content: '';
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        width: 2px;
+        height: 5px;
+        background: color-mix(in srgb, var(--text) 70%, transparent);
+      }
+    }
+
+    @for $n from 1 through 8 {
+      b:nth-of-type(#{$n}) {
+        --a: #{($n - 1) * 45deg};
+        --c: #{list.nth($colors, ($n - 1) % 4 + 1)};
+
+        &::before {
+          animation-delay: #{$n * -0.4s};
+        }
+      }
+    }
+
+    // the hub, in front of the front rim
+    u {
+      position: absolute;
+      inset: calc(50% - 8px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff, var(--warm) 55%, var(--hot));
+      transform: translateZ($depth + 1px);
+    }
+  }
+}
+
+@keyframes d-ferris-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes d-ferris-cabin {
+  from {
+    transform: rotate(var(--a)) translateY(-$r) rotate(calc(var(--a) * -1)) rotate(0deg);
+  }
+
+  to {
+    transform: rotate(var(--a)) translateY(-$r) rotate(calc(var(--a) * -1)) rotate(-360deg);
+  }
+}
+
+@keyframes d-ferris-swing {
+  from {
+    transform: rotate(-5deg);
+  }
+
+  to {
+    transform: rotate(5deg);
+  }
+}

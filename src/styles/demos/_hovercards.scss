@@ -1,0 +1,121 @@
+// Three overlapping cards. The SLOTS are the hit targets: three static strips that tile the
+// container without overlapping. Each card is a pointer-events:none child that may fly anywhere,
+// so the thing under the pointer never moves and :hover can never flicker.
+.d-hovercards {
+  display: flex;
+  width: 156px;
+  height: 132px;
+  transform-style: preserve-3d;
+  // coplanar with its slots: only the slots may catch the pointer
+  pointer-events: none;
+
+  &__slot {
+    position: relative;
+    flex: 1;
+    outline: none;
+    cursor: pointer;
+    pointer-events: auto;
+    transform-style: preserve-3d;
+
+    // rest pose: a fan, each card a little nearer than the one before so they never z-fight
+    &:nth-child(1) {
+      --r: -8deg;
+      --z: 0px;
+      --c: var(--accent);
+    }
+
+    &:nth-child(2) {
+      --r: 0deg;
+      --z: 12px;
+      --c: var(--hot);
+    }
+
+    &:nth-child(3) {
+      --r: 8deg;
+      --z: 24px;
+      --c: var(--accent-2);
+    }
+  }
+
+  &__card {
+    position: absolute;
+    top: 6px;
+    left: calc(50% - 42px);
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    width: 84px;
+    height: 120px;
+    padding: 8px;
+    border: 1px solid color-mix(in srgb, var(--c) 70%, transparent);
+    border-radius: 11px;
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--c) 46%, var(--surface-solid)),
+      color-mix(in srgb, var(--c) 12%, var(--surface-solid))
+    );
+    box-shadow: 0 12px 18px -12px #000;
+    color: var(--text);
+    opacity: var(--o, 1);
+    pointer-events: none;
+    transform-origin: 50% 100%;
+    // One transform, fed by variables: every state below only changes numbers.
+    transform: translate3d(var(--x, 0px), var(--y, 0px), var(--z)) rotateY(var(--ry, 0deg)) rotateZ(var(--r));
+    transition:
+      transform 0.45s cubic-bezier(0.3, 1.3, 0.5, 1),
+      opacity 0.3s;
+
+    i {
+      height: 42px;
+      border-radius: 6px;
+      background:
+        radial-gradient(circle at 70% 30%, rgb(255 255 255 / 0.55), transparent 45%),
+        linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 40%, #000));
+    }
+
+    b {
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    span {
+      height: 4px;
+      border-radius: 2px;
+      background: color-mix(in srgb, var(--text) 28%, transparent);
+
+      &:last-child {
+        width: 60%;
+      }
+    }
+  }
+
+  // Something is active: every card dims...
+  &:hover &__slot,
+  &:focus-within &__slot {
+    --o: 0.5;
+  }
+
+  // ...cards AFTER the active one lean away to the right...
+  &__slot:hover ~ &__slot,
+  &__slot:focus-visible ~ &__slot {
+    --x: 16px;
+    --ry: 26deg;
+  }
+
+  // ...cards BEFORE it lean away to the left...
+  &__slot:has(~ &__slot:hover),
+  &__slot:has(~ &__slot:focus-visible) {
+    --x: -16px;
+    --ry: -26deg;
+  }
+
+  // ...and the active one (last, so it wins) straightens and comes toward the viewer.
+  & &__slot:is(:hover, :focus-visible) {
+    --o: 1;
+    --x: 0px;
+    --y: -6px;
+    --z: 80px;
+    --r: 0deg;
+    --ry: 0deg;
+  }
+}

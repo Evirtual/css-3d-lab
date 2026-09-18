@@ -5,7 +5,7 @@ copy-paste snippets.
 
 **Live:** https://css3dlab.edgarasneverdauskas.com/
 
-50 demos, split into two honest categories:
+100 demos, split into two honest categories:
 
 - **Pure CSS (35)** — markup + SCSS only, zero JavaScript: solids (cube, pyramid, cylinder, coin,
   globe), text effects, loaders, a tunnel and starfield, hover pieces (door, tiles, rolling
@@ -24,7 +24,7 @@ copy-paste snippets.
   - the **real SCSS source** used on the page (imported with `?raw`, so it cannot drift).
 - "Copy" and "Copy as one HTML file" buttons.
 - **Lazy mounting**: a demo only exists in the DOM while its card is near the viewport, so
-  rendering cost follows what is on screen, not the total count (about 8 of 50 mounted at a time).
+  rendering cost follows what is on screen, not the total count (at most 8 mounted at any scroll position when measured with 50 demos; the number depends on the viewport, not the total).
 - Pause-all-animations switch (on by default when the OS asks for reduced motion), light / dark
   theme.
 
@@ -41,9 +41,9 @@ npm run build
 
 ## Add a demo
 
-1. Add an entry to one of the `src/demos/pure*.ts` / `src/demos/interactive*.ts` files.
-2. Create `src/styles/demos/_<id>.scss` and `@use` it in `src/styles/main.scss`.
-3. Add the standalone snippet + explanation under the same id in `src/demos/snippets2.ts`.
+See [docs/ADDING-DEMOS.md](docs/ADDING-DEMOS.md): the three parts of a demo, the size limits and the
+rules learned from real bugs. `node scripts/contact-sheet.mjs <id...>` (after a build) photographs
+demos into one image for a quick visual review.
 
 Pushing to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`.
 
@@ -59,3 +59,9 @@ MIT — see [LICENSE](LICENSE). Every snippet is free to use in your own project
 - Every demo has an embeddable page at `/embed/<id>/`, plus Share and Embed buttons.
 - The code windows are small live editors: edits re-run the demo, are saved per demo in
   `localStorage`, and can be reset. Any demo can be viewed full screen.
+- `npm run reels -- <id...>` (or `--all`, after `npm run build`) films demos as 4K, 60 fps MP4s
+  into `reels/` (not committed, not deployed): `--ratio 9:16` (default, 2160 × 3840 for Reels /
+  Shorts / TikTok), `--ratio 16:9` (3840 × 2160 for YouTube) or `--ratio both`. Frames are
+  rendered one by one with time stepped by hand, so motion is perfectly smooth; the page is laid
+  out at 4K (not upscaled), so 3D layers stay sharp. Quality is visually lossless (CRF 10);
+  `--mbps 60` pins a bitrate instead. Needs ffmpeg on PATH or `npm i --no-save ffmpeg-static`.

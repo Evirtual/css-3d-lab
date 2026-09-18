@@ -56,10 +56,12 @@
   @include theme-light;
 }
 
-.stage-wrap[data-theme='dark'] {
+.stage-wrap[data-theme='dark'],
+.stage[data-theme='dark'] {
   @include theme-dark;
 }
 
-.stage-wrap[data-theme='light'] {
+.stage-wrap[data-theme='light'],
+.stage[data-theme='light'] {
   @include theme-light;
 }

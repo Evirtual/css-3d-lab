@@ -461,6 +461,120 @@ input {
     flex-wrap: wrap;
     gap: 10px;
   }
+
+  // category + tags button: one unit, so they wrap together
+  &__controls {
+    display: flex;
+    flex: 0 1 auto;
+    gap: 10px;
+    min-width: 0;
+  }
+
+}
+
+// The groups and tags rows scroll sideways when they do not fit. An edge fades (and, with a
+// mouse, shows an arrow) only while there is more to see on that side: main.ts sets
+// .can-prev / .can-next.
+.scrollrow {
+  position: relative;
+  margin-top: 8px;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.scrollrow__track {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .can-next & {
+    mask: linear-gradient(90deg, #000 calc(100% - 48px), transparent);
+  }
+
+  .can-prev & {
+    mask: linear-gradient(90deg, transparent, #000 48px);
+  }
+
+  .can-prev.can-next & {
+    mask: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+  }
+}
+
+.scrollrow__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  translate: 0 -50%;
+  background: var(--surface-solid);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--accent);
+  }
+
+  &--prev {
+    left: -2px;
+  }
+
+  &--next {
+    right: -2px;
+  }
+
+  @media (hover: hover) {
+    .can-prev &--prev,
+    .can-next &--next {
+      display: grid;
+    }
+  }
+}
+
+// the Tags button (opens the tag list below)
+.tagbtn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  b {
+    display: grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--accent-2);
+    color: var(--bg);
+    font-size: 11.5px;
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    border-color: var(--accent-2);
+  }
 }
 
 .search {
@@ -571,14 +685,16 @@ input {
   }
 }
 
-.groups {
+.groups,
+.chips {
   display: flex;
-  flex-wrap: wrap;
   gap: 6px;
-  margin-top: 10px;
+  width: max-content;
+  padding: 3px 2px; // room for the pills' borders and focus rings
 }
 
 .group {
+  flex: none;
   padding: 5px 12px;
   border: 1px solid var(--border-strong);
   border-radius: 999px;
@@ -616,16 +732,24 @@ input {
     opacity: 0.35;
     cursor: not-allowed;
   }
-}
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
+  // "Clear · 12 hidden": only there while filters hide something
+  &--clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-style: dashed;
+    color: var(--muted);
+    --icon: 13px;
+
+    &:hover {
+      color: var(--text);
+    }
+  }
 }
 
 .chip {
+  flex: none;
   padding: 3px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -660,61 +784,184 @@ input {
   }
 }
 
-.filters__foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px 14px;
-  margin-top: 8px;
+// A card's own look (card-look.ts). Untouched cards: 2x dots, the site theme.
+.stage[data-theme] {
+  --stage-base: var(--bg);
+  color: var(--text);
+}
 
-  .status {
-    margin-top: 0;
+.card[data-dots='1'] {
+  --cdot-r: 0.9px;
+  --cdot-gap: 12px;
+}
+
+.card[data-dots='3'] {
+  --cdot-r: 1.3px;
+  --cdot-gap: 22px;
+}
+
+.card[data-dots='0'] .stage {
+  background:
+    radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+    var(--stage-base);
+}
+
+// How to play with it (demos/interaction.ts): top-left, opposite the ⋯ button. Says "Tap"
+// instead of "Hover" on touch screens, which have no hover.
+.card__how {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 11px 0 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none; // information, not a control: never in the way of the demo
+  --icon: 15px;
+  transition: opacity 0.2s;
+
+  .icon {
+    color: var(--accent-2);
+  }
+
+  // the open ⋯ bar needs the room on narrow cards
+  .card.has-bar & {
+    opacity: 0;
   }
 }
 
-.dotctl {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 12px;
+.on-touch {
+  display: none;
+}
 
-  &__buttons {
+@media (hover: none) {
+  .on-mouse {
+    display: none;
+  }
+
+  .on-touch {
+    display: inline;
+  }
+}
+
+// the ⋯ button in the corner of every card's stage
+.card__menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.2s,
+    border-color 0.2s;
+
+  .card:hover &,
+  .card:focus-within &,
+  .card[data-customised] &,
+  &[aria-expanded='true'] {
+    opacity: 0.85;
+  }
+
+  &:hover,
+  &:focus-visible,
+  &[aria-expanded='true'] {
+    border-color: var(--accent-2);
+    opacity: 1;
+  }
+
+  // a card set differently from the default says so
+  .card[data-customised] & {
+    color: var(--accent-2);
+  }
+
+  // no hover on touch screens: always there, quietly
+  @media (hover: none) {
+    opacity: 0.7;
+  }
+}
+
+// ⋯ expanded: the same inline controls as the large stage, just left of the button
+.cardbar {
+  position: absolute;
+  top: 8px;
+  right: 46px;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+  animation: cardbar-in 0.18s ease-out;
+
+  &__seg {
     display: flex;
     gap: 2px;
     padding: 2px;
     border: 1px solid var(--border-strong);
     border-radius: 9px;
+    background: color-mix(in srgb, var(--bg) 72%, transparent);
+
+    button {
+      min-width: 32px;
+      height: 26px;
+      padding: 0 6px;
+      border: 0;
+      border-radius: 7px;
+      background: none;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+
+      &:hover {
+        color: var(--text);
+      }
+
+      &[aria-pressed='true'] {
+        background: linear-gradient(120deg, var(--accent), var(--hot));
+        color: #fff;
+      }
+    }
   }
 
-  button {
-    min-width: 30px;
-    padding: 3px 6px;
-    border: 0;
-    border-radius: 6px;
-    background: none;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 11.5px;
-    font-weight: 700;
+  &__mode {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--bg) 72%, transparent);
+    color: var(--text);
     cursor: pointer;
 
-    &[aria-pressed='true'] {
-      background: linear-gradient(120deg, var(--accent), var(--hot));
-      color: #fff;
+    &:hover {
+      border-color: var(--accent-2);
     }
   }
 }
 
-.status {
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 13px;
-
-  b {
-    color: var(--text);
+@keyframes cardbar-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
   }
 }
 
@@ -834,9 +1081,8 @@ input {
   }
 }
 
-// Backdrop dot sizes. Two independent settings (see zoom.ts), both defaulting to 2x:
-//   data-dotsize   the large stage of a single demo   -> --dot-r  / --dot-gap
-//   data-carddots  the small stages of cards          -> --cdot-r / --cdot-gap
+// Backdrop dots. Large stage: one setting (zoom.ts) -> --dot-r / --dot-gap. Cards: 2x unless a
+// card's own menu says otherwise (card-look.ts) -> --cdot-r / --cdot-gap.
 :root {
   --dot-r: 1.1px;
   --dot-gap: 17px;
@@ -857,26 +1103,12 @@ input {
   &[data-dotsize='0'] .stage--lg::before {
     display: none;
   }
-
-  &[data-carddots='0'] .stage:not(.stage--lg) {
-    background:
-      radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-      color-mix(in srgb, var(--bg) 70%, transparent);
-  }
-
-  &[data-carddots='1'] {
-    --cdot-r: 0.9px;
-    --cdot-gap: 12px;
-  }
-
-  &[data-carddots='3'] {
-    --cdot-r: 1.3px;
-    --cdot-gap: 22px;
-  }
 }
 
 /* The 3D viewport every demo renders into. */
 .stage {
+  // see-through over the card; solid when the stage has its own theme (the card's ⋯ menu)
+  --stage-base: color-mix(in srgb, var(--bg) 70%, transparent);
   position: relative;
   display: grid;
   place-items: center;
@@ -887,7 +1119,7 @@ input {
   background:
     radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
     radial-gradient(var(--border-strong) var(--cdot-r), transparent calc(var(--cdot-r) + 0.8px)) 0 0 / var(--cdot-gap) var(--cdot-gap),
-    color-mix(in srgb, var(--bg) 70%, transparent);
+    var(--stage-base);
 
   &--lg {
     height: 380px;
@@ -1954,7 +2186,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
 @media (max-width: 860px) {
   .hero {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding-top: 12px;
 
     &__art {
@@ -1963,8 +2195,9 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     }
   }
 
+  // not sticky on small screens (it would cover half of them); still the frame for its backdrop
   .filters {
-    position: static;
+    position: relative;
   }
 
   .viewer {
@@ -2021,31 +2254,68 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     padding: 8px 16px 28px;
   }
 
-  // filters: each row scrolls sideways instead of stacking into a wall of chips
-  .filters {
-    padding: 12px 16px 8px;
+  // the headline scales down with the screen instead of pushing it wider
+  .hero h1 {
+    font-size: clamp(27px, 9vw, 34px);
   }
 
-  .tabs,
-  .groups,
-  .chips {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    // bleed to the screen edge so it is obvious the row continues
-    margin-inline: -16px;
-    padding-inline: 16px;
-    -webkit-overflow-scrolling: touch;
+  .hero__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
 
-    > * {
-      flex: none;
+    div {
+      min-width: 0;
+      padding: 10px 12px;
+    }
+
+    dt {
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    dd {
+      font-size: 26px;
     }
   }
 
+  // filters: search on top, category + tags below it, groups scroll sideways
+  .filters {
+    padding: 12px 18px 10px;
+
+    &::before {
+      inset: 0 6px;
+    }
+
+    // phones: [search][#] on one row, the category tabs full width under it
+    &__controls {
+      display: contents;
+    }
+  }
+
+  .search {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
   .tabs {
-    // the segmented control keeps its frame; only its content scrolls
-    margin-inline: 0;
-    padding-inline: 3px;
+    flex: 1 1 100%;
+    order: 3;
+    min-width: 0;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 7px 4px;
+    white-space: nowrap;
+  }
+
+  .tagbtn {
+    padding: 0 12px;
+
+    .btn__label {
+      display: none;
+    }
   }
 
   .grid,

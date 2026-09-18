@@ -1,0 +1,80 @@
+@use 'sass:math';
+
+$n: 14;
+$turn: 30deg; // each step is turned this much more than the one below
+$rise: 8px; // and lifted this much
+$len: 58px; // tread length, from the pole outwards
+$depth: 28px;
+$gap: 5px; // treads start just outside the pole so the planes never intersect
+$height: 136px;
+
+.d-stairs {
+  position: relative;
+  width: 130px;
+  height: $height;
+  transform-style: preserve-3d;
+  animation: d-stairs-spin 16s linear infinite;
+
+  // A tread is a rectangle laid flat (rotateX 90deg) whose transform-origin sits on the pole's
+  // axis. One index drives both the turn and the lift: that is the whole spiral.
+  i {
+    --c: color-mix(in srgb, var(--accent-2) var(--mix), var(--accent));
+    position: absolute;
+    left: calc(50% + #{$gap});
+    top: $height - $depth - 10px;
+    width: $len;
+    height: $depth;
+    border: 1px solid color-mix(in srgb, var(--c) 70%, white);
+    border-radius: 0 6px 6px 0;
+    background: color-mix(in srgb, var(--c) 62%, transparent);
+    transform-origin: -$gap 50%;
+    transform-style: preserve-3d;
+    transform: translateY(calc(var(--i) * #{-$rise})) rotateY(calc(var(--i) * #{$turn})) rotateX(90deg);
+
+    // riser: a strip hinged on the tread's near edge, folded straight down
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100%;
+      height: $rise;
+      background: color-mix(in srgb, var(--c) 40%, var(--bg));
+      transform-origin: top;
+      transform: rotateX(-90deg);
+    }
+  }
+
+  @for $i from 0 to $n {
+    i:nth-of-type(#{$i + 1}) {
+      --i: #{$i};
+      --mix: #{math.round(math.div($i, $n - 1) * 100) * 1%};
+    }
+  }
+
+  // pole: two crossed planes read as a round post from every angle
+  b {
+    position: absolute;
+    left: calc(50% - 4px);
+    top: 0;
+    width: 8px;
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border-strong), var(--text), var(--border-strong));
+    opacity: 0.85;
+
+    & + b {
+      transform: rotateY(90deg);
+    }
+  }
+}
+
+@keyframes d-stairs-spin {
+  from {
+    transform: rotateX(-20deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(-20deg) rotateY(360deg);
+  }
+}

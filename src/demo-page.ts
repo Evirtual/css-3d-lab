@@ -1,5 +1,6 @@
 import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
+import { initCardLook } from './card-look';
 import { initChrome } from './chrome';
 import { demos } from './demos';
 import { createEditor, type Editor } from './editor';
@@ -21,6 +22,7 @@ import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 initChrome();
 initAnalytics();
 lazyMountCards();
+initCardLook();
 initFullscreen();
 
 const stage = document.querySelector<HTMLElement>('[data-demo]');

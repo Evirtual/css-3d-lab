@@ -18,6 +18,12 @@ const vite = await createServer({ configFile: false, root, server: { middlewareM
 const { demos } = await vite.ssrLoadModule('/src/demos/index.ts');
 const { snippets } = await vite.ssrLoadModule('/src/demos/snippets.ts');
 const { GROUPS, GROUP_ORDER } = await vite.ssrLoadModule('/src/demos/groups.ts');
+const { interactionHtml, interactionOf } = await vite.ssrLoadModule('/src/demos/interaction.ts');
+
+// Every published demo must ship its copy-paste code: a demo without it would render an empty code
+// window. Stop the build rather than publish that.
+const incomplete = demos.filter((d) => !snippets[d.id]?.css || !snippets[d.id]?.how?.length);
+if (incomplete.length) throw new Error(`No copy-paste snippet for: ${incomplete.map((d) => d.id).join(', ')}`);
 const { CATEGORY_LABEL } = await vite.ssrLoadModule('/src/demos/types.ts');
 const { highlight } = await vite.ssrLoadModule('/src/highlight.ts');
 const { icon } = await vite.ssrLoadModule('/src/icons.ts');
@@ -96,6 +102,8 @@ function demoCard(d, up, i) {
   return `<li>
           <article class="card is-offscreen" data-cat="${d.category}" data-mount="${d.id}" style="--n:${Math.min(i, 8)}">
             <div class="stage" aria-hidden="true"></div>
+            ${interactionHtml(d)}
+            <button type="button" class="card__menu" data-card-menu="${d.id}" aria-label="Preview options" aria-expanded="false" title="Preview options">${icon('more')}</button>
             <div class="card__body">
               <span class="card__group">${esc(GROUPS[d.group])}</span>
               <header>
@@ -347,7 +355,7 @@ for (const dir of ['demos', 'groups', 'embed', 'src/generated']) rmSync(dir, { r
 
 demos.forEach((d, i) => write(`demos/${d.id}/index.html`, demoPage(d, i)));
 for (const d of demos) write(`embed/${d.id}/index.html`, embedPage(d));
-write('src/generated/demo-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, pointer: d.category === 'js' || d.tags.includes('hover') }))));
+write('src/generated/demo-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, pointer: interactionOf(d) !== 'none', hover: interactionOf(d) === 'hover' }))));
 for (const g of GROUP_ORDER) write(`groups/${g}/index.html`, groupPage(g));
 
 // Plain, crawlable links to every page, injected into the home page by vite.config.ts.

@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="50 free CSS 3D effects — cubes, pyramids, flip cards, carousels, loaders, text effects. Each with a live demo, a step-by-step explanation and copy-paste HTML/CSS. Pure CSS and CSS + JavaScript." />
+    <meta name="description" content="%DEMO_COUNT% free CSS 3D effects — cubes, gems, product mockups, flip cards, carousels, loaders, text effects, scenes. Each with a live demo, a step-by-step explanation and copy-paste HTML/CSS. Pure CSS and CSS + JavaScript." />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#07080f" />
     <meta name="apple-mobile-web-app-title" content="CSS 3D Lab" />
-    <title>CSS 3D Lab — 50 CSS 3D effects with live demos and copy-paste code</title>
+    <title>CSS 3D Lab — %DEMO_COUNT% CSS 3D effects with live demos and copy-paste code</title>
     <link rel="canonical" href="https://css3dlab.edgarasneverdauskas.com/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="CSS 3D Lab" />
-    <meta property="og:title" content="CSS 3D Lab — 50 CSS 3D effects with copy-paste code" />
+    <meta property="og:title" content="CSS 3D Lab — %DEMO_COUNT% CSS 3D effects with copy-paste code" />
     <meta property="og:description" content="Cubes, pyramids, flip cards, carousels, loaders and more, built with CSS 3D transforms. Each with a live demo, an explanation and code you can copy." />
     <meta property="og:url" content="https://css3dlab.edgarasneverdauskas.com/" />
     <meta property="og:image" content="https://css3dlab.edgarasneverdauskas.com/media/home.jpg" />
@@ -68,17 +68,26 @@
           <kbd>/</kbd>
           <button id="search-clear" class="search__clear" type="button" aria-label="Clear search" data-icon="x" hidden></button>
         </label>
-        <div id="tabs" class="tabs" role="group" aria-label="Category"></div>
-      </div>
-      <div id="groups" class="groups" role="group" aria-label="Group"></div>
-      <div id="tags" class="chips" role="group" aria-label="Tags"></div>
-      <div class="filters__foot">
-        <p id="status" class="status" aria-live="polite"></p>
-        <div class="dotctl" role="group" aria-label="Card background dots">
-          <span>Dots</span>
-          <div class="dotctl__buttons"><button type="button" data-dots="0" data-dots-scope="cards" aria-pressed="false" title="No card background dots">Off</button><button type="button" data-dots="1" data-dots-scope="cards" aria-pressed="false" title="Card background dots 1×">1×</button><button type="button" data-dots="2" data-dots-scope="cards" aria-pressed="true" title="Card background dots 2×">2×</button><button type="button" data-dots="3" data-dots-scope="cards" aria-pressed="false" title="Card background dots 3×">3×</button></div>
+        <div class="filters__controls">
+          <div id="tabs" class="tabs" role="group" aria-label="Category"></div>
+          <button id="tags-toggle" class="tagbtn" type="button" aria-expanded="false" aria-controls="tags-row"></button>
         </div>
       </div>
+      <div class="scrollrow">
+        <button class="scrollrow__arrow scrollrow__arrow--prev" type="button" data-icon="chevron-left" aria-label="Scroll groups left" tabindex="-1"></button>
+        <div class="scrollrow__track">
+          <div id="groups" class="groups" role="group" aria-label="Group"></div>
+        </div>
+        <button class="scrollrow__arrow scrollrow__arrow--next" type="button" data-icon="chevron-right" aria-label="Scroll groups right" tabindex="-1"></button>
+      </div>
+      <div id="tags-row" class="scrollrow" hidden>
+        <button class="scrollrow__arrow scrollrow__arrow--prev" type="button" data-icon="chevron-left" aria-label="Scroll tags left" tabindex="-1"></button>
+        <div class="scrollrow__track">
+          <div id="tags" class="chips" role="group" aria-label="Tags"></div>
+        </div>
+        <button class="scrollrow__arrow scrollrow__arrow--next" type="button" data-icon="chevron-right" aria-label="Scroll tags right" tabindex="-1"></button>
+      </div>
+      <p id="status" class="visually-hidden" aria-live="polite"></p>
     </section>
 
     <main id="grid" class="grid"></main>
