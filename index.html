@@ -18,8 +18,8 @@
       <div class="topbar__actions">
         <button id="pause" class="btn" type="button" aria-pressed="false"></button>
         <button id="theme" class="btn" type="button"></button>
-        <a class="btn" href="https://github.com/Evirtual/css-3d-lab" target="_blank" rel="noopener">GitHub ↗</a>
-        <a class="btn btn--kofi" href="https://ko-fi.com/edgarasneverdauskas" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+        <a class="btn" href="https://github.com/Evirtual/css-3d-lab" target="_blank" rel="noopener" data-icon-end="arrow-up-right">GitHub</a>
+        <a class="btn btn--kofi" href="https://ko-fi.com/edgarasneverdauskas" target="_blank" rel="noopener" data-icon="coffee">Buy me a coffee</a>
       </div>
     </nav>
 
@@ -46,8 +46,10 @@
       <div class="filters__row">
         <label class="search">
           <span class="visually-hidden">Search demos</span>
+          <span class="search__icon" data-icon="search"></span>
           <input id="search" type="search" placeholder="Search effects, properties, tags…" autocomplete="off" />
           <kbd>/</kbd>
+          <button id="search-clear" class="search__clear" type="button" aria-label="Clear search" data-icon="x" hidden></button>
         </label>
         <div id="tabs" class="tabs" role="group" aria-label="Category"></div>
       </div>
@@ -63,14 +65,14 @@
     </div>
 
     <dialog id="viewer" class="viewer">
-      <form method="dialog" class="viewer__close"><button class="btn" aria-label="Close">✕</button></form>
+      <form method="dialog" class="viewer__close"><button class="btn btn--icon" aria-label="Close" data-icon="x"></button></form>
       <div id="viewer-body"></div>
     </dialog>
 
     <footer class="footer">
       <p>Built with Vite, TypeScript and SCSS · every demo ships with a standalone snippet you can run and copy.</p>
       <p>© 2026 Evirtual · <a href="https://github.com/Evirtual/css-3d-lab/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a> — all snippets are free to use in your own projects, no attribution needed.</p>
-      <p>Free and ad-free. If it saved you time, you can <a href="https://ko-fi.com/edgarasneverdauskas" target="_blank" rel="noopener">support it on Ko-fi ☕</a>.</p>
+      <p>Free and ad-free. If it saved you time, you can <a href="https://ko-fi.com/edgarasneverdauskas" target="_blank" rel="noopener">support it on Ko-fi</a>.</p>
     </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>

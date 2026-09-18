@@ -1,3 +1,4 @@
+import { icon } from '../icons';
 import type { Demo } from './types';
 
 const clamp = (v: number, min: number, max: number): number => Math.min(max, Math.max(min, v));
@@ -126,7 +127,7 @@ export const interactiveDemos2: Demo[] = [
     fill: true,
     html: `<div class="d-boxslider">
       <div class="d-boxslider__view"><div class="d-boxslider__box">${['Design', 'Build', 'Ship', 'Repeat'].map((t, i) => `<i style="--hue:${250 + i * 40}">${t}</i>`).join('')}</div></div>
-      <div class="d-boxslider__nav"><button type="button" data-dir="-1" aria-label="Previous">‹</button><button type="button" data-dir="1" aria-label="Next">›</button></div>
+      <div class="d-boxslider__nav"><button type="button" data-dir="-1" aria-label="Previous">${icon('chevron-left')}</button><button type="button" data-dir="1" aria-label="Next">${icon('chevron-right')}</button></div>
     </div>`,
     init(scene) {
       const box = scene.querySelector<HTMLElement>('.d-boxslider__box')!;

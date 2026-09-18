@@ -3,6 +3,7 @@ import { demos } from './demos';
 import { snippets, standaloneDoc } from './demos/snippets';
 import { CATEGORY_LABEL, type Category, type Demo } from './demos/types';
 import { highlight, type Lang } from './highlight';
+import { hydrateIcons, icon } from './icons';
 
 const REPO = 'https://github.com/Evirtual/css-3d-lab';
 const KOFI = 'https://ko-fi.com/edgarasneverdauskas';
@@ -102,7 +103,7 @@ for (const [i, demo] of demos.entries()) {
       <p>${demo.description}</p>
       <footer>
         <ul class="card__tags">${demo.tags.map((t) => `<li>#${t}</li>`).join('')}</ul>
-        <button class="btn btn--accent" type="button" data-open="${demo.id}">Learn &amp; copy →</button>
+        <button class="btn btn--accent" type="button" data-open="${demo.id}">Learn &amp; copy ${icon('arrow-right')}</button>
       </footer>
     </div>`;
   demoByCard.set(card, demo);
@@ -119,6 +120,7 @@ const tagsEl = $('#tags');
 const statusEl = $('#status');
 const emptyEl = $('#empty');
 const searchEl = $<HTMLInputElement>('#search');
+const clearEl = $<HTMLButtonElement>('#search-clear');
 const filtersEl = $('.filters');
 const moreEl = $('#more');
 
@@ -195,6 +197,7 @@ function render(): void {
   }
   statusEl.innerHTML = parts.join(' · ');
   emptyEl.hidden = matching > 0;
+  clearEl.hidden = !state.q;
   moreEl.hidden = shown >= matching;
   syncUrl();
 }
@@ -211,7 +214,14 @@ function applyFilters(): void {
   fill();
 }
 
+hydrateIcons();
+
 searchEl.value = state.q;
+clearEl.addEventListener('click', () => {
+  state.q = searchEl.value = '';
+  applyFilters();
+  searchEl.focus();
+});
 searchEl.addEventListener('input', () => {
   state.q = searchEl.value;
   applyFilters();
@@ -263,7 +273,7 @@ function openViewer(id: string): void {
     { key: 'html', label: 'HTML', lang: 'html', code: snip.html },
     { key: 'css', label: 'CSS', lang: 'css', code: snip.css },
     ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js' as Lang, code: snip.js }] : []),
-    { key: 'run', label: '▶ Run snippet' },
+    { key: 'run', label: `${icon('play')} Run snippet` },
     { key: 'scss', label: 'SCSS used here', lang: 'scss', code: scssFor(id) },
   ];
 
@@ -287,12 +297,12 @@ function openViewer(id: string): void {
         </div>
         <div class="code__panel"></div>
         <div class="code__actions">
-          <button type="button" class="btn btn--accent" data-copy="pane">Copy</button>
+          <button type="button" class="btn btn--accent" data-copy="pane">${icon('copy')} Copy</button>
           <button type="button" class="btn" data-copy="file">Copy as one HTML file</button>
-          <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ↗</a>
+          <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
         </div>
         <p class="code__note"></p>
-        <p class="code__thanks" hidden>Glad it helped. This site is free — if you like, <a href="${KOFI}" target="_blank" rel="noopener">buy me a coffee ☕</a></p>
+        <p class="code__thanks" hidden>Glad it helped. This site is free — if you like, <a href="${KOFI}" target="_blank" rel="noopener">buy me a coffee</a> ${icon('coffee')}</p>
       </section>
     </div>`;
 
@@ -324,15 +334,15 @@ function openViewer(id: string): void {
   };
 
   const copy = async (btn: HTMLButtonElement, text: string) => {
-    const label = btn.textContent;
+    const label = btn.innerHTML;
     try {
       await navigator.clipboard.writeText(text);
-      btn.textContent = 'Copied ✓';
+      btn.innerHTML = `${icon('check')} Copied`;
       viewerBody.querySelector<HTMLElement>('.code__thanks')!.hidden = false;
     } catch {
       btn.textContent = 'Copy blocked — select the text manually';
     }
-    window.setTimeout(() => (btn.textContent = label), 1800);
+    window.setTimeout(() => (btn.innerHTML = label), 1800);
   };
 
   viewerBody.onclick = (e) => {
@@ -385,11 +395,11 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function setPaused(paused: boolean): void {
   root.toggleAttribute('data-paused', paused);
   pauseBtn.setAttribute('aria-pressed', String(paused));
-  pauseBtn.textContent = paused ? '▶ Play animations' : '❚❚ Pause animations';
+  pauseBtn.innerHTML = paused ? `${icon('play')} Play animations` : `${icon('pause')} Pause animations`;
 }
 function setTheme(theme: string): void {
   root.dataset.theme = theme;
-  themeBtn.textContent = theme === 'dark' ? '☀ Light' : '☾ Dark';
+  themeBtn.innerHTML = theme === 'dark' ? `${icon('sun')} Light` : `${icon('moon')} Dark`;
 }
 
 // Respect the OS "reduce motion" setting: start paused, but leave the choice to the visitor.

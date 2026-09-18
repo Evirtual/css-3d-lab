@@ -57,8 +57,9 @@ $w: 190px;
       border: 1px solid var(--border-strong);
       border-radius: 8px;
       background: var(--surface);
-      font-size: 18px;
-      line-height: 1;
+      display: grid;
+      place-items: center;
+      padding: 0;
       cursor: pointer;
 
       &:hover {

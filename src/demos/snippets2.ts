@@ -1389,8 +1389,12 @@ view.addEventListener('pointerleave', () => {
     </div>
   </div>
   <nav>
-    <button type="button" data-dir="-1" aria-label="Previous">‹</button>
-    <button type="button" data-dir="1" aria-label="Next">›</button>
+    <button type="button" data-dir="-1" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <button type="button" data-dir="1" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
   </nav>
 </div>`,
     css: `.slider {
@@ -1447,10 +1451,18 @@ nav button {
   height: 36px;
   border: 1px solid #5a6188;
   border-radius: 8px;
+  display: grid;
+  place-items: center;
+  padding: 0;
   background: #161a2e;
   color: #fff;
-  font-size: 1.3rem;
   cursor: pointer;
+}
+
+/* SVG arrows, not text like ‹ ›: a glyph sits on the font's baseline, so it never centres */
+nav svg {
+  width: 18px;
+  height: 18px;
 }`,
     js: `const box = document.querySelector('.box');
 let step = 0;   // never wraps, so the box keeps turning the same way

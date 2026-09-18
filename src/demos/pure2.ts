@@ -1,3 +1,4 @@
+import { icon } from '../icons';
 import type { Demo } from './types';
 
 const rep = (n: number, fn: (i: number) => string): string =>
@@ -181,7 +182,7 @@ export const pureDemos2: Demo[] = [
     category: 'css',
     tags: ['hover', 'ui'],
     technique: ['static hit target, moving child', 'two faces 90° apart', 'translateZ(-h/2) keeps it in place'],
-    html: `<button class="d-rollbutton" type="button"><span class="d-rollbutton__bar"><span>Hover me</span><span>Let’s go →</span></span></button>`,
+    html: `<button class="d-rollbutton" type="button"><span class="d-rollbutton__bar"><span>Hover me</span><span>Let’s go ${icon('arrow-right')}</span></span></button>`,
   },
   {
     id: 'switch',
@@ -200,6 +201,6 @@ export const pureDemos2: Demo[] = [
     tags: ['hover', 'ui'],
     technique: ['rotateX(-90deg) → 0 with origin top', 'transition-delay from --i', 'tabindex + :focus for keyboards'],
     fill: true,
-    html: `<div class="d-dropdown" tabindex="0"><span>Menu ▾</span><ul>${['Profile', 'Projects', 'Settings', 'Sign out'].map((t, i) => `<li style="--i:${i}">${t}</li>`).join('')}</ul></div>`,
+    html: `<div class="d-dropdown" tabindex="0"><span>Menu ${icon('chevron-down')}</span><ul>${['Profile', 'Projects', 'Settings', 'Sign out'].map((t, i) => `<li style="--i:${i}">${t}</li>`).join('')}</ul></div>`,
   },
 ];

@@ -107,6 +107,18 @@ input {
   }
 }
 
+/* ---------- icons ---------- */
+
+// Every icon in the app is this one box. It never shrinks in a flex row and never eats clicks.
+.icon {
+  flex: none;
+  width: var(--icon);
+  height: var(--icon);
+  // only matters where an icon sits inline in running text; flex/grid parents ignore it
+  vertical-align: -0.2em;
+  pointer-events: none;
+}
+
 /* ---------- buttons ---------- */
 
 .btn {
@@ -145,6 +157,14 @@ input {
       border-color: var(--warm);
       box-shadow: 0 8px 20px -10px var(--warm);
     }
+  }
+
+  // square, icon-only
+  &--icon {
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
   }
 
   &--accent {
@@ -420,9 +440,42 @@ input {
   position: relative;
   flex: 1 1 260px;
 
+  &__icon {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    display: grid;
+    translate: 0 -50%;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  // Same slot as the "/" hint: only one of the two is ever visible.
+  &__clear {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    translate: 0 -50%;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+  }
+
   input {
     width: 100%;
-    padding: 10px 44px 10px 16px;
+    padding: 10px 44px 10px 40px;
     border: 1px solid var(--border-strong);
     border-radius: 12px;
     background: color-mix(in srgb, var(--bg) 60%, transparent);
@@ -447,13 +500,9 @@ input {
     pointer-events: none;
   }
 
-  input:focus,
-  input:not(:placeholder-shown) {
-    padding-right: 12px;
-  }
-
+  // our own clear button replaces the browser's (it looks different in every browser)
   input::-webkit-search-cancel-button {
-    cursor: pointer;
+    appearance: none;
   }
 
   input:focus + kbd,
@@ -872,6 +921,9 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     scrollbar-width: none;
 
     button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       padding: 9px 14px;
       border: 1px solid transparent;
       border-bottom: 0;

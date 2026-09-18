@@ -30,8 +30,10 @@ $h: 50px;
     span {
       position: absolute;
       inset: 0;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       border-radius: 6px;
       backface-visibility: hidden;
     }

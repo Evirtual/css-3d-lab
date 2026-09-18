@@ -1,3 +1,4 @@
+import { icon } from '../icons';
 import type { Demo } from './types';
 
 const clamp = (v: number, min: number, max: number): number => Math.min(max, Math.max(min, v));
@@ -118,7 +119,7 @@ export const interactiveDemos: Demo[] = [
     fill: true,
     html: `<div class="d-coverflow" tabindex="0" aria-label="Coverflow, use arrow keys">
       <div class="d-coverflow__track">${Array.from({ length: 7 }, (_, i) => `<i style="--hue:${250 + i * 22}">${i + 1}</i>`).join('')}</div>
-      <div class="d-coverflow__nav"><button type="button" data-dir="-1" aria-label="Previous">‹</button><button type="button" data-dir="1" aria-label="Next">›</button></div>
+      <div class="d-coverflow__nav"><button type="button" data-dir="-1" aria-label="Previous">${icon('chevron-left')}</button><button type="button" data-dir="1" aria-label="Next">${icon('chevron-right')}</button></div>
     </div>`,
     init(scene) {
       const root = scene.querySelector<HTMLElement>('.d-coverflow')!;

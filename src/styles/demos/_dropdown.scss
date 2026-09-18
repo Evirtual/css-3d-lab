@@ -6,7 +6,9 @@
   cursor: pointer;
 
   > span {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 10px 14px;
     border-radius: 10px;
     background: linear-gradient(120deg, var(--accent), var(--hot));
