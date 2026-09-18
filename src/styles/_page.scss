@@ -191,38 +191,37 @@
   }
 }
 
-.page-links {
+// Gallery-style cards with live previews (mounted lazily by lazy-mount.ts).
+.page-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 20px;
   margin: 0;
   padding: 0;
   list-style: none;
 
-  &--wide {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  > li {
+    display: flex; // cards in a row share one height
   }
 
-  a {
-    display: grid;
-    gap: 4px;
-    height: 100%;
-    padding: 14px 16px;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--surface);
-    color: var(--text);
-    text-decoration: none;
-    transition: border-color 0.2s;
+  .card {
+    flex: 1;
+  }
 
-    &:hover {
-      border-color: var(--accent-2);
+  // same look as the gallery's card title, one heading level down
+  .card h3 {
+    font-size: 17px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        color: var(--glow);
+      }
     }
-  }
-
-  span {
-    color: var(--muted);
-    font-size: 13px;
   }
 }
 

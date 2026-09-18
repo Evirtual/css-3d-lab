@@ -3,6 +3,7 @@ import { initAnalytics, track } from './analytics';
 import { initChrome } from './chrome';
 import { demos } from './demos';
 import { icon } from './icons';
+import { lazyMountCards } from './lazy-mount';
 
 /**
  * Enhances the static demo and group pages. Everything a search engine needs is already in the
@@ -11,6 +12,7 @@ import { icon } from './icons';
 
 initChrome();
 initAnalytics();
+lazyMountCards();
 
 const stage = document.querySelector<HTMLElement>('[data-demo]');
 const demo = stage && demos.find((d) => d.id === stage.dataset.demo);

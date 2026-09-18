@@ -77,8 +77,26 @@ const crumbs = (items) => ({
   itemListElement: items.map(([name, item], i) => ({ '@type': 'ListItem', position: i + 1, name, item })),
 });
 
-function demoCardLink(d, up) {
-  return `<li><a href="${up}demos/${d.id}/"><b>${esc(d.title)}</b><span>${esc(d.description)}</span></a></li>`;
+// A gallery-style card. The text and the links are static HTML; the empty .stage is filled with
+// the live demo by lazy-mount.ts when the card comes near the viewport.
+function demoCard(d, up, i) {
+  return `<li>
+          <article class="card is-offscreen" data-cat="${d.category}" data-mount="${d.id}" style="--n:${Math.min(i, 8)}">
+            <div class="stage" aria-hidden="true"></div>
+            <div class="card__body">
+              <span class="card__group">${esc(GROUPS[d.group])}</span>
+              <header>
+                <h3><a href="${up}demos/${d.id}/">${esc(d.title)}</a></h3>
+                <span class="badge badge--${d.category}">${CATEGORY_LABEL[d.category]}</span>
+              </header>
+              <p>${esc(d.description)}</p>
+              <footer>
+                <span class="card__tags">${d.tags.map((t) => `#${esc(t)}`).join(' ')}</span>
+                <a class="btn btn--accent" href="${up}demos/${d.id}/">Learn &amp; copy ${icon('arrow-right')}</a>
+              </footer>
+            </div>
+          </article>
+        </li>`;
 }
 
 /* ---------- demo pages ---------- */
@@ -197,7 +215,7 @@ function demoPage(d, index) {
 
       <section class="page-related">
         <h2>More ${esc(group.toLowerCase())}</h2>
-        <ul class="page-links">${siblings.map((x) => demoCardLink(x, '../../')).join('')}</ul>
+        <ul class="page-cards">${siblings.map((x, i) => demoCard(x, '../../', i)).join('')}</ul>
         <p class="page-prevnext">
           ${prev ? `<a class="btn" href="../${prev.id}/">${icon('chevron-left')} ${esc(prev.title)}</a>` : '<span></span>'}
           ${next ? `<a class="btn" href="../${next.id}/">${esc(next.title)} ${icon('chevron-right')}</a>` : ''}
@@ -239,7 +257,7 @@ function groupPage(g) {
         <h1>${esc(label)} <small>${members.length} CSS 3D effects</small></h1>
         <p>Every one has a live demo, a step-by-step explanation and code you can paste into your own project.</p>
       </header>
-      <ul class="page-links page-links--wide">${members.map((d) => demoCardLink(d, '../../')).join('')}</ul>
+      <ul class="page-cards">${members.map((d, i) => demoCard(d, '../../', i)).join('')}</ul>
       <section class="page-related">
         <h2>Other groups</h2>
         <p class="page-groups">${GROUP_ORDER.filter((x) => x !== g)
