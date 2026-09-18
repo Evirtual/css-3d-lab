@@ -786,6 +786,23 @@ input {
   }
 }
 
+// Backdrop dot size: ONE setting for every stage on the site (gallery cards, group pages, demo
+// pages, the dialog). 2x is the default; the 1x / 2x / 3x buttons on any demo change it everywhere.
+:root {
+  --dot-r: 1.1px;
+  --dot-gap: 17px;
+
+  &[data-dotsize='1'] {
+    --dot-r: 0.9px;
+    --dot-gap: 12px;
+  }
+
+  &[data-dotsize='3'] {
+    --dot-r: 1.3px;
+    --dot-gap: 22px;
+  }
+}
+
 /* The 3D viewport every demo renders into. */
 .stage {
   position: relative;
@@ -797,7 +814,7 @@ input {
   border-bottom: 1px solid var(--border);
   background:
     radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-    radial-gradient(var(--border-strong) 1.3px, transparent 2.1px) 0 0 / 18px 18px,
+    radial-gradient(var(--border-strong) var(--dot-r), transparent calc(var(--dot-r) + 0.8px)) 0 0 / var(--dot-gap) var(--dot-gap),
     color-mix(in srgb, var(--bg) 70%, transparent);
 
   &--lg {
@@ -1511,19 +1528,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 // survive (full-screen button, "edited" notice) lives here instead.
 .stage-wrap {
   position: relative;
-  // Backdrop dot sizes. 2x is the default; 3x is the size the dots used to be.
-  --dot-r: 1.1px;
-  --dot-gap: 17px;
-
-  &[data-dotsize='1'] {
-    --dot-r: 0.9px;
-    --dot-gap: 12px;
-  }
-
-  &[data-dotsize='3'] {
-    --dot-r: 1.3px;
-    --dot-gap: 22px;
-  }
 
   // the visitor's edited snippet, running in a sandboxed frame in place of the built-in demo
   .live-frame {

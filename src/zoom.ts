@@ -1,7 +1,8 @@
 /**
- * Backdrop control on a stage: how big the dot grid is. Three steps — 1× fine, 2× (default),
- * 3× large — set as `data-dotsize` on the `.stage-wrap`; CSS holds the actual sizes. The demo itself
- * is not resized (full screen is for a closer look). Remembered per visitor.
+ * Backdrop dot size: ONE site-wide setting. Three steps — 1× fine, 2× (default), 3× large — set
+ * as `data-dotsize` on <html>; CSS holds the actual sizes and every stage reads them (gallery
+ * cards, group pages, demo pages, the dialog). The buttons live on the large stages. The demo
+ * itself is not resized (full screen is for a closer look). Remembered per visitor.
  */
 const KEY = 'c3d-dots';
 export const DOT_SIZES = ['1', '2', '3'] as const;
@@ -21,16 +22,17 @@ function stored(): string {
 }
 
 function apply(size: string): void {
-  for (const wrap of document.querySelectorAll<HTMLElement>('.stage-wrap')) {
-    wrap.dataset.dotsize = size; // not data-dots: that attribute marks the buttons
-    for (const btn of wrap.querySelectorAll<HTMLElement>('[data-dots]')) btn.setAttribute('aria-pressed', String(btn.dataset.dots === size));
-  }
+  document.documentElement.dataset.dotsize = size;
+  for (const btn of document.querySelectorAll<HTMLElement>('[data-dots]')) btn.setAttribute('aria-pressed', String(btn.dataset.dots === size));
 }
 
-/** Call after a stage with the control is added to the page. */
+/** Call after a stage with the buttons is added to the page, so they show the current choice. */
 export function initZoom(): void {
   apply(stored());
 }
+
+// Applies on every page that loads this module, including ones without buttons (the gallery).
+apply(stored());
 
 document.addEventListener('click', (e) => {
   const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-dots]');
