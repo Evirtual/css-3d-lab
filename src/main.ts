@@ -114,6 +114,27 @@ const tagsEl = $('#tags');
 const statusEl = $('#status');
 const emptyEl = $('#empty');
 const searchEl = $<HTMLInputElement>('#search');
+const filtersEl = $('.filters');
+const moreEl = $('#more');
+
+// Cards are revealed a page at a time as the sentinel below the grid scrolls into view.
+const PAGE = 12;
+let limit = PAGE;
+const REVEAL_MARGIN = 400;
+const sentinelNear = (): boolean => !moreEl.hidden && moreEl.getBoundingClientRect().top < window.innerHeight + REVEAL_MARGIN;
+
+/** Reveal pages until the sentinel is pushed out of range (one page normally, more on a tall screen). */
+function fill(): void {
+  while (sentinelNear()) {
+    limit += PAGE;
+    render();
+  }
+}
+// The observer catches the sentinel arriving; the scroll listener covers the case where it was
+// already in range and therefore never "arrives" (for example after a filter change).
+new IntersectionObserver(fill, { rootMargin: `${REVEAL_MARGIN}px` }).observe(moreEl);
+window.addEventListener('scroll', fill, { passive: true });
+
 const allTags = [...new Set(demos.flatMap((d) => d.tags))].sort();
 
 function syncUrl(): void {
@@ -143,30 +164,62 @@ function render(): void {
     })
     .join('');
 
-  let shown = 0;
+  let matching = 0;
   for (const demo of demos) {
-    const visible = matches(demo, state);
-    cards.get(demo.id)!.hidden = !visible;
-    if (visible) shown++;
+    const card = cards.get(demo.id)!;
+    const isMatch = matches(demo, state);
+    const visible = isMatch && matching < limit;
+    // entrance stagger restarts with every revealed page
+    if (visible && card.hidden) card.style.setProperty('--n', String(matching % PAGE));
+    card.hidden = !visible;
+    if (isMatch) matching++;
   }
-  const hidden = demos.length - shown;
-  statusEl.innerHTML = hidden
-    ? `Showing <b>${shown}</b> of ${demos.length} demos · ${hidden} hidden by your filters <button type="button" class="link" data-clear>Show all</button>`
-    : `Showing all <b>${demos.length}</b> demos`;
-  emptyEl.hidden = shown > 0;
+
+  // The status line always says how many are on screen, how many match, and how many filters hide.
+  const shown = Math.min(limit, matching);
+  const filteredOut = demos.length - matching;
+  const parts = [
+    shown < matching
+      ? `Showing <b>${shown}</b> of ${matching} ${filteredOut ? 'matching' : 'demos'} · more load as you scroll`
+      : filteredOut
+        ? `Showing all <b>${matching}</b> matching`
+        : `Showing all <b>${demos.length}</b> demos`,
+  ];
+  if (filteredOut) {
+    parts.push(`${filteredOut} hidden by your filters <button type="button" class="link" data-clear>Show all</button>`);
+  }
+  statusEl.innerHTML = parts.join(' · ');
+  emptyEl.hidden = matching > 0;
+  moreEl.hidden = shown >= matching;
   syncUrl();
+}
+
+/** A filter changed: start again from the first page, at the top of the results. */
+function applyFilters(): void {
+  limit = PAGE;
+  render();
+  // The filter bar is sticky, so its own offsetTop moves; the grid's does not.
+  const top = grid.offsetTop - filtersEl.offsetHeight;
+  // Jump rather than glide: a smooth scroll across thousands of pixels would mount and unmount
+  // every demo on the way, and the list under the pointer has just changed anyway.
+  if (window.scrollY > top) window.scrollTo({ top, behavior: 'instant' });
+  fill();
 }
 
 searchEl.value = state.q;
 searchEl.addEventListener('input', () => {
   state.q = searchEl.value;
-  render();
+  applyFilters();
 });
 
 document.addEventListener('click', (e) => {
-  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-cat],[data-tag],[data-clear],[data-open]');
+  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-cat],[data-tag],[data-clear],[data-open],[data-more]');
   if (!el) return;
   if (el.dataset.open) return openViewer(el.dataset.open);
+  if ('more' in el.dataset) {
+    limit += PAGE;
+    return render();
+  }
   if (el.matches('.tab')) state.cat = el.dataset.cat as Filters['cat'];
   else if (el.dataset.tag) state.tags.has(el.dataset.tag) ? state.tags.delete(el.dataset.tag) : state.tags.add(el.dataset.tag);
   else if ('clear' in el.dataset) {
@@ -174,7 +227,7 @@ document.addEventListener('click', (e) => {
     state.cat = 'all';
     state.tags.clear();
   } else return;
-  render();
+  applyFilters();
 });
 
 document.addEventListener('keydown', (e) => {
@@ -352,3 +405,4 @@ $('#stat-css').textContent = String(demos.filter((d) => d.category === 'css').le
 $('#stat-js').textContent = String(demos.filter((d) => d.category === 'js').length);
 
 render();
+fill();

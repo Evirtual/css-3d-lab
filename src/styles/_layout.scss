@@ -557,7 +557,7 @@ input {
   box-shadow: var(--shadow);
   overflow: hidden;
   animation: card-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-  animation-delay: calc(min(var(--n), 12) * 45ms);
+  animation-delay: calc(var(--n) * 45ms);
   transition:
     transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
     border-color 0.3s,
@@ -681,6 +681,12 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art) {
   *::after {
     animation-play-state: paused !important;
   }
+}
+
+.more {
+  display: grid;
+  place-items: center;
+  padding: 0 20px 40px;
 }
 
 .empty {
