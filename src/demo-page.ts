@@ -4,6 +4,7 @@ import { initChrome } from './chrome';
 import { demos } from './demos';
 import { icon } from './icons';
 import { lazyMountCards } from './lazy-mount';
+import { copyText, embedCode, openInCodePen, revealDownloads, shareLink } from './share';
 import { shortHint } from './short-hint';
 
 /**
@@ -121,3 +122,21 @@ document.querySelector<HTMLButtonElement>('[data-copy-file]')?.addEventListener(
   }
   window.setTimeout(() => (btn.innerHTML = label), 1800);
 });
+
+/* ---------- share row ---------- */
+
+const share = document.querySelector<HTMLElement>('[data-share]');
+if (share && demo) {
+  share.addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('button, a');
+    if (!btn) return;
+    if ('shareLink' in btn.dataset) void shareLink(btn, demo.id, demo.title);
+    else if ('shareEmbed' in btn.dataset) {
+      if (await copyText(btn, embedCode(demo.id, demo.title), 'Embed code copied')) track(`embed/${demo.id}`);
+    } else if ('shareCodepen' in btn.dataset) {
+      const { snippets } = await import('./demos/snippets');
+      openInCodePen(demo.id, demo.title, snippets[demo.id]);
+    } else if ('media' in btn.dataset) track(`download/${demo.id}/${btn.getAttribute('href')?.split('.').pop()}`);
+  });
+  void revealDownloads(share);
+}

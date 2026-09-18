@@ -1,6 +1,7 @@
 import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
 import { initChrome } from './chrome';
+import { openInCodePen, shareLink } from './share';
 import { shortHint } from './short-hint';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
@@ -340,6 +341,8 @@ function openViewer(id: string): void {
         <div class="code__actions">
           <button type="button" class="btn btn--accent" data-copy="file">${icon('copy')} Copy as one HTML file</button>
           <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
+          <button type="button" class="btn" data-act="codepen">Edit on CodePen ${icon('arrow-up-right')}</button>
+          <button type="button" class="btn" data-act="share">${icon('arrow-up-right')} Share</button>
           <a class="btn" href="demos/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
         <p class="code__thanks" hidden>Glad it helped. This site is free — if you like, <a href="${KOFI}" target="_blank" rel="noopener">buy me a coffee</a> ${icon('coffee')}</p>
@@ -394,6 +397,9 @@ function openViewer(id: string): void {
   };
 
   viewerBody.onclick = (e) => {
+    const act = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-act]');
+    if (act?.dataset.act === 'codepen') return openInCodePen(id, demo.title, snip);
+    if (act?.dataset.act === 'share') return void shareLink(act, id, demo.title);
     const el = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-pane],[data-copy]');
     if (!el) return;
     if (el.dataset.pane) show(panes.find((p) => p.key === el.dataset.pane)!);

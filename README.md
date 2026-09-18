@@ -50,3 +50,11 @@ Pushing to `main` deploys to GitHub Pages via `.github/workflows/deploy.yml`.
 ## License
 
 MIT — see [LICENSE](LICENSE). Every snippet is free to use in your own projects.
+
+## Media, sharing and embeds
+
+- `npm run media` (after `npm run build`) films every demo in a headless browser and writes a
+  social preview PNG, an MP4 and a GIF per demo into `dist/media/`. It runs in the deploy
+  workflow; MP4/GIF need `ffmpeg`, so locally without it only the PNGs are produced.
+- Every demo has an embeddable page at `/embed/<id>/` and a share row (link, embed code,
+  Edit on CodePen, MP4/GIF download). Download buttons only appear when the file really exists.

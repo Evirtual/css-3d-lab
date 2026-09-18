@@ -283,3 +283,108 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+// Share row under the live demo.
+.share {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+// /embed/<id>/ — the demo alone, filling the frame (iframes + the build-time recorder).
+.embed {
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+
+  .stage {
+    position: fixed;
+    inset: 0;
+    height: auto;
+    border: 0;
+  }
+
+  // In a roomy frame the scene gets the same boost as the large stage on the demo pages.
+  // Frame-filling demos are laid out in a smaller box and zoomed, so their contents grow too.
+  @media (min-width: 560px) and (min-height: 380px) {
+    .scene:not(.scene--fill) {
+      scale: 1.45;
+    }
+
+    .scene--fill {
+      zoom: 1.4;
+    }
+  }
+}
+
+.embed__credit {
+  position: fixed;
+  right: 10px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgb(10 12 24 / 0.6);
+  color: #c4c9e6;
+  font-size: 11px;
+  text-decoration: none;
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+// Title strip for the social preview image (?og=1). Hidden in normal embeds.
+.embed__og {
+  display: none;
+}
+
+[data-og] {
+  .embed__credit {
+    display: none;
+  }
+
+  .embed .stage .scene:not(.scene--fill) {
+    scale: 2;
+    translate: 0 -40px;
+  }
+
+  .embed .stage .scene--fill {
+    inset: 0 0 60px; // keep the subject clear of the title strip
+    zoom: 1.9;
+  }
+
+  .embed__og {
+    position: fixed;
+    inset: auto 0 0;
+    display: grid;
+    gap: 2px;
+    padding: 80px 56px 40px;
+    background: linear-gradient(transparent, rgb(7 8 15 / 0.92) 55%);
+    color: #fff;
+
+    b {
+      font-size: 58px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+  }
+
+  .embed__og-kind {
+    color: var(--accent-2);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .embed__og-site {
+    margin-top: 6px;
+    color: #a3aacb;
+    font-size: 22px;
+  }
+}

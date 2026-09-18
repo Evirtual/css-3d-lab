@@ -27,7 +27,7 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 const strip = (html) => html.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 const kind = (d) => (d.category === 'css' ? 'pure CSS' : 'CSS + JavaScript');
 
-function shell({ path, depth, title, description, jsonLd, body, script }) {
+function shell({ path, depth, title, description, jsonLd, body, script, image }) {
   const up = '../'.repeat(depth);
   const url = `${site.url}/${path}`;
   return `<!doctype html>
@@ -43,7 +43,15 @@ function shell({ path, depth, title, description, jsonLd, body, script }) {
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(description)}" />
     <meta property="og:url" content="${url}" />
-    <meta name="twitter:card" content="summary" />
+    ${
+      image
+        ? `<meta property="og:image" content="${site.url}/${image}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="${site.url}/${image}" />`
+        : '<meta name="twitter:card" content="summary" />'
+    }
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧊</text></svg>" />
     <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
   </head>
@@ -201,6 +209,14 @@ function demoPage(d, index) {
             <noscript><p class="page-noscript">The live 3D preview needs JavaScript to load. The explanation and full code are below.</p></noscript>
           </div>
 
+          <div class="share" data-share="${d.id}" data-title="${esc(d.title)}">
+            <button type="button" class="btn" data-share-link>${icon('arrow-up-right')} Share</button>
+            <button type="button" class="btn" data-share-embed>${icon('copy')} Embed code</button>
+            <button type="button" class="btn" data-share-codepen>Edit on CodePen ${icon('arrow-up-right')}</button>
+            <a class="btn" href="../../media/${d.id}.mp4" download="css-3d-${d.id}.mp4" data-media hidden>MP4</a>
+            <a class="btn" href="../../media/${d.id}.gif" download="css-3d-${d.id}.gif" data-media hidden>GIF</a>
+          </div>
+
           <h2>How it works</h2>
           <ol class="steps">${snip.how.map((s) => `<li>${s}</li>`).join('')}</ol>
 
@@ -223,7 +239,33 @@ function demoPage(d, index) {
       </section>
     </main>`;
 
-  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts' });
+  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'demo-page.ts', image: `media/${d.id}.png` });
+}
+
+/* ---------- embed pages: just the demo, for iframes and for the build-time recorder ---------- */
+
+function embedPage(d) {
+  return `<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="${site.url}/demos/${d.id}/" />
+    <title>${esc(d.title)} — ${esc(site.name)}</title>
+  </head>
+  <body class="embed">
+    <div class="stage" data-demo="${d.id}"></div>
+    <div class="embed__og" aria-hidden="true">
+      <span class="embed__og-kind">${kind(d)}</span>
+      <b>${esc(d.title)}</b>
+      <span class="embed__og-site">${esc(site.name)} · ${site.url.replace('https://', '')}</span>
+    </div>
+    <a class="embed__credit" href="${site.url}/demos/${d.id}/" target="_blank" rel="noopener">${esc(d.title)} · ${esc(site.name)} ${icon('arrow-up-right')}</a>
+    <script type="module" src="/src/embed.ts"></script>
+  </body>
+</html>
+`;
 }
 
 /* ---------- group pages ---------- */
@@ -275,9 +317,11 @@ function write(file, content) {
   writeFileSync(file, content);
 }
 
-for (const dir of ['demos', 'groups', 'src/generated']) rmSync(dir, { recursive: true, force: true });
+for (const dir of ['demos', 'groups', 'embed', 'src/generated']) rmSync(dir, { recursive: true, force: true });
 
 demos.forEach((d, i) => write(`demos/${d.id}/index.html`, demoPage(d, i)));
+for (const d of demos) write(`embed/${d.id}/index.html`, embedPage(d));
+write('src/generated/demo-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, pointer: d.category === 'js' || d.tags.includes('hover') }))));
 for (const g of GROUP_ORDER) write(`groups/${g}/index.html`, groupPage(g));
 
 // Plain, crawlable links to every page, injected into the home page by vite.config.ts.

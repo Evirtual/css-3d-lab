@@ -7,7 +7,7 @@ const root = __dirname;
 /** Every generated page (scripts/generate-pages.mjs) becomes a build entry. */
 function generatedPages(): Record<string, string> {
   const pages: Record<string, string> = {};
-  for (const dir of ['demos', 'groups']) {
+  for (const dir of ['demos', 'groups', 'embed']) {
     const base = resolve(root, dir);
     if (!existsSync(base)) continue;
     for (const id of readdirSync(base)) pages[`${dir}-${id}`] = resolve(base, id, 'index.html');
