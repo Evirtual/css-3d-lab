@@ -112,14 +112,16 @@ input {
     background:
       radial-gradient(
         ellipse 72% 72% at 8.33% 8.33%,
-        color-mix(in srgb, var(--accent) 10%, transparent),
-        color-mix(in srgb, var(--accent) 4%, transparent) 50%,
+        color-mix(in srgb, var(--accent) 18%, transparent),
+        color-mix(in srgb, var(--accent) 7%, transparent) 28%,
+        color-mix(in srgb, var(--accent) 2.5%, transparent) 60%,
         transparent
       ),
       radial-gradient(
         ellipse 72% 72% at 91.67% 91.67%,
-        color-mix(in srgb, var(--accent-2) 6%, transparent),
-        color-mix(in srgb, var(--accent-2) 2.5%, transparent) 50%,
+        color-mix(in srgb, var(--accent-2) 12%, transparent),
+        color-mix(in srgb, var(--accent-2) 4.5%, transparent) 28%,
+        color-mix(in srgb, var(--accent-2) 1.5%, transparent) 60%,
         transparent
       );
     animation: aurora-drift 40s ease-in-out infinite alternate;
