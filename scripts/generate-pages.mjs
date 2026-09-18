@@ -55,8 +55,11 @@ function shell({ path, depth, title, description, jsonLd, body, script }) {
         ${esc(site.name)}
       </a>
       <div class="topbar__actions">
-        <a class="btn" href="${up}">All 3D demos</a>
+        <a class="btn" href="${up}">${icon('chevron-left')} All demos</a>
+        <button id="pause" class="btn" type="button" aria-pressed="false"></button>
+        <button id="theme" class="btn" type="button"></button>
         <a class="btn" href="${site.repo}" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
+        <a class="btn btn--kofi" href="${site.kofi}" target="_blank" rel="noopener">${icon('coffee')} Buy me a coffee</a>
       </div>
     </nav>
 ${body}
@@ -91,8 +94,11 @@ function demoPage(d, index) {
   const description = `${d.description} Live demo, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`;
 
   const codeBlock = (label, lang, code) => `
-        <section class="page-code" data-code>
-          <header><h3>${label}</h3><button type="button" class="btn" data-copy-code>${icon('copy')} Copy</button></header>
+        <section class="codebox page-code" data-code>
+          <div class="codebox__bar">
+            <h3 class="codebox__label">${label}</h3>
+            <button type="button" class="codebox__copy" data-copy-code>${icon('copy')} Copy</button>
+          </div>
           <pre><code>${highlight(code, lang)}</code></pre>
         </section>`;
 
@@ -128,13 +134,22 @@ function demoPage(d, index) {
       </nav>
 
       <header class="page-head">
-        <span class="badge badge--${d.category}">${CATEGORY_LABEL[d.category]}</span>
+        <p class="viewer__meta">
+          <span class="badge badge--${d.category}">${CATEGORY_LABEL[d.category]}</span>
+          <a class="card__group" href="../../groups/${d.group}/">${esc(group)}</a>
+          <span class="viewer__tags">${d.tags.map((t) => `#${esc(t)}`).join(' ')}</span>
+        </p>
         <h1>${esc(d.title)} <small>in ${kind(d)}</small></h1>
         <p>${esc(d.description)}</p>
+        <p class="page-actions">
+          <button type="button" class="btn btn--accent" data-run>${icon('play')} Run standalone</button>
+          <button type="button" class="btn" data-copy-file>${icon('copy')} Copy as one HTML file</button>
+          <a class="btn" href="${site.repo}/blob/main/src/styles/demos/_${d.id}.scss" target="_blank" rel="noopener">SCSS source ${icon('arrow-up-right')}</a>
+        </p>
       </header>
 
       <div class="page-cols">
-        <div>
+        <div class="page-left">
           <div class="stage stage--lg" data-demo="${d.id}">
             <noscript><p class="page-noscript">The live 3D preview needs JavaScript to load. The explanation and full code are below.</p></noscript>
           </div>

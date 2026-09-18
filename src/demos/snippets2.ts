@@ -56,10 +56,25 @@ export const snippets2: Record<string, Snippet> = {
   transform-origin: bottom center;
 }
 
-.pyramid i:nth-child(1) { background: linear-gradient(#ffb547, #b3651a); transform: rotateY(0deg)   translateZ(calc(var(--base) / 2)) rotateX(30deg); }
-.pyramid i:nth-child(2) { background: linear-gradient(#ffc257, #c27420); transform: rotateY(90deg)  translateZ(calc(var(--base) / 2)) rotateX(30deg); }
-.pyramid i:nth-child(3) { background: linear-gradient(#ffcf6b, #d18427); transform: rotateY(180deg) translateZ(calc(var(--base) / 2)) rotateX(30deg); }
-.pyramid i:nth-child(4) { background: linear-gradient(#ffdb80, #df942f); transform: rotateY(270deg) translateZ(calc(var(--base) / 2)) rotateX(30deg); }
+.pyramid i:nth-child(1) {
+  background: linear-gradient(#ffb547, #b3651a);
+  transform: rotateY(0deg) translateZ(calc(var(--base) / 2)) rotateX(30deg);
+}
+
+.pyramid i:nth-child(2) {
+  background: linear-gradient(#ffc257, #c27420);
+  transform: rotateY(90deg) translateZ(calc(var(--base) / 2)) rotateX(30deg);
+}
+
+.pyramid i:nth-child(3) {
+  background: linear-gradient(#ffcf6b, #d18427);
+  transform: rotateY(180deg) translateZ(calc(var(--base) / 2)) rotateX(30deg);
+}
+
+.pyramid i:nth-child(4) {
+  background: linear-gradient(#ffdb80, #df942f);
+  transform: rotateY(270deg) translateZ(calc(var(--base) / 2)) rotateX(30deg);
+}
 
 /* floor */
 .pyramid b {

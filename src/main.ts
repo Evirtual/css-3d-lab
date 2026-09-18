@@ -1,5 +1,6 @@
 import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
+import { initChrome } from './chrome';
 import { demos, type GroupedDemo } from './demos';
 import { GROUPS, GROUP_ORDER, type Group } from './demos/groups';
 import { snippets, standaloneDoc } from './demos/snippets';
@@ -301,7 +302,11 @@ function openViewer(id: string): void {
 
   viewerBody.innerHTML = `
     <header class="viewer__head">
-      <span class="badge badge--${demo.category}">${CATEGORY_LABEL[demo.category]}</span>
+      <p class="viewer__meta">
+        <span class="badge badge--${demo.category}">${CATEGORY_LABEL[demo.category]}</span>
+        <span class="card__group">${GROUPS[demo.group]}</span>
+        <span class="viewer__tags">${demo.tags.map((t) => `#${t}`).join(' ')}</span>
+      </p>
       <h2>${demo.title}</h2>
       <p>${demo.description}</p>
     </header>
@@ -314,13 +319,17 @@ function openViewer(id: string): void {
         <ul class="ingredients">${demo.technique.map((t) => `<li><code>${t}</code></li>`).join('')}</ul>
       </section>
       <section class="code">
-        <div class="code__tabs" role="tablist">
-          ${panes.map((p, i) => `<button type="button" role="tab" data-pane="${p.key}" aria-selected="${i === 1}">${p.label}</button>`).join('')}
+        <div class="codebox">
+          <div class="codebox__bar">
+            <div class="codebox__tabs" role="tablist">
+              ${panes.map((p, i) => `<button type="button" role="tab" data-pane="${p.key}" aria-selected="${i === 1}">${p.label}</button>`).join('')}
+            </div>
+            <button type="button" class="codebox__copy" data-copy="pane">${icon('copy')} Copy</button>
+          </div>
+          <div class="code__panel"></div>
         </div>
-        <div class="code__panel"></div>
         <div class="code__actions">
-          <button type="button" class="btn btn--accent" data-copy="pane">${icon('copy')} Copy</button>
-          <button type="button" class="btn" data-copy="file">Copy as one HTML file</button>
+          <button type="button" class="btn btn--accent" data-copy="file">${icon('copy')} Copy as one HTML file</button>
           <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
           <a class="btn" href="demos/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
@@ -393,50 +402,7 @@ viewer.addEventListener('click', (e) => {
   if (e.target === viewer) viewer.close(); // backdrop click
 });
 
-/* ---------- options: pause + theme ---------- */
-
-const store = {
-  get: (k: string): string | null => {
-    try {
-      return localStorage.getItem(k);
-    } catch {
-      return null;
-    }
-  },
-  set: (k: string, v: string): void => {
-    try {
-      localStorage.setItem(k, v);
-    } catch {
-      /* private mode: the choice just won't persist */
-    }
-  },
-};
-
-const root = document.documentElement;
-const pauseBtn = $('#pause');
-const themeBtn = $('#theme');
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-function setPaused(paused: boolean): void {
-  root.toggleAttribute('data-paused', paused);
-  pauseBtn.setAttribute('aria-pressed', String(paused));
-  pauseBtn.innerHTML = paused ? `${icon('play')} Play animations` : `${icon('pause')} Pause animations`;
-}
-function setTheme(theme: string): void {
-  root.dataset.theme = theme;
-  themeBtn.innerHTML = theme === 'dark' ? `${icon('sun')} Light` : `${icon('moon')} Dark`;
-}
-
-// Respect the OS "reduce motion" setting: start paused, but leave the choice to the visitor.
-setPaused(reducedMotion);
-setTheme(store.get('theme') ?? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
-
-pauseBtn.addEventListener('click', () => setPaused(!root.hasAttribute('data-paused')));
-themeBtn.addEventListener('click', () => {
-  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-  setTheme(next);
-  store.set('theme', next);
-});
+initChrome();
 
 /* ---------- hero stats ---------- */
 

@@ -32,11 +32,13 @@
 }
 
 .page-head {
-  margin: 18px 0 24px;
+  margin: 18px 0 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
 
   h1 {
-    margin: 10px 0 8px;
-    font-size: clamp(30px, 4.4vw, 50px);
+    margin: 14px 0 8px;
+    font-size: clamp(32px, 4.8vw, 56px);
     font-weight: 900;
     letter-spacing: -0.03em;
     line-height: 1.05;
@@ -79,39 +81,29 @@
   text-align: center;
 }
 
+// The code windows use the shared .codebox look; the page only sets spacing and height.
 .page-code {
   margin-top: 16px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--code-bg);
-  overflow: hidden;
-
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px 8px 16px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  h3 {
-    color: #d8dcf5;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
 
   pre {
-    max-height: 520px;
-    margin: 0;
-    padding: 16px 18px;
-    overflow: auto;
-    color: #d8dcf5;
-    font-family: var(--mono);
-    font-size: 12.5px;
-    line-height: 1.65;
-    tab-size: 2;
+    max-height: 560px;
+  }
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px !important;
+}
+
+// Keep the live demo and its explanation in view while reading long code — but only when the
+// whole column fits the screen; a sticky block taller than the viewport would hide its own end.
+@media (min-width: 861px) and (min-height: 900px) {
+  .page-left {
+    position: sticky;
+    top: 16px;
+    align-self: start;
   }
 }
 

@@ -66,10 +66,19 @@ input {
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  background:
-    linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 48px 48px,
-    linear-gradient(90deg, var(--border) 1px, transparent 1px) 0 0 / 48px 48px,
-    radial-gradient(ellipse at top, var(--bg-2), var(--bg) 60%);
+  background: radial-gradient(ellipse at top, var(--bg-2), var(--bg) 60%);
+
+  // Blueprint grid: deliberately faint, and faded out toward the edges so it frames the
+  // content instead of competing with it.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 48px 48px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 48px 48px;
+    mask: radial-gradient(ellipse 90% 70% at 50% 0%, #000 20%, transparent 85%);
+  }
 
   i {
     position: absolute;
@@ -878,11 +887,13 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 
   &__head {
-    margin-bottom: 20px;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
 
     h2 {
-      margin: 10px 0 4px;
-      font-size: 30px;
+      margin: 12px 0 6px;
+      font-size: clamp(26px, 3.4vw, 36px);
       font-weight: 850;
       letter-spacing: -0.02em;
     }
@@ -916,9 +927,10 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 }
 
+// Numbered steps joined by a line, so they read as one process rather than a loose list.
 .steps {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -926,29 +938,43 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   li {
     position: relative;
-    padding-left: 38px;
+    padding: 2px 0 0 42px;
     font-size: 14px;
+    line-height: 1.6;
     counter-increment: step;
 
     &::before {
       content: counter(step);
       position: absolute;
-      top: -1px;
+      top: 0;
       left: 0;
+      z-index: 1;
       display: grid;
       place-items: center;
-      width: 26px;
-      height: 26px;
-      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
       background: linear-gradient(135deg, var(--accent), var(--hot));
       color: #fff;
       font-size: 12px;
       font-weight: 800;
     }
+
+    // the connector down to the next step
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      bottom: -14px;
+      left: 13px;
+      width: 2px;
+      background: linear-gradient(var(--hot), transparent);
+      opacity: 0.45;
+    }
   }
 
   code {
-    padding: 1px 5px;
+    padding: 1px 6px;
     border-radius: 5px;
     background: color-mix(in srgb, var(--accent) 16%, transparent);
     font-family: var(--mono);
@@ -966,11 +992,129 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   code {
     display: block;
-    padding: 4px 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    padding: 5px 11px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
     font-family: var(--mono);
     font-size: 12px;
+  }
+}
+
+// One "code window" look, shared by the gallery dialog and the static demo pages.
+.codebox {
+  min-width: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--code-bg);
+  overflow: hidden;
+  box-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.8);
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 8px 0 14px;
+    border-bottom: 1px solid var(--border);
+    background: rgb(255 255 255 / 0.03);
+
+    // window dots
+    &::before {
+      content: '';
+      flex: none;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff5f57;
+      box-shadow:
+        16px 0 0 #febc2e,
+        32px 0 0 #28c840;
+      margin-right: 36px;
+    }
+  }
+
+  &__label {
+    flex: 1;
+    color: #c4c9e6;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__tabs {
+    display: flex;
+    flex: 1;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: none;
+      color: #949bc0;
+      font-size: 12.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      transition:
+        background 0.15s,
+        color 0.15s;
+
+      &:hover {
+        color: #fff;
+      }
+
+      &[aria-selected='true'] {
+        background: rgb(255 255 255 / 0.1);
+        color: #fff;
+      }
+    }
+  }
+
+  &__copy {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: 8px;
+    background: rgb(255 255 255 / 0.06);
+    color: #eceefb;
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      border-color 0.15s;
+
+    &:hover {
+      border-color: var(--accent-2);
+      background: color-mix(in srgb, var(--accent-2) 18%, transparent);
+    }
+  }
+
+  pre {
+    margin: 0;
+    padding: 16px 18px;
+    overflow: auto;
+    color: #d8dcf5;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    tab-size: 2;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.2) transparent;
   }
 }
 
@@ -979,50 +1123,15 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   flex-direction: column;
   min-width: 0;
 
-  &__tabs {
-    display: flex;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
-
-    button {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 9px 14px;
-      border: 1px solid transparent;
-      border-bottom: 0;
-      border-radius: 10px 10px 0 0;
-      background: none;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-      white-space: nowrap;
-      cursor: pointer;
-
-      &[aria-selected='true'] {
-        background: var(--code-bg);
-        border-color: var(--border);
-        color: #fff;
-      }
-    }
-  }
-
   &__panel {
-    height: 430px;
-    border: 1px solid var(--border);
-    border-radius: 0 12px 12px 12px;
-    background: var(--code-bg);
+    height: 440px;
     overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.2) transparent;
 
     pre {
-      margin: 0;
-      padding: 16px 18px;
-      color: #d8dcf5;
-      font-family: var(--mono);
-      font-size: 12.5px;
-      line-height: 1.65;
-      tab-size: 2;
+      min-height: 100%;
+      overflow: visible;
     }
 
     iframe {
@@ -1037,20 +1146,22 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 12px;
+    margin-top: 14px;
   }
 
   &__note {
-    margin-top: 10px;
+    order: -1; // directly under the dialog's column heading, above the window
+    margin: 0 0 10px;
     color: var(--muted);
     font-size: 12.5px;
   }
 
   &__thanks {
-    margin-top: 10px;
-    padding: 8px 12px;
+    margin-top: 12px;
+    padding: 10px 14px;
     border: 1px solid color-mix(in srgb, var(--warm) 40%, transparent);
-    border-radius: 10px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--warm) 8%, transparent);
     font-size: 13px;
 
     a {
@@ -1058,6 +1169,24 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       font-weight: 700;
     }
   }
+}
+
+// Meta row above a title: category badge · group · tags. Dialog and demo pages.
+.viewer__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+
+  .card__group {
+    text-decoration: none;
+  }
+}
+
+.viewer__tags {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
 }
 
 // syntax tokens (the code panel is dark in both themes)

@@ -1,5 +1,6 @@
 import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
+import { initChrome } from './chrome';
 import { demos } from './demos';
 import { icon } from './icons';
 
@@ -8,13 +9,7 @@ import { icon } from './icons';
  * HTML; this only mounts the live preview and wires the copy buttons.
  */
 
-try {
-  const saved = localStorage.getItem('theme');
-  if (saved) document.documentElement.dataset.theme = saved;
-} catch {
-  /* private mode: stay on the default theme */
-}
-
+initChrome();
 initAnalytics();
 
 const stage = document.querySelector<HTMLElement>('[data-demo]');
@@ -42,3 +37,34 @@ for (const block of document.querySelectorAll<HTMLElement>('[data-code]')) {
     window.setTimeout(() => (btn.innerHTML = label), 1800);
   });
 }
+
+/* ---------- page actions: the snippets are only fetched when someone asks for them ---------- */
+
+async function standalone(): Promise<string | null> {
+  if (!demo) return null;
+  const { snippets, standaloneDoc } = await import('./demos/snippets');
+  return standaloneDoc(demo.title, snippets[demo.id]);
+}
+
+document.querySelector<HTMLButtonElement>('[data-run]')?.addEventListener('click', async () => {
+  const doc = await standalone();
+  if (!doc || !demo) return;
+  track(`run/${demo.id}`);
+  // A blob URL opens the snippet as its own page, exactly as it would run when pasted into a file.
+  window.open(URL.createObjectURL(new Blob([doc], { type: 'text/html' })), '_blank', 'noopener');
+});
+
+document.querySelector<HTMLButtonElement>('[data-copy-file]')?.addEventListener('click', async (e) => {
+  const btn = e.currentTarget as HTMLButtonElement;
+  const label = btn.innerHTML;
+  const doc = await standalone();
+  if (!doc || !demo) return;
+  try {
+    await navigator.clipboard.writeText(doc);
+    btn.innerHTML = `${icon('check')} Copied`;
+    track(`copy/${demo.id}/file`);
+  } catch {
+    btn.textContent = 'Copy blocked — select the text manually';
+  }
+  window.setTimeout(() => (btn.innerHTML = label), 1800);
+});
