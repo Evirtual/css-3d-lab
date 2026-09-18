@@ -1128,6 +1128,7 @@ input:checked ~ em {
       'JS picks a random value, looks up that rotation and adds two more full turns (<code>+720°</code>) on every roll, so it always tumbles instead of taking a shortcut.',
       'It writes two custom properties. The 1.1s <code>transition</code> with an overshoot easing <i>is</i> the roll animation.',
       'A fixed camera tilt comes first in the transform list, so you always see three faces.',
+      'Rounded faces leave see-through holes at the cube’s corners. A square plate 8px behind every face builds a sharp inner cube that fills them.',
     ],
     html: `<div class="table">
   <div class="scene">
@@ -1172,6 +1173,17 @@ input:checked ~ em {
   background: radial-gradient(circle at 30% 30%, #fff, #dfe1f0);
   color: #1a1d33;
   font: 900 3.4rem system-ui;
+  transform-style: preserve-3d;
+}
+
+/* Rounded faces leave a hole where three corners meet. A square plate just behind each face
+   forms a slightly smaller inner cube that plugs the gaps. */
+.cube > *::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  background: #d3d6ea;
+  transform: translateZ(-8px);
 }
 
 ${CUBE_FACES}
@@ -1411,6 +1423,16 @@ view.addEventListener('pointerleave', () => {
   font: 900 2rem system-ui;
   background: linear-gradient(135deg, hsl(var(--hue) 85% 62%), hsl(var(--hue) 75% 38%));
   backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+/* plugs the see-through notches where the rounded corners of two slides meet */
+.box i::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  background: hsl(var(--hue) 75% 34%);
+  transform: translateZ(-6px);
 }
 
 .box i:nth-child(1) { transform: rotateY(0deg)   translateZ(calc(var(--w) / 2)); }

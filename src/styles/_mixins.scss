@@ -12,6 +12,21 @@
   }
 }
 
+// Rounded faces leave a hole where their corners meet, and an empty box shows daylight through
+// it. This puts a square plate just behind the face; on all faces together the plates form a
+// slightly smaller, sharp-cornered inner box that plugs every gap and can never poke outside.
+@mixin solid-core($inset, $color) {
+  transform-style: preserve-3d;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: $inset;
+    background: $color;
+    transform: translateZ(-$inset);
+  }
+}
+
 // A translucent "glass" face used by most solids.
 @mixin face($color: var(--accent), $alpha: 28%) {
   background: color-mix(in srgb, #{$color} #{$alpha}, transparent);

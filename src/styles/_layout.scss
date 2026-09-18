@@ -8,6 +8,13 @@
 
 html {
   scroll-behavior: smooth;
+  // Keep the scrollbar's space reserved so locking the page (below) does not shift the layout.
+  scrollbar-gutter: stable;
+
+  // The page must not scroll behind the open detail view (it showed two scrollbars side by side).
+  &:has(.viewer[open]) {
+    overflow: hidden;
+  }
 }
 
 body {
@@ -438,6 +445,15 @@ input {
     font-family: var(--mono);
     font-size: 12px;
     pointer-events: none;
+  }
+
+  input:focus,
+  input:not(:placeholder-shown) {
+    padding-right: 12px;
+  }
+
+  input::-webkit-search-cancel-button {
+    cursor: pointer;
   }
 
   input:focus + kbd,

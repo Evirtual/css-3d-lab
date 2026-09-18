@@ -1,3 +1,5 @@
+@use '../mixins' as *;
+
 $w: 190px;
 
 .d-boxslider {
@@ -35,6 +37,7 @@ $w: 190px;
       font-style: normal;
       font-weight: 900;
       backface-visibility: hidden;
+      @include solid-core(5px, hsl(var(--hue) 75% 34%));
 
       @for $i from 1 through 4 {
         &:nth-child(#{$i}) {

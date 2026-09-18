@@ -37,6 +37,7 @@
       font-size: 44px;
       font-style: normal;
       font-weight: 900;
+      @include solid-core(6px, #d3d6ea);
     }
   }
 
