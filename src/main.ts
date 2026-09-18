@@ -5,6 +5,7 @@ import { CATEGORY_LABEL, type Category, type Demo } from './demos/types';
 import { highlight, type Lang } from './highlight';
 
 const REPO = 'https://github.com/Evirtual/css-3d-lab';
+const KOFI = 'https://ko-fi.com/edgarasneverdauskas';
 
 // Real SCSS source of every demo, pulled in at build time so it can never drift.
 const scssSources = import.meta.glob<string>('./styles/demos/_*.scss', {
@@ -233,6 +234,7 @@ function openViewer(id: string): void {
           <a class="btn" href="${REPO}/blob/main/src/styles/demos/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ↗</a>
         </div>
         <p class="code__note"></p>
+        <p class="code__thanks" hidden>Glad it helped. This site is free — if you like, <a href="${KOFI}" target="_blank" rel="noopener">buy me a coffee ☕</a></p>
       </section>
     </div>`;
 
@@ -268,6 +270,7 @@ function openViewer(id: string): void {
     try {
       await navigator.clipboard.writeText(text);
       btn.textContent = 'Copied ✓';
+      viewerBody.querySelector<HTMLElement>('.code__thanks')!.hidden = false;
     } catch {
       btn.textContent = 'Copy blocked — select the text manually';
     }

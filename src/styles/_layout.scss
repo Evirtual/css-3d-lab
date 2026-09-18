@@ -133,6 +133,16 @@ input {
     transform: translateY(0);
   }
 
+  &--kofi {
+    border-color: color-mix(in srgb, var(--warm) 60%, transparent);
+    color: var(--warm);
+
+    &:hover {
+      border-color: var(--warm);
+      box-shadow: 0 8px 20px -10px var(--warm);
+    }
+  }
+
   &--accent {
     border-color: transparent;
     background: linear-gradient(120deg, var(--accent), var(--hot));
@@ -892,6 +902,19 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art) {
     margin-top: 10px;
     color: var(--muted);
     font-size: 12.5px;
+  }
+
+  &__thanks {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border: 1px solid color-mix(in srgb, var(--warm) 40%, transparent);
+    border-radius: 10px;
+    font-size: 13px;
+
+    a {
+      color: var(--warm);
+      font-weight: 700;
+    }
   }
 }
 
