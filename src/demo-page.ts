@@ -38,6 +38,7 @@ if (box && demo) {
     for (const t of tabs) t.setAttribute('aria-selected', String(t.dataset.pane === key));
     for (const body of bodies) body.hidden = body.dataset.paneBody !== key;
     copyBtn.hidden = key === 'run';
+    box.classList.toggle('is-run', key === 'run'); // a preview has no natural height: fill the column
 
     const body = bodies.find((x) => x.dataset.paneBody === key)!;
     if (key === 'run') {

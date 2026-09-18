@@ -190,7 +190,7 @@ function demoPage(d, index) {
           <ul class="ingredients">${d.technique.map((t) => `<li><code>${esc(t)}</code></li>`).join('')}</ul>
         </div>
 
-        <div>
+        <div class="page-right">
           <h2 class="visually-hidden">Copy-paste code</h2>${codeWindow}
         </div>
       </div>
