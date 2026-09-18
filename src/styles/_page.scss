@@ -429,10 +429,24 @@
     text-transform: uppercase;
   }
 
+  // signature: logo, name, address
   .embed__og-site {
-    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
     color: #a3aacb;
     font-size: 22px;
+  }
+
+  .embed__og-logo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .embed__og-name {
+    color: #fff;
+    font-weight: 700;
   }
 }
 
@@ -500,11 +514,40 @@
     text-transform: uppercase;
   }
 
+  // The signature: logo beside two lines (name, then the address, smaller), in a glass pill. The
+  // address is long; on its own line it reads as a detail instead of crowding the name.
   .embed__og-site {
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 12px;
+    align-items: center;
     margin-top: auto;
-    color: #c4c9e6;
-    font-size: 19px;
+    padding: 12px 20px 12px 12px;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 18px;
+    background: rgb(255 255 255 / 0.05);
+    text-align: left;
+  }
+
+  .embed__og-logo {
+    grid-row: span 2;
+    width: 42px;
+    height: 42px;
+  }
+
+  .embed__og-name {
+    color: #fff;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  .embed__og-url {
+    color: #a3aacb;
+    font-size: 13.5px;
     font-weight: 600;
+    line-height: 1.3;
   }
 }
 
@@ -536,7 +579,20 @@
   }
 
   .embed__og-site {
-    font-size: 15px;
+    padding: 9px 16px 9px 9px;
+  }
+
+  .embed__og-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .embed__og-name {
+    font-size: 17px;
+  }
+
+  .embed__og-url {
+    font-size: 12px;
   }
 }
 

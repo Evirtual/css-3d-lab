@@ -153,7 +153,20 @@ async function film(demo, { name, reel, W, H }) {
       // pure-CSS hover demos need the pointer to LEAVE as well: in and out, twice per video
       const away = demo.hover && Math.sin(2 * phase) < 0;
       if (away) await page.mouse.move(4, 4);
-      else if (demo.pointer) {
+      else if (demo.how === 'drag') {
+        // drag demos: a real drag every two seconds, left then right, 0.8 s long
+        const step = f % (fps * 2);
+        const len = Math.round(fps * 0.8);
+        const dir = Math.floor(f / (fps * 2)) % 2 ? -1 : 1;
+        const x = W / 2 + dir * 0.34 * W * Math.min(step / len, 1);
+        if (step === 0) {
+          await page.mouse.move((W / 2) * scale, (H / 2) * scale);
+          await page.mouse.down();
+        } else if (step <= len) {
+          await page.mouse.move(x * scale, (H / 2) * scale);
+          if (step === len) await page.mouse.up();
+        }
+      } else if (demo.pointer) {
         const x = W / 2 + 0.28 * Math.min(W, H) * Math.sin(phase);
         const y = H / 2 + 0.2 * Math.min(W, H) * Math.sin(2 * phase + 0.6);
         await page.mouse.move(x * scale, y * scale); // the viewport is in 4K pixels

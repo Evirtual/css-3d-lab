@@ -287,7 +287,7 @@ function embedPage(d) {
     <div class="embed__og" aria-hidden="true">
       <span class="embed__og-kind">${kind(d)}</span>
       <b>${esc(d.title)}</b>
-      <span class="embed__og-site">${esc(site.name)} · ${site.url.replace('https://', '')}</span>
+      <span class="embed__og-site"><img class="embed__og-logo" src="../../icon.svg" alt="" /><span class="embed__og-name">${esc(site.name)}</span><span class="embed__og-url">${site.url.replace('https://', '')}</span></span>
     </div>
     <a class="embed__credit" href="${site.url}/demos/${d.id}/" target="_blank" rel="noopener">${esc(d.title)} · ${esc(site.name)} ${icon('arrow-up-right')}</a>
     <script type="module" src="/src/embed.ts"></script>
