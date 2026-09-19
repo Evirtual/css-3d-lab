@@ -585,7 +585,7 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 /* 4px thick: four rounded slabs fill the corners of the edge... */
 .slab {
   position: absolute;
-  inset: 0.5px;
+  inset: 1.5px; /* tucked inside the walls: only the corners show them */
   border-radius: 6px;
   background: var(--edge);
   transform: translateZ(calc((var(--i) - 1.5) * 1px));
