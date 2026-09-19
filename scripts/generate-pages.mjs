@@ -496,13 +496,14 @@ const dated = (url, ...files) => {
 };
 for (const g of GROUP_ORDER) dated(`groups/${g}/`, `groups/${g}/index.html`);
 for (const d of demos) dated(`models/${d.id}/`, `models/${d.id}/index.html`);
+if (existsSync('public/article/index.html')) dated('article/', 'public/article/index.html');
 const newest = Object.values(dates).reduce((a, b) => (b.date > a ? b.date : a), '');
 const own = dated('', 'index.html', 'src/generated/all-models.html');
 const lastmod = (u) => (u === '' ? (own > newest ? own : newest) : dates[u].date);
 const datesJson = JSON.stringify(dates, null, 2) + '\n';
 if (!existsSync(DATES) || readFileSync(DATES, 'utf8').replace(/\r\n/g, '\n') !== datesJson) writeFileSync(DATES, datesJson);
 
-const urls = ['', ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `models/${d.id}/`)];
+const urls = ['', ...(dates['article/'] ? ['article/'] : []), ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `models/${d.id}/`)];
 write(
   'public/sitemap.xml',
   `<?xml version="1.0" encoding="UTF-8"?>
