@@ -1,5 +1,6 @@
 import type { LiveEdit } from './live-edit';
 import type { PrintLook } from './models/snippet-utils';
+import { isHeld } from './hold-hover';
 
 /** What the stage looks like right now (dark or light, dots or not), so the print matches it. */
 function lookOf(stage: HTMLElement | null): PrintLook | undefined {
@@ -37,6 +38,6 @@ export function printModel(live: LiveEdit, stage?: HTMLElement | null): void {
       win.print();
     }, 500);
   });
-  frame.srcdoc = live.printDoc(lookOf(stage ?? null));
+  frame.srcdoc = live.printDoc(lookOf(stage ?? null), isHeld(stage ?? null));
   document.body.append(frame);
 }

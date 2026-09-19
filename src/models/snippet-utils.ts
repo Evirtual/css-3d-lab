@@ -75,7 +75,10 @@ export interface PrintLook {
   dots?: { image: string; size: string };
 }
 
-export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: PrintLook = { bg: '#0b0d18', light: false }): string {
+export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: PrintLook = { bg: '#0b0d18', light: false }, held = false): string {
+  // held ("Hold hover" on the stage): every :hover rule applies, as if the pointer were on it.
+  // :not(.c3d-none) always matches and weighs the same as :hover, so the cascade is unchanged.
+  const css = held ? s.css.replace(/:hover/g, ':not(.c3d-none)') : s.css;
   const ink = look.light ? '#14172b' : '#eceefb';
   const backdrop = look.dots ? `${look.dots.image} 0 0 / ${look.dots.size}, ${look.bg}` : look.bg;
   return `<!doctype html>
@@ -148,7 +151,7 @@ body {
   }
 }
 
-${s.css}
+${css}
 </style>
 </head>
 <body>

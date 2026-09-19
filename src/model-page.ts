@@ -16,6 +16,7 @@ import { initTint } from './tint';
 import { trackDownloads } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 import { printModel } from './print';
+import './hold-hover';
 import { sizeScene } from './models/size';
 
 /**
@@ -154,6 +155,8 @@ if (stage && demo && box) {
     }
   });
 
+  // "Hold hover" only where the model reacts to hover
+  stage.closest('.stage-wrap')?.toggleAttribute('data-hoverable', live.current.css.includes(':hover'));
   box.dataset.enhanced = ''; // CSS switches from "stacked with labels" to "tabbed"
   initTint();
   initZoom();

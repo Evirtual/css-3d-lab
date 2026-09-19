@@ -2148,6 +2148,62 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   right: 52px;
 }
 
+// "Hold hover" (hold-hover.ts): top left, only on models that react to hover
+.stage__hold {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  display: none;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  color: var(--text);
+  font: 600 12px/1 var(--font-ui, system-ui);
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.2s, border-color 0.2s;
+
+  .stage-wrap[data-hoverable] & {
+    display: flex;
+  }
+
+  &:hover,
+  &:focus-visible,
+  &[aria-pressed='true'] {
+    border-color: var(--accent-2);
+    opacity: 1;
+  }
+}
+
+// the check box
+.stage__tick {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+
+  [aria-pressed='true'] > & {
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--accent), var(--hot, var(--accent-2)));
+
+    &::after {
+      content: '';
+      width: 7px;
+      height: 4px;
+      border: solid #fff;
+      border-width: 0 0 2px 2px;
+      transform: translateY(-1px) rotate(-45deg);
+    }
+  }
+}
+
 .stage__edited {
   position: absolute;
   bottom: 10px;

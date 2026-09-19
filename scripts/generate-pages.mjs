@@ -275,6 +275,7 @@ function demoPage(d, index) {
             </div>
             <button type="button" class="stage__mode" data-stage-theme aria-label="Switch this preview to light"></button>
             <div class="stage__zoom" role="group" aria-label="Background dot size"><button type="button" data-dots="0" data-dots-scope="stage" aria-pressed="false" title="No background dots">Off</button><button type="button" data-dots="1" data-dots-scope="stage" aria-pressed="false" title="Background dots 1×">1×</button><button type="button" data-dots="2" data-dots-scope="stage" aria-pressed="true" title="Background dots 2×">2×</button><button type="button" data-dots="3" data-dots-scope="stage" aria-pressed="false" title="Background dots 3×">3×</button></div>
+            <button type="button" class="stage__hold" data-hold-hover aria-pressed="false" title="Keep the hover look without the mouse (it prints like this too)"><span class="stage__tick" aria-hidden="true"></span>Hold hover</button>
             <button type="button" class="stage__fs" data-fullscreen aria-label="Full screen"></button>
             <p class="stage__edited" data-edited hidden>Your edited version <button type="button" class="link" data-reset>Reset to original</button></p>
           </div>

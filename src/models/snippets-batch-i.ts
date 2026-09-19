@@ -51,6 +51,7 @@ export const snippetsI: Record<string, Snippet> = {
   --open: -96deg;  /* cover angle: half open */
   --view: 40deg;   /* how far round we look at the card */
   --x0: 14px;      /* where the two heart halves meet (see below) */
+  --pop: 0;        /* the heart: hidden while the card is closed */
   display: grid;
   place-items: center;
   width: 210px;
@@ -65,6 +66,7 @@ export const snippetsI: Record<string, Snippet> = {
   --open: -166deg; /* almost flat, so it still stands */
   --view: 24deg;   /* the card turns to face you as it opens */
   --x0: 2px;
+  --pop: 1;
 }
 
 /* the card's left edge is the spine: move it to the middle, look from above and the left */
@@ -154,7 +156,8 @@ export const snippetsI: Record<string, Snippet> = {
   /* the right half of a heart: its middle line is the left edge */
   clip-path: path('M0 9 C 3 3 7 0 12 0 C 21 0 28 6 28 16 C 28 28 16 38 0 48 Z');
   transform: translate3d(var(--x0), 0, 16px);
-  transition: transform 0.9s cubic-bezier(0.3, 1.15, 0.45, 1);
+  opacity: var(--pop); /* fades in as it rises; behind the closed cover it is never meant to show */
+  transition: transform 0.9s cubic-bezier(0.3, 1.15, 0.45, 1), opacity 0.35s;
 }
 
 /* the left half rides on the cover's inside, turned round to face the right half

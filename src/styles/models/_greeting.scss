@@ -11,6 +11,7 @@ $lift: 16px; // how far the pop-up layer floats in front of the pages
   --open: #{$rest};
   --view: 40deg; // how far round we look at the card
   --x0: 14px;
+  --pop: 0; // the heart: hidden while the card is closed (see &__pop)
   display: grid;
   place-items: center;
   width: 210px;
@@ -24,6 +25,7 @@ $lift: 16px; // how far the pop-up layer floats in front of the pages
     --open: #{$open};
     --view: 24deg; // the card turns to face you as it opens
     --x0: 2px;
+    --pop: 1;
   }
 
   // The card's left edge is the spine. Move the spine to the middle, then look at the card from
@@ -131,7 +133,10 @@ $lift: 16px; // how far the pop-up layer floats in front of the pages
     // the right half of a heart: its middle line is the left edge, on the inner fold
     clip-path: path('M0 9 C 3 3 7 0 12 0 C 21 0 28 6 28 16 C 28 28 16 38 0 48 Z');
     transform: translate3d(var(--x0), 0, $lift);
-    transition: transform $ease;
+    // Hidden while closed, fading in as it rises: behind the cover it is never meant to be seen,
+    // and a print (which does not sort depth like the screen) would otherwise show it through.
+    opacity: var(--pop);
+    transition: transform $ease, opacity 0.35s;
 
     // the left half rides on the cover, on its inside, and is turned round to face the right half
     // (turning it round mirrors it, so its middle line is drawn on its right edge)
