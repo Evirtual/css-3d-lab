@@ -58,15 +58,19 @@ $r: 6px; // corner radius
   // Four rounded slabs, 1px apart, fill the rounded corners of the edge...
   &__slab {
     position: absolute;
-    inset: 1.5px; // tucked inside the walls: only the rounded corners show them (no dashed seam)
+    inset: 0.5px; // at rest the slabs alone draw the edge: they face you, so it stays one clean line
     border-radius: $r;
     background: var(--edge);
     transform: translateZ(calc((var(--i) - 1.5) * 1px));
   }
 
   // ...and four flat walls give the straight part of the edge a clean, lit surface.
+  // Side-on, the slabs would read as separate lines, so the walls take over for that moment. At
+  // rest they are hidden: a thin wall turned side-on is squeezed to a pixel or two and breaks into
+  // dashes (it fades in only as the flip nears side-on, --d-bc-flip near 0.5).
   &__wall {
     position: absolute;
+    opacity: clamp(0, 1 - pow(var(--d-bc-flip) - 0.5, 2) * 40, 1);
     background: linear-gradient(90deg, color-mix(in srgb, var(--edge) 70%, #000), var(--edge) 50%, color-mix(in srgb, var(--edge) 70%, #fff));
 
     &--t,

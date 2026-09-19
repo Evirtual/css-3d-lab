@@ -594,15 +594,17 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 /* 4px thick: four rounded slabs fill the corners of the edge... */
 .slab {
   position: absolute;
-  inset: 1.5px; /* tucked inside the walls: only the corners show them */
+  inset: 0.5px; /* at rest the slabs draw the edge: they face you, so it stays one clean line */
   border-radius: 6px;
   background: var(--edge);
   transform: translateZ(calc((var(--i) - 1.5) * 1px));
 }
 
 /* ...four walls give the straight parts a lit surface (inset by the 6px radius) */
+/* the walls only show near side-on (mid-flip); at rest a thin wall seen side-on breaks into dashes */
 .wall {
   position: absolute;
+  opacity: clamp(0, 1 - pow(var(--flip) - 0.5, 2) * 40, 1);
   background: linear-gradient(90deg, #b3366e, var(--edge) 50%, #ff82ba);
 }
 
