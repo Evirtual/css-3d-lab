@@ -40,6 +40,10 @@ $d: 72px; // depth
   &__f {
     position: absolute;
     border: 1px solid color-mix(in srgb, var(--c) 55%, #fff);
+    // A turned layer's outer edge is drawn without smoothing, so the light border stair-stepped
+    // along the silhouette. A transparent pixel outside it makes that hard edge invisible, and
+    // the border is smoothed like the rest of the face.
+    outline: 1px solid transparent;
     // woven fabric: a fine dot grid over a vertical light falloff
     background:
       radial-gradient(rgb(0 0 0 / 0.22) 0.7px, transparent 1.2px) 0 0 / 4px 4px,

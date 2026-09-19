@@ -1326,6 +1326,9 @@ setInterval(tick, 1000);`,
   position: absolute;
   box-sizing: border-box;
   border: 1px solid color-mix(in srgb, var(--c) 55%, #fff);
+  /* a transparent pixel outside the border: the turned face's hard outer edge stays invisible,
+     so the light edge line is smoothed instead of stair-stepping */
+  outline: 1px solid transparent;
   /* woven fabric: a fine dot grid over a light falloff */
   background:
     radial-gradient(rgb(0 0 0 / 0.22) 0.7px, transparent 1.2px) 0 0 / 4px 4px,
