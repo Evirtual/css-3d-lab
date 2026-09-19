@@ -31,8 +31,9 @@ $height: 136px;
     transform-style: preserve-3d;
     transform: translateY(calc(var(--i) * #{-$rise})) rotateY(calc(var(--i) * #{$turn})) rotateX(90deg);
 
-    // riser: a strip hinged on the tread's near edge, folded straight down
-    &::before {
+    // the two long sides: strips hinged on the tread's edges, folded straight down
+    &::before,
+    &::after {
       content: '';
       position: absolute;
       left: 0;
@@ -42,6 +43,10 @@ $height: 136px;
       background: color-mix(in srgb, var(--c) 40%, var(--bg));
       transform-origin: top;
       transform: rotateX(-90deg);
+    }
+
+    &::after {
+      top: 0; // the far side
     }
   }
 

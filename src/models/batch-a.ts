@@ -110,7 +110,7 @@ export const demosA: Demo[] = [
       'Every tread is the same flat slab pivoting on the pole. One index turns it 30° further and lifts it one step higher: that is the whole spiral.',
     category: 'css',
     tags: ['loop', 'shape', 'sass-loop'],
-    technique: ['transform-origin on the pole axis', 'translateY + rotateY from one --i', 'riser as a folded ::before', 'crossed planes as a round pole'],
+    technique: ['transform-origin on the pole axis', 'translateY + rotateY from one --i', 'both sides as folded ::before and ::after', 'crossed planes as a round pole'],
     html: `<div class="d-stairs"><b></b><b></b>${rep(14, () => '<i></i>')}</div>`,
   },
   {

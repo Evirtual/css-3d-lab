@@ -13,6 +13,7 @@ import { dotsHtml, initTint, modeHtml } from './tint';
 import { initGroupLists } from './group-list';
 import { initHero, initShapes } from './hero';
 import { initStickyBars } from './sticky-bars';
+import { printModel } from './print';
 import { trackDownloads, videoButton } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
@@ -511,8 +512,7 @@ function openViewer(id: string): void {
     if (act?.dataset.act === 'share') return openShareMenu(id, demo.title);
     if (act?.dataset.act === 'print') {
       track(`print/${id}`);
-      // the current code (edited or not) on an A4 page that opens the print dialog; "Save as PDF" is in there
-      window.open(URL.createObjectURL(new Blob([live.printDoc()], { type: 'text/html' })), '_blank', 'noopener');
+      printModel(live); // the print dialog, right here; "Save as PDF" is in there
       return;
     }
     if (act?.dataset.act === 'newtab') {

@@ -61,12 +61,13 @@ ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
 
 /**
  * A print-ready page for a snippet (the site's code or the visitor's edited version): an A4
- * landscape sheet with the model fitted large in the middle, its title above and the address
- * below, which opens the print dialog by itself ("Save as PDF" is one of the printers). The dark
+ * landscape sheet with nothing but the model, fitted large in the middle, and a small faint
+ * signature in the corner (it is meant to be printed as a picture). print.ts prints it from a hidden frame, so the dialog
+ * opens over the page you are on ("Save as PDF" is one of the printers). The dark
  * background is kept on paper (print-color-adjust: exact), and animations freeze on the frame
- * that is printed. `size` is the model's size factor on the site (models/sizes.json).
+ * that is printed. `_size` (the site size factor) is no longer used: every model prints at one size.
  */
-export function printDoc(title: string, s: Snippet, size = 1, url = ''): string {
+export function printDoc(title: string, s: Snippet, _size = 1, url = ''): string {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -93,27 +94,13 @@ body {
 body {
   box-sizing: border-box;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
   margin: 0;
-  padding: 12mm 14mm 9mm;
+  padding: 12mm;
   overflow: hidden;
   background: #0b0d18;
   color: #eceefb;
   font-family: system-ui, sans-serif;
-}
-
-.print-head h1 {
-  margin: 0;
-  font-size: 24pt;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-}
-
-.print-head p,
-.print-foot {
-  margin: 3pt 0 0;
-  color: #949bc0;
-  font-size: 9.5pt;
 }
 
 .print-art {
@@ -129,9 +116,16 @@ body {
   place-items: center;
 }
 
-.print-foot {
-  display: flex;
-  justify-content: space-between;
+/* the only text on the sheet: a small, faint mark in the corner, like an artist's signature */
+.print-sign {
+  position: fixed;
+  right: 12mm;
+  bottom: 9mm;
+  color: #eceefb;
+  font: 600 7pt/1 system-ui, sans-serif;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0.4;
 }
 
 @media print {
@@ -146,30 +140,42 @@ ${s.css}
 </style>
 </head>
 <body>
-<header class="print-head"><h1>${title}</h1><p>A 3D model made with CSS, live with its code at ${url}</p></header>
 <main class="print-art"><div class="print-model">
 ${s.html}
 </div></main>
-<footer class="print-foot"><span>CSS 3D Lab</span><span>${url}</span></footer>
+<span class="print-sign" title="${url}">CSS 3D Lab</span>
 ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
 <script>
-// Fit the model to the space it has: measure it at its own size, then zoom it up to fill 85% of
-// the room between the title and the footer (at most ${3 * size}x). Again just before printing,
-// because the printed page is a different size from the window.
+// Every model prints the same size: measure what is actually drawn (the union of every visible
+// part, 3D turns included), zoom that to 78% of the sheet, then move it to the exact middle.
+// Again just before printing, because the printed page is a different size from the window.
+function drawn(root) {
+  var r = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
+  root.querySelectorAll('*').forEach(function (el) {
+    if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return;
+    var b = el.getBoundingClientRect();
+    if (!b.width || !b.height) return;
+    r.l = Math.min(r.l, b.left); r.t = Math.min(r.t, b.top);
+    r.r = Math.max(r.r, b.right); r.b = Math.max(r.b, b.bottom);
+  });
+  return r.l < Infinity ? r : root.getBoundingClientRect();
+}
 function fitPrint() {
   var art = document.querySelector('.print-art');
   var model = document.querySelector('.print-model');
   model.style.zoom = 1;
+  model.style.translate = '0 0';
   var a = art.getBoundingClientRect();
-  var m = model.getBoundingClientRect();
-  var z = Math.min((a.width * 0.85) / m.width, (a.height * 0.85) / m.height, ${3 * size});
+  var d = drawn(model);
+  var z = Math.min((a.width * 0.78) / (d.r - d.l), (a.height * 0.78) / (d.b - d.t), 12);
   model.style.zoom = z.toFixed(3);
+  d = drawn(model);
+  var dx = (a.left + a.width / 2 - (d.l + d.r) / 2) / z;
+  var dy = (a.top + a.height / 2 - (d.t + d.b) / 2) / z;
+  model.style.translate = dx.toFixed(1) + 'px ' + dy.toFixed(1) + 'px';
 }
 addEventListener('beforeprint', fitPrint);
-addEventListener('load', function () {
-  fitPrint();
-  setTimeout(function () { print(); }, 800);
-});
+addEventListener('load', fitPrint);
 </script>
 </body>
 </html>`;

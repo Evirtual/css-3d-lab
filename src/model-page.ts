@@ -17,6 +17,7 @@ import { shortHint } from './short-hint';
 import { initTint } from './tint';
 import { trackDownloads } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
+import { printModel } from './print';
 import { sizeScene } from './models/size';
 
 /**
@@ -146,8 +147,7 @@ if (stage && demo && box) {
       window.open(URL.createObjectURL(new Blob([live.doc()], { type: 'text/html' })), '_blank', 'noopener');
     } else if ('print' in btn.dataset) {
       track(`print/${demo.id}`);
-      // the current code (edited or not) on an A4 page that opens the print dialog ("Save as PDF")
-      window.open(URL.createObjectURL(new Blob([live.printDoc()], { type: 'text/html' })), '_blank', 'noopener');
+      printModel(live); // the print dialog, right here ("Save as PDF" is in there)
     } else if ('copyFile' in btn.dataset) {
       if (await copyText(btn, live.doc())) track(`copy/${demo.id}/file`);
     } else if ('shareLink' in btn.dataset) openShareMenu(demo.id, demo.title);

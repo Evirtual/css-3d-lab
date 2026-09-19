@@ -359,7 +359,7 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
       'Every tread is the same flat slab: a rectangle laid down with <code>rotateX(90deg)</code>.',
       'The trick is <code>transform-origin: -5px 50%</code>, a point 5px to the left of the slab, which is where the pole\'s axis is. Every rotation now pivots around the pole.',
       'One index does the rest: <code>rotateY(i × 30deg)</code> turns the tread around the pole, <code>translateY(i × -8px)</code> lifts it one step. Turn + lift = spiral.',
-      'The riser is a <code>::before</code> hinged on the tread\'s edge and folded straight down. The pole is two crossed planes, which read as a round post from any angle.',
+      'The two sides are a <code>::before</code> and an <code>::after</code> hinged on the tread\'s long edges and folded straight down. The pole is two crossed planes, which read as a round post from any angle.',
     ],
     html: `<div class="scene">
   <div class="stairs">
@@ -398,8 +398,9 @@ ${lines(14, (i) => `    <i style="--i:${i}"></i>`)}
     rotateX(90deg);                     /* lie flat */
 }
 
-/* riser: hinged on the tread's edge, folded straight down by one step */
-.stairs i::before {
+/* the tread's two long sides: strips hinged on its edges, folded straight down by one step */
+.stairs i::before,
+.stairs i::after {
   content: '';
   position: absolute;
   left: 0;
@@ -409,6 +410,10 @@ ${lines(14, (i) => `    <i style="--i:${i}"></i>`)}
   background: hsl(var(--hue) 45% 28%);
   transform-origin: top;
   transform: rotateX(-90deg);
+}
+
+.stairs i::after {
+  top: 0; /* the far side */
 }
 
 /* pole: two crossed planes */
