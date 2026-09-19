@@ -63,11 +63,21 @@ ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
  * A print-ready page for a snippet (the site's code or the visitor's edited version): an A4
  * landscape sheet with nothing but the model, fitted large in the middle, and a small faint
  * signature in the corner (it is meant to be printed as a picture). print.ts prints it from a hidden frame, so the dialog
- * opens over the page you are on ("Save as PDF" is one of the printers). The dark
- * background is kept on paper (print-color-adjust: exact), and animations freeze on the frame
+ * opens over the page you are on ("Save as PDF" is one of the printers). The backdrop is
+ * the one on the stage (`look`: its colour, light or dark, and its dots if shown), kept on paper
+ * (print-color-adjust: exact), and animations freeze on the frame
  * that is printed. `_size` (the site size factor) is no longer used: every model prints at one size.
  */
-export function printDoc(title: string, s: Snippet, _size = 1, url = ''): string {
+/** The backdrop a print is made on: the stage's own colour and, when it shows them, its dots. */
+export interface PrintLook {
+  bg: string;
+  light: boolean;
+  dots?: { image: string; size: string };
+}
+
+export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: PrintLook = { bg: '#0b0d18', light: false }): string {
+  const ink = look.light ? '#14172b' : '#eceefb';
+  const backdrop = look.dots ? `${look.dots.image} 0 0 / ${look.dots.size}, ${look.bg}` : look.bg;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -80,7 +90,7 @@ export function printDoc(title: string, s: Snippet, _size = 1, url = ''): string
 }
 
 html {
-  background: #0b0d18;
+  background: ${backdrop};
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
@@ -100,8 +110,8 @@ body {
   margin: 0 !important;
   padding: 12mm !important;
   overflow: hidden !important;
-  background: #0b0d18;
-  color: #eceefb;
+  background: transparent;
+  color: ${ink};
   font-family: system-ui, sans-serif;
 }
 
@@ -123,7 +133,7 @@ body {
   position: fixed;
   right: 12mm;
   bottom: 9mm;
-  color: #eceefb;
+  color: ${ink};
   font: 600 7pt/1 system-ui, sans-serif;
   letter-spacing: 0.32em;
   text-transform: uppercase;

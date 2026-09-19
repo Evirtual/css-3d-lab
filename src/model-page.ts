@@ -147,7 +147,7 @@ if (stage && demo && box) {
       window.open(URL.createObjectURL(new Blob([live.doc()], { type: 'text/html' })), '_blank', 'noopener');
     } else if ('print' in btn.dataset) {
       track(`print/${demo.id}`);
-      printModel(live); // the print dialog, right here ("Save as PDF" is in there)
+      printModel(live, stage); // the print dialog, right here ("Save as PDF" is in there)
     } else if ('copyFile' in btn.dataset) {
       if (await copyText(btn, live.doc())) track(`copy/${demo.id}/file`);
     } else if ('shareLink' in btn.dataset) openShareMenu(demo.id, demo.title);

@@ -512,7 +512,7 @@ function openViewer(id: string): void {
     if (act?.dataset.act === 'share') return openShareMenu(id, demo.title);
     if (act?.dataset.act === 'print') {
       track(`print/${id}`);
-      printModel(live); // the print dialog, right here; "Save as PDF" is in there
+      printModel(live, stageEl); // the print dialog, right here; "Save as PDF" is in there
       return;
     }
     if (act?.dataset.act === 'newtab') {

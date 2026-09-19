@@ -1,4 +1,19 @@
 import type { LiveEdit } from './live-edit';
+import type { PrintLook } from './models/snippet-utils';
+
+/** What the stage looks like right now (dark or light, dots or not), so the print matches it. */
+function lookOf(stage: HTMLElement | null): PrintLook | undefined {
+  if (!stage) return undefined;
+  const cs = getComputedStyle(stage);
+  const bg = /rgba(.*, 0)|transparent/.test(cs.backgroundColor) ? '#0b0d18' : cs.backgroundColor;
+  const rgb = bg.match(/[d.]+/g)?.map(Number) ?? [11, 13, 24];
+  const light = bg.startsWith('#') ? false : 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 140;
+  const dotLayer = getComputedStyle(stage, '::before');
+  const dots = dotLayer.display !== 'none' && dotLayer.backgroundImage.includes('gradient')
+    ? { image: dotLayer.backgroundImage, size: dotLayer.backgroundSize }
+    : undefined;
+  return { bg, light, dots };
+}
 
 /**
  * "Print / PDF": the print dialog opens right over the page you are on ("Save as PDF" is one of
@@ -6,7 +21,7 @@ import type { LiveEdit } from './live-edit';
  * landscape page) is laid out in a hidden same-origin frame of that size, printed from there, and
  * the frame is removed afterwards.
  */
-export function printModel(live: LiveEdit): void {
+export function printModel(live: LiveEdit, stage?: HTMLElement | null): void {
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
   frame.tabIndex = -1;
@@ -22,6 +37,6 @@ export function printModel(live: LiveEdit): void {
       win.print();
     }, 500);
   });
-  frame.srcdoc = live.printDoc();
+  frame.srcdoc = live.printDoc(lookOf(stage ?? null));
   document.body.append(frame);
 }
