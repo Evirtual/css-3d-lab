@@ -1,6 +1,4 @@
 import './styles/main.scss';
-// AA-TEST (temporary): ?aa gives every 3D face a transparent outline, to compare edge smoothing
-if (new URLSearchParams(location.search).has('aa')) document.documentElement.classList.add('aa-test');
 import { initAnalytics, track } from './analytics';
 import { initChrome } from './chrome';
 import { createEditor } from './editor';

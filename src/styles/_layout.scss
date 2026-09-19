@@ -2582,10 +2582,3 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
-
-// AA-TEST (temporary, see main.ts): a transparent 1px outline around every element in a scene
-// keeps the hard edge of each turned layer invisible, so the visible edge is smoothed. Zero
-// specificity, so any model's own outline rule still wins.
-:where(.aa-test .scene *) {
-  outline: 1px solid transparent;
-}
