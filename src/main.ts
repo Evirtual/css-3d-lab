@@ -373,7 +373,7 @@ function openViewer(id: string): void {
     { key: 'html', label: 'HTML', lang: 'html' },
     { key: 'css', label: 'CSS', lang: 'css' },
     ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js' as Lang }] : []),
-    { key: 'scss', label: 'Sass source', lang: 'scss', code: scssFor(id) },
+    { key: 'scss', label: 'Sass<span class="codebox__more"> source</span>', lang: 'scss', code: scssFor(id) },
   ];
   const isPart = (key: string): key is Part => key === 'html' || key === 'css' || key === 'js';
   const lineCount = (code: string) => code.trimEnd().split('\n').length;
