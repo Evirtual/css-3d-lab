@@ -62,6 +62,7 @@ $height: 136px;
     s:nth-child(7) { --x: 58; --y: 22; --l: 3.11; --a: 105; }
     s:nth-child(8) { --x: 57.2; --y: 25; --l: 3.11; --a: 135; }
     s:nth-child(9) { --x: 55; --y: 27.2; --l: 3.11; --a: 165; }
+    s:nth-child(10) { --x: 0; --y: 0; --l: 28; --a: 90; } // the inner end, at the pole
   }
 
   @for $i from 0 to $n {

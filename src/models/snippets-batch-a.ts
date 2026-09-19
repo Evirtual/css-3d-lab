@@ -359,13 +359,13 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
       'Every tread is the same flat slab: a rectangle laid down with <code>rotateX(90deg)</code>.',
       'The trick is <code>transform-origin: -5px 50%</code>, a point 5px to the left of the slab, which is where the pole\'s axis is. Every rotation now pivots around the pole.',
       'One index does the rest: <code>rotateY(i × 30deg)</code> turns the tread around the pole, <code>translateY(i × -8px)</code> lifts it one step. Turn + lift = spiral.',
-      'The sides are nine thin strips round the tread\'s edge, each folded straight down by one step: the two long sides, the outer end, and three short facets on each rounded corner, so the side follows the curve. The pole is two crossed planes, which read as a round post from any angle.',
+      'The sides are ten thin strips round the tread\'s edge, each folded straight down by one step: the two long sides, both ends, and three short facets on each rounded corner, so the side follows the curve. The pole is two crossed planes, which read as a round post from any angle.',
     ],
     html: `<div class="scene">
   <div class="stairs">
     <b></b>
     <b></b>
-${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(9)}</i>`)}
+${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
   </div>
 </div>`,
     css: `.scene {
@@ -424,6 +424,7 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(9)}</i>`)}
 .stairs s:nth-child(7) { --x: 58; --y: 22; --l: 3.11; --a: 105; }
 .stairs s:nth-child(8) { --x: 57.2; --y: 25; --l: 3.11; --a: 135; }
 .stairs s:nth-child(9) { --x: 55; --y: 27.2; --l: 3.11; --a: 165; }
+.stairs s:nth-child(10) { --x: 0; --y: 0; --l: 28; --a: 90; } /* the inner end, at the pole */
 
 /* pole: two crossed planes */
 .stairs b {

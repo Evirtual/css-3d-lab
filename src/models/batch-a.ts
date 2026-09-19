@@ -111,7 +111,7 @@ export const demosA: Demo[] = [
     category: 'css',
     tags: ['loop', 'shape', 'sass-loop'],
     technique: ['transform-origin on the pole axis', 'translateY + rotateY from one --i', 'sides as strips round the edge, corners as facets', 'crossed planes as a round pole'],
-    html: `<div class="d-stairs"><b></b><b></b>${rep(14, () => `<i>${'<s></s>'.repeat(9)}</i>`)}</div>`,
+    html: `<div class="d-stairs"><b></b><b></b>${rep(14, () => `<i>${'<s></s>'.repeat(10)}</i>`)}</div>`,
   },
   {
     id: 'rubik',
