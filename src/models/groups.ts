@@ -26,7 +26,7 @@ const MEMBERS: Record<Group, string[]> = {
   cards: ['flip', 'carousel', 'coverflow', 'boxslider', 'cardstack', 'cardfan', 'book', 'hovercards', 'flipgrid', 'accordion', 'swipe', 'polaroid', 'cubenav', 'pricing', 'greeting', 'tiltgallery', 'bookshelf'],
   loaders: ['flipper', 'gyro', 'helix', 'tiles', 'wavegrid', 'ripple', 'cubeloader', 'rings', 'equalizer', 'dotorbit', 'blockstack'],
   scenes: ['grid', 'tunnel', 'starfield', 'parallax', 'door', 'laptop', 'sign', 'fold', 'isotiles', 'confetti', 'solar', 'city', 'room', 'ferris', 'island', 'road', 'snow', 'map', 'windmill', 'rocket', 'lighthouse'],
-  data: ['bars', 'clock', 'playground', 'pie', 'scatter', 'gauge', 'timeline'],
+  data: ['bars', 'clock', 'playground', 'pie', 'scatter', 'gauge', 'timeline', 'neonbars', 'heatmap', 'chartpanel'],
 };
 
 const GROUP_OF = new Map<string, Group>();

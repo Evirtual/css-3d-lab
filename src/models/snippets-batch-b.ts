@@ -1347,6 +1347,17 @@ setInterval(tick, 1000);`,
   transform: translateZ(36px); /* depth / 2 */
 }
 
+/* faces seen at a steep angle get no hard edge line (squeezed thin, a 1px line breaks into
+   dashes); a soft inner shade marks their edges instead */
+.back,
+.left,
+.right,
+.top,
+.bottom {
+  border-color: transparent;
+  box-shadow: inset 0 0 7px rgb(0 0 0 / 0.28);
+}
+
 .back {
   background:
     radial-gradient(circle at 50% 72%, #05060c 0 9px, color-mix(in srgb, var(--c) 40%, #05060c) 10px 12px, transparent 12.5px),

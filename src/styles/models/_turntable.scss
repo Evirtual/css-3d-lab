@@ -63,6 +63,18 @@ $d: 72px; // depth
       transform: translateZ($d * 0.5);
     }
 
+    // Faces seen at a steep angle (back, sides, top, bottom) have no hard edge line: squeezed to a
+    // narrow strip, a 1px line is sampled unevenly and breaks into dashes. A soft inner shade
+    // marks their edges instead; only the front, which you face, keeps the crisp line.
+    &--back,
+    &--left,
+    &--right,
+    &--top,
+    &--bottom {
+      border-color: transparent;
+      box-shadow: inset 0 0 7px rgb(0 0 0 / 0.28);
+    }
+
     &--back {
       background:
         radial-gradient(circle at 50% 72%, #05060c 0 9px, color-mix(in srgb, var(--c) 40%, #05060c) 10px 12px, transparent 12.5px),

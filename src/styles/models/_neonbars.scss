@@ -1,0 +1,227 @@
+// A bar chart drawn from JSON. JS writes one number per bar, --v: its value divided by the top of
+// the scale (0–1). Each bar is a full-height box whose walls are squashed with scaleY(--v) and
+// whose lid rides down by (1 − --v) of the height, so a new dataset is only a transition on
+// transform: no layout, and every bar starts a little after the one before (--i).
+$w: 19px; // bar width, and depth
+$gap: 10px;
+$h: 100px; // the top of the scale
+$floor: 52px; // the floor's depth, front to back
+$n: 6;
+$span: $w * $n + $gap * ($n - 1);
+$ease: cubic-bezier(0.3, 1.3, 0.5, 1); // past 1: a bar overshoots and settles
+
+.d-neonbars {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 14px; // the control dock: the same place in every model with controls
+  // The chart is turned, so its left bars sit behind the plane of the flat boxes around it (this
+  // one and the view), which would catch the pointer first: only the bars and the dock take it.
+  pointer-events: none;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    pointer-events: none;
+  }
+
+  &__chart {
+    position: relative;
+    width: $span;
+    height: $h;
+    transform-style: preserve-3d;
+    transform: rotateX(-18deg) rotateY(-28deg);
+  }
+
+  // the floor: a neon grid laid flat along the bottom of the bars
+  &__floor {
+    position: absolute;
+    left: -12px;
+    top: $h - $floor * 0.5;
+    width: $span + 24px;
+    height: $floor;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    border-radius: 6px;
+    background:
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 24%, transparent) 0 1px, transparent 1px 17px),
+      repeating-linear-gradient(color-mix(in srgb, var(--accent) 24%, transparent) 0 1px, transparent 1px 17px),
+      color-mix(in srgb, var(--accent) 10%, transparent);
+    transform: rotateX(90deg);
+  }
+
+  // the scale: lines at 0, half and the top, on a wall along the back edge of the floor. Its
+  // numbers are at the right end, which reaches out past the last bar (the left end is hidden
+  // behind the first one).
+  &__wall {
+    position: absolute;
+    top: 0;
+    left: -12px;
+    width: $span + 24px;
+    height: $h;
+    transform: translateZ($floor * -0.5);
+
+    b {
+      position: absolute;
+      right: 0;
+      bottom: calc(var(--t) * 100%);
+      left: 0;
+      height: 1px;
+      background: color-mix(in srgb, var(--text) 26%, transparent);
+    }
+
+    span {
+      position: absolute;
+      top: -6px;
+      left: 100%;
+      padding-left: 6px;
+      color: var(--muted);
+      font: 700 9px/12px system-ui, sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &__bars {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: $gap;
+    transform-style: preserve-3d;
+  }
+
+  &__bar {
+    // violet → teal along the row; the tallest bar of the dataset turns pink
+    --c: color-mix(in srgb, var(--accent), var(--accent-2) calc(var(--i) * 20%));
+    position: relative;
+    flex: none;
+    width: $w;
+    height: 100%;
+    outline: none;
+    transform-style: preserve-3d;
+    pointer-events: auto;
+    cursor: pointer;
+
+    &.is-peak {
+      --c: var(--hot);
+    }
+
+    // dark faces with a bright edge and a glow: the neon look
+    i {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: $w;
+      height: 100%;
+      border: 1px solid color-mix(in srgb, var(--c) 85%, #fff);
+      background: color-mix(in srgb, var(--c) 36%, var(--surface-solid));
+      box-shadow:
+        inset 0 0 10px color-mix(in srgb, var(--c) 55%, transparent),
+        0 0 12px color-mix(in srgb, var(--c) 35%, transparent);
+      transform-origin: bottom center;
+      transition: transform 0.8s $ease calc(var(--i) * 60ms);
+    }
+
+    // front
+    i:nth-child(1) {
+      transform: translateZ($w * 0.5) scaleY(var(--v));
+    }
+
+    // right side, darker
+    i:nth-child(2) {
+      background: color-mix(in srgb, var(--c) 22%, var(--surface-solid));
+      transform: rotateY(90deg) translateZ($w * 0.5) scaleY(var(--v));
+    }
+
+    // the lid: a $w square laid flat, riding down with the value
+    i:nth-child(3) {
+      height: $w;
+      background: color-mix(in srgb, var(--c) 72%, var(--surface-solid));
+      transform-origin: center;
+      transform: translateY(calc((1 - var(--v)) * #{$h})) rotateX(90deg) translateZ($w * 0.5);
+    }
+
+    // The tooltip: rides on the lid (the same move and timing), shown while the bar is hovered,
+    // focused, or tapped (.is-tip, set by JS: a finger has no hover). The bar's own box is the
+    // whole column and never moves, so the empty space above a short bar counts too.
+    b {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      padding: 3px 7px;
+      border: 1px solid var(--c);
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--surface-solid) 88%, transparent);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--c) 45%, transparent);
+      color: var(--text);
+      font: 700 9px/12px system-ui, sans-serif;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, calc((1 - var(--v)) * #{$h} - 100% - 8px)) translateZ($w * 0.5);
+      transition:
+        transform 0.8s $ease calc(var(--i) * 60ms),
+        opacity 0.2s;
+    }
+
+    &:hover b,
+    &:focus-visible b,
+    &.is-tip b {
+      opacity: 1;
+    }
+
+    // the label, standing in front of the bar
+    span {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: -7px;
+      width: $w + 14px;
+      color: var(--muted);
+      font: 700 9px/12px system-ui, sans-serif;
+      text-align: center;
+      transform: translateZ($w * 0.5);
+    }
+  }
+
+  &__dock {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    font-size: 12px;
+    pointer-events: auto;
+
+    output {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  &__seg {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+
+    button {
+      padding: 4px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+
+      &[aria-pressed='true'] {
+        background: linear-gradient(135deg, var(--accent), var(--hot));
+        color: #fff;
+      }
+    }
+  }
+}

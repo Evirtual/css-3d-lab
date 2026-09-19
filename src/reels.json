@@ -47,6 +47,9 @@
   "carousel": {
     "bytes": 2765744
   },
+  "chartpanel": {
+    "bytes": 1115100
+  },
   "check": {
     "bytes": 399158
   },
@@ -158,6 +161,9 @@
   "headphones": {
     "bytes": 2153743
   },
+  "heatmap": {
+    "bytes": 1716104
+  },
   "helix": {
     "bytes": 2160486
   },
@@ -202,6 +208,9 @@
   },
   "map": {
     "bytes": 613970
+  },
+  "neonbars": {
+    "bytes": 273763
   },
   "net": {
     "bytes": 802888
@@ -351,7 +360,7 @@
     "bytes": 4585189
   },
   "turntable": {
-    "bytes": 1448446
+    "bytes": 1373856
   },
   "vinyl": {
     "bytes": 711492

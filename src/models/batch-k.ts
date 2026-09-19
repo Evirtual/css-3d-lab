@@ -1,0 +1,196 @@
+import { COMMITS, niceMax, SALES, TREND } from './chart-data';
+import type { Demo } from './types';
+
+/*
+ * Charts drawn from JSON. The data lives in chart-data.ts, shaped like an API response; JS turns
+ * it into numbers (custom properties, an SVG path) and CSS draws everything.
+ */
+
+// neonbars: the wall's lines sit at these fractions of the scale
+const TICKS = [0, 0.5, 1];
+const YEARS = Object.keys(SALES.years);
+
+/** One year of SALES as the chart needs it: the scale top, the peak, each bar's height 0–1. */
+const year = (y: string) => {
+  const rows = SALES.years[y];
+  const values = rows.map((r) => r.value);
+  const top = niceMax(Math.max(...values));
+  const peak = values.indexOf(Math.max(...values));
+  return { rows, top, peak, summary: `${y} · peak ${rows[peak].label}, ${rows[peak].value} ${SALES.unit}` };
+};
+/** A bar's tooltip, and its accessible name. */
+const tip = (r: { label: string; value: number }): string => `${r.label} · ${r.value} ${SALES.unit}`;
+
+// heatmap
+const CELL_MAX = Math.max(...COMMITS.weeks.flat());
+const cellText = (x: number, y: number): string =>
+  `${COMMITS.days[x]}, week ${y + 1}: ${COMMITS.weeks[y][x]} commits`;
+const commitSummary = (): string => {
+  const total = COMMITS.weeks.flat().reduce((a, b) => a + b, 0);
+  let best = [0, 0];
+  COMMITS.weeks.forEach((row, y) => row.forEach((v, x) => v > COMMITS.weeks[best[1]][best[0]] && (best = [x, y])));
+  return `${total} commits in ${COMMITS.weeks.length} weeks · busiest ${COMMITS.days[best[0]]}, week ${best[1] + 1}`;
+};
+
+// chartpanel: the panel is PW × PH px and the SVG's viewBox is the same, so one unit = one px
+const PW = 200;
+const PH = 110;
+const PAD = 12;
+
+/** Where each value of TREND lands on the panel, in px. */
+const trendPoints = (): [number, number][] => {
+  const { values } = TREND;
+  const lo = Math.min(...values);
+  const hi = Math.max(...values);
+  return values.map((v, i) => [
+    +(PAD + (i * (PW - 2 * PAD)) / (values.length - 1)).toFixed(1),
+    +(PH - PAD - ((v - lo) / (hi - lo)) * (PH - 2 * PAD - 14)).toFixed(1), // 14px headroom for the title
+  ]);
+};
+
+export const demosK: Demo[] = [
+  {
+    id: 'neonbars',
+    title: '3D bar chart from JSON',
+    description:
+      'Neon bars drawn from a JSON dataset: switch the year and each bar grows or shrinks to its new value, the scale on the back wall follows, and the peak lights up. Hover or tap a bar for its value. JS only turns the data into one number per bar.',
+    category: 'js',
+    tags: ['controls', 'data', 'chart', 'json'],
+    technique: ['JSON → --v per bar (value ÷ scale top)', 'scaleY walls + translateY lid, transitioned', 'staggered transition-delay: calc(var(--i) × 60ms)', 'dark faces, bright edge + inset glow: the neon look'],
+    fill: true,
+    html: (() => {
+      const { rows, top, peak, summary } = year(YEARS[0]);
+      return `<div class="d-neonbars">
+      <div class="d-neonbars__view"><div class="d-neonbars__chart">
+        <div class="d-neonbars__floor"></div>
+        <div class="d-neonbars__wall">${TICKS.map((t) => `<b style="--t:${t}"><span>${Math.round(t * top)}</span></b>`).join('')}</div>
+        <div class="d-neonbars__bars">${rows
+          .map(
+            (r, i) =>
+              `<div class="d-neonbars__bar${i === peak ? ' is-peak' : ''}" style="--i:${i};--v:${(r.value / top).toFixed(3)}" tabindex="0" aria-label="${tip(r)}"><i></i><i></i><i></i><span>${r.label}</span><b>${tip(r)}</b></div>`,
+          )
+          .join('')}</div>
+      </div></div>
+      <div class="d-neonbars__dock">
+        <output>${summary}</output>
+        <div class="d-neonbars__seg">${YEARS.map(
+          (y, i) => `<button type="button" data-year="${y}" aria-pressed="${i === 0}">${y}</button>`,
+        ).join('')}</div>
+      </div>
+    </div>`;
+    })(),
+    init(scene) {
+      const bars = [...scene.querySelectorAll<HTMLElement>('.d-neonbars__bar')];
+      const ticks = [...scene.querySelectorAll<HTMLElement>('.d-neonbars__wall span')];
+      const out = scene.querySelector<HTMLOutputElement>('.d-neonbars__dock output')!;
+      const seg = scene.querySelector<HTMLElement>('.d-neonbars__seg')!;
+      const buttons = [...seg.querySelectorAll<HTMLButtonElement>('button')];
+      // JS writes one number per bar; the growth, the stagger and the glow are CSS
+      const pick = (e: Event) => {
+        const btn = (e.target as HTMLElement).closest('button');
+        if (!btn) return;
+        const { rows, top, peak, summary } = year(btn.dataset.year!);
+        rows.forEach((r, i) => {
+          bars[i].style.setProperty('--v', (r.value / top).toFixed(3));
+          bars[i].classList.toggle('is-peak', i === peak);
+          bars[i].setAttribute('aria-label', tip(r));
+          bars[i].querySelector('b')!.textContent = tip(r);
+        });
+        ticks.forEach((t, k) => (t.textContent = String(Math.round(TICKS[k] * top))));
+        out.textContent = summary;
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      };
+      // a mouse shows a bar's tooltip on hover (CSS); a finger has no hover, so a tap pins it
+      const tap = (e: PointerEvent) => {
+        if (e.pointerType === 'mouse') return;
+        const bar = (e.target as HTMLElement).closest<HTMLElement>('.d-neonbars__bar');
+        bars.forEach((b) => b.classList.toggle('is-tip', b === bar));
+      };
+      seg.addEventListener('click', pick);
+      scene.addEventListener('pointerup', tap);
+      return () => {
+        seg.removeEventListener('click', pick);
+        scene.removeEventListener('pointerup', tap);
+      };
+    },
+  },
+  {
+    id: 'heatmap',
+    title: '3D heatmap from JSON',
+    description:
+      'A week-by-weekday grid of commits where every value is a block: taller and hotter the bigger it is. Hover or tap a block to read it. JSON sets one number per block; CSS turns it into a height and a colour.',
+    category: 'js',
+    tags: ['hover', 'data', 'chart', 'json', 'isometric'],
+    technique: ['JSON → --v per cell (value ÷ max)', 'roof translateZ(--v × 70px), walls as ::before / ::after', 'colour: color-mix(hot --v%, teal)', 'real <button> per cell, floor ignores the pointer'],
+    fill: true,
+    html: `<div class="d-heatmap">
+      <div class="d-heatmap__view"><div class="d-heatmap__world">
+        ${COMMITS.weeks
+          .map((row, y) =>
+            row
+              .map(
+                (v, x) =>
+                  `<button type="button" class="d-heatmap__cell" style="--x:${x};--y:${y};--v:${(v / CELL_MAX).toFixed(3)}" aria-label="${cellText(x, y)}"><i></i></button>`,
+              )
+              .join(''),
+          )
+          .join('')}
+        ${COMMITS.days.map((d, x) => `<em style="--x:${x}">${d}</em>`).join('')}
+      </div></div>
+      <div class="d-heatmap__dock"><output>${commitSummary()}</output></div>
+    </div>`,
+    init(scene) {
+      const out = scene.querySelector<HTMLOutputElement>('.d-heatmap__dock output')!;
+      const idle = out.textContent ?? '';
+      // a cell's label says what it holds; the dock repeats it while the cell is pointed at
+      const show = (e: Event) => {
+        const cell = (e.target as HTMLElement).closest<HTMLElement>('.d-heatmap__cell');
+        out.textContent = cell ? cell.getAttribute('aria-label') : idle;
+      };
+      const reset = (e: Event) => {
+        const to = (e as FocusEvent | PointerEvent).relatedTarget as HTMLElement | null;
+        if (!to?.closest?.('.d-heatmap__cell')) out.textContent = idle;
+      };
+      scene.addEventListener('pointerover', show);
+      scene.addEventListener('focusin', show);
+      scene.addEventListener('pointerout', reset);
+      scene.addEventListener('focusout', reset);
+      return () => {
+        scene.removeEventListener('pointerover', show);
+        scene.removeEventListener('focusin', show);
+        scene.removeEventListener('pointerout', reset);
+        scene.removeEventListener('focusout', reset);
+      };
+    },
+  },
+  {
+    id: 'chartpanel',
+    title: '3D chart panel (SVG)',
+    description:
+      'A neon line chart drawn as SVG from a JSON array, floating on a tilted glass panel in layers. Hover and it lies flat so you can read the values. The tilt is on the container, so the same works for a chart from any library.',
+    category: 'js',
+    tags: ['hover', 'data', 'chart', 'json', 'svg'],
+    technique: ['JSON → SVG path (M x y L x y …)', 'layers at translateZ 0 / 8 / 16 / 22px', 'tilt on :hover of a still wrapper → flat', 'glow = a wide faint stroke under the line (no filter)'],
+    html: `<div class="d-chartpanel" tabindex="0" aria-label="Monthly revenue, ${TREND.labels[0]} to ${TREND.labels.at(-1)}: ${TREND.values.join(', ')} ${TREND.unit}">
+      <div class="d-chartpanel__panel">
+        <div class="d-chartpanel__glass"></div>
+        <svg class="d-chartpanel__area" viewBox="0 0 ${PW} ${PH}" aria-hidden="true"><path /></svg>
+        <svg class="d-chartpanel__line" viewBox="0 0 ${PW} ${PH}" aria-hidden="true"><path class="d-chartpanel__glow" /><path /></svg>
+        <div class="d-chartpanel__dots">${TREND.values.map((v) => `<i><span>${v}</span></i>`).join('')}</div>
+        <b class="d-chartpanel__title">Revenue <small>${TREND.unit}</small></b>
+      </div>
+    </div>`,
+    init(scene) {
+      // JSON → points → one path string: "M x y L x y …" for the line, closed down to the floor for the area
+      const pts = trendPoints();
+      const line = 'M' + pts.map(([x, y]) => `${x} ${y}`).join(' L');
+      const area = `${line} L${pts.at(-1)![0]} ${PH} L${pts[0][0]} ${PH} Z`;
+      scene.querySelectorAll('.d-chartpanel__line path').forEach((p) => p.setAttribute('d', line));
+      scene.querySelector('.d-chartpanel__area path')!.setAttribute('d', area);
+      scene.querySelectorAll<HTMLElement>('.d-chartpanel__dots i').forEach((dot, i) => {
+        dot.style.setProperty('--x', `${pts[i][0]}px`);
+        dot.style.setProperty('--y', `${pts[i][1]}px`);
+      });
+    },
+  },
+];

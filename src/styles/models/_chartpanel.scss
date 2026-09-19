@@ -1,0 +1,141 @@
+// A line chart on a glass panel, tilted in 3D. The chart is plain SVG (JS turns a JSON array
+// into its path); the 3D is all on the containers: the panel tilts, and the area, the line and
+// the dots float at different depths over it. Hovering the (still) wrapper lays the panel flat
+// so the values can be read, and shows them.
+$w: 200px;
+$h: 110px;
+
+.d-chartpanel {
+  position: relative;
+  width: $w;
+  height: $h;
+  outline: none;
+  transform-style: preserve-3d;
+
+  &__panel {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(40deg) rotateY(-16deg) rotateZ(5deg);
+    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    pointer-events: none;
+  }
+
+  &:hover &__panel,
+  &:focus-visible &__panel {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+
+  // the glass, with faint value lines
+  &__glass {
+    position: absolute;
+    inset: 0;
+    border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    border-radius: 12px;
+    background:
+      repeating-linear-gradient(transparent 0 21px, color-mix(in srgb, var(--text) 10%, transparent) 21px 22px) 0 12px / 100% calc(100% - 24px) no-repeat,
+      linear-gradient(150deg, color-mix(in srgb, var(--accent) 24%, var(--surface-solid)), var(--surface-solid));
+    box-shadow: 0 18px 36px -14px rgb(0 0 0 / 0.55);
+  }
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  &__area {
+    transform: translateZ(8px);
+
+    path {
+      fill: color-mix(in srgb, var(--accent-2) 16%, transparent);
+    }
+  }
+
+  &__line {
+    transform: translateZ(16px);
+
+    path {
+      fill: none;
+      stroke: var(--accent-2);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+
+  // the glow: the same path, wide and faint, under the line (cheaper than a blur filter)
+  &__glow {
+    stroke-width: 9;
+    stroke-opacity: 0.22;
+  }
+
+  &__dots {
+    position: absolute;
+    inset: 0;
+    transform: translateZ(22px);
+
+    i {
+      position: absolute;
+      top: var(--y);
+      left: var(--x);
+      width: 7px;
+      height: 7px;
+      margin: -3.5px 0 0 -3.5px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow:
+        0 0 0 2px var(--accent-2),
+        0 0 10px var(--accent-2);
+    }
+
+    // values: hidden while tilted (except the latest), shown when the panel lies flat
+    span {
+      position: absolute;
+      bottom: 9px;
+      left: 50%;
+      padding: 1px 3px;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--surface-solid) 85%, transparent);
+      color: var(--text);
+      font: 700 8px/10px system-ui, sans-serif;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      opacity: 0;
+      translate: -50% 0;
+      transition: opacity 0.3s;
+    }
+
+    i:last-child span {
+      opacity: 1;
+    }
+  }
+
+  &:hover &__dots span,
+  &:focus-visible &__dots span {
+    opacity: 1;
+  }
+
+  &__title {
+    position: absolute;
+    top: 9px;
+    left: 12px;
+    color: var(--text);
+    font: 800 10px/12px system-ui, sans-serif;
+    letter-spacing: 0.04em;
+    transform: translateZ(10px);
+
+    small {
+      color: var(--muted);
+      font-weight: 700;
+    }
+  }
+}
+
+// The vertical video is narrower, for its zoom, than a card, and the flat panel is this model's
+// widest state: a touch smaller there so it stays in frame (cards and pages are unaffected).
+[data-reel] .d-chartpanel {
+  scale: 0.88;
+}

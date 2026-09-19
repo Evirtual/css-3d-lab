@@ -1,0 +1,139 @@
+// A heatmap drawn from JSON: one block per value on an isometric floor. JS writes --v per cell
+// (value ÷ the largest value, 0–1); CSS makes it a height and a colour. Each block is the city's
+// construction: the element is the roof, lifted by translateZ; ::before and ::after are the two
+// walls that face the camera, hanging down from its +y and +x edges.
+$cell: 34px; // grid pitch
+$lot: 26px; // block footprint
+$pad: 10px; // floor margin
+$cols: 5;
+$rows: 4;
+$hmax: 70px; // the tallest block
+
+.d-heatmap {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 14px;
+  // the floor is tilted back, so blocks sit behind the plane of the flat boxes around it (this
+  // one and the view): they must not catch the pointer, only the blocks do
+  pointer-events: none;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    pointer-events: none;
+  }
+
+  // The floor. It ignores the pointer, so only the cells (real buttons) are hit.
+  &__world {
+    position: relative;
+    width: $pad * 2 + $cell * $cols - ($cell - $lot);
+    height: $pad * 2 + $cell * $rows - ($cell - $lot);
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface-solid));
+    transform-style: preserve-3d;
+    transform: translateY(22px) rotateX(58deg) rotateZ(36deg);
+    animation: d-heatmap-sway 9s ease-in-out infinite alternate;
+    pointer-events: none;
+
+    // the day names, printed on the floor along the edge that faces you
+    em {
+      position: absolute;
+      top: $pad + $cell * $rows - ($cell - $lot) + 2px;
+      left: calc(#{$pad} + var(--x) * #{$cell});
+      width: $lot;
+      color: var(--muted);
+      font: 700 8px/10px system-ui, sans-serif;
+      font-style: normal;
+      text-align: center;
+    }
+  }
+
+  &__cell {
+    // cold teal → hot pink with the value
+    --c: color-mix(in srgb, var(--hot) calc(var(--v) * 100%), var(--accent-2));
+    position: absolute;
+    top: calc(#{$pad} + var(--y) * #{$cell});
+    left: calc(#{$pad} + var(--x) * #{$cell});
+    width: $lot;
+    height: $lot;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--c) 14%, transparent);
+    outline: none;
+    transform-style: preserve-3d;
+    pointer-events: auto;
+    cursor: pointer;
+
+    // the roof
+    i {
+      position: absolute;
+      inset: -1px;
+      background: color-mix(in srgb, var(--c) 68%, var(--surface-solid));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 85%, #fff);
+      transform-style: preserve-3d;
+      transform: translateZ(calc(var(--v) * #{$hmax}));
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+      }
+
+      // +y wall: hangs from the roof's bottom edge
+      &::before {
+        top: 100%;
+        left: 0;
+        width: 100%;
+        height: calc(var(--v) * #{$hmax});
+        background: color-mix(in srgb, var(--c) 46%, var(--surface-solid));
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 60%, transparent);
+        transform-origin: top;
+        transform: rotateX(-90deg);
+      }
+
+      // +x wall: hangs from its right edge, a shade darker
+      &::after {
+        top: 0;
+        left: 100%;
+        width: calc(var(--v) * #{$hmax});
+        height: 100%;
+        background: color-mix(in srgb, var(--c) 30%, var(--surface-solid));
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 50%, transparent);
+        transform-origin: left;
+        transform: rotateY(90deg);
+      }
+    }
+
+    // pointed at: the roof lights up (the cell itself never moves)
+    &:hover i,
+    &:focus-visible i {
+      background: color-mix(in srgb, var(--c) 55%, #fff);
+      box-shadow:
+        inset 0 0 0 1px #fff,
+        0 0 16px var(--c);
+    }
+  }
+
+  &__dock {
+    display: grid;
+    justify-items: center;
+    font-size: 12px;
+
+    output {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+}
+
+@keyframes d-heatmap-sway {
+  to {
+    transform: translateY(22px) rotateX(58deg) rotateZ(50deg);
+  }
+}

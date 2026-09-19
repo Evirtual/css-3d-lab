@@ -8,6 +8,7 @@ import { demosG } from './batch-g';
 import { demosH } from './batch-h';
 import { demosI } from './batch-i';
 import { demosJ } from './batch-j';
+import { demosK } from './batch-k';
 import { groupOf, groupRank, type Group } from './groups';
 import { interactiveDemos } from './interactive';
 import { interactiveDemos2 } from './interactive2';
@@ -23,8 +24,8 @@ export type GroupedDemo = Demo & { group: Group };
  */
 const FEATURED = [
   'phone', 'rubik', 'paycard', 'solar', 'flaptext', 'package', 'city', 'hovercards', 'can', 'dice',
-  'wordcube', 'turntable', 'equalizer', 'vinyl', 'swipe', 'diamond', 'logo3d', 'magnet', 'ferris', 'pricing',
-  'browser', 'watch', 'shadowtext', 'polaroid', 'island', 'coverflow', 'badge', 'torus', 'crawl', 'cubenav',
+  'wordcube', 'turntable', 'neonbars', 'equalizer', 'vinyl', 'swipe', 'diamond', 'logo3d', 'magnet', 'ferris', 'pricing',
+  'browser', 'watch', 'shadowtext', 'polaroid', 'island', 'coverflow', 'badge', 'torus', 'crawl', 'cubenav', 'chartpanel',
 ];
 const rank = (id: string): number => {
   const i = FEATURED.indexOf(id);
@@ -32,6 +33,6 @@ const rank = (id: string): number => {
 };
 
 /** Every demo, tagged with its group, best first (see FEATURED). */
-export const demos: GroupedDemo[] = [...pureDemos, ...pureDemos2, ...interactiveDemos, ...interactiveDemos2, ...demosA, ...demosB, ...demosC, ...demosD, ...demosE, ...demosF, ...demosG, ...demosH, ...demosI, ...demosJ]
+export const demos: GroupedDemo[] = [...pureDemos, ...pureDemos2, ...interactiveDemos, ...interactiveDemos2, ...demosA, ...demosB, ...demosC, ...demosD, ...demosE, ...demosF, ...demosG, ...demosH, ...demosI, ...demosJ, ...demosK]
   .map((demo) => ({ ...demo, group: groupOf(demo.id) }))
   .sort((a, b) => rank(a.id) - rank(b.id));
