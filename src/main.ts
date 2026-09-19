@@ -12,7 +12,7 @@ import { initGroupLists } from './group-list';
 import { initHero, initShapes } from './hero';
 import { initStickyBars } from './sticky-bars';
 import { printModel } from './print';
-import { holdHoverHtml } from './hold-hover';
+import { holdHoverHtml, markHolds } from './hold-hover';
 import { trackDownloads, videoButton } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
@@ -435,7 +435,7 @@ function openViewer(id: string): void {
 
   const stageEl = viewerBody.querySelector<HTMLElement>('.stage')!;
   // "Hold hover" only where the model reacts to hover
-  stageEl.closest('.stage-wrap')?.toggleAttribute('data-hoverable', live.current.css.includes(':hover'));
+  markHolds(stageEl, live.current.css);
   const editedBar = viewerBody.querySelector<HTMLElement>('[data-edited]')!;
   const panel = viewerBody.querySelector<HTMLElement>('.code__panel')!;
   const note = viewerBody.querySelector<HTMLElement>('.code__note')!;
