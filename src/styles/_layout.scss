@@ -1421,17 +1421,25 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   max-height: none;
   margin: 0;
   --viewer-pad-top: 32px;
-  padding: var(--viewer-pad-top) 12px 0;
+  padding: var(--viewer-pad-top) 12px 24px;
   overflow: hidden auto;
   border: 0;
   background: none;
   color: var(--text);
   overscroll-behavior: contain;
 
+  // A column, so the panel's auto margins centre it when it fits the screen; when it is taller,
+  // auto margins collapse to 0 and it starts at the top and scrolls (nothing is cut off).
+  &[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
   &__panel {
+    flex-shrink: 0;
     width: min(1180px, 100%);
     // as tall as its content (a short model does not stretch it to the bottom of the screen)
-    margin: 0 auto 24px;
+    margin: auto;
     padding: 26px;
     border: 1px solid var(--glass-edge);
     border-radius: 22px;
