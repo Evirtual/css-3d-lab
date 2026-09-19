@@ -677,7 +677,7 @@ $cover-grid: rgb(140 150 220 / 0.075);
   // held still at a flattering angle (a still image: the tumble would catch it at a random one,
   // sometimes reaching past the edge), and sized to sit well inside the frame
   .hero__cube {
-    --s: 150px;
+    --s: 128px;
     animation: none;
     transform: rotateX(-26deg) rotateY(-38deg);
   }

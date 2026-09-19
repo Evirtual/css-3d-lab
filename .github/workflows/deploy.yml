@@ -31,6 +31,10 @@ jobs:
       # A failure here fails the deploy, so pages never point at an image that does not exist.
       - name: Install headless Chromium
         run: npx playwright install --with-deps chromium
+      # The site asks for Inter; without it the runner falls back to a much wider font, and the
+      # preview headlines no longer fit their column.
+      - name: Fonts for the preview images
+        run: sudo apt-get install -y fonts-inter
       - name: Social preview images
         run: npm run media
       # The "Download video" buttons link to files of the repo's "reels" release: check every

@@ -23,6 +23,21 @@ const demos = JSON.parse(readFileSync('src/generated/model-ids.json', 'utf8')).f
 
 /* ---------- tiny static server for dist/ ---------- */
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
+/**
+ * Runs in the page before each shot: the headline shrinks, a pixel at a time, until every line
+ * fits its column. The build machine may not have the site's font, and a wider fallback would
+ * otherwise run a line off the edge ("no WebGL requir…").
+ */
+async function fitText() {
+  await document.fonts.ready;
+  for (const el of document.querySelectorAll('.embed__og b')) {
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    const lines = [el, ...el.querySelectorAll('span')];
+    const tooWide = () => lines.some((l) => l.scrollWidth > el.clientWidth + 1);
+    while (tooWide() && size > 24) el.style.fontSize = `${(size -= 1)}px`;
+  }
+}
+
 const server = createServer((req, res) => {
   let path = join(DIST, decodeURIComponent(new URL(req.url, 'http://x').pathname));
   if (existsSync(path) && statSync(path).isDirectory()) path = join(path, 'index.html');
@@ -49,6 +64,7 @@ async function shoot(demo) {
     // hover / pointer demos look alive with the pointer parked off-centre over them
     if (demo.pointer) await page.mouse.move(1740, 560); // over the demo (the right side), a little off centre
     await page.waitForTimeout(1400); // let entrance transitions settle and loops get going
+    await page.evaluate(fitText);
     await page.screenshot({ path: join(OUT, `${demo.id}.jpg`), type: 'jpeg', quality: 88 });
   } finally {
     await ctx.close();
@@ -62,12 +78,13 @@ async function shootHome() {
     await page.goto(`${base}/embed/cover/?og=1&zoom=2`);
     await page.waitForSelector('html[data-ready]');
     await page.waitForTimeout(1200);
+    await page.evaluate(fitText);
     await page.screenshot({ path: join(OUT, 'home.jpg'), type: 'jpeg', quality: 88 });
   } finally {
     await ctx.close();
   }
 }
-if (!only.length) {
+if (!only.length || only.includes("home")) {
   try {
     await shootHome();
   } catch (err) {
