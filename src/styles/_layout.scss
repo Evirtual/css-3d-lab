@@ -2160,8 +2160,13 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 }
 
 // narrow stages: no room beside the dot controls, so the switches sit at the bottom right,
-// under them
-@media (max-width: 640px) {
+// under them. Measured on the stage itself (a container query): a narrow stage can sit in a
+// wide window, beside the code.
+.stage-wrap {
+  container: stage-wrap / inline-size;
+}
+
+@container stage-wrap (max-width: 459px) { // both switches (188px) + the controls (244px) + gaps need 450px
   .stage__holds {
     top: auto;
     right: 10px;
@@ -2594,20 +2599,37 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     padding-inline: 16px;
   }
 
-  // code window bar: tabs on the first row, appearance + copy on the second
+  // code window bar: one row. The tabs (scrolling sideways if they must), the light / dark
+  // switch and an icon-only Copy; the four background dots are a desktop nicety.
   .codebox__bar {
-    flex-wrap: wrap;
-    gap: 6px 8px;
+    flex-wrap: nowrap;
+    gap: 6px;
     padding: 6px 8px;
   }
 
   .codebox__tabs {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
-  .codebox__look {
-    margin-right: auto;
+  .codebox__dots {
+    display: none;
+  }
+
+  .codebox__copy {
+    gap: 0;
+    padding-inline: 10px;
+    font-size: 0;
+  }
+
+  // long lines wrap instead of running off to the side (both editor layers wrap alike)
+  .editor > pre,
+  .editor > textarea {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   .codebox__foot {
@@ -2649,7 +2671,9 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     line-height: 1.55;
   }
 
-  .codebox pre {
+  // the editor's typing layer gets the same padding as its highlighted copy: they must wrap alike
+  .codebox pre,
+  .codebox .editor > textarea {
     padding: 12px 12px 12px 14px;
   }
 
