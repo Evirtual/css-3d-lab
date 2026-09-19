@@ -2,6 +2,9 @@
   "accordion": {
     "bytes": 276334
   },
+  "activity": {
+    "bytes": 335990
+  },
   "anaglyph": {
     "bytes": 1179826
   },
@@ -27,7 +30,7 @@
     "bytes": 955586
   },
   "businesscard": {
-    "bytes": 2351896
+    "bytes": 2355527
   },
   "button": {
     "bytes": 371501
@@ -36,7 +39,10 @@
     "bytes": 2932689
   },
   "can": {
-    "bytes": 1549156
+    "bytes": 1624459
+  },
+  "candles": {
+    "bytes": 406867
   },
   "cardfan": {
     "bytes": 739096
@@ -48,10 +54,10 @@
     "bytes": 2765744
   },
   "chartpanel": {
-    "bytes": 1115100
+    "bytes": 1034822
   },
   "check": {
-    "bytes": 399158
+    "bytes": 462511
   },
   "city": {
     "bytes": 2659675
@@ -60,13 +66,13 @@
     "bytes": 375819
   },
   "coffeecup": {
-    "bytes": 1594836
+    "bytes": 1435978
   },
   "coin": {
     "bytes": 1103169
   },
   "cone": {
-    "bytes": 5728067
+    "bytes": 4485199
   },
   "confetti": {
     "bytes": 782635
@@ -87,13 +93,13 @@
     "bytes": 1179907
   },
   "cubeletters": {
-    "bytes": 1181791
+    "bytes": 1158355
   },
   "cubeloader": {
     "bytes": 897344
   },
   "cubenav": {
-    "bytes": 593999
+    "bytes": 600047
   },
   "cylinder": {
     "bytes": 5194116
@@ -102,7 +108,7 @@
     "bytes": 4437031
   },
   "dice": {
-    "bytes": 1155113
+    "bytes": 1114110
   },
   "door": {
     "bytes": 403303
@@ -120,7 +126,7 @@
     "bytes": 907807
   },
   "explode": {
-    "bytes": 2144605
+    "bytes": 2259215
   },
   "ferris": {
     "bytes": 1473959
@@ -143,14 +149,17 @@
   "foldtext": {
     "bytes": 760722
   },
+  "funnel": {
+    "bytes": 490246
+  },
   "gauge": {
     "bytes": 1444559
   },
   "globe": {
-    "bytes": 10163028
+    "bytes": 8907357
   },
   "greeting": {
-    "bytes": 918710
+    "bytes": 913682
   },
   "grid": {
     "bytes": 822236
@@ -162,7 +171,7 @@
     "bytes": 2153743
   },
   "heatmap": {
-    "bytes": 1716104
+    "bytes": 1716516
   },
   "helix": {
     "bytes": 2160486
@@ -210,7 +219,7 @@
     "bytes": 613970
   },
   "neonbars": {
-    "bytes": 273763
+    "bytes": 355324
   },
   "net": {
     "bytes": 802888
@@ -222,7 +231,7 @@
     "bytes": 1062747
   },
   "package": {
-    "bytes": 1301532
+    "bytes": 1309766
   },
   "parallax": {
     "bytes": 513061
@@ -231,13 +240,13 @@
     "bytes": 2403349
   },
   "perfume": {
-    "bytes": 2409895
+    "bytes": 2385070
   },
   "phone": {
-    "bytes": 1395638
+    "bytes": 1356628
   },
   "pie": {
-    "bytes": 799854
+    "bytes": 702494
   },
   "planet": {
     "bytes": 1115583
@@ -255,13 +264,16 @@
     "bytes": 1486372
   },
   "pyramid": {
-    "bytes": 2417597
+    "bytes": 2389814
+  },
+  "radar": {
+    "bytes": 1463258
   },
   "radial": {
     "bytes": 246706
   },
   "radio": {
-    "bytes": 286650
+    "bytes": 271426
   },
   "rating": {
     "bytes": 426679
@@ -311,14 +323,17 @@
   "sphere": {
     "bytes": 3012599
   },
+  "stackbars": {
+    "bytes": 552612
+  },
   "stairs": {
-    "bytes": 3044156
+    "bytes": 3202509
   },
   "starfield": {
     "bytes": 1051698
   },
   "stepper": {
-    "bytes": 511363
+    "bytes": 507581
   },
   "swipe": {
     "bytes": 1416482
@@ -327,7 +342,7 @@
     "bytes": 336272
   },
   "tabs": {
-    "bytes": 270774
+    "bytes": 284012
   },
   "tetra": {
     "bytes": 2885047
@@ -356,17 +371,23 @@
   "torus": {
     "bytes": 5122147
   },
+  "treemap": {
+    "bytes": 433383
+  },
   "tunnel": {
     "bytes": 4585189
   },
   "turntable": {
-    "bytes": 1373856
+    "bytes": 1420282
   },
   "vinyl": {
     "bytes": 711492
   },
   "watch": {
     "bytes": 1253613
+  },
+  "waterfall": {
+    "bytes": 294448
   },
   "wavegrid": {
     "bytes": 2572053
@@ -378,7 +399,7 @@
     "bytes": 1400936
   },
   "wordcube": {
-    "bytes": 549012
+    "bytes": 549158
   },
   "zones": {
     "bytes": 618976
