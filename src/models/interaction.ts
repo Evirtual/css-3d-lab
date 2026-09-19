@@ -15,14 +15,25 @@ const OVERRIDE: Record<string, Interaction> = {
   scrollspin: 'scroll',
 };
 
-export function interactionOf(d: Pick<Demo, 'id' | 'tags'>): Interaction {
-  if (OVERRIDE[d.id]) return OVERRIDE[d.id];
+/** Every way a demo is played with, most important first (at most two: the badge stays short). */
+export function interactionsOf(d: Pick<Demo, 'id' | 'tags'>): Exclude<Interaction, 'none'>[] {
+  const only = OVERRIDE[d.id];
+  if (only) return only === 'none' ? [] : [only];
   const t = new Set(d.tags);
-  if (t.has('drag')) return 'drag';
-  if (t.has('hover')) return 'hover';
-  if (t.has('pointer')) return 'move';
-  if (t.has('controls') || t.has('form-hack')) return 'click';
-  return 'none';
+  const all: Exclude<Interaction, 'none'>[] = [];
+  if (t.has('drag')) all.push('drag');
+  // following the pointer covers hovering it, and a drag demo is played with the pointer anyway
+  if (t.has('pointer')) {
+    if (!all.length) all.push('move');
+  }
+  else if (t.has('hover')) all.push('hover');
+  if (t.has('controls') || t.has('form-hack')) all.push('click');
+  return all.slice(0, 2);
+}
+
+/** The main way (the reels and the checks drive the demo this way). */
+export function interactionOf(d: Pick<Demo, 'id' | 'tags'>): Interaction {
+  return interactionsOf(d)[0] ?? 'none';
 }
 
 // [icon, label with a mouse, label on a touch screen, tooltip]
@@ -36,8 +47,12 @@ const LOOK: Record<Exclude<Interaction, 'none'>, [IconName, string, string, stri
 
 /** The badge for a card's top-left corner, or '' for demos that simply run on their own. */
 export function interactionHtml(d: Pick<Demo, 'id' | 'tags'>): string {
-  const how = interactionOf(d);
-  if (how === 'none') return '';
-  const [name, mouse, touch, tip] = LOOK[how];
-  return `<span class="card__how card__how--${how}" title="${tip}">${icon(name)}<span class="on-mouse">${mouse}</span><span class="on-touch">${touch}</span></span>`;
+  const ways = interactionsOf(d);
+  if (!ways.length) return '';
+  const looks = ways.map((w) => LOOK[w]);
+  // two ways read "Hover · Click"; on a touch screen both may be "Tap", which is said once
+  const mouse = looks.map((l) => l[1]).join(' · ');
+  const touch = [...new Set(looks.map((l) => l[2]))].join(' · ');
+  const tip = looks.map((l) => l[3]).join('; ');
+  return `<span class="card__how card__how--${ways[0]}" title="${tip}">${icon(looks[0][0])}<span class="on-mouse">${mouse}</span><span class="on-touch">${touch}</span></span>`;
 }

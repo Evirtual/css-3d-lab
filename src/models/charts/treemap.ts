@@ -99,7 +99,7 @@ export const demo: Demo = {
   description:
     'A crypto market map from JSON: each tile’s area is its market cap, its height and colour are the move, teal up and pink down. Switch 24h / 7d and the blocks rise and sink; hover or tap one for its numbers. JS only lays out the tiles and writes one number per tile.',
   category: 'js',
-  tags: ['controls', 'data', 'chart', 'json', 'finance', 'isometric'],
+  tags: ['controls', 'hover', 'data', 'chart', 'json', 'finance', 'isometric'],
   technique: [
     'squarified treemap in JS → --x / --y / --w / --h in %',
     'roof translateZ + walls scaleY / scaleX, transitioned',

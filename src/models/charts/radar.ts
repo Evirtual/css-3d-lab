@@ -95,7 +95,7 @@ export const demo: Demo = {
   description:
     'Two series compared on six axes, drawn as SVG from a JSON object, on a plate lying back with each series floating at its own height. Switch a series on or off below; hover or tap the chart and it lies flat, with one tooltip gliding from axis to axis.',
   category: 'js',
-  tags: ['controls', 'data', 'chart', 'json', 'svg'],
+  tags: ['controls', 'hover', 'data', 'chart', 'json', 'svg'],
   technique: [
     'JSON → points (cos / sin × value) → <polygon>',
     'series layers at translateZ 10 / 22px',

@@ -104,7 +104,7 @@ export const demo: Demo = {
   description:
     'A month of cash flow as floating neon glass boxes: the starting balance, each gain stepping up and each loss stepping down, and the ending balance JS works out. Switch the month and every box glides to its new place. JS only turns the data into three fractions per step.',
   category: 'js',
-  tags: ['controls', 'data', 'chart', 'json', 'finance'],
+  tags: ['controls', 'hover', 'data', 'chart', 'json', 'finance'],
   technique: [
     'JSON → running total → --b, --v, --e per step',
     'translateY(−--b × height) then scaleY(--v), transitioned',

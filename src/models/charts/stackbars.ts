@@ -82,7 +82,7 @@ export const demo: Demo = {
   description:
     'Quarterly revenue split by product, each quarter a column of stacked glass cuboids. The legend is a row of toggles: switch a product off and its segments shrink to nothing while the ones above slide down. JS only writes where each segment starts and how tall it is.',
   category: 'js',
-  tags: ['controls', 'data', 'chart', 'json', 'stacked'],
+  tags: ['controls', 'hover', 'data', 'chart', 'json', 'stacked'],
   technique: [
     'JSON → --base + --v per segment (fractions of the scale)',
     'translateY(--base) then scaleY(--v): stacking with transform only',

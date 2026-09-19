@@ -62,7 +62,7 @@ export const demosK: Demo[] = [
     description:
       'Neon bars drawn from a JSON dataset: switch the year and each bar grows or shrinks to its new value, the scale on the back wall follows, and the peak lights up. Hover or tap a bar for its value. JS only turns the data into one number per bar.',
     category: 'js',
-    tags: ['controls', 'data', 'chart', 'json'],
+    tags: ['controls', 'hover', 'data', 'chart', 'json'],
     technique: ['JSON → --v per bar (value ÷ scale top)', 'scaleY walls + translateY lid, transitioned', 'staggered transition-delay: calc(var(--i) × 60ms)', 'dark faces, bright edge + inset glow: the neon look'],
     fill: true,
     html: (() => {
