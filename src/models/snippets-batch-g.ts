@@ -622,6 +622,7 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   display: flex;
   flex-direction: column;
   border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.24); /* a faint light rim: the outline reads smooth */
   transform-style: preserve-3d;
   backface-visibility: hidden;
 }
