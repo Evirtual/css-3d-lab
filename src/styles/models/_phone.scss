@@ -168,7 +168,12 @@ $r: 15px; // corner radius
   }
 
   &__back {
-    border: 1px solid color-mix(in srgb, var(--text) 25%, transparent);
+    // The edge is an inner line plus a soft shade, not a border: turning, the back passes
+    // side-on and is squeezed into a few pixels, where a 1px line is sampled unevenly and
+    // looks broken. The shade has width enough to survive it.
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--text) 25%, transparent),
+      inset 0 0 8px color-mix(in srgb, var(--text) 10%, transparent);
     background:
       linear-gradient(125deg, transparent 40%, rgb(255 255 255 / 0.14) 50%, transparent 60%),
       linear-gradient(160deg, color-mix(in srgb, var(--accent) 55%, var(--surface-solid)), color-mix(in srgb, var(--accent) 15%, var(--surface-solid)));
@@ -177,8 +182,8 @@ $r: 15px; // corner radius
     // camera island with two lenses
     i {
       position: absolute;
-      top: 8px;
-      left: 8px;
+      top: 9px; // 8px + the 1px the old border took
+      left: 9px;
       width: 30px;
       height: 30px;
       border-radius: 9px;

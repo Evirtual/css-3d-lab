@@ -75,7 +75,12 @@ $sand: color-mix(in srgb, var(--warm) 88%, var(--hot));
       left: -$P;
       width: $P * 2;
       height: $P * 2;
-      border: 1.5px solid color-mix(in srgb, var(--accent) 80%, #fff);
+      // The rim is an inner line plus a soft shade, not a border: in the flip the discs pass
+      // edge-on and are squeezed into a few pixels, where a 1.5px line is sampled unevenly and
+      // looks broken. The shade has width enough to survive it.
+      box-shadow:
+        inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 80%, #fff),
+        inset 0 0 8px color-mix(in srgb, color-mix(in srgb, var(--accent) 80%, #fff) 35%, transparent);
       border-radius: 50%;
       background: radial-gradient(
         circle,

@@ -49,8 +49,14 @@
       inset: 0;
       display: grid;
       align-content: end;
-      padding: 9px 10px;
-      border: 1px solid hsl(var(--hue) 90% 85% / 0.55);
+      padding: 10px 11px; // 9px 10px + the 1px the old border took
+      // The edge is an inner line plus a soft shade, not a border: a side turned nearly side-on
+      // is squeezed into a few pixels, and a 1px line there is sampled unevenly and looks broken.
+      --edge: hsl(var(--hue) 90% 85% / 0.55);
+      --edge-soft: hsl(var(--hue) 90% 85% / 0.16);
+      box-shadow:
+        inset 0 0 0 1px var(--edge),
+        inset 0 0 8px var(--edge-soft);
       border-radius: 10px;
       background:
         linear-gradient(155deg, rgb(255 255 255 / 0.22), transparent 38%),
@@ -68,6 +74,12 @@
       backface-visibility: hidden;
       @include solid-core(6px, hsl(var(--hue) 45% 18%));
 
+      // The plate stays 1px short of the face edge, where the old border used to put it. Full
+      // size, its edge would touch the neighbouring face exactly and show there as a dotted seam.
+      &::before {
+        inset: 1px;
+      }
+
       small {
         font-size: 10px;
         font-weight: 600;
@@ -77,7 +89,8 @@
       // top and bottom: dark glass, so the photos are what you look at
       &:nth-child(n + 5) {
         --hue: 250;
-        border-color: var(--border-strong);
+        --edge: var(--border-strong);
+        --edge-soft: color-mix(in srgb, var(--border-strong) 45%, transparent);
         background:
           linear-gradient(135deg, rgb(255 255 255 / 0.12), transparent 60%),
           color-mix(in srgb, var(--accent) 18%, var(--surface-solid));

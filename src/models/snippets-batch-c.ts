@@ -314,11 +314,14 @@ setInterval(function () {
   inset: 0;
   display: flex;
   align-items: center;
-  padding-left: 12px;
-  border: 1px solid color-mix(in srgb, var(--c) 80%, transparent);
+  padding-left: 13px;
   border-radius: 8px;
   background: color-mix(in srgb, var(--c) 26%, transparent);
-  box-shadow: inset 0 0 18px color-mix(in srgb, var(--c) 32%, transparent);
+  /* the edge is an inner line, not a border: turning, a face passes side-on, where a 1px
+     border breaks up; the inner glow is the soft shade that survives */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c) 80%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--c) 32%, transparent);
   color: var(--c);
   backface-visibility: hidden;
   transform: rotateX(calc(var(--i) * -90deg)) translateZ(18px);
@@ -809,15 +812,15 @@ stage.addEventListener('pointercancel', leave);`,
   inset: 0;
   border-radius: 3px;
   background: rgb(139 108 255 / 0.22);
-  border: 1px solid rgb(139 108 255 / 0.75);
-  box-shadow: inset 0 0 12px rgb(139 108 255 / 0.3);
+  /* the edge is an inner line, not a border: squeezed side-on, a 1px border breaks up; the
+     glass's own inner glow is the soft shade that survives */
+  box-shadow: inset 0 0 0 1px rgb(139 108 255 / 0.75), inset 0 0 12px rgb(139 108 255 / 0.3);
 }
 
 /* the 6th face is the BOTTOM of the cube: it carries the tick and is out of sight at rest */
 .cube i:last-child {
   display: grid;
   place-items: center;
-  border-color: #2ee6d6;
   background: #2ee6d6;
   box-shadow: 0 0 12px rgb(46 230 214 / 0.6);
   color: #062b28;
@@ -959,8 +962,12 @@ stage.addEventListener('pointercancel', leave);`,
   display: grid;
   align-content: center;
   gap: 4px;
-  padding: 0 16px;
-  border: 1px solid color-mix(in srgb, var(--c) 70%, transparent);
+  padding: 0 17px;
+  /* an inner line plus a soft shade instead of a hard border: turning, a face passes
+     side-on, where a 1px line breaks up; the shade survives */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--c) 28%, transparent);
   border-radius: 10px;
   background:
     linear-gradient(140deg, color-mix(in srgb, var(--c) 34%, transparent), transparent 70%),

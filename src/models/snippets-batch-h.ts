@@ -307,7 +307,11 @@ ${key('3D', true)}
 .cube i {
   display: grid;
   place-items: center;
-  border: 1px solid color-mix(in srgb, #8b6cff, #fff 35%);
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1px line
+     breaks up, the shade survives */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #8b6cff, #fff 35%),
+    inset 0 0 8px color-mix(in srgb, color-mix(in srgb, #8b6cff, #fff 35%) 35%, transparent);
   background:
     linear-gradient(150deg, rgb(255 255 255 / 0.28), transparent 45%),
     linear-gradient(color-mix(in srgb, #8b6cff, #ff4d9d 25%), color-mix(in srgb, #8b6cff, #000 25%));
@@ -326,7 +330,9 @@ ${key('3D', true)}
 
 /* the two ends */
 .cube b {
-  border: 1px solid color-mix(in srgb, #8b6cff, #fff 15%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #8b6cff, #fff 15%),
+    inset 0 0 8px color-mix(in srgb, color-mix(in srgb, #8b6cff, #fff 15%) 35%, transparent);
   background:
     radial-gradient(circle, transparent 0 30%, rgb(0 0 0 / 0.18) 31% 34%, transparent 35%),
     color-mix(in srgb, #8b6cff, #000 38%);
@@ -340,7 +346,9 @@ ${key('3D', true)}
 .cube b::before {
   content: '';
   position: absolute;
-  inset: 0; /* full size: a smaller plate leaves a channel along each edge you can see into */
+  /* 1px short of the edge: full size, it would touch the next face and show there as a dotted
+     seam; much smaller leaves a channel along each edge you can see into */
+  inset: 1px;
   background: color-mix(in srgb, #8b6cff, #000 45%);
   transform: translateZ(-6px);
 }
@@ -937,7 +945,11 @@ ${CUBE_FACES}
   --c: #8b6cff;
   display: grid;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--c), #fff 35%);
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1px line
+     breaks up, the shade survives */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c), #fff 35%),
+    inset 0 0 8px color-mix(in srgb, color-mix(in srgb, var(--c), #fff 35%) 35%, transparent);
   background:
     linear-gradient(150deg, rgb(255 255 255 / 0.3), transparent 45%),
     linear-gradient(color-mix(in srgb, var(--c), #fff 8%), color-mix(in srgb, var(--c), #000 22%));
@@ -960,7 +972,9 @@ ${CUBE_FACES}
 
 /* the two ends */
 .cube b {
-  border: 1px solid color-mix(in srgb, #8b6cff, #fff 10%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #8b6cff, #fff 10%),
+    inset 0 0 8px color-mix(in srgb, color-mix(in srgb, #8b6cff, #fff 10%) 35%, transparent);
   background: linear-gradient(color-mix(in srgb, #8b6cff, #000 30%), color-mix(in srgb, #8b6cff, #000 50%));
 }
 
@@ -972,7 +986,9 @@ ${CUBE_FACES}
 .cube b::before {
   content: '';
   position: absolute;
-  inset: 0; /* full size: a smaller plate leaves a channel along each edge you can see into */
+  /* 1px short of the edge: full size, it would touch the next face and show there as a dotted
+     seam; much smaller leaves a channel along each edge you can see into */
+  inset: 1px;
   background: color-mix(in srgb, #8b6cff, #000 50%);
   transform: translateZ(-5px);
 }

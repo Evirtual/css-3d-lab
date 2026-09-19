@@ -25,11 +25,15 @@ $h: 36px; // height of a face = depth of the prism (its cross-section is a squar
     inset: 0;
     display: flex;
     align-items: center;
-    padding-left: 12px;
-    border: 1px solid color-mix(in srgb, var(--c) 80%, transparent);
+    padding-left: 13px; // 12px + the 1px the old border took
     border-radius: 8px;
     background: color-mix(in srgb, var(--c) 26%, transparent);
-    box-shadow: inset 0 0 18px color-mix(in srgb, var(--c) 32%, transparent);
+    // The edge is an inner line, not a border: turning, a face passes side-on and is squeezed
+    // into a few pixels, where a 1px line is sampled unevenly and looks broken. The face's own
+    // inner glow is the soft shade that survives it.
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--c) 80%, transparent),
+      inset 0 0 18px color-mix(in srgb, var(--c) 32%, transparent);
     color: var(--c);
     backface-visibility: hidden; // never show a word mirrored through the prism
     transform: rotateX(calc(var(--i) * -90deg)) translateZ($h * 0.5);

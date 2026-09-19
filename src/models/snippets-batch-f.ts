@@ -202,7 +202,9 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
   left: -55px;
   width: 110px;
   height: 110px;
-  border: 1.5px solid #a289ff;
+  /* the rim is an inner line plus a soft shade, not a border: in the flip the discs pass
+     edge-on, where a 1.5px line breaks up; the shade survives */
+  box-shadow: inset 0 0 0 1.5px #a289ff, inset 0 0 8px rgb(162 137 255 / 0.35);
   border-radius: 50%;
   background: radial-gradient(circle, #41387f, #6753c1);
   transform: translateY(var(--y)) rotateX(90deg);

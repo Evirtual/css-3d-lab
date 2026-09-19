@@ -155,7 +155,9 @@ export const snippetsB: Record<string, Snippet> = {
 .dock i:nth-child(3) { background: #05060c; }
 
 .back {
-  border: 1px solid rgb(236 238 251 / 0.25);
+  /* an inner line plus a soft shade instead of a hard border: turning, the back passes
+     side-on, where a 1px line breaks up; the shade survives */
+  box-shadow: inset 0 0 0 1px rgb(236 238 251 / 0.25), inset 0 0 8px rgb(236 238 251 / 0.1);
   background:
     linear-gradient(125deg, transparent 40%, rgb(255 255 255 / 0.14) 50%, transparent 60%),
     linear-gradient(160deg, #5546a2, #26254f);
@@ -165,8 +167,8 @@ export const snippetsB: Record<string, Snippet> = {
 /* camera island with two lenses */
 .back i {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 9px;
+  left: 9px;
   width: 30px;
   height: 30px;
   border-radius: 9px;
@@ -421,7 +423,9 @@ scene.addEventListener('pointercancel', leave);`,
 .wall {
   position: absolute;
   inset: 0;
-  border: 1px solid #a893fe;
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1px line
+     breaks up, the shade survives */
+  box-shadow: inset 0 0 0 1px #a893fe, inset 0 0 8px rgb(168 147 254 / 0.18);
   /* a ribbon down the middle */
   background:
     linear-gradient(90deg, transparent 42%, #ff4d9d 42% 58%, transparent 58%),
@@ -431,7 +435,7 @@ scene.addEventListener('pointercancel', leave);`,
 .front {
   display: grid;
   place-items: end start;
-  padding: 5px 6px;
+  padding: 6px 7px;
   backface-visibility: hidden; /* from behind you look INTO the box */
   transform: translateZ(44px);
 }
@@ -470,7 +474,7 @@ scene.addEventListener('pointercancel', leave);`,
   box-sizing: border-box;
   width: 88px;
   height: 88px;
-  border: 1px solid #a48cff;
+  box-shadow: inset 0 0 0 1px #a48cff, inset 0 0 8px rgb(164 140 255 / 0.18); /* like the walls */
   background:
     linear-gradient(90deg, transparent 42%, #ff4d9d 42% 58%, transparent 58%),
     linear-gradient(#6e65a4, var(--card));

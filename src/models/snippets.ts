@@ -642,7 +642,9 @@ input:nth-of-type(6):checked ~ .cube { transform: var(--view) rotateX(90deg); }
   place-items: center;
   font: 700 1rem system-ui;
   background: rgb(46 230 214 / 0.25);
-  border: 1px solid rgb(46 230 214 / 0.8);
+  /* an inner line plus a soft glow instead of a hard border: squeezed side-on, a 1px line
+     breaks up, the glow survives */
+  box-shadow: inset 0 0 0 1px rgb(46 230 214 / 0.8), inset 0 0 12px rgb(46 230 214 / 0.35);
 }
 
 ${CUBE_FACES}`,

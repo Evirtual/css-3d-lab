@@ -27,7 +27,12 @@ $h: 60px; // wall height
   &__wall {
     position: absolute;
     inset: 0;
-    border: 1px solid color-mix(in srgb, var(--accent) 70%, var(--text));
+    // The edge is an inner line plus a soft shade, not a border: a wall (or the lid, as it
+    // swings) turned nearly side-on is squeezed into a few pixels, and a 1px line there is
+    // sampled unevenly and looks broken. The shade has width enough to survive it.
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--accent) 70%, var(--text)),
+      inset 0 0 8px color-mix(in srgb, color-mix(in srgb, var(--accent) 70%, var(--text)) 18%, transparent);
     // a ribbon runs down the middle of the front and back walls and across the lid
     background:
       linear-gradient(90deg, transparent 42%, var(--hot) 42% 58%, transparent 58%),
@@ -36,7 +41,7 @@ $h: 60px; // wall height
     &--front {
       display: grid;
       place-items: end start;
-      padding: 5px 6px;
+      padding: 6px 7px; // 5px 6px + the 1px the old border took
       backface-visibility: hidden; // from behind you look INTO the box, not at mirrored text
       transform: translateZ($s * 0.5);
     }
@@ -86,7 +91,10 @@ $h: 60px; // wall height
     left: 0;
     width: $s;
     height: $s;
-    border: 1px solid color-mix(in srgb, var(--accent) 70%, var(--text));
+    // inner line + soft shade, like the walls: the lid passes side-on as it swings
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--accent) 70%, var(--text)),
+      inset 0 0 8px color-mix(in srgb, color-mix(in srgb, var(--accent) 70%, var(--text)) 18%, transparent);
     background:
       linear-gradient(90deg, transparent 42%, var(--hot) 42% 58%, transparent 58%),
       linear-gradient(color-mix(in srgb, var(--card) 80%, #fff), var(--card));

@@ -61,6 +61,12 @@ $views: (rotateY(0deg), rotateY(-90deg), rotateY(-180deg), rotateY(90deg), rotat
       font-style: normal;
       font-weight: 700;
       @include face(var(--accent-2));
+      // The edge is an inner line, not a border: a face turned side-on is squeezed into a few
+      // pixels and a 1px border there breaks up. The glass's own inner glow is the soft shade.
+      border: 0;
+      box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--accent-2) 75%, transparent),
+        inset 0 0 24px color-mix(in srgb, var(--accent-2) 30%, transparent);
     }
   }
 

@@ -368,10 +368,12 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 /* glass: tinted, light edges, drawn from both sides; the lower 13px is the thick bottom */
 .glass > i {
   --lit: 0.1;
-  border: 1px solid rgb(236 238 251 / 0.38);
+  /* an inner line plus a soft shade instead of a hard border: swaying, the corner cuts turn
+     nearly side-on, where a 1px line breaks up; the shade survives */
+  box-shadow: inset 0 0 0 1px rgb(236 238 251 / 0.38), inset 0 0 6px rgb(236 238 251 / 0.15);
   border-radius: 2px;
   background:
-    linear-gradient(transparent calc(100% - 14px), rgb(255 255 255 / 0.35) calc(100% - 13px), rgb(255 255 255 / 0.12) calc(100% - 10px), rgb(255 255 255 / 0.2)),
+    linear-gradient(transparent calc(100% - 15px), rgb(255 255 255 / 0.35) calc(100% - 14px), rgb(255 255 255 / 0.12) calc(100% - 11px), rgb(255 255 255 / 0.2)),
     linear-gradient(90deg, rgb(255 255 255 / calc(var(--lit) * 1.8)), rgb(255 255 255 / var(--lit)) 30%, rgb(255 255 255 / calc(var(--lit) * 0.5)) 70%, rgb(255 255 255 / var(--lit))),
     rgb(139 108 255 / 0.08);
 }

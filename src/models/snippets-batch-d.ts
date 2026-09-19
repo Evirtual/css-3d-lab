@@ -828,8 +828,12 @@ root.addEventListener('keydown', key);`,
   inset: 0;
   display: grid;
   align-content: end;
-  padding: 9px 10px;
-  border: 1px solid hsl(var(--hue) 90% 85% / 0.55);
+  padding: 10px 11px;
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1px line
+     breaks up, the shade survives */
+  --edge: hsl(var(--hue) 90% 85% / 0.55);
+  --edge-soft: hsl(var(--hue) 90% 85% / 0.16);
+  box-shadow: inset 0 0 0 1px var(--edge), inset 0 0 8px var(--edge-soft);
   border-radius: 10px;
   background:
     linear-gradient(155deg, rgb(255 255 255 / 0.22), transparent 38%),
@@ -852,7 +856,9 @@ root.addEventListener('keydown', key);`,
 .cube i::before {
   content: '';
   position: absolute;
-  inset: 0; /* full size: a smaller plate leaves a channel along each edge you can see into */
+  /* 1px short of the edge: full size, it would touch the next face and show there as a dotted
+     seam; much smaller leaves a channel along each edge you can see into */
+  inset: 1px;
   background: hsl(var(--hue) 45% 18%);
   transform: translateZ(-6px);
 }
@@ -866,7 +872,8 @@ root.addEventListener('keydown', key);`,
 /* top and bottom: dark glass, so the photos are what you look at */
 .cube i:nth-child(n + 5) {
   --hue: 250;
-  border-color: rgb(140 150 220 / 0.34);
+  --edge: rgb(140 150 220 / 0.34);
+  --edge-soft: rgb(140 150 220 / 0.16);
   background:
     linear-gradient(135deg, rgb(255 255 255 / 0.12), transparent 60%),
     #221f45;

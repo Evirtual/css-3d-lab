@@ -74,13 +74,18 @@ $s: 22px;
       inset: 0;
       border-radius: 3px;
       @include face(var(--accent), 22%);
+      // The edge is an inner line, not a border: a face turned side-on is squeezed into a few
+      // pixels and a 1px border there breaks up. The glass's own inner glow is the soft shade.
+      border: 0;
+      box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--accent) 75%, transparent),
+        inset 0 0 24px color-mix(in srgb, var(--accent) 30%, transparent);
     }
 
     // The 6th face is the BOTTOM of the cube: it carries the tick and is out of sight at rest.
     i:last-child {
       display: grid;
       place-items: center;
-      border-color: var(--accent-2);
       background: var(--accent-2);
       box-shadow: 0 0 12px color-mix(in srgb, var(--accent-2) 60%, transparent);
       color: #062b28;
