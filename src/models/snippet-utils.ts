@@ -91,13 +91,15 @@ body {
   height: 100%;
 }
 
+/* !important: some snippets restyle body for their own page (a dropdown pins it to the top) */
 body {
   box-sizing: border-box;
-  display: grid;
+  display: grid !important;
   grid-template-rows: minmax(0, 1fr);
-  margin: 0;
-  padding: 12mm;
-  overflow: hidden;
+  place-items: stretch !important;
+  margin: 0 !important;
+  padding: 12mm !important;
+  overflow: hidden !important;
   background: #0b0d18;
   color: #eceefb;
   font-family: system-ui, sans-serif;
@@ -147,12 +149,22 @@ ${s.html}
 ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
 <script>
 // Every model prints the same size: measure what is actually drawn (the union of every visible
-// part, 3D turns included), zoom that to 78% of the sheet, then move it to the exact middle.
+// part, 3D turns included), zoom that to 82% of the area inside the margins (about 73% of the page), then move it to the exact middle.
 // Again just before printing, because the printed page is a different size from the window.
 function drawn(root) {
   var r = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
   root.querySelectorAll('*').forEach(function (el) {
     if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return;
+    // only what paints (a fill, a border, a shadow, text, a drawn ::before/::after): an empty
+    // wrapper or a see-through box (a drag area, an unused wall) is not part of the picture
+    var cs = getComputedStyle(el);
+    var paints = /^(IMG|CANVAS|svg)$/.test(el.tagName) ||
+      cs.backgroundImage !== 'none' || cs.boxShadow !== 'none' ||
+      !/rgba\\(.*, 0\\)|transparent/.test(cs.backgroundColor) ||
+      parseFloat(cs.borderTopWidth) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth) + parseFloat(cs.borderBottomWidth) > 0 ||
+      [].some.call(el.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim(); }) ||
+      ['::before', '::after'].some(function (p) { var c = getComputedStyle(el, p).content; return c !== 'none' && c !== 'normal'; });
+    if (!paints) return;
     var b = el.getBoundingClientRect();
     if (!b.width || !b.height) return;
     r.l = Math.min(r.l, b.left); r.t = Math.min(r.t, b.top);
@@ -160,22 +172,41 @@ function drawn(root) {
   });
   return r.l < Infinity ? r : root.getBoundingClientRect();
 }
-function fitPrint() {
+function fitPrint(freeze) {
   var art = document.querySelector('.print-art');
   var model = document.querySelector('.print-model');
+  // stop on the frame that gets printed, so the measurement matches the paper
+  if (freeze === true) document.getAnimations().forEach(function (x) { x.pause(); });
   model.style.zoom = 1;
-  model.style.translate = '0 0';
+  model.style.translate = 'none';
+  model.style.width = model.style.height = '';
   var a = art.getBoundingClientRect();
+  // A full-screen snippet (position: fixed). When it covers the sheet (a starfield, a tunnel) it
+  // prints full-bleed, as it is. When it is an object after all (a city block, a rocket), it gets
+  // the art area as its screen (a translate makes the wrapper its containing block) and is fitted
+  // like any other model.
+  for (var k = 0; k < model.children.length; k++) {
+    if (getComputedStyle(model.children[k]).position !== 'fixed') continue;
+    var full = drawn(model);
+    if (full.r - full.l >= innerWidth * 0.9 && full.b - full.t >= innerHeight * 0.9) return;
+    model.style.width = a.width + 'px';
+    model.style.height = a.height + 'px';
+    model.style.translate = '0px 0px';
+    break;
+  }
   var d = drawn(model);
-  var z = Math.min((a.width * 0.78) / (d.r - d.l), (a.height * 0.78) / (d.b - d.t), 12);
+  var z = Math.min((a.width * 0.82) / (d.r - d.l), (a.height * 0.82) / (d.b - d.t), 12);
+  // a whole scene rather than an object (a starfield, a room, a full-bleed backdrop) fills the
+  // sheet as it is: its parts are scattered points, or they already cover everything
+  if (z >= 12 || (d.r - d.l >= a.width * 0.95 && d.b - d.t >= a.height * 0.95)) return;
   model.style.zoom = z.toFixed(3);
   d = drawn(model);
   var dx = (a.left + a.width / 2 - (d.l + d.r) / 2) / z;
   var dy = (a.top + a.height / 2 - (d.t + d.b) / 2) / z;
   model.style.translate = dx.toFixed(1) + 'px ' + dy.toFixed(1) + 'px';
 }
-addEventListener('beforeprint', fitPrint);
-addEventListener('load', fitPrint);
+addEventListener('beforeprint', function () { fitPrint(true); });
+addEventListener('load', function () { fitPrint(); });
 </script>
 </body>
 </html>`;

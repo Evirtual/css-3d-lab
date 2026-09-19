@@ -24,30 +24,44 @@ $height: 136px;
     top: $height - $depth - 10px;
     width: $len;
     height: $depth;
-    border: 1px solid color-mix(in srgb, var(--c) 70%, white);
+    // The edge is an inner line plus a soft shade, not a border: treads near eye level are seen
+    // almost edge-on, squeezed into a few pixels, where a 1px line is sampled unevenly and looks
+    // broken. The shade has width enough to survive it.
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, white),
+      inset 0 0 8px color-mix(in srgb, color-mix(in srgb, var(--c) 70%, white) 25%, transparent);
     border-radius: 0 6px 6px 0;
     background: color-mix(in srgb, var(--c) 62%, transparent);
     transform-origin: -$gap 50%;
     transform-style: preserve-3d;
     transform: translateY(calc(var(--i) * #{-$rise})) rotateY(calc(var(--i) * #{$turn})) rotateX(90deg);
 
-    // the two long sides: strips hinged on the tread's edges, folded straight down
-    &::before,
-    &::after {
-      content: '';
+    // The sides go all the way round the tread: both long edges, the outer end and, between them,
+    // the two rounded corners as three short facets each, so the side follows the rounding.
+    // Every strip starts at a point on the edge (--x, --y), turns to run along it (--a), then
+    // folds straight down by one step.
+    s {
       position: absolute;
-      left: 0;
-      top: 100%;
-      width: 100%;
+      left: calc(var(--x) * 1px);
+      top: calc(var(--y) * 1px);
+      width: calc(var(--l) * 1px + 0.5px); // a hair longer, so neighbours overlap: no seams
       height: $rise;
-      background: color-mix(in srgb, var(--c) 40%, var(--bg));
-      transform-origin: top;
-      transform: rotateX(-90deg);
+      // less see-through than the top, with a soft glow
+      background: color-mix(in srgb, color-mix(in srgb, var(--c) 50%, var(--bg)) 82%, transparent);
+      box-shadow: 0 0 6px color-mix(in srgb, var(--c) 35%, transparent);
+      transform-origin: 0 0;
+      transform: rotate(calc(var(--a) * 1deg)) rotateX(-90deg);
     }
 
-    &::after {
-      top: 0; // the far side
-    }
+    s:nth-child(1) { --x: 0; --y: 0; --l: 52; --a: 0; }
+    s:nth-child(2) { --x: 0; --y: 28; --l: 52; --a: 0; }
+    s:nth-child(3) { --x: 58; --y: 6; --l: 16; --a: 90; }
+    s:nth-child(4) { --x: 52; --y: 0; --l: 3.11; --a: 15; }
+    s:nth-child(5) { --x: 55; --y: 0.8; --l: 3.11; --a: 45; }
+    s:nth-child(6) { --x: 57.2; --y: 3; --l: 3.11; --a: 75; }
+    s:nth-child(7) { --x: 58; --y: 22; --l: 3.11; --a: 105; }
+    s:nth-child(8) { --x: 57.2; --y: 25; --l: 3.11; --a: 135; }
+    s:nth-child(9) { --x: 55; --y: 27.2; --l: 3.11; --a: 165; }
   }
 
   @for $i from 0 to $n {

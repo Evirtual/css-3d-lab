@@ -359,13 +359,13 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
       'Every tread is the same flat slab: a rectangle laid down with <code>rotateX(90deg)</code>.',
       'The trick is <code>transform-origin: -5px 50%</code>, a point 5px to the left of the slab, which is where the pole\'s axis is. Every rotation now pivots around the pole.',
       'One index does the rest: <code>rotateY(i × 30deg)</code> turns the tread around the pole, <code>translateY(i × -8px)</code> lifts it one step. Turn + lift = spiral.',
-      'The two sides are a <code>::before</code> and an <code>::after</code> hinged on the tread\'s long edges and folded straight down. The pole is two crossed planes, which read as a round post from any angle.',
+      'The sides are nine thin strips round the tread\'s edge, each folded straight down by one step: the two long sides, the outer end, and three short facets on each rounded corner, so the side follows the curve. The pole is two crossed planes, which read as a round post from any angle.',
     ],
     html: `<div class="scene">
   <div class="stairs">
     <b></b>
     <b></b>
-${lines(14, (i) => `    <i style="--i:${i}"></i>`)}
+${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(9)}</i>`)}
   </div>
 </div>`,
     css: `.scene {
@@ -387,7 +387,9 @@ ${lines(14, (i) => `    <i style="--i:${i}"></i>`)}
   top: 98px;
   width: 58px;
   height: 28px;
-  border: 1px solid hsl(var(--hue) 90% 82%);
+  /* an inner line plus a soft shade instead of a hard border: treads near eye level are seen
+     almost edge-on, where a 1px line breaks up; the shade survives */
+  box-shadow: inset 0 0 0 1px hsl(var(--hue) 90% 82%), inset 0 0 8px hsl(var(--hue) 90% 82% / 0.25);
   border-radius: 0 6px 6px 0;
   background: hsl(var(--hue) 85% 64% / 0.62);
   transform-origin: -5px 50%; /* on the pole's axis */
@@ -398,23 +400,30 @@ ${lines(14, (i) => `    <i style="--i:${i}"></i>`)}
     rotateX(90deg);                     /* lie flat */
 }
 
-/* the tread's two long sides: strips hinged on its edges, folded straight down by one step */
-.stairs i::before,
-.stairs i::after {
-  content: '';
+/* The sides go all the way round the tread: both long edges, the outer end and the two rounded
+   corners (three short facets each), so the side follows the rounding. Each strip starts at a
+   point on the edge (--x, --y), turns to run along it (--a), then folds straight down one step. */
+.stairs s {
   position: absolute;
-  left: 0;
-  top: 100%;
-  width: 100%;
+  left: calc(var(--x) * 1px);
+  top: calc(var(--y) * 1px);
+  width: calc(var(--l) * 1px + 0.5px); /* a hair longer, so neighbours overlap: no seams */
   height: 8px;
-  background: hsl(var(--hue) 45% 28%);
-  transform-origin: top;
-  transform: rotateX(-90deg);
+  background: hsl(var(--hue) 45% 30% / 0.82); /* less see-through than the top */
+  box-shadow: 0 0 6px hsl(var(--hue) 85% 64% / 0.35); /* a soft glow */
+  transform-origin: 0 0;
+  transform: rotate(calc(var(--a) * 1deg)) rotateX(-90deg);
 }
 
-.stairs i::after {
-  top: 0; /* the far side */
-}
+.stairs s:nth-child(1) { --x: 0; --y: 0; --l: 52; --a: 0; }
+.stairs s:nth-child(2) { --x: 0; --y: 28; --l: 52; --a: 0; }
+.stairs s:nth-child(3) { --x: 58; --y: 6; --l: 16; --a: 90; }
+.stairs s:nth-child(4) { --x: 52; --y: 0; --l: 3.11; --a: 15; }
+.stairs s:nth-child(5) { --x: 55; --y: 0.8; --l: 3.11; --a: 45; }
+.stairs s:nth-child(6) { --x: 57.2; --y: 3; --l: 3.11; --a: 75; }
+.stairs s:nth-child(7) { --x: 58; --y: 22; --l: 3.11; --a: 105; }
+.stairs s:nth-child(8) { --x: 57.2; --y: 25; --l: 3.11; --a: 135; }
+.stairs s:nth-child(9) { --x: 55; --y: 27.2; --l: 3.11; --a: 165; }
 
 /* pole: two crossed planes */
 .stairs b {
