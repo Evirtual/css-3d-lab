@@ -32,7 +32,7 @@
     "date": "2026-09-19"
   },
   "models/phone/": {
-    "hash": "f3e78d08511dbcb7",
+    "hash": "bb75383990f730e8",
     "date": "2026-09-19"
   },
   "models/rubik/": {
@@ -52,7 +52,7 @@
     "date": "2026-09-19"
   },
   "models/package/": {
-    "hash": "19037fea194a0e29",
+    "hash": "7efce3f0789716a1",
     "date": "2026-09-19"
   },
   "models/city/": {
@@ -72,7 +72,7 @@
     "date": "2026-09-19"
   },
   "models/wordcube/": {
-    "hash": "406fc5db09ccb5b5",
+    "hash": "de6fbdefe818c7e1",
     "date": "2026-09-19"
   },
   "models/turntable/": {
@@ -152,7 +152,7 @@
     "date": "2026-09-19"
   },
   "models/cubenav/": {
-    "hash": "b970c2b09a085f05",
+    "hash": "bd896e33b874d7db",
     "date": "2026-09-19"
   },
   "models/chartpanel/": {
@@ -192,7 +192,7 @@
     "date": "2026-09-19"
   },
   "models/radio/": {
-    "hash": "8886676874f8fd72",
+    "hash": "b486a585ddee3ecc",
     "date": "2026-09-19"
   },
   "models/drag/": {
@@ -220,7 +220,7 @@
     "date": "2026-09-19"
   },
   "models/stairs/": {
-    "hash": "a6e6c3fa6908a325",
+    "hash": "b35cbb6b5e4ef304",
     "date": "2026-09-19"
   },
   "models/cubegrid/": {
@@ -240,7 +240,7 @@
     "date": "2026-09-19"
   },
   "models/hourglass/": {
-    "hash": "35418be85162d5ed",
+    "hash": "afc2b81a981d4496",
     "date": "2026-09-19"
   },
   "models/crystal/": {
@@ -260,7 +260,7 @@
     "date": "2026-09-19"
   },
   "models/perfume/": {
-    "hash": "f5a8afa5a0119b2a",
+    "hash": "c479be8d717ea7ca",
     "date": "2026-09-19"
   },
   "models/businesscard/": {
@@ -304,7 +304,7 @@
     "date": "2026-09-19"
   },
   "models/cubeletters/": {
-    "hash": "43eb02fee86446a1",
+    "hash": "ae5739c655c7e92b",
     "date": "2026-09-19"
   },
   "models/button/": {
@@ -332,11 +332,11 @@
     "date": "2026-09-19"
   },
   "models/check/": {
-    "hash": "1c65d8f3358f9b1f",
+    "hash": "974d786b0f4d23c6",
     "date": "2026-09-19"
   },
   "models/tabs/": {
-    "hash": "a87da5040130925f",
+    "hash": "4cb92c0217a8c36f",
     "date": "2026-09-19"
   },
   "models/radial/": {
@@ -348,7 +348,7 @@
     "date": "2026-09-19"
   },
   "models/stepper/": {
-    "hash": "9d6268ecf3e6c5cf",
+    "hash": "836a0201e517a468",
     "date": "2026-09-19"
   },
   "models/rating/": {

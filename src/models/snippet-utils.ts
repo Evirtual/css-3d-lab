@@ -221,7 +221,27 @@ function fitPrint(freeze) {
   var dy = (a.top + a.height / 2 - (d.t + d.b) / 2) / z;
   model.style.translate = dx.toFixed(1) + 'px ' + dy.toFixed(1) + 'px';
 }
-addEventListener('beforeprint', function () { fitPrint(true); });
+// Printing ignores backface-visibility: hidden, so a face turned away would print on top,
+// mirrored. Find those faces the way the screen does: mark three corners of the face, see where
+// they land, and if the corners run the other way round (mirrored), the face shows its back:
+// hide it.
+function cullBackfaces() {
+  document.querySelectorAll('.print-model *').forEach(function (el) {
+    if (getComputedStyle(el).backfaceVisibility !== 'hidden') return;
+    var p = [0, 1, 2].map(function (k) {
+      var m = document.createElement('print-mark');
+      m.style.cssText = 'position:absolute!important;display:block!important;width:0!important;height:0!important;' +
+        'margin:0!important;transform:none!important;left:' + (k === 1 ? '100%' : '0') + '!important;top:' + (k === 2 ? '100%' : '0') + '!important';
+      el.appendChild(m);
+      var b = m.getBoundingClientRect();
+      m.remove();
+      return { x: b.left, y: b.top };
+    });
+    var turn = (p[1].x - p[0].x) * (p[2].y - p[0].y) - (p[1].y - p[0].y) * (p[2].x - p[0].x);
+    if (turn < 0) el.style.setProperty('visibility', 'hidden', 'important');
+  });
+}
+addEventListener('beforeprint', function () { fitPrint(true); cullBackfaces(); });
 addEventListener('load', function () { fitPrint(); });
 </script>
 </body>
