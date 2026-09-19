@@ -1039,11 +1039,12 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
   transform: translateZ(calc(var(--i) * 1.5px));
 }
 
-/* top layer: a sheen and thin white slice edges */
+/* top layer: a sheen and thin white slice edges. The edges fade in and out over a hair
+   instead of hard stops: a hard 1px wedge on the tilted disc steps and reads as a dashed line. */
 .spin i:last-child {
   background:
     radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.35), transparent 55%),
-    conic-gradient(${VIOLET} 0 39.6%, #fff 0 40%, ${TEAL} 0 64.6%, #fff 0 65%, ${PINK} 0 84.6%, #fff 0 85%, ${AMBER} 0 99.6%, #fff 0);
+    conic-gradient(#fff 0 0.1%, ${VIOLET} 0.6% 39.2%, #fff 39.7% 40.1%, ${TEAL} 40.6% 64.2%, #fff 64.7% 65.1%, ${PINK} 65.6% 84.2%, #fff 84.7% 85.1%, ${AMBER} 85.6% 99.2%, #fff 99.7%);
 }
 
 .legend {

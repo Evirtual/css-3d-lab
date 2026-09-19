@@ -30,8 +30,11 @@ $label: $w * $n; // the label is exactly one lap long: 220px
     > i {
       position: absolute;
       top: 0;
-      left: calc(50% - #{$w * 0.5} - 0.25px);
-      width: $w + 0.5px; // a hair wider than its slice so no seams show between strips
+      // Wider than its slice by 0.75px on each side, so no seams show between strips. The can
+      // is tilted, so the seams run at a slant: with less overlap they are sampled unevenly and
+      // show as rows of dark dots.
+      left: calc(50% - #{$w * 0.5} - 0.75px);
+      width: $w + 1.5px;
       height: 100%;
       backface-visibility: hidden; // the far side of the can is hidden by the near side anyway
       // Every strip carries the WHOLE label (background-size = one lap) and slides it left by
@@ -43,7 +46,7 @@ $label: $w * $n; // the label is exactly one lap long: 220px
         linear-gradient(100deg, transparent 0 18%, rgb(255 255 255 / 0.28) 18% 24%, transparent 24% 68%, rgb(255 255 255 / 0.28) 68% 74%, transparent 74%),
         linear-gradient(90deg, var(--accent), var(--hot) 50%, var(--accent)); // same colour at both ends = no seam
       background-size: $label 100%;
-      background-position: calc(var(--i) * #{-$w} + 0.25px) 0;
+      background-position: calc(var(--i) * #{-$w} + 0.75px) 0;
       transform: rotateY(calc(var(--i) * #{math.div(360deg, $n)})) translateZ($radius);
 
       // Lighting must stay put while the can turns. Each strip darkens and brightens over one

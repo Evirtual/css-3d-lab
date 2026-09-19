@@ -71,14 +71,17 @@ export const snippets2: Record<string, Snippet> = {
 .pyramid i:nth-child(3) { transform: rotateY(180deg) translateZ(calc(var(--base) / 2)) rotateX(30deg); }
 .pyramid i:nth-child(4) { transform: rotateY(270deg) translateZ(calc(var(--base) / 2)) rotateX(30deg); }
 
-/* floor: dark glass with a glowing rim */
+/* floor: dark glass with a glowing rim. The rim is an inset line plus a soft shade, not a
+   border: the floor is seen nearly side-on, and a 1px border squeezed that flat breaks into dashes */
 .pyramid b {
   position: absolute;
   inset: auto 0 0;
   height: var(--base);
-  border: 1px solid rgb(46 230 214 / 0.7);
   background: rgb(139 108 255 / 0.3);
-  box-shadow: 0 0 34px rgb(139 108 255 / 0.6);
+  box-shadow:
+    inset 0 0 0 1.5px rgb(46 230 214 / 0.7),
+    inset 0 0 6px rgb(46 230 214 / 0.7),
+    0 0 34px rgb(139 108 255 / 0.6);
   transform: translateY(50%) rotateX(90deg);
 }
 
@@ -265,7 +268,7 @@ ${lines(7, (i) => `<i style="--i:${i}"></i>`)}
 
   globe: {
     how: [
-      'A circle is a square with <code>border-radius: 50%</code> and only a border.',
+      'A circle is a square with <code>border-radius: 50%</code> and only an edge line. The line is an inset <code>box-shadow</code> with a soft glow, not a border: a ring turned nearly side-on is squeezed to a pixel or two, and a hard 1.5px border breaks into dots there.',
       'Nine of them, rotated <code>i × 20deg</code> around Y, form the meridians. 9 × 20° = 180° is enough because each ring is visible on both sides.',
       'One more ring laid flat with <code>rotateX(90deg)</code> is the equator.',
       'A static <code>rotateZ</code> before the animated <code>rotateY</code> gives the tilted-axis look.',
@@ -288,16 +291,22 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
   animation: globe-spin 14s linear infinite;
 }
 
+/* the line is an inset shadow with a soft glow, not a border: a ring nearly side-on is squeezed
+   to a pixel or two, and a hard border breaks into dots there. The glow keeps it whole. */
 .globe i,
 .globe b {
+  --c: #2ee6d6;
   position: absolute;
   inset: 0;
-  border: 1.5px solid #2ee6d6;
   border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1.5px var(--c),
+    inset 0 0 2px 1.5px color-mix(in srgb, var(--c) 40%, transparent),
+    0 0 2px color-mix(in srgb, var(--c) 50%, transparent);
 }
 
 .globe i { transform: rotateY(calc(var(--i) * 20deg)); }   /* meridians */
-.globe b { transform: rotateX(90deg); border-color: #ff4d9d; } /* equator */
+.globe b { transform: rotateX(90deg); --c: #ff4d9d; }       /* equator */
 
 @keyframes globe-spin {
   from { transform: rotateZ(18deg) rotateX(-14deg) rotateY(0deg); }
@@ -868,6 +877,11 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
 .cube > :nth-child(4) { transform: rotateY(-90deg) translateZ(var(--d)); }
 .cube > :nth-child(5) { transform: rotateX(90deg)  translateZ(var(--d)); }
 .cube > :nth-child(6) { transform: rotateX(-90deg) translateZ(var(--d)); }
+
+/* The top and bottom are always seen at a slant, squeezed flat, and their edges sit on the
+   same spot as the side faces' edges: two lines there step over each other and read as dashes.
+   So only the sides draw the edge line. */
+.cube > :nth-child(n + 5) { border-color: transparent; }
 
 @keyframes spin {
   from { transform: rotateX(-24deg) rotateY(0deg); }

@@ -35,11 +35,13 @@ $edge: color-mix(in srgb, var(--c) 80%, transparent);
     transform-origin: 50% 100%;
     transform: rotateY(calc(var(--i) * #{math.div(360deg, $n)})) translateZ($R) rotateX($lean);
     clip-path: polygon(50% 0, 0 100%, 100% 100%);
-    // slanted edges are drawn with "to corner" gradients: their 50% line is the box diagonal
+    // slanted edges are drawn with "to corner" gradients: their 50% line is the box diagonal.
+    // The line fades in over 1.5px instead of starting hard: a hard 1px line on a long, thin,
+    // slanted triangle is sampled unevenly and breaks into dashes.
     background:
-      linear-gradient(to top left, transparent calc(50% - 1px), $edge calc(50% - 1px), $edge 50%, transparent 50%) left / 50%
-        100% no-repeat,
-      linear-gradient(to top right, transparent calc(50% - 1px), $edge calc(50% - 1px), $edge 50%, transparent 50%) right /
+      linear-gradient(to top left, transparent calc(50% - 2.5px), $edge calc(50% - 1px), $edge 50%, transparent 50%) left /
+        50% 100% no-repeat,
+      linear-gradient(to top right, transparent calc(50% - 2.5px), $edge calc(50% - 1px), $edge 50%, transparent 50%) right /
         50% 100% no-repeat,
       linear-gradient(to top, color-mix(in srgb, var(--c) 45%, transparent), color-mix(in srgb, var(--c) 14%, transparent));
   }

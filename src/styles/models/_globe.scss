@@ -5,12 +5,18 @@
   transform-style: preserve-3d;
   animation: d-globe-spin 14s linear infinite;
 
+  // The line is an inset shadow with a soft glow, not a border: a ring turned nearly side-on is
+  // squeezed to a pixel or two, and a hard border breaks into dots there. The glow keeps it whole.
   i,
   b {
+    --c: var(--accent-2);
     position: absolute;
     inset: 0;
-    border: 1.5px solid var(--accent-2);
     border-radius: 50%;
+    box-shadow:
+      inset 0 0 0 1.5px var(--c),
+      inset 0 0 2px 1.5px color-mix(in srgb, var(--c) 40%, transparent),
+      0 0 2px color-mix(in srgb, var(--c) 50%, transparent);
   }
 
   // meridians: 9 × 20° covers the half turn (each ring shows on both sides). --i from markup.
@@ -20,7 +26,7 @@
 
   // equator
   b {
-    border-color: var(--hot);
+    --c: var(--hot);
     transform: rotateX(90deg);
   }
 }

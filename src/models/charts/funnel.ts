@@ -287,12 +287,13 @@ ${SETS.map((s) => `    <button type="button" data-set="${s}">${s}</button>`).joi
   opacity: 0.45;
 }
 
-/* front: full width, squashed from the middle */
+/* front: full width, squashed from the middle. It reaches 1px above the lid: on the same spot
+   as the lid's (nearly side-on) front edge, the two lines would step over each other as dashes */
 .stage i:nth-child(1) {
-  top: 5px;
+  top: 4px;
   left: 0;
   width: 132px;
-  height: 16px;
+  height: 17px;
   transform: translateZ(14px) scaleX(var(--v));
 }
 

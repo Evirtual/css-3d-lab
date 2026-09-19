@@ -572,8 +572,10 @@ scene.addEventListener('pointercancel', leave);`,
 .spin > i {
   position: absolute;
   top: 0;
-  left: calc(50% - 5.75px);
-  width: 11.5px; /* a hair wider than its 11px slice, so no seams show */
+  /* 0.75px wider than its 11px slice on each side, so no seams show. The can is tilted, so the
+     seams run at a slant: with less overlap they show as rows of dark dots. */
+  left: calc(50% - 6.25px);
+  width: 12.5px;
   height: 100%;
   backface-visibility: hidden;
   /* the whole label on every strip, one lap (220px) long */
@@ -585,7 +587,7 @@ scene.addEventListener('pointercancel', leave);`,
     linear-gradient(90deg, #8b6cff, #ff4d9d 50%, #8b6cff); /* same colour at both ends: no seam */
   background-size: 220px 100%;
   /* strip i shows slice i */
-  background-position: calc(var(--i) * -11px + 0.25px) 0;
+  background-position: calc(var(--i) * -11px + 0.75px) 0;
   transform: rotateY(calc(var(--i) * 18deg)) translateZ(34.7px);
 }
 

@@ -324,9 +324,11 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
   /* stand on the base circle, then lean in by atan(50 / 110) */
   transform: rotateY(calc(var(--i) * 22.5deg)) translateZ(50px) rotateX(24.44deg);
   clip-path: polygon(50% 0, 0 100%, 100% 100%);
+  /* the edge lines fade in over 1.5px instead of starting hard: a hard 1px line on a long,
+     thin, slanted triangle is sampled unevenly and breaks into dashes */
   background:
-    linear-gradient(to top left, transparent calc(50% - 1px), var(--edge) calc(50% - 1px) 50%, transparent 50%) left / 50% 100% no-repeat,
-    linear-gradient(to top right, transparent calc(50% - 1px), var(--edge) calc(50% - 1px) 50%, transparent 50%) right / 50% 100% no-repeat,
+    linear-gradient(to top left, transparent calc(50% - 2.5px), var(--edge) calc(50% - 1px) 50%, transparent 50%) left / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 2.5px), var(--edge) calc(50% - 1px) 50%, transparent 50%) right / 50% 100% no-repeat,
     linear-gradient(to top, hsl(var(--hue) 90% 68% / 0.45), hsl(var(--hue) 90% 68% / 0.14));
 }
 

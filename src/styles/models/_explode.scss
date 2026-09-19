@@ -39,6 +39,13 @@ $turns: (rotateY(0deg), rotateY(90deg), rotateY(180deg), rotateY(-90deg), rotate
         transform: #{list.nth($turns, $n)} translateZ(var(--d));
       }
     }
+
+    // The top and bottom are always seen at a slant, squeezed flat, and their edges sit on the
+    // same spot as the side faces' edges: two lines there step over each other and read as
+    // dashes. So only the sides draw the edge line.
+    &:nth-child(n + 5) {
+      border-color: transparent;
+    }
   }
 }
 

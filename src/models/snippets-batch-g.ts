@@ -1088,6 +1088,9 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   transform: rotateY(calc(var(--i) * 18deg)) translateZ(27px) rotateX(-5.14deg);
   clip-path: polygon(0 0, 100% 0, calc(50% + 4.9px) 100%, calc(50% - 4.9px) 100%);
   backface-visibility: hidden;
+  /* a soft shade under the lid: the lid's discs are nearly side-on, and their edge against
+     bare white paper steps and reads as a dashed line; against the shade it reads as one edge */
+  box-shadow: inset 0 5px 3px -2px rgb(20 20 30 / 0.8);
   /* one 197px canvas = one lap round the sleeve's middle; each strip shows its own slice */
   background-image:
     radial-gradient(ellipse 1.2px 5px at 49.3px 53px, #f0d9b8 0 60%, transparent 90%),

@@ -61,6 +61,9 @@ $rim: math.div($rt, math.cos(math.div(180deg, $n))) + 2px; // lid radius, just p
     transform: rotateY(calc(var(--i) * #{math.div(360deg, $n)})) translateZ($rb) rotateX(-$lean);
     clip-path: polygon(0 0, 100% 0, calc(50% + #{$wb * 0.5 + 0.6px}) 100%, calc(50% - #{$wb * 0.5 + 0.6px}) 100%);
     backface-visibility: hidden;
+    // A soft shade under the lid. The lid's discs are nearly side-on, and their edge against bare
+    // white paper steps from disc to disc and reads as a dashed line; against a shade it is one edge.
+    box-shadow: inset 0 5px 3px -2px rgb(20 20 30 / 0.8);
     // All layers are painted on ONE lap-long canvas ($lap × 100%) and every strip slides it by
     // its index, so strip i shows slice i: the canvas wraps around the cup.
     background-image:

@@ -91,12 +91,14 @@ $ease: cubic-bezier(0.3, 1.3, 0.5, 1); // past 1: a slab overshoots and settles
       opacity: 1;
     }
 
-    // front: full width, squashed from the middle
+    // front: full width, squashed from the middle. It reaches 1px above the lid: two edge lines
+    // on the same spot (the lid's front edge, nearly side-on, and the front's top edge) step
+    // over each other and read as a dashed line. Offset, the front's line stays whole.
     i:nth-child(1) {
-      top: $pad;
+      top: $pad - 1px;
       left: 0;
       width: $w;
-      height: $h;
+      height: $h + 1px;
       transform: translateZ($d * 0.5) scaleX(var(--v));
     }
 
