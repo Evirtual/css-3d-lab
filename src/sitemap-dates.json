@@ -64,7 +64,7 @@
     "date": "2026-09-19"
   },
   "models/can/": {
-    "hash": "7bfb359be5998fca",
+    "hash": "e1c46057273bd995",
     "date": "2026-09-19"
   },
   "models/dice/": {
@@ -164,7 +164,7 @@
     "date": "2026-09-19"
   },
   "models/pyramid/": {
-    "hash": "24cc513641463263",
+    "hash": "06fe693049a830fb",
     "date": "2026-09-19"
   },
   "models/cylinder/": {
@@ -176,7 +176,7 @@
     "date": "2026-09-19"
   },
   "models/globe/": {
-    "hash": "0c4e90d8989e675a",
+    "hash": "ab9db01bae7afd2b",
     "date": "2026-09-19"
   },
   "models/orbit/": {
@@ -188,7 +188,7 @@
     "date": "2026-09-19"
   },
   "models/explode/": {
-    "hash": "218cf1c242edd702",
+    "hash": "1af9dc8e0446795b",
     "date": "2026-09-19"
   },
   "models/radio/": {
@@ -216,7 +216,7 @@
     "date": "2026-09-19"
   },
   "models/cone/": {
-    "hash": "741f977501de906a",
+    "hash": "06a9de994a747527",
     "date": "2026-09-19"
   },
   "models/stairs/": {
@@ -264,7 +264,7 @@
     "date": "2026-09-19"
   },
   "models/businesscard/": {
-    "hash": "1982161a82ebb0a9",
+    "hash": "5411442283ccb891",
     "date": "2026-09-19"
   },
   "models/camera/": {
@@ -272,7 +272,7 @@
     "date": "2026-09-19"
   },
   "models/coffeecup/": {
-    "hash": "343c6a6bf1f738bd",
+    "hash": "335d8c876496e8a6",
     "date": "2026-09-19"
   },
   "models/text/": {
@@ -524,7 +524,7 @@
     "date": "2026-09-19"
   },
   "models/pie/": {
-    "hash": "499f0480e5a94e18",
+    "hash": "9d46145c245a5d88",
     "date": "2026-09-19"
   },
   "models/scatter/": {
@@ -548,7 +548,7 @@
     "date": "2026-09-19"
   },
   "models/funnel/": {
-    "hash": "d63da7bb03299a12",
+    "hash": "eed9390bddf9d41e",
     "date": "2026-09-19"
   },
   "models/candles/": {
