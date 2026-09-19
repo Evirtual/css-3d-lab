@@ -5,7 +5,7 @@ and copy-paste code you can edit in the page.
 
 **Live:** https://css3dlab.edgarasneverdauskas.com/
 
-125 models in eight groups (shapes, products, text, buttons & forms, cards & galleries, loaders,
+135 models in eight groups (shapes, products, text, buttons & forms, cards & galleries, loaders,
 scenes, data), in two honest categories:
 
 - **Pure CSS (93)** — markup and Sass only, zero JavaScript: solids, product mockups, text
