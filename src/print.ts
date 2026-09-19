@@ -22,6 +22,20 @@ function lookOf(stage: HTMLElement | null): PrintLook | undefined {
  * landscape page) is laid out in a hidden same-origin frame of that size, printed from there, and
  * the frame is removed afterwards.
  */
+/**
+ * How far into its animations the model on the stage is (ms), paused or not: the print jumps its
+ * own copy to the same moment, so what prints is the pose on screen. The snippet runs the same
+ * keyframes and timings as the stage, and they all start together, so one clock fits all.
+ */
+function clockOf(stage: HTMLElement | null): number | null {
+  if (!stage) return null;
+  const doc = stage.querySelector('iframe')?.contentDocument; // an edited version runs in a frame
+  const anims = doc ? doc.getAnimations() : stage.getAnimations({ subtree: true });
+  const a = anims.find((x) => x instanceof CSSAnimation);
+  const t = a ? Number(a.currentTime) : NaN;
+  return Number.isFinite(t) ? t : null;
+}
+
 export function printModel(live: LiveEdit, stage?: HTMLElement | null): void {
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
@@ -38,6 +52,6 @@ export function printModel(live: LiveEdit, stage?: HTMLElement | null): void {
       win.print();
     }, 500);
   });
-  frame.srcdoc = live.printDoc(lookOf(stage ?? null), isHeld(stage ?? null));
+  frame.srcdoc = live.printDoc(lookOf(stage ?? null), isHeld(stage ?? null), clockOf(stage ?? null));
   document.body.append(frame);
 }

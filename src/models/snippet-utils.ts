@@ -75,7 +75,7 @@ export interface PrintLook {
   dots?: { image: string; size: string };
 }
 
-export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: PrintLook = { bg: '#0b0d18', light: false }, held = false): string {
+export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: PrintLook = { bg: '#0b0d18', light: false }, held = false, clock: number | null = null): string {
   // held ("Hold hover" on the stage): every :hover rule applies, as if the pointer were on it.
   // :not(.c3d-none) always matches and weighs the same as :hover, so the cascade is unchanged.
   const css = held ? s.css.replace(/:hover/g, ':not(.c3d-none)') : s.css;
@@ -161,6 +161,8 @@ ${s.html}
 <span class="print-sign" title="${url}">CSS 3D Lab</span>
 ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
 <script>
+// The moment on the stage when Print was pressed (ms into its animations): the print shows that pose.
+var CLOCK = ${clock === null ? 'null' : Math.round(clock)};
 // Every model prints the same size: measure what is actually drawn (the union of every visible
 // part, 3D turns included), zoom that to 82% of the area inside the margins (about 73% of the page), then move it to the exact middle.
 // Again just before printing, because the printed page is a different size from the window.
@@ -189,7 +191,7 @@ function fitPrint(freeze) {
   var art = document.querySelector('.print-art');
   var model = document.querySelector('.print-model');
   // stop on the frame that gets printed, so the measurement matches the paper
-  if (freeze === true) document.getAnimations().forEach(function (x) { x.pause(); });
+  if (freeze === true) document.getAnimations().forEach(function (x) { if (CLOCK !== null) x.currentTime = CLOCK; x.pause(); });
   model.style.zoom = 1;
   model.style.translate = 'none';
   model.style.width = model.style.height = '';

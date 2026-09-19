@@ -59,9 +59,9 @@ export class LiveEdit {
   }
 
   /** A print-ready A4 page of the CURRENT code (edited or not), which opens the print dialog. */
-  printDoc(look?: PrintLook, held = false): string {
+  printDoc(look?: PrintLook, held = false, clock: number | null = null): string {
     const size = (sizes as Record<string, { size: number }>)[this.id]?.size ?? 1;
-    return printDoc(this.title, { how: [], ...this.current }, size, `${site.url.replace('https://', '')}/models/${this.id}/`, look, held);
+    return printDoc(this.title, { how: [], ...this.current }, size, `${site.url.replace('https://', '')}/models/${this.id}/`, look, held, clock);
   }
 
   /** A sandboxed frame running the current code, for showing an edited version live on a stage. */
