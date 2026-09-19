@@ -61,7 +61,7 @@ ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
 
 /**
  * A print-ready page for a snippet (the site's code or the visitor's edited version): an A4
- * landscape sheet with the model drawn large in the middle, its title above and the address
+ * landscape sheet with the model fitted large in the middle, its title above and the address
  * below, which opens the print dialog by itself ("Save as PDF" is one of the printers). The dark
  * background is kept on paper (print-color-adjust: exact), and animations freeze on the frame
  * that is printed. `size` is the model's size factor on the site (models/sizes.json).
@@ -84,14 +84,18 @@ html {
   -webkit-print-color-adjust: exact;
 }
 
+/* one page, whatever area the printer settings leave: the sheet is the viewport, never more */
+html,
+body {
+  height: 100%;
+}
+
 body {
   box-sizing: border-box;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  width: 297mm;
-  height: 210mm;
-  margin: 0 auto;
-  padding: 14mm 16mm 11mm;
+  margin: 0;
+  padding: 12mm 14mm 9mm;
   overflow: hidden;
   background: #0b0d18;
   color: #eceefb;
@@ -116,11 +120,13 @@ body {
   display: grid;
   place-items: center;
   min-height: 0;
+  overflow: hidden;
 }
 
-/* drawn about 2.3 times its card size: large, and still clear of the edges */
+/* its zoom is set by the script below: as big as fits between the title and the footer */
 .print-model {
-  zoom: ${+(2.3 * size).toFixed(2)};
+  display: grid;
+  place-items: center;
 }
 
 .print-foot {
@@ -146,7 +152,25 @@ ${s.html}
 </div></main>
 <footer class="print-foot"><span>CSS 3D Lab</span><span>${url}</span></footer>
 ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
-<script>addEventListener('load', () => setTimeout(() => print(), 800));</script>
+<script>
+// Fit the model to the space it has: measure it at its own size, then zoom it up to fill 85% of
+// the room between the title and the footer (at most ${3 * size}x). Again just before printing,
+// because the printed page is a different size from the window.
+function fitPrint() {
+  var art = document.querySelector('.print-art');
+  var model = document.querySelector('.print-model');
+  model.style.zoom = 1;
+  var a = art.getBoundingClientRect();
+  var m = model.getBoundingClientRect();
+  var z = Math.min((a.width * 0.85) / m.width, (a.height * 0.85) / m.height, ${3 * size});
+  model.style.zoom = z.toFixed(3);
+}
+addEventListener('beforeprint', fitPrint);
+addEventListener('load', function () {
+  fitPrint();
+  setTimeout(function () { print(); }, 800);
+});
+</script>
 </body>
 </html>`;
 }
