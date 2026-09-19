@@ -3,6 +3,14 @@ $h: 100px;
 $d: 4px; // a thick, premium card stock
 $r: 6px; // corner radius
 
+// How far the card is flipped (0 = front, 1 = back): a registered number, so it can transition
+// and the lifted print can read it (see &__front > *)
+@property --d-bc-flip {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 // Static hit area: hovering it never moves it.
 .d-businesscard {
   --ink: #0f1020;
@@ -41,7 +49,10 @@ $r: 6px; // corner radius
     position: absolute;
     inset: 0;
     transform-style: preserve-3d;
-    transition: transform 0.9s cubic-bezier(0.35, 1.25, 0.45, 1);
+    transform: rotateY(calc(var(--d-bc-flip) * 180deg));
+    // Quick through the middle, where the card is side-on and every thin layer turns into a
+    // flickering line, then a small overshoot and a slow settle at the end.
+    transition: --d-bc-flip 0.9s linear(0, 0.03 18%, 0.5 42%, 0.97 60%, 1.05 74%, 1);
   }
 
   // Four rounded slabs, 1px apart, fill the rounded corners of the edge...
@@ -105,6 +116,9 @@ $r: 6px; // corner radius
     backface-visibility: hidden;
 
     > * {
+      // the lifted logo and text fade out for the moment the card is side-on (flip near 0.5),
+      // where they would only show as thin, flickering lines
+      opacity: clamp(0, pow(var(--d-bc-flip) - 0.5, 2) * 60, 1);
       backface-visibility: hidden;
     }
   }
@@ -235,7 +249,7 @@ $r: 6px; // corner radius
 
   &:hover &__card,
   &:focus-visible &__card {
-    transform: rotateY(180deg);
+    --d-bc-flip: 1;
   }
 }
 

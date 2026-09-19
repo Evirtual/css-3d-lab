@@ -531,7 +531,14 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
     </div>
   </div>
 </div>`,
-    css: `.scene {
+    css: `/* how far the card is flipped: 0 = front, 1 = back (registered, so it can transition) */
+@property --flip {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.scene {
   perspective: 800px;
 }
 
@@ -574,12 +581,14 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transition: transform 0.9s cubic-bezier(0.35, 1.25, 0.45, 1);
+  transform: rotateY(calc(var(--flip) * 180deg));
+  /* quick through the side-on middle (where thin layers flicker), then overshoot and settle */
+  transition: --flip 0.9s linear(0, 0.03 18%, 0.5 42%, 0.97 60%, 1.05 74%, 1);
 }
 
 .bizcard:hover .card,
 .bizcard:focus-visible .card {
-  transform: rotateY(180deg);
+  --flip: 1;
 }
 
 /* 4px thick: four rounded slabs fill the corners of the edge... */
@@ -620,6 +629,8 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 .front > *,
 .back > * {
   backface-visibility: hidden;
+  /* the lifted print fades out while the card is side-on (--flip near 0.5) */
+  opacity: clamp(0, pow(var(--flip) - 0.5, 2) * 60, 1);
 }
 
 .front {
