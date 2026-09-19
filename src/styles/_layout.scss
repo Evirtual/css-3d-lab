@@ -2558,8 +2558,24 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     min-width: 30px;
   }
 
+  // The code window on a phone: most of the screen height (it was a short strip of about eight
+  // lines under a tall header), tighter padding and lines, and the note on one line.
   .code .codebox {
+    height: min(68vh, 560px);
     min-height: 360px;
+  }
+
+  .codebox pre,
+  .editor {
+    line-height: 1.55;
+  }
+
+  .codebox pre {
+    padding: 12px 12px 12px 14px;
+  }
+
+  .codebox__foot {
+    font-size: 11px;
   }
 
   .sharemenu__targets {
@@ -2572,4 +2588,17 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 // specificity, so any model's own outline rule still wins.
 :where(.aa-test .scene *) {
   outline: 1px solid transparent;
+}
+
+// Cards: 20px taller than the 260px the models are designed for, as padding, so --fit (measured
+// on the content box) and every model's size stay the same. Models with a control dock fill the
+// padding box too, with their bottom lifted 12px: the dock gets air under it and the model
+// above it (offsets inside the zoom are divided by it).
+.card .stage {
+  height: 280px;
+  padding: 10px 0;
+
+  > .scene--fill {
+    bottom: calc(12px / var(--fit, 1));
+  }
 }
