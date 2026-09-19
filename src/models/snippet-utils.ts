@@ -205,12 +205,18 @@ function fitPrint(freeze) {
     break;
   }
   var d = drawn(model);
-  var z = Math.min((a.width * 0.82) / (d.r - d.l), (a.height * 0.82) / (d.b - d.t), 12);
-  // a whole scene rather than an object (a starfield, a room, a full-bleed backdrop) fills the
-  // sheet as it is: its parts are scattered points, or they already cover everything
-  if (z >= 12 || (d.r - d.l >= a.width * 0.95 && d.b - d.t >= a.height * 0.95)) return;
-  model.style.zoom = z.toFixed(3);
-  d = drawn(model);
+  // a backdrop that already covers the sheet prints as it is
+  if (d.r - d.l >= a.width * 0.95 && d.b - d.t >= a.height * 0.95) return;
+  // Zoom, measure again, correct: a model sized in % or viewport units does not grow in step with
+  // the zoom, so one step can land short. A few rounds settle it.
+  var z = 1;
+  for (var round = 0; round < 5; round++) {
+    var k = Math.min((a.width * 0.82) / (d.r - d.l), (a.height * 0.82) / (d.b - d.t));
+    if (Math.abs(k - 1) < 0.02) break;
+    z = Math.min(z * k, 40);
+    model.style.zoom = z.toFixed(3);
+    d = drawn(model);
+  }
   var dx = (a.left + a.width / 2 - (d.l + d.r) / 2) / z;
   var dy = (a.top + a.height / 2 - (d.t + d.b) / 2) / z;
   model.style.translate = dx.toFixed(1) + 'px ' + dy.toFixed(1) + 'px';
