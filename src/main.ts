@@ -1,4 +1,6 @@
 import './styles/main.scss';
+// AA-TEST (temporary): ?aa gives every 3D face a transparent outline, to compare edge smoothing
+if (new URLSearchParams(location.search).has('aa')) document.documentElement.classList.add('aa-test');
 import { initAnalytics, track } from './analytics';
 import { initChrome } from './chrome';
 import { createEditor } from './editor';
@@ -420,6 +422,7 @@ function openViewer(id: string): void {
         <div class="code__actions">
           <button type="button" class="btn btn--accent" data-copy="file">${icon('copy')} Copy as one HTML file</button>
           ${videoButton(id)}
+          <button type="button" class="btn" data-act="print">${icon('printer')} Print / PDF</button>
           <button type="button" class="btn" data-act="share">${icon('share')} Share</button>
           <button type="button" class="btn" data-act="newtab">${icon('arrow-up-right')} Open in new tab</button>
           <a class="btn" href="${REPO}/blob/main/src/styles/models/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
@@ -506,6 +509,12 @@ function openViewer(id: string): void {
     }
     const act = target.closest<HTMLButtonElement>('[data-act]');
     if (act?.dataset.act === 'share') return openShareMenu(id, demo.title);
+    if (act?.dataset.act === 'print') {
+      track(`print/${id}`);
+      // the current code (edited or not) on an A4 page that opens the print dialog; "Save as PDF" is in there
+      window.open(URL.createObjectURL(new Blob([live.printDoc()], { type: 'text/html' })), '_blank', 'noopener');
+      return;
+    }
     if (act?.dataset.act === 'newtab') {
       track(`run/${id}`);
       window.open(URL.createObjectURL(new Blob([live.doc()], { type: 'text/html' })), '_blank', 'noopener');

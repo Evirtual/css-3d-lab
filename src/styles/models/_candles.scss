@@ -1,0 +1,326 @@
+// A candlestick chart drawn from JSON. JS writes four numbers per candle, each a price as a
+// fraction of the visible range (0 = the bottom of the scale, 1 = the top): --lo, --hi, --o, --c.
+// Every part is a full-height box squashed with scaleY and lifted with translateY, so a new range
+// is only a transition on transform: the wick spans low → high, the body open ↔ close.
+// Each candle's column is placed with translateX(--x × slot), and the slot is the chart's width
+// divided by the number of days shown (--n), so switching 12D → 7D spreads the last seven out while
+// the others sink into the floor.
+$w: 180px; // the chart's width
+$h: 100px; // the price scale's height
+$cw: 9px; // a candle body's width, and depth
+$floor: 30px; // the floor's depth, front to back
+$ease: cubic-bezier(0.22, 1, 0.36, 1); // no overshoot: a price should not bounce past itself
+
+.d-candles {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 14px; // the control dock: the same place in every model with controls
+  // The chart is turned, so its left candles sit behind the plane of the flat boxes around it,
+  // which would catch the pointer first: only the candles' columns and the dock take it.
+  pointer-events: none;
+
+  &__chart {
+    --slot: calc(#{$w} / var(--n, 12));
+    position: relative;
+    place-self: center;
+    width: $w;
+    height: $h;
+    margin-top: 16px; // room for the tooltips above the highest candle
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transform: rotateX(-18deg) rotateY(-26deg);
+  }
+
+  // the floor: a neon grid laid flat under the candles
+  &__floor {
+    position: absolute;
+    left: -10px;
+    top: $h - $floor * 0.5;
+    width: $w + 20px;
+    height: $floor;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    border-radius: 6px;
+    background:
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px 15px),
+      repeating-linear-gradient(color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px 15px),
+      color-mix(in srgb, var(--accent) 9%, transparent);
+    transform: rotateX(90deg);
+  }
+
+  // the price scale: lines at the bottom, middle and top, on a wall along the back edge of the
+  // floor. The numbers sit at its right end, which reaches out past the last candle (the left
+  // end is hidden behind the first ones). The wall reaches 8px past the scale at both ends and
+  // draws its lines as 1px gradients: a label sticking out of a 3D-placed box got its top half cut.
+  &__wall {
+    --line: color-mix(in srgb, var(--text) 24%, transparent);
+    position: absolute;
+    top: -8px;
+    left: -10px;
+    width: $w + 20px;
+    height: $h + 16px;
+    background:
+      linear-gradient(var(--line), var(--line)) 0 8px / 100% 1px no-repeat,
+      linear-gradient(var(--line), var(--line)) 0 #{8px + $h * 0.5} / 100% 1px no-repeat,
+      linear-gradient(var(--line), var(--line)) 0 #{8px + $h - 1px} / 100% 1px no-repeat;
+    transform: translateZ($floor * -0.5);
+
+    span {
+      position: absolute;
+      bottom: calc(8px + var(--t) * #{$h});
+      left: 100%;
+      padding-left: 6px;
+      color: var(--muted);
+      font: 700 9px/12px system-ui, sans-serif;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      transform: translateY(50%);
+    }
+  }
+
+  // the first and last day shown, standing at the front edge of the floor
+  &__date {
+    position: absolute;
+    top: calc(100% + 6px);
+    color: var(--muted);
+    font: 700 9px/12px system-ui, sans-serif;
+    white-space: nowrap;
+    transform: translateZ($floor * 0.5);
+
+    &:first-of-type {
+      left: 0;
+    }
+
+    &:last-of-type {
+      right: 0;
+    }
+  }
+
+  // One candle's column: the whole height of the chart and a slot wide, so it is the hover target
+  // (the empty space above and below a candle counts too). It never moves on hover; it only
+  // slides when the range changes. Centred on its x (margin −½ slot + translateX to the middle
+  // of the slot), so a new slot width changes nothing but the transform.
+  &__candle {
+    --tone: var(--accent-2);
+    --b: min(var(--o), var(--c)); // the body's bottom…
+    --bh: max(var(--o) - var(--c), var(--c) - var(--o), 0.012); // …and its height (never 0)
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--slot);
+    height: 100%;
+    margin-left: calc(var(--slot) * -0.5);
+    outline: none;
+    cursor: pointer;
+    pointer-events: auto;
+    transform-origin: bottom center;
+    transform-style: preserve-3d;
+    // --in is 1 for a day in the range, 0 for one outside it: it sinks into the floor
+    transform: translateX(calc((var(--x) + 0.5) * var(--slot))) scaleY(var(--in));
+    transition: transform 0.7s $ease calc(var(--i) * 30ms);
+
+    &.is-down {
+      --tone: var(--hot);
+    }
+
+    &.is-out {
+      pointer-events: none;
+    }
+
+    // the pointed-at candle (.is-active, set by JS with the tooltip) fills in and glows: an
+    // overlay on the body's front, the same transform, a hair nearer; faded with opacity
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: $cw;
+      height: 100%;
+      margin-left: $cw * -0.5;
+      background: color-mix(in srgb, var(--tone) 50%, transparent);
+      box-shadow: 0 0 20px color-mix(in srgb, var(--tone) 60%, transparent);
+      opacity: 0;
+      pointer-events: none;
+      transform-origin: bottom center;
+      transform: translateY(calc(var(--b) * -#{$h})) scaleY(var(--bh)) translateZ($cw * 0.5 + 0.2px);
+      transition:
+        transform 0.7s $ease calc(var(--i) * 30ms),
+        opacity 0.25s;
+    }
+
+    &.is-active::after {
+      opacity: 1;
+    }
+
+    i {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      height: 100%;
+      pointer-events: none;
+      transform-origin: bottom center;
+      transform-style: preserve-3d;
+      transition: transform 0.7s $ease calc(var(--i) * 30ms);
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+      }
+    }
+  }
+
+  // the wick: a 2px line from low to high, crossed by a second one turned 90° so it has depth
+  &__wick {
+    width: 2px;
+    margin-left: -1px;
+    background: var(--tone);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--tone) 70%, transparent);
+    transform: translateY(calc(var(--lo) * -#{$h})) scaleY(calc(var(--hi) - var(--lo)));
+
+    &::before {
+      inset: 0;
+      background: inherit;
+      transform: rotateY(90deg);
+    }
+  }
+
+  // the body: a cuboid of coloured glass from open to close (the wick shows through it). The
+  // element is its front face, ::before its right side and ::after its lid; the lid is flat, so
+  // the parent's scaleY only moves it to the top.
+  &__body {
+    // a fine edge: under 1px shows as a hairline on sharp screens (a standard one draws 1px)
+    --edge: 0.6px solid color-mix(in srgb, color-mix(in srgb, var(--tone) 80%, #fff) 75%, transparent);
+    width: $cw;
+    margin-left: $cw * -0.5;
+    border: var(--edge);
+    background: color-mix(in srgb, var(--tone) 58%, transparent);
+    box-shadow:
+      inset 0 0 8px color-mix(in srgb, var(--tone) 30%, transparent),
+      0 0 10px color-mix(in srgb, var(--tone) 22%, transparent);
+    transform: translateY(calc(var(--b) * -#{$h})) scaleY(var(--bh)) translateZ($cw * 0.5);
+
+    // right side, darker: hinged on the front's right edge and turned back
+    &::before {
+      top: -0.6px;
+      left: 100%;
+      width: $cw;
+      height: calc(100% + 1.2px);
+      border: var(--edge);
+      background: color-mix(in srgb, color-mix(in srgb, var(--tone) 55%, #05060c) 64%, transparent);
+      transform-origin: left center;
+      transform: rotateY(90deg);
+    }
+
+    // the lid, brighter: hinged on the front's top edge and laid flat, backwards
+    &::after {
+      top: -0.6px;
+      left: -0.6px;
+      width: $cw;
+      height: $cw;
+      border: var(--edge);
+      background: color-mix(in srgb, var(--tone) 80%, transparent);
+      transform-origin: center top;
+      transform: rotateX(-90deg);
+    }
+  }
+
+  // One tooltip for the chart: JS moves it to the pointed-at candle (--tx, --ty: the candle's
+  // middle and its high, in px) and CSS glides it there, so it slides from candle to candle with
+  // its text changing instead of blinking. It lives in the chart's turned plane, 40px towards
+  // you, or the nearer candles on the right would cover it. --f (0 for the first day shown, 1 for
+  // the last) slides it from hanging right of its candle to hanging left, so the ends stay over
+  // the chart. It is flat: its thickness is a hard edge offset up and to the right, the way the
+  // candles' depth runs (a 3D plate flattens and flickers while the tooltip fades).
+  &__tip {
+    --tone: var(--accent-2);
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 3px 7px;
+    border: 1px solid var(--tone);
+    border-radius: 6px;
+    background: var(--surface-solid);
+    box-shadow:
+      3px -3px 0 color-mix(in srgb, var(--tone) 55%, #05060c),
+      0 0 14px color-mix(in srgb, var(--tone) 40%, transparent);
+    color: var(--text);
+    font: 700 9px/12px system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(var(--tx, 0px), calc(var(--ty, 0px) - 12px)) translate(calc(var(--f, 0) * -100%), -100%) translateZ(40px);
+    transition:
+      transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.2s;
+
+    &.is-down {
+      --tone: var(--hot);
+    }
+
+    &.is-on {
+      opacity: 1;
+    }
+  }
+
+  &__dock {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    font-size: 12px;
+    pointer-events: auto;
+
+    output {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  // two buttons and one pill behind them, which slides to the pressed one
+  &__seg {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      bottom: 3px;
+      left: 3px;
+      width: calc(50% - 4px);
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--hot));
+      transition: transform 0.35s $ease;
+    }
+
+    &:has(button:last-child[aria-pressed='true'])::before {
+      transform: translateX(calc(100% + 2px));
+    }
+
+    button {
+      position: relative; // above the pill
+      padding: 4px 16px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+
+      &[aria-pressed='true'] {
+        color: #fff;
+      }
+    }
+  }
+}

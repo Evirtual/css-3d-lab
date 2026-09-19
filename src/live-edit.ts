@@ -1,4 +1,5 @@
-import { standaloneDoc } from './models/snippet-utils';
+import site from '../site.config.json';
+import { printDoc, standaloneDoc } from './models/snippet-utils';
 import sizes from './models/sizes.json';
 
 /**
@@ -55,6 +56,12 @@ export class LiveEdit {
   /** The complete standalone page for the CURRENT code. */
   doc(): string {
     return standaloneDoc(this.title, { how: [], ...this.current });
+  }
+
+  /** A print-ready A4 page of the CURRENT code (edited or not), which opens the print dialog. */
+  printDoc(): string {
+    const size = (sizes as Record<string, { size: number }>)[this.id]?.size ?? 1;
+    return printDoc(this.title, { how: [], ...this.current }, size, `${site.url.replace('https://', '')}/models/${this.id}/`);
   }
 
   /** A sandboxed frame running the current code, for showing an edited version live on a stage. */

@@ -1247,7 +1247,9 @@ input:checked ~ em {
   inset: 0;
   display: grid;
   place-items: center;
-  border: 2px solid #c9cbe0;
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 2px line
+     breaks up, the shade survives */
+  box-shadow: inset 0 0 0 1.5px #c9cbe0, inset 0 0 8px rgb(150 154 190 / 0.45);
   border-radius: 16px;
   background: radial-gradient(circle at 30% 30%, #fff, #dfe1f0);
   color: #1a1d33;

@@ -259,6 +259,7 @@ function demoPage(d, index) {
           </div>
           <div class="page-tools__row">
             ${videoButton(d.id)}
+            <button type="button" class="btn" data-print>${icon('printer')} Print / PDF</button>
             <button type="button" class="btn" data-share-link>${icon('share')} Share</button>
             <button type="button" class="btn" data-share-embed>Embed</button>
             <a class="btn" href="${site.repo}/blob/main/src/styles/models/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
@@ -305,6 +306,9 @@ function demoPage(d, index) {
 
 /* ---------- embed pages: just the demo, for iframes and for the build-time recorder ---------- */
 
+/** A title for the share image: a hyphenated word never breaks at its hyphen ("Drag-to-rotate"). */
+const ogTitle = (title) => esc(title).replace(/\S*-\S*/g, (w) => `<span class="nowrap">${w}</span>`);
+
 function embedPage(d) {
   return `<!doctype html>
 <html lang="en" data-theme="dark">
@@ -320,7 +324,8 @@ function embedPage(d) {
     <div class="stage" data-demo="${d.id}"></div>
     <div class="embed__og" aria-hidden="true">
       <div class="embed__og-tags"><span class="embed__og-kind">${kind(d)}</span></div>
-      <b>${esc(d.title)}</b>
+      <b>${ogTitle(d.title)}</b>
+      <span class="embed__og-sub">Live in your browser, explained step by step, with code you can copy.</span>
       <span class="embed__og-site"><img class="embed__og-logo" src="../../icon.svg" alt="" /><span class="embed__og-name">${esc(site.name)}</span><span class="embed__og-url">${site.url.replace('https://', '')}</span></span>
     </div>
     <a class="embed__credit" href="${site.url}/models/${d.id}/" target="_blank" rel="noopener">${esc(d.title)} · ${esc(site.name)} ${icon('arrow-up-right')}</a>

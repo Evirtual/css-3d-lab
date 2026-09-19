@@ -537,20 +537,21 @@
       var(--bg);
   }
 
-  // the demo's side: the right 56%
+  // the model's side: the right 55%, the model drawn bigger than in a card (it is the picture)
   .embed .stage {
-    left: 44%;
+    left: 45%;
     background: none;
   }
 
   .embed .stage .scene:not(.scene--fill) {
-    zoom: calc(2.1 * var(--size, 1)); // x the demo's size factor (models/size.ts)
+    zoom: calc(2.35 * var(--size, 1)); // x the model's size factor (models/size.ts)
   }
 
-  // (offsets divided by the zoom: zoom scales them too)
+  // Scenes that fill the stage are laid out at about a card's size and drawn 1.8x (zoom scales
+  // the box's own offsets too, so they are divided by it)
   .embed .stage .scene--fill {
-    inset: calc(40px / 1.5) calc(40px / 1.5) calc(40px / 1.5) 0;
-    zoom: 1.5;
+    inset: calc(40px / 1.8) calc(40px / 1.8) calc(40px / 1.8) 0;
+    zoom: 1.8;
   }
 
   .embed__og {
@@ -565,11 +566,15 @@
     color: #fff;
 
     b {
-      font-size: 64px;
+      font-size: 60px;
       font-weight: 900;
       letter-spacing: -0.035em;
-      line-height: 1.02;
+      line-height: 1.04;
       text-wrap: balance;
+    }
+
+    .nowrap {
+      white-space: nowrap;
     }
   }
 
@@ -582,11 +587,11 @@
   }
 
   .embed__og-kind {
-    padding: 6px 16px;
+    padding: 7px 18px;
     border: 1.5px solid color-mix(in srgb, var(--accent-2) 60%, transparent);
     border-radius: 999px;
     color: var(--accent-2);
-    font-size: 17px;
+    font-size: 19px;
     font-weight: 800;
     letter-spacing: 0.1em;
     text-transform: uppercase;

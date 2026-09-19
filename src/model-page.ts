@@ -1,4 +1,6 @@
 import './styles/main.scss';
+// AA-TEST (temporary): ?aa gives every 3D face a transparent outline, to compare edge smoothing
+if (new URLSearchParams(location.search).has('aa')) document.documentElement.classList.add('aa-test');
 import { initAnalytics, track } from './analytics';
 import { initCardLook } from './card-look';
 import { initChrome } from './chrome';
@@ -142,6 +144,10 @@ if (stage && demo && box) {
       track(`run/${demo.id}`);
       // A blob URL opens the snippet as its own page, exactly as it would run when pasted into a file.
       window.open(URL.createObjectURL(new Blob([live.doc()], { type: 'text/html' })), '_blank', 'noopener');
+    } else if ('print' in btn.dataset) {
+      track(`print/${demo.id}`);
+      // the current code (edited or not) on an A4 page that opens the print dialog ("Save as PDF")
+      window.open(URL.createObjectURL(new Blob([live.printDoc()], { type: 'text/html' })), '_blank', 'noopener');
     } else if ('copyFile' in btn.dataset) {
       if (await copyText(btn, live.doc())) track(`copy/${demo.id}/file`);
     } else if ('shareLink' in btn.dataset) openShareMenu(demo.id, demo.title);

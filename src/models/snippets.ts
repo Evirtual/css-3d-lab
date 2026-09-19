@@ -14,6 +14,7 @@ import { snippetsH } from './snippets-batch-h';
 import { snippetsI } from './snippets-batch-i';
 import { snippetsJ } from './snippets-batch-j';
 import { snippetsK } from './snippets-batch-k';
+import { snippetsL } from './batch-l';
 import { CUBE_FACES, type Snippet } from './snippet-utils';
 
 export { standaloneDoc, type Snippet } from './snippet-utils';
@@ -1355,4 +1356,4 @@ setInterval(tick, 250);`,
   },
 };
 
-export const snippets: Record<string, Snippet> = { ...snippets1, ...snippets2, ...snippetsA, ...snippetsB, ...snippetsC, ...snippetsD, ...snippetsE, ...snippetsF, ...snippetsG, ...snippetsH, ...snippetsI, ...snippetsJ, ...snippetsK };
+export const snippets: Record<string, Snippet> = { ...snippets1, ...snippets2, ...snippetsA, ...snippetsB, ...snippetsC, ...snippetsD, ...snippetsE, ...snippetsF, ...snippetsG, ...snippetsH, ...snippetsI, ...snippetsJ, ...snippetsK, ...snippetsL };

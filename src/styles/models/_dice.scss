@@ -30,9 +30,14 @@
       inset: 0;
       display: grid;
       place-items: center;
-      border: 2px solid #c9cbe0;
       border-radius: 14px;
       background: radial-gradient(circle at 30% 30%, #fff, #dfe1f0);
+      // The edge is an inner line plus a soft shade, not a hard border: a face turned nearly
+      // side-on is squeezed into a few pixels, and a 2px line there is sampled unevenly and
+      // looks bent or broken. The shade has width enough to survive it.
+      box-shadow:
+        inset 0 0 0 1.5px #c9cbe0,
+        inset 0 0 8px rgb(150 154 190 / 0.45);
       color: #1a1d33;
       font-size: 44px;
       font-style: normal;

@@ -1,0 +1,224 @@
+// A sales funnel drawn from JSON. JS writes one number per stage, --v: its value divided by the
+// first stage's (0–1). Each stage is a slab: the front and the lid are full width and squashed with
+// scaleX(--v) from the middle, the right side keeps its size and rides out to the new edge, so a
+// new dataset is only a transition on transform, and each stage starts a little after the one
+// above (--i). --t (0–1, the stage's place in the list) picks its colour. One shared tooltip
+// glides from stage to stage.
+$w: 132px; // the widest slab (the first stage)
+$labels: 58px; // room on the right for the names
+$h: 16px; // slab height
+$d: 28px; // slab depth, front to back
+$row: 26px; // a row: the slab and the gap under it
+$pad: 5px; // the slab's top inside its row
+$ease: cubic-bezier(0.3, 1.3, 0.5, 1); // past 1: a slab overshoots and settles
+
+.d-funnel {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 14px; // the control dock: the same place in every model with controls
+  // The chart is turned, so part of it sits behind the plane of the flat boxes around it (this
+  // one and the view), which would catch the pointer first: only the rows and the dock take it.
+  pointer-events: none;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    pointer-events: none;
+  }
+
+  &__chart {
+    position: relative;
+    width: $w + $labels;
+    transform-style: preserve-3d;
+    transform: rotateX(-22deg) rotateY(-18deg);
+  }
+
+  // violet → teal over the first half of --t, teal → pink over the second; mixed in oklch,
+  // which goes round the hue wheel (via blue) instead of through grey as srgb would
+  &__row,
+  &__tip {
+    --c: color-mix(
+      in oklch,
+      color-mix(in oklch, var(--accent), var(--accent-2) clamp(0%, var(--t, 0) * 200%, 100%)),
+      var(--hot) clamp(0%, (var(--t, 0) * 2 - 1) * 100%, 100%)
+    );
+  }
+
+  // One row per stage: the hit target. It is the chart's full width and never moves; the slab
+  // inside it is what changes, so pointing never flickers at a shrinking edge.
+  &__row {
+    position: relative;
+    height: $row;
+    outline: none;
+    transform-style: preserve-3d;
+    pointer-events: auto;
+    cursor: pointer;
+
+    > * {
+      position: absolute;
+      pointer-events: none; // the moving parts never catch the pointer
+    }
+
+    // coloured glass: the colour mixed with transparent, a fine bright edge, a small inner glow
+    i {
+      // a fine edge: under 1px shows as a hairline on sharp screens (a standard one draws 1px)
+      border: 0.6px solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
+      background: color-mix(in srgb, var(--c) 58%, transparent);
+      box-shadow:
+        inset 0 0 8px color-mix(in srgb, var(--c) 30%, transparent),
+        0 0 10px color-mix(in srgb, var(--c) 22%, transparent);
+      transition:
+        transform 0.8s $ease calc(var(--i) * 60ms),
+        opacity 0.25s;
+
+      // the pointed-at stage fills in and glows (.is-active, set with the tooltip); faded in
+      // with opacity, so it is smooth
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: color-mix(in srgb, var(--c) 50%, transparent);
+        box-shadow: 0 0 20px color-mix(in srgb, var(--c) 60%, transparent);
+        opacity: 0;
+        transition: opacity 0.25s;
+      }
+    }
+
+    &.is-active i::after {
+      opacity: 1;
+    }
+
+    // front: full width, squashed from the middle
+    i:nth-child(1) {
+      top: $pad;
+      left: 0;
+      width: $w;
+      height: $h;
+      transform: translateZ($d * 0.5) scaleX(var(--v));
+    }
+
+    // the lid, laid flat on top (its middle sits on the slab's top edge), squashed the same way
+    i:nth-child(2) {
+      top: $pad - $d * 0.5;
+      left: 0;
+      width: $w;
+      height: $d;
+      background: color-mix(in srgb, var(--c) 80%, transparent);
+      transform: rotateX(90deg) scaleX(var(--v));
+    }
+
+    // the right side, darker, keeps its size and rides out to the slab's edge
+    i:nth-child(3) {
+      top: $pad;
+      left: ($w - $d) * 0.5;
+      width: $d;
+      height: $h;
+      background: color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #05060c) 64%, transparent);
+      transform: translateX(calc(var(--v) * #{$w * 0.5})) rotateY(90deg);
+    }
+
+    // the name and value, in the front plane, following the slab's right edge
+    span {
+      top: $pad + $h * 0.5 - 12px;
+      left: $w * 0.5;
+      color: var(--text);
+      font: 700 9px/12px system-ui, sans-serif;
+      white-space: nowrap;
+      transform: translateX(calc(var(--v) * #{$w * 0.5} + 12px)) translateZ($d * 0.5);
+      transition: transform 0.8s $ease calc(var(--i) * 60ms);
+    }
+
+    strong {
+      display: block;
+      font-weight: inherit;
+    }
+
+    em {
+      display: block;
+      color: var(--muted);
+      font-style: normal;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // while one stage is pointed at, the others step back
+  &__chart:has(.is-active) .d-funnel__row:not(.is-active) i {
+    opacity: 0.45;
+  }
+
+  // One tooltip for the chart: JS moves it to the pointed-at slab (--tx: its right edge, --ty:
+  // its top, --t: its colour) and CSS glides it there, so it slides from stage to stage with
+  // its text changing instead of blinking. It ends 16px past the slab's edge (clear of the
+  // names, which sit further right on every row above) and floats 40px towards you, so the
+  // nearer slabs never cover it. Flat: its thickness is a hard edge offset up and to the right,
+  // the way the slabs' depth runs on screen.
+  &__tip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 3px 7px;
+    border: 1px solid var(--c);
+    border-radius: 6px;
+    background: var(--surface-solid);
+    box-shadow:
+      3px -3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
+      0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+    color: var(--text);
+    font: 700 9px/12px system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(calc(var(--tx, 0px) + 16px), calc(var(--ty, 0px) - 4px)) translate(-100%, -100%) translateZ(40px);
+    transition:
+      transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.2s;
+
+    &.is-on {
+      opacity: 1;
+    }
+  }
+
+  &__dock {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    font-size: 12px;
+    pointer-events: auto;
+
+    output {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  &__seg {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+
+    button {
+      padding: 4px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+
+      &[aria-pressed='true'] {
+        background: linear-gradient(135deg, var(--accent), var(--hot));
+        color: #fff;
+      }
+    }
+  }
+}

@@ -1302,7 +1302,7 @@ setInterval(tick, 1000);`,
   place-items: center;
   border-radius: 14px;
   outline-offset: -4px;
-  perspective: 700px;
+  perspective: 1200px; /* a camera well back, so the verticals stay upright */
   cursor: grab;
   user-select: none;
   touch-action: pan-y; /* sideways drags are ours, vertical ones scroll the page */
@@ -1347,17 +1347,6 @@ setInterval(tick, 1000);`,
   transform: translateZ(36px); /* depth / 2 */
 }
 
-/* faces seen at a steep angle get no hard edge line (squeezed thin, a 1px line breaks into
-   dashes); a soft inner shade marks their edges instead */
-.back,
-.left,
-.right,
-.top,
-.bottom {
-  border-color: transparent;
-  box-shadow: inset 0 0 7px rgb(0 0 0 / 0.28);
-}
-
 .back {
   background:
     radial-gradient(circle at 50% 72%, #05060c 0 9px, color-mix(in srgb, var(--c) 40%, #05060c) 10px 12px, transparent 12.5px),
@@ -1375,6 +1364,15 @@ setInterval(tick, 1000);`,
   background:
     radial-gradient(rgb(0 0 0 / 0.22) 0.7px, transparent 1.2px) 0 0 / 4px 4px,
     linear-gradient(color-mix(in srgb, var(--c) 65%, #0b0d18), color-mix(in srgb, var(--c) 45%, #0b0d18));
+}
+
+/* the sides are squeezed hard on a small screen: a 2px highlight inside both upright edges
+   survives it where a 1px line breaks up */
+.left,
+.right {
+  box-shadow:
+    inset 2px 0 0 color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #fff) 70%, transparent),
+    inset -2px 0 0 color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #fff) 70%, transparent);
 }
 
 .left { transform: rotateY(-90deg) translateZ(43px); }  /* width / 2 */

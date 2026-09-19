@@ -1,0 +1,271 @@
+@use 'sass:list';
+
+// Three activity rings drawn from JSON. JS writes one number per ring, --d-activity-p: value ÷
+// goal (1 = a closed ring, more = into a second lap). A conic-gradient paints the arc up to that
+// angle and a radial mask cuts it to a band.
+// A gradient cannot be transitioned, but a REGISTERED custom property can: @property tells the
+// browser --d-activity-p is a <number>, so it interpolates it and redraws every gradient that uses
+// it on the way. That is this model's one exception to "animate transform and opacity only", and
+// it is kept to these three rings. The property inherits, so the ring's one transition drives all
+// of its layers and the rotating end cap.
+@property --d-activity-p {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+$size: 160px;
+$band: 16px;
+$pitch: 19px; // a band and a 3px gap: ring n is inset by n × $pitch
+$hub: 48px;
+$colors: (var(--hot), var(--accent-2), var(--warm)); // outer → inner
+$ease: cubic-bezier(0.3, 1.15, 0.5, 1); // a touch past 1: the arc overshoots a little and settles
+// the band: a radial mask keeps only the outer $band px of the disc
+$ring: radial-gradient(closest-side, transparent calc(100% - #{$band}), #000 calc(100% - #{$band - 0.5px}));
+$arc: calc(var(--d-activity-p) * 360deg);
+// the arc runs from a softer start to the full colour at its tip
+$start: color-mix(in srgb, var(--c) 60%, var(--surface-solid));
+
+.d-activity {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 14px; // the control dock: the same place in every model with controls
+  // The rings are tilted, so their top half sits behind the plane of the flat boxes around them
+  // (this one and the view), which would catch the pointer first: only the rings, the hub and
+  // the dock take it.
+  pointer-events: none;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    pointer-events: none;
+  }
+
+  &__rings {
+    position: relative;
+    width: $size;
+    height: $size;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transform: rotateX(34deg) rotateY(-16deg);
+  }
+
+  // A static disc per ring is the hit target: it never moves (what moves is the band inside it).
+  // Each inner ring is 1px nearer than the one around it, so where the discs overlap the inner
+  // one is hit first and every band catches its own pointer.
+  &__ring {
+    --c: var(--hot);
+    position: absolute;
+    inset: calc(var(--r) * #{$pitch});
+    border-radius: 50%;
+    outline: none;
+    pointer-events: auto;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transform: translateZ(calc(var(--r) * 1px));
+    // the one animated number; each ring starts 90ms after the one around it
+    transition: --d-activity-p 1.1s $ease calc(var(--r) * 90ms);
+  }
+
+  @each $c in $colors {
+    $n: list.index($colors, $c);
+
+    &__ring:nth-child(#{$n}) {
+      --c: #{$c};
+    }
+  }
+
+  // the visible ring: lifted towards you while its ring is picked
+  &__band {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transition: transform 0.35s ease;
+
+    // the rounded start of the arc, at 12 o'clock: a dot in the front layer and one in the back
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: calc(50% - #{$band * 0.5});
+      width: $band;
+      height: $band;
+      border-radius: 50%;
+    }
+
+    &::before {
+      background: $start;
+      transform: translateZ(0.5px);
+    }
+
+    &::after {
+      background: color-mix(in srgb, var(--c) 32%, #05060c);
+      transform: translateZ(-3.5px);
+    }
+
+    i {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      mask: $ring;
+      transition: opacity 0.25s;
+    }
+
+    // the track: the whole ring, dim, recessed behind the lit arc
+    i:nth-child(1) {
+      background: color-mix(in srgb, var(--c) 16%, var(--surface-solid));
+      transform: translateZ(-6px);
+    }
+
+    // the glow: the same arc, wider and see-through, its edges faded by a soft mask
+    i:nth-child(2) {
+      inset: -6px;
+      background: conic-gradient(color-mix(in srgb, var(--c) 42%, transparent) $arc, transparent calc(#{$arc} + 10deg));
+      mask: radial-gradient(closest-side, transparent calc(100% - #{$band + 14px}), #000 calc(100% - #{$band + 6px}) calc(100% - 6px), transparent);
+      opacity: 0.55;
+      transform: translateZ(-5.5px);
+    }
+
+    // The arc, three times, stepping back and darker: seen tilted, their edges read as a solid
+    // band. `transparent 0` ends the colour exactly at the arc's angle.
+    i:nth-child(3) {
+      background: conic-gradient(color-mix(in srgb, var(--c) 32%, #05060c) $arc, transparent 0);
+      transform: translateZ(-4px);
+    }
+
+    i:nth-child(4) {
+      background: conic-gradient(color-mix(in srgb, var(--c) 55%, #05060c) $arc, transparent 0);
+      transform: translateZ(-2px);
+    }
+
+    // the front: from a softer start to the full colour at the tip
+    i:nth-child(5) {
+      background: conic-gradient($start, var(--c) $arc, transparent 0);
+    }
+
+    // the pointed-at ring fills in: the whole arc at full colour, faded in over the front
+    i:nth-child(6) {
+      background: conic-gradient(var(--c) $arc, transparent 0);
+      opacity: 0;
+      transform: translateZ(0.25px);
+    }
+
+    // The end cap: a box as big as the ring, turned by the same number (a transform, so it
+    // follows the arc), with the dot at its top. Past 100% it keeps going round: a second lap.
+    em {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transform: rotate(calc(var(--d-activity-p) * 1turn));
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: calc(50% - #{$band * 0.5});
+        width: $band;
+        height: $band;
+        border-radius: 50%;
+      }
+
+      &::before {
+        background: var(--c);
+        box-shadow: 0 0 10px color-mix(in srgb, var(--c) 60%, transparent);
+        transform: translateZ(1px);
+      }
+
+      &::after {
+        background: color-mix(in srgb, var(--c) 32%, #05060c);
+        transform: translateZ(-3.5px);
+      }
+    }
+  }
+
+  // a second lap: a dark rim sets the cap apart from the arc it runs over
+  &__ring.is-lap em::before {
+    box-shadow:
+      0 0 0 1.5px color-mix(in srgb, var(--c) 40%, #05060c),
+      0 0 10px color-mix(in srgb, var(--c) 60%, transparent);
+  }
+
+  // The pointed-at ring (.is-active): its band lifts towards you, the arc fills in and the glow
+  // brightens, all by transform and opacity (on the flat layers: opacity on a 3D group would
+  // flatten it). The other rings stay as they are. Its round start takes the full colour too.
+  &__ring.is-active {
+    > .d-activity__band {
+      transform: translateZ(8px);
+    }
+
+    > .d-activity__band::before {
+      background: var(--c);
+    }
+
+    i:nth-child(2),
+    i:nth-child(6) {
+      opacity: 1;
+    }
+  }
+
+  // the day, in the hole: it also catches the pointer there, so the middle picks no ring
+  &__hub {
+    position: absolute;
+    top: calc(50% - #{$hub * 0.5});
+    left: calc(50% - #{$hub * 0.5});
+    display: grid;
+    place-items: center;
+    width: $hub;
+    height: $hub;
+    border-radius: 50%;
+    color: var(--text);
+    font: 800 12px/1 var(--font);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    pointer-events: auto;
+    transform: translateZ(4px);
+  }
+
+  &__dock {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    font-size: 12px;
+    pointer-events: auto;
+
+    output {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  &__seg {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+
+    button {
+      padding: 4px 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+
+      &[aria-pressed='true'] {
+        background: linear-gradient(135deg, var(--accent), var(--hot));
+        color: #fff;
+      }
+    }
+  }
+}

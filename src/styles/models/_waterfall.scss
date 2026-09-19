@@ -1,0 +1,273 @@
+// A cash-flow waterfall drawn from JSON. JS walks the steps keeping a running total and writes three
+// fractions of the scale per step: --b the box's bottom, --v its height, --e the level the next
+// step starts from. Each box is lifted by translateY(−--b × height) and squashed with scaleY(--v),
+// so switching the month is only a transition on transform, every step a little after the last.
+$w: 18px; // box width, and depth
+$gap: 9px;
+$h: 100px; // the top of the scale
+$floor: 48px; // the floor's depth, front to back
+$n: 7;
+$span: $w * $n + $gap * ($n - 1);
+$ease: cubic-bezier(0.3, 1.25, 0.5, 1); // past 1: a box overshoots and settles
+$move: transform 0.8s $ease calc(var(--i) * 60ms);
+
+.d-waterfall {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 14px; // the control dock: the same place in every model with controls
+  // The chart is turned, so its left steps sit behind the plane of the flat boxes around it (this
+  // one and the view), which would catch the pointer first: only the steps and the dock take it.
+  pointer-events: none;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    padding: 8px 0 14px; // room for the tooltip above and the tilted labels below
+    pointer-events: none;
+  }
+
+  &__chart {
+    position: relative;
+    width: $span;
+    height: $h;
+    transform-style: preserve-3d;
+    transform: rotateX(-18deg) rotateY(-28deg);
+  }
+
+  // the floor: a neon grid laid flat along the bottom of the chart
+  &__floor {
+    position: absolute;
+    left: -12px;
+    top: $h - $floor * 0.5;
+    width: $span + 24px;
+    height: $floor;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    border-radius: 6px;
+    background:
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px 16px),
+      repeating-linear-gradient(color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px 16px),
+      color-mix(in srgb, var(--accent) 9%, transparent);
+    transform: rotateX(90deg);
+  }
+
+  // the scale: lines at 0, half and the top, on a wall along the back edge of the floor, with the
+  // numbers at its right end, out past the last step. Its box starts 10px above the scale: a
+  // turned layer is clipped at its box, and the top number pokes out above its line.
+  &__wall {
+    position: absolute;
+    top: -10px;
+    left: -12px;
+    width: $span + 24px;
+    height: $h + 10px;
+    transform: translateZ($floor * -0.5);
+
+    b {
+      position: absolute;
+      right: 0;
+      bottom: calc(var(--t) * #{$h});
+      left: 0;
+      height: 1px;
+      background: color-mix(in srgb, var(--text) 24%, transparent);
+    }
+
+    span {
+      position: absolute;
+      top: -6px;
+      left: 100%;
+      padding-left: 6px;
+      color: var(--muted);
+      font: 700 9px/12px system-ui, sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // A step is a full-height column that never moves: the hit target, so hovering the empty space
+  // above or below a floating box counts too. It stands in the plane of the boxes' fronts (half a
+  // box forward), so it covers exactly the front you see; the faces themselves ignore the pointer,
+  // because they move. Totals violet, gains teal, losses pink.
+  &__step {
+    --c: var(--accent);
+    position: absolute;
+    top: 0;
+    left: calc(var(--i) * #{$w + $gap});
+    width: $w;
+    height: 100%;
+    outline: none;
+    transform-style: preserve-3d;
+    transform: translateZ($w * 0.5);
+    pointer-events: auto;
+    cursor: pointer;
+
+    // the connector: a dashed line at the running total, from this box's front edge to the next
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: $w;
+      width: $gap;
+      border-top: 1px dashed color-mix(in srgb, var(--text) 60%, transparent);
+      pointer-events: none;
+      transform: translateY(calc((1 - var(--e)) * #{$h}));
+      transition: $move;
+    }
+
+    &:last-of-type::after {
+      content: none;
+    }
+
+    // see-through glass faces with a bright edge: the neon look
+    i {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: $w;
+      height: 100%;
+      border: 1px solid color-mix(in srgb, var(--c) 85%, #fff);
+      background: color-mix(in srgb, var(--c) 40%, transparent);
+      box-shadow:
+        inset 0 0 10px color-mix(in srgb, var(--c) 40%, transparent),
+        0 0 10px color-mix(in srgb, var(--c) 22%, transparent);
+      pointer-events: none;
+      transform-origin: bottom center;
+      transition: $move;
+
+      // the pointed-at step fills in and glows (.is-active, set with the tooltip); faded in
+      // with opacity, so it is smooth
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: color-mix(in srgb, var(--c) 50%, transparent);
+        box-shadow: 0 0 20px color-mix(in srgb, var(--c) 60%, transparent);
+        opacity: 0;
+        transition: opacity 0.25s;
+      }
+    }
+
+    &.is-active i::after {
+      opacity: 1;
+    }
+
+    // front: lifted to the box's bottom FIRST, then squashed to its height (from the bottom);
+    // the other way round the lift would be squashed too
+    i:nth-child(1) {
+      transform: translateY(calc(var(--b) * -#{$h})) scaleY(var(--v));
+    }
+
+    // right side, darker: back to the box's middle, turned, out to its right edge
+    i:nth-child(2) {
+      background: color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #05060c) 48%, transparent);
+      transform: translateY(calc(var(--b) * -#{$h})) translateZ(-$w * 0.5) rotateY(90deg) translateZ($w * 0.5)
+        scaleY(var(--v));
+    }
+
+    // the lid: a $w square laid flat on the box's top
+    i:nth-child(3) {
+      height: $w;
+      background: color-mix(in srgb, var(--c) 66%, transparent);
+      transform-origin: center;
+      transform: translateY(calc((1 - var(--b) - var(--v)) * #{$h})) translateZ(-$w * 0.5) rotateX(90deg)
+        translateZ($w * 0.5);
+    }
+
+    // the label, standing in front of the step and tilted so the long ones do not collide
+    span {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 50%;
+      color: var(--muted);
+      font: 700 8px/10px system-ui, sans-serif;
+      white-space: nowrap;
+      pointer-events: none;
+      transform-origin: 100% 0;
+      transform: rotate(-38deg);
+    }
+  }
+
+  &__step,
+  &__tip {
+    &.is-gain {
+      --c: var(--accent-2);
+    }
+
+    &.is-loss {
+      --c: var(--hot);
+    }
+  }
+
+  // One tooltip for the chart: JS moves it to the top of the pointed-at box (--tx, --ty) and CSS
+  // glides it there, so it slides from step to step with its text changing instead of blinking.
+  // It lives in the chart's turned plane, 40px towards you (each step to the right stands nearer
+  // than the one before); +18px undoes the sideways drift that lift gets from the 28° turn. Kept
+  // flat: its thickness is a hard shadow up and to the right, the way the boxes' depth runs.
+  &__tip {
+    --c: var(--accent);
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 3px 7px;
+    border: 1px solid var(--c);
+    border-radius: 6px;
+    background: var(--surface-solid);
+    box-shadow:
+      3px -3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
+      0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+    color: var(--text);
+    font: 700 9px/12px system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(calc(var(--tx, 0px) + 18px), calc(var(--ty, 0px) - 24px)) translate(-50%, -100%)
+      translateZ(40px);
+    transition:
+      transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.2s;
+
+    &.is-on {
+      opacity: 1;
+    }
+  }
+
+  &__dock {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    font-size: 12px;
+    pointer-events: auto;
+
+    output {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  &__seg {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+
+    button {
+      padding: 4px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+
+      &[aria-pressed='true'] {
+        background: linear-gradient(135deg, var(--accent), var(--hot));
+        color: #fff;
+      }
+    }
+  }
+}

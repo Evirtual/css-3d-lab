@@ -1,0 +1,281 @@
+// A radar chart from JSON. The chart is plain SVG (JS turns each score into a point on its axis
+// and each series into a polygon); the 3D is all on the containers: the plate lies back, each
+// series is a layer at its own height (--z) over the web, and the axis names stand up to face
+// you. Hovering the (still) wrapper lays the plate flat, and one tooltip glides between the
+// axes. The dock's buttons fade a series in and out; pointing at one lights its series up.
+$w: 208px; // the plate: the same numbers as W and H in radar.ts (its SVG viewBox)
+$h: 164px;
+$tilt-x: 50deg;
+$tilt-z: -12deg;
+$ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+$time: 0.7s;
+
+.d-radar {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 14px; // the control dock: the same place in every model with controls
+  transform-style: preserve-3d;
+  // The plate lies back, so its far half sits behind the plane of the flat boxes around it
+  // (this one and the view), which would catch the pointer first: only the still wrapper and
+  // the dock take it.
+  pointer-events: none;
+
+  &__view {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    transform-style: preserve-3d;
+    pointer-events: none;
+  }
+
+  // the hover target: it never moves, so the hover never flickers
+  &__chart {
+    position: relative;
+    width: $w;
+    height: $h;
+    outline: none;
+    transform-style: preserve-3d;
+    pointer-events: auto;
+  }
+
+  // the tilt lives here
+  &__plate {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX($tilt-x) rotateZ($tilt-z);
+    transition: transform $time $ease;
+    pointer-events: none;
+  }
+
+  &__chart:hover &__plate,
+  &__chart:focus-visible &__plate,
+  &__chart.is-flat &__plate {
+    transform: rotateX(0deg) rotateZ(0deg);
+  }
+
+  &__base {
+    position: absolute;
+    inset: 0;
+    border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    border-radius: 14px;
+    background: linear-gradient(150deg, color-mix(in srgb, var(--accent) 24%, var(--surface-solid)), var(--surface-solid));
+    box-shadow: 0 18px 36px -14px rgb(0 0 0 / 0.55);
+  }
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  &__web {
+    transform: translateZ(1px);
+  }
+
+  &__rings {
+    fill: none;
+    stroke: color-mix(in srgb, var(--accent) 45%, transparent);
+    stroke-width: 1;
+  }
+
+  &__spokes {
+    fill: none;
+    stroke: color-mix(in srgb, var(--text) 16%, transparent);
+    stroke-width: 1;
+  }
+
+  // one SVG layer per series, floating at its own height (--z); --c is its colour
+  &__series {
+    transform: translateZ(var(--z));
+    transition:
+      transform $time $ease,
+      opacity 0.35s;
+
+    // see-through glass with a bright 1px edge
+    polygon {
+      fill: color-mix(in srgb, var(--c) 46%, transparent);
+      stroke: color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
+      stroke-width: 1;
+      stroke-linejoin: round;
+    }
+
+    // a series switched off in the dock fades out
+    &.is-off {
+      opacity: 0;
+    }
+  }
+
+  // lying flat, the layers sink onto the web so the points meet the rings
+  &__chart:hover &__series,
+  &__chart:focus-visible &__series,
+  &__chart.is-flat &__series {
+    transform: translateZ(calc(var(--z) / 8));
+  }
+
+  // the glow: the same polygon, wide and faint, underneath (cheaper than a blur filter)
+  & &__glow {
+    fill: none;
+    stroke: var(--c);
+    stroke-width: 8;
+    stroke-opacity: 0.22;
+  }
+
+  // the series lit up (its button pointed at, or the leader on the pointed axis): a fuller,
+  // glowing copy that fades in
+  & &__lit {
+    fill: color-mix(in srgb, var(--c) 28%, transparent);
+    stroke: var(--c);
+    stroke-width: 14;
+    stroke-opacity: 0.3;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  &__series.is-active &__lit {
+    opacity: 1;
+  }
+
+  // a dot at every point: zero-length segments ("M x y h0") with round caps
+  &__dots {
+    fill: none;
+    stroke: color-mix(in srgb, var(--c) 60%, var(--text));
+    stroke-width: 5;
+    stroke-linecap: round;
+  }
+
+  // the axis names stand up: the plate's rotation in reverse order cancels it
+  &__axes {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+
+    span {
+      position: absolute;
+      top: var(--y);
+      left: var(--x);
+      color: var(--text);
+      font: 700 9px/12px system-ui, sans-serif;
+      white-space: nowrap;
+      // --ax: 1 reads rightwards from the anchor, −1 leftwards, 0 is centred on it
+      translate: calc((var(--ax) - 1) * 50%) -50%;
+      transform: translateZ(6px) rotateZ(-$tilt-z) rotateX(-$tilt-x);
+      transition: transform $time $ease;
+    }
+  }
+
+  &__chart:hover &__axes span,
+  &__chart:focus-visible &__axes span,
+  &__chart.is-flat &__axes span {
+    transform: translateZ(2px) rotateZ(0deg) rotateX(0deg);
+  }
+
+  // ONE tooltip for the chart: JS sets its place (--tx, --ty), its text and its colour (--c, the
+  // axis' leader); the transform transition makes it glide from axis to axis. It is a flat
+  // element (opacity on a preserve-3d one would flatten it), and its thickness is a hard shadow
+  // below it.
+  &__tip {
+    --c: var(--accent);
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 3px 7px;
+    border: 1px solid var(--c);
+    border-radius: 6px;
+    background: var(--surface-solid);
+    box-shadow:
+      0 3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
+      0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+    color: var(--text);
+    font: 700 9px/11px system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(var(--tx, 0px), var(--ty, 0px)) translate(-50%, -50%) translateZ(8px);
+    transition:
+      transform 0.35s $ease,
+      opacity 0.2s;
+
+    &.is-on {
+      opacity: 1;
+    }
+
+    em {
+      display: block;
+      color: var(--muted);
+      font-size: 8px;
+      font-style: normal;
+      line-height: 10px;
+    }
+
+    span {
+      margin: 0 3px;
+      color: color-mix(in srgb, var(--c) 75%, var(--text));
+
+      // a series switched off has no value in the tooltip
+      &.is-off {
+        display: none;
+      }
+    }
+  }
+
+
+  &__dock {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    font-size: 12px;
+    pointer-events: auto;
+
+    output {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  &__toggles {
+    display: flex;
+    gap: 6px;
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--bg) 70%, transparent);
+      color: var(--muted);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+
+      // the series' colour as a dot: hollow when off, filled when on
+      &::before {
+        content: '';
+        box-sizing: border-box;
+        width: 8px;
+        height: 8px;
+        border: 2px solid var(--c);
+        border-radius: 50%;
+      }
+
+      &[aria-pressed='true'] {
+        border-color: var(--c);
+        background: color-mix(in srgb, var(--c) 18%, transparent);
+        color: var(--text);
+
+        &::before {
+          background: var(--c);
+        }
+      }
+    }
+  }
+}

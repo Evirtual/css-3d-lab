@@ -24,9 +24,9 @@ export const snippetsK: Record<string, Snippet> = {
       'The data is plain JSON, shaped like an API response. JS turns each value into <b>one number</b>: <code>--v = value ÷ top of the scale</code> (0 to 1), written on the bar. Everything you see is CSS.',
       'A bar is a full-height box. Its front and side are squashed with <code>scaleY(var(--v))</code> from the bottom, and its lid rides down by <code>(1 − --v) × height</code>. Only <code>transform</code> changes, so a new dataset is a smooth transition with no layout work.',
       '<code>transition-delay: calc(var(--i) * 60ms)</code> starts each bar a little after the one before, and a <code>cubic-bezier</code> that goes past 1 makes it overshoot and settle.',
-      'The neon look is dark faces with a bright 1px edge and a glow (<code>box-shadow</code> inside and out). Colours come from <code>color-mix()</code> along the row, and the tallest bar gets <code>.is-peak</code>.',
+      'The neon look is see-through glass faces with a bright 1px edge and a soft glow (<code>box-shadow</code> inside and out). Colours come from <code>color-mix()</code> along the row, and the tallest bar gets <code>.is-peak</code>. The pointed-at bar fills in and glows: a <code>::after</code> layer on each face whose <code>opacity</code> fades in, so the change is smooth.',
       'The scale on the back wall is rounded up to a tidy step (<code>Math.ceil(max / 20) * 20</code>), so the numbers stay round whatever the data.',
-      "Each bar has a tooltip that rides on its lid (the same transform and timing) and fades in on <code>:hover</code> or <code>:focus-visible</code>. A finger has no hover, so a tap adds <code>.is-tip</code> instead. The bar's box is the whole column and never moves, so the space above a short bar counts too.",
+      "There is <b>one</b> tooltip for the whole chart. JS moves it to the pointed-at bar with two custom properties (<code>--tx</code>, <code>--ty</code>) and a <code>transition</code> glides it there, so it slides from bar to bar with its text changing instead of blinking. It floats 40px towards you: the chart is turned, so each bar to the right stands nearer. A tap does the same on a touch screen, where there is no hover.",
     ],
     html: `<div class="chart">
   <div class="scene">
@@ -79,17 +79,17 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
    right end, which reaches out past the last bar */
 .wall {
   position: absolute;
-  top: 0;
+  top: -10px; /* 10px of room above the scale, so the top number is not clipped */
   left: -12px;
   width: 188px;
-  height: 100px;
+  height: 110px;
   transform: translateZ(-26px);
 }
 
 .wall b {
   position: absolute;
   right: 0;
-  bottom: calc(var(--t) * 100%);
+  bottom: calc(var(--t) * 100px);
   left: 0;
   height: 1px;
   background: rgb(236 238 251 / 0.26);
@@ -133,34 +133,41 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
   cursor: pointer;
 }
 
-/* the tooltip: rides on the lid, shown on hover, focus, or a tap (.is-tip) */
-.bar b {
+/* One tooltip for the whole chart: JS moves it to the pointed-at bar (--tx, --ty) and it glides
+   there, text changing on the way. 40px towards you (the chart is turned, so the bars to the
+   right stand nearer); its thickness is a flat edge up and to the right, like the bars' depth */
+.tip {
+  --c: color-mix(in srgb, ${VIOLET}, ${TEAL} calc(var(--i, 0) * 20%));
   position: absolute;
   top: 0;
-  left: 50%;
+  left: 0;
   padding: 3px 7px;
   border: 1px solid var(--c);
   border-radius: 6px;
-  background: rgb(20 24 48 / 0.88);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 45%, transparent);
+  background: ${SURFACE};
+  box-shadow:
+    3px -3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
+    0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
   color: ${TEXT};
   font: 700 9px/12px system-ui, sans-serif;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, calc((1 - var(--v)) * 100px - 100% - 8px)) translateZ(9.5px);
+  transform: translate(var(--tx, 0px), calc(var(--ty, 0px) - 30px)) translate(-50%, -100%) translateZ(40px);
   transition:
-    transform 0.8s cubic-bezier(0.3, 1.3, 0.5, 1) calc(var(--i) * 60ms),
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
 }
 
-.bar:hover b,
-.bar:focus-visible b,
-.bar.is-tip b {
+.tip.is-peak {
+  --c: ${PINK};
+}
+
+.tip.is-on {
   opacity: 1;
 }
 
-/* dark faces, a bright edge and a glow: the neon look */
+/* see-through glass faces with a bright edge: the neon look */
 .bar i {
   position: absolute;
   top: 0;
@@ -168,14 +175,30 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
   box-sizing: border-box;
   width: 19px;
   height: 100%;
-  border: 1px solid color-mix(in srgb, var(--c) 85%, #fff);
-  background: color-mix(in srgb, var(--c) 36%, ${SURFACE});
+  /* a fine edge: under 1px shows as a hairline on sharp screens */
+  border: 0.6px solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
+  background: color-mix(in srgb, var(--c) 58%, transparent);
   box-shadow:
-    inset 0 0 10px color-mix(in srgb, var(--c) 55%, transparent),
-    0 0 12px color-mix(in srgb, var(--c) 35%, transparent);
+    inset 0 0 8px color-mix(in srgb, var(--c) 30%, transparent),
+    0 0 10px color-mix(in srgb, var(--c) 22%, transparent);
   transform-origin: bottom center;
   /* past 1: overshoot and settle; each bar 60ms after the one before */
   transition: transform 0.8s cubic-bezier(0.3, 1.3, 0.5, 1) calc(var(--i) * 60ms);
+}
+
+/* the pointed-at bar fills in and glows; faded with opacity, so it is smooth */
+.bar i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--c) 50%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--c) 60%, transparent);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.bar.is-active i::after {
+  opacity: 1;
 }
 
 /* front */
@@ -183,16 +206,16 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
   transform: translateZ(9.5px) scaleY(var(--v));
 }
 
-/* right side, darker */
+/* right side, darker glass */
 .bar i:nth-child(2) {
-  background: color-mix(in srgb, var(--c) 22%, ${SURFACE});
+  background: color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #05060c) 64%, transparent);
   transform: rotateY(90deg) translateZ(9.5px) scaleY(var(--v));
 }
 
 /* the lid: a 19px square laid flat, riding down with the value */
 .bar i:nth-child(3) {
   height: 19px;
-  background: color-mix(in srgb, var(--c) 72%, ${SURFACE});
+  background: color-mix(in srgb, var(--c) 80%, transparent);
   transform-origin: center;
   transform: translateY(calc((1 - var(--v)) * 100px)) rotateX(90deg) translateZ(9.5px);
 }
@@ -248,11 +271,20 @@ const first = Object.values(SALES.years)[0];
 chart.innerHTML =
   '<div class="floor"></div>' +
   '<div class="wall">' + TICKS.map((t) => \`<b style="--t:\${t}"><span></span></b>\`).join('') + '</div>' +
-  '<div class="bars">' + first.map((_, i) => \`<div class="bar" style="--i:\${i}" tabindex="0"><i></i><i></i><i></i><span></span><b></b></div>\`).join('') + '</div>';
-const bars = chart.querySelectorAll('.bar');
+  '<div class="bars">' + first.map((_, i) => \`<div class="bar" style="--i:\${i}" tabindex="0"><i></i><i></i><i></i><span></span></div>\`).join('') + '</div>' +
+  '<b class="tip" aria-hidden="true"></b>';
+const bars = [...chart.querySelectorAll('.bar')];
 const ticks = chart.querySelectorAll('.wall span');
+const tipEl = chart.querySelector('.tip');
 // labels go in as text, never as HTML: data from an API is not trusted markup
 first.forEach((d, i) => (bars[i].querySelector('span').textContent = d.label));
+
+// money as most dashboards write it: the sign in front, the k right after the number ($88k)
+const money = (v) => SALES.prefix + v + SALES.suffix;
+const W = 19, PITCH = 29, H = 100; // a bar's width, width + gap, and the scale's height (as in the CSS)
+let shown; // the year on screen: { rows, top, peak }
+let active = -1; // the bar the tooltip is on
+let hideTimer;
 
 // Show one year: each bar gets --v, its value as a fraction of the scale's top. CSS does the rest.
 function show(year) {
@@ -260,26 +292,67 @@ function show(year) {
   const values = rows.map((r) => r.value);
   const top = Math.ceil(Math.max(...values) / 20) * 20; // a tidy top for the scale
   const peak = values.indexOf(Math.max(...values));
+  shown = { rows, top, peak };
   rows.forEach((r, i) => {
-    const tip = \`\${r.label} · \${r.value} \${SALES.unit}\`;
     bars[i].style.setProperty('--v', r.value / top);
     bars[i].classList.toggle('is-peak', i === peak);
-    bars[i].setAttribute('aria-label', tip);
-    bars[i].querySelector('b').textContent = tip;
+    bars[i].setAttribute('aria-label', \`\${r.label} · \${money(r.value)}\`);
   });
   ticks.forEach((t, k) => (t.textContent = Math.round(TICKS[k] * top)));
-  out.textContent = \`\${year} · peak \${rows[peak].label}, \${rows[peak].value} \${SALES.unit}\`;
+  out.textContent = \`\${year} · peak \${rows[peak].label}, \${money(rows[peak].value)}\`;
   buttons.forEach((b) => b.setAttribute('aria-pressed', b.dataset.year === year));
+  if (active >= 0) place(active); // the tooltip follows its bar to the new height
 }
 
-buttons.forEach((b) => b.addEventListener('click', () => show(b.dataset.year)));
+// One tooltip for the chart: it glides to the bar (--tx, --ty) and its text changes on the way
+function place(i) {
+  clearTimeout(hideTimer);
+  const r = shown.rows[i];
+  const wasOn = tipEl.classList.contains('is-on');
+  if (!wasOn) tipEl.style.transition = 'none'; // from hidden: appear in place, don't fly in
+  tipEl.textContent = \`\${r.label} · \${money(r.value)}\`;
+  tipEl.style.setProperty('--i', i);
+  tipEl.style.setProperty('--tx', i * PITCH + W / 2 + 'px');
+  tipEl.style.setProperty('--ty', (1 - r.value / shown.top) * H + 'px');
+  tipEl.classList.toggle('is-peak', i === shown.peak);
+  if (!wasOn) {
+    void tipEl.offsetWidth; // apply the new place before the transition comes back
+    tipEl.style.transition = '';
+  }
+  tipEl.classList.add('is-on');
+  bars.forEach((b, k) => b.classList.toggle('is-active', k === i)); // the bar fills in and glows
+  active = i;
+}
+// a short grace period, so crossing the gap between two bars does not flicker it
+function hide() {
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    tipEl.classList.remove('is-on');
+    bars.forEach((b) => b.classList.remove('is-active'));
+    active = -1;
+  }, 150);
+}
 
-// a mouse shows a tooltip on hover (CSS); a finger has no hover, so a tap pins one
-chart.addEventListener('pointerup', (e) => {
+const over = (e) => {
+  const bar = e.target.closest('.bar');
+  if (bar) place(bars.indexOf(bar));
+};
+const leave = (e) => {
+  if (!e.relatedTarget?.closest?.('.bar')) hide();
+};
+chart.addEventListener('pointerover', over);
+chart.addEventListener('focusin', over);
+chart.addEventListener('pointerout', leave);
+chart.addEventListener('focusout', leave);
+// a finger has no hover: a tap on a bar shows its tooltip, a tap elsewhere hides it
+document.addEventListener('pointerup', (e) => {
   if (e.pointerType === 'mouse') return;
   const bar = e.target.closest('.bar');
-  bars.forEach((b) => b.classList.toggle('is-tip', b === bar));
+  if (bar) place(bars.indexOf(bar));
+  else hide();
 });
+
+buttons.forEach((b) => b.addEventListener('click', () => show(b.dataset.year)));
 
 show('${YEARS[0]}');`,
   },

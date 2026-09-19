@@ -4,9 +4,10 @@
  * API response: plain objects and arrays, nothing chart-specific.
  */
 
-/** neonbars: monthly sales per year, in thousands. */
+/** neonbars: monthly sales per year, in thousands of dollars: shown as $88k. */
 export const SALES = {
-  unit: 'k$',
+  prefix: '$',
+  suffix: 'k',
   years: {
     '2024': [
       { label: 'Jan', value: 42 },
@@ -48,7 +49,7 @@ export const COMMITS = {
 
 /** chartpanel: a year of monthly values. */
 export const TREND = {
-  unit: 'k',
+  unit: '$k',
   labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
   values: [18, 24, 21, 30, 27, 36, 33, 41, 37, 47, 44, 55],
 };

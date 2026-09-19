@@ -54,18 +54,20 @@ $ease: cubic-bezier(0.3, 1.3, 0.5, 1); // past 1: a bar overshoots and settles
   // the scale: lines at 0, half and the top, on a wall along the back edge of the floor. Its
   // numbers are at the right end, which reaches out past the last bar (the left end is hidden
   // behind the first one).
+  // (its box starts 10px above the scale: a turned layer is clipped at its box, and the top
+  // number, which pokes out above its line, was cut in half)
   &__wall {
     position: absolute;
-    top: 0;
+    top: -10px;
     left: -12px;
     width: $span + 24px;
-    height: $h;
+    height: $h + 10px;
     transform: translateZ($floor * -0.5);
 
     b {
       position: absolute;
       right: 0;
-      bottom: calc(var(--t) * 100%);
+      bottom: calc(var(--t) * #{$h});
       left: 0;
       height: 1px;
       background: color-mix(in srgb, var(--text) 26%, transparent);
@@ -107,20 +109,37 @@ $ease: cubic-bezier(0.3, 1.3, 0.5, 1); // past 1: a bar overshoots and settles
       --c: var(--hot);
     }
 
-    // dark faces with a bright edge and a glow: the neon look
+    // see-through glass faces with a bright edge: the neon look
     i {
       position: absolute;
       top: 0;
       left: 0;
       width: $w;
       height: 100%;
-      border: 1px solid color-mix(in srgb, var(--c) 85%, #fff);
-      background: color-mix(in srgb, var(--c) 36%, var(--surface-solid));
+      // a fine edge: under 1px shows as a hairline on sharp screens (a standard one draws 1px)
+      border: 0.6px solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
+      background: color-mix(in srgb, var(--c) 58%, transparent);
       box-shadow:
-        inset 0 0 10px color-mix(in srgb, var(--c) 55%, transparent),
-        0 0 12px color-mix(in srgb, var(--c) 35%, transparent);
+        inset 0 0 8px color-mix(in srgb, var(--c) 30%, transparent),
+        0 0 10px color-mix(in srgb, var(--c) 22%, transparent);
       transform-origin: bottom center;
       transition: transform 0.8s $ease calc(var(--i) * 60ms);
+
+      // the pointed-at bar fills in and glows (.is-active, set with the tooltip); faded in with
+      // opacity, so it is smooth
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: color-mix(in srgb, var(--c) 50%, transparent);
+        box-shadow: 0 0 20px color-mix(in srgb, var(--c) 60%, transparent);
+        opacity: 0;
+        transition: opacity 0.25s;
+      }
+    }
+
+    &.is-active i::after {
+      opacity: 1;
     }
 
     // front
@@ -130,46 +149,16 @@ $ease: cubic-bezier(0.3, 1.3, 0.5, 1); // past 1: a bar overshoots and settles
 
     // right side, darker
     i:nth-child(2) {
-      background: color-mix(in srgb, var(--c) 22%, var(--surface-solid));
+      background: color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #05060c) 64%, transparent);
       transform: rotateY(90deg) translateZ($w * 0.5) scaleY(var(--v));
     }
 
     // the lid: a $w square laid flat, riding down with the value
     i:nth-child(3) {
       height: $w;
-      background: color-mix(in srgb, var(--c) 72%, var(--surface-solid));
+      background: color-mix(in srgb, var(--c) 80%, transparent);
       transform-origin: center;
       transform: translateY(calc((1 - var(--v)) * #{$h})) rotateX(90deg) translateZ($w * 0.5);
-    }
-
-    // The tooltip: rides on the lid (the same move and timing), shown while the bar is hovered,
-    // focused, or tapped (.is-tip, set by JS: a finger has no hover). The bar's own box is the
-    // whole column and never moves, so the empty space above a short bar counts too.
-    b {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      padding: 3px 7px;
-      border: 1px solid var(--c);
-      border-radius: 6px;
-      background: color-mix(in srgb, var(--surface-solid) 88%, transparent);
-      box-shadow: 0 0 10px color-mix(in srgb, var(--c) 45%, transparent);
-      color: var(--text);
-      font: 700 9px/12px system-ui, sans-serif;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transform: translate(-50%, calc((1 - var(--v)) * #{$h} - 100% - 8px)) translateZ($w * 0.5);
-      transition:
-        transform 0.8s $ease calc(var(--i) * 60ms),
-        opacity 0.2s;
-    }
-
-    &:hover b,
-    &:focus-visible b,
-    &.is-tip b {
-      opacity: 1;
     }
 
     // the label, standing in front of the bar
@@ -182,6 +171,43 @@ $ease: cubic-bezier(0.3, 1.3, 0.5, 1); // past 1: a bar overshoots and settles
       font: 700 9px/12px system-ui, sans-serif;
       text-align: center;
       transform: translateZ($w * 0.5);
+    }
+  }
+
+  // One tooltip for the chart: JS moves it to the pointed-at bar (--tx, --ty, --i) and CSS glides
+  // it there, so it slides from bar to bar with its text changing instead of blinking. It lives
+  // in the chart's turned plane, 40px towards you (each bar to the right stands nearer than the
+  // one before). Its thickness is a flat edge offset up and to the right, the way the bars'
+  // depth runs: a real plate behind it was split into strips by the browser's depth sorting.
+  &__tip {
+    --c: color-mix(in srgb, var(--accent), var(--accent-2) calc(var(--i, 0) * 20%));
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 3px 7px;
+    border: 1px solid var(--c);
+    border-radius: 6px;
+    background: var(--surface-solid);
+    box-shadow:
+      3px -3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
+      0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+    color: var(--text);
+    font: 700 9px/12px system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(var(--tx, 0px), calc(var(--ty, 0px) - 30px)) translate(-50%, -100%) translateZ(40px);
+    transition:
+      transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.2s;
+
+    &.is-peak {
+      --c: var(--hot);
+    }
+
+    &.is-on {
+      opacity: 1;
     }
   }
 
