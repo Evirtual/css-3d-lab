@@ -41,7 +41,9 @@ const kind = (d) => (d.category === 'css' ? 'pure CSS' : 'CSS + JavaScript');
 // ?v= changes with every build, so a link shared after a deploy gets the current image instead of
 // a copy the sharing site kept from before. (Posts shared earlier keep their old picture: nobody
 // can change that.)
-const IMAGE_VERSION = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+// To the minute, not the day: social sites cache an image by its address, so a same-day fix to
+// the images must get a new one, or they keep showing the old picture.
+const IMAGE_VERSION = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
 /** The footer on every page: brand, what the site is, Ko-fi, then licence, GitHub, copyright. */
 function siteFooter(up) {
   const year = new Date().getFullYear();
