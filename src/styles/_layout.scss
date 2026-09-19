@@ -1430,12 +1430,11 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   &__panel {
     width: min(1180px, 100%);
-    min-height: 100%; // reaches the bottom edge even when the content is short
-    margin: 0 auto;
+    // as tall as its content (a short model does not stretch it to the bottom of the screen)
+    margin: 0 auto 24px;
     padding: 26px;
     border: 1px solid var(--glass-edge);
-    border-bottom: 0;
-    border-radius: 22px 22px 0 0;
+    border-radius: 22px;
     // Frosted glass: the gallery stays visible as soft colour behind the dialog. It is cheap
     // here because everything behind an open dialog is paused, so the blur is computed once, not
     // per frame. The stage and the code window inside stay opaque, so content keeps its contrast.
@@ -2662,6 +2661,8 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     padding: 0;
 
     &__panel {
+      min-height: 100%; // on a phone the dialog is the whole screen
+      margin-bottom: 0;
       padding: 16px;
       border: 0;
       border-radius: 0;
