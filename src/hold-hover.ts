@@ -10,7 +10,7 @@
  */
 
 export const holdHoverHtml = (): string =>
-  `<button type="button" class="stage__hold" data-hold-hover aria-pressed="false" title="Keep the hover look without the mouse (it prints like this too)"><span class="stage__tick" aria-hidden="true"></span>Hold hover</button>`;
+  `<button type="button" class="stage__hold" data-hold-hover aria-pressed="false" title="Keep the hover or tap look on (it prints like this too)"><span class="stage__tick" aria-hidden="true"></span><span class="on-mouse">Hold hover</span><span class="on-touch">Hold tap</span></button>`;
 
 let patched = false;
 function patchSheets(): void {
