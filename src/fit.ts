@@ -1,6 +1,7 @@
 /**
  * Every demo scales with its stage. Each `.stage` gets `--fit`: how much bigger it is than a
- * card's stage (340 × 260, the size every demo is designed for), and CSS zooms the scene by it.
+ * card's stage (340 × 280; the models are drawn for 340 × 260, and the extra 20px is room for a
+ * control dock and air around the model), and CSS zooms the scene by it.
  * So a demo fills a phone card, the dialog, the demo page and a 4K full screen in the same
  * proportion.
  *
@@ -8,7 +9,7 @@
  * scaled one is its small bitmap stretched, and 3D layers go soft (worst at full screen).
  */
 const BASE_W = 340;
-const BASE_H = 260;
+const BASE_H = 280;
 
 const observer = new ResizeObserver((entries) => {
   for (const entry of entries) {

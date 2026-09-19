@@ -19,7 +19,7 @@ export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light
 <script>
 (function () {
   function fit() {
-    var f = Math.max(0.85, Math.min(6, innerWidth / 340, innerHeight / 260)) * ${size};
+    var f = Math.max(0.85, Math.min(6, innerWidth / 340, innerHeight / 280)) * ${size};
     document.documentElement.style.setProperty('--fit', f.toFixed(3));
   }
   fit();

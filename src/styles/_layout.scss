@@ -1313,7 +1313,7 @@ $gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) sca
   position: relative;
   display: grid;
   place-items: center;
-  height: 260px;
+  height: 280px; // 340 × 280: the size --fit measures against (fit.ts)
   overflow: hidden; // (the camera, perspective, is on the scene inside: see .stage > .scene)
   border-bottom: 1px solid var(--border);
   // Plain: dots on a flat backdrop, no glows or gradients, so nothing competes with (or colours)
@@ -2588,17 +2588,4 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 // specificity, so any model's own outline rule still wins.
 :where(.aa-test .scene *) {
   outline: 1px solid transparent;
-}
-
-// Cards: 20px taller than the 260px the models are designed for, as padding, so --fit (measured
-// on the content box) and every model's size stay the same. Models with a control dock fill the
-// padding box too, with their bottom lifted 12px: the dock gets air under it and the model
-// above it (offsets inside the zoom are divided by it).
-.card .stage {
-  height: 280px;
-  padding: 10px 0;
-
-  > .scene--fill {
-    bottom: calc(12px / var(--fit, 1));
-  }
 }
