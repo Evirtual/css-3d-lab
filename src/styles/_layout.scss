@@ -2159,11 +2159,14 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   gap: 6px;
 }
 
-// narrow stages: no room beside the dot controls, so the switches sit at the bottom instead
+// narrow stages: no room beside the dot controls, so the switches sit at the bottom right,
+// under them
 @media (max-width: 640px) {
   .stage__holds {
     top: auto;
+    right: 10px;
     bottom: 10px;
+    left: auto;
   }
 
   // above the "Your edited version" note when that shows
