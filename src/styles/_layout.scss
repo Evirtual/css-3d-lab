@@ -2716,11 +2716,62 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 }
 
-// "your edits are not in the video": under the tools, only while an edited version is showing
-.tools__note {
-  margin: 8px 0 0;
-  max-width: 60ch;
-  color: var(--muted);
-  font-size: 12.5px;
-  line-height: 1.5;
+// The video maker (video.ts): the panel under the Video button, and the button itself while it
+// works — its fill grows with --done, so the pill is the progress bar.
+.vidmaker {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  margin: 10px 0 2px;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    button {
+      padding: 6px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12.5px;
+      cursor: pointer;
+
+      &[aria-checked='true'] {
+        border-color: transparent;
+        background: linear-gradient(135deg, var(--accent), var(--hot));
+        color: #fff;
+      }
+    }
+  }
+
+  &__note {
+    margin: 0;
+    max-width: 46ch;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+[data-make-video].is-working {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--accent);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: scaleX(var(--done, 0));
+    transform-origin: left;
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+    transition: transform 0.15s linear;
+  }
 }

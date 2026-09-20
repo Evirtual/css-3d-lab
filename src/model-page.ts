@@ -13,7 +13,7 @@ import { copyText, embedCode } from './share';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { initTint } from './tint';
-import { trackDownloads } from './video';
+import { initVideoMaker, trackDownloads } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 import { printModel } from './print';
 import { initThanks, showThanks } from './thanks';
@@ -31,6 +31,7 @@ lazyMountCards();
 fitStages(); // every demo on the page scales with its stage
 initCardLook();
 trackDownloads(track);
+initVideoMaker(track);
 initThanks();
 initFullscreen();
 
@@ -77,9 +78,6 @@ if (stage && demo && box) {
       mountOriginal();
     }
     if (editedBar) editedBar.hidden = !live.edited;
-    // the video is pre-filmed: say so while an edited version is on the stage
-    const videoNote = document.querySelector<HTMLElement>('[data-video-note]');
-    if (videoNote) videoNote.hidden = !live.edited || !document.querySelector('[data-download]');
   };
   // an edited frame has the stage theme baked in
   document.addEventListener(STAGE_THEME_EVENT, () => showing === 'edit' && refreshStage());

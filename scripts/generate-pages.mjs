@@ -267,7 +267,6 @@ function demoPage(d, index) {
             <button type="button" class="btn" data-share-embed>Embed</button>
             <a class="btn" href="${site.repo}/blob/main/src/styles/models/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
           </div>
-          <p class="tools__note" data-video-note hidden>The video was filmed from the original effect, so your edits are not in it. Print / PDF and the copied code use your version.</p>
           ${thanksHtml()}
         </div>
       </header>

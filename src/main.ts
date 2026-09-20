@@ -14,7 +14,7 @@ import { initStickyBars } from './sticky-bars';
 import { printModel } from './print';
 import { initThanks, showThanks, thanksHtml } from './thanks';
 import { holdHoverHtml, markHolds } from './hold-hover';
-import { hasVideo, trackDownloads, videoButton } from './video';
+import { initVideoMaker, trackDownloads, videoButton } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
 import { interactionHtml } from './models/interaction';
@@ -263,6 +263,7 @@ function applyFilters(): void {
 hydrateIcons();
 initAnalytics();
 trackDownloads(track);
+initVideoMaker(track);
 initThanks();
 initHero();
 initShapes();
@@ -430,7 +431,6 @@ function openViewer(id: string): void {
           <a class="btn" href="${REPO}/blob/main/src/styles/models/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
           <a class="btn" href="models/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
-        <p class="tools__note" data-video-note hidden>The video was filmed from the original effect, so your edits are not in it. Print / PDF and the copied code use your version.</p>
         ${thanksHtml()}
       </section>
     </div>`;
@@ -457,9 +457,6 @@ function openViewer(id: string): void {
       showingEdit = false;
     }
     editedBar.hidden = !live.edited;
-    // the video is pre-filmed: say so while an edited version is on the stage
-    const videoNote = viewerBody.querySelector<HTMLElement>('[data-video-note]');
-    if (videoNote) videoNote.hidden = !live.edited || !hasVideo(id);
   };
   restage = () => showingEdit && refreshStage(); // an edited frame has the stage theme baked in
   let timer = 0;
