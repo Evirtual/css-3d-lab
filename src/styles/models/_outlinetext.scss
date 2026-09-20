@@ -1,0 +1,64 @@
+// One word, eight copies, each pushed further into the screen. Only the front one is filled.
+.d-outlinetext {
+  --spread: 26px;
+  position: relative;
+  width: 236px;
+  height: 112px;
+  transform-style: preserve-3d;
+  cursor: default;
+
+  // rule 2: the pad is the hover target and never moves; the stack inside it does
+  &:hover,
+  &:focus-visible {
+    --spread: 38px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 6px;
+    border-radius: 10px;
+  }
+
+  &__stack {
+    position: absolute;
+    inset: 0;
+    pointer-events: none; // so the pad keeps the hover even when the letters swing over the edge
+    transform-style: preserve-3d;
+    animation: d-outlinetext-sway 9s ease-in-out infinite alternate;
+  }
+
+  span {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: transparent;
+    font: 900 42px/1 var(--font);
+    letter-spacing: 0.06em;
+    // The copies are only outlines. The stroke shifts from teal at the front to violet at the
+    // back, and the fade does the rest of the distance cue.
+    -webkit-text-stroke: 1.2px color-mix(in srgb, var(--accent-2), var(--accent) calc(var(--i) * 11%));
+    opacity: calc(1 - var(--i) * 0.1);
+    transform: translateZ(calc(var(--i) * var(--spread) * -1));
+    // the transform is written once and only --spread changes, so the depth eases in and out
+    transition: transform 0.55s cubic-bezier(0.2, 0.85, 0.3, 1);
+    transition-delay: calc(var(--i) * 14ms);
+  }
+
+  // the front copy is the solid one: filled, outlined in violet, standing on the stack
+  span:first-child {
+    color: var(--text);
+    -webkit-text-stroke: 1.6px var(--accent);
+    opacity: 1;
+  }
+}
+
+@keyframes d-outlinetext-sway {
+  from {
+    transform: rotateX(-6deg) rotateY(-26deg);
+  }
+
+  to {
+    transform: rotateX(-6deg) rotateY(26deg);
+  }
+}
