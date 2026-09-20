@@ -1,0 +1,239 @@
+// A controller seen from above at an angle.
+//
+// The silhouette is a union of three rounded rectangles (a wide centre and two tilted grips), so
+// no single clip-path can describe it. Thickness comes from stacking that whole silhouette six
+// times along Z, 2.3px apart: at this camera angle each step shifts less than a pixel sideways,
+// so the stack reads as one solid 11px wall rather than a staircase. Only the top copy is lit;
+// the copies under it are the side colour and never need their own shading.
+$step: 2.3px;
+
+.d-gamepad {
+  --top: color-mix(in srgb, var(--accent) 26%, var(--surface-solid));
+  --side: color-mix(in srgb, var(--accent) 16%, #06070e);
+  --well: #0b0d18;
+  display: grid;
+  place-items: center;
+  width: 210px;
+  height: 168px;
+  transform-style: preserve-3d;
+
+  // The pose and a slow sway. Everything inside ignores the pointer; only the four buttons take
+  // it back, so a press can never pull the body out from under the pointer.
+  &__pad {
+    position: relative;
+    width: 184px;
+    height: 118px;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    animation: d-gamepad-sway 7s ease-in-out infinite alternate;
+  }
+
+  &__shadow {
+    position: absolute;
+    inset: 22px -10px -18px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(0 0 0 / 0.5), transparent);
+    transform: translateZ(-30px);
+  }
+
+  // One copy of the silhouette. It is deliberately NOT preserve-3d: its three shapes are flattened
+  // into the copy's own plane, which is exactly what an extrusion slice is.
+  &__layer {
+    position: absolute;
+    inset: 0;
+    transform: translateZ(calc(var(--i) * #{-$step}));
+  }
+
+  &__part {
+    position: absolute;
+    background: var(--side);
+
+    &--body {
+      top: 0;
+      left: 24px;
+      width: 138px;
+      height: 82px;
+      border-radius: 32px 32px 30px 30px;
+    }
+
+    &--grip {
+      top: 28px;
+      width: 62px;
+      height: 90px;
+      border-radius: 28px 24px 26px 26px;
+    }
+
+    &--left {
+      left: 0;
+      transform: rotate(15deg);
+    }
+
+    &--right {
+      right: 0;
+      transform: rotate(-15deg);
+    }
+  }
+
+  // The lit top surface. The light is an inset shadow, not a gradient: an inset shadow follows
+  // each shape's own rounded outline, so where the grips overlap the body the shading reads as a
+  // moulded seam instead of the straight cut a linear-gradient would leave.
+  &__layer--top &__part {
+    background: var(--top);
+    box-shadow:
+      inset 0 4px 9px rgb(255 255 255 / 0.18),
+      inset 0 -16px 22px rgb(0 0 0 / 0.38);
+  }
+
+  &__deck {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: translateZ(0.6px);
+  }
+
+  // One specular highlight over the middle of the face. closest-side means it is fully faded out
+  // by the nearest edge of its own box, so it can never show as a rectangle over the body.
+  &__sheen {
+    position: absolute;
+    top: 4px;
+    left: 34px;
+    width: 118px;
+    height: 62px;
+    background: radial-gradient(closest-side, rgb(255 255 255 / 0.2), transparent);
+  }
+
+  // --- the deck: sticks, d-pad, four buttons --------------------------------------------------
+  // Everything here is placed by its centre (the negative margin), so moving a control is one pair
+  // of numbers.
+  &__well,
+  &__stick,
+  &__dpad,
+  &__btn {
+    position: absolute;
+    transform-style: preserve-3d;
+  }
+
+  // the recessed dish a stick or the d-pad sits in
+  &__well {
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 30%, #1b2038, var(--well) 70%);
+    box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.06);
+  }
+
+  // A stick is three discs at three heights: the well's floor, a short post, the thumb pad.
+  &__stick {
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+
+    i {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+
+    i:nth-child(1) {
+      inset: 6px;
+      background: #06070e;
+      transform: translateZ(3px);
+    }
+
+    i:nth-child(2) {
+      background:
+        radial-gradient(circle at 34% 26%, rgb(255 255 255 / 0.45), transparent 58%),
+        linear-gradient(#2a3152, #10142a);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-2) 45%, transparent);
+      transform: translateZ(9px);
+    }
+
+    // the dished top: a dark ring inside the pad
+    i:nth-child(3) {
+      inset: 7px;
+      border: 2px solid rgb(0 0 0 / 0.45);
+      background: transparent;
+      transform: translateZ(9.6px);
+    }
+  }
+
+  &__dpad {
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    clip-path: polygon(35% 0, 65% 0, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0 65%, 0 35%, 35% 35%);
+    background:
+      radial-gradient(circle at 42% 30%, rgb(255 255 255 / 0.4), transparent 62%),
+      linear-gradient(#5b649b, #262d55);
+    transform: translateZ(7px);
+  }
+
+  // The button is the hit area and never moves. The cap inside it is what presses in, and it
+  // ignores the pointer, so the press cannot flicker at the cap's edge.
+  // 26px across and 30px apart, so no two hit areas overlap: coplanar elements have no reliable
+  // hit-test order in 3D, and overlapping them would make which button you press a lottery.
+  &__btn {
+    width: 26px;
+    height: 26px;
+    margin: -13px 0 0 -13px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    pointer-events: auto;
+    cursor: pointer;
+    appearance: none;
+
+    // the socket the cap sinks into
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: var(--well);
+      box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.8);
+    }
+  }
+
+  &__cap {
+    position: absolute;
+    inset: 3.5px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 34% 28%, rgb(255 255 255 / 0.55), transparent 62%),
+      linear-gradient(var(--c), color-mix(in srgb, var(--c) 55%, #000));
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+    pointer-events: none;
+    transform: translateZ(5.5px);
+    transition: transform 0.16s cubic-bezier(0.3, 0, 0.2, 1);
+  }
+
+  &__btn:hover &__cap,
+  &__btn:focus-visible &__cap,
+  &__btn:active &__cap {
+    transform: translateZ(0.5px);
+  }
+
+  // the little status bar between the sticks
+  &__mark {
+    position: absolute;
+    width: 26px;
+    height: 7px;
+    margin: -3.5px 0 0 -13px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent-2), var(--accent));
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.3);
+    transform: translateZ(2px);
+  }
+}
+
+@keyframes d-gamepad-sway {
+  from {
+    transform: rotateX(46deg) rotateY(-13deg) rotateZ(2deg);
+  }
+
+  to {
+    transform: rotateX(42deg) rotateY(-2deg) rotateZ(-2deg);
+  }
+}

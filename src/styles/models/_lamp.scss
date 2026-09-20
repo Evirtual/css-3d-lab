@@ -1,0 +1,269 @@
+@use 'sass:math';
+
+// A desk lamp with a real cone for a shade.
+//
+// The shade is fourteen trapezoids standing on the mouth circle, each hinged on its bottom edge
+// and leaning in by exactly atan((R2 − R1) / H): that angle is what makes their narrow ends meet
+// on a smaller circle instead of crossing. The base, the desk and the light pool are discs laid
+// flat with rotateX(90deg).
+//
+// The light changes colour without animating a colour: every glowing part exists twice, warm and
+// cool, and the two cross-fade on opacity. Animating a gradient (or a filter) repaints on every
+// frame; two opacities do not.
+$n: 14;
+$r2: 31px; // mouth radius
+$r1: 12px; // radius where the shade is cut off at the top
+$sh: 33px; // shade height
+$w: 2 * $r2 * math.tan(math.div(180deg, $n)); // one trapezoid's wide edge
+$slant: math.hypot($sh, $r2 - $r1);
+$lean: math.atan(math.div($r2 - $r1, $sh));
+$narrow: math.div(1 - math.div($r1, $r2), 2) * 100%; // where the narrow edge starts across the box
+
+.d-lamp {
+  --metal: color-mix(in srgb, var(--accent) 24%, #07080f);
+  --metal-lit: color-mix(in srgb, var(--accent) 45%, var(--surface-solid));
+  --hue-warm: var(--warm);
+  --hue-cool: var(--accent-2);
+  display: grid;
+  place-items: center;
+  width: 216px;
+  height: 186px;
+  transform-style: preserve-3d;
+
+  // Turning the whole scene is the same as moving the camera: the lamp stays upright in its own
+  // world and we look down on it from slightly to the side.
+  &__world {
+    position: relative;
+    width: 180px;
+    height: 152px;
+    transform-style: preserve-3d;
+    transform: rotateX(18deg) rotateY(-14deg);
+  }
+
+  // the desk: a flat disc, so the pool has a surface to fall on
+  &__desk {
+    position: absolute;
+    top: 42px;
+    left: 0;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 36%, var(--bg)), transparent 86%);
+    transform: rotateX(90deg);
+  }
+
+  &__pool {
+    position: absolute;
+    top: 54px;
+    left: 12px;
+    width: 156px;
+    height: 156px;
+    border-radius: 50%;
+    transform: rotateX(90deg) translateZ(-1px); // a hair above the desk, so they never z-fight
+    animation: d-lamp-glow 9s ease-in-out infinite;
+
+    &--warm {
+      background: radial-gradient(closest-side, color-mix(in srgb, var(--hue-warm) 88%, transparent), color-mix(in srgb, var(--hue-warm) 30%, transparent) 52%, transparent);
+    }
+
+    &--cool {
+      background: radial-gradient(closest-side, color-mix(in srgb, var(--hue-cool) 72%, transparent), color-mix(in srgb, var(--hue-cool) 24%, transparent) 52%, transparent);
+      animation-name: d-lamp-glow-cool;
+    }
+  }
+
+  // three discs 2px apart: the base has a rim you can see, not a painted ellipse
+  &__base {
+    position: absolute;
+    top: 98px;
+    left: 14px;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 34%, var(--metal-lit), var(--metal) 76%);
+    transform: rotateX(90deg) translateZ(calc(var(--i) * 2px));
+  }
+
+  // A rod is two planes crossing along its length: whichever way the scene turns, one of them
+  // faces you, so a 7px bar never collapses into an invisible line.
+  &__rod {
+    position: absolute;
+    width: 7px;
+    background: linear-gradient(90deg, var(--metal), color-mix(in srgb, var(--metal-lit) 80%, #fff) 45%, var(--metal));
+    transform-origin: 50% 100%;
+    transform-style: preserve-3d;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: inherit;
+      transform: rotateY(90deg);
+    }
+
+    // stands on the base and leans back over it
+    &--post {
+      top: 36px;
+      left: 45px;
+      height: 96px;
+      transform: translateZ(4px) rotateZ(15deg);
+    }
+
+    // reaches out from the elbow to hang the shade
+    &--arm {
+      top: 13px;
+      left: 70px;
+      height: 30px;
+      transform: translateZ(4px) rotateZ(68deg);
+    }
+  }
+
+  &__joint {
+    position: absolute;
+    top: 36px;
+    left: 66px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 36% 32%, var(--metal-lit), var(--metal) 78%);
+    transform: translateZ(4px);
+  }
+
+  // --- the shade ------------------------------------------------------------------------------
+  &__shade {
+    position: absolute;
+    top: 32px;
+    left: calc(100px - #{$w * 0.5});
+    width: $w;
+    height: $sh;
+    transform-style: preserve-3d;
+    transform: translateZ(4px);
+  }
+
+  &__strip {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: $w;
+    height: $slant;
+    clip-path: polygon(#{$narrow} 0, #{100% - $narrow} 0, 100% 100%, 0 100%);
+    // --lit is 100% for the strip facing us and 0% for the one behind (worked out in Sass below),
+    // so the cone has a lit front and a dark back with no light maths at run time.
+    background: linear-gradient(
+      color-mix(in srgb, var(--metal-lit) var(--lit), var(--metal)),
+      color-mix(in srgb, var(--metal-lit) var(--lit), #05060c)
+    );
+    transform-origin: 50% 100%;
+    transform: rotateY(calc(var(--i) * #{math.div(360deg, $n)})) translateZ($r2) rotateX($lean);
+  }
+
+  @for $i from 0 to $n {
+    &__strip:nth-child(#{$i + 1}) {
+      --i: #{$i};
+      --lit: #{math.round(math.div(math.abs($i - math.div($n, 2)), math.div($n, 2)) * 100) * 1%};
+    }
+  }
+
+  // the cap closing the narrow top
+  &__cap {
+    position: absolute;
+    top: -$r1;
+    left: calc(50% - #{$r1});
+    width: $r1 * 2;
+    height: $r1 * 2;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 34%, var(--metal-lit), var(--metal) 80%);
+    transform: rotateX(90deg);
+  }
+
+  // The lit mouth: seen this steeply it is a thin bright ellipse, and it is what says the lamp is on.
+  &__mouth {
+    position: absolute;
+    top: calc(100% - #{$r2});
+    left: calc(50% - #{$r2});
+    width: $r2 * 2;
+    height: $r2 * 2;
+    border-radius: 50%;
+    transform: rotateX(90deg);
+    animation: d-lamp-fade 9s ease-in-out infinite;
+
+    &--warm {
+      background: radial-gradient(circle, color-mix(in srgb, var(--hue-warm) 92%, #fff), color-mix(in srgb, var(--hue-warm) 72%, transparent) 70%, transparent);
+    }
+
+    &--cool {
+      background: radial-gradient(circle, color-mix(in srgb, var(--hue-cool) 90%, #fff), color-mix(in srgb, var(--hue-cool) 62%, transparent) 70%, transparent);
+      animation-name: d-lamp-fade-cool;
+    }
+  }
+
+  // the beam: a soft trapezoid from the mouth down to the pool, standing in the lamp's own plane
+  &__beam {
+    position: absolute;
+    top: 65px;
+    left: 35px;
+    width: 130px;
+    height: 68px;
+    clip-path: polygon(26% 0, 74% 0, 100% 100%, 0 100%);
+    transform: translateZ(4px);
+    animation: d-lamp-fade 9s ease-in-out infinite;
+
+    &--warm {
+      background: linear-gradient(color-mix(in srgb, var(--hue-warm) 32%, transparent), transparent 84%);
+    }
+
+    &--cool {
+      background: linear-gradient(color-mix(in srgb, var(--hue-cool) 26%, transparent), transparent 84%);
+      animation-name: d-lamp-fade-cool;
+    }
+  }
+}
+
+// One slow breath, in two halves. Each ends where it started, so the loop has no seam.
+@keyframes d-lamp-glow {
+  0%,
+  100% {
+    opacity: 1;
+    transform: rotateX(90deg) translateZ(-1px) scale(1);
+  }
+
+  50% {
+    opacity: 0.12;
+    transform: rotateX(90deg) translateZ(-1px) scale(0.88);
+  }
+}
+
+@keyframes d-lamp-glow-cool {
+  0%,
+  100% {
+    opacity: 0.08;
+    transform: rotateX(90deg) translateZ(-1px) scale(0.88);
+  }
+
+  50% {
+    opacity: 1;
+    transform: rotateX(90deg) translateZ(-1px) scale(1);
+  }
+}
+
+@keyframes d-lamp-fade {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.12;
+  }
+}
+
+@keyframes d-lamp-fade-cool {
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}

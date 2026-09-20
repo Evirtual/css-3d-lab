@@ -1,0 +1,175 @@
+// A paper carrier bag hanging from its handles.
+//
+// Five panels make the box (front, back, two sides, bottom); the handles are single elements —
+// a rounded box with only its top border drawn is a clean arc, no SVG needed. The swing is a
+// pendulum: rotateZ around a point above the bag, where a hand would hold it. It lives on its own
+// wrapper, outside the 3D pose, so the bag turns in space while the swing stays in the screen
+// plane.
+$w: 84px; // front width
+$h: 96px; // height
+$d: 42px; // depth
+
+.d-shoppingbag {
+  --paper: color-mix(in srgb, var(--accent) 55%, var(--surface-solid));
+  --paper-lit: color-mix(in srgb, var(--paper) 74%, #fff);
+  // derived from the paper, not from the accent: in the light theme a near-black side on a pale
+  // bag reads as a hole, this keeps the side a shaded version of the same paper
+  --paper-side: color-mix(in srgb, var(--paper) 55%, #0a0b16);
+  display: grid;
+  place-items: center;
+  width: 200px;
+  height: 186px;
+  transform-style: preserve-3d;
+
+  &__swing {
+    position: relative;
+    width: $w;
+    height: $h;
+    transform-origin: 50% -30px; // the handles' top, not the bag's middle
+    transform-style: preserve-3d;
+    animation: d-shoppingbag-swing 4.4s ease-in-out infinite alternate;
+  }
+
+  &__bag {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(6deg) rotateY(-28deg);
+  }
+
+  &__shadow {
+    position: absolute;
+    inset: auto -22px -26px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(0 0 0 / 0.4), transparent);
+    transform: translateZ(-60px);
+  }
+
+  &__panel {
+    position: absolute;
+    // The creases are part of the paper, not separate elements: faint vertical lines plus a
+    // top-to-bottom shade, so a flat rectangle reads as a bag that has been folded flat before.
+    background:
+      repeating-linear-gradient(90deg, transparent 0 13px, rgb(0 0 0 / 0.07) 13px 14px),
+      linear-gradient(var(--paper-lit), var(--paper) 42%, color-mix(in srgb, var(--paper) 72%, #000));
+
+    &--front,
+    &--back {
+      top: 0;
+      left: 0;
+      width: $w;
+      height: $h;
+    }
+
+    &--front {
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 5px;
+      transform: translateZ($d * 0.5);
+    }
+
+    &--back {
+      transform: rotateY(180deg) translateZ($d * 0.5);
+    }
+
+    &--side {
+      top: 0;
+      left: calc(50% - #{$d * 0.5});
+      width: $d;
+      height: $h;
+      background: linear-gradient(var(--paper-side), color-mix(in srgb, var(--paper-side) 60%, #000));
+    }
+
+    &--left {
+      transform: rotateY(-90deg) translateZ($w * 0.5);
+    }
+
+    &--right {
+      transform: rotateY(90deg) translateZ($w * 0.5);
+    }
+
+    // laid flat and pushed down to the bottom edge, like the base of a box
+    &--bottom {
+      top: calc(50% - #{$d * 0.5});
+      left: 0;
+      width: $w;
+      height: $d;
+      background: color-mix(in srgb, var(--paper-side) 55%, #000);
+      transform: rotateX(-90deg) translateZ($h * 0.5);
+    }
+  }
+
+  // The folded top: a band hinged on the bag's top edge and tipped outward a few degrees, so the
+  // fold catches a different amount of light than the panel under it — that is what makes a paper
+  // bag's rim read as double thickness.
+  &__lip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: $w;
+    height: 12px;
+    background: linear-gradient(color-mix(in srgb, var(--paper-lit) 80%, #fff), var(--paper-lit));
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.28);
+    transform-origin: 50% 0;
+
+    &--front {
+      transform: translateZ($d * 0.5) rotateX(14deg);
+    }
+
+    &--back {
+      transform: rotateY(180deg) translateZ($d * 0.5) rotateX(14deg);
+    }
+  }
+
+  // A rounded box with only the top border drawn: the arc of a handle. The front handle sits on
+  // the front panel's plane, the back one on the back panel's.
+  &__handle {
+    position: absolute;
+    top: -26px;
+    left: 20px;
+    width: 44px;
+    height: 30px;
+    border: 3px solid var(--warm);
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0 / 26px 26px 0 0;
+
+    &--front {
+      transform: translateZ($d * 0.5);
+    }
+
+    &--back {
+      transform: translateZ($d * -0.5);
+      border-color: color-mix(in srgb, var(--warm) 60%, #000);
+    }
+  }
+
+  &__mark {
+    width: 22px;
+    height: 22px;
+    border: 2.5px solid #fff;
+    border-radius: 50% 50% 50% 4px;
+    opacity: 0.9;
+    transform: rotate(-45deg);
+  }
+
+  &__name {
+    color: #fff;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-indent: 3px;
+    opacity: 0.92;
+  }
+}
+
+@keyframes d-shoppingbag-swing {
+  from {
+    transform: rotateZ(-3.5deg);
+  }
+
+  to {
+    transform: rotateZ(3.5deg);
+  }
+}
