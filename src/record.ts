@@ -46,10 +46,20 @@ const MAX_SECONDS = 12; // long enough for the slow turns; a whole loop, so the 
 /** Is there any way to encode a video in this browser? */
 export const canRecord = (): boolean => typeof VideoEncoder !== 'undefined' && typeof createImageBitmap !== 'undefined';
 
+/**
+ * What to film. An edited version runs inside its own frame, so the model (and the styles that
+ * draw it) live in that frame's document, not in the page.
+ */
+function sourceOf(stage: HTMLElement): { node: HTMLElement; doc: Document } {
+  const frame = stage.querySelector('iframe');
+  const inner = frame?.contentDocument?.body;
+  return inner ? { node: inner, doc: frame!.contentDocument! } : { node: stage, doc: document };
+}
+
 /** The page's own CSS, minus anything that points at another file (see the note above). */
-function styleSheetText(): string {
+function styleSheetText(doc: Document = document): string {
   const rules: string[] = [];
-  for (const sheet of document.styleSheets) {
+  for (const sheet of doc.styleSheets) {
     try {
       for (const rule of sheet.cssRules) if (!rule.cssText.includes('url(')) rules.push(rule.cssText);
     } catch {
@@ -71,12 +81,12 @@ interface Crop {
  * size on the page, so a small model still fills a 1080-wide video crisply (the whole trip is
  * vector: the browser rasterises the SVG at whatever size it is given).
  */
-async function frameImage(stage: HTMLElement, css: string, crop: Crop, zoom: number): Promise<HTMLImageElement> {
-  const box = stage.getBoundingClientRect();
+async function frameImage(node: HTMLElement, css: string, crop: Crop, zoom: number): Promise<HTMLImageElement> {
+  const box = node.getBoundingClientRect();
   const holder = document.createElement('div');
   holder.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
   holder.style.cssText = `width:${box.width}px;height:${box.height}px;transform-origin:0 0;transform:scale(${zoom}) translate(${-crop.x}px, ${-crop.y}px)`;
-  holder.append(stage.cloneNode(true));
+  holder.append(node.cloneNode(true));
   const xml = new XMLSerializer().serializeToString(holder);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(crop.width * zoom)}" height="${Math.round(crop.height * zoom)}"><defs><style type="text/css"><![CDATA[\n${css}\n]]></style></defs><foreignObject x="0" y="0" width="100%" height="100%">${xml}</foreignObject></svg>`;
   const img = new Image();
@@ -90,9 +100,9 @@ async function frameImage(stage: HTMLElement, css: string, crop: Crop, zoom: num
 }
 
 /** How long one turn of the model takes (ms), so the video ends where it began. */
-function loopLength(stage: HTMLElement): number {
+function loopLength(node: HTMLElement): number {
   let longest = 0;
-  for (const animation of stage.getAnimations({ subtree: true })) {
+  for (const animation of node.getAnimations({ subtree: true })) {
     const timing = animation.effect?.getComputedTiming();
     if (timing?.iterations === Infinity && typeof timing.duration === 'number' && timing.duration <= MAX_SECONDS * 1000) {
       longest = Math.max(longest, timing.duration * (timing.direction?.startsWith('alternate') ? 2 : 1));
@@ -102,8 +112,8 @@ function loopLength(stage: HTMLElement): number {
 }
 
 /** Puts every animation on the stage at `t` ms, paused, so the frame is exactly that moment. */
-function seek(stage: HTMLElement, t: number, starts: WeakMap<Animation, number>): void {
-  for (const animation of stage.getAnimations({ subtree: true })) {
+function seek(node: HTMLElement, t: number, starts: WeakMap<Animation, number>): void {
+  for (const animation of node.getAnimations({ subtree: true })) {
     if (!starts.has(animation)) starts.set(animation, Number(animation.currentTime) || 0);
     animation.pause();
     animation.currentTime = starts.get(animation)! + t;
@@ -116,15 +126,15 @@ const isPaint = (value: string): boolean => Boolean(value) && value !== 'none' &
  * What the model actually draws, in stage pixels: its 3D shape, not its layout box. Measured over
  * a few moments of the loop and kept at its widest, so a turning model is never clipped.
  */
-function drawnCrop(stage: HTMLElement, seekTo: (t: number) => void, seconds: number): Crop {
-  const box = stage.getBoundingClientRect();
+function drawnCrop(node: HTMLElement, seekTo: (t: number) => void, seconds: number): Crop {
+  const box = node.getBoundingClientRect();
   let l = Infinity;
   let t = Infinity;
   let r = -Infinity;
   let b = -Infinity;
   for (let step = 0; step < 12; step++) {
     seekTo((step * seconds * 1000) / 12);
-    for (const el of stage.querySelectorAll<HTMLElement>('*')) {
+    for (const el of node.querySelectorAll<HTMLElement>('*')) {
       if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
       const cs = getComputedStyle(el);
       const paints =
@@ -193,13 +203,16 @@ export async function recordModel({ stage, ratio, backdrop, onProgress, signal }
   canvas.height = height;
   const ctx = canvas.getContext('2d', { alpha: transparent })!;
 
-  const css = styleSheetText();
-  const loop = loopLength(stage);
+  const source = sourceOf(stage);
+  const css = styleSheetText(source.doc);
+  const loop = loopLength(source.node);
   const seconds = loop ? Math.min(MAX_SECONDS, loop / 1000) : 4;
   const frames = Math.round(seconds * FPS);
   const starts = new WeakMap<Animation, number>();
   const paint = backdropOf(stage, backdrop);
-  const crop = drawnCrop(stage, (t) => seek(stage, t, starts), seconds);
+  const crop = drawnCrop(source.node, (t) => seek(source.node, t, starts), seconds);
+  // what was already paused (the stage's Pause switch) must stay paused afterwards
+  const wasPaused = new Set(source.node.getAnimations({ subtree: true }).filter((a) => a.playState === 'paused'));
   // enough resolution that the model fills the frame sharply, without asking the browser to
   // rasterise more than it needs
   const zoom = Math.min(4, Math.max(1, Math.min((width * 0.82) / crop.width, (height * 0.82) / crop.height)));
@@ -219,8 +232,9 @@ export async function recordModel({ stage, ratio, backdrop, onProgress, signal }
   try {
     for (let f = 0; f < frames; f++) {
       if (signal?.aborted) throw new DOMException('cancelled', 'AbortError');
-      seek(stage, (f * 1000) / FPS, starts);
-      const img = await frameImage(stage, css, crop, zoom);
+      if (!source.node.isConnected) throw new Error('the model was closed while the video was being made');
+      seek(source.node, (f * 1000) / FPS, starts);
+      const img = await frameImage(source.node, css, crop, zoom);
 
       ctx.clearRect(0, 0, width, height);
       if (paint) {
@@ -264,7 +278,9 @@ export async function recordModel({ stage, ratio, backdrop, onProgress, signal }
     };
   } finally {
     encoder.close();
-    // let the model run again, wherever it was
-    for (const animation of stage.getAnimations({ subtree: true })) animation.play();
+    // let the model run again, unless it was paused before (the stage's Pause switch)
+    if (source.node.isConnected) {
+      for (const animation of source.node.getAnimations({ subtree: true })) if (!wasPaused.has(animation)) animation.play();
+    }
   }
 }
