@@ -185,6 +185,16 @@ async function film(demo, { name, reel, W, H }) {
         });
         if (!pressed && demo.how === 'click') await page.mouse.click((W / 2) * scale, (H / 2) * scale);
       }
+      // The radio cube has no JS interaction metadata: its real radio inputs drive the CSS.
+      // Visit all six faces once, then return to the front so the exported clip loops cleanly.
+      if (demo.id === 'radio' && f % fps === 0) {
+        const second = Math.floor(f / fps);
+        if (second <= 6) {
+          await page.evaluate((index) => {
+            document.querySelectorAll('.d-radio input')[index % 6]?.click();
+          }, second);
+        }
+      }
       const due = Math.round(t) - clock;
       if (due > 0) await page.clock.runFor(due);
       clock += Math.max(due, 0);
