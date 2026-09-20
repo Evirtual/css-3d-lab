@@ -77,6 +77,9 @@ if (stage && demo && box) {
       mountOriginal();
     }
     if (editedBar) editedBar.hidden = !live.edited;
+    // the video is pre-filmed: say so while an edited version is on the stage
+    const videoNote = document.querySelector<HTMLElement>('[data-video-note]');
+    if (videoNote) videoNote.hidden = !live.edited || !document.querySelector('[data-download]');
   };
   // an edited frame has the stage theme baked in
   document.addEventListener(STAGE_THEME_EVENT, () => showing === 'edit' && refreshStage());

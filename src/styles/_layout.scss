@@ -2715,3 +2715,12 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+// "your edits are not in the video": under the tools, only while an edited version is showing
+.tools__note {
+  margin: 8px 0 0;
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
