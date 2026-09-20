@@ -2716,40 +2716,73 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 }
 
-// The video maker (video.ts): a small dialog over the page — shape, backdrop, a bar while the
-// frames are drawn, then the file. On a phone it sits at the bottom, like a sheet.
-.vidmaker {
-  width: min(900px, calc(100vw - 24px));
-  padding: 20px;
+// The maker (video.ts): one dialog with three tabs — Video, Image, Print. The left half is a real
+// capture of the model (moving, on the video tab), the right half the choices that made it. On a
+// phone it becomes a sheet: tabs on top, the frame under them, the settings scrolling below.
+.maker {
+  display: flex;
+  flex-direction: column;
+  width: min(1000px, calc(100vw - 24px));
+  max-height: min(92vh, 860px);
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--border-strong);
-  border-radius: 20px;
+  border-radius: 22px;
   background: var(--surface-solid);
   color: var(--text);
 
   &::backdrop {
-    background: rgb(4 6 14 / 0.62);
-    backdrop-filter: blur(3px);
+    background: rgb(4 6 14 / 0.66);
+    backdrop-filter: blur(4px);
   }
 
+  // head: the three tabs, and the way out
   &__head {
+    flex: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
 
-    h2 {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      margin: 0;
-      font-size: 19px;
+  &__tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--border) 45%, transparent);
+  }
 
-      svg {
-        width: 20px;
-        height: 20px;
-        color: var(--accent-2);
-      }
+  &__tab {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      color: var(--text);
+    }
+
+    &[aria-selected='true'] {
+      background: linear-gradient(135deg, var(--accent), var(--hot));
+      color: #fff;
+      box-shadow: 0 4px 14px rgb(0 0 0 / 0.25);
     }
   }
 
@@ -2772,160 +2805,266 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     }
   }
 
-  // the file on the left, the choices on the right
+  // the capture on the left, the choices on the right
   &__body {
+    flex: 1 1 auto;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
     gap: 18px;
     align-items: start;
+    min-height: 0;
+    overflow: auto;
+    padding: 16px;
   }
 
-  // the preview IS the capture, so what is here is what gets saved
-  &__preview {
+  &__show {
+    position: sticky;
+    top: 0;
     display: grid;
-    place-items: center;
+    justify-items: center;
+    gap: 8px;
+  }
+
+  // The frame is not a picture of the model, it is the model: the stage itself is moved in here
+  // while the dialog is open. What the frame adds is the file's shape, its backdrop and its
+  // margin — so this is the model, framed the way it will be saved.
+  &__frame {
+    position: relative;
     overflow: hidden;
-    min-height: 280px;
-    padding: 10px;
+    width: min(100%, calc(var(--aspect, 1) * 44vh));
+    max-height: 44vh;
+    aspect-ratio: var(--aspect, 1);
     border: 1px solid var(--border);
     border-radius: 14px;
+    // the stage's own dots, then the backdrop colour, then a checkerboard for when there is none
     background:
-      repeating-conic-gradient(rgb(255 255 255 / 0.045) 0% 25%, transparent 0% 50%) 0 0 / 18px 18px,
-      var(--bg);
+      radial-gradient(var(--dot-color, transparent) var(--dot-size, 1px), transparent calc(var(--dot-size, 1px) + 0.9px)) 0 0 /
+        var(--dot-gap, 22px) var(--dot-gap, 22px),
+      linear-gradient(var(--paper, #0b0d18), var(--paper, #0b0d18)),
+      repeating-conic-gradient(rgb(255 255 255 / 0.05) 0% 25%, transparent 0% 50%) 0 0 / 18px 18px;
 
-    img,
-    video {
-      max-width: 100%;
-      max-height: 60vh;
-      border-radius: 8px;
+    &[data-dots='no'] {
+      --dot-color: transparent;
     }
 
-    &[data-state='working']::after {
-      content: 'Drawing…';
-      color: var(--muted);
-      font-size: 12.5px;
+    // a print is a sheet of paper: give it paper's shadow
+    &[data-shape='sheet'] {
+      box-shadow: 0 10px 34px rgb(0 0 0 / 0.45);
     }
 
-    &[data-state='working'] img,
-    &[data-state='working'] video {
-      opacity: 0.35;
+    // once a file has been made it takes the frame's place: this is the file itself
+    video,
+    img {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
-    &[data-state='failed'] {
-      padding: 22px;
-      color: var(--muted);
-      font-size: 12.5px;
-      text-align: center;
+    &[data-busy] .maker__busy {
+      opacity: 1;
     }
+  }
+
+  // the stage sits in here, moved off the page, scaled and centred to match the file's framing
+  &__live {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+  }
+
+  // the model's own controls have stayed behind on the page, so the frame keeps one of its own
+  &__tools {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    display: flex;
+    gap: 6px;
+  }
+
+  &__tool {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: rgb(8 10 20 / 0.72);
+    color: var(--muted);
+    font: inherit;
+    font-size: 11.5px;
+    cursor: pointer;
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--accent-2);
+      color: var(--text);
+    }
+
+    &[aria-pressed='true'] {
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--accent), var(--hot));
+      color: #fff;
+    }
+  }
+
+  // over the frame while a picture or a film is being drawn
+  &__busy {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 10px;
+    padding: 16px;
+    background: rgb(6 8 16 / 0.84);
+    color: #eceefb;
+    font-size: 12.5px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  &__ring {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgb(255 255 255 / 0.22);
+    border-top-color: var(--accent-2);
+    border-radius: 50%;
+    animation: maker-spin 0.8s linear infinite;
+  }
+
+  &__caption {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    text-align: center;
   }
 
   &__settings {
     display: grid;
-    gap: 2px;
-  }
-
-  &__lead {
-    margin: 0 0 12px;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.55;
+    align-content: start;
+    gap: 14px;
   }
 
   &__set {
-    margin: 0 0 12px;
+    margin: 0;
     padding: 0;
     border: 0;
 
     legend {
       display: flex;
-      gap: 8px;
-      padding: 0 0 7px;
+      align-items: baseline;
+      gap: 7px;
+      padding: 0 0 8px;
       color: var(--muted);
-      font-size: 11px;
-      letter-spacing: 0.14em;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
 
       output {
         color: var(--text);
+        font-size: 12px;
         letter-spacing: 0;
       }
     }
   }
 
-  &__row {
-    display: flex;
-    gap: 7px;
+  &__legendHint {
+    letter-spacing: 0;
+    text-transform: none;
+  }
 
-    button {
-      flex: 1 1 0;
-      min-width: 0;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      gap: 1px 8px;
-      padding: 8px 10px;
-      border: 1px solid var(--border-strong);
-      border-radius: 12px;
-      background: transparent;
-      color: var(--text);
-      font: inherit;
+  &__opts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
+    gap: 8px;
+  }
+
+  &__opt {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 9px 11px;
+    border: 1px solid var(--border-strong);
+    border-radius: 13px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+
+    b {
+      display: block;
       font-size: 12.5px;
-      text-align: left;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
+      font-weight: 650;
+      line-height: 1.25;
+    }
 
-      b {
-        font-weight: 650;
+    small {
+      display: block;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &:hover:not([aria-checked='true']):not(:disabled) {
+      border-color: var(--accent-2);
+    }
+
+    &[aria-checked='true'] {
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--accent), var(--hot));
+      color: #fff;
+
+      small {
+        color: rgb(255 255 255 / 0.82);
       }
 
-      span {
-        grid-column: 2;
-        color: var(--muted);
-        font-size: 11px;
+      .maker__swatch {
+        border-color: rgb(255 255 255 / 0.7);
       }
+    }
 
-      .vidmaker__swatch {
-        grid-row: span 2;
-      }
-
-      &:hover:not([aria-checked='true']):not(:disabled) {
-        border-color: var(--accent-2);
-      }
-
-      &[aria-checked='true'] {
-        border-color: transparent;
-        background: linear-gradient(135deg, var(--accent), var(--hot));
-        color: #fff;
-
-        span {
-          color: rgb(255 255 255 / 0.85);
-        }
-      }
-
-      &:disabled {
-        opacity: 0.55;
-        cursor: default;
-      }
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
   }
 
-  // the shape options show their shape; the backdrop options show their colour
+  // a shape option shows its shape; a backdrop option shows its colour
   &__swatch {
     display: block;
+    flex: none;
     width: 22px;
     height: 22px;
-    border: 1px solid rgb(255 255 255 / 0.35);
-    border-radius: 6px;
+    border: 1px solid rgb(255 255 255 / 0.4);
+    border-radius: 5px;
     background: #0b0d18;
 
-    &[data-swatch='9:16'] {
-      width: 15px;
-      height: 24px;
-    }
-
-    &[data-swatch='16:9'] {
-      width: 26px;
-      height: 15px;
+    &--auto {
+      width: 24px;
+      height: 20px;
+      border-style: dashed;
+      background: transparent;
     }
 
     &[data-swatch='stage'] {
@@ -2949,10 +3088,21 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     accent-color: var(--accent);
   }
 
+  &__foot {
+    flex: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 12px 16px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-solid);
+  }
+
   &__bar {
+    grid-column: 1 / -1;
     overflow: hidden;
-    height: 8px;
-    margin: 2px 0 12px;
+    height: 6px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--border-strong) 60%, transparent);
 
@@ -2967,75 +3117,142 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     }
   }
 
+  &__note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
   &__actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 4px;
+    gap: 8px;
   }
 
-  &__note {
-    margin: 10px 0 0;
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.5;
-    text-align: right;
-  }
-
-  // a phone: the preview on top, the choices under it, as a sheet
-  @media (max-width: 720px) {
+  // a phone: a sheet from the bottom, the frame small, the settings scrolling under it
+  @media (max-width: 760px) {
     width: 100vw;
     max-width: none;
+    max-height: 94vh;
     margin: auto 0 0;
-    padding: 16px 14px calc(16px + env(safe-area-inset-bottom));
     border-width: 1px 0 0;
     border-radius: 20px 20px 0 0;
+
+    &__head {
+      padding: 10px 12px;
+    }
+
+    &__tabs {
+      flex: 1;
+    }
+
+    &__tab {
+      flex: 1;
+      justify-content: center;
+      padding: 9px 6px;
+    }
 
     &__body {
       grid-template-columns: minmax(0, 1fr);
       gap: 14px;
+      padding: 12px;
     }
 
-    &__preview {
-      min-height: 170px;
+    &__show {
+      position: static;
+    }
 
-      img,
-      video {
-        max-height: 34vh;
+    &__frame {
+      min-height: 190px;
+      max-height: 32vh;
+
+      canvas,
+      video,
+      img {
+        max-height: calc(32vh - 30px);
       }
     }
 
-    &__actions .btn {
-      flex: 1;
-      justify-content: center;
+    &__opts {
+      grid-template-columns: repeat(auto-fit, minmax(136px, 1fr));
+    }
+
+    &__foot {
+      padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+    }
+
+    &__actions {
+      grid-column: 1 / -1;
+
+      .btn {
+        flex: 1;
+        justify-content: center;
+      }
     }
   }
 }
 
-// the stage says it is held while a dialog is capturing it
-.stage-wrap[data-locked] .stage {
-  cursor: default;
-  pointer-events: none;
+@keyframes maker-spin {
+  to {
+    rotate: 1turn;
+  }
 }
-[data-make-video] {
+
+
+// a stage that has been moved into the maker dialog keeps its own size and loses its backdrop,
+// which the dialog's frame paints instead
+.stage[data-in-maker] {
+  border: 0;
+  border-radius: 0;
+}
+[data-make] {
   position: relative;
   overflow: hidden;
 
+  // while a file is being made, the button fills up with it
   &.is-working::before {
     content: '';
     position: absolute;
     inset: 0;
-    z-index: -1;
+    z-index: 0;
     transform: scaleX(var(--done, 0));
     transform-origin: left;
     background: color-mix(in srgb, var(--accent) 38%, transparent);
     transition: transform 0.15s linear;
   }
 
+  // the first capture takes a moment: say so on the button that was pressed
+  &.is-busy {
+    cursor: progress;
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 8px;
+      bottom: 6px;
+      left: 8px;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-2), transparent);
+      animation: maker-sweep 1s ease-in-out infinite;
+    }
+  }
+
   &.is-ready {
     border-color: transparent;
     background: linear-gradient(135deg, var(--accent), var(--hot));
     color: #fff;
+  }
+}
+
+@keyframes maker-sweep {
+  from {
+    transform: translateX(-60%);
+  }
+
+  to {
+    transform: translateX(60%);
   }
 }

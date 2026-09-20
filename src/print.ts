@@ -1,5 +1,5 @@
 import type { LiveEdit } from './live-edit';
-import type { PrintLook } from './models/snippet-utils';
+import type { PrintLook, PrintSetup } from './models/snippet-utils';
 import { isHeld } from './hold-hover';
 
 /** What the stage looks like right now (dark or light, dots or not), so the print matches it. */
@@ -36,12 +36,33 @@ function clockOf(stage: HTMLElement | null): number | null {
   return Number.isFinite(t) ? t : null;
 }
 
-export function printModel(live: LiveEdit, stage?: HTMLElement | null): void {
+/**
+ * A sheet that is nothing but the picture. The picture was made at the sheet's own shape, with its
+ * backdrop and its margin already in it, so it goes on edge to edge and what prints is what the
+ * dialog showed.
+ */
+const pictureSheet = (src: string, paper: 'landscape' | 'portrait'): string => `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CSS 3D Lab</title>
+<style>
+@page { size: A4 ${paper}; margin: 0; }
+html, body { margin: 0; height: 100%; background: #fff; }
+img { display: block; width: 100%; height: 100%; object-fit: fill; }
+</style>
+</head>
+<body><img src="${src}" alt=""></body>
+</html>`;
+
+export function printModel(live: LiveEdit, stage?: HTMLElement | null, setup?: PrintSetup): void {
+  const paper = setup?.paper ?? 'landscape';
+  const sheet = paper === 'landscape' ? { width: 1123, height: 794 } : { width: 794, height: 1123 };
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
   frame.tabIndex = -1;
   // an A4 landscape sheet in CSS px, out of sight (not display: none: it has to be laid out)
-  frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:1123px;height:794px;border:0;';
+  frame.style.cssText = `position:fixed;left:-10000px;top:0;width:${sheet.width}px;height:${sheet.height}px;border:0;`;
   frame.addEventListener('load', () => {
     const win = frame.contentWindow;
     if (!win) return frame.remove();
@@ -52,6 +73,8 @@ export function printModel(live: LiveEdit, stage?: HTMLElement | null): void {
       win.print();
     }, 500);
   });
-  frame.srcdoc = live.printDoc(lookOf(stage ?? null), isHeld(stage ?? null), clockOf(stage ?? null));
+  frame.srcdoc = setup?.picture
+    ? pictureSheet(setup.picture, paper)
+    : live.printDoc(lookOf(stage ?? null), isHeld(stage ?? null), clockOf(stage ?? null), { paper, fill: setup?.fill ?? 2 / 3 });
   document.body.append(frame);
 }

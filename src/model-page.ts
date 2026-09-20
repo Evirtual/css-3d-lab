@@ -14,6 +14,7 @@ import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { initTint } from './tint';
 import { initVideoMaker, trackDownloads } from './video';
+import type { PrintSetup } from './models/snippet-utils';
 import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 import { printModel } from './print';
 import { initThanks, showThanks } from './thanks';
@@ -32,8 +33,8 @@ fitStages(); // every demo on the page scales with its stage
 initCardLook();
 trackDownloads(track);
 // print goes through the same preview dialog; the page's model fills this in below
-let printOpenModel: ((stage: HTMLElement) => void) | null = null;
-initVideoMaker(track, (stage) => printOpenModel?.(stage));
+let printOpenModel: ((stage: HTMLElement, setup: PrintSetup) => void) | null = null;
+initVideoMaker(track, (stage, setup) => printOpenModel?.(stage, setup));
 initThanks();
 initFullscreen();
 
@@ -55,7 +56,7 @@ if (stage && demo && box) {
   // The original code is already in the page as text; no need to download it again.
   const textOf = (key: string) => body(key)?.querySelector('pre code')?.textContent ?? '';
   const live = new LiveEdit(demo.id, demo.title, { html: textOf('html'), css: textOf('css'), ...(body('js') ? { js: textOf('js') } : {}) });
-  printOpenModel = (from) => printModel(live, from);
+  printOpenModel = (from, setup) => printModel(live, from, setup);
 
   /* ----- the stage shows the site's own demo, or the visitor's edited snippet ----- */
   let unmount: (() => void) | undefined;

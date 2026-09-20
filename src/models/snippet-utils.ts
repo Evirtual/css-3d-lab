@@ -75,7 +75,15 @@ export interface PrintLook {
   dots?: { image: string; size: string };
 }
 
-export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: PrintLook = { bg: '#0b0d18', light: false }, held = false, clock: number | null = null): string {
+/** How the sheet is laid out: which way round it goes, and how much of it the model fills. */
+export interface PrintSetup {
+  paper: 'landscape' | 'portrait';
+  fill: number;
+  /** Print this picture instead of the model: a snapshot of the view the visitor made. */
+  picture?: string;
+}
+
+export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: PrintLook = { bg: '#0b0d18', light: false }, held = false, clock: number | null = null, setup: PrintSetup = { paper: 'landscape', fill: 2 / 3 }): string {
   // held ("Hold hover" on the stage): every :hover rule applies, as if the pointer were on it.
   // :not(.c3d-none) always matches and weighs the same as :hover, so the cascade is unchanged.
   const css = held ? s.css.replace(/:hover/g, ':not(.c3d-none)') : s.css;
@@ -88,7 +96,7 @@ export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: P
 <title>${title} · CSS 3D Lab</title>
 <style>
 @page {
-  size: A4 landscape;
+  size: A4 ${setup.paper};
   margin: 0;
 }
 
@@ -111,7 +119,7 @@ body {
   grid-template-rows: minmax(0, 1fr);
   place-items: stretch !important;
   margin: 0 !important;
-  padding: 12mm !important;
+  padding: 0 !important;
   overflow: hidden !important;
   background: transparent;
   color: ${ink};
@@ -163,6 +171,9 @@ ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
 <script>
 // The moment on the stage when Print was pressed (ms into its animations): the print shows that pose.
 var CLOCK = ${clock === null ? 'null' : Math.round(clock)};
+// How much of the sheet the model fills, straight from the dialog's slider: the preview there is
+// drawn to the same share of the same shape, so the paper matches what was on screen.
+var FILL = ${setup.fill.toFixed(3)};
 // Every model prints the same size: measure what is actually drawn (the union of every visible
 // part, 3D turns included), zoom it to two thirds of the sheet — the same share of the frame the
 // model fills in a card, in a saved picture and in a video — then move it to the exact middle.
@@ -217,7 +228,7 @@ function fitPrint(freeze) {
   // the zoom, so one step can land short. A few rounds settle it.
   var z = 1;
   for (var round = 0; round < 5; round++) {
-    var k = Math.min((a.width * 0.667) / (d.r - d.l), (a.height * 0.667) / (d.b - d.t));
+    var k = Math.min((a.width * FILL) / (d.r - d.l), (a.height * FILL) / (d.b - d.t));
     if (Math.abs(k - 1) < 0.02) break;
     z = Math.min(z * k, 40);
     model.style.zoom = z.toFixed(3);

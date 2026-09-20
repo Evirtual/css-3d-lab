@@ -15,6 +15,7 @@ import { printModel } from './print';
 import { initThanks, showThanks, thanksHtml } from './thanks';
 import { holdHoverHtml, markHolds } from './hold-hover';
 import { initVideoMaker, trackDownloads, videoButton } from './video';
+import type { PrintSetup } from './models/snippet-utils';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
 import { interactionHtml } from './models/interaction';
@@ -264,8 +265,8 @@ hydrateIcons();
 initAnalytics();
 trackDownloads(track);
 // print goes through the same preview dialog; the open model sets this up (see the viewer)
-let printOpenModel: ((stage: HTMLElement) => void) | null = null;
-initVideoMaker(track, (stage) => printOpenModel?.(stage));
+let printOpenModel: ((stage: HTMLElement, setup: PrintSetup) => void) | null = null;
+initVideoMaker(track, (stage, setup) => printOpenModel?.(stage, setup));
 initThanks();
 initHero();
 initShapes();
@@ -437,7 +438,7 @@ function openViewer(id: string): void {
       </section>
     </div>`;
 
-  printOpenModel = (stage) => printModel(live, stage);
+  printOpenModel = (stage, setup) => printModel(live, stage, setup);
   const stageEl = viewerBody.querySelector<HTMLElement>('.stage')!;
   // "Hold hover" only where the model reacts to hover
   markHolds(stageEl, live.current.css);
