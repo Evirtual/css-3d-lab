@@ -19,10 +19,15 @@ export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light
 <script>
 (function () {
   function fit() {
+    // the site's own scale for this model — but never so big that the snippet's scene (which may
+    // carry padding of its own, a pointer area) outgrows the frame: then it cannot be centred
     var f = Math.max(0.85, Math.min(6, innerWidth / 340, innerHeight / 280)) * ${size};
+    var scene = document.body && document.body.firstElementChild;
+    if (scene && scene.offsetWidth && scene.offsetHeight) f = Math.min(f, (innerWidth - 4) / scene.offsetWidth, (innerHeight - 4) / scene.offsetHeight);
     document.documentElement.style.setProperty('--fit', f.toFixed(3));
   }
-  fit();
+  if (document.body) fit();
+  addEventListener('DOMContentLoaded', fit);
   addEventListener('resize', fit);
 })();
 </script>`

@@ -180,6 +180,8 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   /** The stage's own backdrop, remembered before it moved (the frame paints it now). */
   let look: Paint | null = null;
   let closing = false;
+  /** Which opening this is: a close that was still fading out must not shut the next one. */
+  let opened = 0;
   /** Whether this browser can encode a see-through film. It cannot, today; it is asked all the same. */
   let clearFilms = false;
   void canRecordClear().then((can) => {
@@ -286,7 +288,8 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     home.node.setAttribute('style', home.style);
     home.inner.setAttribute('style', home.innerStyle);
     delete home.inner.dataset.inMaker;
-    home.parent.insertBefore(home.node, home.hold);
+    // its place may be gone (the view it came from has closed): then there is nowhere to go back to
+    if (home.hold.isConnected) home.parent.insertBefore(home.node, home.hold);
     home.hold.remove();
     home = null;
   };
@@ -320,12 +323,13 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   const closeSmooth = (): void => {
     if (!dialog?.open || closing) return;
     closing = true;
+    const mine = opened;
     const out = dialog.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-in' });
     void out.finished
       .catch(() => {})
       .then(() => {
         closing = false;
-        dialog?.close();
+        if (mine === opened) dialog?.close();
       });
   };
 
@@ -531,6 +535,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     kind = which;
     modelId = button.dataset.model ?? 'model';
     if (jobs.size && [...jobs.values()][0].id !== modelId) jobs.clear();
+    opened++;
     look = stageLook(found);
     const box = found.getBoundingClientRect();
     shape = box.height > 0 ? box.width / box.height : 1;
