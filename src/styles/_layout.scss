@@ -3319,6 +3319,19 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 // The stage inside the maker's frame: the frame has the border, so the stage does not need one.
 // It keeps its backdrop — that is the whole point — unless the file is to be see-through, when it
 // shows the checkerboard behind it instead.
+// The "Your edited version / Reset to original" notice belongs to the editing step: by the time
+// the model is being exported it has said its piece, and it is not part of the picture either.
+.maker__live [data-edited] {
+  display: none !important;
+}
+
+// ...and with it hidden, the switches no longer need the room it would have taken
+@container stage-wrap (max-width: 459px) {
+  .maker__live .stage-wrap:has([data-edited]:not([hidden])) .stage__holds {
+    bottom: 10px;
+  }
+}
+
 .stage[data-in-maker] {
   border: 0;
   border-radius: 0;
