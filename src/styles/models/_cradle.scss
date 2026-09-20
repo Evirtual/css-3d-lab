@@ -1,0 +1,210 @@
+@use 'sass:math';
+
+$d: 22px; // ball diameter — also the spacing, so the row of balls touches
+$L: 62px; // pivot to ball centre
+$W: 184px; // frame width
+$D: 28px; // half the frame's depth: the two rails the strings run up to
+$drop: $L + math.div($d, 2) + 20px; // rail down to the base board
+$swing: 28deg;
+$H: math.hypot($L, $D); // a string is longer than the drop: it leans in from its rail
+$lean: math.atan(math.div($D, $L));
+// Everything hangs below the rail, so the rail sits this far above the middle of the scene and
+// the whole cradle straddles it.
+$lift: 48px;
+
+.d-cradle {
+  position: relative;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  // Looking down a little is what shows the depth: the two rails, the V of every pair of strings
+  // and the base board. No rotateY, so the balls stay circles and read as spheres.
+  transform: rotateX(12deg);
+
+  // rails, posts and base board
+  &__bar {
+    --metal-hi: #{color-mix(in srgb, var(--text) 46%, var(--bg))};
+    --metal-lo: #{color-mix(in srgb, var(--text) 18%, var(--bg))};
+    position: absolute;
+    background: linear-gradient(var(--metal-lo), var(--metal-hi) 45%, var(--metal-lo));
+    border-radius: 3px;
+  }
+
+  &__rail {
+    left: math.div($W, -2);
+    top: -3px - $lift;
+    width: $W;
+    height: 6px;
+    transform: translateZ(var(--z));
+  }
+
+  &__post {
+    left: -3px;
+    top: -3px - $lift;
+    width: 6px;
+    height: $drop + 3px;
+    transform: translate3d(var(--x), 0, var(--z));
+  }
+
+  &__base {
+    left: math.div($W, -2);
+    top: -($D + 12px);
+    width: $W;
+    height: ($D + 12px) * 2;
+    border-radius: 8px;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--text) 16%, var(--bg)), color-mix(in srgb, var(--text) 30%, var(--bg)));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-2) 30%, transparent);
+    transform: translateY($drop - $lift) rotateX(90deg);
+  }
+
+  // One pendulum. The arm is a zero-size point at the rail, so rotateZ around its origin is the
+  // real pivot axis — the line joining the two rails.
+  &__arm {
+    position: absolute;
+    left: calc(var(--k) * #{$d});
+    top: -$lift;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+    transform-origin: 0 0;
+  }
+
+  // A string runs from one rail down to the ball on the centre line, so it leans in by
+  // atan(depth / drop) and has to be hypot(drop, depth) long to reach.
+  &__arm i {
+    position: absolute;
+    left: -0.75px;
+    top: 0;
+    width: 1.5px;
+    height: $H;
+    background: linear-gradient(color-mix(in srgb, var(--text) 46%, transparent), color-mix(in srgb, var(--text) 24%, transparent));
+    transform-origin: 50% 0;
+    transform: translateZ($D) rotateX(-$lean);
+
+    & + i {
+      transform: translateZ(-$D) rotateX($lean);
+    }
+  }
+
+  // The bob carries the ball and cancels the arm's swing, so the highlight stays put instead of
+  // rolling round the ball — the balls in a cradle swing, they do not spin.
+  &__bob {
+    position: absolute;
+    left: 0;
+    top: $L;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+  }
+
+  &__ball {
+    position: absolute;
+    left: math.div($d, -2);
+    top: math.div($d, -2);
+    width: $d;
+    height: $d;
+    border-radius: 50%;
+    background:
+      // a teal bounce light off the ball next door, low and to the right
+      radial-gradient(circle at 74% 80%, color-mix(in srgb, var(--accent-2) 60%, transparent) 0 14%, transparent 44%),
+      radial-gradient(
+        circle at 34% 26%,
+        #fff 0 7%,
+        color-mix(in srgb, var(--accent) 40%, #fff) 22%,
+        var(--accent) 56%,
+        color-mix(in srgb, var(--accent) 40%, var(--bg)) 86%
+      );
+    box-shadow: inset -2px -3px 7px rgb(0 0 0 / 0.3);
+    transform: rotateX(-12deg); // face the camera again, so the ball is a circle, not an ellipse
+  }
+
+  // the outer two swing; the three in the middle only pass the knock along
+  &__arm--l {
+    animation: d-cradle-left 2.8s infinite;
+  }
+
+  &__arm--r {
+    animation: d-cradle-right 2.8s infinite;
+  }
+
+  &__arm--l > .d-cradle__bob {
+    animation: d-cradle-left-bob 2.8s infinite;
+  }
+
+  &__arm--r > .d-cradle__bob {
+    animation: d-cradle-right-bob 2.8s infinite;
+  }
+}
+
+// A pendulum is slowest at the top of its arc and fastest at the bottom, so each half swing gets
+// its own easing. The flat stretches are the moment of stillness while the other end is out.
+// rotateZ turns clockwise on screen, so a POSITIVE angle throws the bob out to the left.
+@keyframes d-cradle-left {
+  0% {
+    transform: rotateZ($swing);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.45);
+  }
+
+  22%,
+  78% {
+    transform: rotateZ(0deg);
+    animation-timing-function: cubic-bezier(0.25, 0.55, 0.55, 1);
+  }
+
+  100% {
+    transform: rotateZ($swing);
+  }
+}
+
+@keyframes d-cradle-left-bob {
+  0% {
+    transform: rotateZ(-$swing);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.45);
+  }
+
+  22%,
+  78% {
+    transform: rotateZ(0deg);
+    animation-timing-function: cubic-bezier(0.25, 0.55, 0.55, 1);
+  }
+
+  100% {
+    transform: rotateZ(-$swing);
+  }
+}
+
+@keyframes d-cradle-right {
+  0%,
+  28% {
+    transform: rotateZ(0deg);
+    animation-timing-function: cubic-bezier(0.25, 0.55, 0.55, 1);
+  }
+
+  50% {
+    transform: rotateZ(-$swing);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.45);
+  }
+
+  72%,
+  100% {
+    transform: rotateZ(0deg);
+  }
+}
+
+@keyframes d-cradle-right-bob {
+  0%,
+  28% {
+    transform: rotateZ(0deg);
+    animation-timing-function: cubic-bezier(0.25, 0.55, 0.55, 1);
+  }
+
+  50% {
+    transform: rotateZ($swing);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.45);
+  }
+
+  72%,
+  100% {
+    transform: rotateZ(0deg);
+  }
+}
