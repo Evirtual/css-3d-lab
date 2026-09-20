@@ -424,7 +424,7 @@ function openViewer(id: string): void {
         </div>
         <div class="code__actions">
           <button type="button" class="btn btn--accent" data-copy="file">${icon('copy')} Copy as one HTML file</button>
-          ${videoButton(id)}
+          ${videoButton(id, 'btn', demo.title)}
           <button type="button" class="btn" data-act="print">${icon('printer')} Print / PDF</button>
           <button type="button" class="btn" data-act="share">${icon('share')} Share</button>
           <button type="button" class="btn" data-act="newtab">${icon('arrow-up-right')} Open in new tab</button>

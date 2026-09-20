@@ -261,7 +261,7 @@ function demoPage(d, index) {
             <button type="button" class="btn" data-copy-file>${icon('copy')} Copy as one HTML file</button>
           </div>
           <div class="page-tools__row">
-            ${videoButton(d.id)}
+            ${videoButton(d.id, 'btn', d.title)}
             <button type="button" class="btn" data-print>${icon('printer')} Print / PDF</button>
             <button type="button" class="btn" data-share-link>${icon('share')} Share</button>
             <button type="button" class="btn" data-share-embed>Embed</button>

@@ -2719,7 +2719,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 // The video maker (video.ts): a small dialog over the page — shape, backdrop, a bar while the
 // frames are drawn, then the file. On a phone it sits at the bottom, like a sheet.
 .vidmaker {
-  width: min(540px, calc(100vw - 24px));
+  width: min(620px, calc(100vw - 24px));
   padding: 22px;
   border: 1px solid var(--border-strong);
   border-radius: 20px;
@@ -2792,18 +2792,19 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     }
   }
 
-  // one row of options; each is a swatch, a name and a line of plain English
+  // one row of options, each the same width: a swatch, a name and a line of plain English
   &__row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    display: flex;
     gap: 8px;
 
     button {
+      flex: 1 1 0;
+      min-width: 0;
       display: grid;
       grid-template-columns: auto 1fr;
       align-items: center;
-      gap: 2px 10px;
-      padding: 10px 12px;
+      gap: 2px 9px;
+      padding: 9px 11px;
       border: 1px solid var(--border-strong);
       border-radius: 13px;
       background: transparent;
@@ -2908,6 +2909,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   &__actions {
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end; // the action sits on the right, like a card's own button
     gap: 10px;
   }
 

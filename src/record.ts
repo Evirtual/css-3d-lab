@@ -18,11 +18,15 @@ import { ArrayBufferTarget as WebmTarget, Muxer as WebmMuxer } from 'webm-muxer'
 
 export type Ratio = '9:16' | '16:9';
 export type Backdrop = 'stage' | 'dark' | 'light' | 'transparent';
+/** The video's short side: 480p is small and quick, 4K is for a big screen. */
+export type Quality = 480 | 720 | 1080 | 2160;
+export type ImageFormat = 'png' | 'jpeg';
 
 export interface RecordOptions {
   stage: HTMLElement;
   ratio: Ratio;
   backdrop: Backdrop;
+  quality?: Quality;
   /** 0 → 1 while the frames are drawn and encoded. */
   onProgress?: (done: number) => void;
   signal?: AbortSignal;
@@ -36,11 +40,14 @@ export interface Recording {
   seconds: number;
 }
 
-const SIZES: Record<Ratio, { width: number; height: number }> = {
-  '9:16': { width: 1080, height: 1920 },
-  '16:9': { width: 1920, height: 1080 },
+/** The frame, from the shape and the quality: the short side is the quality, and it stays even. */
+const frameSize = (ratio: Ratio, quality: Quality): { width: number; height: number } => {
+  const long = Math.round((quality * 16) / 9 / 2) * 2;
+  return ratio === '9:16' ? { width: quality, height: long } : { width: long, height: quality };
 };
 const FPS = 30;
+/** Room around the model, so it never touches the edge of the picture. */
+const FILL = 0.82;
 const MAX_SECONDS = 12; // long enough for the slow turns; a whole loop, so the video joins up
 
 /** Is there any way to encode a video in this browser? */
@@ -56,12 +63,58 @@ function sourceOf(stage: HTMLElement): { node: HTMLElement; doc: Document } {
   return inner ? { node: inner, doc: frame!.contentDocument! } : { node: stage, doc: document };
 }
 
-/** The page's own CSS, minus anything that points at another file (see the note above). */
-function styleSheetText(doc: Document = document): string {
+/**
+ * The page's own CSS, minus rules that fetch another file. A picture drawn from such a rule would
+ * make the canvas unreadable, so those rules go — but a data: URI is the file itself, written into
+ * the rule, so those stay (icons and little masks are drawn that way).
+ */
+const fetchesAFile = (cssText: string): boolean => /url\(\s*['"]?(?!data:)/i.test(cssText);
+
+/** Does this selector pick out anything inside the model? (a selector we cannot test is kept) */
+function touches(selector: string, root: HTMLElement): boolean {
+  const plain = selector.replace(/::[\w-]+(\([^)]*\))?/g, '').replace(/:(hover|focus|focus-visible|focus-within|active|checked|target)\b/g, '');
+  if (/(^|,)\s*(:root|html|body)\b/.test(plain)) return true; // the theme's variables live there
+  for (const part of plain.split(',')) {
+    const one = part.trim();
+    if (!one) continue;
+    try {
+      if (root.matches(one) || root.querySelector(one)) return true;
+    } catch {
+      return true; // a selector this browser cannot test: keep it rather than lose a style
+    }
+  }
+  return false;
+}
+
+/**
+ * The style rules this model actually uses. The whole site stylesheet is over half a megabyte, and
+ * carrying all of it into the picture is both slow and, past a certain size, silently cut short —
+ * which is how a model ends up drawn with none of its own styles.
+ */
+function styleSheetText(doc: Document = document, root?: HTMLElement): string {
   const rules: string[] = [];
+  const walk = (list: CSSRuleList): void => {
+    for (const rule of list) {
+      if (fetchesAFile(rule.cssText)) continue;
+      if (rule instanceof CSSStyleRule) {
+        if (!root || touches(rule.selectorText, root)) rules.push(rule.cssText);
+      } else if (rule instanceof CSSGroupingRule) {
+        // @media / @supports / @layer: keep the wrapper, but only the rules inside that are used
+        const inner: string[] = [];
+        for (const child of rule.cssRules) {
+          if (fetchesAFile(child.cssText)) continue;
+          if (child instanceof CSSStyleRule && root && !touches(child.selectorText, root)) continue;
+          inner.push(child.cssText);
+        }
+        if (inner.length) rules.push(`${rule.cssText.slice(0, rule.cssText.indexOf('{') + 1)}\n${inner.join('\n')}\n}`);
+      } else {
+        rules.push(rule.cssText); // @keyframes, @font-face, @property and friends
+      }
+    }
+  };
   for (const sheet of doc.styleSheets) {
     try {
-      for (const rule of sheet.cssRules) if (!rule.cssText.includes('url(')) rules.push(rule.cssText);
+      walk(sheet.cssRules);
     } catch {
       /* a stylesheet from another origin: nothing of ours in it */
     }
@@ -76,19 +129,154 @@ interface Crop {
   height: number;
 }
 
+const kebab = (property: string): string => property.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+
+/**
+ * A copy of a running model would start its animations again from the beginning, and a picture
+ * shows no motion at all — so every frame would be the model's first pose (a half-twisted cube).
+ * This writes the pose the model is in right now into the copy: for each element, the properties
+ * its animations touch, taken from the live one and pinned as plain styles, with the animation
+ * switched off so it cannot overrule them. Animated ::before / ::after layers get the same
+ * treatment through a rule of their own, since they have no element to carry a style attribute.
+ */
+function freezePose(live: HTMLElement, copy: HTMLElement): string {
+  const liveNodes = [live, ...live.querySelectorAll<HTMLElement>('*')];
+  const copies = [copy, ...copy.querySelectorAll<HTMLElement>('*')];
+  const pseudoRules: string[] = [];
+  let marked = 0;
+
+  liveNodes.forEach((source, i) => {
+    const target = copies[i];
+    if (!target) return;
+    for (const animation of source.getAnimations()) {
+      const effect = animation.effect as KeyframeEffect | null;
+      if (!effect) continue;
+      const properties = new Set<string>();
+      for (const frame of effect.getKeyframes()) {
+        for (const key of Object.keys(frame)) {
+          if (key !== 'offset' && key !== 'composite' && key !== 'easing' && key !== 'computedOffset') properties.add(kebab(key));
+        }
+      }
+      const pseudo = effect.pseudoElement;
+      const computed = getComputedStyle(source, pseudo);
+      if (!pseudo) {
+        target.style.animation = 'none';
+        target.style.transition = 'none';
+        for (const property of properties) target.style.setProperty(property, computed.getPropertyValue(property));
+        continue;
+      }
+      const mark = target.dataset.pose ?? String(++marked);
+      target.dataset.pose = mark;
+      const declarations = [...properties].map((property) => `${property}:${computed.getPropertyValue(property)} !important`);
+      pseudoRules.push(`[data-pose="${mark}"]${pseudo}{animation:none !important;transition:none !important;${declarations.join(';')}}`);
+    }
+  });
+  (window as unknown as { __froze?: string }).__froze = `${liveNodes.length} nodes, ${marked} pseudo`;
+  return pseudoRules.join('\n');
+}
+
+/**
+ * How deep an element sits, in the flattened picture's terms: its own 3D transform chain applied
+ * to its centre, read as a single number. Used to put a model's faces in back-to-front order.
+ */
+function depthOf(element: HTMLElement, root: HTMLElement): number {
+  let matrix = new DOMMatrix();
+  const chain: HTMLElement[] = [];
+  for (let node: HTMLElement | null = element; node && node !== root.parentElement; node = node.parentElement) chain.unshift(node);
+  for (const node of chain) {
+    const style = getComputedStyle(node);
+    matrix = matrix.translate(node.offsetLeft, node.offsetTop);
+    if (style.transform !== 'none') {
+      const [ox, oy, oz = '0px'] = style.transformOrigin.split(' ');
+      matrix = matrix.translate(parseFloat(ox), parseFloat(oy), parseFloat(oz));
+      matrix = matrix.multiply(new DOMMatrix(style.transform));
+      matrix = matrix.translate(-parseFloat(ox), -parseFloat(oy), -parseFloat(oz));
+    }
+  }
+  return matrix.transformPoint(new DOMPoint(element.offsetWidth / 2, element.offsetHeight / 2, 0)).z;
+}
+
+/**
+ * On screen the browser sorts the pieces of a 3D scene by depth. A drawn picture does not: it
+ * paints them in the order they appear in the markup, so the front of a cube can land on top of
+ * the face you should be seeing. Inside every 3D group, the copy's children are therefore put in
+ * back-to-front order, which is the order the screen paints them in.
+ */
+function sortByDepth(live: HTMLElement, copy: HTMLElement, root: HTMLElement): void {
+  const liveNodes = [live, ...live.querySelectorAll<HTMLElement>('*')];
+  const copies = [copy, ...copy.querySelectorAll<HTMLElement>('*')];
+  liveNodes.forEach((source, i) => {
+    const target = copies[i];
+    if (!target || getComputedStyle(source).transformStyle !== 'preserve-3d') return;
+    const children = [...source.children].filter((child): child is HTMLElement => child instanceof HTMLElement);
+    if (children.length < 2) return;
+    const order = children
+      .map((child) => ({ child, depth: depthOf(child, root) }))
+      .sort((a, b) => a.depth - b.depth)
+      .map(({ child }) => children.indexOf(child));
+    const targetChildren = [...target.children];
+    for (const index of order) if (targetChildren[index]) target.append(targetChildren[index]);
+  });
+}
+
+/**
+ * Faces that point away are removed from the copy, which is what the screen does with
+ * backface-visibility. Which way a face points is read the way the screen reads it: mark three of
+ * its corners, see where they land, and if they run the other way round, it is showing its back.
+ */
+function hideBackFaces(live: HTMLElement, copy: HTMLElement): void {
+  const liveNodes = [live, ...live.querySelectorAll<HTMLElement>('*')];
+  const copies = [copy, ...copy.querySelectorAll<HTMLElement>('*')];
+  liveNodes.forEach((source, i) => {
+    const target = copies[i];
+    if (!target || !source.getClientRects().length) return;
+    const corners = [0, 1, 2].map((k) => {
+      const mark = document.createElement('i');
+      mark.style.cssText = `position:absolute!important;width:0!important;height:0!important;margin:0!important;transform:none!important;left:${k === 1 ? '100%' : '0'}!important;top:${k === 2 ? '100%' : '0'}!important`;
+      source.append(mark);
+      const box = mark.getBoundingClientRect();
+      mark.remove();
+      return box;
+    });
+    const turn = (corners[1].left - corners[0].left) * (corners[2].top - corners[0].top) - (corners[1].top - corners[0].top) * (corners[2].left - corners[0].left);
+    if (turn < 0) target.style.setProperty('visibility', 'hidden', 'important');
+  });
+}
+
 /**
  * One frame: the part of the stage the model fills, as an image. It is drawn at `zoom` times its
  * size on the page, so a small model still fills a 1080-wide video crisply (the whole trip is
  * vector: the browser rasterises the SVG at whatever size it is given).
  */
-async function frameImage(node: HTMLElement, css: string, crop: Crop, zoom: number): Promise<HTMLImageElement> {
+async function frameImage(node: HTMLElement, css: string, zoom: number): Promise<HTMLImageElement> {
   const box = node.getBoundingClientRect();
   const holder = document.createElement('div');
   holder.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
-  holder.style.cssText = `width:${box.width}px;height:${box.height}px;transform-origin:0 0;transform:scale(${zoom}) translate(${-crop.x}px, ${-crop.y}px)`;
-  holder.append(node.cloneNode(true));
+  // The whole stage, drawn `zoom` times bigger. It is cropped later, while painting: a 3D model
+  // reaches outside its own box, and a picture cut to that box would lose those parts.
+  holder.style.cssText = `width:${box.width}px;height:${box.height}px;transform-origin:0 0;transform:scale(${zoom})`;
+  const copy = node.cloneNode(true) as HTMLElement;
+  const posed = freezePose(node, copy);
+  hideBackFaces(node, copy);
+  sortByDepth(node, copy, node);
+  // The copy is on its own now: it needs the size it had on the page, and the scale the site keeps
+  // on the page root (--fit), or the model lays out small and in the corner.
+  copy.style.width = `${box.width}px`;
+  copy.style.height = `${box.height}px`;
+  copy.style.boxSizing = 'border-box';
+  // text inherits from the page, which is not coming with us: carry those few values over, or the
+  // labels come out in the browser's default serif
+  const inherited = getComputedStyle(node);
+  for (const property of ['font-family', 'font-size', 'font-weight', 'font-style', 'line-height', 'letter-spacing', 'color', 'text-align']) {
+    copy.style.setProperty(property, inherited.getPropertyValue(property));
+  }
+  holder.style.cssText += `;${document.documentElement.getAttribute('style') ?? ''}`;
+  // the stage's own backdrop goes: the picture paints the one the visitor asked for
+  copy.style.background = 'none';
+  copy.dataset.bare = '';
+  holder.append(copy);
   const xml = new XMLSerializer().serializeToString(holder);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(crop.width * zoom)}" height="${Math.round(crop.height * zoom)}"><defs><style type="text/css"><![CDATA[\n${css}\n]]></style></defs><foreignObject x="0" y="0" width="100%" height="100%">${xml}</foreignObject></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(box.width * zoom)}" height="${Math.round(box.height * zoom)}"><defs><style type="text/css"><![CDATA[\n${css}\n[data-bare]::before,[data-bare]::after{display:none !important}\n${posed}\n]]></style></defs><foreignObject x="0" y="0" width="100%" height="100%">${xml}</foreignObject></svg>`;
   const img = new Image();
   const drawn = new Promise<void>((ok, fail) => {
     img.onload = () => ok();
@@ -188,26 +376,38 @@ function backdropOf(stage: HTMLElement, backdrop: Backdrop): Paint | null {
  * One picture of the model as it stands: the same drawing as a video frame, cropped to the model
  * and big enough to use anywhere (its longest side is `size`). Fast, so it needs no dialog.
  */
-export async function captureImage(stage: HTMLElement, backdrop: Backdrop = 'stage', size = 1600): Promise<Blob> {
+export interface ImageOptions {
+  backdrop?: Backdrop;
+  format?: ImageFormat;
+  /** The picture's longest side in pixels. */
+  size?: number;
+}
+
+export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600 }: ImageOptions = {}): Promise<Blob> {
   const source = sourceOf(stage);
-  const css = styleSheetText(source.doc);
+  const css = styleSheetText(source.doc, source.node);
   // the pose on screen, not a moment of the loop: measure without moving anything
   const crop = drawnCrop(source.node, () => {}, 0);
-  const zoom = Math.min(4, Math.max(1, size / Math.max(crop.width, crop.height)));
-  const img = await frameImage(source.node, css, crop, zoom);
+  // the model fills most of the picture, with room around it
+  const zoom = Math.min(4, Math.max(1, (size * FILL) / Math.max(crop.width, crop.height)));
+  const img = await frameImage(source.node, css, zoom);
 
-  const paint = backdropOf(stage, backdrop);
+  // JPEG has no see-through pixels, so it always gets a backdrop
+  const paint = backdropOf(stage, format === 'jpeg' && backdrop === 'transparent' ? 'dark' : backdrop);
+  const shown = { width: crop.width * zoom, height: crop.height * zoom };
+  const width = Math.round(shown.width / FILL);
+  const height = Math.round(shown.height / FILL);
   const canvas = document.createElement('canvas');
-  canvas.width = img.width;
-  canvas.height = img.height;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d', { alpha: !paint })!;
   if (paint) {
     ctx.fillStyle = paint.color;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    paintDots(ctx, paint, canvas.width, canvas.height, zoom);
+    ctx.fillRect(0, 0, width, height);
+    paintDots(ctx, paint, width, height, zoom);
   }
-  ctx.drawImage(img, 0, 0);
-  const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/png'));
+  ctx.drawImage(img, crop.x * zoom, crop.y * zoom, shown.width, shown.height, (width - shown.width) / 2, (height - shown.height) / 2, shown.width, shown.height);
+  const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, `image/${format}`, format === 'jpeg' ? 0.92 : undefined));
   if (!blob) throw new Error('the picture could not be saved');
   return blob;
 }
@@ -231,9 +431,9 @@ function paintDots(ctx: CanvasRenderingContext2D, paint: Paint, width: number, h
  * Draws every frame of one loop and encodes them. The picture is fitted inside the chosen shape
  * with room around it, the same way the site frames a model.
  */
-export async function recordModel({ stage, ratio, backdrop, onProgress, signal }: RecordOptions): Promise<Recording> {
+export async function recordModel({ stage, ratio, backdrop, quality = 1080, onProgress, signal }: RecordOptions): Promise<Recording> {
   if (!canRecord()) throw new Error('this browser cannot make videos yet');
-  const { width, height } = SIZES[ratio];
+  const { width, height } = frameSize(ratio, quality);
   const transparent = backdrop === 'transparent';
   // H.264 in an MP4 plays everywhere, but it cannot be see-through: a transparent video is VP9
   // in a WebM instead (Chrome, Edge and Firefox play it; most editors take it).
@@ -247,7 +447,7 @@ export async function recordModel({ stage, ratio, backdrop, onProgress, signal }
   const ctx = canvas.getContext('2d', { alpha: transparent })!;
 
   const source = sourceOf(stage);
-  const css = styleSheetText(source.doc);
+  const css = styleSheetText(source.doc, source.node);
   const loop = loopLength(source.node);
   const seconds = loop ? Math.min(MAX_SECONDS, loop / 1000) : 4;
   const frames = Math.round(seconds * FPS);
@@ -258,7 +458,7 @@ export async function recordModel({ stage, ratio, backdrop, onProgress, signal }
   const wasPaused = new Set(source.node.getAnimations({ subtree: true }).filter((a) => a.playState === 'paused'));
   // enough resolution that the model fills the frame sharply, without asking the browser to
   // rasterise more than it needs
-  const zoom = Math.min(4, Math.max(1, Math.min((width * 0.82) / crop.width, (height * 0.82) / crop.height)));
+  const zoom = Math.min(4, Math.max(1, Math.min((width * FILL) / crop.width, (height * FILL) / crop.height)));
 
   const target = transparent ? new WebmTarget() : new Mp4Target();
   const muxer = transparent
@@ -277,7 +477,7 @@ export async function recordModel({ stage, ratio, backdrop, onProgress, signal }
       if (signal?.aborted) throw new DOMException('cancelled', 'AbortError');
       if (!source.node.isConnected) throw new Error('the model was closed while the video was being made');
       seek(source.node, (f * 1000) / FPS, starts);
-      const img = await frameImage(source.node, css, crop, zoom);
+      const img = await frameImage(source.node, css, zoom);
 
       ctx.clearRect(0, 0, width, height);
       if (paint) {
@@ -285,11 +485,12 @@ export async function recordModel({ stage, ratio, backdrop, onProgress, signal }
         ctx.fillRect(0, 0, width, height);
         paintDots(ctx, paint, width, height, zoom); // the same grid the stage shows
       }
-      // the model, as large as fits with a margin, centred
-      const scale = Math.min((width * 0.82) / img.width, (height * 0.82) / img.height);
-      const w = img.width * scale;
-      const h = img.height * scale;
-      ctx.drawImage(img, (width - w) / 2, (height - h) / 2, w, h);
+      // the model, cropped to what it draws, as large as fits with a margin, centred
+      const shown = { width: crop.width * zoom, height: crop.height * zoom };
+      const scale = Math.min((width * FILL) / shown.width, (height * FILL) / shown.height);
+      const w = shown.width * scale;
+      const h = shown.height * scale;
+      ctx.drawImage(img, crop.x * zoom, crop.y * zoom, shown.width, shown.height, (width - w) / 2, (height - h) / 2, w, h);
 
       const frame = new VideoFrame(canvas, { timestamp: Math.round((f * 1e6) / FPS), duration: Math.round(1e6 / FPS) });
       encoder.encode(frame, { keyFrame: f % (FPS * 2) === 0 });
