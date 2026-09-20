@@ -2843,15 +2843,26 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     gap: 8px;
   }
 
+  // The frame lives in a square that never changes size, so picking a tall or a wide file
+  // reshapes the frame inside it — smoothly — and the dialog itself stays put.
+  &__box {
+    display: grid;
+    place-items: center;
+    width: min(100%, 44vh);
+    aspect-ratio: 1;
+  }
+
   // The frame is not a picture of the model, it is the model: the stage itself is moved in here
   // while the dialog is open. What the frame adds is the file's shape, its backdrop and its
   // margin — so this is the model, framed the way it will be saved.
   &__frame {
     position: relative;
     overflow: hidden;
-    width: min(100%, calc(var(--aspect, 1) * 44vh));
-    max-height: 44vh;
-    aspect-ratio: var(--aspect, 1);
+    width: calc(100% * min(1, var(--aspect, 1)));
+    height: calc(100% * min(1, 1 / var(--aspect, 1)));
+    transition:
+      width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
     border: 1px solid var(--border);
     border-radius: 14px;
     // a checkerboard, for a file that is to have no backdrop: the stage paints everything else
@@ -2862,7 +2873,13 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       box-shadow: 0 10px 34px rgb(0 0 0 / 0.45);
     }
 
-    // once a file has been made it takes the frame's place: this is the file itself
+    // once a file has been made it takes the frame's place: this is the file itself, and the
+    // model and its switches step out of reach — there is nothing left to set
+    &[data-shows='file'] .maker__live {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
     video,
     img {
       position: absolute;
@@ -2881,9 +2898,17 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     // bottom left, which is the one corner the stage's own switches never take.
     &[data-busy='chip'] .maker__busy {
       inset: auto auto 12px 12px;
-      justify-items: start;
-      padding: 0;
-      background: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgb(8 10 20 / 0.86);
+
+      b {
+        padding: 0;
+        background: none;
+      }
     }
   }
 
@@ -2967,6 +2992,13 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   &__ring {
     width: 18px;
     height: 18px;
+    flex: none;
+
+    .btn > & {
+      width: 14px;
+      height: 14px;
+      border-width: 2px;
+    }
     border: 2px solid rgb(255 255 255 / 0.22);
     border-top-color: var(--accent-2);
     border-radius: 50%;
@@ -2985,6 +3017,13 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     display: grid;
     align-content: start;
     gap: 16px;
+    transition: opacity 0.2s;
+
+    // a file is showing, or being made: the settings belong to the model, not to it
+    &[data-locked] {
+      opacity: 0.45;
+      pointer-events: none;
+    }
   }
 
   &__set {
@@ -3089,6 +3128,12 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       line-height: 1.35;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    // an option that cannot be had here stays in view, so that its absence is explained
+    &[data-off] {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
     &:hover:not([aria-checked='true']):not(:disabled) {
@@ -3212,24 +3257,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     background: var(--surface-solid);
   }
 
-  &__bar {
-    grid-column: 1 / -1;
-    overflow: hidden;
-    height: 6px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--border-strong) 60%, transparent);
-
-    i {
-      display: block;
-      height: 100%;
-      transform: scaleX(0);
-      transform-origin: left;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--accent), var(--hot));
-      transition: transform 0.15s linear;
-    }
-  }
-
   &__note {
     margin: 0;
     color: var(--muted);
@@ -3277,10 +3304,11 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       position: static;
     }
 
-    &__frame {
-      min-height: 190px;
-      max-height: 32vh;
+    &__box {
+      width: min(100%, 32vh);
+    }
 
+    &__frame {
       canvas,
       video,
       img {

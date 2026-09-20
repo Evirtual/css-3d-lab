@@ -13,7 +13,7 @@ $ease: cubic-bezier(0.25, 1, 0.5, 1);
   grid-template-rows: minmax(0, 1fr) auto;
   width: 100%;
   height: 100%;
-  padding: 10px 14px 14px;
+  padding: 34px 14px 14px; // room above the column headings for a card's corner badge
   // the diagram is turned away, behind the plane of the flat boxes around it: they must not catch
   // the pointer, only the ribbons and the dock do
   pointer-events: none;

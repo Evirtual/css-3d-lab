@@ -53,6 +53,8 @@ interface Choice<T> {
   value: T;
   label: string;
   hint: string;
+  /** Shown but not to be picked: what it names cannot be had here. */
+  off?: boolean;
 }
 
 const A4 = 297 / 210;
@@ -337,7 +339,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       <div class="maker__opts${items.length === 2 ? ' maker__opts--seg' : ''}" role="radiogroup" aria-label="${label}" style="--cols:${columnsFor(items.length)}">
         ${items
           .map(
-            (item) => `<button type="button" role="radio" class="maker__opt" data-pick="${name}" data-value="${item.value}" aria-checked="${item.value === pick}">
+            (item) => `<button type="button" role="radio" class="maker__opt" data-pick="${name}" data-value="${item.value}" aria-checked="${item.value === pick}"${item.off ? ' data-off disabled' : ''}>
               ${swatch ? swatch(item) : ''}
               <span class="maker__optText"><b>${item.label}</b><small>${item.hint}</small></span>
             </button>`,
@@ -358,14 +360,17 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
   const settingsFor = (which: Kind): string => {
     if (which === 'video') {
+      // a model that does not move on its own has no loop to film: only live filming is left
+      const still = stage ? motionSeconds(stage) === 0 : false;
+      if (still) chosen().motion = 'live';
       return (
-        group('motion', 'What to film', MOTIONS, chosen().motion) +
+        group('motion', 'What to film', still ? [{ ...MOTIONS[0], hint: 'nothing moves on its own', off: true }, MOTIONS[1]] : MOTIONS, chosen().motion) +
         group('ratio', 'Shape', VIDEO_SHAPES, chosen().ratio, (item) => shapeSwatch(ASPECT_OF[item.value])) +
         group('quality', 'Quality', QUALITIES, chosen().quality) +
         group(
           'movie',
           'File',
-          clearFilms ? MOVIES : [MOVIES[0], { ...MOVIES[1], hint: 'no browser can yet' }],
+          clearFilms ? MOVIES : [MOVIES[0], { ...MOVIES[1], hint: 'no browser can yet', off: true }],
           clearFilms ? chosen().movie : 'mp4',
         ) +
         zoomSlider()
@@ -430,34 +435,35 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     frame.dataset.busy = how;
     const label = el<HTMLElement>('[data-busy-text]');
     if (label) label.textContent = text;
-    const bar = el<HTMLElement>('[data-bar] i');
-    if (bar) bar.style.transform = `scaleX(${done})`;
+    void done;
   };
 
   /* ---------- the foot ---------- */
   const paint = (): void => {
     if (!dialog?.open) return;
     const mine = job();
-    const bar = el<HTMLElement>('[data-bar]')!;
     const actions = el<HTMLElement>('[data-actions]')!;
-    bar.hidden = !busy;
-    for (const chip of dialog.querySelectorAll<HTMLButtonElement>('[data-pick]')) chip.disabled = busy;
+    // the settings are for the model in the frame: while a file is being made, or is showing in
+    // the frame's place, changing them would change nothing that can be seen — so they wait
+    const locked = busy || Boolean(mine.blob && mine.url);
+    for (const chip of dialog.querySelectorAll<HTMLButtonElement>('[data-pick]')) chip.disabled = locked || chip.hasAttribute('data-off');
     const slider = el<HTMLInputElement>('[data-zoom]');
-    if (slider) slider.disabled = busy;
+    if (slider) slider.disabled = locked;
+    el<HTMLElement>('[data-settings]')?.toggleAttribute('data-locked', locked);
 
     if (busy) {
       const live = kind === 'video' && chosen().motion === 'live';
       actions.innerHTML = live
-        ? `<button type="button" class="btn btn--accent" data-stop>${icon('pause')} Stop and keep it</button>`
-        : `<button type="button" class="btn" data-stop>Cancel</button>`;
-      note(live ? 'Recording. Hover, drag and click the model in the frame — all of it is going in.' : 'Drawing it, frame by frame. This takes a few seconds.');
+        ? `<button type="button" class="btn btn--accent" data-stop><span class="maker__ring"></span> Stop and keep it</button>`
+        : `<button type="button" class="btn" data-stop><span class="maker__ring"></span> Cancel</button>`;
+      note(live ? 'Recording — hover, drag and click the model; it all goes in.' : 'Drawing every frame…');
       return;
     }
 
     if (mine.blob && mine.url) {
       actions.innerHTML = `<button type="button" class="btn" data-again>Back to the model</button>
         <button type="button" class="btn btn--accent" data-save>${icon('download')} Save <small>${(mine.blob.size / 1e6).toFixed(1)} MB</small></button>`;
-      note(`${mine.detail ?? ''} ${mine.kind === 'video' ? 'This is the file itself, playing here.' : 'This is the file itself.'}`);
+      note(`${mine.detail ?? ''} This is the file.`);
       return;
     }
 
@@ -470,13 +476,13 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     if (kind === 'video') {
       note(
         chosen().motion === 'live'
-          ? `Play with the model in the frame — hover it, drag it, click it — and it is filmed as you go, up to ${MAX_SECONDS} seconds.`
-          : 'The model turns once and every frame of that turn is drawn. Set the pose you want first: the film starts from it.',
+          ? `Play with the model; it is filmed as you go, up to ${MAX_SECONDS}s.`
+          : 'One full turn, every frame drawn, starting from this pose.',
       );
     } else if (kind === 'image') {
-      note('The model in the frame is the real one: hover it, drag it, pause it. For a pose that only happens while the pointer is on it, use "Take in 3s" and hold it there.');
+      note('Hover, drag or pause the model, then take it. "Take in 3s" gives you time to hold a hover.');
     } else {
-      note('The sheet is this frame, exactly as it stands, edge to edge. For a pose that needs the pointer on the model, use "Take in 3s".');
+      note('Prints this frame edge to edge. "Take in 3s" gives you time to hold a hover.');
     }
   };
 
@@ -548,17 +554,15 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       </div>
       <div class="maker__body">
         <div class="maker__show">
-          <div class="maker__frame" data-frame data-shape="screen" style="--aspect:1" aria-label="${title}, in the frame it will be saved in">
+          <div class="maker__box"><div class="maker__frame" data-frame data-shape="screen" style="--aspect:1" aria-label="${title}, in the frame it will be saved in">
             <div class="maker__live" data-live></div>
             <div class="maker__busy"><span class="maker__ring"></span><b data-busy-text>Working…</b></div>
-
-          </div>
+          </div></div>
           <p class="maker__caption" data-caption></p>
         </div>
         <div class="maker__settings" data-settings></div>
       </div>
       <div class="maker__foot">
-        <div class="maker__bar" data-bar hidden><i></i></div>
         <p class="maker__note" data-note hidden></p>
         <div class="maker__actions" data-actions></div>
       </div>`;

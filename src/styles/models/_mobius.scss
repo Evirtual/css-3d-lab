@@ -8,9 +8,10 @@ $n: 30;
 $R: 64px; // ring radius, to the middle of the band
 $h: 34px; // width of the band — wide against the radius, so the twist is easy to read
 $step: math.div(360deg, $n);
-// The arc one segment has to cover is 2πR/n; the segment is longer so neighbours overlap and the
-// twist between them cannot open a wedge-shaped gap.
-$w: math.div(2 * math.$pi * $R, $n) + 2px;
+// The arc one segment has to cover is 2πR/n; the segment is a touch longer so neighbours overlap
+// and the twist between them cannot open a wedge-shaped gap. Only a touch: where two see-through
+// segments overlap the doubled colour shows as a dark stitch, and a wide overlap reads as a glitch.
+$w: math.div(2 * math.$pi * $R, $n) + 1px;
 
 .d-mobius {
   position: relative;
@@ -51,7 +52,9 @@ $w: math.div(2 * math.$pi * $R, $n) + 2px;
         linear-gradient(var(--e), var(--e)) bottom / 100% 1.2px no-repeat,
         // the specular: a narrow white band that only shows on segments facing the light
         linear-gradient(to bottom, rgb(255 255 255 / #{math.pow($lam, 6) * 0.55}), transparent 62%),
-        color-mix(in srgb, var(--c) #{24% + 46% * $lam}, transparent);
+        // solid enough that the far side does not show through the near side: with both
+        // showing, thirty overlapping quads read as a jumble instead of one band
+        color-mix(in srgb, var(--c) #{62% + 34% * $lam}, transparent);
       box-shadow: inset 0 0 18px color-mix(in srgb, var(--c) #{14% + 28% * $lam}, transparent);
     }
   }

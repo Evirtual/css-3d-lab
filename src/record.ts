@@ -1,5 +1,6 @@
 import { ArrayBufferTarget as Mp4Target, Muxer as Mp4Muxer } from 'mp4-muxer';
 import { ArrayBufferTarget as WebmTarget, Muxer as WebmMuxer } from 'webm-muxer';
+import { canRender3D, scene3D, type Scene3D } from './render3d';
 
 /**
  * Makes the video here, in the visitor's browser, from the model on the stage — including their
@@ -64,7 +65,6 @@ const FPS = 30;
  * How much of the frame the model fills: two thirds, the same as a card and the large stage, so a
  * saved picture, a video and a print all look like the model does on the site.
  */
-const FILL = 2 / 3;
 /** How long any video may be. A whole loop below this joins up; anything longer is cut here. */
 export const MAX_SECONDS = 30;
 
@@ -339,12 +339,49 @@ function sinkPseudos(live: HTMLElement, copy: HTMLElement): string {
   return rules.join('\n');
 }
 
+/** The GPU scenes in use, one per model being drawn, closed with the model's stand-in. */
+const scenes = new WeakMap<HTMLElement, Scene3D>();
+
+/** The states a single element is in, written onto its copy as marks; the string names them. */
+function markOne(live: HTMLElement, copy: HTMLElement): string {
+  let state = '';
+  for (const one of STATES) {
+    try {
+      if (live.matches(one.pseudo)) {
+        copy.setAttribute(one.mark, '');
+        state += one.mark;
+      }
+    } catch {
+      /* a state this browser cannot test */
+    }
+  }
+  return state;
+}
+
+/**
+ * One frame of the model, `zoom` times its size on the page. On the GPU when there is one: every
+ * face drawn flat and placed in 3D with a depth buffer, which is how the screen does it (see
+ * render3d.ts). Otherwise the whole model is drawn into one SVG, which is right for flat things
+ * and for most 3D, and fixed up as far as it can be for the rest.
+ */
+async function frameImage(node: HTMLElement, css: string, zoom: number): Promise<CanvasImageSource> {
+  if (canRender3D()) {
+    let scene = scenes.get(node);
+    if (!scene) {
+      scene = scene3D(node, css, Math.max(1, zoom), markOne);
+      scenes.set(node, scene);
+    }
+    return scene.draw(zoom);
+  }
+  return frameImageSvg(node, css, zoom);
+}
+
 /**
  * One frame: the part of the stage the model fills, as an image. It is drawn at `zoom` times its
  * size on the page, so a small model still fills a 1080-wide video crisply (the whole trip is
  * vector: the browser rasterises the SVG at whatever size it is given).
  */
-async function frameImage(node: HTMLElement, css: string, zoom: number): Promise<HTMLImageElement> {
+async function frameImageSvg(node: HTMLElement, css: string, zoom: number): Promise<HTMLImageElement> {
   const box = naturalBox(node);
   const holder = document.createElement('div');
   holder.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
@@ -367,6 +404,7 @@ async function frameImage(node: HTMLElement, css: string, zoom: number): Promise
     copy.style.setProperty(property, inherited.getPropertyValue(property));
   }
   holder.style.cssText += `;${document.documentElement.getAttribute('style') ?? ''}`;
+  holder.className = node.parentElement?.className ?? ''; // the panel's state (a held hover) comes along
   // the stage's own backdrop goes: the picture paints the one the visitor asked for
   copy.style.background = 'none';
   copy.dataset.bare = '';
@@ -418,100 +456,7 @@ function scaleOf(node: HTMLElement): number {
   return own > 0 && box.width > 0 ? box.width / own : 1;
 }
 
-const isPaint = (value: string): boolean => Boolean(value) && value !== 'none' && !/rgba\(0, 0, 0, 0\)|transparent/.test(value);
-
-/**
- * What the model actually draws, in stage pixels: its 3D shape, not its layout box. Measured over
- * a few moments of the loop and kept at its widest, so a turning model is never clipped.
- */
-function drawnCrop(node: HTMLElement, seekTo: (t: number) => void, seconds: number): Crop {
-  const box = node.getBoundingClientRect();
-  const scale = scaleOf(node);
-  let l = Infinity;
-  let t = Infinity;
-  let r = -Infinity;
-  let b = -Infinity;
-  for (let step = 0; step < 12; step++) {
-    seekTo((step * seconds * 1000) / 12);
-    for (const el of node.querySelectorAll<HTMLElement>('*')) {
-      if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
-      const cs = getComputedStyle(el);
-      const paints =
-        isPaint(cs.backgroundImage) ||
-        isPaint(cs.boxShadow) ||
-        isPaint(cs.backgroundColor) ||
-        parseFloat(cs.borderTopWidth) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth) + parseFloat(cs.borderBottomWidth) > 0 ||
-        [].some.call(el.childNodes, (n: Node) => n.nodeType === 3 && n.textContent?.trim());
-      if (!paints) continue;
-      const rect = el.getBoundingClientRect();
-      if (!rect.width || !rect.height) continue;
-      l = Math.min(l, rect.left);
-      t = Math.min(t, rect.top);
-      r = Math.max(r, rect.right);
-      b = Math.max(b, rect.bottom);
-    }
-  }
-  // in the model's own pixels, whatever size it happens to be drawn at on screen
-  const width = box.width / scale;
-  const height = box.height / scale;
-  if (l >= r || t >= b) return { x: 0, y: 0, width, height }; // nothing measurable: the whole stage
-  const pad = 10;
-  const x = Math.max(0, (l - box.left) / scale - pad);
-  const y = Math.max(0, (t - box.top) / scale - pad);
-  return { x, y, width: Math.min(width - x, (r - l) / scale + pad * 2), height: Math.min(height - y, (b - t) / scale + pad * 2) };
-}
-
-/**
- * Where the model actually leaves ink, in its own pixels.
- *
- * The measurement above counts anything that could paint — an empty glass pane, a box that exists
- * only to cast a shadow, a gradient that fades to nothing halfway — so a model can end up framed
- * around space it does not fill, which is why it looks small and off to one side. This draws it
- * small with nothing behind it and reads the pixels back: what is left is the model as a person
- * sees it. Several moments of a turn are drawn, so a model that swings around is never clipped.
- */
-async function inkCrop(node: HTMLElement, css: string, seekTo: (t: number) => void, seconds: number, rough: Crop): Promise<Crop> {
-  const natural = naturalBox(node);
-  const zoom = Math.min(1, 320 / Math.max(rough.width, rough.height, 1));
-  const width = Math.max(1, Math.round(natural.width * zoom));
-  const height = Math.max(1, Math.round(natural.height * zoom));
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d', { alpha: true })!;
-  let left = Infinity;
-  let top = Infinity;
-  let right = -Infinity;
-  let bottom = -Infinity;
-  const moments = seconds > 0 ? 6 : 1;
-  for (let step = 0; step < moments; step++) {
-    seekTo((step * seconds * 1000) / moments);
-    const img = await frameImage(node, css, zoom);
-    ctx.clearRect(0, 0, width, height);
-    ctx.drawImage(img, 0, 0);
-    const pixels = ctx.getImageData(0, 0, width, height).data;
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        // 5 of 255 is below anything a person can see, so only real emptiness is trimmed away
-        if (pixels[(y * width + x) * 4 + 3] <= 5) continue;
-        if (x < left) left = x;
-        if (x > right) right = x;
-        if (y < top) top = y;
-        if (y > bottom) bottom = y;
-      }
-    }
-  }
-  if (left > right || top > bottom) return rough; // nothing drawn at all: keep the rough guess
-  const pad = 2;
-  const x = Math.max(0, left / zoom - pad);
-  const y = Math.max(0, top / zoom - pad);
-  return {
-    x,
-    y,
-    width: Math.min(natural.width - x, (right - left + 1) / zoom + pad * 2),
-    height: Math.min(natural.height - y, (bottom - top + 1) / zoom + pad * 2),
-  };
-}
+const isPaint = (value: string): boolean => Boolean(value) && value !== 'none' && value !== 'transparent' && value !== 'rgba(0, 0, 0, 0)'; // a gradient with a transparent stop still paints
 
 interface Stand {
   node: HTMLElement;
@@ -534,6 +479,9 @@ function understudy(stage: HTMLElement): Stand {
   // out of sight but fully laid out; a transform (not a left offset) so that anything inside with
   // position: fixed stays inside the copy rather than landing on the page
   host.style.cssText = `position:fixed;top:0;left:0;z-index:-1;width:${box.width}px;height:${box.height}px;transform:translateX(-20000px);pointer-events:none`;
+  // "Hold hover" keeps a model in its hover look by a class on the panel around the stage
+  // (hold-hover.ts); the copy's panel carries it too, or an open box comes out shut
+  if (stage.closest('.stage-wrap')?.classList.contains('is-held')) host.classList.add('is-held');
   const copy = source.node.cloneNode(true) as HTMLElement;
   copy.style.width = `${box.width}px`;
   copy.style.height = `${box.height}px`;
@@ -550,26 +498,15 @@ function understudy(stage: HTMLElement): Stand {
     if (from && from.currentTime !== null) animation.currentTime = from.currentTime;
     animation.pause();
   });
-  return { node: copy, doc: source.doc, close: () => host.remove() };
-}
-
-/**
- * Where the model puts ink over one whole turn, measured from the pixels. It is one box for the
- * whole loop on purpose: a box that followed the model from moment to moment would have the frame
- * resizing around it the entire time. The model is put back exactly where it was found.
- */
-export async function inkBoxOf(stage: HTMLElement): Promise<Crop> {
-  const stand = understudy(stage);
-  try {
-    const css = styleSheetText(stand.doc, stand.node);
-    const seconds = motionSeconds(stage);
-    const starts = new WeakMap<Animation, number>();
-    const step = (t: number): void => seek(stand.node, t, starts);
-    const rough = drawnCrop(stand.node, step, seconds);
-    return await inkCrop(stand.node, css, step, seconds, rough);
-  } finally {
-    stand.close();
-  }
+  return {
+    node: copy,
+    doc: source.doc,
+    close: () => {
+      scenes.get(copy)?.close();
+      scenes.delete(copy);
+      host.remove();
+    },
+  };
 }
 
 export interface Paint {
@@ -604,9 +541,6 @@ function paintable(color: string): boolean {
 
 /** What the stage itself shows behind the model: its colour and, when it has them, its dots. */
 export const stageLook = (stage: HTMLElement): Paint | null => backdropOf(stage, 'stage');
-
-/** What the model draws right now, in stage pixels, measured from the stage's top-left corner. */
-export const drawnBoxOf = (stage: HTMLElement): { x: number; y: number; width: number; height: number } => drawnCrop(sourceOf(stage).node, () => {}, 0);
 
 /** The backdrop to paint behind the model: what the stage itself shows, unless asked otherwise. */
 function backdropOf(stage: HTMLElement, backdrop: Backdrop): Paint | null {
@@ -662,23 +596,6 @@ export function frameFor(crop: { width: number; height: number }, size: number, 
   return shape >= 1 ? { width: even(size), height: even(size / shape) } : { width: even(size * shape), height: even(size) };
 }
 
-/** The frame in pixels: the chosen shape at this size, or one cut to the model with room around it. */
-function frameOf(crop: Crop, size: number, fill: number, aspect: number | null): { width: number; height: number } {
-  if (!(crop.width > 0) || !(crop.height > 0)) throw new Error('this model is not on screen, so there is nothing to draw');
-  if (!aspect) {
-    const k = (size * fill) / Math.max(crop.width, crop.height);
-    return { width: Math.max(2, Math.round((crop.width * k) / fill)), height: Math.max(2, Math.round((crop.height * k) / fill)) };
-  }
-  return {
-    width: Math.max(2, aspect >= 1 ? size : Math.round(size * aspect)),
-    height: Math.max(2, aspect >= 1 ? Math.round(size / aspect) : size),
-  };
-}
-
-/** How much bigger than the page the model is drawn, so it stays sharp at the frame's size. */
-const zoomFor = (crop: Crop, frame: { width: number; height: number }, fill: number): number =>
-  Math.min(4, Math.max(1, Math.min((frame.width * fill) / crop.width, (frame.height * fill) / crop.height)));
-
 /** One frame painted: the backdrop, then the model as large as `fill` allows, in the middle. */
 function paintFrame(
   ctx: CanvasRenderingContext2D,
@@ -705,27 +622,23 @@ function paintFrame(
 
 export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, look, saveAspect }: ImageOptions = {}): Promise<Blob> {
   const stand = understudy(stage);
-  let img: HTMLImageElement;
-  let crop: Crop;
-  let frame: { width: number; height: number };
-  let zoom: number;
-  try {
-    const css = styleSheetText(stand.doc, stand.node);
-    crop = wholeOf(stand.node);
-    frame = frameFor(crop, size, saveAspect);
-    zoom = Math.min(4, Math.max(1, frame.width / crop.width));
-    img = await frameImage(stand.node, css, zoom);
-  } finally {
-    stand.close();
-  }
-
   // JPEG has no see-through pixels, so it always gets a backdrop
   const paint = paintOf(stage, format === 'jpeg' && backdrop === 'transparent' ? 'dark' : backdrop, look);
   const canvas = document.createElement('canvas');
-  canvas.width = frame.width;
-  canvas.height = frame.height;
-  const ctx = canvas.getContext('2d', { alpha: !paint })!;
-  paintFrame(ctx, img, crop, zoom, frame, 1, paint);
+  try {
+    const css = styleSheetText(stand.doc, stand.node);
+    const crop = wholeOf(stand.node);
+    const frame = frameFor(crop, size, saveAspect);
+    const zoom = Math.min(4, Math.max(1, frame.width / crop.width));
+    const img = await frameImage(stand.node, css, zoom);
+    canvas.width = frame.width;
+    canvas.height = frame.height;
+    const ctx = canvas.getContext('2d', { alpha: !paint })!;
+    // painted before the stand-in goes: the frame lives on its GPU canvas, which goes with it
+    paintFrame(ctx, img, crop, zoom, frame, 1, paint);
+  } finally {
+    stand.close();
+  }
   const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, `image/${format}`, format === 'jpeg' ? 0.92 : undefined));
   if (!blob) throw new Error('the picture could not be saved');
   return blob;
@@ -735,52 +648,6 @@ export async function captureImage(stage: HTMLElement, { backdrop = 'stage', for
 export function motionSeconds(stage: HTMLElement): number {
   const loop = loopLength(sourceOf(stage).node);
   return loop ? Math.min(MAX_SECONDS, loop / 1000) : 0;
-}
-
-export interface LoopOptions extends ImageOptions {
-  /** How many pictures to take across one turn of the model. */
-  frames?: number;
-  onFrame?: (blob: Blob, done: number, total: number) => void;
-  signal?: AbortSignal;
-}
-
-/**
- * A handful of pictures spread over one turn, drawn exactly the way the video is drawn: that is
- * the moving preview, so what it shows really is the film. The stage is put back the way it was
- * found — same moment, same paused or playing state — when it is done.
- */
-export async function captureLoop(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 480, fill = FILL, aspect = null, look, frames: count = 12, onFrame, signal }: LoopOptions = {}): Promise<{ frames: Blob[]; seconds: number }> {
-  const stand = understudy(stage);
-  const source = stand;
-  const css = styleSheetText(stand.doc, stand.node);
-  const seconds = motionSeconds(stage);
-  const starts = new WeakMap<Animation, number>();
-  const rough = drawnCrop(source.node, (t) => seek(source.node, t, starts), seconds);
-  const crop = await inkCrop(source.node, css, (t) => seek(source.node, t, starts), seconds, rough);
-  const frame = frameOf(crop, size, fill, aspect);
-  const zoom = zoomFor(crop, frame, fill);
-  const paint = paintOf(stage, format === 'jpeg' && backdrop === 'transparent' ? 'dark' : backdrop, look);
-  const canvas = document.createElement('canvas');
-  canvas.width = frame.width;
-  canvas.height = frame.height;
-  const ctx = canvas.getContext('2d', { alpha: !paint })!;
-  const shots: Blob[] = [];
-  try {
-    for (let f = 0; f < count; f++) {
-      if (signal?.aborted) throw new DOMException('cancelled', 'AbortError');
-      if (!source.node.isConnected) throw new Error('the model was closed');
-      seek(source.node, (f * seconds * 1000) / count, starts);
-      const img = await frameImage(source.node, css, zoom);
-      paintFrame(ctx, img, crop, zoom, frame, fill, paint);
-      const shot = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, `image/${format}`, format === 'jpeg' ? 0.9 : undefined));
-      if (!shot) throw new Error('the preview could not be drawn');
-      shots.push(shot);
-      onFrame?.(shot, f + 1, count);
-    }
-  } finally {
-    stand.close();
-  }
-  return { frames: shots, seconds };
 }
 
 /** The backdrop for this capture: the one handed in, or the one the stage is showing. */
@@ -931,6 +798,8 @@ export async function recordLive({ stage, ratio, backdrop, look, lookNow, qualit
     };
   } finally {
     if (video.encoder.state !== 'closed') video.encoder.close();
+    scenes.get(source.node)?.close();
+    scenes.delete(source.node);
   }
 }
 

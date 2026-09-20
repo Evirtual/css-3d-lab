@@ -46,6 +46,9 @@ $beads-3: radial-gradient(circle 5px at 35% 30%, #fff8 0 55%, #0000 100%),
     position: relative;
     width: $pane-w;
     height: $pane-h;
+    // the window with its frame is nearly the size of a card's stage: drawn a little smaller, so
+    // it sits in the stage with air around it instead of filling it edge to edge
+    zoom: 0.78;
     transform-style: preserve-3d;
     animation: d-rain-turn 15s ease-in-out infinite alternate;
   }
