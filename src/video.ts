@@ -40,6 +40,13 @@ type Kind = 'video' | 'image' | 'print';
 type Paper = PrintSetup['paper'];
 /** Where a video comes from: the model's own loop, or the screen as it happens. */
 type Motion = 'loop' | 'live';
+/** A film's file: an MP4 as it stands, or a WebM with the backdrop left out. */
+type Movie = 'mp4' | 'webm-clear';
+const MOVIES: Choice<Movie>[] = [
+  { value: 'mp4', label: 'MP4', hint: 'plays anywhere' },
+  { value: 'webm-clear', label: 'WebM clear', hint: 'no backdrop' },
+];
+
 /** What goes on paper: the model's own code (sharp at any size) or the view you made. */
 type Ink = 'code' | 'snapshot';
 
@@ -81,8 +88,11 @@ const SIZES: Choice<number>[] = [
   { value: 1600, label: 'Medium', hint: '1600 px' },
   { value: 3200, label: 'Large', hint: '3200 px' },
 ];
-const FORMATS: Choice<ImageFormat>[] = [
-  { value: 'png', label: 'PNG', hint: 'sharp, see-through' },
+/** A picture's file: PNG as it stands, PNG with the backdrop left out, or a smaller JPEG. */
+type Picture = 'png' | 'png-clear' | 'jpeg';
+const PICTURES: Choice<Picture>[] = [
+  { value: 'png', label: 'PNG', hint: 'sharp, as shown' },
+  { value: 'png-clear', label: 'PNG clear', hint: 'no backdrop' },
   { value: 'jpeg', label: 'JPEG', hint: 'smaller, no alpha' },
 ];
 const PAPERS: Choice<Paper>[] = [
@@ -92,10 +102,6 @@ const PAPERS: Choice<Paper>[] = [
 const INKS: Choice<Ink>[] = [
   { value: 'code', label: 'The model', hint: 'sharp at any size' },
   { value: 'snapshot', label: 'This view', hint: 'the pose you made' },
-];
-const BACKDROPS: Choice<Backdrop>[] = [
-  { value: 'stage', label: 'As shown', hint: 'the backdrop you set' },
-  { value: 'transparent', label: 'Clear', hint: 'no backdrop at all' },
 ];
 
 const TABS: { kind: Kind; label: string; icon: 'film' | 'image' | 'printer' }[] = [
@@ -138,11 +144,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     ratio: Ratio;
     quality: Quality;
     imageRatio: ImageRatio;
-    format: ImageFormat;
+    picture: Picture;
+    movie: Movie;
     size: number;
     paper: Paper;
     ink: Ink;
-    backdrop: Backdrop;
     fill: number;
   }
   const fresh = (): Setup => ({
@@ -150,11 +156,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     ratio: '9:16',
     quality: 1080,
     imageRatio: 'auto',
-    format: 'png',
+    picture: 'png',
+    movie: 'mp4',
     size: 1600,
     paper: 'landscape',
     ink: 'code',
-    backdrop: 'stage',
     fill: 0.65,
   });
   // one set of choices per tab: what you set up for a video stays on the video tab
@@ -170,9 +176,9 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   let stopper: AbortController | null = null;
   const jobs = new Map<Kind, Job>();
   /** Where the stage came from, so it goes back exactly there. */
-  let home: { parent: Node; next: Node | null; style: string; hold: HTMLElement } | null = null;
-  /** True when the model on screen was borrowed from the page and owes it back. */
-  let borrowed = false;
+  let home: { node: HTMLElement; style: string; inner: HTMLElement; innerStyle: string; parent: Node; hold: HTMLElement } | null = null;
+  /** The dialog's own copy of an edited model, which is its to throw away. */
+  let copied: HTMLElement | null = null;
   /** The stage's own backdrop, remembered before it moved (the frame paints it now). */
   let look: Paint | null = null;
   let fitTimer = 0;
@@ -191,6 +197,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
   const el = <T extends HTMLElement>(selector: string): T | null => dialog?.querySelector<T>(selector) ?? null;
 
+  /** The picture format, and whether this file keeps the backdrop. */
+  const format = (): ImageFormat => (chosen().picture === 'jpeg' ? 'jpeg' : 'png');
+  const clear = (): boolean => (kind === 'image' ? chosen().picture === 'png-clear' : kind === 'video' ? chosen().movie === 'webm-clear' : false);
+  const backdrop = (): Backdrop => (clear() ? 'transparent' : 'stage');
+
   /* ---------- the shape of what is being made ---------- */
   const aspectOf = (which: Kind = kind): number | null => {
     if (which === 'video') return ASPECT_OF[chosen().ratio];
@@ -199,33 +210,38 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   };
 
   /** The backdrop for the current choice, as numbers the frame and the capture both use. */
-  const paintNow = (): Paint | 'none' => {
-    const wanted = kind === 'image' && chosen().format === 'jpeg' && chosen().backdrop === 'transparent' ? 'dark' : chosen().backdrop;
-    if (wanted === 'transparent') return 'none';
-    if (wanted === 'dark') return { color: '#0b0d18' };
-    if (wanted === 'light') return { color: '#f3f4fc' };
-    return look ?? { color: '#0b0d18' };
-  };
+  const paintNow = (): Paint | 'none' => (clear() ? 'none' : (look ?? { color: '#0b0d18' }));
 
   /* ---------- the model, lifted into the frame and put back afterwards ---------- */
+  /** Lays the panel over the frame and the stage inside it at the size it had on the page. */
+  const dress = (panel: HTMLElement, inner: HTMLElement, box: DOMRect): void => {
+    if (panel !== inner) panel.style.cssText += ';position:absolute;inset:0;margin:0';
+    inner.style.cssText += `;position:absolute;left:0;top:0;width:${box.width}px;height:${box.height}px;margin:0;background:none`;
+    inner.dataset.inMaker = '';
+  };
+
   const mount = (): void => {
     const frame = el<HTMLElement>('[data-live]');
     if (!stage || !frame) return;
     const box = stage.getBoundingClientRect();
-    const sized = `;position:absolute;left:0;top:0;width:${box.width}px;height:${box.height}px;margin:0;background:none`;
+    // The whole stage panel comes across, not just the model: its Pause and Hold hover switches,
+    // its dots and its light or dark — the same controls, in the same place, doing the same thing.
+    // They are wired to the document and find their stage by looking upwards, so they carry on
+    // working wherever the panel is.
+    const panel = stage.closest<HTMLElement>('.stage-wrap') ?? stage;
 
     // An edited model runs in a frame of its own, and a frame reloads the instant it is moved in
     // the page — so the visitor's copy stays where it is and the dialog gets one of its own,
     // running the same edited code. Everything else is simply borrowed and given back.
-    const framed = stage.querySelector('iframe');
-    if (framed) {
-      const copy = stage.cloneNode(true) as HTMLElement;
-      copy.style.cssText += sized;
-      copy.dataset.inMaker = '';
+    if (stage.querySelector('iframe')) {
+      const copy = panel.cloneNode(true) as HTMLElement;
       frame.append(copy);
+      copied = copy;
+      const inner = copy.classList.contains('stage') ? copy : copy.querySelector<HTMLElement>('.stage');
+      if (!inner) return;
+      dress(copy, inner, box);
       home = null;
-      borrowed = false;
-      stage = copy;
+      stage = inner;
       // it has to load, lay itself out and paint before there is anything to measure
       const settle = (): void => {
         requestAnimationFrame(() => requestAnimationFrame(() => { fit(); void refit(); }));
@@ -235,31 +251,36 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       return;
     }
 
+    const panelBox = panel.getBoundingClientRect();
     const keep = document.createElement('div');
-    keep.style.cssText = `width:${box.width}px;height:${box.height}px`;
-    home = { parent: stage.parentNode!, next: stage.nextSibling, style: stage.getAttribute('style') ?? '', hold: keep };
-    home.parent.insertBefore(keep, stage);
-    frame.append(stage);
-    borrowed = true;
-    // it keeps the size it had on the page, so the model inside lays itself out the same way
-    stage.style.cssText += sized;
-    stage.dataset.inMaker = '';
+    keep.style.cssText = `width:${panelBox.width}px;height:${panelBox.height}px`;
+    home = {
+      node: panel,
+      style: panel.getAttribute('style') ?? '',
+      inner: stage,
+      innerStyle: stage.getAttribute('style') ?? '',
+      parent: panel.parentNode!,
+      hold: keep,
+    };
+    home.parent.insertBefore(keep, panel);
+    frame.append(panel);
+    dress(panel, stage, box);
   };
 
   const unmount = (): void => {
-    if (!stage) return;
-    if (!borrowed) {
-      // the dialog's own copy of an edited model: nothing to give back
-      if (stage.dataset.inMaker !== undefined) stage.remove();
+    // the dialog's own copy of an edited model is the dialog's to throw away
+    if (copied) {
+      copied.remove();
+      copied = null;
       return;
     }
     if (!home) return;
-    stage.setAttribute('style', home.style);
-    delete stage.dataset.inMaker;
-    home.parent.insertBefore(stage, home.hold);
+    home.node.setAttribute('style', home.style);
+    home.inner.setAttribute('style', home.innerStyle);
+    delete home.inner.dataset.inMaker;
+    home.parent.insertBefore(home.node, home.hold);
     home.hold.remove();
     home = null;
-    borrowed = false;
   };
 
   /**
@@ -269,10 +290,15 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
    */
   const fit = (): void => {
     const frame = el<HTMLElement>('[data-frame]');
-    const live = el<HTMLElement>('[data-live]');
+    const live = stage; // the model is scaled; the panel's own switches stay their own size
     if (!stage || !frame || !live || frame.dataset.shows) return;
     live.style.transform = 'none';
-    const drawn = ink ?? drawnBoxOf(stage);
+    const rough = drawnBoxOf(stage);
+    if (ink && rough.width > 0 && (ink.width / rough.width < 0.6 || ink.width / rough.width > 1.6)) {
+      ink = null;
+      void refit();
+    }
+    const drawn = ink ?? rough;
     const inner = frame.getBoundingClientRect();
     const paint = paintNow();
     frame.style.setProperty('--paper', paint === 'none' ? 'transparent' : paint.color);
@@ -366,17 +392,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       </div>
     </fieldset>`;
 
-  const backdropGroup = (): string =>
-    group('backdrop', 'Backdrop', BACKDROPS, chosen().backdrop, (item) =>
-      item.value === 'stage' ? `<i class="maker__swatch" data-swatch="live" style="${swatchLook()}" aria-hidden="true"></i>` : `<i class="maker__swatch" data-swatch="transparent" aria-hidden="true"></i>`,
-    );
-
-  /** The swatch for 'As shown' is the stage's own backdrop, dots and all. */
-  const swatchLook = (): string => {
-    if (!look) return 'background:#0b0d18';
-    const dots = look.dots ? `radial-gradient(${look.dots.color} ${look.dots.radius}px, transparent ${look.dots.radius + 0.9}px) 0 0 / ${look.dots.gap / 2}px ${look.dots.gap / 2}px,` : '';
-    return `background:${dots}${look.color}`;
-  };
 
   const zoomSlider = (): string => `
     <fieldset class="maker__set maker__set--slider">
@@ -393,23 +408,21 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
         group('motion', 'What to film', MOTIONS, chosen().motion) +
         group('ratio', 'Shape', VIDEO_SHAPES, chosen().ratio, (item) => shapeSwatch(ASPECT_OF[item.value])) +
         group('quality', 'Quality', QUALITIES, chosen().quality) +
-        backdropGroup() +
+        group('movie', 'File', MOVIES, chosen().movie) +
         zoomSlider()
       );
     }
     if (which === 'image') {
       return (
         group('imageRatio', 'Shape', IMAGE_SHAPES, chosen().imageRatio, (item) => shapeSwatch(ASPECT_OF[item.value])) +
-        group('format', 'Format', FORMATS, chosen().format) +
+        group('picture', 'File', PICTURES, chosen().picture) +
         group('size', 'Size', SIZES, chosen().size) +
-        backdropGroup() +
         zoomSlider()
       );
     }
     return (
       group('paper', 'Sheet', PAPERS, chosen().paper, (item) => shapeSwatch(item.value === 'landscape' ? A4 : 1 / A4)) +
       group('ink', 'What to print', INKS, chosen().ink) +
-      backdropGroup() +
       zoomSlider()
     );
   };
@@ -421,17 +434,17 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       const even = (n: number): number => Math.round(n / 2) * 2;
       const width = aspect >= 1 ? even(chosen().quality * aspect) : chosen().quality;
       const height = aspect >= 1 ? chosen().quality : even(chosen().quality / aspect);
-      const wrapper = chosen().backdrop === 'transparent' ? 'WebM, see-through' : 'MP4';
+      const wrapper = backdrop() === 'transparent' ? 'WebM, see-through' : 'MP4';
       const turn = stage ? motionSeconds(stage) : 0;
       const length = chosen().motion === 'live' ? `up to ${MAX_SECONDS}s, you decide` : turn ? `${Math.min(turn, MAX_SECONDS).toFixed(1)}s of loop` : 'this model has no loop';
       return `${width} × ${height} · ${wrapper} · ${length}`;
     }
     if (kind === 'image') {
       const aspect = ASPECT_OF[chosen().imageRatio];
-      if (!aspect) return `up to ${chosen().size} px · ${chosen().format.toUpperCase()} · cut to the model`;
+      if (!aspect) return `up to ${chosen().size} px · ${format().toUpperCase()} · cut to the model`;
       const width = aspect >= 1 ? chosen().size : Math.round(chosen().size * aspect);
       const height = aspect >= 1 ? Math.round(chosen().size / aspect) : chosen().size;
-      return `${width} × ${height} · ${chosen().format.toUpperCase()}`;
+      return `${width} × ${height} · ${format().toUpperCase()}`;
     }
     return `A4 ${chosen().paper} · ${chosen().paper === 'landscape' ? '297 × 210' : '210 × 297'} mm · ${chosen().ink === 'code' ? 'drawn by the printer' : `a ${PRINT_SIZE} px picture`}`;
   };
@@ -610,6 +623,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     fillDialog();
     fit();
     void refit();
+    window.setTimeout(() => void refit(), 400);
     watchFit();
   };
 
@@ -627,7 +641,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
   /** Everything a capture needs from the dialog: the frame, the backdrop, the margin. */
   const shot = (size: number, format: ImageFormat = 'png'): Parameters<typeof captureImage>[1] => ({
-    backdrop: chosen().backdrop,
+    backdrop: backdrop(),
     look: paintNow(),
     format,
     size,
@@ -643,11 +657,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     paint();
     working('Drawing the picture…', 0.4);
     try {
-      mine.blob = await captureImage(stage, shot(chosen().size, chosen().format));
+      mine.blob = await captureImage(stage, shot(chosen().size, format()));
       mine.url = URL.createObjectURL(mine.blob);
-      mine.name = `css-3d-lab-${mine.id}.${chosen().format === 'jpeg' ? 'jpg' : 'png'}`;
+      mine.name = `css-3d-lab-${mine.id}.${format() === 'jpeg' ? 'jpg' : 'png'}`;
       const bitmap = await createImageBitmap(mine.blob);
-      mine.detail = `${bitmap.width} × ${bitmap.height}, ${chosen().format.toUpperCase()}.`;
+      mine.detail = `${bitmap.width} × ${bitmap.height}, ${format().toUpperCase()}.`;
       bitmap.close();
       track(`image/${mine.id}`);
     } catch (err) {
@@ -681,7 +695,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
             stage,
             ratio: chosen().ratio,
             quality: chosen().quality,
-            backdrop: chosen().backdrop,
+            backdrop: backdrop(),
             look: paintNow(),
             lookNow: () => paintNow(),
             fill: chosen().fill,
@@ -697,7 +711,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
             stage,
             ratio: chosen().ratio,
             quality: chosen().quality,
-            backdrop: chosen().backdrop,
+            backdrop: backdrop(),
             look: paintNow(),
             fill: chosen().fill,
             signal: stopper.signal,
@@ -829,6 +843,18 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       showModel();
       caption();
       paint();
+      return;
+    }
+
+    // Pause, Hold hover, the dots, light or dark: the panel's own switches, doing their own work.
+    // Whatever they changed about the backdrop is read back off the stage and painted in the frame.
+    if (stage && target.closest('[data-live]')) {
+      requestAnimationFrame(() => {
+        if (!stage) return;
+        const fresh = stageLook(stage);
+        if (fresh) look = fresh;
+        fit();
+      });
       return;
     }
 
