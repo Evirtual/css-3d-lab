@@ -158,7 +158,30 @@ function touches(selector: string, root: HTMLElement): boolean {
  * carrying all of it into the picture is both slow and, past a certain size, silently cut short —
  * which is how a model ends up drawn with none of its own styles.
  */
-function styleSheetText(doc: Document = document, root?: HTMLElement): string {
+/**
+ * A rule's declarations, written out again. Not `style.cssText`: when a shorthand holds a var()
+ * (a gradient stop of var(--wall), say) the browser serialises it as its longhands with EMPTY
+ * values — `background-image: ;` — and the face is drawn with no background at all. The shorthand
+ * itself still reads back whole, so those are written from the shorthand and the rest longhand by
+ * longhand, leaving out the empty ones.
+ */
+const SHORTHANDS = ['background', 'border', 'border-top', 'border-right', 'border-bottom', 'border-left', 'border-width', 'border-style', 'border-color', 'border-radius', 'border-image', 'outline', 'font', 'margin', 'padding', 'inset', 'gap', 'flex', 'flex-flow', 'grid', 'grid-area', 'grid-template', 'grid-row', 'grid-column', 'place-items', 'place-content', 'place-self', 'transition', 'animation', 'mask', 'text-decoration', 'columns', 'list-style', 'overflow', 'container', 'text-emphasis', 'offset', 'scroll-margin', 'scroll-padding'];
+function declarations(style: CSSStyleDeclaration): string {
+  const out: string[] = [];
+  const bang = (name: string): string => (style.getPropertyPriority(name) ? ' !important' : '');
+  for (const name of SHORTHANDS) {
+    const value = style.getPropertyValue(name);
+    if (value.includes('var(')) out.push(`${name}: ${value}${bang(name)}`);
+  }
+  for (let i = 0; i < style.length; i++) {
+    const name = style[i];
+    const value = style.getPropertyValue(name);
+    if (value !== '') out.push(`${name}: ${value}${bang(name)}`);
+  }
+  return out.join('; ');
+}
+
+export function styleSheetText(doc: Document = document, root?: HTMLElement): string {
   const rules: string[] = [];
   const walk = (list: CSSRuleList): void => {
     for (const rule of list) {
@@ -167,14 +190,14 @@ function styleSheetText(doc: Document = document, root?: HTMLElement): string {
       // keeping these rules would freeze fresh elements at their fly-in state — usually invisible.
       if (rule.cssText.startsWith('@starting-style')) continue;
       if (rule instanceof CSSStyleRule) {
-        if (!root || touches(rule.selectorText, root)) rules.push(`${asMarks(rule.selectorText)}{${rule.style.cssText}}`);
+        if (!root || touches(rule.selectorText, root)) rules.push(`${asMarks(rule.selectorText)}{${declarations(rule.style)}}`);
       } else if (rule instanceof CSSGroupingRule) {
         // @media / @supports / @layer: keep the wrapper, but only the rules inside that are used
         const inner: string[] = [];
         for (const child of rule.cssRules) {
           if (fetchesAFile(child.cssText)) continue;
           if (child instanceof CSSStyleRule && root && !touches(child.selectorText, root)) continue;
-          inner.push(child instanceof CSSStyleRule ? `${asMarks(child.selectorText)}{${child.style.cssText}}` : child.cssText);
+          inner.push(child instanceof CSSStyleRule ? `${asMarks(child.selectorText)}{${declarations(child.style)}}` : child.cssText);
         }
         if (inner.length) rules.push(`${rule.cssText.slice(0, rule.cssText.indexOf('{') + 1)}\n${inner.join('\n')}\n}`);
       } else {
@@ -339,23 +362,13 @@ function sinkPseudos(live: HTMLElement, copy: HTMLElement): string {
   return rules.join('\n');
 }
 
-/** The GPU scenes in use, one per model being drawn, closed with the model's stand-in. */
+/** The GPU scenes in use, one per model being drawn, closed when the drawing is done. */
 const scenes = new WeakMap<HTMLElement, Scene3D>();
 
-/** The states a single element is in, written onto its copy as marks; the string names them. */
-function markOne(live: HTMLElement, copy: HTMLElement): string {
-  let state = '';
-  for (const one of STATES) {
-    try {
-      if (live.matches(one.pseudo)) {
-        copy.setAttribute(one.mark, '');
-        state += one.mark;
-      }
-    } catch {
-      /* a state this browser cannot test */
-    }
-  }
-  return state;
+/** Lets go of the scene drawn from this node, if there is one. */
+function closeScene(node: HTMLElement): void {
+  scenes.get(node)?.close();
+  scenes.delete(node);
 }
 
 /**
@@ -368,7 +381,7 @@ async function frameImage(node: HTMLElement, css: string, zoom: number): Promise
   if (canRender3D()) {
     let scene = scenes.get(node);
     if (!scene) {
-      scene = scene3D(node, css, Math.max(1, zoom), markOne);
+      scene = scene3D(node, Math.max(1, zoom));
       scenes.set(node, scene);
     }
     return scene.draw(zoom);
@@ -502,8 +515,7 @@ function understudy(stage: HTMLElement): Stand {
     node: copy,
     doc: source.doc,
     close: () => {
-      scenes.get(copy)?.close();
-      scenes.delete(copy);
+      closeScene(copy);
       host.remove();
     },
   };
@@ -621,23 +633,29 @@ function paintFrame(
 }
 
 export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, look, saveAspect }: ImageOptions = {}): Promise<Blob> {
-  const stand = understudy(stage);
+  // On the GPU the picture is taken from the model itself: nothing on the page is touched, and it
+  // is the model itself that is hovered, mid-transition, or holding what its script set. The SVG
+  // route needs a stand-in it can mark up and hold still.
+  const gpu = canRender3D();
+  const stand = gpu ? null : understudy(stage);
+  const source = stand ?? sourceOf(stage);
   // JPEG has no see-through pixels, so it always gets a backdrop
   const paint = paintOf(stage, format === 'jpeg' && backdrop === 'transparent' ? 'dark' : backdrop, look);
   const canvas = document.createElement('canvas');
   try {
-    const css = styleSheetText(stand.doc, stand.node);
-    const crop = wholeOf(stand.node);
+    const css = gpu ? '' : styleSheetText(source.doc, source.node);
+    const crop = wholeOf(source.node);
     const frame = frameFor(crop, size, saveAspect);
     const zoom = Math.min(4, Math.max(1, frame.width / crop.width));
-    const img = await frameImage(stand.node, css, zoom);
+    const img = await frameImage(source.node, css, zoom);
     canvas.width = frame.width;
     canvas.height = frame.height;
     const ctx = canvas.getContext('2d', { alpha: !paint })!;
-    // painted before the stand-in goes: the frame lives on its GPU canvas, which goes with it
+    // painted before the scene goes: the frame lives on its GPU canvas
     paintFrame(ctx, img, crop, zoom, frame, 1, paint);
   } finally {
-    stand.close();
+    closeScene(source.node);
+    stand?.close();
   }
   const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, `image/${format}`, format === 'jpeg' ? 0.92 : undefined));
   if (!blob) throw new Error('the picture could not be saved');
@@ -798,8 +816,7 @@ export async function recordLive({ stage, ratio, backdrop, look, lookNow, qualit
     };
   } finally {
     if (video.encoder.state !== 'closed') video.encoder.close();
-    scenes.get(source.node)?.close();
-    scenes.delete(source.node);
+    closeScene(source.node);
   }
 }
 

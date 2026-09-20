@@ -299,7 +299,14 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   const fit = (): void => {
     const frame = el<HTMLElement>('[data-frame]');
     if (!stage || !frame) return;
-    frame.style.setProperty('--aspect', String(aspectOf() ?? shape));
+    const aspect = aspectOf() ?? shape;
+    frame.style.setProperty('--aspect', String(aspect));
+    // A tall frame is not filled top to bottom: the model and its own controls keep to a band no
+    // taller than 5:4, with backdrop above and below. On a phone the top and bottom of a tall
+    // picture sit under the app's own bars, and a model's buttons docked at the very bottom would
+    // be covered — and far from the model besides. The band is a share of the frame's width, so
+    // the padding is in container-query units (see .stage[data-in-maker]).
+    stage.style.setProperty('--band', Math.max(0, (1 / aspect - 1.25) / 2).toFixed(4));
     // the site's own zoom takes a third factor, so this neither fights --fit nor a demo's --size
     const zoom = (chosen().fill / 0.65).toFixed(3);
     stage.style.setProperty('--zoom', zoom);
@@ -425,17 +432,9 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
    * being drawn and there is nothing to do; 'chip' keeps out of the way, which is what a live
    * recording needs — the model has to stay visible and playable while it is being filmed.
    */
-  const working = (text: string | null, done = 0, how: 'over' | 'chip' = 'over'): void => {
-    const frame = el<HTMLElement>('[data-frame]');
-    if (!frame) return;
-    if (text === null) {
-      delete frame.dataset.busy;
-      return;
-    }
-    frame.dataset.busy = how;
+  const working = (text: string | null): void => {
     const label = el<HTMLElement>('[data-busy-text]');
-    if (label) label.textContent = text;
-    void done;
+    if (label && text !== null) label.textContent = text;
   };
 
   /* ---------- the foot ---------- */
@@ -452,10 +451,10 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     el<HTMLElement>('[data-settings]')?.toggleAttribute('data-locked', locked);
 
     if (busy) {
+      // the progress is the pill itself: what is happening, and the one thing that can be done
       const live = kind === 'video' && chosen().motion === 'live';
-      actions.innerHTML = live
-        ? `<button type="button" class="btn btn--accent" data-stop><span class="maker__ring"></span> Stop and keep it</button>`
-        : `<button type="button" class="btn" data-stop><span class="maker__ring"></span> Cancel</button>`;
+      const stoppable = kind === 'video';
+      actions.innerHTML = `<button type="button" class="btn${live ? ' btn--accent' : ''} maker__working"${stoppable ? ' data-stop' : ' disabled'}><span class="maker__ring"></span><b data-busy-text>${live ? 'Recording' : 'Drawing…'}</b>${stoppable ? `<small>${live ? 'stop and keep it' : 'cancel'}</small>` : ''}</button>`;
       note(live ? 'Recording — hover, drag and click the model; it all goes in.' : 'Drawing every frame…');
       return;
     }
@@ -556,7 +555,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
         <div class="maker__show">
           <div class="maker__box"><div class="maker__frame" data-frame data-shape="screen" style="--aspect:1" aria-label="${title}, in the frame it will be saved in">
             <div class="maker__live" data-live></div>
-            <div class="maker__busy"><span class="maker__ring"></span><b data-busy-text>Working…</b></div>
           </div></div>
           <p class="maker__caption" data-caption></p>
         </div>
@@ -610,7 +608,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     jobs.set('image', mine);
     busy = true;
     paint();
-    working('Drawing the picture…', 0.4);
+    working('Drawing the picture…');
     try {
       mine.blob = await captureImage(stage, shot(chosen().size, format()));
       mine.url = URL.createObjectURL(mine.blob);
@@ -640,7 +638,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     stopper = new AbortController();
     busy = true;
     paint();
-    working(live ? 'Recording — 0.0s' : 'Drawing the loop… 0%', 0, live ? 'chip' : 'over');
+    working(live ? 'Recording 0.0s' : 'Drawing 0%');
     const pill = trigger;
     pill?.classList.add('is-working');
 
@@ -658,7 +656,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
             stop: stopper.signal,
             onTick: (seconds) => {
               mine.progress = Math.min(1, seconds / MAX_SECONDS);
-              working(`Recording — ${seconds.toFixed(1)}s of ${MAX_SECONDS}s`, mine.progress, 'chip');
+              working(`Recording ${seconds.toFixed(1)}s of ${MAX_SECONDS}`);
               pill?.style.setProperty('--done', String(mine.progress));
             },
           })
@@ -672,7 +670,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
             signal: stopper.signal,
             onProgress: (done) => {
               mine.progress = done;
-              working(`Drawing the loop… ${Math.round(done * 100)}%`, done);
+              working(`Drawing ${Math.round(done * 100)}%`);
               pill?.style.setProperty('--done', String(done));
             },
           });
@@ -703,7 +701,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     if (!stage) return;
     busy = true;
     paint();
-    working('Drawing the sheet…', 0.4);
+    working('Drawing the sheet…');
     try {
       const blob = await captureImage(stage, shot(PRINT_SIZE));
       const url = URL.createObjectURL(blob);
@@ -726,17 +724,20 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
    */
   const countdown = (seconds: number, then: () => void): void => {
     if (busy) return;
+    // the count runs in the pill, like any other progress
+    busy = true;
+    paint();
     let left = seconds;
-    working(`Taking it in ${left}…`, 0);
+    working(`Taking it in ${left}…`);
     const tick = window.setInterval(() => {
       left -= 1;
       if (left > 0) {
-        working(`Taking it in ${left}…`, 1 - left / seconds);
+        working(`Taking it in ${left}…`);
         return;
       }
       window.clearInterval(tick);
-      if (!dialog?.open) return working(null);
-      working('Drawing it…', 1);
+      busy = false;
+      if (!dialog?.open) return;
       then();
     }, 1000);
   };

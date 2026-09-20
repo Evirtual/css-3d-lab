@@ -2858,6 +2858,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   &__frame {
     position: relative;
     overflow: hidden;
+    container-type: size;
     width: calc(100% * min(1, var(--aspect, 1)));
     height: calc(100% * min(1, 1 / var(--aspect, 1)));
     transition:
@@ -2890,26 +2891,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       object-fit: contain;
     }
 
-    &[data-busy] .maker__busy {
-      opacity: 1;
-    }
-
-    // Filming live: the model has to stay in sight and in reach, so the progress steps aside —
-    // bottom left, which is the one corner the stage's own switches never take.
-    &[data-busy='chip'] .maker__busy {
-      inset: auto auto 12px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgb(8 10 20 / 0.86);
-
-      b {
-        padding: 0;
-        background: none;
-      }
-    }
   }
 
   // the stage sits in here, moved off the page, scaled and centred to match the file's framing
@@ -2961,31 +2942,17 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 
   // over the frame while a picture or a film is being drawn
-  &__busy {
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    display: grid;
-    place-content: center;
-    justify-items: center;
-    gap: 10px;
-    padding: 16px;
-    background: rgb(6 8 16 / 0.84);
-    color: #eceefb;
-    font-size: 12.5px;
-    text-align: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
+  // the pill while something is being made: a ring, what is happening, what can be done
+  &__working {
+    gap: 8px;
 
-    // as a chip it carries its own small background instead of the frame-wide one
     b {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgb(8 10 20 / 0.86);
+      font-weight: 700;
+    }
+
+    small {
+      margin-left: 2px;
+      opacity: 0.72;
     }
   }
 
@@ -3363,6 +3330,9 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 .stage[data-in-maker] {
   border: 0;
   border-radius: 0;
+  // a tall frame keeps the model in a band (see fit() in video.ts): the padding is a share of
+  // the frame's width, which is the container's
+  padding-block: calc(var(--band, 0) * 100cqw);
 
   &[data-clear] {
     background: transparent !important;

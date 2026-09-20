@@ -41,6 +41,8 @@ interface Face {
   backdrop: boolean;
   /** How solid it is drawn: its own opacity and every ancestor's, multiplied. */
   alpha: number;
+  /** Which element it came from, for the tooling that checks the renderer (tag.class[::pseudo]). */
+  label: string;
 }
 
 interface Clip {
@@ -120,6 +122,17 @@ function placement(element: HTMLElement, root: HTMLElement): DOMMatrix {
     matrix = matrix.translate(ox, oy);
     const own = ownTransform(style, node.offsetWidth, node.offsetHeight);
     if (own) matrix = matrix.multiply(own);
+    // A flat element (not preserve-3d) is where 3D stops: what is inside it is projected onto its
+    // plane — by its own perspective, below — and only that flat picture goes on up the chain. So
+    // whatever depth the chain has gathered so far (an ancestor's perspective, a tilt) is no longer
+    // allowed to move points inside it sideways: z stops feeding x, y and w here. It still feeds z,
+    // so faces inside keep their depth against one another.
+    if (style.transformStyle !== 'preserve-3d') {
+      matrix = DOMMatrix.fromMatrix(matrix);
+      matrix.m31 = 0;
+      matrix.m32 = 0;
+      matrix.m34 = 0;
+    }
     // its perspective is for what is inside it, so it comes after its own transform
     if (style.perspective !== 'none') {
       const [px, py] = style.perspectiveOrigin.split(' ').map(num);
@@ -156,19 +169,16 @@ function paints(style: CSSStyleDeclaration, element?: HTMLElement): boolean {
   return false;
 }
 
-/** Is there any 3D inside this element — a turned descendant, or one that passes 3D on? */
+/**
+ * Is there real 3D inside this element? Only `transform-style: preserve-3d` and `perspective`
+ * make one: they are what let a child's turn be seen in depth. A 3D transform on a child of a plain
+ * flat box is drawn flat — projected straight on, no perspective — which is a flat picture like
+ * any other, and one the SVG route draws the same way the page does.
+ */
 function holds3D(element: HTMLElement): boolean {
   for (const node of element.querySelectorAll<HTMLElement>('*')) {
     const style = getComputedStyle(node);
     if (style.transformStyle === 'preserve-3d' || style.perspective !== 'none') return true;
-    const own = ownTransform(style, 1, 1);
-    if (own && !own.is2D) return true;
-    for (const pseudo of ['::before', '::after'] as const) {
-      const ps = getComputedStyle(node, pseudo);
-      if (!isPseudo(ps)) continue;
-      const turn = ownTransform(ps, 1, 1);
-      if ((turn && !turn.is2D) || ps.transformStyle === 'preserve-3d') return true;
-    }
   }
   return false;
 }
@@ -181,11 +191,24 @@ function alphaOf(colour: string): number {
   return parts.length > 3 ? num(parts[3]) : 1;
 }
 
-/** Might this face have pixels one can see through? Then it has to be drawn after the solid ones. */
+/** The top-level pieces of a comma-separated CSS list (commas inside parentheses do not split). */
+const layers = (value: string): string[] => value.split(/,(?![^(]*\))/).map((one) => one.trim());
+
+/** Does this colour or gradient have any see-through part? */
+const translucent = (value: string): boolean => /rgba\(|hsla\(|transparent|\/\s*0?\.\d|\/\s*0\)/.test(value);
+
+/**
+ * Might this face have pixels one can see through? Then it has to be drawn after the solid ones,
+ * sorted by depth, and cannot take part in the depth test itself. A face is solid when something
+ * opaque lies under everything else it paints — a solid colour, or a bottom gradient with no
+ * see-through stop — whatever is painted on top of that. Only an outer shadow makes a solid face
+ * see-through again: the glow around it has to blend.
+ */
 function seeThrough(style: CSSStyleDeclaration, hasText: boolean): boolean {
   if (num(style.opacity) < 1) return true;
-  if (isPaint(style.boxShadow)) return true; // soft edges
-  if (isPaint(style.backgroundImage)) return /rgba\(|transparent|hsla\(|\/ 0?\.\d/.test(style.backgroundImage);
+  if (isPaint(style.boxShadow) && layers(style.boxShadow).some((one) => !/inset/.test(one))) return true;
+  if (alphaOf(style.backgroundColor) >= 1) return false;
+  if (isPaint(style.backgroundImage)) return translucent(layers(style.backgroundImage).at(-1) ?? '');
   if (alphaOf(style.backgroundColor) < 1) return true;
   return hasText && !isPaint(style.backgroundColor); // a label on nothing
 }
@@ -247,27 +270,98 @@ function pseudoBox(element: HTMLElement, ps: CSSStyleDeclaration): { left: numbe
   return { left, top, width, height };
 }
 
-/**
- * Copies the states an element is in (hovered, focused) onto its copy, as marks the stylesheet
- * has been rewritten to read, and returns them as a string — a face hovered looks different from
- * one that is not, so its picture is kept per state.
- */
-export type Mark = (live: HTMLElement, copy: HTMLElement) => string;
+/* ---------- a face's picture: the element as the screen resolved it ---------- */
 
-// (place-items and friends too: newer browsers honour them in plain block layout, and a stage's
-// place-items: center would then shift the face inside its own picture)
-const NEUTRAL =
-  ';position:static !important;inset:auto !important;display:block !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;border:0 !important;transform:none !important;translate:none !important;rotate:none !important;scale:none !important;perspective:none !important;zoom:1 !important;visibility:hidden;background:none !important;box-shadow:none !important;overflow:visible !important;clip-path:none !important;filter:none !important;opacity:1 !important;place-items:normal !important;place-content:normal !important;place-self:auto !important;text-align:start !important';
+// A picture is drawn from the element's COMPUTED style, written inline on a copy — every property
+// that is not the default for that kind of element. The screen has already resolved var(), hover,
+// a held transition and an animation mid-flight into those values, so the picture needs no
+// stylesheet, no ancestors to satisfy selectors, and no marks for states. (Reading the rules back
+// from the stylesheet is not even reliable: a shorthand holding a var() comes back empty once a
+// later longhand in the same rule touches it.)
+const defaults = new Map<string, Map<string, string>>();
+function defaultsFor(tag: string): Map<string, string> {
+  let known = defaults.get(tag);
+  if (known) return known;
+  const shelf = document.createElement('div');
+  // all: initial, so the probe inherits nothing from the page: what the page's body passes down
+  // (its font, its colour) has to count as a difference, or the picture falls back to the
+  // browser's own serif
+  shelf.style.cssText = 'all:initial;position:absolute;left:-9999px;top:0;width:0;height:0;overflow:hidden';
+  const probe = document.createElement(tag);
+  shelf.append(probe);
+  document.body.append(shelf);
+  const style = getComputedStyle(probe);
+  known = new Map();
+  for (let i = 0; i < style.length; i++) known.set(style[i], style.getPropertyValue(style[i]));
+  shelf.remove();
+  defaults.set(tag, known);
+  return known;
+}
+
+// custom properties are resolved already; motion is taken off separately
+const SKIP = /^(--|animation|transition|-webkit-locale$)/;
+
+/** Every computed property of `live` that is not the default for its tag, as inline style on `copy`. */
+function inlineStyle(live: Element, copy: HTMLElement | SVGElement): void {
+  const own = getComputedStyle(live);
+  const known = defaultsFor(live.tagName);
+  let text = '';
+  for (let i = 0; i < own.length; i++) {
+    const name = own[i];
+    if (SKIP.test(name)) continue;
+    const value = own.getPropertyValue(name);
+    if (known.get(name) !== value) text += `${name}:${value};`;
+  }
+  copy.setAttribute('style', text);
+}
+
+/** A pseudo-element's computed style as a rule the picture's stylesheet can carry. */
+function pseudoRule(live: Element, id: number, pseudo: Pseudo, extra: string): string {
+  const own = getComputedStyle(live, pseudo);
+  const known = defaultsFor(live.tagName);
+  let text = '';
+  for (let i = 0; i < own.length; i++) {
+    const name = own[i];
+    if (SKIP.test(name)) continue;
+    const value = own.getPropertyValue(name);
+    if (known.get(name) !== value) text += `${name}:${value};`;
+  }
+  return `[data-c3d-n="${id}"]${pseudo}{${text}${extra}}`;
+}
 
 // a face drawn on its own: no transform, no motion, laid out at its true size where it stands
-const FLAT = ';position:relative;inset:auto;margin:0;transform:none !important;translate:none !important;rotate:none !important;scale:none !important;transition:none !important;animation:none !important;zoom:1;box-sizing:border-box;visibility:visible;opacity:1;place-self:auto !important';
+// (its clip-path and filter stay: a triangular face is cut from its box by clip-path, and the
+// picture is padded for a blur)
+const FLAT = ';position:relative !important;inset:auto !important;margin:0 !important;transform:none !important;translate:none !important;rotate:none !important;scale:none !important;transition:none !important;animation:none !important;zoom:1 !important;box-sizing:border-box !important;visibility:visible !important;opacity:1 !important;place-self:auto !important';
 
-// a pseudo-element drawn on its own: it fills the box made for it, and its element shows nothing
-const ONLY_PSEUDO =
-  '[data-c3d-only]::before,[data-c3d-only]::after{position:absolute !important;inset:0 !important;width:auto !important;height:auto !important;margin:0 !important;box-sizing:border-box !important;transform:none !important;translate:none !important;rotate:none !important;scale:none !important;opacity:1 !important}[data-c3d-only="before"]::after,[data-c3d-only="after"]::before{display:none !important}' +
-  // a pseudo-element moved off in 3D is a face of its own: it is left out of its element's picture,
-  // where the flat renderer would paint it straight over the element's words
-  '[data-c3d-no-before]::before,[data-c3d-no-after]::after{display:none !important}';
+// a pseudo-element drawn on its own fills the box made for it
+const ONLY =
+  'position:absolute !important;inset:0 !important;width:auto !important;height:auto !important;margin:0 !important;box-sizing:border-box !important;transform:none !important;translate:none !important;rotate:none !important;scale:none !important;opacity:1 !important;animation:none !important;transition:none !important';
+
+// what a face's picture is made of, in the state it is in: when any of this changes the picture
+// is drawn again (its own transform is left out — a turn does not change the picture, only where
+// it goes; inside a flattened subtree it does, and there it is counted)
+const PAINT = ['background', 'color', 'border', 'border-radius', 'box-shadow', 'outline', 'filter', 'text-shadow', 'font', 'content', 'visibility', 'display', 'opacity', 'clip-path', 'mask', 'width', 'height', 'padding', 'letter-spacing', 'text-decoration', 'inset'];
+
+/** A cheap summary of how the face looks right now, for knowing when its picture has gone stale. */
+function fingerprint(element: Element, deep: boolean): string {
+  const one = (node: Element, withTransform: boolean): string => {
+    const style = getComputedStyle(node);
+    let out = '';
+    for (const name of PAINT) out += style.getPropertyValue(name) + ';';
+    if (withTransform) out += style.transform + ';' + style.translate + ';' + style.rotate + ';' + style.scale + ';';
+    for (const pseudo of ['::before', '::after'] as const) {
+      const ps = getComputedStyle(node, pseudo);
+      if (!isPseudo(ps)) continue;
+      for (const name of PAINT) out += ps.getPropertyValue(name) + ';';
+      out += ps.transform + ';';
+    }
+    return out;
+  };
+  let out = one(element, false);
+  if (deep) for (const node of element.querySelectorAll('*')) out += one(node, true);
+  return out;
+}
 
 /**
  * One face drawn flat, at `scale` pixels per one of its own. The element is copied on its own with
@@ -275,7 +369,7 @@ const ONLY_PSEUDO =
  * are part of its picture), its text and its untransformed pseudo-elements stay. With `pseudo`,
  * it is that pseudo-element alone that is drawn, in the box the page gives it.
  */
-async function rasterise(element: HTMLElement, root: HTMLElement, css: string, scale: number, keepChildren: boolean, mark?: Mark, pseudo?: Pseudo): Promise<Raster | null> {
+export async function rasterise(element: HTMLElement, scale: number, keepChildren: boolean, pseudo?: Pseudo, inspect?: (holder: HTMLElement, rules: string) => void): Promise<Raster | null> {
   const style = getComputedStyle(element);
   const ps = pseudo ? getComputedStyle(element, pseudo) : null;
   const box = ps ? pseudoBox(element, ps) : { left: 0, top: 0, width: element.offsetWidth, height: element.offsetHeight };
@@ -288,53 +382,41 @@ async function rasterise(element: HTMLElement, root: HTMLElement, css: string, s
   const holder = document.createElement('div');
   holder.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
   holder.style.cssText = `width:${full.width}px;height:${full.height}px;transform-origin:0 0;transform:scale(${real})`;
-  holder.className = root.parentElement?.className ?? ''; // the panel's state (a held hover) comes along
   const copy = element.cloneNode(true) as HTMLElement;
-  if (!keepChildren) for (const child of [...copy.children]) child.remove();
-  copy.style.cssText += `${FLAT};left:${pad.l}px;top:${pad.t}px;width:${box.width}px;height:${box.height}px;display:${style.display}`;
-  // what it inherits from the page has to come along, or text lands in the browser's own serif
-  for (const property of ['font-family', 'font-size', 'font-weight', 'font-style', 'line-height', 'letter-spacing', 'color', 'text-align']) {
-    copy.style.setProperty(property, style.getPropertyValue(property));
-  }
-  if (!pseudo) {
-    for (const which of ['before', 'after'] as const) {
-      const other = getComputedStyle(element, `::${which}`);
-      if (isPseudo(other) && ownTransform(other, 1, 1)) copy.setAttribute(`data-c3d-no-${which}`, '');
-    }
-  } else {
-    // the element itself is a bare stage for its pseudo: nothing of its own shows
-    copy.replaceChildren();
-    copy.style.cssText += ';background:none !important;border:0 !important;box-shadow:none !important;outline:none !important;overflow:visible !important;clip-path:none !important;filter:none !important';
-    copy.setAttribute('data-c3d-only', pseudo === '::before' ? 'before' : 'after');
-  }
-  // Each ancestor becomes a shell, and so do its siblings and the face's own — as empty, unshown
-  // placeholders in their true order. A layer's colour may come from :nth-child(2), a face's from
-  // :last-child or a sibling combinator, and those only hold if the family is all present.
-  const line: HTMLElement[] = [];
-  for (let node: HTMLElement | null = element; node && node !== root.parentElement; node = node.parentElement) line.unshift(node);
-  let cursor: HTMLElement = holder;
-  for (const node of line) {
-    const parent = node.parentElement;
-    const siblings = parent && node !== root ? [...parent.children] : [node];
-    let next: HTMLElement | null = null;
-    for (const sibling of siblings) {
-      if (sibling === node) {
-        const shell = node === element ? copy : (node.cloneNode(false) as HTMLElement);
-        if (node !== element) shell.style.cssText += NEUTRAL;
-        mark?.(node, shell);
-        cursor.append(shell);
-        next = shell;
-      } else {
-        const ghost = sibling.cloneNode(false) as HTMLElement;
-        ghost.style.cssText += ';display:none !important';
-        cursor.append(ghost);
+  if (!keepChildren || pseudo) for (const child of [...copy.children]) child.remove();
+  if (pseudo) for (const node of [...copy.childNodes]) node.remove();
+  // the copy and everything in it takes the look the screen resolved for its original
+  const rules: string[] = [];
+  let count = 0;
+  const walk = (live: Element, twin: Element): void => {
+    if (twin instanceof HTMLElement || twin instanceof SVGElement) inlineStyle(live, twin);
+    const id = count++;
+    twin.setAttribute('data-c3d-n', String(id));
+    for (const which of ['::before', '::after'] as const) {
+      const look = getComputedStyle(live, which);
+      if (!isPseudo(look)) continue;
+      if (live === element) {
+        // the face's own pseudo: the one being drawn fills the picture; another that is turned
+        // in 3D is a face of its own and is left out; a flat one stays where it is
+        if (pseudo && which !== pseudo) continue;
+        if (!pseudo && ownTransform(look, 1, 1)) continue;
       }
+      rules.push(pseudoRule(live, id, which, live === element && which === pseudo ? ONLY : ''));
     }
-    if (!next) break;
-    cursor = next;
+    const liveKids = [...live.children];
+    [...twin.children].forEach((kid, i) => liveKids[i] && walk(liveKids[i], kid));
+  };
+  walk(element, copy);
+  copy.style.cssText += `${FLAT};left:${pad.l}px !important;top:${pad.t}px !important;width:${box.width}px !important;height:${box.height}px !important`;
+  if (pseudo) {
+    // the element itself is a bare stage for its pseudo: nothing of its own shows
+    copy.style.cssText += ';background:none !important;border:0 !important;box-shadow:none !important;outline:none !important;overflow:visible !important;color:transparent !important';
   }
+  holder.append(copy);
+  const sheet = rules.join('\n');
+  inspect?.(holder, sheet);
   const xml = new XMLSerializer().serializeToString(holder);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${py}"><defs><style type="text/css"><![CDATA[\n${css}\n*{transition:none !important;animation-play-state:paused !important}\n${ONLY_PSEUDO}\n]]></style></defs><foreignObject x="0" y="0" width="100%" height="100%">${xml}</foreignObject></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${py}"><defs><style type="text/css"><![CDATA[\n${sheet}\n]]></style></defs><foreignObject x="0" y="0" width="100%" height="100%">${xml}</foreignObject></svg>`;
   const img = new Image();
   const drawn = new Promise<void>((ok, fail) => {
     img.onload = () => ok();
@@ -366,7 +448,7 @@ type Textures = Map<HTMLElement, Partial<Record<'' | Pseudo, Kept>>>;
  * Every face of the model, placed: elements that draw something, and pseudo-elements moved off
  * their element in 3D (the slab that gives a die's face its thickness, the walls of a city block).
  */
-async function collect(root: HTMLElement, css: string, scale: number, textures: Textures, mark?: Mark): Promise<Face[]> {
+async function collect(root: HTMLElement, scale: number, textures: Textures): Promise<Face[]> {
   const faces: Face[] = [];
   const nodes = [root, ...root.querySelectorAll<HTMLElement>('*')];
   // the descendants of a face that flattens them are in its picture already
@@ -387,19 +469,25 @@ async function collect(root: HTMLElement, css: string, scale: number, textures: 
     clips.set(element, clip);
     if (style.display === 'none' || style.visibility === 'hidden' || num(style.opacity) === 0) continue;
     if (!element.offsetWidth || !element.offsetHeight) continue;
-    if (element.checkVisibility && !element.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+    // hidden by something between it and the root (not above the root: the dialog around a
+    // stage may be fading in, and that is no business of the picture)
+    let hidden = false;
+    for (let node = element.parentElement; node && node !== root; node = node.parentElement) {
+      const up = getComputedStyle(node);
+      if (up.display === 'none' || up.visibility === 'hidden' || num(up.opacity) === 0) hidden = true;
+    }
+    if (hidden) continue;
     const own = zoomOf(element, root);
     const hasText = [...element.childNodes].some((child) => child.nodeType === 3 && child.textContent?.trim());
-    // the state the face and its ancestors are in (hovered, focused): a different state is a
-    // different picture, and the picture is kept per state
-    let state = '';
-    if (mark) for (let node: HTMLElement | null = element; node && node !== root; node = node.parentElement) state += mark(node, document.createElement('i'));
     const kept = textures.get(element) ?? {};
     textures.set(element, kept);
+    // the picture is kept until the face looks different (a hover, a colour mid-transition)
+    let state: string | null = null;
     const picture = async (which: '' | Pseudo, flat: boolean): Promise<Raster | null> => {
+      state ??= fingerprint(element, flat && element.children.length > 0);
       let have = kept[which];
       if (!have || have.state !== state) {
-        have = { state, raster: await rasterise(element, root, css, scale * own, flat, mark, which || undefined) };
+        have = { state, raster: await rasterise(element, scale * own, flat, which || undefined) };
         kept[which] = have;
       }
       return have.raster;
@@ -407,7 +495,8 @@ async function collect(root: HTMLElement, css: string, scale: number, textures: 
     // opacity fades an element and everything in it: each face carries its own and its ancestors'
     let alpha = 1;
     for (let node: HTMLElement | null = element; node && node !== root; node = node.parentElement) alpha *= num(getComputedStyle(node).opacity);
-    const place = (m: DOMMatrix, raster: Raster | null, fallback: [number, number, number, number] | null, through: boolean, cull: boolean, backdrop = false, fade = 1): void => {
+    const label = `${element.tagName.toLowerCase()}${element.classList[0] ? `.${element.classList[0]}` : ''}`;
+    const place = (m: DOMMatrix, raster: Raster | null, fallback: [number, number, number, number] | null, through: boolean, cull: boolean, backdrop = false, fade = 1, pseudo = ''): void => {
       if (!raster && !fallback) return;
       const width = raster ? raster.width + raster.pad.l + raster.pad.r : 0;
       const height = raster ? raster.height + raster.pad.t + raster.pad.b : 0;
@@ -424,6 +513,7 @@ async function collect(root: HTMLElement, css: string, scale: number, textures: 
         clip: clips.get(element.parentElement!) ?? null,
         backdrop,
         alpha: alpha * fade,
+        label: label + pseudo,
       });
     };
     // An element that does not preserve 3D flattens everything inside it onto its own plane:
@@ -454,7 +544,7 @@ async function collect(root: HTMLElement, css: string, scale: number, textures: 
       const rgb = ps.backgroundColor.match(/[\d.]+/g)?.map(Number) ?? [0, 0, 0];
       const fallback: [number, number, number, number] = [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, alphaOf(ps.backgroundColor)];
       const fade = num(ps.opacity);
-      place(m, await picture(pseudo, false), fallback, seeThrough(ps, false) || alpha * fade < 1, ps.backfaceVisibility === 'hidden', false, fade);
+      place(m, await picture(pseudo, false), fallback, seeThrough(ps, false) || alpha * fade < 1, ps.backfaceVisibility === 'hidden', false, fade, pseudo);
     }
   }
   return faces;
@@ -490,7 +580,11 @@ uniform float fade;
 out vec4 out_colour;
 void main() {
   // premultiplied throughout, so fading is one multiply
-  out_colour = (usePicture > 0.5 ? texture(picture, uv) : colour) * fade;
+  vec4 c = (usePicture > 0.5 ? texture(picture, uv) : colour) * fade;
+  // a see-through pixel of a solid face (the corner cut off by a border-radius, the sky around a
+  // clip-path mountain) must not leave depth behind, or it would hide what is behind it
+  if (c.a < 0.01) discard;
+  out_colour = c;
 }`;
 
 function program(gl: WebGL2RenderingContext): WebGLProgram {
@@ -522,15 +616,15 @@ export interface Scene3D {
   /** Draws the model as it stands now into a canvas `zoom` times its size. */
   draw: (zoom: number) => Promise<HTMLCanvasElement>;
   close: () => void;
-  /** What the last draw was made of. */
-  last: () => { faces: number; textured: number; glError: number };
+  /** What the last draw was made of: counts, and one line per face for the checking tools. */
+  last: () => { faces: number; textured: number; glError: number; list: string[] };
 }
 
 /**
  * A renderer for one model. Faces are pictured once and kept, so a video's frames only re-place
  * them — a turn is nearly always transforms, and a texture drawn at one moment serves for all.
  */
-export function scene3D(root: HTMLElement, css: string, textureScale: number, mark?: Mark): Scene3D {
+export function scene3D(root: HTMLElement, textureScale: number): Scene3D {
   const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl2', { premultipliedAlpha: true, antialias: true, preserveDrawingBuffer: true, alpha: true });
   if (!gl) throw new Error('no WebGL');
@@ -573,7 +667,7 @@ export function scene3D(root: HTMLElement, css: string, textureScale: number, ma
   let lastFaces: Face[] = [];
   let lastError = 0;
   const draw = async (zoom: number): Promise<HTMLCanvasElement> => {
-    const faces = await collect(root, css, textureScale, textures, mark);
+    const faces = await collect(root, textureScale, textures);
     // pictures no longer in use (a state that ended) go, with their textures
     const inUse = new Set(faces.map((face) => face.texture));
     for (const [bitmap, tex] of uploaded) {
@@ -619,26 +713,35 @@ export function scene3D(root: HTMLElement, css: string, textureScale: number, ma
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
 
-    // solid faces in page order: the depth buffer settles who is in front, and of two in the
-    // same plane the later one wins, as on the page
+    // Solid faces in page order: the depth buffer settles who is in front, and of two in the
+    // same plane the later one wins, as on the page. A backdrop goes in this pass too, whether or
+    // not it is see-through: on the page a box is painted before what is inside it, and drawn any
+    // later it would cover the solid faces inside it.
     for (const face of faces) {
-      if (face.seeThrough) continue;
+      if (face.seeThrough && !face.backdrop) continue;
       gl.depthMask(!face.backdrop);
       one(face);
     }
-    // see-through faces farthest first, on top of what is already there, without hiding each other
+    // the other see-through faces farthest first, on top of what is there, without hiding each other
     gl.depthMask(false);
-    for (const face of faces.filter((f) => f.seeThrough).sort((a, b) => a.depth - b.depth)) one(face);
+    for (const face of faces.filter((f) => f.seeThrough && !f.backdrop).sort((a, b) => a.depth - b.depth)) one(face);
     gl.depthMask(true);
     gl.disable(gl.SCISSOR_TEST);
     lastError = gl.getError();
     return canvas;
   };
 
-  const last = (): { faces: number; textured: number; glError: number } => ({
+  const last = (): { faces: number; textured: number; glError: number; list: string[] } => ({
     faces: lastFaces.length,
     textured: lastFaces.filter((f) => f.texture).length,
     glError: lastError,
+    list: lastFaces.map((f) => {
+      const c = (x: number, y: number): string => {
+        const p = f.matrix.transformPoint(new DOMPoint(x, y, 0));
+        return `${Math.round(p.x / p.w)},${Math.round(p.y / p.w)}`;
+      };
+      return `${f.label} ${Math.round(f.width)}x${Math.round(f.height)} at ${c(0, 0)}→${c(f.width, f.height)} z${f.depth.toFixed(0)}${f.texture ? '' : ' colour'}${f.seeThrough ? ' see' : ''}${f.backdrop ? ' back' : ''}${f.cullBack ? ` cull${winding(f.matrix, f.width, f.height) < 0 ? '!' : ''}` : ''} a${f.alpha.toFixed(2)}${f.clip ? ` clip${Math.round(f.clip.x)},${Math.round(f.clip.y)} ${Math.round(f.clip.w)}x${Math.round(f.clip.h)}` : ''}`;
+    }),
   });
 
   const close = (): void => {
