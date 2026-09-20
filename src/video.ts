@@ -4,6 +4,7 @@ import {
   canRecord,
   canRecordClear,
   captureImage,
+  frameFor,
   MAX_SECONDS,
   motionSeconds,
   recordLive,
@@ -396,9 +397,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       return `${width} × ${height} · ${wrapper} · ${length}`;
     }
     if (kind === 'image') {
-      const aspect = ASPECT_OF[chosen().imageRatio] ?? shape;
-      const width = aspect >= 1 ? chosen().size : Math.round(chosen().size * aspect);
-      const height = aspect >= 1 ? Math.round(chosen().size / aspect) : chosen().size;
+      const { width, height } = frameFor({ width: shape, height: 1 }, chosen().size, ASPECT_OF[chosen().imageRatio] ?? shape);
       return `${width} × ${height} · ${format().toUpperCase()}`;
     }
     return `A4 ${chosen().paper} · ${chosen().paper === 'landscape' ? '297 × 210' : '210 × 297'} mm · ${PRINT_SIZE} px, edge to edge`;
@@ -598,6 +597,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     look: paintNow(),
     format,
     size,
+    saveAspect: aspectOf() ?? undefined,
   });
 
   const takePicture = async (): Promise<void> => {

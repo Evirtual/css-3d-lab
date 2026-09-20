@@ -600,17 +600,19 @@ export interface ImageOptions {
   aspect?: number | null;
   /** The backdrop to paint, ready-made ('none' for see-through). Left out, the stage is asked. */
   look?: Paint | 'none';
+  /** The shape to save at, width ÷ height. Left out, the stage's own shape is kept. */
+  saveAspect?: number;
 }
 
 /** The stage itself, whole: the picture is of the stage, because the stage is the frame. */
 const wholeOf = (node: HTMLElement): Crop => ({ x: 0, y: 0, ...naturalBox(node) });
 
-/** The file's size in pixels: `size` on the long side, at the stage's own shape. */
-function frameFor(crop: Crop, size: number): { width: number; height: number } {
+/** The file's size in pixels: `size` on the long side, at the shape asked for or the stage's own. */
+export function frameFor(crop: { width: number; height: number }, size: number, aspect?: number): { width: number; height: number } {
   if (!(crop.width > 0) || !(crop.height > 0)) throw new Error('this model is not on screen, so there is nothing to draw');
-  const long = Math.max(crop.width, crop.height);
+  const shape = aspect && aspect > 0 ? aspect : crop.width / crop.height;
   const even = (n: number): number => Math.max(2, Math.round(n / 2) * 2);
-  return { width: even((crop.width / long) * size), height: even((crop.height / long) * size) };
+  return shape >= 1 ? { width: even(size), height: even(size / shape) } : { width: even(size * shape), height: even(size) };
 }
 
 /** The frame in pixels: the chosen shape at this size, or one cut to the model with room around it. */
@@ -654,7 +656,7 @@ function paintFrame(
   ctx.drawImage(img, crop.x * zoom, crop.y * zoom, shown.width, shown.height, (frame.width - w) / 2, (frame.height - h) / 2, w, h);
 }
 
-export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, look }: ImageOptions = {}): Promise<Blob> {
+export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, look, saveAspect }: ImageOptions = {}): Promise<Blob> {
   const stand = understudy(stage);
   let img: HTMLImageElement;
   let crop: Crop;
@@ -663,7 +665,7 @@ export async function captureImage(stage: HTMLElement, { backdrop = 'stage', for
   try {
     const css = styleSheetText(stand.doc, stand.node);
     crop = wholeOf(stand.node);
-    frame = frameFor(crop, size);
+    frame = frameFor(crop, size, saveAspect);
     zoom = Math.min(4, Math.max(1, frame.width / crop.width));
     img = await frameImage(stand.node, css, zoom);
   } finally {
