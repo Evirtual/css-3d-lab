@@ -1,0 +1,250 @@
+// A window at an angle on a wet night. Every part is a flat plane at its own depth inside one
+// turned world: the city far back, two sheets of falling rain between, three sheets of glass, and
+// the frame in front. The camera turns a little and the planes slide past each other by different
+// amounts — that parallax is the depth.
+// The frame is a thick opaque surround, wide enough that every plane behind it stays hidden
+// however far the camera turns; only what is inside the opening is ever seen.
+// The city is never blurred with `filter` (that would flatten the world and repaint every frame).
+// It is drawn out of focus instead: soft radial gradients and edgeless bands, nothing sharp.
+$pane-w: 226px; // the glass
+$pane-h: 168px;
+// The night, whichever theme is on: a rainy window needs a dark sky to read at all, so the sky
+// mixes the theme accent into a fixed deep blue instead of into --bg.
+$night: #0a0d1c;
+// How far the frame reaches past the opening. It has to be at least twice the furthest a plane
+// behind it can slide when the camera turns, or that plane either uncovers the opening on one
+// side or pokes out past the frame on the other.
+$wall: 42px;
+$lip: 20px; // the frame's depth, nearest the camera
+
+// The drops already clinging to a sheet, as soft beads: a different scatter for each one.
+$beads-1: radial-gradient(circle 2px at 18% 22%, #fff6 0 60%, #0000 100%),
+  radial-gradient(circle 3px at 63% 14%, #fff5 0 60%, #0000 100%),
+  radial-gradient(circle 2px at 78% 44%, #fff5 0 60%, #0000 100%),
+  radial-gradient(circle 2px at 31% 66%, #fff4 0 60%, #0000 100%),
+  radial-gradient(circle 3px at 52% 82%, #fff5 0 60%, #0000 100%),
+  radial-gradient(circle 2px at 86% 74%, #fff4 0 60%, #0000 100%);
+$beads-2: radial-gradient(circle 3px at 26% 38%, #fff7 0 60%, #0000 100%),
+  radial-gradient(circle 4px at 71% 26%, #fff6 0 60%, #0000 100%),
+  radial-gradient(circle 3px at 44% 58%, #fff6 0 60%, #0000 100%),
+  radial-gradient(circle 4px at 82% 63%, #fff5 0 60%, #0000 100%),
+  radial-gradient(circle 3px at 15% 79%, #fff6 0 60%, #0000 100%);
+$beads-3: radial-gradient(circle 5px at 35% 30%, #fff8 0 55%, #0000 100%),
+  radial-gradient(circle 4px at 66% 52%, #fff7 0 55%, #0000 100%),
+  radial-gradient(circle 5px at 22% 61%, #fff7 0 55%, #0000 100%),
+  radial-gradient(circle 4px at 75% 85%, #fff6 0 55%, #0000 100%);
+
+.d-rain {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  perspective: 800px;
+
+  &__world {
+    position: relative;
+    width: $pane-w;
+    height: $pane-h;
+    transform-style: preserve-3d;
+    animation: d-rain-turn 15s ease-in-out infinite alternate;
+  }
+
+  // The city, out of focus far behind the glass: a wash of sky, towers that fade out instead of
+  // ending, and bokeh lights. Nothing here has an edge, so nothing needs blurring.
+  &__city {
+    position: absolute;
+    inset: -24px;
+    background:
+      // the lights, biggest and softest at the front
+      radial-gradient(circle 7px at 26% 66%, color-mix(in srgb, var(--warm) 75%, transparent), transparent),
+      radial-gradient(circle 5px at 69% 57%, color-mix(in srgb, var(--hot) 70%, transparent), transparent),
+      radial-gradient(circle 5px at 48% 74%, color-mix(in srgb, var(--accent-2) 70%, transparent), transparent),
+      radial-gradient(circle 4px at 84% 69%, color-mix(in srgb, var(--warm) 65%, transparent), transparent),
+      radial-gradient(circle 3px at 15% 55%, color-mix(in srgb, var(--accent-2) 60%, transparent), transparent),
+      radial-gradient(circle 3px at 58% 47%, color-mix(in srgb, var(--warm) 60%, transparent), transparent),
+      radial-gradient(circle 3px at 37% 52%, color-mix(in srgb, var(--hot) 50%, transparent), transparent),
+      radial-gradient(circle 2px at 76% 44%, color-mix(in srgb, var(--warm) 55%, transparent), transparent),
+      // the wet street glowing at the bottom, and the night sky above it
+      radial-gradient(110% 55% at 50% 104%, color-mix(in srgb, var(--warm) 34%, transparent), transparent 70%),
+      linear-gradient(color-mix(in srgb, var(--accent) 34%, $night), color-mix(in srgb, var(--accent) 12%, $night) 52%, color-mix(in srgb, var(--accent) 26%, $night));
+    transform: translateZ(-20px);
+
+    // the towers: bands with the top masked away, so they have no outline at all
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 34% 0 0;
+      background: linear-gradient(90deg, transparent 0 6%, color-mix(in srgb, var(--accent) 26%, $night) 6% 17%, transparent 17% 24%, color-mix(in srgb, var(--accent) 16%, $night) 24% 32%, transparent 32% 41%, color-mix(in srgb, var(--accent) 30%, $night) 41% 55%, transparent 55% 63%, color-mix(in srgb, var(--accent) 18%, $night) 63% 74%, transparent 74% 82%, color-mix(in srgb, var(--accent) 24%, $night) 82% 93%, transparent 93%);
+      mask: linear-gradient(transparent, #000 50%);
+    }
+
+    // the glow over the city, breathing a little so the night is not dead still
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 30% 0 0;
+      background: radial-gradient(70% 70% at 50% 100%, color-mix(in srgb, var(--warm) 26%, transparent), transparent 70%);
+      animation: d-rain-breathe 7s ease-in-out infinite alternate;
+    }
+  }
+
+  // Rain in the air. The stripes run straight down and the sheet is turned, so sliding it by
+  // exactly one dash period loops with no seam.
+  &__fall {
+    position: absolute;
+    inset: -16px;
+    overflow: hidden;
+    transform: translateZ(var(--z)) rotateZ(var(--r));
+
+    // Straight lines would look still while they slide along themselves, so the columns of light
+    // are cut into dashes by a mask: the gradient gives the columns, the mask the lengths.
+    i {
+      position: absolute;
+      inset: -40px 0;
+      background: repeating-linear-gradient(90deg, transparent 0 6px, color-mix(in srgb, #fff 26%, transparent) 6px 7px, transparent 7px 11px);
+      mask: repeating-linear-gradient(transparent 0 8px, #000 11px 21px, transparent 24px 30px);
+      opacity: var(--o);
+      animation: d-rain-fall var(--t) linear infinite;
+    }
+  }
+
+  // A sheet of glass: the beads clinging to it, and the drops running down.
+  &__glass {
+    position: absolute;
+    inset: 0;
+    transform: translateZ(var(--z));
+  }
+
+  &__glass.is-far {
+    background: $beads-1;
+  }
+
+  &__glass.is-mid {
+    background: $beads-2;
+  }
+
+  &__glass.is-near {
+    background: $beads-3;
+  }
+
+  // One drop: a bright bead with the thread it drags behind it. --s scales the whole thing, so the
+  // sheet nearest the camera gets fat drops and the far one fine ones.
+  &__glass i {
+    position: absolute;
+    top: 0;
+    left: calc(var(--x) * 1%);
+    width: calc(var(--s) * 3px);
+    height: calc(var(--s) * 22px);
+    border-radius: calc(var(--s) * 2px);
+    background: linear-gradient(transparent, color-mix(in srgb, #fff 26%, transparent) 55%, color-mix(in srgb, #fff 82%, transparent));
+    box-shadow: 0 0 calc(var(--s) * 3px) color-mix(in srgb, var(--accent-2) 45%, transparent);
+    animation: d-rain-run var(--t) linear infinite;
+    animation-delay: calc(var(--i) * -0.7s);
+  }
+
+  // the light from outside catching the glass: a soft diagonal sheen with no edge of its own
+  &__sheen {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(118deg, transparent 20%, color-mix(in srgb, var(--accent-2) 18%, transparent) 44%, transparent 64%);
+    mask: radial-gradient(72% 72% at 50% 50%, #000, transparent);
+    transform: translateZ(14px);
+  }
+
+  // The frame. Only its border paints, so the middle is the opening; it reaches $wall past the
+  // glass on every side, which is more than any plane behind it can slide when the camera turns.
+  &__frame {
+    position: absolute;
+    inset: -$wall;
+    // a gradient frame: the border is transparent and border-image paints it, lit from the
+    // top left like everything else in the scene
+    border: $wall solid transparent;
+    border-image: linear-gradient(145deg, color-mix(in srgb, var(--accent) 30%, var(--surface-solid)), color-mix(in srgb, var(--accent) 26%, var(--bg)) 55%, color-mix(in srgb, var(--accent) 14%, var(--bg))) 1;
+    box-shadow:
+      inset 0 0 14px color-mix(in srgb, var(--bg) 85%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--text) 16%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+    transform: translateZ($lip);
+
+    // the two bars across the opening
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 30%, var(--surface-solid)), color-mix(in srgb, var(--accent) 18%, var(--bg)));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 14%, transparent);
+    }
+
+    &::before {
+      top: 0;
+      bottom: 0;
+      left: calc(50% - 3px);
+      width: 5px;
+    }
+
+    &::after {
+      left: 0;
+      right: 0;
+      top: 36%;
+      height: 5px;
+    }
+  }
+}
+
+// The camera: a slow turn either way. The planes sit at different depths, so each slides by a
+// different amount and the glass comes off the city.
+@keyframes d-rain-turn {
+  from {
+    transform: rotateY(-22deg) rotateX(5deg);
+  }
+
+  to {
+    transform: rotateY(-11deg) rotateX(1deg);
+  }
+}
+
+// exactly one dash period, so the sheet repeats itself
+@keyframes d-rain-fall {
+  to {
+    transform: translateY(30px);
+  }
+}
+
+// A drop does not fall evenly: it hangs, catches, then runs. The values are uneven but the timing
+// is linear, so the loop still closes — it starts and ends off the sheet.
+@keyframes d-rain-run {
+  0% {
+    transform: translateY(-34px);
+  }
+
+  16% {
+    transform: translateY(5px);
+  }
+
+  25% {
+    transform: translateY(11px);
+  }
+
+  54% {
+    transform: translateY(86px);
+  }
+
+  62% {
+    transform: translateY(94px);
+  }
+
+  100% {
+    transform: translateY(198px);
+  }
+}
+
+@keyframes d-rain-breathe {
+  from {
+    opacity: 0.55;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
