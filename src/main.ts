@@ -12,6 +12,7 @@ import { initGroupLists } from './group-list';
 import { initHero, initShapes } from './hero';
 import { initStickyBars } from './sticky-bars';
 import { printModel } from './print';
+import { initThanks, showThanks, thanksHtml } from './thanks';
 import { holdHoverHtml, markHolds } from './hold-hover';
 import { trackDownloads, videoButton } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
@@ -26,7 +27,6 @@ import { hydrateIcons, icon } from './icons';
 import { sizeScene } from './models/size';
 
 const REPO = 'https://github.com/Evirtual/css-3d-lab';
-const KOFI = 'https://ko-fi.com/edgarasneverdauskas';
 
 // Real SCSS source of every demo, pulled in at build time so it can never drift.
 const scssSources = import.meta.glob<string>('./styles/models/_*.scss', {
@@ -263,6 +263,7 @@ function applyFilters(): void {
 hydrateIcons();
 initAnalytics();
 trackDownloads(track);
+initThanks();
 initHero();
 initShapes();
 initStickyBars();
@@ -429,7 +430,7 @@ function openViewer(id: string): void {
           <a class="btn" href="${REPO}/blob/main/src/styles/models/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
           <a class="btn" href="models/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
-        <p class="code__thanks" hidden>Glad it helped. This site is free — if you like, <a href="${KOFI}" target="_blank" rel="noopener">buy me a coffee</a> ${icon('coffee')}</p>
+        ${thanksHtml()}
       </section>
     </div>`;
 
@@ -494,7 +495,7 @@ function openViewer(id: string): void {
       await navigator.clipboard.writeText(text);
       btn.innerHTML = `${icon('check')} Copied`;
       track(`copy/${id}/${what}${live.edited ? '/edited' : ''}`);
-      viewerBody.querySelector<HTMLElement>('.code__thanks')!.hidden = false;
+      showThanks(btn);
     } catch {
       btn.textContent = 'Copy blocked — select the text manually';
     }

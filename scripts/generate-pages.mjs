@@ -21,6 +21,7 @@ const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
 const { GROUPS, GROUP_ORDER } = await vite.ssrLoadModule('/src/models/groups.ts');
 const { interactionHtml, interactionOf } = await vite.ssrLoadModule('/src/models/interaction.ts');
 const { videoButton } = await vite.ssrLoadModule('/src/video.ts');
+const { thanksHtml } = await vite.ssrLoadModule('/src/thanks.ts');
 const { logoHtml } = await vite.ssrLoadModule('/src/logo.ts');
 const LOGO = logoHtml();
 
@@ -266,6 +267,7 @@ function demoPage(d, index) {
             <button type="button" class="btn" data-share-embed>Embed</button>
             <a class="btn" href="${site.repo}/blob/main/src/styles/models/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
           </div>
+          ${thanksHtml()}
         </div>
       </header>
 

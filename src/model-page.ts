@@ -16,6 +16,7 @@ import { initTint } from './tint';
 import { trackDownloads } from './video';
 import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 import { printModel } from './print';
+import { initThanks, showThanks } from './thanks';
 import { markHolds } from './hold-hover';
 import { sizeScene } from './models/size';
 
@@ -30,6 +31,7 @@ lazyMountCards();
 fitStages(); // every demo on the page scales with its stage
 initCardLook();
 trackDownloads(track);
+initThanks();
 initFullscreen();
 
 const stage = document.querySelector<HTMLElement>('[data-demo]');
@@ -125,7 +127,10 @@ if (stage && demo && box) {
 
   copyBtn.addEventListener('click', async () => {
     const code = editors.get(current as Part)?.value() ?? textOf(current);
-    if (await copyText(copyBtn, code)) track(`copy/${demo.id}/${current}${live.edited ? '/edited' : ''}`);
+    if (await copyText(copyBtn, code)) {
+      track(`copy/${demo.id}/${current}${live.edited ? '/edited' : ''}`);
+      showThanks(copyBtn);
+    }
   });
 
   document.querySelector<HTMLButtonElement>('[data-reset]')?.addEventListener('click', () => {
@@ -148,7 +153,10 @@ if (stage && demo && box) {
       track(`print/${demo.id}`);
       printModel(live, stage); // the print dialog, right here ("Save as PDF" is in there)
     } else if ('copyFile' in btn.dataset) {
-      if (await copyText(btn, live.doc())) track(`copy/${demo.id}/file`);
+      if (await copyText(btn, live.doc())) {
+        track(`copy/${demo.id}/file`);
+        showThanks(btn);
+      }
     } else if ('shareLink' in btn.dataset) openShareMenu(demo.id, demo.title);
     else if ('shareEmbed' in btn.dataset) {
       if (await copyText(btn, embedCode(demo.id, demo.title), 'Embed code copied')) track(`embed/${demo.id}`);
