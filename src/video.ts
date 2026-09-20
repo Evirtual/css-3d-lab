@@ -1,5 +1,5 @@
 import { icon } from './icons';
-import { canRecord, recordModel, type Backdrop, type Ratio, type Recording } from './record';
+import { canRecord, captureImage, recordModel, type Backdrop, type Ratio, type Recording } from './record';
 
 /**
  * "Video": the clip is made here, in the visitor's browser, from the model on the stage — their
@@ -22,9 +22,13 @@ const BACKDROPS: { value: Backdrop; label: string; hint: string }[] = [
   { value: 'transparent', label: 'Transparent', hint: 'WebM, for your own background' },
 ];
 
-/** The button. It needs no data about the model: everything comes from the stage when pressed. */
+/**
+ * The two "take it with you" buttons. They need no data about the model: everything comes from the
+ * stage when pressed, so they work for a new demo the moment it is live.
+ */
 export const videoButton = (id: string, className = 'btn'): string =>
-  `<button type="button" class="${className}" data-make-video="${id}" title="Make a video of this model as it looks now">${icon('download')} Video</button>`;
+  `<button type="button" class="${className}" data-make-video="${id}" title="Make a video of this model as it looks now">${icon('film')} Video</button>` +
+  `<button type="button" class="${className}" data-make-image="${id}" title="Save a picture of this model as it looks now (PNG)">${icon('image')} Image</button>`;
 
 /** The one video being made (or just made). */
 interface Job {
@@ -58,6 +62,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}): void 
     items
       .map(
         (item) => `<button type="button" role="radio" data-${name}="${item.value}" aria-checked="${item.value === chosen}">
+          <i class="vidmaker__swatch" data-swatch="${item.value}" aria-hidden="true"></i>
           <b>${item.label}</b><span>${item.hint}</span></button>`,
       )
       .join('');
@@ -125,7 +130,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}): void 
     dialog.className = 'vidmaker';
     dialog.innerHTML = `
       <form method="dialog" class="vidmaker__head">
-        <h2>Make a video</h2>
+        <h2>${icon('film')} Make a video</h2>
         <button class="vidmaker__close" value="close" aria-label="Close">${icon('x')}</button>
       </form>
       <p class="vidmaker__lead">Of <b>${title}</b>, as it looks on the stage now: your edits, the pose you paused on, the backdrop you chose.</p>
@@ -182,8 +187,39 @@ export function initVideoMaker(track: (event: string) => void = () => {}): void 
     }
   };
 
+  /** A picture of the pose on screen: quick enough that the button alone is the whole interface. */
+  const snap = async (button: HTMLElement): Promise<void> => {
+    const stage = button.closest('.viewer__panel, .page-main, body')?.querySelector<HTMLElement>('.stage');
+    if (!stage || button.classList.contains('is-working')) return;
+    const id = button.dataset.makeImage ?? 'model';
+    const label = button.innerHTML;
+    button.classList.add('is-working');
+    button.style.setProperty('--done', '0.35');
+    button.innerHTML = `${icon('image')} Making…`;
+    try {
+      const blob = await captureImage(stage, 'stage');
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `css-3d-lab-${id}.png`;
+      link.click();
+      track(`image/${id}`);
+      button.innerHTML = `${icon('check')} Saved <small>${(blob.size / 1e6).toFixed(1)} MB</small>`;
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      button.innerHTML = `${icon('image')} ${err instanceof Error ? 'Could not: ' + err.message : 'It did not work'}`;
+    } finally {
+      button.classList.remove('is-working');
+      button.style.removeProperty('--done');
+      setTimeout(() => (button.innerHTML = label), 2600);
+    }
+  };
+
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
+
+    const picture = target.closest<HTMLElement>('[data-make-image]');
+    if (picture) return void snap(picture);
 
     const button = target.closest<HTMLElement>('[data-make-video]');
     if (button) {

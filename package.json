@@ -6,13 +6,11 @@
   "scripts": {
     "generate": "node scripts/generate-pages.mjs",
     "media": "node scripts/generate-media.mjs",
-    "reels": "node scripts/generate-reels.mjs",
     "qa": "node scripts/qa.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "dev": "npm run generate && vite",
     "build": "npm run generate && tsc && vite build",
-    "preview": "vite preview",
-    "stickers": "node scripts/generate-stickers.mjs"
+    "preview": "vite preview"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",

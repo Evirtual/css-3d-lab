@@ -109,8 +109,8 @@ centred grid (`#0b0d18`, text `#eceefb`), so:
 `npx tsc --noEmit` and `npx sass src/styles/models/_<id>.scss > /dev/null` must pass.
 `npm run build` regenerates every static page and must pass before committing.
 
-## Its video (the "Download video" button)
+## Its video
 
-After the demo is live-ready: `npm run build`, then `npm run reels -- <id> --scale 2 --crf 18` and
-`node scripts/publish-reels.mjs <id>`, and commit `src/reels.json`. Until then the demo simply has
-no video button. Re-run both when a demo's look changes, or its video shows the old version.
+Nothing to do: the "Video" button makes the clip in the visitor's browser from the model on the
+stage (src/record.ts), so a new demo has one the moment it is live, and it can never show an old
+version of the model.

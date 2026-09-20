@@ -8,7 +8,7 @@ import { sizeScene } from './models/size';
  *  - in an <iframe> on someone else's site ("Copy embed code"),
  *  - as the camera target for scripts/generate-media.mjs, which films every demo at build time
  *    (`?og=1` adds the title strip used for the social preview image),
- *  - as the camera target for scripts/generate-reels.mjs (`?reel=1`, a vertical video layout).
+ *  - as a video-shaped layout (`?reel=tall` / `?reel=wide`) for anyone framing the demo as a clip.
  */
 const stage = document.querySelector<HTMLElement>('[data-demo]');
 const demo = stage && demos.find((d) => d.id === stage.dataset.demo);
@@ -24,7 +24,7 @@ if (stage && demo) {
 
 const params = new URLSearchParams(location.search);
 if (params.has('og')) document.documentElement.dataset.og = '';
-// ?reel=tall (9:16, Reels / Shorts / TikTok) or ?reel=wide (16:9, YouTube): filmed by generate-reels.mjs
+// ?reel=tall (9:16, Reels / Shorts / TikTok) or ?reel=wide (16:9, YouTube): the video-shaped layout
 if (params.has('reel')) document.documentElement.dataset.reel = params.get('reel') === 'wide' ? 'wide' : 'tall';
 // &clean=1: the version visitors download: just the demo and a small corner mark, no title
 if (params.has('reel') && params.has('clean')) document.documentElement.dataset.reelClean = '';

@@ -64,15 +64,6 @@ MIT — see [LICENSE](LICENSE). Every snippet is free to use in your own project
   `dist/media/<id>.jpg`: the social preview image (og:image) of each model page. It runs in the
   deploy workflow.
 - Every model has an embeddable page at `/embed/<id>/`, plus Share and Embed buttons.
-- `npm run reels -- <id...>` (or `--all`, after `npm run build`) films models as 4K, 60 fps MP4s
-  into `reels/` (not committed, not deployed): `--ratio 9:16` (default, 2160 × 3840 for Reels /
-  Shorts / TikTok), `--ratio 16:9` (3840 × 2160 for YouTube) or `--ratio both`. Frames are
-  rendered one by one with time stepped by hand, so motion is perfectly smooth; the page is laid
-  out at 4K (not upscaled), so 3D layers stay sharp. Quality is visually lossless (CRF 10);
-  `--mbps 60` pins a bitrate instead. Needs ffmpeg on PATH or `npm i --no-save ffmpeg-static`.
-- Download buttons: `npm run reels -- --all --clean --scale 2 --crf 18 --jobs 3` (1080 × 1920, just
-  the model and a small corner mark), then
-  `node scripts/publish-reels.mjs --all` uploads them to the `reels` GitHub release and records
-  their sizes in `src/reels.json`; commit that file. The buttons link straight to the release
-  (its downloads do not count toward GitHub Pages bandwidth); the deploy fails if a listed file
-  is missing or a different size, so a button always has its file. Videos are never in git.
+- **Videos** are made in the visitor’s browser (`src/record.ts`): every frame of one loop is drawn
+  from the live model through an SVG image and encoded with WebCodecs, so the clip matches what is on
+  the stage — edits, pose and backdrop included — and nothing is stored or deployed.

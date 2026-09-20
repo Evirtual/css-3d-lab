@@ -185,6 +185,49 @@ function backdropOf(stage: HTMLElement, backdrop: Backdrop): Paint | null {
 }
 
 /**
+ * One picture of the model as it stands: the same drawing as a video frame, cropped to the model
+ * and big enough to use anywhere (its longest side is `size`). Fast, so it needs no dialog.
+ */
+export async function captureImage(stage: HTMLElement, backdrop: Backdrop = 'stage', size = 1600): Promise<Blob> {
+  const source = sourceOf(stage);
+  const css = styleSheetText(source.doc);
+  // the pose on screen, not a moment of the loop: measure without moving anything
+  const crop = drawnCrop(source.node, () => {}, 0);
+  const zoom = Math.min(4, Math.max(1, size / Math.max(crop.width, crop.height)));
+  const img = await frameImage(source.node, css, crop, zoom);
+
+  const paint = backdropOf(stage, backdrop);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext('2d', { alpha: !paint })!;
+  if (paint) {
+    ctx.fillStyle = paint.color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    paintDots(ctx, paint, canvas.width, canvas.height, zoom);
+  }
+  ctx.drawImage(img, 0, 0);
+  const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/png'));
+  if (!blob) throw new Error('the picture could not be saved');
+  return blob;
+}
+
+/** The stage's dot grid, drawn as circles at the picture's scale. */
+function paintDots(ctx: CanvasRenderingContext2D, paint: Paint, width: number, height: number, zoom: number): void {
+  if (!paint.dots) return;
+  const gap = paint.dots.gap * zoom;
+  const radius = paint.dots.radius * zoom;
+  ctx.fillStyle = paint.dots.color;
+  for (let y = gap / 2; y < height; y += gap) {
+    for (let x = gap / 2; x < width; x += gap) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+/**
  * Draws every frame of one loop and encodes them. The picture is fitted inside the chosen shape
  * with room around it, the same way the site frames a model.
  */
@@ -240,19 +283,7 @@ export async function recordModel({ stage, ratio, backdrop, onProgress, signal }
       if (paint) {
         ctx.fillStyle = paint.color;
         ctx.fillRect(0, 0, width, height);
-        if (paint.dots) {
-          // the same grid the stage shows, at the video's scale
-          const gap = paint.dots.gap * zoom;
-          const radius = paint.dots.radius * zoom;
-          ctx.fillStyle = paint.dots.color;
-          for (let y = gap / 2; y < height; y += gap) {
-            for (let x = gap / 2; x < width; x += gap) {
-              ctx.beginPath();
-              ctx.arc(x, y, radius, 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-        }
+        paintDots(ctx, paint, width, height, zoom); // the same grid the stage shows
       }
       // the model, as large as fits with a margin, centred
       const scale = Math.min((width * 0.82) / img.width, (height * 0.82) / img.height);

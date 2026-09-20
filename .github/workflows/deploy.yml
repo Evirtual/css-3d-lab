@@ -37,12 +37,6 @@ jobs:
         run: sudo apt-get install -y fonts-inter
       - name: Social preview images
         run: npm run media
-      # The "Download video" buttons link to files of the repo's "reels" release: check every
-      # listed one is there at the size recorded in src/reels.json (a mismatch fails the deploy).
-      - name: Demo videos
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: node scripts/verify-reels.mjs
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
