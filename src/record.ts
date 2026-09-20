@@ -251,7 +251,8 @@ function freezePose(live: HTMLElement, copy: HTMLElement): string {
  * element that is not positioned lands against some ancestor instead, which is how an earlier
  * version of this hid faces that were plainly facing the viewer.
  */
-function facesAway(element: HTMLElement, root: HTMLElement): boolean {
+/** An element's whole transform chain up to the model's root, multiplied out. */
+function chainOf(element: HTMLElement, root: HTMLElement): DOMMatrix {
   let matrix = new DOMMatrix();
   const chain: HTMLElement[] = [];
   for (let node: HTMLElement | null = element; node && node !== root.parentElement; node = node.parentElement) chain.unshift(node);
@@ -264,6 +265,11 @@ function facesAway(element: HTMLElement, root: HTMLElement): boolean {
       .multiply(new DOMMatrix(style.transform))
       .translate(-parseFloat(ox), -parseFloat(oy), -parseFloat(oz));
   }
+  return matrix;
+}
+
+function facesAway(element: HTMLElement, root: HTMLElement): boolean {
+  const matrix = chainOf(element, root);
   // where the face's own across and down axes end up: if they have swapped hands, we see its back
   const origin = matrix.transformPoint(new DOMPoint(0, 0, 0));
   const across = matrix.transformPoint(new DOMPoint(1, 0, 0));
@@ -278,6 +284,17 @@ function facesAway(element: HTMLElement, root: HTMLElement): boolean {
  * really does beat a green one facing you.) That is a puzzle cube losing its middle layer and a
  * laptop losing its screen, so the faces that asked to be hidden are taken out of the copy.
  */
+/**
+ * Solid enough that nothing behind it would show through on screen. A see-through face (a glass
+ * cube, a pyramid of coloured panes) is left alone: its far side is meant to be seen through it.
+ */
+function isOpaque(style: CSSStyleDeclaration): boolean {
+  if (parseFloat(style.opacity) < 0.99) return false;
+  const colour = style.backgroundColor.match(/rgba?\(([^)]+)\)/);
+  const alpha = colour ? parseFloat(colour[1].split(/[\s,/]+/)[3] ?? '1') : 1;
+  return alpha >= 0.99 || style.backgroundImage !== 'none';
+}
+
 function hideBackFaces(live: HTMLElement, copy: HTMLElement): void {
   const liveNodes = [live, ...live.querySelectorAll<HTMLElement>('*')];
   const copies = [copy, ...copy.querySelectorAll<HTMLElement>('*')];
@@ -287,9 +304,39 @@ function hideBackFaces(live: HTMLElement, copy: HTMLElement): void {
     // side of an object — a card face that carries a logo and text — to keep its edges smooth,
     // and taking one of those out would take the object with it.
     if (!target || source.children.length) return;
-    if (getComputedStyle(source).backfaceVisibility !== 'hidden') return;
+    const style = getComputedStyle(source);
+    // A face that asked to vanish when it turns away always does. An opaque one that did not ask
+    // is hidden all the same: on screen the front of the solid covers it, but the drawn picture
+    // does not sort by depth and would paint it on top — which is a die coming out as a blob.
+    if (style.backfaceVisibility !== 'hidden' && !isOpaque(style)) return;
     if (facesAway(source, live)) target.style.setProperty('visibility', 'hidden', 'important');
   });
+}
+
+/**
+ * A pseudo-element pushed behind its own element — the core slab that gives a die's faces their
+ * thickness — sits out of sight on screen and would be painted straight over the element's text
+ * in a drawn picture. Those are sent behind the element's content, where they belong.
+ */
+function sinkPseudos(live: HTMLElement, copy: HTMLElement): string {
+  const liveNodes = [live, ...live.querySelectorAll<HTMLElement>('*')];
+  const copies = [copy, ...copy.querySelectorAll<HTMLElement>('*')];
+  const rules: string[] = [];
+  let marked = 0;
+  liveNodes.forEach((source, i) => {
+    const target = copies[i];
+    if (!target) return;
+    for (const pseudo of ['::before', '::after'] as const) {
+      const style = getComputedStyle(source, pseudo);
+      if (style.content === 'none' || style.transform === 'none') continue;
+      const matrix = new DOMMatrix(style.transform);
+      if (matrix.m43 >= -0.5) continue; // not behind
+      const mark = target.dataset.sunk ?? String(++marked);
+      target.dataset.sunk = mark;
+      rules.push(`[data-sunk="${mark}"]${pseudo}{z-index:-1 !important}`);
+    }
+  });
+  return rules.join('\n');
 }
 
 /**
@@ -305,7 +352,7 @@ async function frameImage(node: HTMLElement, css: string, zoom: number): Promise
   // reaches outside its own box, and a picture cut to that box would lose those parts.
   holder.style.cssText = `width:${box.width}px;height:${box.height}px;transform-origin:0 0;transform:scale(${zoom})`;
   const copy = node.cloneNode(true) as HTMLElement;
-  const posed = freezePose(node, copy);
+  const posed = freezePose(node, copy) + '\n' + sinkPseudos(node, copy);
   hideBackFaces(node, copy);
   markStates(node, copy);
   // The copy is on its own now: it needs the size it had on the page, and the scale the site keeps
