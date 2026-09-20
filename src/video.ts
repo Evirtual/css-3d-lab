@@ -74,12 +74,12 @@ const QUALITIES: Choice<Quality>[] = [
   { value: 2160, label: '4K', hint: 'big screens' },
 ];
 const IMAGE_SHAPES: Choice<ImageRatio>[] = [
-  { value: 'auto', label: 'Auto', hint: 'hugs the model' },
   { value: '1:1', label: '1:1', hint: 'square' },
   { value: '4:3', label: '4:3', hint: 'classic' },
   { value: '3:2', label: '3:2', hint: 'photo' },
   { value: '16:9', label: '16:9', hint: 'wide' },
   { value: '9:16', label: '9:16', hint: 'tall' },
+  { value: 'auto', label: 'As shown', hint: "the model view's shape" },
 ];
 const SIZES: Choice<number>[] = [
   { value: 800, label: 'Small', hint: '800 px' },
@@ -153,7 +153,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     motion: 'loop',
     ratio: '9:16',
     quality: 1080,
-    imageRatio: 'auto',
+    imageRatio: '1:1',
     picture: 'png',
     movie: 'mp4',
     size: 1600,
@@ -394,8 +394,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       return `${width} × ${height} · ${wrapper} · ${length}`;
     }
     if (kind === 'image') {
-      const aspect = ASPECT_OF[chosen().imageRatio];
-      if (!aspect) return `up to ${chosen().size} px · ${format().toUpperCase()} · cut to the model`;
+      const aspect = ASPECT_OF[chosen().imageRatio] ?? shape;
       const width = aspect >= 1 ? chosen().size : Math.round(chosen().size * aspect);
       const height = aspect >= 1 ? Math.round(chosen().size / aspect) : chosen().size;
       return `${width} × ${height} · ${format().toUpperCase()}`;
@@ -415,14 +414,19 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     line.hidden = !text;
   };
 
-  const working = (text: string | null, done = 0): void => {
+  /**
+   * What the frame is busy with. 'over' draws a veil across it, which is right while a file is
+   * being drawn and there is nothing to do; 'chip' keeps out of the way, which is what a live
+   * recording needs — the model has to stay visible and playable while it is being filmed.
+   */
+  const working = (text: string | null, done = 0, how: 'over' | 'chip' = 'over'): void => {
     const frame = el<HTMLElement>('[data-frame]');
     if (!frame) return;
     if (text === null) {
       delete frame.dataset.busy;
       return;
     }
-    frame.dataset.busy = '';
+    frame.dataset.busy = how;
     const label = el<HTMLElement>('[data-busy-text]');
     if (label) label.textContent = text;
     const bar = el<HTMLElement>('[data-bar] i');
@@ -634,7 +638,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     stopper = new AbortController();
     busy = true;
     paint();
-    working(live ? 'Recording — 0.0s' : 'Drawing the loop… 0%', 0);
+    working(live ? 'Recording — 0.0s' : 'Drawing the loop… 0%', 0, live ? 'chip' : 'over');
     const pill = trigger;
     pill?.classList.add('is-working');
 
@@ -652,7 +656,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
             stop: stopper.signal,
             onTick: (seconds) => {
               mine.progress = Math.min(1, seconds / MAX_SECONDS);
-              working(`Recording — ${seconds.toFixed(1)}s of ${MAX_SECONDS}s`, mine.progress);
+              working(`Recording — ${seconds.toFixed(1)}s of ${MAX_SECONDS}s`, mine.progress, 'chip');
               pill?.style.setProperty('--done', String(mine.progress));
             },
           })

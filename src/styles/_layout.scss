@@ -2876,6 +2876,15 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     &[data-busy] .maker__busy {
       opacity: 1;
     }
+
+    // Filming live: the model has to stay in sight and in reach, so the progress steps aside —
+    // bottom left, which is the one corner the stage's own switches never take.
+    &[data-busy='chip'] .maker__busy {
+      inset: auto auto 12px 12px;
+      justify-items: start;
+      padding: 0;
+      background: none;
+    }
   }
 
   // the stage sits in here, moved off the page, scaled and centred to match the file's framing
@@ -2943,6 +2952,16 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s;
+
+    // as a chip it carries its own small background instead of the frame-wide one
+    b {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgb(8 10 20 / 0.86);
+    }
   }
 
   &__ring {
