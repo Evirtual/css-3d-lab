@@ -234,6 +234,54 @@ function freezePose(live: HTMLElement, copy: HTMLElement): string {
 }
 
 /**
+ * Is this face turned away from us, once its whole transform chain is applied?
+ *
+ * Read from the transforms themselves, not by measuring marks placed in the page: a mark inside an
+ * element that is not positioned lands against some ancestor instead, which is how an earlier
+ * version of this hid faces that were plainly facing the viewer.
+ */
+function facesAway(element: HTMLElement, root: HTMLElement): boolean {
+  let matrix = new DOMMatrix();
+  const chain: HTMLElement[] = [];
+  for (let node: HTMLElement | null = element; node && node !== root.parentElement; node = node.parentElement) chain.unshift(node);
+  for (const node of chain) {
+    const style = getComputedStyle(node);
+    if (style.transform === 'none') continue;
+    const [ox, oy, oz = '0px'] = style.transformOrigin.split(' ');
+    matrix = matrix
+      .translate(parseFloat(ox), parseFloat(oy), parseFloat(oz))
+      .multiply(new DOMMatrix(style.transform))
+      .translate(-parseFloat(ox), -parseFloat(oy), -parseFloat(oz));
+  }
+  // where the face's own across and down axes end up: if they have swapped hands, we see its back
+  const origin = matrix.transformPoint(new DOMPoint(0, 0, 0));
+  const across = matrix.transformPoint(new DOMPoint(1, 0, 0));
+  const down = matrix.transformPoint(new DOMPoint(0, 1, 0));
+  const turn = (across.x - origin.x) * (down.y - origin.y) - (across.y - origin.y) * (down.x - origin.x);
+  return turn < 0;
+}
+
+/**
+ * Drawing a page into a picture ignores backface-visibility: hidden — a face turned away is painted
+ * all the same, and being later in the markup it usually lands on top. (A red face turned away
+ * really does beat a green one facing you.) That is a puzzle cube losing its middle layer and a
+ * laptop losing its screen, so the faces that asked to be hidden are taken out of the copy.
+ */
+function hideBackFaces(live: HTMLElement, copy: HTMLElement): void {
+  const liveNodes = [live, ...live.querySelectorAll<HTMLElement>('*')];
+  const copies = [copy, ...copy.querySelectorAll<HTMLElement>('*')];
+  liveNodes.forEach((source, i) => {
+    const target = copies[i];
+    // Only a face with nothing inside it. Plenty of models put backface-visibility on a whole
+    // side of an object — a card face that carries a logo and text — to keep its edges smooth,
+    // and taking one of those out would take the object with it.
+    if (!target || source.children.length) return;
+    if (getComputedStyle(source).backfaceVisibility !== 'hidden') return;
+    if (facesAway(source, live)) target.style.setProperty('visibility', 'hidden', 'important');
+  });
+}
+
+/**
  * One frame: the part of the stage the model fills, as an image. It is drawn at `zoom` times its
  * size on the page, so a small model still fills a 1080-wide video crisply (the whole trip is
  * vector: the browser rasterises the SVG at whatever size it is given).
@@ -246,9 +294,8 @@ async function frameImage(node: HTMLElement, css: string, zoom: number): Promise
   // reaches outside its own box, and a picture cut to that box would lose those parts.
   holder.style.cssText = `width:${box.width}px;height:${box.height}px;transform-origin:0 0;transform:scale(${zoom})`;
   const copy = node.cloneNode(true) as HTMLElement;
-  // the copy is drawn exactly as the browser draws the model itself, one pose later: nothing is
-  // reordered or hidden here, because the browser gets 3D right on its own
   const posed = freezePose(node, copy);
+  hideBackFaces(node, copy);
   markStates(node, copy);
   // The copy is on its own now: it needs the size it had on the page, and the scale the site keeps
   // on the page root (--fit), or the model lays out small and in the corner.
@@ -408,12 +455,63 @@ async function inkCrop(node: HTMLElement, css: string, seekTo: (t: number) => vo
   };
 }
 
-/** What the model draws right now, measured from the pixels. Used to frame it the same way. */
-export async function inkBoxOf(stage: HTMLElement): Promise<Crop> {
+interface Stand {
+  node: HTMLElement;
+  doc: Document;
+  close: () => void;
+}
+
+/**
+ * A stand-in for the model: a copy kept out of sight, holding the pose the real one is in.
+ *
+ * Everything that has to walk the model through its turn — measuring it, drawing every frame of a
+ * video — does it here. The model on screen is never touched, so it no longer jumps about under
+ * the visitor's hands while a file is being made.
+ */
+function understudy(stage: HTMLElement): Stand {
   const source = sourceOf(stage);
-  const css = styleSheetText(source.doc, source.node);
-  const rough = drawnCrop(source.node, () => {}, 0);
-  return inkCrop(source.node, css, () => {}, 0, rough);
+  const box = naturalBox(source.node);
+  const host = source.doc.createElement('div');
+  host.setAttribute('aria-hidden', 'true');
+  // out of sight but fully laid out; a transform (not a left offset) so that anything inside with
+  // position: fixed stays inside the copy rather than landing on the page
+  host.style.cssText = `position:fixed;top:0;left:0;z-index:-1;width:${box.width}px;height:${box.height}px;transform:translateX(-20000px);pointer-events:none`;
+  const copy = source.node.cloneNode(true) as HTMLElement;
+  copy.style.width = `${box.width}px`;
+  copy.style.height = `${box.height}px`;
+  host.append(copy);
+  source.doc.body.append(host);
+  // the states the real model is in (a pointer over it, a focused control) come across as marks,
+  // since a copy off in the corner is not hovered and holds no focus
+  markStates(source.node, copy);
+  // and it starts at the moment the real one is at, so a film begins from the pose on screen
+  const live = source.node.getAnimations({ subtree: true });
+  const mine = copy.getAnimations({ subtree: true });
+  mine.forEach((animation, i) => {
+    const from = live[i];
+    if (from && from.currentTime !== null) animation.currentTime = from.currentTime;
+    animation.pause();
+  });
+  return { node: copy, doc: source.doc, close: () => host.remove() };
+}
+
+/**
+ * Where the model puts ink over one whole turn, measured from the pixels. It is one box for the
+ * whole loop on purpose: a box that followed the model from moment to moment would have the frame
+ * resizing around it the entire time. The model is put back exactly where it was found.
+ */
+export async function inkBoxOf(stage: HTMLElement): Promise<Crop> {
+  const stand = understudy(stage);
+  try {
+    const css = styleSheetText(stand.doc, stand.node);
+    const seconds = motionSeconds(stage);
+    const starts = new WeakMap<Animation, number>();
+    const step = (t: number): void => seek(stand.node, t, starts);
+    const rough = drawnCrop(stand.node, step, seconds);
+    return await inkCrop(stand.node, css, step, seconds, rough);
+  } finally {
+    stand.close();
+  }
 }
 
 export interface Paint {
@@ -534,13 +632,28 @@ function paintFrame(
 }
 
 export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, fill = FILL, aspect = null, look }: ImageOptions = {}): Promise<Blob> {
-  const source = sourceOf(stage);
-  const css = styleSheetText(source.doc, source.node);
-  // the pose on screen, not a moment of the loop: measure without moving anything
-  const crop = await inkCrop(source.node, css, () => {}, 0, drawnCrop(source.node, () => {}, 0));
-  const frame = frameOf(crop, size, fill, aspect);
-  const zoom = zoomFor(crop, frame, fill);
-  const img = await frameImage(source.node, css, zoom);
+  const stand = understudy(stage);
+  let img: HTMLImageElement;
+  let crop: Crop;
+  let frame: { width: number; height: number };
+  let zoom: number;
+  try {
+    const css = styleSheetText(stand.doc, stand.node);
+    const seconds = motionSeconds(stage);
+    const starts = new WeakMap<Animation, number>();
+    const step = (t: number): void => seek(stand.node, t, starts);
+    // The frame is the one the whole turn fits in, so a picture, a video and a print of the same
+    // model are framed alike; the pose drawn in it is the one on screen, which is where the
+    // stand-in is put back to before anything is drawn.
+    const rough = drawnCrop(stand.node, step, seconds);
+    crop = await inkCrop(stand.node, css, step, seconds, rough);
+    restore(stand.node, starts, new Set());
+    frame = frameOf(crop, size, fill, aspect);
+    zoom = zoomFor(crop, frame, fill);
+    img = await frameImage(stand.node, css, zoom);
+  } finally {
+    stand.close();
+  }
 
   // JPEG has no see-through pixels, so it always gets a backdrop
   const paint = paintOf(stage, format === 'jpeg' && backdrop === 'transparent' ? 'dark' : backdrop, look);
@@ -573,11 +686,11 @@ export interface LoopOptions extends ImageOptions {
  * found — same moment, same paused or playing state — when it is done.
  */
 export async function captureLoop(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 480, fill = FILL, aspect = null, look, frames: count = 12, onFrame, signal }: LoopOptions = {}): Promise<{ frames: Blob[]; seconds: number }> {
-  const source = sourceOf(stage);
-  const css = styleSheetText(source.doc, source.node);
+  const stand = understudy(stage);
+  const source = stand;
+  const css = styleSheetText(stand.doc, stand.node);
   const seconds = motionSeconds(stage);
   const starts = new WeakMap<Animation, number>();
-  const playing = new Set(source.node.getAnimations({ subtree: true }).filter((a) => a.playState === 'running'));
   const rough = drawnCrop(source.node, (t) => seek(source.node, t, starts), seconds);
   const crop = await inkCrop(source.node, css, (t) => seek(source.node, t, starts), seconds, rough);
   const frame = frameOf(crop, size, fill, aspect);
@@ -601,7 +714,7 @@ export async function captureLoop(stage: HTMLElement, { backdrop = 'stage', form
       onFrame?.(shot, f + 1, count);
     }
   } finally {
-    restore(source.node, starts, playing);
+    stand.close();
   }
   return { frames: shots, seconds };
 }
@@ -685,6 +798,8 @@ export interface LiveOptions {
   onTick?: (seconds: number, frames: number) => void;
   /** Abort this to stop early — that is the Stop button. */
   stop?: AbortSignal;
+  /** Asked for on every frame, so a backdrop changed while filming is filmed changing. */
+  lookNow?: () => Paint | 'none';
 }
 
 /**
@@ -693,7 +808,7 @@ export interface LiveOptions {
  * when you touch it — a drag, a hover, a click — gets into a video at all. Frames carry the real
  * time they were taken, so the film plays back at life speed even where drawing them was slow.
  */
-export async function recordLive({ stage, ratio, backdrop, look, quality = 1080, fill = FILL, seconds = MAX_SECONDS, onTick, stop }: LiveOptions): Promise<Recording> {
+export async function recordLive({ stage, ratio, backdrop, look, lookNow, quality = 1080, fill = FILL, seconds = MAX_SECONDS, onTick, stop }: LiveOptions): Promise<Recording> {
   if (!canRecord()) throw new Error('this browser cannot make videos yet');
   const frame = frameSize(ratio, quality);
   const transparent = backdrop === 'transparent';
@@ -726,7 +841,7 @@ export async function recordLive({ stage, ratio, backdrop, look, quality = 1080,
       const img = await frameImage(source.node, css, zoom);
       const when = performance.now() - started;
       if (when >= seconds * 1000) break;
-      paintFrame(ctx, img, crop, zoom, frame, fill, paint);
+      paintFrame(ctx, img, crop, zoom, frame, fill, lookNow ? paintOf(stage, backdrop, lookNow()) : paint);
       const key = when - lastKey >= 2000;
       if (key) lastKey = when;
       const picture = new VideoFrame(canvas, { timestamp: Math.round(when * 1000) });
@@ -768,7 +883,9 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
   canvas.height = height;
   const ctx = canvas.getContext('2d', { alpha: transparent })!;
 
-  const source = sourceOf(stage);
+  // the whole film is drawn from a copy kept out of sight, so the model on screen carries on as
+  // it was: no jumping through the loop under the visitor's eyes while the frames are taken
+  const source = understudy(stage);
   const css = styleSheetText(source.doc, source.node);
   const loop = loopLength(source.node);
   const seconds = loop ? Math.min(MAX_SECONDS, loop / 1000) : 4;
@@ -777,8 +894,6 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
   const paint = paintOf(stage, backdrop, look);
   const rough = drawnCrop(source.node, (t) => seek(source.node, t, starts), seconds);
   const crop = await inkCrop(source.node, css, (t) => seek(source.node, t, starts), seconds, rough);
-  // what was already paused (the stage's Pause switch) must stay paused afterwards
-  const wasPaused = new Set(source.node.getAnimations({ subtree: true }).filter((a) => a.playState === 'paused'));
   // enough resolution that the model fills the frame sharply, without asking the browser to
   // rasterise more than it needs
   const zoom = Math.min(4, Math.max(1, Math.min((width * fill) / crop.width, (height * fill) / crop.height)));
@@ -813,7 +928,6 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
     };
   } finally {
     if (encoder.state !== 'closed') encoder.close();
-    // back to the pose it was held at, playing again unless it was paused before (the Pause switch)
-    restore(source.node, starts, new Set(source.node.getAnimations({ subtree: true }).filter((a) => !wasPaused.has(a))));
+    source.close();
   }
 }

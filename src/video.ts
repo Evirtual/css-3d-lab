@@ -94,10 +94,8 @@ const INKS: Choice<Ink>[] = [
   { value: 'snapshot', label: 'This view', hint: 'the pose you made' },
 ];
 const BACKDROPS: Choice<Backdrop>[] = [
-  { value: 'stage', label: 'As shown', hint: 'stage and dots' },
-  { value: 'dark', label: 'Dark', hint: 'plain dark' },
-  { value: 'light', label: 'Light', hint: 'plain light' },
-  { value: 'transparent', label: 'Clear', hint: 'no backdrop' },
+  { value: 'stage', label: 'As shown', hint: 'the backdrop you set' },
+  { value: 'transparent', label: 'Clear', hint: 'no backdrop at all' },
 ];
 
 const TABS: { kind: Kind; label: string; icon: 'film' | 'image' | 'printer' }[] = [
@@ -135,18 +133,33 @@ export function trackDownloads(track: (event: string) => void): void {
 export function initVideoMaker(track: (event: string) => void = () => {}, print?: (stage: HTMLElement, setup: PrintSetup) => void): void {
   // fill: how much of the frame the model takes. Two thirds matches the site; the slider goes from
   // far away to filling the frame, so a wide, airy picture or a tight crop are both possible.
-  const chosen = {
-    motion: 'loop' as Motion,
-    ratio: '9:16' as Ratio,
-    quality: 1080 as Quality,
-    imageRatio: 'auto' as ImageRatio,
-    format: 'png' as ImageFormat,
+  interface Setup {
+    motion: Motion;
+    ratio: Ratio;
+    quality: Quality;
+    imageRatio: ImageRatio;
+    format: ImageFormat;
+    size: number;
+    paper: Paper;
+    ink: Ink;
+    backdrop: Backdrop;
+    fill: number;
+  }
+  const fresh = (): Setup => ({
+    motion: 'loop',
+    ratio: '9:16',
+    quality: 1080,
+    imageRatio: 'auto',
+    format: 'png',
     size: 1600,
-    paper: 'landscape' as Paper,
-    ink: 'code' as Ink,
-    backdrop: 'stage' as Backdrop,
-    fill: 2 / 3,
-  };
+    paper: 'landscape',
+    ink: 'code',
+    backdrop: 'stage',
+    fill: 0.65,
+  });
+  // one set of choices per tab: what you set up for a video stays on the video tab
+  const setups: Record<Kind, Setup> = { video: fresh(), image: fresh(), print: fresh() };
+  const chosen = (): Setup => setups[kind];
 
   let dialog: HTMLDialogElement | null = null;
   let stage: HTMLElement | null = null;
@@ -158,13 +171,14 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   const jobs = new Map<Kind, Job>();
   /** Where the stage came from, so it goes back exactly there. */
   let home: { parent: Node; next: Node | null; style: string; hold: HTMLElement } | null = null;
+  /** True when the model on screen was borrowed from the page and owes it back. */
+  let borrowed = false;
   /** The stage's own backdrop, remembered before it moved (the frame paints it now). */
   let look: Paint | null = null;
   let fitTimer = 0;
+  let closing = false;
   /** Where the model puts ink, measured from its pixels — the same box the capture frames on. */
   let ink: { x: number; y: number; width: number; height: number } | null = null;
-  /** The rough box the ink measurement was made from, to notice when the model has changed shape. */
-  let roughAt = '';
 
   const job = (): Job => {
     let mine = jobs.get(kind);
@@ -179,14 +193,14 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
   /* ---------- the shape of what is being made ---------- */
   const aspectOf = (which: Kind = kind): number | null => {
-    if (which === 'video') return ASPECT_OF[chosen.ratio];
-    if (which === 'image') return ASPECT_OF[chosen.imageRatio];
-    return chosen.paper === 'landscape' ? A4 : 1 / A4;
+    if (which === 'video') return ASPECT_OF[chosen().ratio];
+    if (which === 'image') return ASPECT_OF[chosen().imageRatio];
+    return chosen().paper === 'landscape' ? A4 : 1 / A4;
   };
 
   /** The backdrop for the current choice, as numbers the frame and the capture both use. */
   const paintNow = (): Paint | 'none' => {
-    const wanted = kind === 'image' && chosen.format === 'jpeg' && chosen.backdrop === 'transparent' ? 'dark' : chosen.backdrop;
+    const wanted = kind === 'image' && chosen().format === 'jpeg' && chosen().backdrop === 'transparent' ? 'dark' : chosen().backdrop;
     if (wanted === 'transparent') return 'none';
     if (wanted === 'dark') return { color: '#0b0d18' };
     if (wanted === 'light') return { color: '#f3f4fc' };
@@ -198,23 +212,54 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     const frame = el<HTMLElement>('[data-live]');
     if (!stage || !frame) return;
     const box = stage.getBoundingClientRect();
+    const sized = `;position:absolute;left:0;top:0;width:${box.width}px;height:${box.height}px;margin:0;background:none`;
+
+    // An edited model runs in a frame of its own, and a frame reloads the instant it is moved in
+    // the page — so the visitor's copy stays where it is and the dialog gets one of its own,
+    // running the same edited code. Everything else is simply borrowed and given back.
+    const framed = stage.querySelector('iframe');
+    if (framed) {
+      const copy = stage.cloneNode(true) as HTMLElement;
+      copy.style.cssText += sized;
+      copy.dataset.inMaker = '';
+      frame.append(copy);
+      home = null;
+      borrowed = false;
+      stage = copy;
+      // it has to load, lay itself out and paint before there is anything to measure
+      const settle = (): void => {
+        requestAnimationFrame(() => requestAnimationFrame(() => { fit(); void refit(); }));
+      };
+      copy.querySelector('iframe')?.addEventListener('load', settle);
+      window.setTimeout(settle, 700);
+      return;
+    }
+
     const keep = document.createElement('div');
     keep.style.cssText = `width:${box.width}px;height:${box.height}px`;
     home = { parent: stage.parentNode!, next: stage.nextSibling, style: stage.getAttribute('style') ?? '', hold: keep };
     home.parent.insertBefore(keep, stage);
     frame.append(stage);
+    borrowed = true;
     // it keeps the size it had on the page, so the model inside lays itself out the same way
-    stage.style.cssText += `;position:absolute;left:0;top:0;width:${box.width}px;height:${box.height}px;margin:0;background:none`;
+    stage.style.cssText += sized;
     stage.dataset.inMaker = '';
   };
 
   const unmount = (): void => {
-    if (!stage || !home) return;
+    if (!stage) return;
+    if (!borrowed) {
+      // the dialog's own copy of an edited model: nothing to give back
+      if (stage.dataset.inMaker !== undefined) stage.remove();
+      return;
+    }
+    if (!home) return;
     stage.setAttribute('style', home.style);
     delete stage.dataset.inMaker;
     home.parent.insertBefore(stage, home.hold);
     home.hold.remove();
     home = null;
+    borrowed = false;
   };
 
   /**
@@ -233,9 +278,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     frame.style.setProperty('--paper', paint === 'none' ? 'transparent' : paint.color);
     frame.dataset.dots = paint !== 'none' && paint.dots ? 'yes' : 'no';
     if (!drawn.width || !drawn.height || !inner.width) return;
-    // 'Auto' has no shape of its own: it takes the model's
-    if (kind === 'image' && chosen.imageRatio === 'auto') frame.style.setProperty('--aspect', (drawn.width / drawn.height).toFixed(4));
-    const scale = Math.min((inner.width * chosen.fill) / drawn.width, (inner.height * chosen.fill) / drawn.height);
+    const scale = Math.min((inner.width * chosen().fill) / drawn.width, (inner.height * chosen().fill) / drawn.height);
     const centreX = drawn.x + drawn.width / 2;
     const centreY = drawn.y + drawn.height / 2;
     live.style.transformOrigin = `${centreX}px ${centreY}px`;
@@ -259,26 +302,42 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       const box = await inkBoxOf(mine);
       if (stage !== mine || !dialog?.open) return;
       ink = box;
+      // 'Auto' has no shape of its own: it takes the model's, once, when the ink is measured
+      if (kind === 'image' && chosen().imageRatio === 'auto' && box.width && box.height) {
+        el<HTMLElement>('[data-frame]')?.style.setProperty('--aspect', (box.width / box.height).toFixed(4));
+      }
       fit();
     } catch {
       /* a model that cannot be drawn keeps the rough framing */
     }
   };
 
-  /** A model that changes size as you play with it would drift out of its frame: keep it fitted. */
+  /** Closing fades the dialog out rather than snapping it away. */
+  const closeSmooth = (): void => {
+    if (!dialog?.open || closing) return;
+    closing = true;
+    const out = dialog.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-in' });
+    void out.finished
+      .catch(() => {})
+      .then(() => {
+        closing = false;
+        dialog?.close();
+      });
+  };
+
+  /**
+   * Playing with a model can change its size for good — another face, more sides, a part dragged
+   * out. That is worth measuring again; a model simply going round its loop is not, because the
+   * box already covers the whole turn. So this waits until the playing stops.
+   */
   const watchFit = (): void => {
-    window.clearInterval(fitTimer);
-    fitTimer = window.setInterval(() => {
-      if (!dialog?.open || busy || !stage) return;
-      const rough = drawnBoxOf(stage);
-      const key = `${Math.round(rough.x / 4)},${Math.round(rough.y / 4)},${Math.round(rough.width / 4)},${Math.round(rough.height / 4)}`;
-      if (key !== roughAt) {
-        roughAt = key;
-        void refit(); // it has moved or grown: measure the ink again
-      } else {
-        fit();
-      }
-    }, 400);
+    const live = el<HTMLElement>('[data-live]');
+    if (!live) return;
+    const later = (): void => {
+      window.clearTimeout(fitTimer);
+      fitTimer = window.setTimeout(() => void refit(), 600);
+    };
+    for (const event of ['pointerup', 'pointerleave', 'input', 'change', 'keyup']) live.addEventListener(event, later);
   };
 
   /* ---------- the settings column ---------- */
@@ -289,10 +348,13 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     return `<i class="maker__swatch" style="width:${width}px;height:${height}px" aria-hidden="true"></i>`;
   };
 
+  /** Every group fills its rows: four across for four, three by two for six, otherwise one row. */
+  const columnsFor = (count: number): number => (count >= 6 ? 3 : Math.min(count, 4));
+
   const group = <T extends string | number>(name: string, label: string, items: Choice<T>[], pick: T, swatch?: (item: Choice<T>) => string): string => `
     <fieldset class="maker__set">
       <legend>${label}</legend>
-      <div class="maker__opts" role="radiogroup" aria-label="${label}">
+      <div class="maker__opts${items.length === 2 ? ' maker__opts--seg' : ''}" role="radiogroup" aria-label="${label}" style="--cols:${columnsFor(items.length)}">
         ${items
           .map(
             (item) => `<button type="button" role="radio" class="maker__opt" data-pick="${name}" data-value="${item.value}" aria-checked="${item.value === pick}">
@@ -305,36 +367,48 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     </fieldset>`;
 
   const backdropGroup = (): string =>
-    group('backdrop', 'Backdrop', BACKDROPS, chosen.backdrop, (item) => `<i class="maker__swatch" data-swatch="${item.value}" aria-hidden="true"></i>`);
+    group('backdrop', 'Backdrop', BACKDROPS, chosen().backdrop, (item) =>
+      item.value === 'stage' ? `<i class="maker__swatch" data-swatch="live" style="${swatchLook()}" aria-hidden="true"></i>` : `<i class="maker__swatch" data-swatch="transparent" aria-hidden="true"></i>`,
+    );
+
+  /** The swatch for 'As shown' is the stage's own backdrop, dots and all. */
+  const swatchLook = (): string => {
+    if (!look) return 'background:#0b0d18';
+    const dots = look.dots ? `radial-gradient(${look.dots.color} ${look.dots.radius}px, transparent ${look.dots.radius + 0.9}px) 0 0 / ${look.dots.gap / 2}px ${look.dots.gap / 2}px,` : '';
+    return `background:${dots}${look.color}`;
+  };
 
   const zoomSlider = (): string => `
-    <fieldset class="maker__set">
-      <legend>Model size <output data-zoom-out>${Math.round(chosen.fill * 100)}%</output> <span class="maker__legendHint">of the frame</span></legend>
-      <input class="maker__zoom" type="range" min="25" max="100" step="5" value="${Math.round(chosen.fill * 100)}" data-zoom aria-label="How much of the frame the model fills">
+    <fieldset class="maker__set maker__set--slider">
+      <legend>Model size <span class="maker__legendHint">how much of the frame it fills</span></legend>
+      <div class="maker__slider">
+        <input class="maker__zoom" type="range" min="25" max="100" step="5" value="${Math.round(chosen().fill * 100)}" style="--done:${(((chosen().fill * 100) - 25) / 75) * 100}%" data-zoom aria-label="How much of the frame the model fills">
+        <output data-zoom-out>${Math.round(chosen().fill * 100)}%</output>
+      </div>
     </fieldset>`;
 
   const settingsFor = (which: Kind): string => {
     if (which === 'video') {
       return (
-        group('motion', 'What to film', MOTIONS, chosen.motion) +
-        group('ratio', 'Shape', VIDEO_SHAPES, chosen.ratio, (item) => shapeSwatch(ASPECT_OF[item.value])) +
-        group('quality', 'Quality', QUALITIES, chosen.quality) +
+        group('motion', 'What to film', MOTIONS, chosen().motion) +
+        group('ratio', 'Shape', VIDEO_SHAPES, chosen().ratio, (item) => shapeSwatch(ASPECT_OF[item.value])) +
+        group('quality', 'Quality', QUALITIES, chosen().quality) +
         backdropGroup() +
         zoomSlider()
       );
     }
     if (which === 'image') {
       return (
-        group('imageRatio', 'Shape', IMAGE_SHAPES, chosen.imageRatio, (item) => shapeSwatch(ASPECT_OF[item.value])) +
-        group('format', 'Format', FORMATS, chosen.format) +
-        group('size', 'Size', SIZES, chosen.size) +
+        group('imageRatio', 'Shape', IMAGE_SHAPES, chosen().imageRatio, (item) => shapeSwatch(ASPECT_OF[item.value])) +
+        group('format', 'Format', FORMATS, chosen().format) +
+        group('size', 'Size', SIZES, chosen().size) +
         backdropGroup() +
         zoomSlider()
       );
     }
     return (
-      group('paper', 'Sheet', PAPERS, chosen.paper, (item) => shapeSwatch(item.value === 'landscape' ? A4 : 1 / A4)) +
-      group('ink', 'What to print', INKS, chosen.ink) +
+      group('paper', 'Sheet', PAPERS, chosen().paper, (item) => shapeSwatch(item.value === 'landscape' ? A4 : 1 / A4)) +
+      group('ink', 'What to print', INKS, chosen().ink) +
       backdropGroup() +
       zoomSlider()
     );
@@ -343,23 +417,23 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   /* ---------- what it will be, said plainly ---------- */
   const sizeLine = (): string => {
     if (kind === 'video') {
-      const aspect = ASPECT_OF[chosen.ratio] ?? 1;
+      const aspect = ASPECT_OF[chosen().ratio] ?? 1;
       const even = (n: number): number => Math.round(n / 2) * 2;
-      const width = aspect >= 1 ? even(chosen.quality * aspect) : chosen.quality;
-      const height = aspect >= 1 ? chosen.quality : even(chosen.quality / aspect);
-      const wrapper = chosen.backdrop === 'transparent' ? 'WebM, see-through' : 'MP4';
+      const width = aspect >= 1 ? even(chosen().quality * aspect) : chosen().quality;
+      const height = aspect >= 1 ? chosen().quality : even(chosen().quality / aspect);
+      const wrapper = chosen().backdrop === 'transparent' ? 'WebM, see-through' : 'MP4';
       const turn = stage ? motionSeconds(stage) : 0;
-      const length = chosen.motion === 'live' ? `up to ${MAX_SECONDS}s, you decide` : turn ? `${Math.min(turn, MAX_SECONDS).toFixed(1)}s of loop` : 'this model has no loop';
+      const length = chosen().motion === 'live' ? `up to ${MAX_SECONDS}s, you decide` : turn ? `${Math.min(turn, MAX_SECONDS).toFixed(1)}s of loop` : 'this model has no loop';
       return `${width} × ${height} · ${wrapper} · ${length}`;
     }
     if (kind === 'image') {
-      const aspect = ASPECT_OF[chosen.imageRatio];
-      if (!aspect) return `up to ${chosen.size} px · ${chosen.format.toUpperCase()} · cut to the model`;
-      const width = aspect >= 1 ? chosen.size : Math.round(chosen.size * aspect);
-      const height = aspect >= 1 ? Math.round(chosen.size / aspect) : chosen.size;
-      return `${width} × ${height} · ${chosen.format.toUpperCase()}`;
+      const aspect = ASPECT_OF[chosen().imageRatio];
+      if (!aspect) return `up to ${chosen().size} px · ${chosen().format.toUpperCase()} · cut to the model`;
+      const width = aspect >= 1 ? chosen().size : Math.round(chosen().size * aspect);
+      const height = aspect >= 1 ? Math.round(chosen().size / aspect) : chosen().size;
+      return `${width} × ${height} · ${chosen().format.toUpperCase()}`;
     }
-    return `A4 ${chosen.paper} · ${chosen.paper === 'landscape' ? '297 × 210' : '210 × 297'} mm · ${chosen.ink === 'code' ? 'drawn by the printer' : `a ${PRINT_SIZE} px picture`}`;
+    return `A4 ${chosen().paper} · ${chosen().paper === 'landscape' ? '297 × 210' : '210 × 297'} mm · ${chosen().ink === 'code' ? 'drawn by the printer' : `a ${PRINT_SIZE} px picture`}`;
   };
 
   const caption = (text?: string): void => {
@@ -400,7 +474,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     if (slider) slider.disabled = busy;
 
     if (busy) {
-      const live = kind === 'video' && chosen.motion === 'live';
+      const live = kind === 'video' && chosen().motion === 'live';
       actions.innerHTML = live
         ? `<button type="button" class="btn btn--accent" data-stop>${icon('pause')} Stop and keep it</button>`
         : `<button type="button" class="btn" data-stop>Cancel</button>`;
@@ -415,22 +489,25 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       return;
     }
 
-    const label = { video: chosen.motion === 'live' ? 'Start recording' : 'Make the video', image: 'Take the picture', print: 'Open the print dialog' }[kind];
-    actions.innerHTML = `<button type="button" class="btn btn--accent" data-go>${icon(TABS.find((t) => t.kind === kind)!.icon)} ${label}</button>`;
+    const label = { video: chosen().motion === 'live' ? 'Start recording' : 'Make the video', image: 'Take the picture', print: 'Open the print dialog' }[kind];
+    const timer = kind === 'image' || (kind === 'print' && chosen().ink === 'snapshot');
+    actions.innerHTML =
+      (timer ? `<button type="button" class="btn" data-timer title="Press, then put the pointer back on the model">${icon('pointer')} Take in 3s</button>` : '') +
+      `<button type="button" class="btn btn--accent" data-go>${icon(TABS.find((t) => t.kind === kind)!.icon)} ${label}</button>`;
     if (mine.error) return note(`It did not work: ${mine.error}`);
     if (kind === 'video') {
       note(
-        chosen.motion === 'live'
+        chosen().motion === 'live'
           ? `Play with the model in the frame — hover it, drag it, click it — and it is filmed as you go, up to ${MAX_SECONDS} seconds.`
           : 'The model turns once and every frame of that turn is drawn. Set the pose you want first: the film starts from it.',
       );
     } else if (kind === 'image') {
-      note('The model in the frame is the real one: hover it, drag it, pause it. The picture is taken the moment you press.');
+      note('The model in the frame is the real one: hover it, drag it, pause it. For a pose that only happens while the pointer is on it, use "Take in 3s" and hold it there.');
     } else {
       note(
-        chosen.ink === 'code'
+        chosen().ink === 'code'
           ? 'The printer draws the model itself, so it stays sharp at any size, in the pose the frame is in.'
-          : 'A picture of the frame exactly as it stands now, printed edge to edge.',
+          : 'A picture of the frame exactly as it stands, printed edge to edge. For a pose that needs the pointer on the model, use "Take in 3s".',
       );
     }
   };
@@ -484,6 +561,9 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     look = stageLook(found);
     const title = button.dataset.title || 'this model';
 
+    // a dialog that still holds a stage must give it back before it goes, or the model is
+    // carried off the page with it and the next one opens on whatever stage is left
+    unmount();
     dialog?.remove();
     dialog = document.createElement('dialog');
     dialog.className = 'maker';
@@ -501,9 +581,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
           <div class="maker__frame" data-frame data-shape="screen" style="--aspect:1" aria-label="${title}, in the frame it will be saved in">
             <div class="maker__live" data-live></div>
             <div class="maker__busy"><span class="maker__ring"></span><b data-busy-text>Working…</b></div>
-            <div class="maker__tools">
-              <button type="button" class="maker__tool" data-pause aria-pressed="false">${icon('pause')}<span>Pause</span></button>
-            </div>
+
           </div>
           <p class="maker__caption" data-caption></p>
         </div>
@@ -515,15 +593,20 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
         <div class="maker__actions" data-actions></div>
       </div>`;
     document.body.append(dialog);
+    dialog.addEventListener('cancel', (e) => {
+      // Escape: let it play out rather than vanish
+      if (closing) return;
+      e.preventDefault();
+      closeSmooth();
+    });
     dialog.addEventListener('close', () => {
       stopper?.abort();
-      window.clearInterval(fitTimer);
+      window.clearTimeout(fitTimer);
       unmount();
     });
     dialog.showModal();
     mount();
     ink = null;
-    roughAt = '';
     fillDialog();
     fit();
     void refit();
@@ -544,11 +627,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
   /** Everything a capture needs from the dialog: the frame, the backdrop, the margin. */
   const shot = (size: number, format: ImageFormat = 'png'): Parameters<typeof captureImage>[1] => ({
-    backdrop: chosen.backdrop,
+    backdrop: chosen().backdrop,
     look: paintNow(),
     format,
     size,
-    fill: chosen.fill,
+    fill: chosen().fill,
     aspect: aspectOf(),
   });
 
@@ -560,11 +643,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     paint();
     working('Drawing the picture…', 0.4);
     try {
-      mine.blob = await captureImage(stage, shot(chosen.size, chosen.format));
+      mine.blob = await captureImage(stage, shot(chosen().size, chosen().format));
       mine.url = URL.createObjectURL(mine.blob);
-      mine.name = `css-3d-lab-${mine.id}.${chosen.format === 'jpeg' ? 'jpg' : 'png'}`;
+      mine.name = `css-3d-lab-${mine.id}.${chosen().format === 'jpeg' ? 'jpg' : 'png'}`;
       const bitmap = await createImageBitmap(mine.blob);
-      mine.detail = `${bitmap.width} × ${bitmap.height}, ${chosen.format.toUpperCase()}.`;
+      mine.detail = `${bitmap.width} × ${bitmap.height}, ${chosen().format.toUpperCase()}.`;
       bitmap.close();
       track(`image/${mine.id}`);
     } catch (err) {
@@ -584,7 +667,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     }
     const mine: Job = { kind: 'video', id: modelId, progress: 0 };
     jobs.set('video', mine);
-    const live = chosen.motion === 'live';
+    const live = chosen().motion === 'live';
     stopper = new AbortController();
     busy = true;
     paint();
@@ -596,11 +679,12 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       const made: Recording = live
         ? await recordLive({
             stage,
-            ratio: chosen.ratio,
-            quality: chosen.quality,
-            backdrop: chosen.backdrop,
+            ratio: chosen().ratio,
+            quality: chosen().quality,
+            backdrop: chosen().backdrop,
             look: paintNow(),
-            fill: chosen.fill,
+            lookNow: () => paintNow(),
+            fill: chosen().fill,
             seconds: MAX_SECONDS,
             stop: stopper.signal,
             onTick: (seconds) => {
@@ -611,11 +695,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
           })
         : await recordModel({
             stage,
-            ratio: chosen.ratio,
-            quality: chosen.quality,
-            backdrop: chosen.backdrop,
+            ratio: chosen().ratio,
+            quality: chosen().quality,
+            backdrop: chosen().backdrop,
             look: paintNow(),
-            fill: chosen.fill,
+            fill: chosen().fill,
             signal: stopper.signal,
             onProgress: (done) => {
               mine.progress = done;
@@ -626,7 +710,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       mine.blob = made.blob;
       mine.url = URL.createObjectURL(made.blob);
       mine.progress = 1;
-      mine.name = `css-3d-lab-${mine.id}-${chosen.ratio.replace(':', 'x')}.${made.extension}`;
+      mine.name = `css-3d-lab-${mine.id}-${chosen().ratio.replace(':', 'x')}.${made.extension}`;
       mine.detail = live
         ? `${made.width} × ${made.height}, ${made.seconds.toFixed(1)}s filmed live.`
         : made.loops
@@ -648,8 +732,8 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
   const doPrint = async (): Promise<void> => {
     if (!stage) return;
-    if (chosen.ink === 'code') {
-      print?.(stage, { paper: chosen.paper, fill: chosen.fill });
+    if (chosen().ink === 'code') {
+      print?.(stage, { paper: chosen().paper, fill: chosen().fill });
       track(`print/${modelId}`);
       showThanks(trigger);
       return;
@@ -660,7 +744,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     try {
       const blob = await captureImage(stage, shot(PRINT_SIZE));
       const url = URL.createObjectURL(blob);
-      print?.(stage, { paper: chosen.paper, fill: chosen.fill, picture: url });
+      print?.(stage, { paper: chosen().paper, fill: chosen().fill, picture: url });
       track(`print-snapshot/${modelId}`);
       showThanks(trigger);
       setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
@@ -670,6 +754,28 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     busy = false;
     working(null);
     paint();
+  };
+
+  /**
+   * A model that only does something while the pointer is on it cannot be caught by pressing a
+   * button — the pointer has to leave it to do the pressing. So the shot can be set going a few
+   * seconds ahead: press, put the pointer back on the model, hold the pose, and it is taken there.
+   */
+  const countdown = (seconds: number, then: () => void): void => {
+    if (busy) return;
+    let left = seconds;
+    working(`Taking it in ${left}…`, 0);
+    const tick = window.setInterval(() => {
+      left -= 1;
+      if (left > 0) {
+        working(`Taking it in ${left}…`, 1 - left / seconds);
+        return;
+      }
+      window.clearInterval(tick);
+      if (!dialog?.open) return working(null);
+      working('Drawing it…', 1);
+      then();
+    }, 1000);
   };
 
   const go = (): void => {
@@ -682,9 +788,10 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   document.addEventListener('input', (e) => {
     const slider = (e.target as HTMLElement).closest<HTMLInputElement>('[data-zoom]');
     if (!slider || busy || !dialog?.open) return;
-    chosen.fill = Number(slider.value) / 100;
+    chosen().fill = Number(slider.value) / 100;
     const out = el<HTMLElement>('[data-zoom-out]');
     if (out) out.textContent = `${slider.value}%`;
+    slider.style.setProperty('--done', `${((Number(slider.value) - 25) / 75) * 100}%`);
     fit();
   });
 
@@ -708,9 +815,9 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
     const chip = target.closest<HTMLElement>('[data-pick]');
     if (chip) {
-      const name = chip.dataset.pick as keyof typeof chosen;
+      const name = chip.dataset.pick as keyof Setup;
       const raw = chip.dataset.value!;
-      (chosen[name] as unknown) = /^\d+$/.test(raw) ? Number(raw) : raw;
+      (chosen()[name] as unknown) = /^\d+$/.test(raw) ? Number(raw) : raw;
       for (const other of dialog.querySelectorAll<HTMLElement>(`[data-pick="${name}"]`)) other.setAttribute('aria-checked', String(other === chip));
       const frame = el<HTMLElement>('[data-frame]')!;
       const aspect = aspectOf();
@@ -725,19 +832,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       return;
     }
 
-    const pause = target.closest<HTMLElement>('[data-pause]');
-    if (pause && stage) {
-      const stopping = pause.getAttribute('aria-pressed') !== 'true';
-      for (const animation of stage.getAnimations({ subtree: true })) {
-        if (stopping) animation.pause();
-        else animation.play();
-      }
-      pause.setAttribute('aria-pressed', String(stopping));
-      pause.querySelector('span')!.textContent = stopping ? 'Play' : 'Pause';
-      return;
-    }
-
-    if (target.closest('[data-close]')) return dialog.close();
+    if (target.closest('[data-close]')) return closeSmooth();
     if (target.closest('[data-save]')) return save();
     if (target.closest('[data-again]')) {
       const mine = job();
@@ -747,8 +842,9 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       paint();
       return;
     }
+    if (target.closest('[data-timer]')) return countdown(3, go);
     if (target.closest('[data-go]')) return go();
-    if (target === dialog) dialog.close(); // the dark area around it
+    if (target === dialog) closeSmooth(); // the dark area around it
   });
 
   window.addEventListener('resize', () => {

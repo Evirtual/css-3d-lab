@@ -2049,22 +2049,26 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
 // The stage's wrapper. The stage's children are replaced on every mount, so anything that must
 // survive (full-screen button, "edited" notice) lives here instead.
+// The visitor's edited snippet, running in a frame in place of the built-in demo. The frame's
+// page is transparent, so the stage's backdrop shows behind an edited demo too. (A frame only
+// stays transparent when its colour scheme matches the page inside it, and a page that declares
+// none counts as light.)
+//
+// Not nested under .stage-wrap: the same stage is also shown inside the maker dialog, and a frame
+// that loses these rules falls back to 300 × 150 — a model adrift in a corner of its own frame.
+.live-frame {
+  color-scheme: light;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .stage-wrap {
   position: relative;
   color: var(--text); // its own theme, when it has one
 
-  // the visitor's edited snippet, running in a sandboxed frame in place of the built-in demo
-  // The frame's page is transparent, so the stage's backdrop shows behind an edited demo too.
-  // (A frame only stays transparent when its colour scheme matches the page inside it, and a
-  // page that declares none counts as light.)
-  .live-frame {
-    color-scheme: light;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
 
   &:fullscreen {
     background: var(--bg);
@@ -2726,14 +2730,28 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   max-height: min(92vh, 860px);
   padding: 0;
   overflow: hidden;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--glass-edge);
   border-radius: 22px;
-  background: var(--surface-solid);
+  // the same frosted panel the model dialog uses, so both read as the same kind of window
+  background: var(--glass);
+  backdrop-filter: blur(26px) saturate(1.6);
+  box-shadow:
+    0 40px 120px -20px rgb(0 0 0 / 0.8),
+    inset 0 1px 0 var(--glass-edge);
   color: var(--text);
 
+  &[open] {
+    animation: viewer-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @supports not (backdrop-filter: blur(1px)) {
+    background: var(--surface-solid);
+  }
+
+  // the same glass the model dialog stands on, so every modal in the app looks alike
   &::backdrop {
-    background: rgb(4 6 14 / 0.66);
-    backdrop-filter: blur(4px);
+    background: var(--glass-dim);
+    backdrop-filter: blur(10px) saturate(1.2);
   }
 
   // head: the three tabs, and the way out
@@ -2955,7 +2973,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   &__settings {
     display: grid;
     align-content: start;
-    gap: 14px;
+    gap: 16px;
   }
 
   &__set {
@@ -2966,19 +2984,28 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     legend {
       display: flex;
       align-items: baseline;
-      gap: 7px;
-      padding: 0 0 8px;
+      gap: 8px;
+      padding: 0 0 7px;
       color: var(--muted);
-      font-size: 10.5px;
-      font-weight: 600;
-      letter-spacing: 0.16em;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
+    }
+  }
 
-      output {
-        color: var(--text);
-        font-size: 12px;
-        letter-spacing: 0;
-      }
+  // label above, track and figure side by side
+  &__slider {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+
+    output {
+      color: var(--text);
+      font-size: 12.5px;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
     }
   }
 
@@ -2989,19 +3016,43 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
   &__opts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  // two choices are a switch, not two boxes
+  &__opts--seg {
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--border) 30%, transparent);
+
+    .maker__opt {
+      flex: 1 1 0;
+      border: 0;
+      border-radius: 11px;
+
+      &:hover:not([aria-checked='true']) {
+        background: color-mix(in srgb, var(--border) 45%, transparent);
+      }
+
+      &[aria-checked='true'] {
+        box-shadow: 0 3px 12px -3px var(--accent);
+      }
+    }
   }
 
   &__opt {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
-    padding: 9px 11px;
+    padding: 8px 10px;
     border: 1px solid var(--border-strong);
-    border-radius: 13px;
+    border-radius: 12px;
     background: transparent;
     color: var(--text);
     font: inherit;
@@ -3011,16 +3062,19 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
     b {
       display: block;
-      font-size: 12.5px;
+      overflow: hidden;
+      font-size: 12px;
       font-weight: 650;
       line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     small {
       display: block;
       overflow: hidden;
       color: var(--muted);
-      font-size: 10.5px;
+      font-size: 10px;
       line-height: 1.35;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -3034,6 +3088,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       border-color: transparent;
       background: linear-gradient(135deg, var(--accent), var(--hot));
       color: #fff;
+      box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 30%, transparent);
 
       small {
         color: rgb(255 255 255 / 0.82);
@@ -3085,11 +3140,58 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   // how much of the frame the model fills
   &__zoom {
     width: 100%;
-    accent-color: var(--accent);
+    height: 20px;
+    margin: 0;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+
+    &::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--hot)) 0 / var(--done, 60%) 100% no-repeat,
+        color-mix(in srgb, var(--border-strong) 70%, transparent);
+    }
+
+    &::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--hot)) 0 / var(--done, 60%) 100% no-repeat,
+        color-mix(in srgb, var(--border-strong) 70%, transparent);
+    }
+
+    &::-webkit-slider-thumb {
+      width: 16px;
+      height: 16px;
+      margin-top: -5px;
+      appearance: none;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow:
+        0 2px 8px rgb(0 0 0 / 0.5),
+        0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
+    }
+
+    &::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border: 0;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow:
+        0 2px 8px rgb(0 0 0 / 0.5),
+        0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
   }
 
   &__foot {
     flex: none;
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -3176,7 +3278,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     }
 
     &__opts {
-      grid-template-columns: repeat(auto-fit, minmax(136px, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     &__foot {
@@ -3206,6 +3308,15 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 .stage[data-in-maker] {
   border: 0;
   border-radius: 0;
+
+  // Its own dot layer would sit on top of the frame's, at a different size, and slide about with
+  // the model as it is scaled: one grid, painted by the frame, is what a backdrop is. Hidden by
+  // going clear rather than by display: none, so its colours can still be read off it when the
+  // backdrop is changed here.
+  &::before,
+  &::after {
+    opacity: 0 !important;
+  }
 }
 [data-make] {
   position: relative;

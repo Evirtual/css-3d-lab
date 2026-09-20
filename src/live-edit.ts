@@ -64,12 +64,20 @@ export class LiveEdit {
     return printDoc(this.title, { how: [], ...this.current }, size, `${site.url.replace('https://', '')}/models/${this.id}/`, look, held, clock, setup);
   }
 
-  /** A sandboxed frame running the current code, for showing an edited version live on a stage. */
+  /**
+   * A frame running the current code, for showing an edited version live on a stage.
+   *
+   * It is same-origin on purpose: a frame the page cannot read is a frame the page cannot
+   * photograph either, and an edited model would go into every picture, video and print as an
+   * empty box, framed as if the model filled the whole stage. The code inside is the visitor's own
+   * typing, kept in their own browser and never shared — and the print sheet has always run it
+   * this way.
+   */
   frame(stage: 'dark' | 'light'): HTMLIFrameElement {
     const frame = document.createElement('iframe');
     frame.className = 'live-frame';
     frame.title = `${this.title} — your edited version`;
-    frame.setAttribute('sandbox', 'allow-scripts');
+    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
     frame.srcdoc = standaloneDoc(this.title, { how: [], ...this.current }, stage, (sizes as Record<string, { size: number }>)[this.id]?.size ?? 1);
     return frame;
   }
