@@ -17,4 +17,8 @@ if (r.status !== 0) throw new Error(`could not read the "reels" release: ${r.std
 const sizes = new Map(JSON.parse(r.stdout).assets.map((a) => [a.name, a.size]));
 const wrong = ids.filter((id) => sizes.get(`css-3d-lab-${id}.mp4`) !== manifest[id].bytes);
 if (wrong.length) throw new Error(`reels: missing from the release or not the recorded size: ${wrong.join(', ')}`);
-console.log(`reels: all ${ids.length} listed videos are on the release at the recorded size`);
+// the same for the transparent stickers, where a model lists one
+const stickers = ids.filter((id) => manifest[id].webp);
+const wrongWebp = stickers.filter((id) => sizes.get(`css-3d-lab-${id}.webp`) !== manifest[id].webp);
+if (wrongWebp.length) throw new Error(`stickers: missing from the release or not the recorded size: ${wrongWebp.join(', ')}`);
+console.log(`reels: all ${ids.length} listed videos and ${stickers.length} stickers are on the release at the recorded size`);

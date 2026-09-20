@@ -11,7 +11,8 @@
     "icons": "node scripts/generate-icons.mjs",
     "dev": "npm run generate && vite",
     "build": "npm run generate && tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "stickers": "node scripts/generate-stickers.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",
