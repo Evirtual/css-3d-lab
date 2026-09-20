@@ -2,6 +2,7 @@ import { icon } from './icons';
 import {
   ASPECT_OF,
   canRecord,
+  canRecordClear,
   captureImage,
   MAX_SECONDS,
   motionSeconds,
@@ -45,8 +46,7 @@ const MOVIES: Choice<Movie>[] = [
   { value: 'webm-clear', label: 'WebM clear', hint: 'no backdrop' },
 ];
 
-/** What goes on paper: the model's own code (sharp at any size) or the view you made. */
-type Ink = 'code' | 'snapshot';
+
 
 interface Choice<T> {
   value: T;
@@ -97,10 +97,6 @@ const PAPERS: Choice<Paper>[] = [
   { value: 'landscape', label: 'Landscape', hint: 'A4 on its side' },
   { value: 'portrait', label: 'Portrait', hint: 'A4 upright' },
 ];
-const INKS: Choice<Ink>[] = [
-  { value: 'code', label: 'The model', hint: 'sharp at any size' },
-  { value: 'snapshot', label: 'This view', hint: 'the pose you made' },
-];
 
 const TABS: { kind: Kind; label: string; icon: 'film' | 'image' | 'printer' }[] = [
   { kind: 'video', label: 'Video', icon: 'film' },
@@ -146,7 +142,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     movie: Movie;
     size: number;
     paper: Paper;
-    ink: Ink;
     fill: number;
   }
   const fresh = (): Setup => ({
@@ -158,7 +153,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     movie: 'mp4',
     size: 1600,
     paper: 'landscape',
-    ink: 'code',
     fill: 0.65,
   });
   // one set of choices per tab: what you set up for a video stays on the video tab
@@ -183,6 +177,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   /** The stage's own backdrop, remembered before it moved (the frame paints it now). */
   let look: Paint | null = null;
   let closing = false;
+  /** Whether this browser can encode a see-through film. It cannot, today; it is asked all the same. */
+  let clearFilms = false;
+  void canRecordClear().then((can) => {
+    clearFilms = can;
+  });
 
   const job = (): Job => {
     let mine = jobs.get(kind);
@@ -197,7 +196,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
   /** The picture format, and whether this file keeps the backdrop. */
   const format = (): ImageFormat => (chosen().picture === 'jpeg' ? 'jpeg' : 'png');
-  const clear = (): boolean => (kind === 'image' ? chosen().picture === 'png-clear' : kind === 'video' ? chosen().movie === 'webm-clear' : false);
+  const clear = (): boolean => (kind === 'image' ? chosen().picture === 'png-clear' : kind === 'video' ? clearFilms && chosen().movie === 'webm-clear' : false);
   const backdrop = (): Backdrop => (clear() ? 'transparent' : 'stage');
 
   /* ---------- the shape of what is being made ---------- */
@@ -362,7 +361,12 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
         group('motion', 'What to film', MOTIONS, chosen().motion) +
         group('ratio', 'Shape', VIDEO_SHAPES, chosen().ratio, (item) => shapeSwatch(ASPECT_OF[item.value])) +
         group('quality', 'Quality', QUALITIES, chosen().quality) +
-        group('movie', 'File', MOVIES, chosen().movie) +
+        group(
+          'movie',
+          'File',
+          clearFilms ? MOVIES : [MOVIES[0], { ...MOVIES[1], hint: 'no browser can yet' }],
+          clearFilms ? chosen().movie : 'mp4',
+        ) +
         zoomSlider()
       );
     }
@@ -375,9 +379,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       );
     }
     return (
-      group('paper', 'Sheet', PAPERS, chosen().paper, (item) => shapeSwatch(item.value === 'landscape' ? A4 : 1 / A4)) +
-      group('ink', 'What to print', INKS, chosen().ink) +
-      zoomSlider()
+      group('paper', 'Sheet', PAPERS, chosen().paper, (item) => shapeSwatch(item.value === 'landscape' ? A4 : 1 / A4)) + zoomSlider()
     );
   };
 
@@ -399,7 +401,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       const height = aspect >= 1 ? Math.round(chosen().size / aspect) : chosen().size;
       return `${width} × ${height} · ${format().toUpperCase()}`;
     }
-    return `A4 ${chosen().paper} · ${chosen().paper === 'landscape' ? '297 × 210' : '210 × 297'} mm · ${chosen().ink === 'code' ? 'drawn by the printer' : `a ${PRINT_SIZE} px picture`}`;
+    return `A4 ${chosen().paper} · ${chosen().paper === 'landscape' ? '297 × 210' : '210 × 297'} mm · ${PRINT_SIZE} px, edge to edge`;
   };
 
   const caption = (text?: string): void => {
@@ -461,7 +463,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     }
 
     const label = { video: chosen().motion === 'live' ? 'Start recording' : 'Make the video', image: 'Take the picture', print: 'Open the print dialog' }[kind];
-    const timer = kind === 'image' || (kind === 'print' && chosen().ink === 'snapshot');
+    const timer = kind === 'image' || kind === 'print';
     actions.innerHTML =
       (timer ? `<button type="button" class="btn" data-timer title="Press, then put the pointer back on the model">${icon('pointer')} Take in 3s</button>` : '') +
       `<button type="button" class="btn btn--accent" data-go>${icon(TABS.find((t) => t.kind === kind)!.icon)} ${label}</button>`;
@@ -475,11 +477,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     } else if (kind === 'image') {
       note('The model in the frame is the real one: hover it, drag it, pause it. For a pose that only happens while the pointer is on it, use "Take in 3s" and hold it there.');
     } else {
-      note(
-        chosen().ink === 'code'
-          ? 'The printer draws the model itself, so it stays sharp at any size, in the pose the frame is in.'
-          : 'A picture of the frame exactly as it stands, printed edge to edge. For a pose that needs the pointer on the model, use "Take in 3s".',
-      );
+      note('The sheet is this frame, exactly as it stands, edge to edge. For a pose that needs the pointer on the model, use "Take in 3s".');
     }
   };
 
@@ -699,12 +697,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
   const doPrint = async (): Promise<void> => {
     if (!stage) return;
-    if (chosen().ink === 'code') {
-      print?.(stage, { paper: chosen().paper, fill: chosen().fill });
-      track(`print/${modelId}`);
-      showThanks(trigger);
-      return;
-    }
     busy = true;
     paint();
     working('Drawing the sheet…', 0.4);

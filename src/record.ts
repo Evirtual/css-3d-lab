@@ -71,6 +71,17 @@ export const MAX_SECONDS = 30;
 /** Is there any way to encode a video in this browser? */
 export const canRecord = (): boolean => typeof VideoEncoder !== 'undefined' && typeof createImageBitmap !== 'undefined';
 
+/** Can it encode one that is see-through? (No browser can, at the time of writing — but ask.) */
+export async function canRecordClear(): Promise<boolean> {
+  if (!canRecord()) return false;
+  try {
+    const support = await VideoEncoder.isConfigSupported({ codec: 'vp09.00.10.08', width: 480, height: 854, bitrate: 1e6, framerate: 30, alpha: 'keep' });
+    return Boolean(support.supported);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * What to film. An edited version runs inside its own frame, so the model (and the styles that
  * draw it) live in that frame's document, not in the page.
@@ -746,6 +757,8 @@ function paintDots(ctx: CanvasRenderingContext2D, paint: Paint, width: number, h
 
 interface OpenVideo {
   encoder: VideoEncoder;
+  /** What the encoder complained about, if anything: it says so on its own callback. */
+  readonly trouble: Error | null;
   finish: () => Promise<Blob>;
 }
 
@@ -754,24 +767,39 @@ async function openVideo(width: number, height: number, transparent: boolean): P
   // H.264 in an MP4 plays everywhere, but it cannot be see-through: a transparent video is VP9
   // in a WebM instead (Chrome, Edge and Firefox play it; most editors take it).
   const codec = transparent ? 'vp09.00.10.08' : 'avc1.4d0028';
-  const support = await VideoEncoder.isConfigSupported({ codec, width, height, bitrate: 8e6, framerate: FPS });
-  if (!support.supported) throw new Error('this browser cannot encode that format');
+  const wanted: VideoEncoderConfig = { codec, width, height, bitrate: 8e6, framerate: FPS, alpha: transparent ? 'keep' : 'discard' };
+  const support = await VideoEncoder.isConfigSupported(wanted);
+  if (!support.supported) {
+    throw new Error(
+      transparent
+        ? 'this browser cannot encode a see-through video (no browser can yet) — MP4 keeps the backdrop'
+        : 'this browser cannot encode that format',
+    );
+  }
   const target = transparent ? new WebmTarget() : new Mp4Target();
   // 'offset' because a live recording's first frame is taken a few milliseconds in, not at zero,
   // and a container insists its first frame starts the clock
   const muxer = transparent
     ? new WebmMuxer({ target: target as WebmTarget, video: { codec: 'V_VP9', width, height, frameRate: FPS }, firstTimestampBehavior: 'offset' })
     : new Mp4Muxer({ target: target as Mp4Target, video: { codec: 'avc', width, height }, fastStart: 'in-memory', firstTimestampBehavior: 'offset' });
+  // The encoder reports its trouble on a callback of its own. Throwing from there only closes the
+  // codec and the next encode complains about that instead, so it is kept and thrown where the
+  // frames are, in the visitor's own words.
+  let failed: Error | null = null;
   const encoder = new VideoEncoder({
     output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
     error: (err) => {
-      throw err;
+      failed = err instanceof Error ? err : new Error(String(err));
     },
   });
-  encoder.configure({ codec, width, height, bitrate: 8e6, framerate: FPS, alpha: transparent ? 'keep' : 'discard' });
+  encoder.configure(wanted);
   return {
     encoder,
+    get trouble(): Error | null {
+      return failed;
+    },
     finish: async (): Promise<Blob> => {
+      if (failed) throw failed;
       await encoder.flush();
       muxer.finalize();
       return new Blob([(target as Mp4Target | WebmTarget).buffer!], { type: transparent ? 'video/webm' : 'video/mp4' });
@@ -834,6 +862,7 @@ export async function recordLive({ stage, ratio, backdrop, look, lookNow, qualit
       video.encoder.encode(picture, { keyFrame: key || frames === 0 });
       picture.close();
       frames++;
+      if (video.trouble) throw video.trouble;
       onTick?.(when / 1000, frames);
       if (video.encoder.encodeQueueSize > 8) await new Promise((r) => setTimeout(r, 0));
       // never faster than the film's own frame rate; slower is fine, the timestamps carry the truth
@@ -898,6 +927,7 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
       const frame = new VideoFrame(canvas, { timestamp: Math.round((f * 1e6) / FPS), duration: Math.round(1e6 / FPS) });
       encoder.encode(frame, { keyFrame: f % (FPS * 2) === 0 });
       frame.close();
+      if (video.trouble) throw video.trouble;
       if (encoder.encodeQueueSize > 8) await new Promise((r) => setTimeout(r, 0));
       onProgress?.((f + 1) / frames);
     }
