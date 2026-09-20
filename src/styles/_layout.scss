@@ -1353,7 +1353,7 @@ $gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) sca
 // scene is a stretched bitmap: 3D layers go soft.) A filling scene keeps inset: 0, so it still
 // fills the stage, laid out at about a card's size.
 .stage > .scene {
-  zoom: calc(var(--fit, 1) * var(--size, 1));
+  zoom: calc(var(--fit, 1) * var(--size, 1) * var(--zoom, 1));
   // The camera is on the scene, INSIDE the zoom, so its distance grows with the demo: a demo
   // looks the same (not more dramatic) in a card, the dialog, the page and full screen.
   perspective: 800px;
@@ -2854,16 +2854,8 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     aspect-ratio: var(--aspect, 1);
     border: 1px solid var(--border);
     border-radius: 14px;
-    // the stage's own dots, then the backdrop colour, then a checkerboard for when there is none
-    background:
-      radial-gradient(var(--dot-color, transparent) var(--dot-size, 1px), transparent calc(var(--dot-size, 1px) + 0.9px)) 0 0 /
-        var(--dot-gap, 22px) var(--dot-gap, 22px),
-      linear-gradient(var(--paper, #0b0d18), var(--paper, #0b0d18)),
-      repeating-conic-gradient(rgb(255 255 255 / 0.05) 0% 25%, transparent 0% 50%) 0 0 / 18px 18px;
-
-    &[data-dots='no'] {
-      --dot-color: transparent;
-    }
+    // a checkerboard, for a file that is to have no backdrop: the stage paints everything else
+    background: repeating-conic-gradient(rgb(255 255 255 / 0.05) 0% 25%, transparent 0% 50%) 0 0 / 18px 18px;
 
     // a print is a sheet of paper: give it paper's shadow
     &[data-shape='sheet'] {
@@ -3305,17 +3297,20 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
 // a stage that has been moved into the maker dialog keeps its own size and loses its backdrop,
 // which the dialog's frame paints instead
+// The stage inside the maker's frame: the frame has the border, so the stage does not need one.
+// It keeps its backdrop — that is the whole point — unless the file is to be see-through, when it
+// shows the checkerboard behind it instead.
 .stage[data-in-maker] {
   border: 0;
   border-radius: 0;
 
-  // Its own dot layer would sit on top of the frame's, at a different size, and slide about with
-  // the model as it is scaled: one grid, painted by the frame, is what a backdrop is. Hidden by
-  // going clear rather than by display: none, so its colours can still be read off it when the
-  // backdrop is changed here.
-  &::before,
-  &::after {
-    opacity: 0 !important;
+  &[data-clear] {
+    background: transparent !important;
+
+    &::before,
+    &::after {
+      display: none !important;
+    }
   }
 }
 [data-make] {

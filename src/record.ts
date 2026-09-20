@@ -591,6 +591,17 @@ export interface ImageOptions {
   look?: Paint | 'none';
 }
 
+/** The stage itself, whole: the picture is of the stage, because the stage is the frame. */
+const wholeOf = (node: HTMLElement): Crop => ({ x: 0, y: 0, ...naturalBox(node) });
+
+/** The file's size in pixels: `size` on the long side, at the stage's own shape. */
+function frameFor(crop: Crop, size: number): { width: number; height: number } {
+  if (!(crop.width > 0) || !(crop.height > 0)) throw new Error('this model is not on screen, so there is nothing to draw');
+  const long = Math.max(crop.width, crop.height);
+  const even = (n: number): number => Math.max(2, Math.round(n / 2) * 2);
+  return { width: even((crop.width / long) * size), height: even((crop.height / long) * size) };
+}
+
 /** The frame in pixels: the chosen shape at this size, or one cut to the model with room around it. */
 function frameOf(crop: Crop, size: number, fill: number, aspect: number | null): { width: number; height: number } {
   if (!(crop.width > 0) || !(crop.height > 0)) throw new Error('this model is not on screen, so there is nothing to draw');
@@ -622,7 +633,8 @@ function paintFrame(
   if (paint) {
     ctx.fillStyle = paint.color;
     ctx.fillRect(0, 0, frame.width, frame.height);
-    paintDots(ctx, paint, frame.width, frame.height, zoom); // the same grid the stage shows
+    // the same grid the stage shows, at the size the picture is: the stage's own dots, no denser
+    paintDots(ctx, paint, frame.width, frame.height, frame.width / (crop.width || frame.width));
   }
   const shown = { width: crop.width * zoom, height: crop.height * zoom };
   const scale = Math.min((frame.width * fill) / shown.width, (frame.height * fill) / shown.height);
@@ -631,7 +643,7 @@ function paintFrame(
   ctx.drawImage(img, crop.x * zoom, crop.y * zoom, shown.width, shown.height, (frame.width - w) / 2, (frame.height - h) / 2, w, h);
 }
 
-export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, fill = FILL, aspect = null, look }: ImageOptions = {}): Promise<Blob> {
+export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, look }: ImageOptions = {}): Promise<Blob> {
   const stand = understudy(stage);
   let img: HTMLImageElement;
   let crop: Crop;
@@ -639,17 +651,9 @@ export async function captureImage(stage: HTMLElement, { backdrop = 'stage', for
   let zoom: number;
   try {
     const css = styleSheetText(stand.doc, stand.node);
-    const seconds = motionSeconds(stage);
-    const starts = new WeakMap<Animation, number>();
-    const step = (t: number): void => seek(stand.node, t, starts);
-    // The frame is the one the whole turn fits in, so a picture, a video and a print of the same
-    // model are framed alike; the pose drawn in it is the one on screen, which is where the
-    // stand-in is put back to before anything is drawn.
-    const rough = drawnCrop(stand.node, step, seconds);
-    crop = await inkCrop(stand.node, css, step, seconds, rough);
-    restore(stand.node, starts, new Set());
-    frame = frameOf(crop, size, fill, aspect);
-    zoom = zoomFor(crop, frame, fill);
+    crop = wholeOf(stand.node);
+    frame = frameFor(crop, size);
+    zoom = Math.min(4, Math.max(1, frame.width / crop.width));
     img = await frameImage(stand.node, css, zoom);
   } finally {
     stand.close();
@@ -661,7 +665,7 @@ export async function captureImage(stage: HTMLElement, { backdrop = 'stage', for
   canvas.width = frame.width;
   canvas.height = frame.height;
   const ctx = canvas.getContext('2d', { alpha: !paint })!;
-  paintFrame(ctx, img, crop, zoom, frame, fill, paint);
+  paintFrame(ctx, img, crop, zoom, frame, 1, paint);
   const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, `image/${format}`, format === 'jpeg' ? 0.92 : undefined));
   if (!blob) throw new Error('the picture could not be saved');
   return blob;
@@ -719,16 +723,6 @@ export async function captureLoop(stage: HTMLElement, { backdrop = 'stage', form
   return { frames: shots, seconds };
 }
 
-/** Puts every animation back where it was before the frames were taken. */
-function restore(node: HTMLElement, starts: WeakMap<Animation, number>, playing: Set<Animation>): void {
-  if (!node.isConnected) return;
-  for (const animation of node.getAnimations({ subtree: true })) {
-    const start = starts.get(animation);
-    if (start !== undefined) animation.currentTime = start;
-    if (playing.has(animation)) animation.play();
-  }
-}
-
 /** The backdrop for this capture: the one handed in, or the one the stage is showing. */
 const paintOf = (stage: HTMLElement, backdrop: Backdrop, look?: Paint | 'none'): Paint | null => {
   if (look === 'none') return null;
@@ -736,10 +730,10 @@ const paintOf = (stage: HTMLElement, backdrop: Backdrop, look?: Paint | 'none'):
 };
 
 /** The stage's dot grid, drawn as circles at the picture's scale. */
-function paintDots(ctx: CanvasRenderingContext2D, paint: Paint, width: number, height: number, zoom: number): void {
+function paintDots(ctx: CanvasRenderingContext2D, paint: Paint, width: number, height: number, scale: number): void {
   if (!paint.dots) return;
-  const gap = paint.dots.gap * zoom;
-  const radius = paint.dots.radius * zoom;
+  const gap = paint.dots.gap * scale;
+  const radius = paint.dots.radius * scale;
   ctx.fillStyle = paint.dots.color;
   for (let y = gap / 2; y < height; y += gap) {
     for (let x = gap / 2; x < width; x += gap) {
@@ -808,7 +802,7 @@ export interface LiveOptions {
  * when you touch it — a drag, a hover, a click — gets into a video at all. Frames carry the real
  * time they were taken, so the film plays back at life speed even where drawing them was slow.
  */
-export async function recordLive({ stage, ratio, backdrop, look, lookNow, quality = 1080, fill = FILL, seconds = MAX_SECONDS, onTick, stop }: LiveOptions): Promise<Recording> {
+export async function recordLive({ stage, ratio, backdrop, look, lookNow, quality = 1080, seconds = MAX_SECONDS, onTick, stop }: LiveOptions): Promise<Recording> {
   if (!canRecord()) throw new Error('this browser cannot make videos yet');
   const frame = frameSize(ratio, quality);
   const transparent = backdrop === 'transparent';
@@ -821,16 +815,8 @@ export async function recordLive({ stage, ratio, backdrop, look, lookNow, qualit
   const paint = paintOf(stage, backdrop, look);
   // measured once, with the model left alone: it is being played with, so nothing may be moved.
   // A little room is added, since what the visitor does may reach past where it started.
-  const measured = await inkCrop(source.node, css, () => {}, 0, drawnCrop(source.node, () => {}, 0));
-  const box = naturalBox(source.node);
-  const room = 0.12;
-  const crop = {
-    x: Math.max(0, measured.x - measured.width * room),
-    y: Math.max(0, measured.y - measured.height * room),
-    width: Math.min(box.width, measured.width * (1 + room * 2)),
-    height: Math.min(box.height, measured.height * (1 + room * 2)),
-  };
-  const zoom = zoomFor(crop, frame, fill);
+  const crop = wholeOf(source.node);
+  const zoom = Math.min(4, Math.max(1, frame.width / crop.width));
   const video = await openVideo(frame.width, frame.height, transparent);
   const started = performance.now();
   let frames = 0;
@@ -841,7 +827,7 @@ export async function recordLive({ stage, ratio, backdrop, look, lookNow, qualit
       const img = await frameImage(source.node, css, zoom);
       const when = performance.now() - started;
       if (when >= seconds * 1000) break;
-      paintFrame(ctx, img, crop, zoom, frame, fill, lookNow ? paintOf(stage, backdrop, lookNow()) : paint);
+      paintFrame(ctx, img, crop, zoom, frame, 1, lookNow ? paintOf(stage, backdrop, lookNow()) : paint);
       const key = when - lastKey >= 2000;
       if (key) lastKey = when;
       const picture = new VideoFrame(canvas, { timestamp: Math.round(when * 1000) });
@@ -874,7 +860,7 @@ export async function recordLive({ stage, ratio, backdrop, look, lookNow, qualit
  * Draws every frame of one loop and encodes them. The picture is fitted inside the chosen shape
  * with room around it, the same way the site frames a model.
  */
-export async function recordModel({ stage, ratio, backdrop, look, quality = 1080, fill = FILL, onProgress, signal }: RecordOptions): Promise<Recording> {
+export async function recordModel({ stage, ratio, backdrop, look, quality = 1080, onProgress, signal }: RecordOptions): Promise<Recording> {
   if (!canRecord()) throw new Error('this browser cannot make videos yet');
   const { width, height } = frameSize(ratio, quality);
   const transparent = backdrop === 'transparent';
@@ -892,11 +878,10 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
   const frames = Math.round(seconds * FPS);
   const starts = new WeakMap<Animation, number>();
   const paint = paintOf(stage, backdrop, look);
-  const rough = drawnCrop(source.node, (t) => seek(source.node, t, starts), seconds);
-  const crop = await inkCrop(source.node, css, (t) => seek(source.node, t, starts), seconds, rough);
-  // enough resolution that the model fills the frame sharply, without asking the browser to
+  const crop = wholeOf(source.node);
+  // enough resolution that the stage fills the frame sharply, without asking the browser to
   // rasterise more than it needs
-  const zoom = Math.min(4, Math.max(1, Math.min((width * fill) / crop.width, (height * fill) / crop.height)));
+  const zoom = Math.min(4, Math.max(1, width / crop.width));
 
   const video = await openVideo(width, height, transparent);
   const encoder = video.encoder;
@@ -908,7 +893,7 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
       seek(source.node, (f * 1000) / FPS, starts);
       const img = await frameImage(source.node, css, zoom);
 
-      paintFrame(ctx, img, crop, zoom, { width, height }, fill, paint);
+      paintFrame(ctx, img, crop, zoom, { width, height }, 1, paint);
 
       const frame = new VideoFrame(canvas, { timestamp: Math.round((f * 1e6) / FPS), duration: Math.round(1e6 / FPS) });
       encoder.encode(frame, { keyFrame: f % (FPS * 2) === 0 });

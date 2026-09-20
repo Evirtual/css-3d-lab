@@ -3,8 +3,6 @@ import {
   ASPECT_OF,
   canRecord,
   captureImage,
-  drawnBoxOf,
-  inkBoxOf,
   MAX_SECONDS,
   motionSeconds,
   recordLive,
@@ -175,16 +173,16 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   let busy = false;
   let stopper: AbortController | null = null;
   const jobs = new Map<Kind, Job>();
+  /** The shape the stage had on the page, which is what 'Auto' means. */
+  let shape = 1;
+
   /** Where the stage came from, so it goes back exactly there. */
   let home: { node: HTMLElement; style: string; inner: HTMLElement; innerStyle: string; parent: Node; hold: HTMLElement } | null = null;
   /** The dialog's own copy of an edited model, which is its to throw away. */
   let copied: HTMLElement | null = null;
   /** The stage's own backdrop, remembered before it moved (the frame paints it now). */
   let look: Paint | null = null;
-  let fitTimer = 0;
   let closing = false;
-  /** Where the model puts ink, measured from its pixels — the same box the capture frames on. */
-  let ink: { x: number; y: number; width: number; height: number } | null = null;
 
   const job = (): Job => {
     let mine = jobs.get(kind);
@@ -205,25 +203,33 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   /* ---------- the shape of what is being made ---------- */
   const aspectOf = (which: Kind = kind): number | null => {
     if (which === 'video') return ASPECT_OF[chosen().ratio];
-    if (which === 'image') return ASPECT_OF[chosen().imageRatio];
+    if (which === 'image') return ASPECT_OF[chosen().imageRatio] ?? shape;
     return chosen().paper === 'landscape' ? A4 : 1 / A4;
   };
 
   /** The backdrop for the current choice, as numbers the frame and the capture both use. */
-  const paintNow = (): Paint | 'none' => (clear() ? 'none' : (look ?? { color: '#0b0d18' }));
+  const paintNow = (): Paint | 'none' => {
+    if (clear()) return 'none';
+    const fresh = stage ? stageLook(stage) : null;
+    if (fresh) look = fresh;
+    return look ?? { color: '#0b0d18' };
+  };
 
   /* ---------- the model, lifted into the frame and put back afterwards ---------- */
-  /** Lays the panel over the frame and the stage inside it at the size it had on the page. */
-  const dress = (panel: HTMLElement, inner: HTMLElement, box: DOMRect): void => {
+  /**
+   * The stage becomes the frame: it fills it, and the site's own sizing (--fit, which watches
+   * every stage) lays the model out for that size — exactly as it does in a card, in the model
+   * dialog and at full screen. Nothing here scales anything, which is what used to drift.
+   */
+  const dress = (panel: HTMLElement, inner: HTMLElement): void => {
     if (panel !== inner) panel.style.cssText += ';position:absolute;inset:0;margin:0';
-    inner.style.cssText += `;position:absolute;left:0;top:0;width:${box.width}px;height:${box.height}px;margin:0;background:none`;
+    inner.style.cssText += ';position:absolute;inset:0;width:auto;height:auto;margin:0';
     inner.dataset.inMaker = '';
   };
 
   const mount = (): void => {
     const frame = el<HTMLElement>('[data-live]');
     if (!stage || !frame) return;
-    const box = stage.getBoundingClientRect();
     // The whole stage panel comes across, not just the model: its Pause and Hold hover switches,
     // its dots and its light or dark — the same controls, in the same place, doing the same thing.
     // They are wired to the document and find their stage by looking upwards, so they carry on
@@ -239,12 +245,12 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       copied = copy;
       const inner = copy.classList.contains('stage') ? copy : copy.querySelector<HTMLElement>('.stage');
       if (!inner) return;
-      dress(copy, inner, box);
+      dress(copy, inner);
       home = null;
       stage = inner;
       // it has to load, lay itself out and paint before there is anything to measure
       const settle = (): void => {
-        requestAnimationFrame(() => requestAnimationFrame(() => { fit(); void refit(); }));
+        requestAnimationFrame(() => requestAnimationFrame(fit));
       };
       copy.querySelector('iframe')?.addEventListener('load', settle);
       window.setTimeout(settle, 700);
@@ -264,7 +270,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     };
     home.parent.insertBefore(keep, panel);
     frame.append(panel);
-    dress(panel, stage, box);
+    dress(panel, stage);
   };
 
   const unmount = (): void => {
@@ -284,58 +290,21 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   };
 
   /**
-   * Puts the model in the frame the way the file will have it: what it draws is measured, scaled
-   * to the share of the frame the slider asks for, and moved to the middle — the same three steps
-   * the capture takes, so the frame and the file agree.
+   * How big the model is inside its stage. The site already has a knob for this — the scene is
+   * zoomed by `--fit × --size` — so the slider writes --size and the model grows or shrinks the
+   * way it would anywhere else on the site. 65% is the site's own framing, so that is 1.
    */
   const fit = (): void => {
     const frame = el<HTMLElement>('[data-frame]');
-    const live = stage; // the model is scaled; the panel's own switches stay their own size
-    if (!stage || !frame || !live || frame.dataset.shows) return;
-    live.style.transform = 'none';
-    const rough = drawnBoxOf(stage);
-    if (ink && rough.width > 0 && (ink.width / rough.width < 0.6 || ink.width / rough.width > 1.6)) {
-      ink = null;
-      void refit();
-    }
-    const drawn = ink ?? rough;
-    const inner = frame.getBoundingClientRect();
-    const paint = paintNow();
-    frame.style.setProperty('--paper', paint === 'none' ? 'transparent' : paint.color);
-    frame.dataset.dots = paint !== 'none' && paint.dots ? 'yes' : 'no';
-    if (!drawn.width || !drawn.height || !inner.width) return;
-    const scale = Math.min((inner.width * chosen().fill) / drawn.width, (inner.height * chosen().fill) / drawn.height);
-    const centreX = drawn.x + drawn.width / 2;
-    const centreY = drawn.y + drawn.height / 2;
-    live.style.transformOrigin = `${centreX}px ${centreY}px`;
-    live.style.transform = `translate(${(inner.width / 2 - centreX).toFixed(2)}px, ${(inner.height / 2 - centreY).toFixed(2)}px) scale(${scale.toFixed(4)})`;
-    // the frame's own dots are the stage's, at the size the model is shown at here
-    if (paint !== 'none' && paint.dots) {
-      frame.style.setProperty('--dot-gap', `${(paint.dots.gap * scale).toFixed(2)}px`);
-      frame.style.setProperty('--dot-size', `${(paint.dots.radius * scale).toFixed(2)}px`);
-      frame.style.setProperty('--dot-color', paint.dots.color);
-    }
-  };
-
-  /**
-   * The ink is measured by drawing the model once, so it is not something to do on every frame:
-   * it is taken when the dialog opens and again whenever the model has visibly changed shape.
-   */
-  const refit = async (): Promise<void> => {
-    if (!stage || busy) return;
-    const mine = stage;
-    try {
-      const box = await inkBoxOf(mine);
-      if (stage !== mine || !dialog?.open) return;
-      ink = box;
-      // 'Auto' has no shape of its own: it takes the model's, once, when the ink is measured
-      if (kind === 'image' && chosen().imageRatio === 'auto' && box.width && box.height) {
-        el<HTMLElement>('[data-frame]')?.style.setProperty('--aspect', (box.width / box.height).toFixed(4));
-      }
-      fit();
-    } catch {
-      /* a model that cannot be drawn keeps the rough framing */
-    }
+    if (!stage || !frame) return;
+    frame.style.setProperty('--aspect', String(aspectOf() ?? shape));
+    // the site's own zoom takes a third factor, so this neither fights --fit nor a demo's --size
+    const zoom = (chosen().fill / 0.65).toFixed(3);
+    stage.style.setProperty('--zoom', zoom);
+    // an edited model lays itself out inside its own frame, which knows nothing of our variables
+    const framed = stage.querySelector<HTMLIFrameElement>('iframe');
+    if (framed) framed.style.zoom = zoom;
+    stage.toggleAttribute('data-clear', clear());
   };
 
   /** Closing fades the dialog out rather than snapping it away. */
@@ -349,21 +318,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
         closing = false;
         dialog?.close();
       });
-  };
-
-  /**
-   * Playing with a model can change its size for good — another face, more sides, a part dragged
-   * out. That is worth measuring again; a model simply going round its loop is not, because the
-   * box already covers the whole turn. So this waits until the playing stops.
-   */
-  const watchFit = (): void => {
-    const live = el<HTMLElement>('[data-live]');
-    if (!live) return;
-    const later = (): void => {
-      window.clearTimeout(fitTimer);
-      fitTimer = window.setTimeout(() => void refit(), 600);
-    };
-    for (const event of ['pointerup', 'pointerleave', 'input', 'change', 'keyup']) live.addEventListener(event, later);
   };
 
   /* ---------- the settings column ---------- */
@@ -572,6 +526,8 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     modelId = button.dataset.model ?? 'model';
     if (jobs.size && [...jobs.values()][0].id !== modelId) jobs.clear();
     look = stageLook(found);
+    const box = found.getBoundingClientRect();
+    shape = box.height > 0 ? box.width / box.height : 1;
     const title = button.dataset.title || 'this model';
 
     // a dialog that still holds a stage must give it back before it goes, or the model is
@@ -614,17 +570,12 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     });
     dialog.addEventListener('close', () => {
       stopper?.abort();
-      window.clearTimeout(fitTimer);
       unmount();
     });
     dialog.showModal();
     mount();
-    ink = null;
     fillDialog();
     fit();
-    void refit();
-    window.setTimeout(() => void refit(), 400);
-    watchFit();
   };
 
   /* ---------- making things ---------- */
@@ -639,14 +590,12 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     showThanks(trigger);
   };
 
-  /** Everything a capture needs from the dialog: the frame, the backdrop, the margin. */
+  /** Everything a capture needs from the dialog: how big, which file, and the backdrop. */
   const shot = (size: number, format: ImageFormat = 'png'): Parameters<typeof captureImage>[1] => ({
     backdrop: backdrop(),
     look: paintNow(),
     format,
     size,
-    fill: chosen().fill,
-    aspect: aspectOf(),
   });
 
   const takePicture = async (): Promise<void> => {
@@ -848,15 +797,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
 
     // Pause, Hold hover, the dots, light or dark: the panel's own switches, doing their own work.
     // Whatever they changed about the backdrop is read back off the stage and painted in the frame.
-    if (stage && target.closest('[data-live]')) {
-      requestAnimationFrame(() => {
-        if (!stage) return;
-        const fresh = stageLook(stage);
-        if (fresh) look = fresh;
-        fit();
-      });
-      return;
-    }
+    if (stage && target.closest('[data-live]')) return; // the stage's own switches, doing their own work
 
     if (target.closest('[data-close]')) return closeSmooth();
     if (target.closest('[data-save]')) return save();
