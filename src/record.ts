@@ -88,6 +88,44 @@ function sourceOf(stage: HTMLElement): { node: HTMLElement; doc: Document } {
  */
 const fetchesAFile = (cssText: string): boolean => /url\(\s*['"]?(?!data:)/i.test(cssText);
 
+/**
+ * A copy of the model is not under the pointer and holds no focus, so every :hover and :focus rule
+ * would quietly stop applying — which is how a door that is open on screen comes out shut, and why
+ * a model that only does something while you touch it could not be filmed at all. Each of these
+ * states is written as a mark instead, and the copy is given the marks the real model has.
+ */
+const STATES: { pseudo: string; mark: string }[] = [
+  { pseudo: ':hover', mark: 'data-c3d-hover' },
+  { pseudo: ':focus-within', mark: 'data-c3d-focus-within' },
+  { pseudo: ':focus-visible', mark: 'data-c3d-focus-visible' },
+  { pseudo: ':focus', mark: 'data-c3d-focus' },
+  { pseudo: ':active', mark: 'data-c3d-active' },
+];
+
+/** The same selector, with those states written as marks the copy can actually carry. */
+function asMarks(selector: string): string {
+  let out = selector;
+  for (const state of STATES) out = out.split(state.pseudo).join(`[${state.mark}]`);
+  return out;
+}
+
+/** Gives the copy the states the live model is in right now. */
+function markStates(live: HTMLElement, copy: HTMLElement): void {
+  const liveNodes = [live, ...live.querySelectorAll<HTMLElement>('*')];
+  const copies = [copy, ...copy.querySelectorAll<HTMLElement>('*')];
+  liveNodes.forEach((source, i) => {
+    const target = copies[i];
+    if (!target) return;
+    for (const state of STATES) {
+      try {
+        if (source.matches(state.pseudo)) target.setAttribute(state.mark, '');
+      } catch {
+        /* a browser that cannot test this state */
+      }
+    }
+  });
+}
+
 /** Does this selector pick out anything inside the model? (a selector we cannot test is kept) */
 function touches(selector: string, root: HTMLElement): boolean {
   const plain = selector.replace(/::[\w-]+(\([^)]*\))?/g, '').replace(/:(hover|focus|focus-visible|focus-within|active|checked|target)\b/g, '');
@@ -118,14 +156,14 @@ function styleSheetText(doc: Document = document, root?: HTMLElement): string {
       // keeping these rules would freeze fresh elements at their fly-in state — usually invisible.
       if (rule.cssText.startsWith('@starting-style')) continue;
       if (rule instanceof CSSStyleRule) {
-        if (!root || touches(rule.selectorText, root)) rules.push(rule.cssText);
+        if (!root || touches(rule.selectorText, root)) rules.push(`${asMarks(rule.selectorText)}{${rule.style.cssText}}`);
       } else if (rule instanceof CSSGroupingRule) {
         // @media / @supports / @layer: keep the wrapper, but only the rules inside that are used
         const inner: string[] = [];
         for (const child of rule.cssRules) {
           if (fetchesAFile(child.cssText)) continue;
           if (child instanceof CSSStyleRule && root && !touches(child.selectorText, root)) continue;
-          inner.push(child.cssText);
+          inner.push(child instanceof CSSStyleRule ? `${asMarks(child.selectorText)}{${child.style.cssText}}` : child.cssText);
         }
         if (inner.length) rules.push(`${rule.cssText.slice(0, rule.cssText.indexOf('{') + 1)}\n${inner.join('\n')}\n}`);
       } else {
@@ -211,6 +249,7 @@ async function frameImage(node: HTMLElement, css: string, zoom: number): Promise
   // the copy is drawn exactly as the browser draws the model itself, one pose later: nothing is
   // reordered or hidden here, because the browser gets 3D right on its own
   const posed = freezePose(node, copy);
+  markStates(node, copy);
   // The copy is on its own now: it needs the size it had on the page, and the scale the site keeps
   // on the page root (--fit), or the model lays out small and in the corner.
   copy.style.width = `${box.width}px`;

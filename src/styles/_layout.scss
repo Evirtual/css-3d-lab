@@ -3223,23 +3223,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     transition: transform 0.15s linear;
   }
 
-  // the first capture takes a moment: say so on the button that was pressed
-  &.is-busy {
-    cursor: progress;
-
-    &::after {
-      content: '';
-      position: absolute;
-      right: 8px;
-      bottom: 6px;
-      left: 8px;
-      height: 2px;
-      border-radius: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent-2), transparent);
-      animation: maker-sweep 1s ease-in-out infinite;
-    }
-  }
-
   &.is-ready {
     border-color: transparent;
     background: linear-gradient(135deg, var(--accent), var(--hot));
@@ -3247,12 +3230,3 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 }
 
-@keyframes maker-sweep {
-  from {
-    transform: translateX(-60%);
-  }
-
-  to {
-    transform: translateX(60%);
-  }
-}

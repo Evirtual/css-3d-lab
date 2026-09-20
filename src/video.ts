@@ -476,7 +476,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   const open = (button: HTMLElement, which: Kind): void => {
     const found = button.closest('.viewer__panel, .page-main, body')?.querySelector<HTMLElement>('.stage');
     if (!found) return;
-    trigger?.classList.remove('is-busy');
     trigger = button;
     stage = found;
     kind = which;
@@ -520,7 +519,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       stopper?.abort();
       window.clearInterval(fitTimer);
       unmount();
-      trigger?.classList.remove('is-busy');
     });
     dialog.showModal();
     mount();
