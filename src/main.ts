@@ -263,7 +263,9 @@ function applyFilters(): void {
 hydrateIcons();
 initAnalytics();
 trackDownloads(track);
-initVideoMaker(track);
+// print goes through the same preview dialog; the open model sets this up (see the viewer)
+let printOpenModel: ((stage: HTMLElement) => void) | null = null;
+initVideoMaker(track, (stage) => printOpenModel?.(stage));
 initThanks();
 initHero();
 initShapes();
@@ -435,6 +437,7 @@ function openViewer(id: string): void {
       </section>
     </div>`;
 
+  printOpenModel = (stage) => printModel(live, stage);
   const stageEl = viewerBody.querySelector<HTMLElement>('.stage')!;
   // "Hold hover" only where the model reacts to hover
   markHolds(stageEl, live.current.css);
@@ -514,11 +517,6 @@ function openViewer(id: string): void {
     }
     const act = target.closest<HTMLButtonElement>('[data-act]');
     if (act?.dataset.act === 'share') return openShareMenu(id, demo.title);
-    if (act?.dataset.act === 'print') {
-      track(`print/${id}`);
-      printModel(live, stageEl); // the print dialog, right here; "Save as PDF" is in there
-      return;
-    }
     if (act?.dataset.act === 'newtab') {
       track(`run/${id}`);
       window.open(URL.createObjectURL(new Blob([live.doc()], { type: 'text/html' })), '_blank', 'noopener');

@@ -164,7 +164,8 @@ ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
 // The moment on the stage when Print was pressed (ms into its animations): the print shows that pose.
 var CLOCK = ${clock === null ? 'null' : Math.round(clock)};
 // Every model prints the same size: measure what is actually drawn (the union of every visible
-// part, 3D turns included), zoom that to 82% of the area inside the margins (about 73% of the page), then move it to the exact middle.
+// part, 3D turns included), zoom it to two thirds of the sheet — the same share of the frame the
+// model fills in a card, in a saved picture and in a video — then move it to the exact middle.
 // Again just before printing, because the printed page is a different size from the window.
 function drawn(root) {
   var r = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
@@ -216,7 +217,7 @@ function fitPrint(freeze) {
   // the zoom, so one step can land short. A few rounds settle it.
   var z = 1;
   for (var round = 0; round < 5; round++) {
-    var k = Math.min((a.width * 0.82) / (d.r - d.l), (a.height * 0.82) / (d.b - d.t));
+    var k = Math.min((a.width * 0.667) / (d.r - d.l), (a.height * 0.667) / (d.b - d.t));
     if (Math.abs(k - 1) < 0.02) break;
     z = Math.min(z * k, 40);
     model.style.zoom = z.toFixed(3);

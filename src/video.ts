@@ -2,16 +2,15 @@ import { icon } from './icons';
 import { canRecord, captureImage, recordModel, type Backdrop, type ImageFormat, type Quality, type Ratio, type Recording } from './record';
 
 /**
- * "Video" and "Image": both are made here, in the visitor's browser, from the model on the stage —
- * their edits, their pose, their backdrop (see record.ts). Nothing is stored on the server, so a
- * file can never be the old version of a model.
+ * Video, Image and Print all work the same way: press one, and a dialog shows the file itself —
+ * a real capture of the model on the stage, not a mock-up of it. What is on that screen is what
+ * gets saved, so nothing can turn out different afterwards.
  *
- * Each button opens the same small dialog with the choices that fit it, fills a bar while the work
- * runs, then offers the file. Closing the dialog does not stop the work: the button carries the
- * progress and becomes the download when the file is ready.
+ * While the dialog is open the model is held still and cannot be played with, so the thing being
+ * captured cannot change underneath it. Closing the dialog lets the model run again.
  */
 
-type Kind = 'video' | 'image';
+type Kind = 'video' | 'image' | 'print';
 
 interface Choice<T> {
   value: T;
@@ -45,17 +44,18 @@ const BACKDROPS: Choice<Backdrop>[] = [
   { value: 'transparent', label: 'Transparent', hint: 'Your own background' },
 ];
 
-/** The two "take it with you" buttons: everything else comes from the stage when they are pressed. */
+const TITLES: Record<Kind, string> = { video: 'Make a video', image: 'Save an image', print: 'Print or save as PDF' };
+const ICONS: Record<Kind, 'film' | 'image' | 'printer'> = { video: 'film', image: 'image', print: 'printer' };
+
+/** The buttons. Everything else comes from the stage when one of them is pressed. */
 export const videoButton = (id: string, className = 'btn', title = ''): string =>
-  `<button type="button" class="${className}" data-make="video" data-model="${id}" data-title="${title}" title="Make a video of this model as it looks now">${icon('film')} Video</button>` +
-  `<button type="button" class="${className}" data-make="image" data-model="${id}" data-title="${title}" title="Save a picture of this model as it looks now">${icon('image')} Image</button>`;
+  `<button type="button" class="${className}" data-make="video" data-model="${id}" data-title="${title}">${icon('film')} Video</button>` +
+  `<button type="button" class="${className}" data-make="image" data-model="${id}" data-title="${title}">${icon('image')} Image</button>`;
 
 /** What is being made (or was just made) — only ever one at a time. */
 interface Job {
   kind: Kind;
   id: string;
-  button: HTMLElement;
-  stage: HTMLElement;
   progress: number;
   blob?: Blob;
   url?: string;
@@ -72,12 +72,30 @@ export function trackDownloads(track: (event: string) => void): void {
   });
 }
 
-/** Wires every Video / Image button on the page. Call once. */
-export function initVideoMaker(track: (event: string) => void = () => {}): void {
-  const chosen = { ratio: '9:16' as Ratio, quality: 1080 as Quality, backdrop: 'stage' as Backdrop, format: 'png' as ImageFormat, size: 1600 };
-  let job: Job | null = null;
+/** Wires every Video / Image / Print button on the page. Call once. */
+export function initVideoMaker(track: (event: string) => void = () => {}, print?: (stage: HTMLElement) => void): void {
+  // fill: how much of the frame the model takes. Two thirds matches the site; the slider goes
+  // from far away to filling the frame, so a wide, airy picture or a tight crop are both possible.
+  const chosen = { ratio: '9:16' as Ratio, quality: 1080 as Quality, backdrop: 'stage' as Backdrop, format: 'png' as ImageFormat, size: 1600, fill: 2 / 3 };
   let dialog: HTMLDialogElement | null = null;
-  const busy = (): boolean => Boolean(job && !job.blob && !job.error);
+  let stage: HTMLElement | null = null;
+  let held: Animation[] = [];
+  let job: Job | null = null;
+  let busy = false;
+  let previewToken = 0;
+
+  /* ---------- the model is held still while the dialog is open ---------- */
+  const hold = (): void => {
+    if (!stage) return;
+    held = stage.getAnimations({ subtree: true }).filter((animation) => animation.playState === 'running');
+    for (const animation of held) animation.pause();
+    stage.closest('.stage-wrap')?.setAttribute('data-locked', '');
+  };
+  const release = (): void => {
+    for (const animation of held) animation.play();
+    held = [];
+    stage?.closest('.stage-wrap')?.removeAttribute('data-locked');
+  };
 
   const group = <T extends string | number>(name: string, label: string, items: Choice<T>[], pick: T): string => `
     <fieldset class="vidmaker__set">
@@ -93,187 +111,216 @@ export function initVideoMaker(track: (event: string) => void = () => {}): void 
       </div>
     </fieldset>`;
 
-  const options = (kind: Kind): string =>
-    kind === 'video'
-      ? group('ratio', 'Shape', RATIOS, chosen.ratio) + group('quality', 'Quality', QUALITIES, chosen.quality) + group('backdrop', 'Backdrop', BACKDROPS, chosen.backdrop)
-      : group('format', 'Format', FORMATS, chosen.format) + group('size', 'Size', SIZES, chosen.size) + group('backdrop', 'Backdrop', BACKDROPS, chosen.backdrop);
+  const zoomSlider = (): string => `
+    <fieldset class="vidmaker__set">
+      <legend>Model size <output data-zoom-out>${Math.round(chosen.fill * 100)}%</output></legend>
+      <input class="vidmaker__zoom" type="range" min="25" max="100" step="5" value="${Math.round(chosen.fill * 100)}" data-zoom aria-label="How much of the frame the model fills">
+    </fieldset>`;
 
-  const save = (of: Job): void => {
-    if (!of.url || !of.name) return;
-    const link = document.createElement('a');
-    link.href = of.url;
-    link.download = of.name;
-    link.click();
-    track(`download/${of.id}/${of.kind}`);
+  const options = (kind: Kind): string => {
+    if (kind === 'video') {
+      return group('ratio', 'Shape', RATIOS, chosen.ratio) + group('quality', 'Quality', QUALITIES, chosen.quality) + group('backdrop', 'Backdrop', BACKDROPS, chosen.backdrop) + zoomSlider();
+    }
+    if (kind === 'image') {
+      return group('format', 'Format', FORMATS, chosen.format) + group('size', 'Size', SIZES, chosen.size) + group('backdrop', 'Backdrop', BACKDROPS, chosen.backdrop) + zoomSlider();
+    }
+    return group('backdrop', 'Backdrop', BACKDROPS, chosen.backdrop) + zoomSlider();
   };
 
-  /** The button shows where the job is: a fill behind its label, then "Save". */
-  const paintButton = (): void => {
-    for (const button of document.querySelectorAll<HTMLElement>('[data-make]')) {
-      const mine = job?.button === button;
-      const kind = button.dataset.make as Kind;
-      button.classList.toggle('is-working', Boolean(mine && busy()));
-      button.classList.toggle('is-ready', Boolean(mine && job?.blob));
-      button.style.setProperty('--done', mine && job ? String(job.progress) : '0');
-      if (!mine) continue;
-      if (job?.blob) button.innerHTML = `${icon('download')} Save <small>${(job.blob.size / 1e6).toFixed(1)} MB</small>`;
-      else if (busy()) button.innerHTML = `${icon(kind === 'video' ? 'film' : 'image')} Making… ${Math.round(job!.progress * 100)}%`;
-      else button.innerHTML = `${icon(kind === 'video' ? 'film' : 'image')} ${kind === 'video' ? 'Video' : 'Image'}`;
+  const save = (): void => {
+    if (!job?.url || !job.name) return;
+    const link = document.createElement('a');
+    link.href = job.url;
+    link.download = job.name;
+    link.click();
+    track(`download/${job.id}/${job.kind}`);
+  };
+
+  /** The preview is a real capture, so what is on screen is the file. */
+  const showPreview = async (): Promise<void> => {
+    if (!dialog || !stage || !job) return;
+    const frame = dialog.querySelector<HTMLElement>('[data-preview]')!;
+    const token = ++previewToken;
+    frame.dataset.state = 'working';
+    try {
+      const blob = await captureImage(stage, { backdrop: chosen.backdrop, format: 'png', size: 900, fill: chosen.fill });
+      if (token !== previewToken || !dialog?.open) return;
+      const url = URL.createObjectURL(blob);
+      frame.innerHTML = `<img src="${url}" alt="What you will get: the model exactly as it stands now">`;
+      frame.dataset.state = 'ready';
+      setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
+    } catch (err) {
+      if (token !== previewToken) return;
+      frame.dataset.state = 'failed';
+      frame.textContent = err instanceof Error ? err.message : 'This model could not be drawn.';
     }
   };
 
-  const paintDialog = (): void => {
+  const paint = (): void => {
     if (!dialog?.open || !job) return;
     const bar = dialog.querySelector<HTMLElement>('[data-bar]')!;
     const note = dialog.querySelector<HTMLElement>('[data-note]')!;
     const actions = dialog.querySelector<HTMLElement>('[data-actions]')!;
-    const working = busy();
-    bar.hidden = !working && !job.blob;
+    bar.hidden = !busy;
     (bar.firstElementChild as HTMLElement).style.transform = `scaleX(${job.blob ? 1 : job.progress})`;
-    for (const chip of dialog.querySelectorAll<HTMLButtonElement>('[data-pick]')) chip.disabled = working;
+    for (const chip of dialog.querySelectorAll<HTMLButtonElement>('[data-pick]')) chip.disabled = busy;
 
-    if (job.blob) {
-      actions.innerHTML = `<button type="button" class="btn btn--accent" data-save>${icon('download')} Save <small>${(job.blob.size / 1e6).toFixed(1)} MB</small></button>
-        <button type="button" class="btn" data-again>Make another</button>`;
-      note.hidden = false;
-      note.textContent = job.detail ?? '';
-    } else if (job.error) {
-      actions.innerHTML = `<button type="button" class="btn btn--accent" data-go>${icon('download')} Try again</button>`;
-      note.hidden = false;
-      note.textContent = `It did not work: ${job.error}`;
-    } else {
+    const go = { video: 'Make the video', image: 'Save the image', print: 'Open the print dialog' }[job.kind];
+    if (busy) {
       actions.innerHTML = `<button type="button" class="btn btn--accent" disabled>${icon('download')} Making… ${Math.round(job.progress * 100)}%</button>`;
       note.hidden = false;
-      note.textContent = job.kind === 'video' ? 'Drawing every frame of one loop. You can close this: it keeps going.' : 'Drawing the pose on the stage.';
+      note.textContent = 'Drawing every frame of one loop.';
+    } else if (job.blob) {
+      actions.innerHTML = `<button type="button" class="btn btn--accent" data-save>${icon('download')} Save <small>${(job.blob.size / 1e6).toFixed(1)} MB</small></button>
+        <button type="button" class="btn" data-again>Start again</button>`;
+      note.hidden = false;
+      note.textContent = job.detail ?? '';
+    } else {
+      actions.innerHTML = `<button type="button" class="btn btn--accent" data-go>${icon(ICONS[job.kind])} ${go}</button>`;
+      note.hidden = !job.error;
+      note.textContent = job.error ? `It did not work: ${job.error}` : '';
     }
   };
 
-  const openDialog = (button: HTMLElement): void => {
-    const kind = (button.dataset.make ?? 'video') as Kind;
-    const stage = button.closest('.viewer__panel, .page-main, body')?.querySelector<HTMLElement>('.stage');
-    if (!stage) return;
-    const id = button.dataset.model ?? 'model';
+  const open = (button: HTMLElement, kind: Kind): void => {
+    const found = button.closest('.viewer__panel, .page-main, body')?.querySelector<HTMLElement>('.stage');
+    if (!found) return;
+    stage = found;
+    hold();
+    job = { kind, id: button.dataset.model ?? 'model', progress: 0 };
     const title = button.dataset.title || 'this model';
-    // a job from another model, another kind, or a stage that is gone, is forgotten
-    if (job && (job.id !== id || job.kind !== kind || !job.stage.isConnected)) job = null;
     dialog?.remove();
     dialog = document.createElement('dialog');
     dialog.className = 'vidmaker';
     dialog.dataset.kind = kind;
     dialog.innerHTML = `
       <form method="dialog" class="vidmaker__head">
-        <h2>${icon(kind === 'video' ? 'film' : 'image')} ${kind === 'video' ? 'Make a video' : 'Save an image'}</h2>
+        <h2>${icon(ICONS[kind])} ${TITLES[kind]}</h2>
         <button class="vidmaker__close" value="close" aria-label="Close">${icon('x')}</button>
       </form>
-      <p class="vidmaker__lead">Of <b>${title}</b>, as it looks on the stage right now: your edits, the pose you paused on, the backdrop you chose.</p>
-      ${options(kind)}
-      <div class="vidmaker__bar" data-bar hidden><i></i></div>
-      <div class="vidmaker__actions" data-actions>
-        <button type="button" class="btn btn--accent" data-go>${icon('download')} ${kind === 'video' ? 'Make the video' : 'Make the image'}</button>
-      </div>
-      <p class="vidmaker__note" data-note hidden></p>`;
+      <div class="vidmaker__body">
+        <div class="vidmaker__preview" data-preview data-state="working" aria-live="polite"></div>
+        <div class="vidmaker__settings">
+          <p class="vidmaker__lead"><b>${title}</b>, held exactly as it stands. This is what you will get.</p>
+          ${options(kind)}
+          <div class="vidmaker__bar" data-bar hidden><i></i></div>
+          <div class="vidmaker__actions" data-actions></div>
+          <p class="vidmaker__note" data-note hidden></p>
+        </div>
+      </div>`;
     document.body.append(dialog);
+    dialog.addEventListener('close', () => {
+      release();
+      previewToken++;
+    });
     dialog.showModal();
-    paintDialog();
+    paint();
+    void showPreview();
   };
 
-  const imageSize = async (blob: Blob): Promise<string> => {
-    try {
-      const bitmap = await createImageBitmap(blob);
-      const shape = `${bitmap.width} × ${bitmap.height}`;
-      bitmap.close();
-      return shape;
-    } catch {
-      return 'saved';
-    }
-  };
-
-  const start = async (button: HTMLElement): Promise<void> => {
-    const kind = (button.dataset.make ?? 'video') as Kind;
-    const stage = button.closest('.viewer__panel, .page-main, body')?.querySelector<HTMLElement>('.stage');
-    if (!stage) return;
-    if (kind === 'video' && !canRecord()) {
-      if (dialog?.open) {
-        dialog.querySelector('[data-note]')!.textContent =
-          'This browser cannot make videos yet — Chrome, Edge and Safari 17+ can. The Image button and Print / PDF work everywhere.';
-      }
+  const run = async (): Promise<void> => {
+    if (!stage || !job) return;
+    if (job.kind === 'print') {
+      print?.(stage);
+      track(`print/${job.id}`);
       return;
     }
-    if (job?.url) URL.revokeObjectURL(job.url); // the last file is replaced by this one
-    const mine: Job = { kind, id: button.dataset.model ?? 'model', button, stage, progress: 0 };
+    if (job.kind === 'video' && !canRecord()) {
+      job.error = 'this browser cannot make videos yet — Chrome, Edge and Safari 17+ can';
+      paint();
+      return;
+    }
+    if (job.url) URL.revokeObjectURL(job.url);
+    const mine: Job = { kind: job.kind, id: job.id, progress: 0 };
     job = mine;
-    paintButton();
-    paintDialog();
+    busy = true;
+    paint();
 
     try {
-      if (kind === 'video') {
+      if (mine.kind === 'video') {
         const made: Recording = await recordModel({
           stage,
           ratio: chosen.ratio,
           quality: chosen.quality,
           backdrop: chosen.backdrop,
+          fill: chosen.fill,
           onProgress: (done) => {
             mine.progress = done;
-            if (job === mine) {
-              paintButton();
-              paintDialog();
-            }
+            if (job === mine) paint();
           },
         });
         mine.blob = made.blob;
         mine.name = `css-3d-lab-${mine.id}-${chosen.ratio.replace(':', 'x')}.${made.extension}`;
-        mine.detail = `Ready: ${made.width} × ${made.height}, ${made.seconds.toFixed(1)}s, and it loops seamlessly.`;
+        mine.detail = `${made.width} × ${made.height}, ${made.seconds.toFixed(1)}s, loops seamlessly.`;
+        // the preview becomes the finished clip: what plays here is the file
+        const frame = dialog?.querySelector<HTMLElement>('[data-preview]');
+        if (frame) {
+          const url = URL.createObjectURL(made.blob);
+          frame.innerHTML = `<video src="${url}" autoplay loop muted playsinline></video>`;
+          frame.dataset.state = 'ready';
+        }
       } else {
-        mine.progress = 0.4;
-        paintButton();
-        paintDialog();
-        mine.blob = await captureImage(stage, { backdrop: chosen.backdrop, format: chosen.format, size: chosen.size });
+        mine.blob = await captureImage(stage, { backdrop: chosen.backdrop, format: chosen.format, size: chosen.size, fill: chosen.fill });
         mine.name = `css-3d-lab-${mine.id}.${chosen.format === 'jpeg' ? 'jpg' : 'png'}`;
-        mine.detail = `Ready: ${await imageSize(mine.blob)}, ${chosen.format.toUpperCase()}.`;
+        const bitmap = await createImageBitmap(mine.blob);
+        mine.detail = `${bitmap.width} × ${bitmap.height}, ${chosen.format.toUpperCase()}.`;
+        bitmap.close();
       }
       mine.progress = 1;
       mine.url = URL.createObjectURL(mine.blob);
-      track(`${kind}/${mine.id}`);
+      track(`${mine.kind}/${mine.id}`);
     } catch (err) {
       mine.error = err instanceof Error ? err.message : 'something went wrong';
     }
-    if (job === mine) {
-      paintButton();
-      paintDialog();
-    }
+    busy = false;
+    paint();
   };
+
+  let zoomTimer = 0;
+  document.addEventListener('input', (e) => {
+    const slider = (e.target as HTMLElement).closest<HTMLInputElement>('[data-zoom]');
+    if (!slider || busy || !dialog?.open) return;
+    chosen.fill = Number(slider.value) / 100;
+    const out = dialog.querySelector<HTMLElement>('[data-zoom-out]');
+    if (out) out.textContent = `${slider.value}%`;
+    if (job) job.blob = undefined;
+    paint();
+    window.clearTimeout(zoomTimer); // one preview when the slider settles, not one per step
+    zoomTimer = window.setTimeout(() => void showPreview(), 180);
+  });
 
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
 
-    const button = target.closest<HTMLElement>('[data-make]');
+    const button = target.closest<HTMLElement>('[data-make], [data-print], [data-act="print"]');
     if (button) {
-      if (job?.button === button && job.blob) return save(job); // ready: the button is the download
-      return openDialog(button);
+      const kind = (button.dataset.make ?? 'print') as Kind;
+      return open(button, kind);
     }
 
     if (!dialog?.open) return;
     const chip = target.closest<HTMLElement>('[data-pick]');
-    if (chip && !busy()) {
+    if (chip && !busy) {
       const name = chip.dataset.pick as keyof typeof chosen;
       const raw = chip.dataset.value!;
       (chosen[name] as unknown) = /^\d+$/.test(raw) ? Number(raw) : raw;
       for (const other of dialog.querySelectorAll<HTMLElement>(`[data-pick="${name}"]`)) other.setAttribute('aria-checked', String(other === chip));
+      if (job) {
+        job.blob = undefined;
+        job.detail = undefined;
+      }
+      paint();
+      void showPreview(); // the preview always shows the current choices
       return;
     }
-    if (target.closest('[data-save]') && job) return save(job);
+    if (target.closest('[data-save]')) return save();
     if (target.closest('[data-again]')) {
-      const again = job?.button;
-      job = null;
-      paintButton();
-      if (again) void start(again);
+      if (job) job.blob = undefined;
+      paint();
+      void showPreview();
       return;
     }
-    if (target.closest('[data-go]')) {
-      const owner = job?.button ?? document.querySelector<HTMLElement>(`[data-make="${dialog.dataset.kind}"]`);
-      if (owner) void start(owner);
-      return;
-    }
-    if (target === dialog && !busy()) dialog.close(); // the dark area around it
+    if (target.closest('[data-go]')) return void run();
+    if (target === dialog && !busy) dialog.close(); // the dark area around it
   });
 }

@@ -2719,8 +2719,8 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 // The video maker (video.ts): a small dialog over the page — shape, backdrop, a bar while the
 // frames are drawn, then the file. On a phone it sits at the bottom, like a sheet.
 .vidmaker {
-  width: min(620px, calc(100vw - 24px));
-  padding: 22px;
+  width: min(900px, calc(100vw - 24px));
+  padding: 20px;
   border: 1px solid var(--border-strong);
   border-radius: 20px;
   background: var(--surface-solid);
@@ -2736,6 +2736,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    margin-bottom: 14px;
 
     h2 {
       display: flex;
@@ -2771,31 +2772,89 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     }
   }
 
+  // the file on the left, the choices on the right
+  &__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  // the preview IS the capture, so what is here is what gets saved
+  &__preview {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    min-height: 280px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background:
+      repeating-conic-gradient(rgb(255 255 255 / 0.045) 0% 25%, transparent 0% 50%) 0 0 / 18px 18px,
+      var(--bg);
+
+    img,
+    video {
+      max-width: 100%;
+      max-height: 60vh;
+      border-radius: 8px;
+    }
+
+    &[data-state='working']::after {
+      content: 'Drawing…';
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+
+    &[data-state='working'] img,
+    &[data-state='working'] video {
+      opacity: 0.35;
+    }
+
+    &[data-state='failed'] {
+      padding: 22px;
+      color: var(--muted);
+      font-size: 12.5px;
+      text-align: center;
+    }
+  }
+
+  &__settings {
+    display: grid;
+    gap: 2px;
+  }
+
   &__lead {
-    margin: 8px 0 16px;
+    margin: 0 0 12px;
     color: var(--muted);
     font-size: 13px;
     line-height: 1.55;
   }
 
   &__set {
-    margin: 0 0 14px;
+    margin: 0 0 12px;
     padding: 0;
     border: 0;
 
     legend {
-      padding: 0 0 8px;
+      display: flex;
+      gap: 8px;
+      padding: 0 0 7px;
       color: var(--muted);
       font-size: 11px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
+
+      output {
+        color: var(--text);
+        letter-spacing: 0;
+      }
     }
   }
 
-  // one row of options, each the same width: a swatch, a name and a line of plain English
   &__row {
     display: flex;
-    gap: 8px;
+    gap: 7px;
 
     button {
       flex: 1 1 0;
@@ -2803,19 +2862,17 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       display: grid;
       grid-template-columns: auto 1fr;
       align-items: center;
-      gap: 2px 9px;
-      padding: 9px 11px;
+      gap: 1px 8px;
+      padding: 8px 10px;
       border: 1px solid var(--border-strong);
-      border-radius: 13px;
+      border-radius: 12px;
       background: transparent;
       color: var(--text);
       font: inherit;
-      font-size: 13px;
+      font-size: 12.5px;
       text-align: left;
       cursor: pointer;
-      transition:
-        border-color 0.15s,
-        background 0.15s;
+      transition: border-color 0.15s, background 0.15s;
 
       b {
         font-weight: 650;
@@ -2824,7 +2881,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
       span {
         grid-column: 2;
         color: var(--muted);
-        font-size: 11.5px;
+        font-size: 11px;
       }
 
       .vidmaker__swatch {
@@ -2855,25 +2912,25 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   // the shape options show their shape; the backdrop options show their colour
   &__swatch {
     display: block;
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
     border: 1px solid rgb(255 255 255 / 0.35);
     border-radius: 6px;
     background: #0b0d18;
 
     &[data-swatch='9:16'] {
-      width: 17px;
-      height: 28px;
+      width: 15px;
+      height: 24px;
     }
 
     &[data-swatch='16:9'] {
-      width: 30px;
-      height: 17px;
+      width: 26px;
+      height: 15px;
     }
 
     &[data-swatch='stage'] {
       background:
-        radial-gradient(rgb(255 255 255 / 0.5) 1px, transparent 1.2px) 0 0 / 7px 7px,
+        radial-gradient(rgb(255 255 255 / 0.5) 1px, transparent 1.2px) 0 0 / 6px 6px,
         #0b0d18;
     }
 
@@ -2882,16 +2939,20 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     }
 
     &[data-swatch='transparent'] {
-      background:
-        repeating-conic-gradient(rgb(255 255 255 / 0.55) 0% 25%, rgb(255 255 255 / 0.12) 0% 50%) 0 0 / 10px 10px;
+      background: repeating-conic-gradient(rgb(255 255 255 / 0.55) 0% 25%, rgb(255 255 255 / 0.12) 0% 50%) 0 0 / 9px 9px;
     }
   }
 
-  // the progress bar: one bar that fills, no numbers jumping about
+  // how much of the frame the model fills
+  &__zoom {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
   &__bar {
     overflow: hidden;
     height: 8px;
-    margin: 2px 0 14px;
+    margin: 2px 0 12px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--border-strong) 60%, transparent);
 
@@ -2909,28 +2970,40 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   &__actions {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end; // the action sits on the right, like a card's own button
+    justify-content: flex-end;
     gap: 10px;
+    margin-top: 4px;
   }
 
   &__note {
-    margin: 12px 0 0;
+    margin: 10px 0 0;
     color: var(--muted);
     font-size: 12px;
     line-height: 1.5;
+    text-align: right;
   }
 
-  // a phone: the dialog is a sheet at the bottom, within thumb reach
-  @media (max-width: 560px) {
+  // a phone: the preview on top, the choices under it, as a sheet
+  @media (max-width: 720px) {
     width: 100vw;
     max-width: none;
     margin: auto 0 0;
-    padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    padding: 16px 14px calc(16px + env(safe-area-inset-bottom));
     border-width: 1px 0 0;
     border-radius: 20px 20px 0 0;
 
-    &__row {
-      grid-template-columns: 1fr 1fr;
+    &__body {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    &__preview {
+      min-height: 170px;
+
+      img,
+      video {
+        max-height: 34vh;
+      }
     }
 
     &__actions .btn {
@@ -2939,7 +3012,12 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     }
   }
 }
-// The Video button while it works: a fill behind the label, and a highlight when the file is ready.
+
+// the stage says it is held while a dialog is capturing it
+.stage-wrap[data-locked] .stage {
+  cursor: default;
+  pointer-events: none;
+}
 [data-make-video] {
   position: relative;
   overflow: hidden;

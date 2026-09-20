@@ -27,6 +27,8 @@ export interface RecordOptions {
   ratio: Ratio;
   backdrop: Backdrop;
   quality?: Quality;
+  /** How much of the frame the model fills (1 = edge to edge). */
+  fill?: number;
   /** 0 → 1 while the frames are drawn and encoded. */
   onProgress?: (done: number) => void;
   signal?: AbortSignal;
@@ -46,8 +48,11 @@ const frameSize = (ratio: Ratio, quality: Quality): { width: number; height: num
   return ratio === '9:16' ? { width: quality, height: long } : { width: long, height: quality };
 };
 const FPS = 30;
-/** Room around the model, so it never touches the edge of the picture. */
-const FILL = 0.82;
+/**
+ * How much of the frame the model fills: two thirds, the same as a card and the large stage, so a
+ * saved picture, a video and a print all look like the model does on the site.
+ */
+const FILL = 2 / 3;
 const MAX_SECONDS = 12; // long enough for the slow turns; a whole loop, so the video joins up
 
 /** Is there any way to encode a video in this browser? */
@@ -171,7 +176,6 @@ function freezePose(live: HTMLElement, copy: HTMLElement): string {
       pseudoRules.push(`[data-pose="${mark}"]${pseudo}{animation:none !important;transition:none !important;${declarations.join(';')}}`);
     }
   });
-  (window as unknown as { __froze?: string }).__froze = `${liveNodes.length} nodes, ${marked} pseudo`;
   return pseudoRules.join('\n');
 }
 
@@ -379,24 +383,26 @@ function backdropOf(stage: HTMLElement, backdrop: Backdrop): Paint | null {
 export interface ImageOptions {
   backdrop?: Backdrop;
   format?: ImageFormat;
+  /** How much of the frame the model fills (1 = edge to edge). */
+  fill?: number;
   /** The picture's longest side in pixels. */
   size?: number;
 }
 
-export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600 }: ImageOptions = {}): Promise<Blob> {
+export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, fill = FILL }: ImageOptions = {}): Promise<Blob> {
   const source = sourceOf(stage);
   const css = styleSheetText(source.doc, source.node);
   // the pose on screen, not a moment of the loop: measure without moving anything
   const crop = drawnCrop(source.node, () => {}, 0);
   // the model fills most of the picture, with room around it
-  const zoom = Math.min(4, Math.max(1, (size * FILL) / Math.max(crop.width, crop.height)));
+  const zoom = Math.min(4, Math.max(1, (size * fill) / Math.max(crop.width, crop.height)));
   const img = await frameImage(source.node, css, zoom);
 
   // JPEG has no see-through pixels, so it always gets a backdrop
   const paint = backdropOf(stage, format === 'jpeg' && backdrop === 'transparent' ? 'dark' : backdrop);
   const shown = { width: crop.width * zoom, height: crop.height * zoom };
-  const width = Math.round(shown.width / FILL);
-  const height = Math.round(shown.height / FILL);
+  const width = Math.round(shown.width / fill);
+  const height = Math.round(shown.height / fill);
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -431,7 +437,7 @@ function paintDots(ctx: CanvasRenderingContext2D, paint: Paint, width: number, h
  * Draws every frame of one loop and encodes them. The picture is fitted inside the chosen shape
  * with room around it, the same way the site frames a model.
  */
-export async function recordModel({ stage, ratio, backdrop, quality = 1080, onProgress, signal }: RecordOptions): Promise<Recording> {
+export async function recordModel({ stage, ratio, backdrop, quality = 1080, fill = FILL, onProgress, signal }: RecordOptions): Promise<Recording> {
   if (!canRecord()) throw new Error('this browser cannot make videos yet');
   const { width, height } = frameSize(ratio, quality);
   const transparent = backdrop === 'transparent';
@@ -458,7 +464,7 @@ export async function recordModel({ stage, ratio, backdrop, quality = 1080, onPr
   const wasPaused = new Set(source.node.getAnimations({ subtree: true }).filter((a) => a.playState === 'paused'));
   // enough resolution that the model fills the frame sharply, without asking the browser to
   // rasterise more than it needs
-  const zoom = Math.min(4, Math.max(1, Math.min((width * FILL) / crop.width, (height * FILL) / crop.height)));
+  const zoom = Math.min(4, Math.max(1, Math.min((width * fill) / crop.width, (height * fill) / crop.height)));
 
   const target = transparent ? new WebmTarget() : new Mp4Target();
   const muxer = transparent
@@ -487,7 +493,7 @@ export async function recordModel({ stage, ratio, backdrop, quality = 1080, onPr
       }
       // the model, cropped to what it draws, as large as fits with a margin, centred
       const shown = { width: crop.width * zoom, height: crop.height * zoom };
-      const scale = Math.min((width * FILL) / shown.width, (height * FILL) / shown.height);
+      const scale = Math.min((width * fill) / shown.width, (height * fill) / shown.height);
       const w = shown.width * scale;
       const h = shown.height * scale;
       ctx.drawImage(img, crop.x * zoom, crop.y * zoom, shown.width, shown.height, (width - w) / 2, (height - h) / 2, w, h);

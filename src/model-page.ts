@@ -31,7 +31,9 @@ lazyMountCards();
 fitStages(); // every demo on the page scales with its stage
 initCardLook();
 trackDownloads(track);
-initVideoMaker(track);
+// print goes through the same preview dialog; the page's model fills this in below
+let printOpenModel: ((stage: HTMLElement) => void) | null = null;
+initVideoMaker(track, (stage) => printOpenModel?.(stage));
 initThanks();
 initFullscreen();
 
@@ -53,6 +55,7 @@ if (stage && demo && box) {
   // The original code is already in the page as text; no need to download it again.
   const textOf = (key: string) => body(key)?.querySelector('pre code')?.textContent ?? '';
   const live = new LiveEdit(demo.id, demo.title, { html: textOf('html'), css: textOf('css'), ...(body('js') ? { js: textOf('js') } : {}) });
+  printOpenModel = (from) => printModel(live, from);
 
   /* ----- the stage shows the site's own demo, or the visitor's edited snippet ----- */
   let unmount: (() => void) | undefined;
@@ -150,9 +153,6 @@ if (stage && demo && box) {
       track(`run/${demo.id}`);
       // A blob URL opens the snippet as its own page, exactly as it would run when pasted into a file.
       window.open(URL.createObjectURL(new Blob([live.doc()], { type: 'text/html' })), '_blank', 'noopener');
-    } else if ('print' in btn.dataset) {
-      track(`print/${demo.id}`);
-      printModel(live, stage); // the print dialog, right here ("Save as PDF" is in there)
     } else if ('copyFile' in btn.dataset) {
       if (await copyText(btn, live.doc())) {
         track(`copy/${demo.id}/file`);
