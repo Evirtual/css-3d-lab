@@ -363,7 +363,7 @@ export const snippet: Snippet = {
   width: calc(48 * var(--u));
   height: calc(48 * var(--u));
   border-radius: 50%;
-  color: #eceefb;
+  /* no colour of its own: the hole shows the stage, so the day takes the stage's ink */
   font: 800 calc(15 * var(--u))/1 system-ui, sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -400,7 +400,8 @@ export const snippet: Snippet = {
   border: 0;
   border-radius: 999px;
   background: rgb(140 150 220 / 0.2);
-  color: #949bc0;
+  /* see-through, so the word is on the stage: the stage's ink, softened */
+  color: color-mix(in srgb, currentColor 75%, transparent);
   font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
   transition: background 0.35s, color 0.35s;
