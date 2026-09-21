@@ -1922,7 +1922,7 @@ document.querySelector('nav').addEventListener('click', (e) => {
       'JS builds an n × n grid and, for each cell, stores its distance from the centre in <code>--d</code>.',
       'All cells run the same bobbing animation on <code>translateZ</code>.',
       '<code>animation-delay: calc(var(--d) * -0.22s)</code> offsets each cell by its distance, so the motion reads as a ripple spreading outward.',
-      'Negative delays mean the wave is already in full swing on the first frame.',
+      'Negative delays mean the wave is already in full swing on the first frame. A further 0.6s picks which moment that is: one with the wave spread evenly over the grid, since the first frame is what a paused card shows.',
       'The grid is 11 × 11 cells in a square 260 units of one base unit, <code>--u</code>, across, and the cells rise 40 of them. Tied to the canvas, that keeps the wave the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
@@ -1932,10 +1932,6 @@ document.querySelector('nav').addEventListener('click', (e) => {
   /* one base unit: every length below is a multiple of it, so the wave is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
   --u: 0.24vmin;
-  /* a cell rising towards you is nearer the camera, and the near half of a plane tilted this far
-     is its bottom: the wave spreads further down than up. This lifts the grid by half of that,
-     so the wave is what sits in the middle of the canvas, not the flat grid */
-  padding-bottom: calc(36 * var(--u));
   perspective: calc(800 * var(--u));
 }
 
@@ -1946,14 +1942,19 @@ document.querySelector('nav').addEventListener('click', (e) => {
   width: calc(260 * var(--u));
   height: calc(260 * var(--u));
   transform-style: preserve-3d;
-  transform: rotateX(58deg) rotateZ(-45deg);
+  /* the solid part of the wave is the cells high up and near the camera, so what reads as the
+     wave rides up and down the grid as the ripple spreads: the lift puts the middle of that ride,
+     not the flat grid, in the middle of the canvas */
+  transform: translateY(calc(-2 * var(--u))) rotateX(58deg) rotateZ(-45deg);
 }
 
 .grid i {
   border-radius: calc(3 * var(--u));
   background: #ffb547;
   animation: bob 2.4s ease-in-out infinite;
-  animation-delay: calc(var(--d) * -0.22s);
+  /* the ripple, plus 0.6s into the loop: the first frame, which a paused card shows, has the
+     middle up and the wave spread evenly over the grid */
+  animation-delay: calc(var(--d) * -0.22s - 0.6s);
 }
 
 /* opacity + transform only: both run on the compositor, even with 100+ cells */
