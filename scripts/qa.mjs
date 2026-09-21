@@ -13,7 +13,6 @@ import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
 
 const DIST = resolve('dist');
-const placements = JSON.parse(readFileSync('src/models/placements.json', 'utf8'));
 const only = process.argv.slice(2);
 const vite = await createVite({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
@@ -35,6 +34,7 @@ const browser = await chromium.launch();
 const W = Number(process.env.QA_W || 340); // QA_W / QA_H: test a bigger stage (the demo is then zoomed)
 const H = Number(process.env.QA_H || 260);
 const problems = [];
+const notes = [];
 
 async function check(demo) {
   const how = interactionOf(demo);
@@ -84,8 +84,9 @@ async function check(demo) {
     }
     return Math.round(out);
   });
-  // a model measured as drawn to its edges (a floor, a tunnel) is meant to reach past them
-  if (spill > 6 && !placements[demo.id]?.bleed) problems.push(`${demo.id}: something sticks out of the card stage by ${spill}px`);
+  // Whether a model may reach past its edges is the contract's business now, and
+  // scripts/check-models.mjs judges it. Here it is only reported, never failed.
+  if (spill > 6) notes.push(`${demo.id}: draws ${spill}px past the card stage`);
 
   // 2. interaction: freeze time-based motion, play, and see whether the picture changes
   if (how !== 'none') {
