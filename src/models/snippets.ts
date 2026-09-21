@@ -900,6 +900,7 @@ ${CUBE_FACES}`,
       'Each tile has two faces from <code>::before</code> and <code>::after</code>, back to back, both with <code>backface-visibility: hidden</code>.',
       'Every tile runs the same flip animation.',
       'The wave comes purely from <code>animation-delay = (row + column) × step</code>. In plain CSS you set <code>--d</code> per tile; in Sass a nested <code>@for</code> loop writes it.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a tile is 48 units square, 8 apart, and sinks 14 as it turns, so the wave is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="tiles">
