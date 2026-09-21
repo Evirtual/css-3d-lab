@@ -143,7 +143,8 @@ export const snippetsD: Record<string, Snippet> = {
       'One custom property, <code>--flip</code>, holds the whole rotation function (<code>rotateY(180deg)</code> or <code>rotateX(180deg)</code>), set once per tile so a single rule can flip every tile differently.',
       'The back face is pre-rotated by that same <code>--flip</code> in its resting state, so once the tile turns, the back lands right-way up instead of mirrored.',
       '<code>backface-visibility: hidden</code> on both faces means only the one currently facing you is ever visible.',
-      'Lifting with <code>translateZ(30px)</code> before the flip keeps the tile from clipping into its neighbours mid-turn.',
+      'Lifting with <code>translateZ</code> before the flip keeps the tile from clipping into its neighbours mid-turn.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the grid is the same share of a gallery card, the editor and a recording canvas. The lifted tile is the widest the model gets, because the perspective magnifies whatever comes toward you, so that is the pose the band is measured against.',
     ],
     html: `<div class="scene">
   <div class="grid">
@@ -168,13 +169,16 @@ export const snippetsD: Record<string, Snippet> = {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the grid is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.38vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 62px);
-  gap: 9px;
+  grid-template-columns: repeat(3, calc(62 * var(--u)));
+  gap: calc(9 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(16deg);
   /* the grid and its tiles are coplanar: take the grid out of hit-testing so the
@@ -185,7 +189,7 @@ export const snippetsD: Record<string, Snippet> = {
 .tile {
   --flip: rotateY(180deg); /* odd tiles flip sideways */
   position: relative;
-  height: 62px;
+  height: calc(62 * var(--u));
   outline: none;
   cursor: pointer;
   pointer-events: auto;
@@ -209,25 +213,25 @@ export const snippetsD: Record<string, Snippet> = {
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 10px;
+  border-radius: calc(10 * var(--u));
   backface-visibility: hidden;
 }
 
 /* front */
 .tile-inner b {
   color: #eceefb;
-  font-size: 20px;
+  font-size: calc(20 * var(--u));
   font-weight: 900;
   background: color-mix(in srgb, var(--c) 26%, transparent);
-  border: 1px solid color-mix(in srgb, var(--c) 75%, transparent);
-  box-shadow: inset 0 0 24px color-mix(in srgb, var(--c) 30%, transparent);
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 75%, transparent);
+  box-shadow: inset 0 0 calc(24 * var(--u)) color-mix(in srgb, var(--c) 30%, transparent);
 }
 
 /* back: pre-turned with the same rotation the tile will make, so it lands the right way up */
 .tile-inner span {
   background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 45%, #000));
   color: #fff;
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 800;
   letter-spacing: 0.04em;
   transform: var(--flip);
@@ -236,7 +240,7 @@ export const snippetsD: Record<string, Snippet> = {
 .tile:hover .tile-inner,
 .tile:focus-visible .tile-inner {
   /* lift first (toward the viewer), then flip in place */
-  transform: translateZ(30px) var(--flip);
+  transform: translateZ(calc(30 * var(--u))) var(--flip);
 }`,
   },
 
