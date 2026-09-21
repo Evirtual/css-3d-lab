@@ -2,7 +2,10 @@
 //  - page errors / console errors while it runs and while it is played with;
 //  - does it fit a card's stage (340 × 260) or does something get clipped;
 //  - does the interaction its badge promises (hover, move, drag, click, scroll) change anything.
-//   node scripts/qa.mjs [id ...]
+//   npm run build && npm run qa [-- id ...]      (or node scripts/qa.mjs [id ...])
+//   QA_W=680 QA_H=560 node scripts/qa.mjs         a bigger stage
+// It ends with `QA: N demos, M problem(s)` and one line per problem. The exit code is 0 either
+// way, so read that line (scripts/verify.mjs parses it).
 //
 // Every model runs in a frame of its own (src/preview.ts), so the looking is done inside that
 // frame; the clicking and hovering is done on the page, where a visitor's pointer is.
