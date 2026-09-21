@@ -8,35 +8,25 @@
 // support CSS 3D), whereas a headless browser renders the demo exactly as visitors see it.
 //
 // Run after `npm run build`:  npm run media [id ...]
+//   --dist <dir>   shoot another built copy instead of dist/ (check-media's proofs use this)
 import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { chromium } from 'playwright';
+import { settle, VIEWPORT } from './og-shot.mjs';
 
-const DIST = resolve('dist');
+const argv = process.argv.slice(2);
+const distAt = argv.indexOf('--dist');
+const DIST = resolve(distAt >= 0 ? argv.splice(distAt, 2)[1] : 'dist');
 const OUT = join(DIST, 'media');
 const CONCURRENCY = 4;
-const only = process.argv.slice(2); // optional list of ids, for testing
+const only = argv; // optional list of ids, for testing
 
 if (!existsSync(join(DIST, 'embed'))) throw new Error('dist/embed not found — run "npm run build" first');
 const demos = JSON.parse(readFileSync('src/generated/model-ids.json', 'utf8')).filter((d) => !only.length || only.includes(d.id));
 
 /* ---------- tiny static server for dist/ ---------- */
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
-/**
- * Runs in the page before each shot: the headline shrinks, a pixel at a time, until every line
- * fits its column. The build machine may not have the site's font, and a wider fallback would
- * otherwise run a line off the edge ("no WebGL requir…").
- */
-async function fitText() {
-  await document.fonts.ready;
-  for (const el of document.querySelectorAll('.embed__og b')) {
-    let size = parseFloat(getComputedStyle(el).fontSize);
-    const lines = [el, ...el.querySelectorAll('span')];
-    const tooWide = () => lines.some((l) => l.scrollWidth > el.clientWidth + 1);
-    while (tooWide() && size > 24) el.style.fontSize = `${(size -= 1)}px`;
-  }
-}
 
 const server = createServer((req, res) => {
   let path = join(DIST, decodeURIComponent(new URL(req.url, 'http://x').pathname));
@@ -55,35 +45,19 @@ mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch();
 const failures = [];
 
-async function shoot(demo) {
-  const ctx = await browser.newContext({ viewport: { width: 2400, height: 1260 }, deviceScaleFactor: 1, colorScheme: 'dark' });
+// How a shot is taken (the page, the size, the moment the model is stopped at) is in og-shot.mjs,
+// shared with scripts/check-media.mjs, which renders it again to prove each file is current.
+async function shoot(demo, file = demo.id) {
+  const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, colorScheme: 'dark' });
   try {
     const page = await ctx.newPage();
-    await page.goto(`${base}/embed/${demo.id}/?og=1&zoom=2`);
-    await page.waitForSelector('html[data-ready]');
-    // hover / pointer demos look alive with the pointer parked off-centre over them
-    if (demo.pointer) await page.mouse.move(1740, 560); // over the demo (the right side), a little off centre
-    await page.waitForTimeout(1400); // let entrance transitions settle and loops get going
-    await page.evaluate(fitText);
-    await page.screenshot({ path: join(OUT, `${demo.id}.jpg`), type: 'jpeg', quality: 88 });
+    await settle(page, base, demo);
+    await page.screenshot({ path: join(OUT, `${file}.jpg`), type: 'jpeg', quality: 88 });
   } finally {
     await ctx.close();
   }
 }
-
-async function shootHome() {
-  const ctx = await browser.newContext({ viewport: { width: 2400, height: 1260 }, deviceScaleFactor: 1, colorScheme: 'dark' });
-  try {
-    const page = await ctx.newPage();
-    await page.goto(`${base}/embed/cover/?og=1&zoom=2`);
-    await page.waitForSelector('html[data-ready]');
-    await page.waitForTimeout(1200);
-    await page.evaluate(fitText);
-    await page.screenshot({ path: join(OUT, 'home.jpg'), type: 'jpeg', quality: 88 });
-  } finally {
-    await ctx.close();
-  }
-}
+const shootHome = () => shoot({ id: 'cover', pointer: false }, 'home');
 if (!only.length || only.includes("home")) {
   try {
     await shootHome();
