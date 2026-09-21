@@ -402,6 +402,7 @@ setInterval(function () {
       'All three panels are windows onto the <b>same</b> sheet, three panels wide, each shifted left by <code>calc(var(--i) * -100%)</code> — so the printed headline lines up across the folds.',
       'A dark gradient over each panel fades to <code>opacity: 0</code> on hover/focus — cheap, since only opacity is animating, not the gradient itself.',
       'On <code>:hover</code>/<code>:focus-visible</code> every panel’s <code>transform</code> resets to <code>none</code>, flattening the whole sheet in one shared transition.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the headline is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="fold" tabindex="0" aria-label="Unfold: a headline on folded paper, flattens on hover or focus">
@@ -413,30 +414,33 @@ setInterval(function () {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the headline is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.45vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* the static hit area: it takes :hover / :focus and never moves (the paper inside does) */
 .fold {
   display: grid;
   place-items: center;
-  width: 214px; /* 3 panels x 66px, plus a little breathing room */
-  height: 144px;
-  border-radius: 12px;
+  width: calc(214 * var(--u)); /* 3 panels x 66 units, plus a little breathing room */
+  height: calc(144 * var(--u));
+  border-radius: calc(12 * var(--u));
   cursor: pointer;
   transform-style: preserve-3d;
 }
 
 .fold:focus-visible {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 2px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(2 * var(--u));
 }
 
 /* every panel is a hinge that may hold the next panel; the visible paper is its <b> */
 .panel {
   position: relative;
-  width: 66px;
-  height: 104px;
+  width: calc(66 * var(--u));
+  height: calc(104 * var(--u));
   pointer-events: none;
   transform-style: preserve-3d;
   transition: transform 0.9s cubic-bezier(0.3, 1.25, 0.5, 1);
@@ -485,12 +489,12 @@ setInterval(function () {
   left: calc(var(--i) * -100%);
   display: grid;
   place-content: center;
-  gap: 4px;
+  gap: calc(4 * var(--u));
   width: 300%;
   height: 100%;
   background: linear-gradient(115deg, #8b6cff, #ff4d9d 60%, #ffb547);
   color: #fff;
-  font-size: 41px;
+  font-size: calc(41 * var(--u));
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0.03em;
@@ -498,7 +502,7 @@ setInterval(function () {
 }
 
 .panel > b > span small {
-  font-size: 10px;
+  font-size: calc(10 * var(--u));
   font-weight: 700;
   letter-spacing: 0.3em;
   opacity: 0.85;
