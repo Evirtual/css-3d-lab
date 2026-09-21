@@ -1079,9 +1079,10 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   width: 0;
   height: calc(100 * var(--u));
   transform-style: preserve-3d;
-  /* the lid and the steam rise above this column, so the drawing's middle is above the column's:
-     move it down by that much, and the whole cup is centred */
-  translate: 0 calc(20 * var(--u));
+  /* the lid rises a little above this column: move it down by that much, and the solid cup is
+     centred. The steam is faint and rises well above it, so it is left out of that sum: the eye
+     places the cup by its body */
+  translate: 0 calc(3 * var(--u));
   transform: rotateX(-20deg);
 }
 
