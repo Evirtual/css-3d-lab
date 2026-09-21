@@ -494,10 +494,11 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
 
   ferris: {
     how: [
-      'Every cabin is a zero-size point at the wheel’s centre with <code>rotate(a) translateY(-68px) rotate(-a)</code>: turn, walk out to the rim, turn back. It lands on the rim, upright.',
+      'Every cabin is a zero-size point at the wheel’s centre with <code>rotate(a) translateY(-68 units) rotate(-a)</code>: turn, walk out to the rim, turn back. It lands on the rim, upright.',
       'The wheel spins <code>0 → 360deg</code>. Each cabin appends <code>rotate(0 → -360deg)</code> with the same duration, so the two cancel at every moment and the cabins keep hanging straight down.',
       'Because the cabin element is a point, <code>transform-origin</code> is the pivot. The body is a pseudo-element hanging below it, free to swing a few degrees on its own.',
-      'Depth comes cheap: two rims at <code>translateZ(±7px)</code>, every spoke drawn twice with <code>::before/::after</code>, and two A-frames in front of and behind the wheel. Turn the whole thing with <code>rotateY</code> to see it.',
+      'Depth comes cheap: two rims 7 units in front of and behind the centre (<code>translateZ</code>), every spoke drawn twice with <code>::before/::after</code>, and two A-frames in front of and behind the wheel. Turn the whole thing with <code>rotateY</code> to see it.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the ride is 200 × 188 units, so it is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="ferris">
@@ -511,13 +512,18 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the wheel is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.33vmin;
+  display: grid;
+  place-items: center;
+  perspective: calc(800 * var(--u));
 }
 
 .ferris {
   position: relative;
-  width: 200px;
-  height: 188px;
+  width: calc(200 * var(--u));
+  height: calc(188 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(-8deg) rotateY(-28deg);
 }
@@ -525,10 +531,10 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
 /* a glowing pad, laid flat on the ground */
 .base {
   position: absolute;
-  left: 20px;
-  top: 150px;
-  width: 160px;
-  height: 56px;
+  left: calc(20 * var(--u));
+  top: calc(150 * var(--u));
+  width: calc(160 * var(--u));
+  height: calc(56 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(139 108 255 / 0.4), transparent);
   transform: rotateX(90deg);
@@ -536,10 +542,10 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
 
 .stand {
   position: absolute;
-  left: 38px;
-  top: 74px;
-  width: 124px;
-  height: 104px;
+  left: calc(38 * var(--u));
+  top: calc(74 * var(--u));
+  width: calc(124 * var(--u));
+  height: calc(104 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -549,19 +555,19 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
   inset: 0;
   background: linear-gradient(#a18cff, rgb(139 108 255 / 0.4));
   clip-path: polygon(0 100%, 48% 0, 52% 0, 100% 100%, 95.5% 100%, 50% 5%, 4.5% 100%);
-  transform: translateZ(-14px);
+  transform: translateZ(calc(-14 * var(--u)));
 }
 
 .stand s + s {
-  transform: translateZ(14px);
+  transform: translateZ(calc(14 * var(--u)));
 }
 
 .wheel {
   position: absolute;
-  left: 32px;
-  top: 10px;
-  width: 136px;
-  height: 136px;
+  left: calc(32 * var(--u));
+  top: calc(10 * var(--u));
+  width: calc(136 * var(--u));
+  height: calc(136 * var(--u));
   transform-style: preserve-3d;
   animation: spin 24s linear infinite;
 }
@@ -572,24 +578,24 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
   content: '';
   position: absolute;
   inset: 0;
-  border: 3px solid ${VIOLET};
+  border: calc(3 * var(--u)) solid ${VIOLET};
   border-radius: 50%;
-  box-shadow: 0 0 10px rgb(139 108 255 / 0.6);
-  transform: translateZ(7px);
+  box-shadow: 0 0 calc(10 * var(--u)) rgb(139 108 255 / 0.6);
+  transform: translateZ(calc(7 * var(--u)));
 }
 
 .wheel::after {
-  border: 3px dotted ${AMBER};
+  border: calc(3 * var(--u)) dotted ${AMBER};
   box-shadow: none;
-  transform: translateZ(-7px);
+  transform: translateZ(calc(-7 * var(--u)));
 }
 
 /* each spoke is a diameter, drawn once per rim */
 .wheel i {
   position: absolute;
   top: 0;
-  left: calc(50% - 1px);
-  width: 2px;
+  left: calc(50% - calc(1 * var(--u)));
+  width: calc(2 * var(--u));
   height: 100%;
   transform-style: preserve-3d;
   transform: rotate(var(--a));
@@ -601,11 +607,11 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
   position: absolute;
   inset: 0;
   background: rgb(139 108 255 / 0.6);
-  transform: translateZ(7px);
+  transform: translateZ(calc(7 * var(--u)));
 }
 
 .wheel i::after {
-  transform: translateZ(-7px);
+  transform: translateZ(calc(-7 * var(--u)));
 }
 
 /* a cabin: a point at the centre, pushed out to the rim */
@@ -623,14 +629,14 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
 .wheel b::before {
   content: '';
   position: absolute;
-  top: 3px;
-  left: -9px;
-  width: 18px;
-  height: 15px;
-  border-radius: 3px 3px 7px 7px;
+  top: calc(3 * var(--u));
+  left: calc(-9 * var(--u));
+  width: calc(18 * var(--u));
+  height: calc(15 * var(--u));
+  border-radius: calc(3 * var(--u)) calc(3 * var(--u)) calc(7 * var(--u)) calc(7 * var(--u));
   background: linear-gradient(var(--c) 0 30%, color-mix(in srgb, var(--c) 30%, #fff) 30% 62%, var(--c) 62%);
-  box-shadow: 0 0 8px var(--c);
-  transform-origin: 50% -3px;
+  box-shadow: 0 0 calc(8 * var(--u)) var(--c);
+  transform-origin: 50% calc(-3 * var(--u));
   animation: swing 1.6s ease-in-out infinite alternate;
   animation-delay: calc(var(--i) * -0.4s);
 }
@@ -638,19 +644,19 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
 .wheel b::after {
   content: '';
   position: absolute;
-  top: -1px;
-  left: -1px;
-  width: 2px;
-  height: 5px;
+  top: calc(-1 * var(--u));
+  left: calc(-1 * var(--u));
+  width: calc(2 * var(--u));
+  height: calc(5 * var(--u));
   background: #ccc;
 }
 
 .wheel u {
   position: absolute;
-  inset: calc(50% - 8px);
+  inset: calc(50% - calc(8 * var(--u)));
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff, ${AMBER} 55%, ${PINK});
-  transform: translateZ(8px);
+  transform: translateZ(calc(8 * var(--u)));
 }
 
 @keyframes spin {
@@ -659,8 +665,8 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
 
 /* the last rotate cancels the wheel's rotation */
 @keyframes cabin {
-  from { transform: rotate(var(--a)) translateY(-68px) rotate(calc(var(--a) * -1)) rotate(0deg); }
-  to   { transform: rotate(var(--a)) translateY(-68px) rotate(calc(var(--a) * -1)) rotate(-360deg); }
+  from { transform: rotate(var(--a)) translateY(calc(-68 * var(--u))) rotate(calc(var(--a) * -1)) rotate(0deg); }
+  to   { transform: rotate(var(--a)) translateY(calc(-68 * var(--u))) rotate(calc(var(--a) * -1)) rotate(-360deg); }
 }
 
 @keyframes swing {
