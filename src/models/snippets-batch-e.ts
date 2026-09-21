@@ -67,19 +67,25 @@ const HINT_CSS = `/* the hint is a flat overlay, outside the 3D world */
 export const snippetsE: Record<string, Snippet> = {
   solar: {
     how: [
-      'The <b>system</b> is a plane laid back with <code>rotateX(68deg)</code> and turned a little on screen with <code>rotateZ(-16deg)</code>. Every orbit is a ring on that plane.',
+      'The <b>system</b> is a plane laid back with <code>rotateX(56deg)</code> and turned a little on screen with <code>rotateZ(-16deg)</code>. Every orbit is a ring on that plane.',
       'Each ring spins with <code>rotateZ(0 → 360deg)</code>; its planet sits on the ring’s top edge and rides along. A negative <code>animation-delay</code> starts every planet at a different angle.',
-      'To keep a planet round and facing you, undo everything above it <b>in reverse order</b>: <code>rotateZ(-angle) rotateX(-68deg) rotateZ(16deg)</code>. The planet runs that with the same duration and delay as its ring, so the rotations cancel at every frame. That is billboarding.',
+      'To keep a planet round and facing you, undo everything above it <b>in reverse order</b>: <code>rotateZ(-angle) rotateX(-56deg) rotateZ(16deg)</code>. The planet runs that with the same duration and delay as its ring, so the rotations cancel at every frame. That is billboarding.',
       'The sun gets the same inverse without the spin. The fading trail is a <code>conic-gradient</code> cut to a thin ring with a <code>mask</code>, on a pseudo-element, so the mask never flattens the planet.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the widest orbit is 196 units across, and each ring’s radius and planet size are written on it as plain numbers that CSS multiplies by the unit. The plane leans back 56°, not further, so the system stands tall enough in the frame without growing wider than it.',
     ],
     html: `<div class="scene">
   <div class="system">
     <div class="sun"></div>
-${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r}px;--t:${p.t}s;--s:${p.s}px;--c:${p.c};--d:${p.d}s"><b${i === 3 ? ' class="ringed"' : ''}></b></div>`).join('\n')}
+${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:${p.s};--c:${p.c};--d:${p.d}s"><b${i === 3 ? ' class="ringed"' : ''}></b></div>`).join('\n')}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the system is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.42vmin;
+  display: grid;
+  place-items: center;
+  perspective: calc(800 * var(--u));
 }
 
 .system,
@@ -90,25 +96,25 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r}px;--t:${p.t}s;--
 /* the orbital plane: rolled on screen, then laid back */
 .system {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: calc(200 * var(--u));
+  height: calc(200 * var(--u));
   transform-style: preserve-3d;
-  transform: rotateZ(-16deg) rotateX(68deg);
+  transform: rotateZ(-16deg) rotateX(56deg);
 }
 
 .sun {
   position: absolute;
-  inset: calc(50% - 13px);
+  inset: calc(50% - calc(13 * var(--u)));
   border-radius: 50%;
   background: radial-gradient(circle at 38% 34%, #fff8e1, ${AMBER} 45%, ${PINK});
-  box-shadow: 0 0 16px ${AMBER}, 0 0 40px rgb(255 77 157 / 0.45);
-  transform: rotateX(-68deg) rotateZ(16deg); /* the plane, undone: faces the camera */
+  box-shadow: 0 0 calc(16 * var(--u)) ${AMBER}, 0 0 calc(40 * var(--u)) rgb(255 77 157 / 0.45);
+  transform: rotateX(-56deg) rotateZ(16deg); /* the plane, undone: faces the camera */
 }
 
 .orbit {
   position: absolute;
-  inset: calc(50% - var(--r));
-  border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+  inset: calc(50% - var(--r) * var(--u)); /* --r and --s are plain numbers, counted in units */
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 30%, transparent);
   border-radius: 50%;
   transform-style: preserve-3d;
   animation: orbit var(--t) linear var(--d) infinite;
@@ -118,18 +124,18 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r}px;--t:${p.t}s;--
 .orbit::before {
   content: '';
   position: absolute;
-  inset: -2px;
+  inset: calc(-2 * var(--u));
   border-radius: 50%;
   background: conic-gradient(transparent 62%, var(--c));
-  mask: radial-gradient(closest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(closest-side, transparent calc(100% - calc(3 * var(--u))), #000 calc(100% - calc(2 * var(--u))));
 }
 
 .orbit b {
   position: absolute;
-  top: calc(var(--s) / -2);
-  left: calc(50% - var(--s) / 2);
-  width: var(--s);
-  height: var(--s);
+  top: calc(var(--s) * var(--u) / -2);
+  left: calc(50% - var(--s) * var(--u) / 2);
+  width: calc(var(--s) * var(--u));
+  height: calc(var(--s) * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 34% 30%, #fff 0 6%, var(--c) 42%, color-mix(in srgb, var(--c) 45%, #000));
   /* same duration + delay as the ring: the two rotations cancel */
@@ -144,7 +150,7 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r}px;--t:${p.t}s;--
   left: 50%;
   width: 180%;
   height: 50%;
-  border: 2px solid #ffd79a;
+  border: calc(2 * var(--u)) solid #ffd79a;
   border-top-color: transparent;
   border-radius: 50%;
   transform: translate(-50%, -50%) rotate(-18deg);
@@ -156,8 +162,8 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r}px;--t:${p.t}s;--
 
 /* undo the ring's spin, then the plane's tilt, then its roll */
 @keyframes face {
-  from { transform: rotateZ(0deg) rotateX(-68deg) rotateZ(16deg); }
-  to   { transform: rotateZ(-360deg) rotateX(-68deg) rotateZ(16deg); }
+  from { transform: rotateZ(0deg) rotateX(-56deg) rotateZ(16deg); }
+  to   { transform: rotateZ(-360deg) rotateX(-56deg) rotateZ(16deg); }
 }`,
   },
 
