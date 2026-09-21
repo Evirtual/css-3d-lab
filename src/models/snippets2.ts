@@ -1977,9 +1977,38 @@ for (let row = 0; row < N; row++) {
       'There is only <b>one</b> keyframe rule. It reads those variables, so every particle flies somewhere different.',
       '<code>--z</code> is what makes it 3D: particles coming toward the camera grow, the others shrink away.',
       'Each particle removes itself on <code>animationend</code>, so the DOM never fills up.',
+      'At rest, twenty-four pieces wait round the words, written into the HTML with their place and tilt in <code>--x</code>, <code>--y</code>, <code>--r</code>, so a paused card shows confetti and not just a caption. A click adds <code>.popped</code>: they flick outward, shrink and fade as the burst takes over, and a timer takes the class off again. Their resting rule jumps <code>transform</code> back at once but fades <code>opacity</code> in slowly, so they reappear in place instead of flying back.',
       'The whole canvas is the click target (<code>inset: 0</code>), but the burst always starts from the words in the middle, so it stays inside the frame wherever you click. JS writes the vector as plain numbers and the keyframe multiplies them by one base unit, <code>--u</code>, tied to the canvas, so the burst is the same share of a gallery card and a full screen.',
     ],
-    html: `<div class="party">click anywhere</div>`,
+    html: `<div class="party">
+  <span class="waiting" aria-hidden="true">
+    <b style="--x:310;--y:-28;--r:0deg;--c:#ff4d9d"></b>
+    <b style="--x:299;--y:71;--r:47deg;--c:#8b6cff"></b>
+    <b style="--x:212;--y:157;--r:94deg;--c:#2ee6d6"></b>
+    <b style="--x:68;--y:206;--r:141deg;--c:#ffb547"></b>
+    <b style="--x:-99;--y:206;--r:188deg;--c:#ff4d9d"></b>
+    <b style="--x:-248;--y:154;--r:235deg;--c:#8b6cff"></b>
+    <b style="--x:-298;--y:121;--r:282deg;--c:#2ee6d6"></b>
+    <b style="--x:-360;--y:16;--r:329deg;--c:#ffb547"></b>
+    <b style="--x:-334;--y:-97;--r:16deg;--c:#ff4d9d"></b>
+    <b style="--x:-188;--y:-161;--r:63deg;--c:#8b6cff"></b>
+    <b style="--x:-44;--y:-202;--r:110deg;--c:#2ee6d6"></b>
+    <b style="--x:117;--y:-195;--r:157deg;--c:#ffb547"></b>
+    <b style="--x:181;--y:-179;--r:204deg;--c:#ff4d9d"></b>
+    <b style="--x:301;--y:-104;--r:251deg;--c:#8b6cff"></b>
+    <b style="--x:260;--y:40;--r:298deg;--c:#2ee6d6"></b>
+    <b style="--x:152;--y:110;--r:345deg;--c:#ffb547"></b>
+    <b style="--x:-30;--y:133;--r:32deg;--c:#ff4d9d"></b>
+    <b style="--x:-114;--y:102;--r:79deg;--c:#8b6cff"></b>
+    <b style="--x:-229;--y:46;--r:126deg;--c:#2ee6d6"></b>
+    <b style="--x:-245;--y:-33;--r:173deg;--c:#ffb547"></b>
+    <b style="--x:-149;--y:-100;--r:220deg;--c:#ff4d9d"></b>
+    <b style="--x:18;--y:-125;--r:267deg;--c:#8b6cff"></b>
+    <b style="--x:184;--y:-93;--r:314deg;--c:#2ee6d6"></b>
+    <b style="--x:250;--y:-55;--r:1deg;--c:#ffb547"></b>
+  </span>
+  click anywhere
+</div>`,
     css: `.party {
   /* one base unit, tied to the canvas: the burst is measured in it */
   --u: 0.1vmin;
@@ -1990,9 +2019,37 @@ for (let row = 0; row < N; row++) {
   overflow: hidden;
   perspective: calc(850 * var(--u));
   color: #949bc0;
-  font: 600 calc(54 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(62 * var(--u)) system-ui, sans-serif;
   cursor: pointer;
   user-select: none;
+}
+
+/* the pieces waiting at rest: two loose rings round the words, each tilted its own way in 3D */
+.waiting {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.waiting b {
+  position: absolute;
+  width: calc(30 * var(--u));
+  height: calc(42 * var(--u));
+  margin: calc(-21 * var(--u)) 0 0 calc(-15 * var(--u));
+  border-radius: calc(6 * var(--u));
+  background: var(--c);
+  transform: translate3d(calc(var(--x) * var(--u)), calc(var(--y) * var(--u)), 0) rotate3d(1, 1, 0.4, var(--r)) scale(1);
+  /* coming back: in place at once (still invisible), then a slow fade in */
+  transition: transform 0s, opacity 0.6s ease 0.1s;
+}
+
+/* a click flicks them a little outward as they shrink and fade, handing over to the burst */
+.popped .waiting b {
+  opacity: 0;
+  transform: translate3d(calc(var(--x) * 1.15 * var(--u)), calc(var(--y) * 1.15 * var(--u)), 0) rotate3d(1, 1, 0.4, calc(var(--r) + 180deg)) scale(0.2);
+  transition: transform 0.35s ease-out, opacity 0.3s linear;
 }
 
 /* every burst starts from the middle, where the words are, so it stays inside the frame
@@ -2028,7 +2085,14 @@ for (let row = 0; row < N; row++) {
     js: `const party = document.querySelector('.party');
 const rand = (min, max) => min + Math.random() * (max - min);
 
+let settle;
+
 party.addEventListener('pointerdown', () => {
+  // the pieces waiting round the words go with the burst, and come back once it has fallen
+  party.classList.add('popped');
+  clearTimeout(settle);
+  settle = setTimeout(() => party.classList.remove('popped'), 1500);
+
   // 18 random vectors, each thrown twice, once to the left and once to the right, so the burst
   // is balanced around the middle however the dice fall; a little jitter keeps the two from
   // reading as a mirror image. Each height is drawn from its own eighteenth of the range, so
