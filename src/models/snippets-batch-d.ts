@@ -284,6 +284,10 @@ export const snippetsD: Record<string, Snippet> = {
   height: calc(187 * var(--u)); /* 3 × (header 32 + gap 5) + panel 71 */
   transform-style: preserve-3d;
   transform: rotateY(-18deg) rotateX(4deg);
+  /* the frame and the headers are coplanar, and coplanar boxes have no stable hit-test order in
+     3D, so the frame itself could win a click in the middle of a header. Nothing but a header
+     (and an open panel) takes the pointer. */
+  pointer-events: none;
 }
 
 /* real radios keep it keyboard-friendly (arrow keys move between sections); only hidden */
@@ -320,6 +324,7 @@ export const snippetsD: Record<string, Snippet> = {
   font-weight: 700;
   cursor: pointer;
   user-select: none;
+  pointer-events: auto;
 }
 
 /* chevron */
