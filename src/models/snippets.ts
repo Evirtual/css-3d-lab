@@ -959,7 +959,7 @@ ${CUBE_FACES}`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the card is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.26vmin;
+  --u: 0.23vmin;
   display: grid;
   place-items: center;
   width: 100vw;
@@ -984,7 +984,9 @@ ${CUBE_FACES}`,
   background: linear-gradient(135deg, #8b6cff, #ff4d9d);
   box-shadow: 0 calc(24 * var(--u)) calc(40 * var(--u)) calc(-18 * var(--u)) #8b6cff;
   transform-style: preserve-3d;
-  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  /* the glow shadow hangs below the card and a tilt towards the pointer throws the near edge
+     further out, so what the card paints sits below its box: the lift centres the drawing */
+  transform: translateY(calc(-13 * var(--u))) rotateX(var(--rx)) rotateY(var(--ry));
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
