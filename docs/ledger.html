@@ -160,7 +160,7 @@ button, input { font: inherit; color: inherit; }
 /* ---------- the four buckets as one arrow, built like the site's models: a lit top face, a darker side ---------- */
 .flowwrap { --notch: 24px; --depth: 26px; margin-top: 14px; perspective: 2600px; perspective-origin: 50% 30%; }
 .flow { list-style: none; margin: 0; padding: 8px 4px calc(var(--depth) + 14px); display: flex; transform-style: preserve-3d; transform: rotateX(22deg); transform-origin: 50% 50%; }
-.flow__li { flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1 + 8px); transform-style: preserve-3d; }
+.flow__li { position: relative; flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1 + 8px); transform-style: preserve-3d; }
 .flow__li:first-child { margin-left: 0; }
 .step { --c: var(--muted); position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; transform-style: preserve-3d; transition: transform 0.25s ease; }
 .step--2 { --c: var(--accent); }
@@ -272,6 +272,16 @@ button, input { font: inherit; color: inherit; }
 .cl .proofline { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
 .cl .proofline code { overflow-wrap: anywhere; }
 @media (max-width: 600px) { .cldlg { max-height: calc(100dvh - 16px); } .cldlg__head { padding: 14px 14px 10px; } .cldlg__body { padding: 4px 14px 16px; } }
+
+.balrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 12px; }
+.balrow .balance { flex: 1 1 320px; margin: 0; }
+.balrow__how { font-size: 13px; white-space: nowrap; }
+.defs { margin: 0; }
+.defs dt { margin-top: 12px; font-weight: 700; }
+.defs dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.defs dd b, .defs dd code { color: var(--text); }
+.defs dd::first-letter, .cldlg__body > p.muted::first-letter { text-transform: uppercase; }
+.defs .n { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 700; }
 
 /* ---------- the filter bar: the gallery's own (index.html + src/styles/_layout.scss "filters") ---------- */
 .icon { flex: none; width: 16px; height: 16px; pointer-events: none; }
@@ -437,6 +447,7 @@ table.mini code { font-size: 12px; }
 .help:hover, .help[aria-expanded="true"] { background: color-mix(in srgb, var(--warm) 16%, transparent); border-color: var(--warm); }
 .tip { position: fixed; z-index: 50; max-width: min(300px, calc(100vw - 16px)); padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow), 0 8px 24px -8px rgb(0 0 0 / 0.45); font: 500 13px/1.45 var(--font); letter-spacing: 0; text-transform: none; white-space: normal; pointer-events: none; }
 .tip[hidden] { display: none; }
+.tip::first-letter { text-transform: uppercase; }
 .tip code { font-size: 11.5px; }
 .tip::before { content: ''; position: absolute; left: var(--arrow-x, 50%); width: 10px; height: 10px; translate: -50% 0; rotate: 45deg; background: var(--surface-solid); border: 1px solid var(--border-strong); }
 .tip[data-side="below"]::before { top: -6px; border-right: 0; border-bottom: 0; }
@@ -478,12 +489,10 @@ table.mini code { font-size: 12px; }
       <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
     </div>
     <div class="flowwrap" id="stats"></div>
-    <p class="balance" id="balance" role="status"></p>
+    <div class="balrow"><p class="balance" id="balance" role="status"></p><button type="button" class="linkish balrow__how" id="rules-btn" aria-haspopup="dialog">How these are counted</button></div>
     <div id="flow-bd"></div>
     <div class="bar" id="bar" role="img"></div>
     <div class="legend" id="legend"></div>
-    <p class="reached" id="reached"></p>
-    <p class="rules" id="rules"></p>
   </section>
 
   <div class="split">
@@ -541,6 +550,20 @@ table.mini code { font-size: 12px; }
     <div id="readiness"><p class="muted">Loading…</p></div>
   </section>
 </main>
+
+<dialog id="rules-dialog" class="cldlg" aria-labelledby="rules-title">
+  <div class="cldlg__box">
+    <div class="cldlg__head">
+      <div>
+        <span class="eyebrow">The definitions of the numbers</span>
+        <h2 id="rules-title">How these are counted</h2>
+        <p class="muted">Every model is in exactly one bucket; the buckets add up to the number of models.</p>
+      </div>
+      <button type="button" class="cldlg__x" id="rules-close" aria-label="Close the definitions"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+    <div class="cldlg__body" id="rules-body"></div>
+  </div>
+</dialog>
 
 <dialog id="cl-dialog" class="cldlg" aria-labelledby="cl-title">
   <div class="cldlg__box">
@@ -670,7 +693,8 @@ table.mini code { font-size: 12px; }
     $('stats').innerHTML = `<ol class="flow">${lastBuckets.map((b, i) => {
       const on = filter === b.key;
       const full = b.count / total;
-      return `<li class="flow__li"><button type="button" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-step="${esc(b.key)}" aria-pressed="${on}"
+      const rule = b.means && b.means.length <= 140 ? b.means : null;
+      return `<li class="flow__li">${rule ? `<span id="step-rule-${i}" class="visually-hidden">${esc(rule)}.</span>` : ''}<button type="button" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-step="${esc(b.key)}" aria-pressed="${on}"${rule ? ` data-tip aria-describedby="step-rule-${i}"` : ''}
           aria-label="${esc(STEP_SHORT[b.key] ?? b.label)}: ${b.count} of ${total} models. ${on ? 'Showing only these; press again to show all' : 'Show only these in the table, with the breakdown'}">
         <span class="step__body" aria-hidden="true">
           <span class="step__top"><span class="step__fill" style="--full:${full}"></span>
@@ -765,9 +789,9 @@ table.mini code { font-size: 12px; }
     tipFor?.setAttribute('aria-expanded', 'false');
     tipFor = null; tipPinned = false; tip.hidden = true;
   }
-  document.addEventListener('pointerover', (e) => { const b = e.target.closest?.('.help'); if (b && e.pointerType === 'mouse' && !tipPinned) showTip(b); });
-  document.addEventListener('pointerout', (e) => { const b = e.target.closest?.('.help'); if (b && b === tipFor && e.pointerType === 'mouse' && !tipPinned && !b.contains(e.relatedTarget)) hideTip(); });
-  document.addEventListener('focusin', (e) => { const b = e.target.closest?.('.help'); if (b) showTip(b); });
+  document.addEventListener('pointerover', (e) => { const b = e.target.closest?.('.help, [data-tip]'); if (b && e.pointerType === 'mouse' && !tipPinned) showTip(b); });
+  document.addEventListener('pointerout', (e) => { const b = e.target.closest?.('.help, [data-tip]'); if (b && b === tipFor && e.pointerType === 'mouse' && !tipPinned && !b.contains(e.relatedTarget)) hideTip(); });
+  document.addEventListener('focusin', (e) => { const b = e.target.closest?.('.help, [data-tip]'); if (b) showTip(b); });
   document.addEventListener('focusout', (e) => { if (e.target === tipFor && !tipPinned) hideTip(); });
   // a tap (or click) pins it open; a tap anywhere else closes it
   document.addEventListener('click', (e) => {
@@ -848,14 +872,10 @@ table.mini code { font-size: 12px; }
     $('balance').innerHTML = bal.ok
       ? `<span class="tick" aria-hidden="true">✓</span> <b>Total ${buckets.map((b) => b.count).join(' + ')} = ${bal.sum}</b>, which is every one of the ${bal.models} models, each in exactly one bucket.`
       : `<span class="tick" aria-hidden="true">✗</span> <b>MISMATCH, the books do not balance:</b> ${bal.problems.map(esc).join('; ')} (${bal.models} models, buckets sum to ${bal.sum}). Nothing on this page adds up until this is fixed.`;
-    const parts = (c.buckets ?? []).find((b) => b.key === 'checked');
-    $('reached').innerHTML = (c.reachedAtLeast ?? []).length
-      ? `Running totals, not buckets: ${c.reachedAtLeast.map((x) => `${esc(x.label)} ${x.count}`).join(' · ')}.${parts?.parts ? ` Awaiting approval is split by the first missing item, in this order: ${parts.parts.filter((p) => p.key !== 'unexplained').map((p) => esc(p.label)).join(', then ')}.` : ''}`
-      : '';
     $('bar').innerHTML = buckets.map((b) => { const s = STATUS.find((x) => x.key === b.key); return `<span style="width:${(100 * b.count) / n}%;background:${s?.color}" title="${esc(b.label)}: ${b.count}"></span>`; }).join('');
     $('bar').setAttribute('aria-label', buckets.map((b) => `${b.label} ${b.count}`).join(', '));
     $('legend').innerHTML = buckets.map((b) => { const s = STATUS.find((x) => x.key === b.key); return `<span><i style="background:${s?.color}"></i>${esc(b.label)}: ${b.count}</span>`; }).join('');
-    $('rules').innerHTML = `Converted: ${esc(L.sources.converted)}. Checked: ${esc(L.sources.gates ?? "converted and the latest check-models result is a pass on the source as it is now")}; not yet checked is split by the first gate a model does not clear, in that order. Approved: checked, plus ${esc(L.sources.review)}, plus ${esc(L.sources.textReview)}. Reviews: ${esc(L.sources.reviewLog ?? '')}. ${c.reviewed ? ['visual', 'text'].map((k) => `${k}: ${c.reviewed[k].fresh} models with a fresh review, ${c.reviewed[k].staleOnly} with only stale ones${c.reviewed[k].problem ? `, ${c.reviewed[k].problem} whose latest found a problem` : ''}`).join('; ') + '.' : ''}`;
+    renderRules();
 
     // a group or tag chosen earlier that no longer exists would hide everything without saying why
     if (group !== 'all' && !(L.groups ?? []).some((g) => g.key === group)) group = 'all';
@@ -1082,6 +1102,49 @@ table.mini code { font-size: 12px; }
       }).join('')}</ul>`;
     }).join('');
   }
+  /* ---------- "How these are counted": every fact the summary's numbers are defined by ---------- */
+  function renderRules() {
+    const c = L.counts, s = L.sources;
+    const B = (key) => (c.buckets ?? []).find((b) => b.key === key);
+    const conv = B('converted'), chk = B('checked');
+    const order = (b) => (b?.parts ?? []).filter((p) => p.key !== 'unexplained');
+    const gates = s.gateRules ?? [];
+    const dd = (html) => `<dd>${html}</dd>`;
+    $('rules-body').innerHTML = `
+      <h3>The buckets</h3>
+      <dl class="defs">
+        <dt>Not converted <span class="n">${B('not converted')?.count ?? c.byStatus['not converted']}</span></dt>
+        ${dd(`${esc(B('not converted')?.means ?? '')}. <b>Converted</b> means: ${esc(s.converted)}.`)}
+        <dt>Converted, not yet checked <span class="n">${conv?.count ?? ''}</span></dt>
+        ${dd(`${esc(conv?.means ?? '')}. It is split by the <b>first</b> gate a model does not clear, in the gate order below, so a 0 for a later gate means no model has stopped there yet, not that they passed it. ${esc(s.gateKinds ?? '')}.`)}
+        <dt>Checked, awaiting approval <span class="n">${chk?.count ?? ''}</span></dt>
+        ${dd(`${esc(chk?.means ?? '')}. It is split by the first missing item, in this order: ${order(chk).map((p) => esc(p.label)).join(', then ')}.`)}
+        <dt>Approved <span class="n">${B('approved')?.count ?? ''}</span></dt>
+        ${dd(`${esc(B('approved')?.means ?? '')}.`)}
+      </dl>
+      <h3>The checks, in gate order</h3>
+      <p class="muted" style="font-size:14px">${esc(s.gates ?? '')}.</p>
+      <dl class="defs">${gates.map((g, i) => `<dt>${i + 1}. ${esc(g.label)}</dt>${dd(`${esc(g.rule)}. From ${esc(g.source)}.`)}`).join('')}</dl>
+      <h3>Reviews</h3>
+      <dl class="defs">
+        <dt>Visual review</dt>${dd(esc(s.review))}
+        <dt>Text review</dt>${dd(esc(s.textReview))}
+        <dt>The review log</dt>${dd(esc(s.reviewLog ?? ''))}
+        ${c.reviewed ? `<dt>Reviews found</dt>${dd(['visual', 'text'].map((k) => `${k}: <span class="n">${c.reviewed[k].fresh}</span> models with a fresh review, <span class="n">${c.reviewed[k].staleOnly}</span> with only stale ones${c.reviewed[k].problem ? `, <span class="n">${c.reviewed[k].problem}</span> whose latest found a problem` : ''}`).join('; ') + '.')}` : ''}
+      </dl>
+      <h3>Running totals</h3>
+      <p class="muted" style="font-size:14px">These are not buckets: a model counts in every stage it has reached, so they do not add up to the model count.</p>
+      <dl class="defs">${(c.reachedAtLeast ?? []).map((x) => `<dt>${esc(x.label[0].toUpperCase() + x.label.slice(1))} <span class="n">${x.count}</span></dt>`).join('')}</dl>`;
+  }
+  /** A dialog opened by a button: closed by its × button, Escape or a backdrop click; focus goes back to the button. */
+  function wireDialog(d, open, close) {
+    open.addEventListener('click', () => { if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', ''); close.focus(); });
+    close.addEventListener('click', () => d.close());
+    d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+    d.addEventListener('close', () => open.focus({ preventScroll: true }));
+    d.addEventListener('keydown', (e) => { if (e.key === 'Escape' && d.open) { e.preventDefault(); d.close(); } });
+  }
+  wireDialog($('rules-dialog'), $('rules-btn'), $('rules-close'));
   const dlg = $('cl-dialog');
   $('cl-btn').addEventListener('click', () => { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); $('cl-close').focus(); });
   $('cl-close').addEventListener('click', () => dlg.close());

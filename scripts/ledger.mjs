@@ -660,6 +660,15 @@ const ledger = {
     commits: `git log, ${commitCount} commits; diff matches by replaying src/models and src/styles/models line by line`,
     checks: Object.fromEntries(CHECKS.map((c) => [c, checkFiles[c] ? `docs/checks/${c}.json, updated ${checkFiles[c].updatedAt}` : 'no result file: this check has never been captured'])),
     contractCheck: CONTRACT,
+    // each gate's rule on its own, in gate order, for the page's "How these are counted"
+    gateRules: GATES.map((g) => ({ key: g.key, name: g.name, label: g.label, source: checkFiles[g.key] ? `docs/checks/${g.key}.json, updated ${checkFiles[g.key].updatedAt}` : 'no result file: never captured',
+      rule: {
+        models: 'cleared when its latest result is a pass on the model\'s current code',
+        stages: 'cleared when its latest result is a pass on the model\'s current code',
+        motion: 'cleared when its latest run is smooth on the current code, or every flag that run raised is named as a false alarm, with a reason, in a fresh visual review (motionFlagsResolved); "broke" cannot be cleared by a review',
+        exports: 'cleared when its verdict at the export dialog\'s default settings (image 1:1 at 1600 px PNG, video 9:16 at 1080p, a loop) is a pass on the current code; a run that left the defaults out counts as never run, and the full settings matrix is a sample that does not gate',
+      }[g.key] })),
+    gateKinds: 'Each gate not cleared is one of: passed on older code (it passed, or its flags were cleared, but the model changed since), failed (the latest result did not pass), never run (no captured run has reported it)',
     gates: 'checked = every gate cleared on the current code, in this order: ' + GATES.map((g) => g.label).join(', ') + '. Motion is clear when the latest run is smooth or every flag is named as a false alarm in a fresh visual review (motionFlagsResolved); exports means the default settings only',
     review: 'a visual review: a docs/reviews/ entry of kind "visual", or a commit touching the model (by diff), not its converting commit, with a Reviewed-by: trailer or a subject starting "Review"',
     textReview: 'a text review: a docs/reviews/ entry of kind "text", or a commit matched to the model with a Text-reviewed-by: trailer or a subject starting "Text review" / "Review the text"',
