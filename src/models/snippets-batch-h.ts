@@ -378,8 +378,10 @@ ${key('3D', true)}
   font-size: calc(12 * var(--u));
 }
 
+/* the stage's own ink, softened with opacity rather than a colour of the model's: a fixed pale
+   lavender read on the dark stage and all but vanished on the light one */
 .bar output {
-  color: #949bc0;
+  opacity: 0.7;
   font-variant-numeric: tabular-nums;
 }
 
