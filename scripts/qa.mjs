@@ -14,7 +14,7 @@ import { extname, join, resolve } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
 
-const DIST = resolve('dist');
+const DIST = resolve(process.env.QA_DIST || 'dist'); // QA_DIST: test another build (a deliberately broken copy)
 const only = process.argv.slice(2);
 const vite = await createVite({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
@@ -124,11 +124,23 @@ async function check(demo) {
       await snap();
     } else if (how === 'click') {
       // the LAST control: the first is often the one already selected
-      // visible controls first; bare radios / checkboxes only when there is nothing else
-      let targets = await inner.$$('#c3d-scene button:not([disabled]), #c3d-scene label');
-      if (!targets.length) targets = await inner.$$('#c3d-scene input[type=radio]:not(:checked), #c3d-scene input[type=checkbox]');
-      if (targets.length) await targets[targets.length - 1].click({ force: true });
-      else await page.mouse.click(cx, cy);
+      // visible controls first; bare radios / checkboxes only when there is nothing else. Only
+      // controls a visitor can see and hit: a hidden one (a closed menu's items) takes no click
+      const shown = async (list) => {
+        const out = [];
+        for (const el of list) if (await el.isVisible()) out.push(el);
+        return out;
+      };
+      let targets = await shown(await inner.$$('#c3d-scene button:not([disabled]), #c3d-scene label'));
+      if (!targets.length) targets = await shown(await inner.$$('#c3d-scene input[type=radio]:not(:checked), #c3d-scene input[type=checkbox]'));
+      const box = targets.length ? await targets[targets.length - 1].boundingBox() : null;
+      const [px, py] = box ? [box.x + box.width / 2, box.y + box.height / 2] : [cx, cy];
+      // press and HOLD before letting go, the way a finger does: a push button shows its press
+      // only while it is held (:active), and a click that is over in a moment never shows it
+      await page.mouse.move(px, py, { steps: 3 });
+      await page.mouse.down();
+      await snap();
+      await page.mouse.up();
       await snap();
     } else if (how === 'scroll') {
       await page.mouse.move(cx, cy);
