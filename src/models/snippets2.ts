@@ -1316,26 +1316,29 @@ input:checked ~ em {
   <ul>
     <li style="--i:0">Profile</li>
     <li style="--i:1">Projects</li>
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The menu keeps room under its button for the open list, so it is centred open as well as closed.',
     <li style="--i:2">Settings</li>
     <li style="--i:3">Sign out</li>
   </ul>
 </div>`,
-    css: `body {
-  place-items: start center;
-  padding-top: 40px;
-}
-
-.menu {
+    css: `.menu {
+  /* one base unit: every length below is a multiple of it, so the menu is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.28vmin;
   position: relative;
-  width: 200px;
+  width: calc(200 * var(--u));
+  /* room for the open list under the button, so the menu is centred open, not just closed: the
+     list is absolute, and without this the button alone would be centred and the list would hang
+     off the bottom */
+  margin-bottom: calc(172 * var(--u));
   cursor: pointer;
-  font-family: system-ui;
+  font: calc(16 * var(--u)) system-ui, sans-serif;
 }
 
 .menu > span {
   display: block;
-  padding: 12px 16px;
-  border-radius: 10px;
+  padding: calc(12 * var(--u)) calc(16 * var(--u));
+  border-radius: calc(10 * var(--u));
   color: #fff;
   font-weight: 800;
   background: linear-gradient(120deg, #8b6cff, #ff4d9d);
@@ -1344,16 +1347,16 @@ input:checked ~ em {
 .menu ul {
   position: absolute;
   inset: 100% 0 auto;
-  margin: 4px 0 0;
+  margin: calc(4 * var(--u)) 0 0;
   padding: 0;
   list-style: none;
-  perspective: 500px;
+  perspective: calc(500 * var(--u));
 }
 
 .menu li {
-  padding: 10px 16px;
+  padding: calc(10 * var(--u)) calc(16 * var(--u));
   background: #141830;
-  border: 1px solid #2a3054;
+  border: calc(1 * var(--u)) solid #2a3054;
   opacity: 0;
   transform-origin: top center;
   transform: rotateX(-90deg);
