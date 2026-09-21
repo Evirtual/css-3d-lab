@@ -593,19 +593,23 @@ ${CUBE_FACES}
   radio: {
     how: [
       'Real <code>&lt;input type="radio"&gt;</code> elements hold the state — the browser handles clicks and arrow keys.',
-      'The cube comes <b>after</b> the inputs in the markup, so <code>input:checked ~ .cube</code> can reach it.',
+      'The cube comes <b>after</b> the inputs in the markup, so <code>input:checked ~ .view .cube</code> can reach it. The same rule names the face in the caption.',
+      'The radios sit <b>under</b> the cube on the screen even so: the picker is a grid, and grid placement decides where a child lands, not where it is written. DOM order is the sibling combinator’s; visual order is the band’s.',
       'Each radio maps to the rotation that brings its face to the front; a <code>transition</code> animates between them.',
       '<code>appearance: none</code> lets you restyle the radios as buttons. Keep the <code>aria-label</code>s.',
+      'The cube is written in one base unit, <code>--u</code>, so it is the same share of a gallery card, the editor and a recording canvas. The control zone under it is in plain <code>vmin</code>, because it is the same object at the same size in every model that has one.',
     ],
     html: `<div class="picker">
-  <div class="controls-and-cube">
-    <input type="radio" name="face" aria-label="Front" checked>
-    <input type="radio" name="face" aria-label="Right">
-    <input type="radio" name="face" aria-label="Back">
-    <input type="radio" name="face" aria-label="Left">
-    <input type="radio" name="face" aria-label="Top">
-    <input type="radio" name="face" aria-label="Bottom">
+  <input type="radio" name="face" aria-label="Front" checked>
+  <input type="radio" name="face" aria-label="Right">
+  <input type="radio" name="face" aria-label="Back">
+  <input type="radio" name="face" aria-label="Left">
+  <input type="radio" name="face" aria-label="Top">
+  <input type="radio" name="face" aria-label="Bottom">
 
+  <output class="caption"><span>Front</span><span>Right</span><span>Back</span><span>Left</span><span>Top</span><span>Bottom</span></output>
+
+  <div class="view">
     <div class="cube">
       <div>Front</div><div>Right</div><div>Back</div>
       <div>Left</div><div>Top</div><div>Bottom</div>
@@ -613,66 +617,95 @@ ${CUBE_FACES}
   </div>
 </div>`,
     css: `.picker {
-  perspective: 800px;
-}
-
-.controls-and-cube {
+  /* one base unit: every length in the cube is a multiple of it, so the cube is the same share
+     of a card, the editor, a full screen and a recording canvas. The zone under it is in plain
+     vmin, because it is the same object in every model. */
+  --u: 0.22vmin;
   display: grid;
   grid-template-columns: repeat(6, auto);
   justify-content: center;
-  gap: 40px 8px;
-  transform-style: preserve-3d;
+  justify-items: center;
+  gap: 2vmin;
+  font-family: system-ui, sans-serif;
 }
 
-input {
+/* the model box: the same height in every model that has controls. It is written second-to-last
+   in the markup and first on the screen — the grid rows are what the eye reads. */
+.view {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+  margin-bottom: 2vmin;   /* 2vmin of gap + this = the band's 4vmin under the model box */
+  perspective: calc(800 * var(--u));
+}
+
+/* the caption: one line, always the same height, so naming a new face cannot move the cube */
+.caption {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  opacity: 0.7;
+}
+
+.caption span { display: none; }
+
+.picker input {
+  grid-row: 3;
+  box-sizing: border-box;
   appearance: none;
-  width: 26px;
-  height: 26px;
+  width: 8vmin;
+  height: 8vmin;
   margin: 0;
-  border: 2px solid #5a6188;
-  border-radius: 8px;
+  border: 0.6vmin solid #5a6188;
+  border-radius: 999px;
   cursor: pointer;
 }
 
-input:checked {
+.picker input:checked {
   background: #2ee6d6;
   border-color: #2ee6d6;
-  box-shadow: 0 0 12px #2ee6d6;
+  box-shadow: 0 0 2.5vmin #2ee6d6;
 }
 
 .cube {
-  --s: 120px;
+  --s: calc(120 * var(--u));
   --view: rotateX(-18deg) rotateY(-22deg);
-  grid-row: 1;
-  grid-column: 1 / -1;
-  justify-self: center;
   position: relative;
   width: var(--s);
   height: var(--s);
-  margin-top: 30px;
   transform-style: preserve-3d;
   transform: var(--view);
   transition: transform 0.9s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
-/* the whole trick: a checked radio restyles a LATER sibling */
-input:nth-of-type(1):checked ~ .cube { transform: var(--view) rotateY(0deg); }
-input:nth-of-type(2):checked ~ .cube { transform: var(--view) rotateY(-90deg); }
-input:nth-of-type(3):checked ~ .cube { transform: var(--view) rotateY(-180deg); }
-input:nth-of-type(4):checked ~ .cube { transform: var(--view) rotateY(90deg); }
-input:nth-of-type(5):checked ~ .cube { transform: var(--view) rotateX(-90deg); }
-input:nth-of-type(6):checked ~ .cube { transform: var(--view) rotateX(90deg); }
+/* the whole trick: a checked radio restyles a LATER sibling, and anything inside one */
+input:nth-of-type(1):checked ~ .view .cube { transform: var(--view) rotateY(0deg); }
+input:nth-of-type(2):checked ~ .view .cube { transform: var(--view) rotateY(-90deg); }
+input:nth-of-type(3):checked ~ .view .cube { transform: var(--view) rotateY(-180deg); }
+input:nth-of-type(4):checked ~ .view .cube { transform: var(--view) rotateY(90deg); }
+input:nth-of-type(5):checked ~ .view .cube { transform: var(--view) rotateX(-90deg); }
+input:nth-of-type(6):checked ~ .view .cube { transform: var(--view) rotateX(90deg); }
+
+/* and the same rule again, to show the face's name */
+input:nth-of-type(1):checked ~ .caption span:nth-child(1),
+input:nth-of-type(2):checked ~ .caption span:nth-child(2),
+input:nth-of-type(3):checked ~ .caption span:nth-child(3),
+input:nth-of-type(4):checked ~ .caption span:nth-child(4),
+input:nth-of-type(5):checked ~ .caption span:nth-child(5),
+input:nth-of-type(6):checked ~ .caption span:nth-child(6) { display: inline; }
 
 .cube > * {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  font: 700 1rem system-ui;
+  font: 700 calc(16 * var(--u)) system-ui;
   background: rgb(46 230 214 / 0.25);
-  /* an inner line plus a soft glow instead of a hard border: squeezed side-on, a 1px line
+  /* an inner line plus a soft glow instead of a hard border: squeezed side-on, a one-unit line
      breaks up, the glow survives */
-  box-shadow: inset 0 0 0 1px rgb(46 230 214 / 0.8), inset 0 0 12px rgb(46 230 214 / 0.35);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) rgb(46 230 214 / 0.8), inset 0 0 calc(12 * var(--u)) rgb(46 230 214 / 0.35);
 }
 
 ${CUBE_FACES}`,
