@@ -462,9 +462,9 @@ async function checkOne(d, cmp) {
           const offX = ((s.l + s.r) / 2 - W / 2) / unit, offY = ((s.t + s.b) / 2 - H / 2) / unit;
           const ctrl = Boolean(fr?.controls);
           facts.size = `${w.toFixed(0)} × ${h.toFixed(0)} vmin, off ${offX.toFixed(1)}, ${offY.toFixed(1)}${ctrl ? ', with controls' : ''}`;
-          if (h < FLOOR) why.push(`${h.toFixed(0)}vmin tall in the image, under ${FLOOR}`);
-          if (h > BAND) why.push(`${h.toFixed(0)}vmin tall in the image, over ${BAND}`);
-          if (w > WIDEST) why.push(`${w.toFixed(0)}vmin wide in the image, over ${WIDEST}`);
+          if (h < FLOOR) why.push(`${h.toFixed(2)}vmin tall in the image, under ${FLOOR}`);
+          if (h > BAND) why.push(`${h.toFixed(2)}vmin tall in the image, over ${BAND}`);
+          if (w > WIDEST) why.push(`${w.toFixed(2)}vmin wide in the image, over ${WIDEST}`);
           if (Math.abs(offX) > CENTRED) why.push(`${offX.toFixed(2)}vmin off centre sideways in its area`);
           if (Math.abs(offY) > CENTRED + (ctrl ? 7 : 0)) why.push(`${offY.toFixed(2)}vmin off centre vertically in its area`);
           if (ink.all.l <= 0 || ink.all.t <= 0 || ink.all.r >= W || ink.all.b >= H) why.push('reaches the edge of its area: cut off in the image');
