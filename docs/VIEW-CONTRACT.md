@@ -78,7 +78,8 @@ A model meant to cover the canvas says so in its own code: the scene is `inset: 
 contents are sized in percentages. Starfield, snow, the synthwave grid, the room and the tunnel
 are these. They ignore the band, reach the edges, and the stage clips whatever hangs over.
 
-Nothing marks them from outside. Their own CSS is the marking.
+Nothing marks them from outside. Their own CSS is the marking, and the check recognises one by
+what it paints: a drawing that covers the canvas.
 
 ## Interaction
 
@@ -97,8 +98,29 @@ scrolled:
 - the model box is where the band says it is, and has not moved or resized;
 - nothing but a full-canvas model touches the canvas edge.
 
-`npm run check-models` opens every model, drives it through those states and reports the ones that
-break the contract. It judges models; it does not adjust them.
+Two checks judge this; neither adjusts anything.
+
+`npm run check-models` (`scripts/check-models.mjs`) opens every model on a card (a 360 × 300
+page), drives it through those states as its tags say — 12 moments of its loop and the same 12
+with `:hover` forced, up to six of its controls clicked, a drag, a pointer sweep to the corners
+and sides of the canvas, a scroll down and back — and measures the box around every pixel it
+paints (alpha over 24/255), in vmin. What it holds, exactly:
+
+| | |
+| --- | --- |
+| Tallest | 70vmin for everything drawn, **the control zone included**. The 50vmin model box inside the band is not measured on its own: the stack in rule 5 is what holds it |
+| Shortest | 40vmin |
+| Widest | 92% of the canvas width |
+| Centred | within 4vmin sideways; vertically within 4vmin, or 11vmin when there is a control zone |
+| Top corners | nothing drawn within 14vmin of either top corner |
+| Full canvas | a drawing that covers at least 95% of the canvas both ways is judged as full-canvas, and must cover 98% |
+
+What the frame clips, the picture cannot show: a model drawn past the canvas edge is measured up
+to the edge, so its numbers are a floor.
+
+`node scripts/check-stages.mjs` measures the same model on every surface — card, viewer, page,
+the editor's live, reset and saved states, a large page, full screen, and the export dialog's
+canvas at every shape — and reports any whose width, height or offset in vmin disagree.
 
 ## The rest of the rules, decided up front
 
@@ -120,8 +142,16 @@ These are the things that would otherwise be found one model at a time.
 - **A full-canvas model may still have controls.** The zone sits in the same place, over the
   model, at the same size. Being full-canvas changes what is behind the controls, not where they
   are.
-- **Printing follows the same band.** The print sheet measures the model and fits it itself today;
-  that goes, and a printed model is laid out by the contract like every other state.
+- **Printing follows the same band.** The dialog's Print makes a snapshot through the render
+  service at the sheet's own shape and prints that picture edge to edge (`src/video.ts`,
+  `src/print.ts`), so a printed model is laid out like any other snapshot. The older sheet that
+  measures element boxes and fits the model itself (`printDoc` in `src/models/snippet-utils.ts`)
+  is still in the code, used only when `printModel` is given no picture; no current caller does
+  that.
+- **The export slider is the visitor's, not the model's.** In the Video / Image dialog the model
+  fills 70% by default, which is the canvas exactly as the contract lays it out. Another setting
+  writes `--zoom` (the setting ÷ 0.7) on the stage and the frame's scene is zoomed by it, the same
+  for every model (`src/video.ts`, `src/preview.ts`).
 - **No model paints the backdrop.** The stage's colour, its dots and its theme are the site's. A
   model's text colour is inherited, so it reads on a light stage and a dark one, and a see-through
   export has nothing of the model's own behind it.
@@ -129,9 +159,11 @@ These are the things that would otherwise be found one model at a time.
 ## What goes with this
 
 Every model still carries a second implementation from before the snippet became the only thing
-the site renders: its gallery markup and about 16,700 lines of per-model Sass. Nothing draws them
-any more, only the metadata around them is read. They are deleted as part of this pass, so there
-is one version of each model and no way for the two to drift.
+the site renders: its gallery markup (`html`, and `init` for CSS + JS models, on the `Demo`
+object) and its per-model Sass (135 files, 16,728 lines in `src/styles/models/`, still imported by
+`src/styles/main.scss` and shown in the "Sass source" tab). Nothing draws them any more, only the
+metadata around them is read. They are deleted as part of this pass, so there is one version of
+each model and no way for the two to drift. As of 2026-09-21 that deletion has not happened.
 
 ## Ground rules for writing a model
 
@@ -158,7 +190,8 @@ Design in whatever numbers you like — 180 and 100 above are just the proportio
 set `--u` so the model lands in the band. Nothing else has to change afterwards.
 
 **2. Land in the band.** 70vmin tall with no controls, 50vmin with them, never under 40vmin, never
-over 92% of the canvas wide, centred within 4vmin. Check, do not guess:
+over 92% of the canvas wide, centred within 4vmin (vertically 11vmin with a control zone, since
+the band is centred and the model box sits above the middle). Check, do not guess:
 `npm run check-models <id>`.
 
 **3. Hold the whole model still.** The band is for everything the model draws at any moment: the
