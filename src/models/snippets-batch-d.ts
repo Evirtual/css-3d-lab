@@ -782,11 +782,12 @@ root.addEventListener('keydown', key);`,
 
   cubenav: {
     how: [
-      'JS keeps one <b>unbounded</b> counter (…, -1, 0, 1, 2, … 7, 8, …), never a value clamped to 0-3. CSS just multiplies it: <code>rotateY(calc(index * -90deg))</code>.',
+      'JS keeps one <b>unbounded</b> counter (…, -1, 0, 1, 2, … 7, 8, …), never a value clamped to 0-3. It writes it as one angle, <code>index × -90deg</code>, into <code>--angle</code>, and CSS turns the cube by it: <code>rotateY(var(--angle))</code>.',
       'Because the angle only ever grows or shrinks, Next always turns the same way — it never has to unwind back through 360° when it wraps from slide 4 to slide 1.',
       'For the dot buttons, JS picks the <b>shortest</b> path: <code>((target − current + 4) % 4)</code> gives 0-3 steps forward; if that is more than half way around, subtracting 4 makes it a few steps backward instead.',
       'The cube is pulled back with <code>translateZ(calc(-s / 2))</code> so whichever face is turned to the front sits exactly at <code>z = 0</code> and renders at its true size, not shrunk by the perspective.',
       'Only <code>transform</code> is transitioned, so the turn runs on the compositor and stays smooth however fast you click.',
+      'Every length in the cube is a multiple of one base unit, <code>--u</code>, tied to the canvas, so it is the same share of a gallery card, the editor and a recording canvas. The arrows, dots and caption are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.',
     ],
     html: `<div class="cubenav">
   <div class="view">
