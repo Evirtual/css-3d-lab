@@ -864,6 +864,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
       '<code>perspective-origin: 120% 50%</code> moves the camera to the right of the frame, so the open door does not collapse into a thin line.',
       'The "light" is simply the frame’s background, revealed as the leaf swings away.',
       '<code>tabindex="0"</code> plus <code>:focus</code> makes it work by tap and by keyboard.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the frame is 150 × 250 units, so the door is the same share of a gallery card, the editor and a recording canvas. The leaf swings out to the left, so the scene is padded on that side and the door plus its swing is what sits in the middle.',
     ],
     html: `<div class="scene">
   <div class="door" tabindex="0">
