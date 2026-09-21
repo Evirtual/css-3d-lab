@@ -929,7 +929,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the floor is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.25vmin;
+  --u: 0.24vmin;
   perspective: calc(900 * var(--u));
 }
 
@@ -938,11 +938,10 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   grid-template-columns: repeat(5, calc(46 * var(--u)));
   gap: calc(5 * var(--u));
   transform-style: preserve-3d;
-  /* a raised tile pops towards the camera, and on a plane tilted this far that is up the screen:
-     a swept-over floor sits higher than a resting one. The nudge is half of that rise, so the
-     floor is a little low at rest and a little high with every tile up, instead of right at rest
-     and 5vmin high the moment you sweep across it */
-  transform: translateY(calc(10 * var(--u))) rotateX(56deg) rotateZ(-45deg);
+  /* the near half of a plane tilted this far is its bottom, and the camera magnifies it: the
+     floor draws further below its own middle than above it. This lifts it by that much, so what
+     is centred in the canvas is the shape you see, not the untilted square */
+  transform: translateY(calc(-17 * var(--u))) rotateX(56deg) rotateZ(-45deg);
   /* same plane as its cells: keep the floor itself out of hit-testing, or hover misses in patches */
   pointer-events: none;
 }
