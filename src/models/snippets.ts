@@ -219,8 +219,8 @@ ${CUBE_FACES}
 }
 
 @keyframes rock {
-  from { transform: rotateY(-32deg) rotateX(12deg); }
-  to   { transform: rotateY(32deg)  rotateX(-6deg); }
+  from { transform: translateY(calc(-20 * var(--u))) rotateY(-32deg) rotateX(12deg); }
+  to   { transform: translateY(calc(-20 * var(--u))) rotateY(32deg)  rotateX(-6deg); }
 }`,
   },
 
