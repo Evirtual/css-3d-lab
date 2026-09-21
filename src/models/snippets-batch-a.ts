@@ -80,6 +80,7 @@ ${lines(6, (i) => `    <i style="--i:${i}"></i>`)}
   octa: {
     how: [
       'An octahedron is two square pyramids glued at their base. Every face is the same equilateral triangle (<code>clip-path</code>), standing on one edge of the square "equator".',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the solid is the same share of a gallery card, the editor and a recording canvas.',
       'Hinge each triangle on its bottom edge (<code>transform-origin: 50% 100%</code>) and lean it in by <code>90° − atan(√2) ≈ 35.26°</code>: exactly enough for four tips to meet on the axis.',
       'The bottom pyramid reuses the same rule. <code>--s: -1</code> flips the triangle to point down with <code>scaleY(-1)</code> and reverses the lean, so one line of CSS builds all eight faces.',
       '<code>clip-path</code> also clips borders away, so the slanted edges are painted: a <code>to top left</code> gradient\'s 50% line runs exactly along its box diagonal.',
@@ -90,11 +91,14 @@ ${lines(8, (i) => `    <i style="--i:${i % 4}; --s:${i < 4 ? 1 : -1}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the solid is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.33vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .octa {
-  --a: 110px; /* edge length */
+  --a: calc(110 * var(--u)); /* edge length */
   position: relative;
   width: var(--a);
   height: var(--a);
@@ -110,7 +114,7 @@ ${lines(8, (i) => `    <i style="--i:${i % 4}; --s:${i < 4 ? 1 : -1}"></i>`)}
   left: 0;
   bottom: 50%;             /* bottom edge on the equator, through the centre */
   width: var(--a);
-  height: 95.26px;         /* triangle height = a × √3 / 2 */
+  height: calc(95.26 * var(--u)); /* triangle height = a × √3 / 2 */
   transform-origin: 50% 100%;
   transform:
     rotateY(calc(var(--i) * 90deg))
@@ -119,9 +123,9 @@ ${lines(8, (i) => `    <i style="--i:${i % 4}; --s:${i < 4 ? 1 : -1}"></i>`)}
     scaleY(var(--s));                   /* -1 flips the bottom four downward */
   clip-path: polygon(50% 0, 0 100%, 100% 100%);
   background:
-    linear-gradient(to top left, transparent calc(50% - 1.5px), var(--edge) calc(50% - 1.5px) 50%, transparent 50%) left / 50% 100% no-repeat,
-    linear-gradient(to top right, transparent calc(50% - 1.5px), var(--edge) calc(50% - 1.5px) 50%, transparent 50%) right / 50% 100% no-repeat,
-    linear-gradient(var(--edge), var(--edge)) bottom / 100% 1.5px no-repeat,
+    linear-gradient(to top left, transparent calc(50% - 1.5 * var(--u)), var(--edge) calc(50% - 1.5 * var(--u)) 50%, transparent 50%) left / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 1.5 * var(--u)), var(--edge) calc(50% - 1.5 * var(--u)) 50%, transparent 50%) right / 50% 100% no-repeat,
+    linear-gradient(var(--edge), var(--edge)) bottom / 100% calc(1.5 * var(--u)) no-repeat,
     linear-gradient(to top, rgb(var(--c) / var(--alpha)), rgb(var(--c) / 0.08));
 }
 
