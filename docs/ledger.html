@@ -161,7 +161,9 @@ button, input { font: inherit; color: inherit; }
 .stat .sub { font-size: 12.5px; color: var(--muted); }
 .stat.conv b { color: var(--accent); }
 .stat.chk b { color: var(--accent-2); }
-.stat.ok b { background: linear-gradient(100deg, var(--accent), var(--hot)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* the same gradient as the legend swatch, spread over the digits themselves: as a block it spans the
+   whole card, and a short number at its left edge only ever shows the violet end */
+.stat.ok b { width: fit-content; background: var(--st-ok); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 16px; background: color-mix(in srgb, var(--muted) 22%, transparent); }
 .bar span { display: block; height: 100%; }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
