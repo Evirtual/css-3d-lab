@@ -60,9 +60,10 @@
     "motionFlagsResolved": [
       {
         "flag": "hover div.package: its hit area is mostly over empty canvas (53 of 81 reachable points draw nothing)",
-        "reason": "The oversized hit area is room for the lid and card that rise on hover, so the pointer stays on it while it opens; it is invisible and inside the canvas."
+        "reason": "Hit map: a rectangle just round the box and the room its lid and card rise into; nothing far from the box. Fine (as ruled before). (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "city",
@@ -85,17 +86,18 @@
     "motionFlagsResolved": [
       {
         "flag": "hover div.fan: pop 1→2",
-        "reason": "The strip shows the lift starting on a fast ease-out: the first 38ms step is the largest and the rest follow smoothly, with no jump back or skipped pose."
+        "reason": "Filmed at 4-8ms steps: the transition is smooth; the one large step is the hovered card rising through the plane of the Ship card, which starts nearer the camera. The two cut through each other for under 10ms (less than one 60Hz frame), inherent in a card coming forward from behind a neighbour; no snap, no delay mismatch. (ruled at 1d88b26)"
       },
       {
         "flag": "hover div.fan-slot#2: pop 1→2",
-        "reason": "Same ease-out start of the Build card lifting; the following frames continue it smoothly."
+        "reason": "Filmed at 4-8ms steps: the transition is smooth; the one large step is the hovered card rising through the plane of the Ship card, which starts nearer the camera. The two cut through each other for under 10ms (less than one 60Hz frame), inherent in a card coming forward from behind a neighbour; no snap, no delay mismatch. (ruled at 1d88b26)"
       },
       {
         "flag": "focus div.fan-slot#2: pop 1→2",
-        "reason": "Focus runs the same transition as hover on the Build card, so this is the same ease-out start, not a jump."
+        "reason": "Filmed at 4-8ms steps: the transition is smooth; the one large step is the hovered card rising through the plane of the Ship card, which starts nearer the camera. The two cut through each other for under 10ms (less than one 60Hz frame), inherent in a card coming forward from behind a neighbour; no snap, no delay mismatch. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 3 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "can",
@@ -128,9 +130,10 @@
     "motionFlagsResolved": [
       {
         "flag": "loop: pop 5→6,11→12,17→18,23→0",
-        "reason": "The prism is designed to hold each word for about 2s and then turn quickly to the next; the strip shows each pop is exactly that quarter-turn between two whole faces, with no glitch in between."
+        "reason": "Filmed the turn at 40-50ms steps: each quarter roll is continuous, the face in front changes as the prism rolls and the seam frame equals the start (360deg = 0deg), so the step is a fast roll between two 24-frame samples, not a jump. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "turntable",
@@ -140,7 +143,33 @@
     "reviewedAt": "2026-09-21T20:07:40+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Speaker with drag hint and colour swatches in the control zone; the stack is centred at about 61vmin, the swatches are finger-sized, and the paused pose is square-on and finished.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "hover button#1 \"Violet\": changes nothing on screen",
+        "reason": "Violet is the selected swatch: its ring is the selected state. Filmed and probed: no change on hover. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#1 \"Violet\": changes nothing on screen",
+        "reason": "Violet is the selected swatch: its ring is the selected state. Filmed and probed: no change on hover. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "hover button#2 \"Teal\": changes nothing on screen",
+        "reason": "NOT the selected-pill cause: every swatch sets background: var(--sw) in a later rule of equal weight, so no swatch, selected or not, shows the hover tint; only the cursor changes. Reported, not changed here. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#2 \"Teal\": changes nothing on screen",
+        "reason": "NOT the selected-pill cause: every swatch sets background: var(--sw) in a later rule of equal weight, so no swatch, selected or not, shows the hover tint; only the cursor changes. Reported, not changed here. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "hover button#3 \"Pink\": changes nothing on screen",
+        "reason": "NOT the selected-pill cause: every swatch sets background: var(--sw) in a later rule of equal weight, so no swatch, selected or not, shows the hover tint; only the cursor changes. Reported, not changed here. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#3 \"Pink\": changes nothing on screen",
+        "reason": "NOT the selected-pill cause: every swatch sets background: var(--sw) in a later rule of equal weight, so no swatch, selected or not, shows the hover tint; only the cursor changes. Reported, not changed here. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): Violet ruled selected; Teal and Pink swatches give no hover feedback at all (swatch background overrides the tint) - reported, not fixed."
   },
   {
     "model": "neonbars",
@@ -150,7 +179,17 @@
     "reviewedAt": "2026-09-21T20:07:40+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Bar chart with caption and year pills, stack about 64 x 59vmin and centred; the month and axis labels are small on a card but still legible, and the caption and pills are standard.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "hover button#1 \"2024\": changes nothing on screen",
+        "reason": "2024 is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#1 \"2024\": changes nothing on screen",
+        "reason": "2024 is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "equalizer",
@@ -183,9 +222,10 @@
     "motionFlagsResolved": [
       {
         "flag": "focus div.swipe: changes nothing on screen",
-        "reason": "The deck has a :focus-visible outline on its top card (snippets-batch-d.ts), which shows on keyboard focus; a programmatic focus without keyboard modality does not trigger :focus-visible, so nothing changing is expected."
+        "reason": "Not a missing focus: tabbed to, the top card gets a teal ring (filmed). The check focuses it after its drag lap, and the pointer-down already focused the deck with the ring on, so focusing again changes nothing. A keyboard user sees the ring. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "diamond",
@@ -244,8 +284,17 @@
       {
         "flag": "hover div.slot#2: pop 1→2",
         "reason": "The middle card's lift starts on an ease-out, so the first 38ms step is the biggest; the strip shows it continuing smoothly with no jump."
+      },
+      {
+        "flag": "hover div.slot#1: pop 2→3",
+        "reason": "Filmed at 4-8ms steps: the transition is smooth; the one large step is the hovered card rising through the plane of the Team card, which starts nearer the camera. The two cut through each other for under 10ms (less than one 60Hz frame), inherent in a card coming forward from behind a neighbour; no snap, no delay mismatch. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave div.slot#3: pop 2→3",
+        "reason": "Filmed at 4-8ms steps: the transition is smooth; the one large step is the hovered card rising through the plane of the Team card, which starts nearer the camera. The two cut through each other for under 10ms (less than one 60Hz frame), inherent in a card coming forward from behind a neighbour; no snap, no delay mismatch. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "browser",
@@ -258,9 +307,10 @@
     "motionFlagsResolved": [
       {
         "flag": "hover div.browser: its hit area is mostly over empty canvas (59 of 81 reachable points draw nothing)",
-        "reason": "The hover target is the static wrapper round the isometric window, whose parallelogram fills only part of its box; invisible and inside the canvas."
+        "reason": "Hit map: the window's own layout rectangle; the empty parts are the corners beside the tilted window, next to it, and the lift on hover fills more of it. Fine. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "watch",
@@ -290,7 +340,13 @@
     "reviewedAt": "2026-09-21T20:10:32+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Photo scatter centred at about 56 x 49vmin at rest, growing to 60 x 59 as the seaside print lifts; captions are small but readable, corners clear.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "hover div.slot#3: pop 1→2",
+        "reason": "Filmed at 8ms steps: the photo lifts smoothly (steps 0.9, 1.2, 0.8 and falling); the flagged step is the fast start of the overshoot ease, a little bigger where the photo passes in front of its neighbour. No jump, and it returns on the same transition. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "island",
@@ -353,21 +409,38 @@
     "motionFlagsResolved": [
       {
         "flag": "click button#1 \"Go to Dawn\": its hit area is mostly over empty canvas (51 of 69 reachable points draw nothing)",
-        "reason": "The page dots are drawn as small dots inside full-size (8vmin) invisible hit areas, which the contract allows; the empty points are the padding around each dot, not a misplaced control."
+        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
       },
       {
         "flag": "click button#2 \"Go to Reef\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
-        "reason": "The page dots are drawn as small dots inside full-size (8vmin) invisible hit areas, which the contract allows; the empty points are the padding around each dot, not a misplaced control."
+        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
       },
       {
         "flag": "click button#3 \"Go to Dusk\": its hit area is mostly over empty canvas (60 of 69 reachable points draw nothing)",
-        "reason": "The page dots are drawn as small dots inside full-size (8vmin) invisible hit areas, which the contract allows; the empty points are the padding around each dot, not a misplaced control."
+        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
       },
       {
         "flag": "click button#4 \"Go to Night\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
-        "reason": "The page dots are drawn as small dots inside full-size (8vmin) invisible hit areas, which the contract allows; the empty points are the padding around each dot, not a misplaced control."
+        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "hover button#1 \"Go to Dawn\": its hit area is mostly over empty canvas (51 of 69 reachable points draw nothing)",
+        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "hover button#2 \"Go to Reef\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "hover button#3 \"Go to Dusk\": its hit area is mostly over empty canvas (60 of 69 reachable points draw nothing)",
+        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "hover button#4 \"Go to Night\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 8 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "chartpanel",
@@ -460,9 +533,10 @@
     "motionFlagsResolved": [
       {
         "flag": "hover div.scene: its hit area is mostly over empty canvas (58 of 81 reachable points draw nothing)",
-        "reason": "The hover target is the whole scene so the pointer stays on it while the faces fly out; it is invisible and inside the canvas."
+        "reason": "Hit map: a square round the cube that the exploded faces reach on hover; nothing far from it. Fine (as ruled before). (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "radio",
@@ -480,8 +554,17 @@
       {
         "flag": "click input#5 \"Top\": its hit area is mostly over empty canvas (45 of 69 reachable points draw nothing)",
         "reason": "An unchecked radio is drawn as a thin ring, so most of its round hit area paints nothing; the hit area matches the circle the visitor sees."
+      },
+      {
+        "flag": "hover label#1 \"Front\": changes nothing on screen",
+        "reason": "Front is the checked radio: its label wears the selected pill's gradient, which paints over the hover tint. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave label#1 \"Front\": changes nothing on screen",
+        "reason": "Front is the checked radio: its label wears the selected pill's gradient, which paints over the hover tint. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "drag",
@@ -649,9 +732,10 @@
     "motionFlagsResolved": [
       {
         "flag": "hover div.headphones: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
-        "reason": "The hover target is a wrapper sized to the headphones' turning footprint so the pointer stays on it while they swing; it is invisible and inside the canvas."
+        "reason": "Hit map: the bounding box of the headphones, the empty part being inside the band and beside the cups; nothing far from the object. Fine. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "perfume",
@@ -674,17 +758,18 @@
     "motionFlagsResolved": [
       {
         "flag": "hover div.bizcard: pop 7→8",
-        "reason": "Frames 7 to 8 are the card flipping through edge-on to its front face, where the most pixels change at once; the strip shows a continuous flip, not a jump."
+        "reason": "Filmed at 30ms steps: a smooth half-turn; the large step is the card passing edge-on, where the dark front gives way to the bright back. It turns back the same way on leave. (ruled at 1d88b26)"
       },
       {
         "flag": "focus div.bizcard: pop 7→8",
-        "reason": "Focus runs the same flip as hover, so this is the same edge-on moment of a continuous turn."
+        "reason": "Filmed at 30ms steps: a smooth half-turn; the large step is the card passing edge-on, where the dark front gives way to the bright back. It turns back the same way on leave. (ruled at 1d88b26)"
       },
       {
         "flag": "hover div.bizcard: its hit area is mostly over empty canvas (61 of 81 reachable points draw nothing)",
-        "reason": "The hover target is sized to the card's whole flip so the pointer does not drop off it when the card goes edge-on and flip it back; it is invisible and inside the canvas."
+        "reason": "Hit map: the bounding box of the tilted card, the empty parts are its corners; nothing far from the card. Fine. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 3 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "camera",
@@ -787,9 +872,10 @@
     "motionFlagsResolved": [
       {
         "flag": "loop: pop 5→6,11→12,17→18,23→0",
-        "reason": "Each pop is the staggered quarter-roll from CUBE to ROLL and back that the loop is built on; between rolls the cubes hold still, so the sampled step across a roll is large by design, not a glitch."
+        "reason": "Filmed the turn at 40-50ms steps: each quarter roll is continuous, the stagger (0.13s per cube, a positive delay with fill both) only shifts each cube's phase and the seam frame equals the start (360deg = 0deg), so the step is a fast roll between two 24-frame samples, not a jump. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "button",
@@ -842,33 +928,34 @@
     "motionFlagsResolved": [
       {
         "flag": "hover i#1: its hit area is mostly over empty canvas (80 of 81 reachable points draw nothing)",
-        "reason": "i#1 is the top-left of nine invisible hover zones tiling the canvas; it covers the empty corner by design, as the contract allows for invisible hit areas inside the canvas."
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
       },
       {
         "flag": "hover i#1: changes nothing on screen",
-        "reason": "The strip shows the card already tilted to zone 1 before the hover, because the pointer was parked at the canvas's top-left corner, inside zone 1; hovering a zone that is already hovered changes nothing."
+        "reason": "Check artefact: the zones cover the whole canvas, and the check's \"away\" point (the canvas corner) is inside zone 1, so the card is already tilted to zone 1 before the hover and stays so after the leave. Filmed from the middle zone, zone 1 tilts the card. (ruled at 1d88b26)"
       },
       {
         "flag": "leave i#1: changes nothing on screen",
-        "reason": "Same parking: the pointer left zone 1 back to a point still inside zone 1, so the tilt correctly stayed."
+        "reason": "Check artefact: the zones cover the whole canvas, and the check's \"away\" point (the canvas corner) is inside zone 1, so the card is already tilted to zone 1 before the hover and stays so after the leave. Filmed from the middle zone, zone 1 tilts the card. (ruled at 1d88b26)"
       },
       {
         "flag": "hover i#2: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
-        "reason": "Invisible hover zone tiling the canvas round the card; mostly empty by design and inside the canvas."
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
       },
       {
         "flag": "hover i#3: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
-        "reason": "Invisible hover zone tiling the canvas round the card; mostly empty by design and inside the canvas."
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
       },
       {
         "flag": "hover i#7: its hit area is mostly over empty canvas (55 of 81 reachable points draw nothing)",
-        "reason": "Invisible hover zone tiling the canvas round the card; mostly empty by design and inside the canvas."
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
       },
       {
         "flag": "hover i#9: its hit area is mostly over empty canvas (59 of 81 reachable points draw nothing)",
-        "reason": "Invisible hover zone tiling the canvas round the card; mostly empty by design and inside the canvas."
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 7 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "tilt",
@@ -901,11 +988,11 @@
     "motionFlagsResolved": [
       {
         "flag": "hover label#1 \"Front\": changes nothing on screen",
-        "reason": "'Front' is the selected tab, and hovering the tab that is already selected is meant to change nothing."
+        "reason": "Front is the checked tab: its label is already in the lit state (solid violet, white text) that hover would give it. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
       },
       {
         "flag": "leave label#1 \"Front\": changes nothing on screen",
-        "reason": "Leaving the already-selected 'Front' tab likewise has nothing to undo."
+        "reason": "Front is the checked tab: its label is already in the lit state (solid violet, white text) that hover would give it. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
       },
       {
         "flag": "hover label#4 \"Top\": changes nothing on screen",
@@ -915,7 +1002,8 @@
         "flag": "leave label#4 \"Top\": changes nothing on screen",
         "reason": "Leaving 'Top' dims the label back, the same small text change that is under the check's threshold."
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "radial",
@@ -965,7 +1053,13 @@
     "reviewedAt": "2026-09-21T20:19:22+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "On a light stage the 'Dark mode' label is near-invisible white on white (only 'OFF' shows), so its text does not inherit the stage colour as the contract asks; layout and dark theme are fine (46 x 60vmin, centred). Its motion run broke, which this review cannot clear.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "click label.toggle \"Dark modeOffOn\": its hit area is mostly over empty canvas (52 of 81 reachable points draw nothing)",
+        "reason": "Hit map: the label box round the track and its words, the whole control; clicking beside the track or on the words switching it is expected. Fine. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "flip",
@@ -1038,45 +1132,50 @@
     "motionFlagsResolved": [
       {
         "flag": "leave div.tile#2: pop 2→3",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       },
       {
         "flag": "hover div.tile#3: pop 3→4",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       },
       {
         "flag": "leave div.tile#4: pop 2→3",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       },
       {
         "flag": "hover div.tile#5: pop 3→4",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       },
       {
         "flag": "leave div.tile#6: pop 2→3",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       },
       {
         "flag": "blur div.tile#2: pop 2→3",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       },
       {
         "flag": "focus div.tile#3: pop 3→4",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       },
       {
         "flag": "blur div.tile#4: pop 2→3",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       },
       {
         "flag": "focus div.tile#5: pop 3→4",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       },
       {
         "flag": "blur div.tile#6: pop 2→3",
-        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "blur div.tile#1: pop 1→2",
+        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 11 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "accordion",
@@ -1099,9 +1198,10 @@
     "motionFlagsResolved": [
       {
         "flag": "hover div.greeting: its hit area is mostly over empty canvas (62 of 81 reachable points draw nothing)",
-        "reason": "The hover target is sized to the open card so the pointer does not fall off it as the card swings open and slides; it is invisible and inside the canvas."
+        "reason": "Hit map: a box as wide as the card opens to on hover, so it is empty beside the closed card but full once open; it never reaches far from the card. Fine. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "tiltgallery",
@@ -1195,8 +1295,13 @@
       {
         "flag": "loop: pop 11 to 12",
         "reason": "Frames 11 and 12 are the last flap folding away and the next folding in over a 100ms step, the loader's own motion; the frames either side continue it smoothly."
+      },
+      {
+        "flag": "loop: pop 11→12",
+        "reason": "Filmed the whole 2.4s loop at 50ms and 1.0-1.3s at 20ms: continuous, the frame at 2.4s equals the one at 0, and each flap's own seam (100% to 0%) is at opacity 0. The negative delay from the resting-pose fix only shifts phases; it made no seam. The flagged step is where two flaps swing at full speed at once. (ruled at 1d88b26)"
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "rings",
@@ -1461,7 +1566,17 @@
     "reviewedAt": "2026-09-21T20:25:41+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Speed gauge over a 'Low · 22 km/h' caption and Low/Mid/High pills, 46 x 63vmin and centred; dial numbers readable, the inactive pills pale but legible on light. Its motion run broke ('Cannot fast-forward to the past'), which this review cannot clear.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "hover button#1 \"Low\": changes nothing on screen",
+        "reason": "Low is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#1 \"Low\": changes nothing on screen",
+        "reason": "Low is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "timeline",
@@ -1471,7 +1586,21 @@
     "reviewedAt": "2026-09-21T20:25:41+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Road timeline with year signs over a caption and Prev/Next pills, 49 x 62vmin and centred; on a light stage the disabled Prev pill all but disappears, which is acceptable for a disabled control but worth knowing.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "hover button#1 \"‹ Prev\": its hit area is mostly over empty canvas (60 of 76 reachable points draw nothing)",
+        "reason": "Prev is disabled at the first card and drawn at 40% opacity, too faint for the check's ink test, so its own pill counts as empty; the hit area is only the pill. Fine. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "hover button#1 \"‹ Prev\": changes nothing on screen",
+        "reason": "Prev is disabled at the first card; since this fix it no longer lights up on hover, as a button that does nothing should not. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#1 \"‹ Prev\": changes nothing on screen",
+        "reason": "Prev is disabled at the first card; since this fix it no longer lights up on hover, as a button that does nothing should not. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): fixed: Next brightens on hover, disabled Prev stays dark (commit 1d88b26); the remaining Prev flags are ruled."
   },
   {
     "model": "heatmap",
@@ -1486,7 +1615,8 @@
         "flag": "across: flicker at 5,6,11",
         "reason": "The flagged frames are the pointer sweep moving the highlight from one cell to the next and the caption updating to that cell; that jump between cells is the intended per-cell hover, not a glitch."
       }
-    ]
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): fixed: roofs light in 0.12s and fade in 0.35s (commit 8880b4b); the across-pass flicker is gone and the check passes."
   },
   {
     "model": "stackbars",
@@ -1496,7 +1626,29 @@
     "reviewedAt": "2026-09-21T20:25:41+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Stacked bars over a caption and Pro/Team/Starter pills, 75 x 62vmin at rest and up to 70vmin with the hover callout, centred; the callout stays clear of the corners.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "hover button#1 \"Pro\": changes nothing on screen",
+        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#1 \"Pro\": changes nothing on screen",
+        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "hover button#2 \"Team\": changes nothing on screen",
+        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#2 \"Team\": changes nothing on screen",
+        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#3 \"Starter\": changes nothing on screen",
+        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 5 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "funnel",
@@ -1506,7 +1658,13 @@
     "reviewedAt": "2026-09-21T20:25:41+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "When a stage is hovered the 'Sign-ups · 3,720 · 30% of visitors' callout lands on top of the funnel's own stage labels ('Visitors 12,400', 'Sign-ups 3,720'), so both texts collide and neither reads cleanly on a card or on the large canvas.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "leave button#1 \"Web\": changes nothing on screen",
+        "reason": "Web is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. Only the leave was flagged; the hover did the same. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "candles",
@@ -1516,7 +1674,13 @@
     "reviewedAt": "2026-09-21T22:30:00+07:00",
     "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
     "notes": "Centred now and the caption and 7D/12D pills read on both stages, but the chart itself is still small in its box: on a card the candles fill only about 45 x 15vmin, a thin strip under a mostly empty price plane, and the axis labels ($62k, Sep 08) and the hover tooltip are about 2.5vmin (7px on a 360 x 300 card), well under the 4vmin control text, so they read only up close. The fix grew the labels from about 5px and centred the chart; the chart body needs to be larger (taller candles, less empty range above them) for the text and the candles to read at card size.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "leave button#2 \"12D\": changes nothing on screen",
+        "reason": "12D is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. Only the leave was flagged; the hover did the same. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "waterfall",
@@ -1526,7 +1690,13 @@
     "reviewedAt": "2026-09-21T20:25:41+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Waterfall chart with an 'End · $131k' callout over a caption and Aug/Sep pills, 63 x 59vmin and centred; step labels small but legible.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "leave button#1 \"Aug\": changes nothing on screen",
+        "reason": "Aug is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. Only the leave was flagged; the hover did the same. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "treemap",
@@ -1536,7 +1706,17 @@
     "reviewedAt": "2026-09-21T20:25:41+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "3D treemap of coins over a caption and 24h/7d pills, about 72-84 x 63vmin and centred; the big tiles' labels read, the smallest are tiny but decorative.",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "hover button#1 \"24h\": changes nothing on screen",
+        "reason": "24h is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#1 \"24h\": changes nothing on screen",
+        "reason": "24h is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   },
   {
     "model": "radar",
@@ -1556,6 +1736,16 @@
     "reviewedAt": "2026-09-21T20:25:41+07:00",
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "On a light stage the 'MON' label in the middle of the rings is white on the pale stage and all but disappears; the rings, caption and day pills are fine, and on dark it reads well (63-76 x 59vmin, centred).",
-    "motionFlagsResolved": []
+    "motionFlagsResolved": [
+      {
+        "flag": "hover button#1 \"Mon\": changes nothing on screen",
+        "reason": "Mon is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+      },
+      {
+        "flag": "leave button#1 \"Mon\": changes nothing on screen",
+        "reason": "Mon is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+      }
+    ],
+    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
   }
 ]
