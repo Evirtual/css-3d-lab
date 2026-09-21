@@ -38,7 +38,29 @@ export const codeVersion = () => createHash('sha1').update(CODE_FILES.map((f) =>
 export const LOADED_CODE = codeVersion();
 
 const OUT = join(ROOT, 'docs', 'ledger.json');
-const CHECKS = ['models', 'stages', 'motion'];
+const CHECKS = ['models', 'stages', 'motion', 'exports'];
+/**
+ * Every automated check gates "checked", in this order (the order the "not yet checked" bucket is
+ * split by: a model is counted under the first gate it does not clear). Each gate must be cleared
+ * on the model's current code:
+ *  - contract (check-models) and stages (check-stages): the latest result is a pass;
+ *  - motion (check-motion): no open flag. A flag is a hint, so the latest run being smooth clears
+ *    it, and so does a fresh visual review that names the flag in motionFlagsResolved with a
+ *    reason (a false alarm). "broke" cannot be cleared by a review;
+ *  - exports (check-exports): the default-settings verdict is a pass (capture-check records it;
+ *    the full settings matrix is a sample and does not gate).
+ */
+export const GATES = [
+  { key: 'models', name: 'contract', label: 'contract check (check-models)' },
+  { key: 'stages', name: 'stages', label: 'stage check (check-stages)' },
+  { key: 'motion', name: 'motion', label: 'motion check (check-motion)' },
+  { key: 'exports', name: 'exports', label: 'export check at default settings (check-exports)' },
+];
+const GATE_KINDS = [
+  { key: 'stale-pass', label: 'passed on older code' },
+  { key: 'failed', label: 'failed' },
+  { key: 'never', label: 'never run' },
+];
 /** The check whose pass counts as "checked" and towards approval: scripts/check-models.mjs judges a model against docs/VIEW-CONTRACT.md. */
 const CONTRACT = 'models';
 /**
@@ -59,22 +81,29 @@ let notes = [];
  * For "checked, awaiting approval" a model missing several things is counted once, under the first
  * reason that applies in the order written here.
  */
+function GATES_PARTS() {
+  const means = {
+    'stale-pass': 'it passed (or its flags were cleared), but the model changed since',
+    failed: 'the latest result did not pass', never: 'no captured run has reported it',
+  };
+  return GATES.flatMap((g) => GATE_KINDS.map((k) => ({
+    key: `${g.key}:${k.key}`, gate: g.key,
+    label: `${g.name}: ${g.key === 'motion' && k.key === 'failed' ? 'open flag or broke' : g.key === 'exports' && k.key === 'never' ? 'never run at default settings' : g.key === 'motion' && k.key === 'stale-pass' ? 'clear on older code' : k.label}`,
+    means: means[k.key],
+  })));
+}
 export const BUCKETS = [
   { key: 'not converted', label: 'Not converted', means: 'the snippet does not set --u in vmin' },
-  { key: 'converted', label: 'Converted, not yet checked', means: 'sets --u in vmin, but has no passing contract check on the code as it is now',
-    parts: [
-      { key: 'stale-pass', label: 'passed on older code', means: 'the contract check passed, but the model changed since' },
-      { key: 'failed', label: 'failed the check', means: 'the latest contract check did not pass' },
-      { key: 'never', label: 'never checked', means: 'no captured contract check has reported it' },
-    ] },
-  { key: 'checked', label: 'Checked, awaiting approval', means: 'a fresh contract pass, but its reviews do not yet approve it',
+  { key: 'converted', label: 'Converted, not yet checked', means: 'sets --u in vmin, but not every automated check (contract, stages, motion, exports) is cleared on the code as it is now',
+    parts: GATES_PARTS() },
+  { key: 'checked', label: 'Checked, awaiting approval', means: 'every automated check cleared on the current code, but its reviews do not yet approve it',
     parts: [
       { key: 'no-visual', label: 'no visual review', means: 'no visual review at all' },
       { key: 'no-text', label: 'no text review', means: 'no text review at all' },
       { key: 'stale-review', label: 'stale review', means: 'every review of one kind is on older code' },
       { key: 'problem', label: 'a review found a problem', means: 'the latest fresh review of one kind says "problem"' },
     ] },
-  { key: 'approved', label: 'Approved', means: 'checked, plus a fresh visual and a fresh text review, neither "problem"' },
+  { key: 'approved', label: 'Approved', means: 'every automated check cleared, plus a fresh visual and a fresh text review, neither "problem"' },
 ];
 
 /**
@@ -303,7 +332,9 @@ const VERDICTS = ['fine', 'fixed', 'problem'];
  * docs/reviews/*.json, written by review agents. A file holds one entry, an array of them, or
  * { entries: [...] }. An entry is { model, kind: "text" | "visual", reviewer,
  * verdict: "fine" | "fixed" | "problem", reviewedAt, commit }, where commit is the HEAD the
- * reviewer read. A "fixed" entry may carry fixCommit, the commit holding the fix; staleness is
+ * reviewer read. A visual entry may carry motionFlagsResolved: [{ flag, reason }] (or strings, with
+ * one motionFlagsReason for all): check-motion flags this reviewer looked at and judged false
+ * alarms. A flag is matched when its text contains `flag`. A "fixed" entry may carry fixCommit, the commit holding the fix; staleness is
  * then judged from that commit, so the fix itself does not make the review stale. An entry that does not fit is left out, and the notes say which and why.
  */
 function readReviewLog(known) {
@@ -326,7 +357,17 @@ function readReviewLog(known) {
       if (bad.length) { notes.push(`${where} was left out: ${bad.join('; ')}`); return; }
       const fix = typeof e.fixCommit === 'string' && /^[0-9a-f]{4,40}$/i.test(e.fixCommit) ? e.fixCommit.toLowerCase() : null;
       if (e.fixCommit != null && !fix) notes.push(`${where}: fixCommit "${e.fixCommit}" is not a commit hash, so staleness is judged from commit instead`);
-      entries.push({ model: e.model, kind: e.kind, reviewer: String(e.reviewer), verdict: e.verdict, reviewedAt: e.reviewedAt, commit: e.commit.toLowerCase(), fixCommit: fix, file: `docs/reviews/${f}` });
+      let resolved = null;
+      if (e.motionFlagsResolved != null) {
+        const list = Array.isArray(e.motionFlagsResolved) ? e.motionFlagsResolved : [];
+        resolved = list.map((x) => (typeof x === 'string' ? { flag: x, reason: e.motionFlagsReason ?? null } : { flag: x?.flag, reason: x?.reason ?? e.motionFlagsReason ?? null }))
+          .filter((x) => typeof x.flag === 'string' && x.flag.trim());
+        const noReason = resolved.filter((x) => !x.reason);
+        if (e.kind !== 'visual') { notes.push(`${where}: motionFlagsResolved is only read from visual reviews, so it is ignored here`); resolved = null; }
+        else if (!Array.isArray(e.motionFlagsResolved) || resolved.length !== list.length) notes.push(`${where}: motionFlagsResolved must be a list of { flag, reason } or of strings; the entries that are not were left out`);
+        if (resolved && noReason.length) { notes.push(`${where}: ${noReason.length} motion flag(s) marked resolved without a reason were left out`); resolved = resolved.filter((x) => x.reason); }
+      }
+      entries.push({ motionFlagsResolved: resolved, model: e.model, kind: e.kind, reviewer: String(e.reviewer), verdict: e.verdict, reviewedAt: e.reviewedAt, commit: e.commit.toLowerCase(), fixCommit: fix, file: `docs/reviews/${f}` });
     });
   }
   return { entries, files: files.length };
@@ -478,7 +519,6 @@ const models = demos.map((d) => {
   }
 
   const contract = checks[CONTRACT];
-  const contractPass = contract.status === 'pass' && !contract.stale;
   const ctx = { order, shortIndex, perModel, headFp: headSources.get(d.id)?.fingerprint ?? null, workFp: src?.fingerprint ?? null };
   const reviews = [
     ...commits.filter((c) => c.review && c.matchedBy.includes('diff') && c.hash !== converting?.hash)
@@ -497,21 +537,46 @@ const models = demos.map((d) => {
     if (fresh[0].verdict === 'problem') return `the latest ${kind} review (${fresh[0].reviewer}, ${fresh[0].reviewedAt.slice(0, 10)}) found a problem`;
     return null;
   };
+  // motion flags a fresh visual review has judged false alarms
+  const clearedBy = reviews.filter((x) => x.kind === 'visual' && !x.stale && x.motionFlagsResolved?.length);
+  const mo = checks.motion;
+  if (mo.status === 'flagged') {
+    const flags = mo.detail?.length ? mo.detail : [mo.summary || 'flagged'];
+    mo.flags = flags.map((f) => {
+      const by = clearedBy.find((rv) => rv.motionFlagsResolved.some((x) => f.includes(x.flag)));
+      const how = by?.motionFlagsResolved.find((x) => f.includes(x.flag));
+      return { flag: f, resolved: Boolean(by), by: by ? `${by.reviewer}, ${String(by.reviewedAt).slice(0, 10)}` : null, reason: how?.reason ?? null };
+    });
+    mo.openFlags = mo.flags.filter((f) => !f.resolved).length;
+  }
+  // each gate: ok, or why not (stale-pass / failed / never)
+  const gates = {};
+  for (const g of GATES) {
+    const c = checks[g.key];
+    const passed = c.status === 'pass' || (g.key === 'motion' && c.status === 'flagged' && c.openFlags === 0);
+    const kind = c.status === 'never' || c.status === 'untested' ? 'never' : passed ? (c.stale ? 'stale-pass' : null) : 'failed';
+    gates[g.key] = { ok: kind === null, kind };
+  }
+  const firstGap = GATES.find((g) => !gates[g.key].ok) ?? null;
+  const allClear = !firstGap;
   const missing = [];
   if (!converted) missing.push(unit === 'other' ? `not converted: the snippet sets --u only in another unit (${uValues(snippet.css).join(', ')}), not vmin` : 'not converted: the snippet CSS does not set --u');
-  if (contract.status === 'never') missing.push('the contract check (check-models) has never reported this model');
-  else if (contract.status !== 'pass') missing.push(`the contract check's last result is "${contract.status}"`);
-  else if (contract.stale) missing.push('the contract check passed, but on source that has changed since');
+  for (const g of GATES) {
+    const k = gates[g.key].kind, c = checks[g.key];
+    if (k === 'never') missing.push(c.status === 'untested' ? `check-exports ran on it, but its run left out the default settings, so there is no default-settings verdict` : `the ${g.label} has never reported this model`);
+    else if (k === 'stale-pass') missing.push(`the ${g.label} ${g.key === 'motion' && c.status === 'flagged' ? 'was cleared' : 'passed'}, but on source that has changed since`);
+    else if (k === 'failed') missing.push(g.key === 'motion' && c.status === 'flagged' ? `the ${g.label} has ${c.openFlags} open flag(s) no fresh visual review marks as a false alarm` : `the ${g.label}'s last result is "${c.status}"`);
+  }
   const visualGap = judge('visual', 'a docs/reviews/ entry, or a commit touching it with a Reviewed-by: trailer or a "Review …" subject, other than the converting commit');
   const textGap = judge('text', 'a docs/reviews/ entry, or a commit with a Text-reviewed-by: trailer or a "Text review …" subject');
   if (visualGap) missing.push(visualGap);
   if (textGap) missing.push(textGap);
   const approved = missing.length === 0;
-  const checked = converted && contractPass;
+  const checked = converted && allClear;
   const status = approved ? 'approved' : checked ? 'checked' : converted ? 'converted' : 'not converted';
   // which reason, inside its bucket (see BUCKETS for the order)
   let part = null;
-  if (status === 'converted') part = contract.status === 'pass' ? 'stale-pass' : contract.status === 'never' ? 'never' : 'failed';
+  if (status === 'converted') part = firstGap ? `${firstGap.key}:${gates[firstGap.key].kind}` : 'unexplained';
   if (status === 'checked') {
     const of = (k) => reviews.filter((r) => r.kind === k);
     const fresh = (k) => of(k).filter((r) => !r.stale);
@@ -530,7 +595,7 @@ const models = demos.map((d) => {
     snippet: snippet ? { file: snippet.file, line: snippet.line, foundBy: snippet.found } : null,
     fingerprint: src?.fingerprint ?? null,
     convertingCommit: converting ? converting.hash : null,
-    commits, checks,
+    commits, checks, gates,
     approved, missing: approved ? [] : missing,
     notes: why,
   };
@@ -544,6 +609,16 @@ const ledger = {
   build: { by, reason, ms: null, reusedModelLoad, reusedGitReplay, code: (() => { const onDisk = codeVersion(); return { loaded: LOADED_CODE, onDisk, stale: onDisk !== LOADED_CODE, files: CODE_FILES }; })() },
   running,
   readiness,
+  exportsMatrix: (() => {
+    const f = checkFiles.exports;
+    if (!f) return { note: 'check-exports has never been captured', models: [], runs: [] };
+    const models = Object.entries(f.models ?? {}).map(([id, m]) => ({ id, ranAt: m.ranAt, args: m.args, sizes: m.matrix?.sizes ?? null, mismatches: m.matrix?.mismatches ?? [] }));
+    return {
+      note: 'Per-model export means the dialog\'s DEFAULT settings only (image 1:1 at 1600 px PNG, video 9:16 at 1080p, a loop). The settings matrix (every shape, size, quality and the slider) is run on a sample of models; it does not gate approval, and no model has been exported every way unless it is listed here with that run.',
+      defaults: Object.values(f.models ?? {}).find((m) => m.defaults)?.defaults ?? null,
+      models, runs: (f.runs ?? []).slice(0, 5).map((x) => ({ runId: x.runId, startedAt: x.startedAt, args: x.args, reported: x.reported, complete: x.complete, exitCode: x.exitCode })),
+    };
+  })(),
   sources: {
     models: from,
     groups: 'src/models/groups.ts GROUPS, in GROUP_ORDER; each model\'s group and tags as its demo entry gives them',
@@ -551,6 +626,7 @@ const ledger = {
     commits: `git log, ${commitCount} commits; diff matches by replaying src/models and src/styles/models line by line`,
     checks: Object.fromEntries(CHECKS.map((c) => [c, checkFiles[c] ? `docs/checks/${c}.json, updated ${checkFiles[c].updatedAt}` : 'no result file: this check has never been captured'])),
     contractCheck: CONTRACT,
+    gates: 'checked = every gate cleared on the current code, in this order: ' + GATES.map((g) => g.label).join(', ') + '. Motion is clear when the latest run is smooth or every flag is named as a false alarm in a fresh visual review (motionFlagsResolved); exports means the default settings only',
     review: 'a visual review: a docs/reviews/ entry of kind "visual", or a commit touching the model (by diff), not its converting commit, with a Reviewed-by: trailer or a subject starting "Review"',
     textReview: 'a text review: a docs/reviews/ entry of kind "text", or a commit matched to the model with a Text-reviewed-by: trailer or a subject starting "Text review" / "Review the text"',
     reviewLog: `docs/reviews/*.json: ${reviewLog.files} file(s), ${reviewLog.entries.length} valid entr${reviewLog.entries.length === 1 ? 'y' : 'ies'}. A review is stale when the model's source changed after the commit it names; approval needs the latest fresh review of each kind not to be "problem"`,

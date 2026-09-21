@@ -423,7 +423,7 @@ table.mini code { font-size: 12px; }
     <p class="showing" id="showing"></p>
     <div class="table-wrap" id="tablewrap">
       <table>
-        <thead><tr id="thead"><th>Model</th><th>Status</th><th>Contract check</th><th>Stages</th><th>Motion</th><th>Reviews</th><th>Last commit</th><th class="num">Commits</th></tr></thead>
+        <thead><tr id="thead"><th>Model</th><th>Status</th><th>Contract check</th><th>Stages</th><th>Motion</th><th>Export</th><th>Reviews</th><th>Last commit</th><th class="num">Commits</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
@@ -496,12 +496,15 @@ table.mini code { font-size: 12px; }
   applyTheme();
 
   /* ---------- checks ---------- */
-  const CHECK_NAMES = { models: 'Contract check (check-models)', stages: 'Same on every surface (check-stages)', motion: 'Motion flags (check-motion)' };
-  const COLS = [['models', 'Contract check'], ['stages', 'Stages'], ['motion', 'Motion']];
+  const CHECK_NAMES = { models: 'Contract check (check-models)', stages: 'Same on every surface (check-stages)', motion: 'Motion flags (check-motion)', exports: 'Export at default settings (check-exports)' };
+  const COLS = [['models', 'Contract check'], ['stages', 'Stages'], ['motion', 'Motion'], ['exports', 'Export']];
   const checkChip = (r) => {
     if (!r || r.status === 'never') return '<span class="chip s-warn">never run</span>';
-    const cls = r.status === 'pass' ? (r.stale ? 's-warn' : 's-chk') : r.status === 'flagged' ? 's-warn' : 's-bad';
-    const label = { pass: 'pass', fail: 'fail', flagged: 'flagged', broke: 'broke' }[r.status] ?? r.status;
+    if (r.status === 'untested') return '<span class="chip s-warn" title="the run did not include the default settings">not at defaults</span>';
+    // a motion flag every one of whose flags a fresh visual review marks as a false alarm is cleared
+    const cleared = r.status === 'flagged' && r.openFlags === 0;
+    const cls = r.status === 'pass' || cleared ? (r.stale ? 's-warn' : 's-chk') : r.status === 'flagged' ? 's-warn' : 's-bad';
+    const label = cleared ? 'flags cleared' : r.status === 'flagged' && r.openFlags != null ? `${r.openFlags} open flag${r.openFlags === 1 ? '' : 's'}` : { pass: 'pass', fail: 'fail', flagged: 'flagged', broke: 'broke', error: 'could not run' }[r.status] ?? r.status;
     return `<span class="chip ${cls}" title="${esc(r.ranAt ? 'ran ' + new Date(r.ranAt).toLocaleString() : '')}">${esc(label)}${r.stale ? ' · stale' : ''}</span>`;
   };
 
@@ -685,7 +688,7 @@ table.mini code { font-size: 12px; }
     $('bar').innerHTML = buckets.map((b) => { const s = STATUS.find((x) => x.key === b.key); return `<span style="width:${(100 * b.count) / n}%;background:${s?.color}" title="${esc(b.label)}: ${b.count}"></span>`; }).join('');
     $('bar').setAttribute('aria-label', buckets.map((b) => `${b.label} ${b.count}`).join(', '));
     $('legend').innerHTML = buckets.map((b) => { const s = STATUS.find((x) => x.key === b.key); return `<span><i style="background:${s?.color}"></i>${esc(b.label)}: ${b.count}</span>`; }).join('');
-    $('rules').innerHTML = `Converted: ${esc(L.sources.converted)}. Checked: converted and the latest <code>check-models</code> result is a pass on the source as it is now. Approved: checked, plus ${esc(L.sources.review)}, plus ${esc(L.sources.textReview)}. Reviews: ${esc(L.sources.reviewLog ?? '')}. ${c.reviewed ? ['visual', 'text'].map((k) => `${k}: ${c.reviewed[k].fresh} models with a fresh review, ${c.reviewed[k].staleOnly} with only stale ones${c.reviewed[k].problem ? `, ${c.reviewed[k].problem} whose latest found a problem` : ''}`).join('; ') + '.' : ''}`;
+    $('rules').innerHTML = `Converted: ${esc(L.sources.converted)}. Checked: ${esc(L.sources.gates ?? "converted and the latest check-models result is a pass on the source as it is now")}; not yet checked is split by the first gate a model does not clear, in that order. Approved: checked, plus ${esc(L.sources.review)}, plus ${esc(L.sources.textReview)}. Reviews: ${esc(L.sources.reviewLog ?? '')}. ${c.reviewed ? ['visual', 'text'].map((k) => `${k}: ${c.reviewed[k].fresh} models with a fresh review, ${c.reviewed[k].staleOnly} with only stale ones${c.reviewed[k].problem ? `, ${c.reviewed[k].problem} whose latest found a problem` : ''}`).join('; ') + '.' : ''}`;
 
     // a group or tag chosen earlier that no longer exists would hide everything without saying why
     if (group !== 'all' && !(L.groups ?? []).some((g) => g.key === group)) group = 'all';
@@ -806,10 +809,10 @@ table.mini code { font-size: 12px; }
         <td><span class="rv">${reviewChip(m, 'visual')}${reviewChip(m, 'text')}</span></td>
         <td class="num">${last ? `${esc(last.date.slice(0, 10))}<br><code class="muted">${esc(last.hash)}</code>` : '<span class="muted">none found</span>'}</td>
         <td class="num">${m.commits.length}</td></tr>`;
-      return row + (open.has(m.id) ? `<tr class="detail"><td colspan="8">${detail(m)}</td></tr>` : '');
-    }).join('') || `<tr><td colspan="8" class="muted">No model matches.${hidden ? ' Every model is hidden by the filters above.' : ''}</td></tr>`;
+      return row + (open.has(m.id) ? `<tr class="detail"><td colspan="9">${detail(m)}</td></tr>` : '');
+    }).join('') || `<tr><td colspan="9" class="muted">No model matches.${hidden ? ' Every model is hidden by the filters above.' : ''}</td></tr>`;
     const rest = matching.length - shown.length;
-    if (rest > 0) $('rows').insertAdjacentHTML('beforeend', `<tr class="more"><td colspan="8"><button type="button" class="btn" id="more">Show ${Math.min(PAGE, rest)} more <small>${rest} not on screen yet</small></button></td></tr>`);
+    if (rest > 0) $('rows').insertAdjacentHTML('beforeend', `<tr class="more"><td colspan="9"><button type="button" class="btn" id="more">Show ${Math.min(PAGE, rest)} more <small>${rest} not on screen yet</small></button></td></tr>`);
     $('rows').querySelectorAll('tr.row').forEach((tr) => {
       const toggle = () => { const id = tr.dataset.id; open.has(id) ? open.delete(id) : open.add(id); saveView(); renderRows(); document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true }); };
       tr.addEventListener('click', toggle);
@@ -844,7 +847,9 @@ table.mini code { font-size: 12px; }
       return `<div class="check"><b>${esc(CHECK_NAMES[name] ?? name)}</b>${checkChip(r)} <span class="muted">${esc(r.summary)}</span>
         <p class="muted" style="font-size:13px">Ran ${when(r.ranAt)} ${r.commit ? `at <code>${esc(r.commit)}</code>` : '(HEAD not recorded)'}${r.args?.length ? `, args <code>${esc(r.args.join(' '))}</code>` : ''}</p>
         ${r.stale ? `<div class="notice">Stale: ${esc(r.staleWhy.join('; '))}.</div>` : ''}
-        ${r.detail?.length ? `<ul class="missing" style="font-size:13px">${r.detail.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}</div>`;
+        ${r.flags?.length ? `<ul class="missing" style="font-size:13px">${r.flags.map((f) => `<li>${esc(f.flag)} ${f.resolved ? `<span class="chip s-chk">false alarm</span> <span class="muted">${esc(f.by)}: ${esc(f.reason)}</span>` : '<span class="chip s-warn">open</span>'}</li>`).join('')}</ul>`
+          : r.detail?.length ? `<ul class="missing" style="font-size:13px">${r.detail.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}
+        ${name === 'exports' && r.status !== 'never' ? '<p class="muted" style="font-size:12.5px">This verdict is for the default settings only. Other settings, if this run made any, are in the export matrix under Docs and release readiness.</p>' : ''}</div>`;
     }).join('') + '</div>');
 
     const rv = m.reviews ?? [];
@@ -888,7 +893,12 @@ table.mini code { font-size: 12px; }
     const risk = R.atRisk.length
       ? `<div class="table-wrap"><table class="mini"><thead><tr><th>File</th><th>State</th><th>Last changed</th></tr></thead><tbody>${R.atRisk.map((f) => `<tr><td><code>${esc(f.path)}</code></td><td><span class="chip ${f.code === '??' ? 's-bad' : 's-warn'}">${esc(f.kind)}</span></td><td class="num">${f.modifiedAt ? agoSpan(f.modifiedAt) : '<span class="muted">gone from disk</span>'}</td></tr>`).join('')}</tbody></table></div>`
       : '<p>Nothing: every file in the working tree matches a commit.</p>';
-    $('readiness').innerHTML = `<h3>Release checklist</h3>${list}
+    const X = L.exportsMatrix;
+    const matrix = !X ? '' : `<h3>Exports: default settings per model, the full matrix on a sample</h3>
+      <div class="notice info" style="color:var(--text)">${esc(X.note)}</div>
+      ${X.models?.length ? `<div class="table-wrap"><table class="mini"><thead><tr><th>Model</th><th>Run</th><th>Mismatches outside the defaults</th></tr></thead><tbody>${X.models.map((m) => `<tr><td><code>${esc(m.id)}</code></td><td class="num">${m.ranAt ? agoSpan(m.ranAt) : '—'}<br><code class="muted">${esc((m.args ?? []).join(' ') || 'no args')}${m.sizes ? ` · SIZES=${esc(m.sizes)}` : ''}</code></td><td>${m.mismatches.length ? `<ul class="missing">${m.mismatches.map((x) => `<li>${esc(x.check)} ${esc(x.what)}: ${esc(x.detail)}</li>`).join('')}</ul>` : '<span class="muted">none among the settings this run made</span>'}</td></tr>`).join('')}</tbody></table></div>`
+        : '<p class="muted">No model has been through check-exports yet.</p>'}`;
+    $('readiness').innerHTML = `${matrix}<h3>Release checklist</h3>${list}
       <h3>Documents: when each last reached a commit</h3>${docs}
       <h3>At risk: work that has not reached a commit (${R.atRisk.length})</h3>
       <p class="muted" style="font-size:13px">From <code>git status</code> at the last build, ${agoSpan(R.at)}; oldest first. Untracked files are in no commit at all. Other agents' work in progress shows here too.</p>${risk}`;
