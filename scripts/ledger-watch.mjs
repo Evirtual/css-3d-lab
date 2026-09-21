@@ -8,7 +8,10 @@
  *    Not a git hook: agents commit with `git commit-tree` + `git update-ref`, which runs no hooks;
  *  - the modification time and size of docs/checks/*.json, docs/reviews/*.json and
  *    docs/ledger-queue.json;
- *  - the modification time and size of every model file (src/models/**, src/styles/models/**).
+ *  - the modification time and size of every model file (src/models/**, src/styles/models/**),
+ *    of docs/*.md and of README.md.
+ * The "at risk" list (git status) is refreshed by every rebuild, not watched on its own: running
+ * git status every 3 s would not be free.
  * When any of them differs it runs buildLedger() from scripts/ledger.mjs in this process. One build
  * at a time; a change seen during a build queues exactly one more build after it.
  *
@@ -51,9 +54,9 @@ function statTree(dir, out) {
   }
   return out;
 }
-function jsonStamps(dir) {
+function jsonStamps(dir, ext = '.json') {
   let names = [];
-  try { names = readdirSync(dir).filter((n) => n.endsWith('.json')).sort(); } catch {}
+  try { names = readdirSync(dir).filter((n) => n.endsWith(ext)).sort(); } catch {}
   return names.map((n) => `${n}=${stamp(join(dir, n))}`).join('|');
 }
 function look() {
@@ -62,10 +65,11 @@ function look() {
     checks: jsonStamps(join(ROOT, 'docs', 'checks')),
     reviews: jsonStamps(join(ROOT, 'docs', 'reviews')),
     queue: stamp(join(ROOT, 'docs', 'ledger-queue.json')),
+    docs: `${jsonStamps(join(ROOT, 'docs'), '.md')}|README.md=${stamp(join(ROOT, 'README.md'))}`,
     models: MODEL_DIRS.flatMap((d) => statTree(d, [])).join('|'),
   };
 }
-const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', queue: 'queue', models: 'model files' };
+const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', docs: 'docs', queue: 'queue', models: 'model files' };
 
 /* ---------- heartbeat ---------- */
 const startedAt = new Date().toISOString();

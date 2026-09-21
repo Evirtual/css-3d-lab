@@ -23,7 +23,7 @@
  * git replay is reused while HEAD is the same, the vite load while the model files are.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources } from './model-sources.mjs';
@@ -220,6 +220,48 @@ function convertedAt(lines, id) {
   return at >= 0 && unitOf(body.slice(at)) === 'vmin';
 }
 
+/* ---------- docs and release readiness ---------- */
+const CHECKLIST = 'docs/RELEASE-CHECKLIST.md';
+/** docs/RELEASE-CHECKLIST.md, lines `- [ ] item — how to prove it` or `- [x] …`. */
+function readChecklist() {
+  const file = join(ROOT, CHECKLIST);
+  if (!existsSync(file)) return { file: CHECKLIST, exists: false, items: [], done: 0, total: 0 };
+  const items = [];
+  norm(readFileSync(file, 'utf8')).split('\n').forEach((line, i) => {
+    const m = /^\s*[-*] \[([ xX])\]\s+(.*?)\s*$/.exec(line);
+    if (!m) return;
+    const [item, ...proof] = m[2].split(/\s+[—–]\s+/);
+    items.push({ done: m[1] !== ' ', item, proof: proof.join(' — ') || null, line: i + 1 });
+  });
+  return { file: CHECKLIST, exists: true, items, done: items.filter((x) => x.done).length, total: items.length };
+}
+/** Each document directly under docs/ (the generated ledger files left out) plus README.md, with the last commit that touched it. */
+function docList() {
+  const names = [];
+  try { for (const f of readdirSync(join(ROOT, 'docs'), { withFileTypes: true })) if (f.isFile() && !/^ledger(-watch)?\.json$|\.tmp$|\.lock$/.test(f.name)) names.push(`docs/${f.name}`); } catch {}
+  if (existsSync(join(ROOT, 'README.md'))) names.push('README.md');
+  return names.sort().map((path) => {
+    const out = git(['log', '-1', '--format=%h%x1f%cI%x1f%s', '--', path]).trim();
+    const [hash, date, subject] = out ? out.split('\x1f') : [];
+    return { path, lastCommit: out ? { hash, date, subject } : null };
+  });
+}
+/** Work that has not reached a commit: every untracked or changed path in `git status`, with its age. */
+function atRisk() {
+  const raw = git(['status', '--porcelain=v1', '-z', '--untracked-files=all']);
+  const parts = raw.split('\0').filter(Boolean);
+  const out = [];
+  for (let i = 0; i < parts.length; i++) {
+    const code = parts[i].slice(0, 2), path = parts[i].slice(3);
+    if (code[0] === 'R' || code[0] === 'C') i++; // the next entry is the old name
+    let mtime = null;
+    try { mtime = statSync(join(ROOT, path)).mtime.toISOString(); } catch {}
+    const kind = code === '??' ? 'untracked' : code.includes('D') ? 'deleted' : code.includes('A') ? 'added, not committed' : 'modified, not committed';
+    out.push({ path, code, kind, modifiedAt: mtime });
+  }
+  return out.sort((a, b) => String(a.modifiedAt ?? '').localeCompare(String(b.modifiedAt ?? '')));
+}
+
 /* ---------- reviews: commit markers and the review log ---------- */
 const REVIEW_DIR = join(ROOT, 'docs', 'reviews');
 const KINDS = ['text', 'visual'];
@@ -228,7 +270,8 @@ const VERDICTS = ['fine', 'fixed', 'problem'];
  * docs/reviews/*.json, written by review agents. A file holds one entry, an array of them, or
  * { entries: [...] }. An entry is { model, kind: "text" | "visual", reviewer,
  * verdict: "fine" | "fixed" | "problem", reviewedAt, commit }, where commit is the HEAD the
- * reviewer read. An entry that does not fit is left out, and the notes say which and why.
+ * reviewer read. A "fixed" entry may carry fixCommit, the commit holding the fix; staleness is
+ * then judged from that commit, so the fix itself does not make the review stale. An entry that does not fit is left out, and the notes say which and why.
  */
 function readReviewLog(known) {
   const entries = [];
@@ -248,7 +291,9 @@ function readReviewLog(known) {
       if (!e?.reviewer) bad.push('no reviewer');
       if (!Number.isFinite(Date.parse(e?.reviewedAt))) bad.push('no valid reviewedAt');
       if (bad.length) { notes.push(`${where} was left out: ${bad.join('; ')}`); return; }
-      entries.push({ model: e.model, kind: e.kind, reviewer: String(e.reviewer), verdict: e.verdict, reviewedAt: e.reviewedAt, commit: e.commit.toLowerCase(), file: `docs/reviews/${f}` });
+      const fix = typeof e.fixCommit === 'string' && /^[0-9a-f]{4,40}$/i.test(e.fixCommit) ? e.fixCommit.toLowerCase() : null;
+      if (e.fixCommit != null && !fix) notes.push(`${where}: fixCommit "${e.fixCommit}" is not a commit hash, so staleness is judged from commit instead`);
+      entries.push({ model: e.model, kind: e.kind, reviewer: String(e.reviewer), verdict: e.verdict, reviewedAt: e.reviewedAt, commit: e.commit.toLowerCase(), fixCommit: fix, file: `docs/reviews/${f}` });
     });
   }
   return { entries, files: files.length };
@@ -354,6 +399,11 @@ else {
 notes.push(...hist.notes);
 const { perModel, commitCount, headLines, order, shortIndex, headSources } = hist;
 const reviewLog = readReviewLog(new Set(ids));
+// the docs' last commits change only with HEAD or the docs folder's contents
+const docsKey = `${headFull} ${(() => { try { return readdirSync(join(ROOT, 'docs')).join('|'); } catch { return ''; } })()}`;
+let docs;
+if (cache?.docs?.key === docsKey) docs = cache.docs.value; else { docs = docList(); if (cache) cache.docs = { key: docsKey, value: docs }; }
+const readiness = { checklist: readChecklist(), docs, atRisk: atRisk(), at: new Date().toISOString() };
 const checkFiles = readChecks();
 const running = runsNow(checkFiles);
 const generatedAt = new Date().toISOString();
@@ -403,7 +453,7 @@ const models = demos.map((d) => {
     ...commits.filter((c) => c.textReview)
       .map((c) => ({ kind: 'text', source: 'commit', commit: c.hash, reviewedAt: c.date, reviewer: null, verdict: null, subject: c.subject })),
     ...reviewLog.entries.filter((e) => e.model === d.id).map(({ model, ...e }) => ({ ...e, source: 'log' })),
-  ].map((r) => { const s = changedSince(r.commit, d.id, ctx); return { ...r, stale: s.stale, staleWhy: s.why }; })
+  ].map((r) => { const against = r.fixCommit ?? r.commit; const s = changedSince(against, d.id, ctx); return { ...r, judgedAgainst: against, stale: s.stale, staleWhy: s.why }; })
     .sort((a, b) => Date.parse(b.reviewedAt) - Date.parse(a.reviewedAt));
   // the latest fresh review of a kind decides; a stale one says nothing about the code as it is
   const judge = (kind, how) => {
@@ -448,6 +498,7 @@ const ledger = {
   tags: [...new Set(demos.flatMap((d) => d.tags ?? []))].sort(),
   build: { by, reason, ms: null, reusedModelLoad, reusedGitReplay },
   running,
+  readiness,
   sources: {
     models: from,
     groups: 'src/models/groups.ts GROUPS, in GROUP_ORDER; each model\'s group and tags as its demo entry gives them',
@@ -459,6 +510,7 @@ const ledger = {
     textReview: 'a text review: a docs/reviews/ entry of kind "text", or a commit matched to the model with a Text-reviewed-by: trailer or a subject starting "Text review" / "Review the text"',
     reviewLog: `docs/reviews/*.json: ${reviewLog.files} file(s), ${reviewLog.entries.length} valid entr${reviewLog.entries.length === 1 ? 'y' : 'ies'}. A review is stale when the model's source changed after the commit it names; approval needs the latest fresh review of each kind not to be "problem"`,
     queue: 'docs/ledger-queue.json is reported by the lead session and its agents through scripts/queue.mjs and is not read by this script',
+    readiness: 'docs/RELEASE-CHECKLIST.md lines `- [ ] item — proof`; each file directly under docs/ plus README.md with `git log -1`; at risk: `git status --porcelain --untracked-files=all` with each file\'s modification time, as of this build',
     watcher: 'docs/ledger-watch.json, written by scripts/ledger-watch.mjs: its heartbeat, so the page can tell a quiet project from a watcher that has stopped',
   },
   counts: {

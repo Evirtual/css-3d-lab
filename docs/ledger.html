@@ -270,6 +270,15 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 /* ---------- the lead's record: set apart, never mistaken for the measured table ---------- */
 .lead { background: repeating-linear-gradient(135deg, transparent 0 14px, color-mix(in srgb, var(--warm) 4%, transparent) 14px 28px), var(--surface); border: 1px dashed color-mix(in srgb, var(--warm) 55%, transparent); }
 .lead .eyebrow { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 50%, transparent); margin-bottom: 8px; }
+.cl { list-style: none; padding: 0; margin: 8px 0 0; }
+.cl li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 8px 4px; border-bottom: 1px dashed var(--border); font-size: 14px; }
+.cl .box { width: 18px; height: 18px; margin-top: 2px; border: 1.5px solid var(--border-strong); border-radius: 5px; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; }
+.cl li.is-done .box { border-color: transparent; background: linear-gradient(120deg, var(--accent), var(--hot)); }
+.cl li.is-done b { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent); }
+.cl code { background: none; border: 0; }
+table.mini { font-size: 13.5px; }
+table.mini td { padding: 7px 8px; overflow-wrap: anywhere; }
+table.mini code { font-size: 12px; }
 .board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; align-items: start; }
 .bcol { min-width: 0; border: 1px solid var(--border); border-radius: 14px; padding: 10px; background: color-mix(in srgb, var(--bg) 45%, transparent); }
 .bcol h3 { display: flex; justify-content: space-between; align-items: center; margin: 2px 4px 4px; }
@@ -375,6 +384,11 @@ th.has-tip { cursor: help; }
         <tbody id="rows"></tbody>
       </table>
     </div>
+  </section>
+
+  <section class="panel" aria-labelledby="rel-h">
+    <h2 id="rel-h">Docs and release readiness</h2>
+    <div id="readiness"><p class="muted">Loading…</p></div>
   </section>
 
   <section class="panel lead" aria-labelledby="q-h">
@@ -577,6 +591,7 @@ th.has-tip { cursor: help; }
     for (const t of [...tags]) if (!(L.tags ?? []).includes(t)) tags.delete(t);
     renderFilterChips();
     renderRows();
+    renderReadiness();
     renderQueue();
   }
 
@@ -749,6 +764,33 @@ th.has-tip { cursor: help; }
       ${c.review ? '<span class="tag strong">review</span>' : ''}${c.textReview ? '<span class="tag strong">text review</span>' : ''}
       ${c.modelsTouched > 5 ? `<span class="tag">broad: touches ${c.modelsTouched} models</span>` : ''}</li>`).join('')}</ul>` : '<p class="muted">No commit found.</p>');
     return parts.join('');
+  }
+
+  function renderReadiness() {
+    const R = L.readiness;
+    if (!R) { $('readiness').innerHTML = '<p class="muted">This ledger was built before it recorded readiness. It fills in on the next build.</p>'; return; }
+    const cl = R.checklist;
+    const pct = cl.total ? (100 * cl.done) / cl.total : 0;
+    const list = !cl.exists
+      ? `<div class="notice"><b class="big">No checklist yet.</b> <code>${esc(cl.file)}</code> does not exist, so there is nothing to count. It will show here once it is written, with lines like <code>- [ ] item — how to prove it</code>.</div>`
+      : !cl.total
+        ? `<div class="notice"><code>${esc(cl.file)}</code> exists but has no checklist lines (<code>- [ ] item — how to prove it</code>), so nothing is counted.</div>`
+        : `<div class="progress" style="margin-top:0"><b><span class="num">${cl.done}</span> of <span class="num">${cl.total}</span> done</b> <span class="muted">· from <code>${esc(cl.file)}</code></span>
+            <div class="track" aria-hidden="true"><span style="width:${pct}%"></span></div></div>
+          <ul class="cl">${cl.items.map((x) => `<li class="${x.done ? 'is-done' : ''}"><span class="box" aria-hidden="true">${x.done ? '✓' : ''}</span><span class="visually-hidden">${x.done ? 'done:' : 'not done:'}</span><div><b>${esc(x.item)}</b>${x.proof ? `<br><span class="muted">Proof: ${esc(x.proof)}</span>` : '<br><span class="muted">No way to prove it is written down.</span>'}</div><code class="muted">:${x.line}</code></li>`).join('')}</ul>`;
+    const days = (iso) => iso ? (Date.now() - Date.parse(iso)) / 864e5 : null;
+    const docs = `<div class="table-wrap"><table class="mini"><thead><tr><th>Document</th><th>Last commit</th><th>Subject</th></tr></thead><tbody>${R.docs.map((d) => {
+      const c = d.lastCommit;
+      const old = c && days(c.date) > 7;
+      return `<tr><td><code>${esc(d.path)}</code></td><td class="num">${c ? `${esc(c.date.slice(0, 10))} <span class="muted">(${agoSpan(c.date)})</span>${old ? ' <span class="chip s-warn">over a week</span>' : ''}` : '<span class="chip s-warn">never committed</span>'}</td><td>${c ? `<code class="muted">${esc(c.hash)}</code> ${esc(c.subject)}` : '—'}</td></tr>`;
+    }).join('')}</tbody></table></div>`;
+    const risk = R.atRisk.length
+      ? `<div class="table-wrap"><table class="mini"><thead><tr><th>File</th><th>State</th><th>Last changed</th></tr></thead><tbody>${R.atRisk.map((f) => `<tr><td><code>${esc(f.path)}</code></td><td><span class="chip ${f.code === '??' ? 's-bad' : 's-warn'}">${esc(f.kind)}</span></td><td class="num">${f.modifiedAt ? agoSpan(f.modifiedAt) : '<span class="muted">gone from disk</span>'}</td></tr>`).join('')}</tbody></table></div>`
+      : '<p>Nothing: every file in the working tree matches a commit.</p>';
+    $('readiness').innerHTML = `<h3>Release checklist</h3>${list}
+      <h3>Documents: when each last reached a commit</h3>${docs}
+      <h3>At risk: work that has not reached a commit (${R.atRisk.length})</h3>
+      <p class="muted" style="font-size:13px">From <code>git status</code> at the last build, ${agoSpan(R.at)}; oldest first. Untracked files are in no commit at all. Other agents' work in progress shows here too.</p>${risk}`;
   }
 
   function renderQueue() {
