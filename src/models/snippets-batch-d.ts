@@ -250,6 +250,7 @@ export const snippetsD: Record<string, Snippet> = {
       'A panel is a flap <b>hinged on its top edge</b>: <code>transform-origin: top center</code> plus <code>rotateX(-90deg)</code> to fold it flat, edge-on to the viewer, until its radio is checked.',
       'Nothing animates <code>height</code>. The frame has a fixed size; sections below the open one are pushed down with <code>translateY</code> by exactly one panel\'s height instead.',
       '<code>~</code> (general sibling) plus <code>:checked</code> lets one radio style both its own section <i>and</i> every section after it, all from CSS alone.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the accordion is the same share of a gallery card, the editor and a recording canvas. The widget is its own control, so it fills the model box and has no control row under it.',
     ],
     html: `<div class="scene">
   <div class="accordion">
@@ -271,13 +272,16 @@ export const snippetsD: Record<string, Snippet> = {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the accordion is the same share
+     of a card, the editor, a full screen and a recording canvas */
+  --u: 0.30vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .accordion {
   position: relative;
-  width: 196px;
-  height: 187px; /* 3 × (header 32px + gap 5px) + panel 71px */
+  width: calc(196 * var(--u));
+  height: calc(187 * var(--u)); /* 3 × (header 32 + gap 5) + panel 71 */
   transform-style: preserve-3d;
   transform: rotateY(-18deg) rotateX(4deg);
 }
@@ -285,8 +289,8 @@ export const snippetsD: Record<string, Snippet> = {
 /* real radios keep it keyboard-friendly (arrow keys move between sections); only hidden */
 .accordion > input {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: calc(1 * var(--u));
+  height: calc(1 * var(--u));
   margin: 0;
   opacity: 0;
   pointer-events: none;
@@ -294,10 +298,10 @@ export const snippetsD: Record<string, Snippet> = {
 
 .sec {
   position: absolute;
-  top: calc(var(--i) * 37px);
+  top: calc(var(--i) * 37 * var(--u));
   right: 0;
   left: 0;
-  height: 32px;
+  height: calc(32 * var(--u));
   transform-style: preserve-3d;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -307,12 +311,12 @@ export const snippetsD: Record<string, Snippet> = {
   align-items: center;
   justify-content: space-between;
   height: 100%;
-  padding: 0 12px;
-  border: 1px solid rgb(140 150 220 / 0.34);
-  border-radius: 9px;
+  padding: 0 calc(12 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(140 150 220 / 0.34);
+  border-radius: calc(9 * var(--u));
   background: color-mix(in srgb, #8b6cff 14%, #141830);
   color: #eceefb;
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 700;
   cursor: pointer;
   user-select: none;
@@ -321,27 +325,27 @@ export const snippetsD: Record<string, Snippet> = {
 /* chevron */
 .accordion label::after {
   content: '';
-  width: 6px;
-  height: 6px;
-  border-right: 2px solid #949bc0;
-  border-bottom: 2px solid #949bc0;
-  transform: translateY(-2px) rotate(45deg);
+  width: calc(6 * var(--u));
+  height: calc(6 * var(--u));
+  border-right: calc(2 * var(--u)) solid #949bc0;
+  border-bottom: calc(2 * var(--u)) solid #949bc0;
+  transform: translateY(calc(-2 * var(--u))) rotate(45deg);
   transition: transform 0.4s;
 }
 
 /* the flap: hinged on its top edge, folded back flat (edge-on to the viewer) until opened */
 .panel {
   position: absolute;
-  top: calc(100% + 5px);
+  top: calc(100% + 5 * var(--u));
   right: 0;
   left: 0;
-  height: 71px;
-  padding: 9px 12px;
-  border: 1px solid color-mix(in srgb, #2ee6d6 60%, transparent);
-  border-radius: 9px;
+  height: calc(71 * var(--u));
+  padding: calc(9 * var(--u)) calc(12 * var(--u));
+  border: calc(1 * var(--u)) solid color-mix(in srgb, #2ee6d6 60%, transparent);
+  border-radius: calc(9 * var(--u));
   background: linear-gradient(180deg, color-mix(in srgb, #2ee6d6 26%, #141830), color-mix(in srgb, #8b6cff 16%, #141830));
   color: #eceefb;
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   line-height: 1.45;
   opacity: 0;
   pointer-events: none;
@@ -371,23 +375,23 @@ export const snippetsD: Record<string, Snippet> = {
 #acc-0:checked ~ .sec:nth-of-type(1) label::after,
 #acc-1:checked ~ .sec:nth-of-type(2) label::after,
 #acc-2:checked ~ .sec:nth-of-type(3) label::after {
-  transform: translateY(1px) rotate(-135deg);
+  transform: translateY(calc(1 * var(--u))) rotate(-135deg);
 }
 
 #acc-0:focus-visible ~ .sec:nth-of-type(1) label,
 #acc-1:focus-visible ~ .sec:nth-of-type(2) label,
 #acc-2:focus-visible ~ .sec:nth-of-type(3) label {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 2px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(2 * var(--u));
 }
 
 /* every section after the open one slides down by exactly one panel's height */
 #acc-0:checked ~ .sec:nth-of-type(n + 2) {
-  transform: translateY(76px);
+  transform: translateY(calc(76 * var(--u)));
 }
 
 #acc-1:checked ~ .sec:nth-of-type(n + 3) {
-  transform: translateY(76px);
+  transform: translateY(calc(76 * var(--u)));
 }`,
   },
 
