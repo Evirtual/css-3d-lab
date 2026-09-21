@@ -242,37 +242,53 @@ const json = JSON.stringify(REVENUE, null, 2).replace(
 export const snippet: Snippet = {
   how: [
     "The data is plain JSON: quarters, and per product one value per quarter. JS turns each value into <b>two numbers</b>, both fractions of the scale's top: <code>--base</code>, the sum of the segments below it, and <code>--v</code>, its own height.",
-    'A segment is a full-height front and side squashed from the bottom: <code>translateY(--base × −100px) … scaleY(--v)</code>. The move comes first, so it is not squashed. Only <code>transform</code> changes, so a new layout is a transition with no layout work.',
+    'A segment is a full-height front and side squashed from the bottom: <code>translateY(--base × −100 units) … scaleY(--v)</code>. The move comes first, so it is not squashed. Only <code>transform</code> changes, so a new layout is a transition with no layout work.',
     'Switch a product off and JS sets its <code>--v</code> to 0 and recomputes every <code>--base</code> above it. Collapse and slide use the <b>same duration and easing</b>, so the stack stays glued while it moves (an easing that overshoots would turn a shrinking face inside out, so this one does not). Only the highest segment (<code>.is-top</code>) shows its lid.',
     'The faces are see-through glass: the colour mixed with <code>transparent</code>, a hairline edge and a soft glow. The pointed-at segment fills in and glows: a <code>::after</code> layer on each face whose <code>opacity</code> fades in.',
     'The chart is turned, so parts of it sit behind the flat boxes around it: <code>pointer-events: none</code> on everything, <code>auto</code> only on the faces.',
     "There is <b>one</b> tooltip for the whole chart. JS moves it to the pointed-at segment with <code>--tx</code> / <code>--ty</code> and a <code>transition</code> glides it there while its text changes; it hides 150ms after the pointer leaves, so crossing a gap doesn't flicker. A tap does the same on a touch screen. Names go in with <code>textContent</code>, never as HTML.",
+    "Every length is a multiple of one base unit, <code>--u</code>, and JS writes the tooltip's place as <b>plain numbers</b> in the chart's own units, which CSS multiplies by it. A length written in px from JS would stay the same size while the chart scaled around it, and the tooltip would drift off its segment. The caption and the legend are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.",
   ],
   html: `<div class="chart">
-  <div class="scene">
-    <div class="stack3d"></div>
+  <div class="view">
+    <div class="scene">
+      <div class="stack3d"></div>
+    </div>
   </div>
-  <output></output>
-  <div class="legend"></div>
+  <div class="controls">
+    <output class="caption"></output>
+    <div class="row legend"></div>
+  </div>
 </div>`,
   css: `.chart {
+  /* one base unit: every length in the chart is a multiple of it, so it is the same share of a
+     card, the editor, a full screen and a recording canvas. The control zone under it is in
+     plain vmin, because it is the same object in every model. */
+  --u: 0.33vmin;
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
+/* the model box: the same height in every model that has controls */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+}
+
 .scene {
-  perspective: 800px;
-  padding: 36px 40px 34px;
+  perspective: calc(800 * var(--u));
+  padding: calc(36 * var(--u)) calc(40 * var(--u)) calc(34 * var(--u));
   pointer-events: none; /* the chart is turned: only the faces take the pointer */
 }
 
-/* 4 columns × 24px + 3 gaps × 16px = 144px */
+/* 4 columns × 24 + 3 gaps × 16 = 144 units */
 .stack3d {
   position: relative;
-  width: 144px;
-  height: 100px; /* the top of the scale */
+  width: calc(144 * var(--u));
+  height: calc(100 * var(--u)); /* the top of the scale */
   transform-style: preserve-3d;
   transform: rotateX(-18deg) rotateY(-28deg);
 }
@@ -280,15 +296,15 @@ export const snippet: Snippet = {
 /* the floor: a grid laid flat along the bottom of the columns */
 .floor {
   position: absolute;
-  left: -12px;
-  top: 74px;
-  width: 168px;
-  height: 52px;
-  border: 1px solid rgb(139 108 255 / 0.45);
-  border-radius: 6px;
+  left: calc(-12 * var(--u));
+  top: calc(74 * var(--u));
+  width: calc(168 * var(--u));
+  height: calc(52 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.45);
+  border-radius: calc(6 * var(--u));
   background:
-    repeating-linear-gradient(90deg, rgb(139 108 255 / 0.22) 0 1px, transparent 1px 14px),
-    repeating-linear-gradient(rgb(139 108 255 / 0.22) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(90deg, rgb(139 108 255 / 0.22) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(14 * var(--u))),
+    repeating-linear-gradient(rgb(139 108 255 / 0.22) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(13 * var(--u))),
     rgb(139 108 255 / 0.08);
   transform: rotateX(90deg);
 }
@@ -297,43 +313,43 @@ export const snippet: Snippet = {
    right end, which reaches out past the last column */
 .wall {
   position: absolute;
-  top: -12px; /* the box holds the numbers too: text spilling out of a 3D layer gets cut */
-  left: -12px;
-  width: 194px;
-  height: 112px;
-  transform: translateZ(-26px);
+  top: calc(-12 * var(--u)); /* the box holds the numbers too: text spilling out of a 3D layer gets cut */
+  left: calc(-12 * var(--u));
+  width: calc(194 * var(--u));
+  height: calc(112 * var(--u));
+  transform: translateZ(calc(-26 * var(--u)));
 }
 
 .wall b {
   position: absolute;
-  right: 26px;
-  bottom: calc(var(--t) * 100px);
+  right: calc(26 * var(--u));
+  bottom: calc(var(--t) * calc(100 * var(--u)));
   left: 0;
-  height: 1px;
+  height: calc(1 * var(--u));
   background: rgb(236 238 251 / 0.24);
 }
 
 .wall span {
   position: absolute;
-  top: -6px;
+  top: calc(-6 * var(--u));
   left: 100%;
-  padding-left: 6px;
+  padding-left: calc(6 * var(--u));
   color: ${MUTED};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
 }
 
 .cols {
   position: absolute;
   inset: 0;
   display: flex;
-  gap: 16px;
+  gap: calc(16 * var(--u));
   transform-style: preserve-3d;
 }
 
 .col {
   position: relative;
   flex: none;
-  width: 24px;
+  width: calc(24 * var(--u));
   height: 100%;
   transform-style: preserve-3d;
 }
@@ -341,13 +357,13 @@ export const snippet: Snippet = {
 /* the quarter, standing in front of the column */
 .col span {
   position: absolute;
-  top: calc(100% + 8px);
-  left: -6px;
-  width: 36px;
+  top: calc(100% + calc(8 * var(--u)));
+  left: calc(-6 * var(--u));
+  width: calc(36 * var(--u));
   color: ${MUTED};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   text-align: center;
-  transform: translateZ(12px);
+  transform: translateZ(calc(12 * var(--u)));
 }
 
 /* one colour per product */
@@ -368,13 +384,13 @@ export const snippet: Snippet = {
   top: 0;
   left: 0;
   box-sizing: border-box;
-  width: 24px;
+  width: calc(24 * var(--u));
   height: 100%;
-  border: 0.6px solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
+  border: calc(0.6 * var(--u)) solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
   background: color-mix(in srgb, var(--c) 58%, transparent);
   box-shadow:
-    inset 0 0 8px color-mix(in srgb, var(--c) 30%, transparent),
-    0 0 10px color-mix(in srgb, var(--c) 22%, transparent);
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--c) 30%, transparent),
+    0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 22%, transparent);
   outline: none;
   pointer-events: auto;
   cursor: pointer;
@@ -389,7 +405,7 @@ export const snippet: Snippet = {
   position: absolute;
   inset: 0;
   background: color-mix(in srgb, var(--c) 50%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--c) 60%, transparent);
+  box-shadow: 0 0 calc(20 * var(--u)) color-mix(in srgb, var(--c) 60%, transparent);
   opacity: 0;
   transition: opacity 0.25s;
 }
@@ -400,23 +416,23 @@ export const snippet: Snippet = {
 
 /* front: lift by the segments below, step out to the front, then squash to its value */
 .seg i:nth-child(1) {
-  transform: translateY(calc(var(--base) * -100px)) translateZ(12px) scaleY(var(--v));
+  transform: translateY(calc(var(--base) * calc(-100 * var(--u)))) translateZ(calc(12 * var(--u))) scaleY(var(--v));
 }
 
 /* right side, darker */
 .seg i:nth-child(2) {
   background: color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #05060c) 64%, transparent);
-  transform: translateY(calc(var(--base) * -100px)) rotateY(90deg) translateZ(12px) scaleY(var(--v));
+  transform: translateY(calc(var(--base) * calc(-100 * var(--u)))) rotateY(90deg) translateZ(calc(12 * var(--u))) scaleY(var(--v));
 }
 
-/* the lid: a 24px square laid flat on the segment's top. Only the highest segment shows it */
+/* the lid: a 24-unit square laid flat on the segment's top. Only the highest segment shows it */
 .seg i:nth-child(3) {
-  height: 24px;
+  height: calc(24 * var(--u));
   background: color-mix(in srgb, var(--c) 80%, transparent);
   opacity: 0;
   pointer-events: none;
   transform-origin: center;
-  transform: translateY(calc((1 - var(--base) - var(--v)) * 100px)) rotateX(90deg) translateZ(12px);
+  transform: translateY(calc((1 - var(--base) - var(--v)) * calc(100 * var(--u)))) rotateX(90deg) translateZ(calc(12 * var(--u)));
 }
 
 .seg.is-top i:nth-child(3) {
@@ -429,25 +445,27 @@ export const snippet: Snippet = {
 }
 
 /* One tooltip for the whole chart: JS moves it to the pointed-at segment (--tx, --ty) and it
-   glides there. It floats 40px towards you (the columns to the right stand nearer); its
+   glides there. It floats 40 units towards you (the columns to the right stand nearer); its
    thickness is a flat edge offset up and to the right, the way the columns' depth runs */
+/* JS writes --tx / --ty as plain numbers in the chart's own units, and CSS multiplies them by
+   --u: a length written in px from JS would stay put while the chart scaled around it */
 .tip {
   position: absolute;
   top: 0;
   left: 0;
-  padding: 3px 7px;
-  border: 1px solid var(--c);
-  border-radius: 6px;
+  padding: calc(3 * var(--u)) calc(7 * var(--u));
+  border: calc(1 * var(--u)) solid var(--c);
+  border-radius: calc(6 * var(--u));
   background: ${SURFACE};
   box-shadow:
-    3px -3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
-    0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+    calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--c) 55%, #05060c),
+    0 0 calc(14 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent);
   color: ${TEXT};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(var(--tx, 0px), calc(var(--ty, 0px) - 30px)) translate(-50%, -100%) translateZ(40px);
+  transform: translate(calc(var(--tx, 0) * var(--u)), calc((var(--ty, 0) - 30) * var(--u))) translate(-50%, -100%) translateZ(calc(40 * var(--u)));
   transition:
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
@@ -457,44 +475,59 @@ export const snippet: Snippet = {
   opacity: 1;
 }
 
-output {
-  color: ${MUTED};
-  font-size: 12px;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the chart's own unit. The caption is on its own line above
+   the row, and its line box never changes height, so a new summary cannot move the chart. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
+}
+
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.controls .row {
+  display: flex;
+  gap: 2vmin;
 }
 
 /* the legend is the switches: one real button per product */
-.legend {
-  display: flex;
-  gap: 6px;
-}
-
-.legend button {
+.controls button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 11px 4px 8px;
-  border: 1px solid color-mix(in srgb, var(--c) 60%, transparent);
+  gap: 1.5vmin;
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
+  border: 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--c) 16%, transparent);
-  color: ${TEXT};
-  font: 700 12px system-ui, sans-serif;
+  background: color-mix(in srgb, var(--c) 22%, transparent);
+  box-shadow: inset 0 0 0 0.3vmin color-mix(in srgb, var(--c) 60%, transparent);
+  color: inherit;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
 }
 
 /* the swatch: filled when on, a hollow ring when off */
 .legend button::before {
   content: '';
-  width: 9px;
-  height: 9px;
+  width: 2.6vmin;
+  height: 2.6vmin;
   border-radius: 50%;
   background: var(--c);
-  box-shadow: inset 0 0 0 1.5px var(--c);
+  box-shadow: inset 0 0 0 0.5vmin var(--c);
 }
 
 .legend button[aria-pressed='false'] {
-  border-color: rgb(255 255 255 / 0.14);
-  background: transparent;
-  color: ${MUTED};
+  background: rgb(140 150 220 / 0.12);
+  box-shadow: inset 0 0 0 0.3vmin rgb(140 150 220 / 0.3);
+  opacity: 0.75;
 }
 
 .legend button[aria-pressed='false']::before {
@@ -508,7 +541,7 @@ const chart = document.querySelector('.stack3d');
 const out = document.querySelector('.chart output');
 const legend = document.querySelector('.legend');
 const TICKS = [0, 0.5, 1]; // the scale's lines, as fractions of its top
-const W = 24, PITCH = 40, H = 100; // a column's width, width + gap, and the scale's height (as in the CSS)
+const W = 24, PITCH = 40, H = 100; // a column's width, width + gap, and the scale's height, in the chart's own units (as in the CSS)
 const on = products.map(() => true); // which products are shown
 
 // money as most dashboards write it: the sign in front, the k right after the number ($38k)
@@ -585,8 +618,8 @@ function place(q, p) {
   tipEl.textContent = tipText(q, p);
   tipEl.dataset.p = p; // its colour
   const topOf = parseFloat(seg.style.getPropertyValue('--base')) + parseFloat(seg.style.getPropertyValue('--v'));
-  tipEl.style.setProperty('--tx', q * PITCH + W / 2 + 'px');
-  tipEl.style.setProperty('--ty', (1 - topOf) * H + 'px');
+  tipEl.style.setProperty('--tx', q * PITCH + W / 2); // plain numbers: CSS multiplies them by --u
+  tipEl.style.setProperty('--ty', (1 - topOf) * H);
   if (!wasOn) {
     void tipEl.offsetWidth; // apply the new place before the transition comes back
     tipEl.style.transition = '';
