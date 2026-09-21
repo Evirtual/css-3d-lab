@@ -11,11 +11,12 @@ export const snippetsC: Record<string, Snippet> = {
       'All four leaves read the same letter from <code>content: attr(data-c)</code>, so JS never touches a text node — it only ever writes a <code>data-c</code> attribute.',
       'To replay a CSS animation, JS removes the <code>.is-flip</code> class, reads a layout property to force the browser to flush styles, then re-adds the class.',
       '<code>animation-fill-mode: both</code> matters: outside its delay the falling leaf sits parked edge-on at <code>rotateX(-90deg)</code>, and the landing leaf holds its open pose until its own delay ends.',
-      '<code>--i</code> staggers each cell by 45ms so the flips ripple across the row instead of firing together.',
+      '<code>--i</code> staggers each cell by 45ms so the flips ripple across the row instead of firing together, and it carries on into the second row, so the board cascades.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a cell is 21 × 34 of them, so the board is the same share of a gallery card, the editor and a recording canvas.',
     ],
-    html: `<div class="board">
+    html: `<div class="board" role="img" aria-label="Split-flap departure board cycling through city names">
   <div class="board-head"><span>Departures</span><b>Gate 3D</b></div>
-  <div class="board-row" role="img" aria-label="Split-flap display cycling through city names">
+  <div class="board-row">
     <span class="cell" style="--i:0"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
     <span class="cell" style="--i:1"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
     <span class="cell" style="--i:2"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
@@ -25,15 +26,31 @@ export const snippetsC: Record<string, Snippet> = {
     <span class="cell" style="--i:6"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
     <span class="cell" style="--i:7"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
   </div>
+  <div class="board-row">
+    <span class="cell" style="--i:8"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:9"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:10"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:11"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:12"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:13"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:14"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+    <span class="cell" style="--i:15"><i class="cell-top"></i><i class="cell-bottom"></i><i class="cell-fall"></i><i class="cell-land"></i></span>
+  </div>
 </div>`,
-    css: `.board {
+    css: `/* One row of eight cells is a shape the band cannot hold: it draws three times wider than it
+   is tall, so at the 92vmin width limit the board stands 30vmin high, under the 40vmin floor.
+   Two destinations is what a departure board shows anyway. */
+.board {
+  /* one base unit: every length below is a multiple of it, so the board is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.40vmin;
   display: grid;
-  gap: 8px;
-  padding: 12px 12px 10px;
-  border: 1px solid #3a4070;
-  border-radius: 12px;
+  gap: calc(8 * var(--u));
+  padding: calc(12 * var(--u)) calc(12 * var(--u)) calc(10 * var(--u));
+  border: calc(1 * var(--u)) solid #3a4070;
+  border-radius: calc(12 * var(--u));
   background: linear-gradient(160deg, #211c3c, #0b0d18 70%);
-  box-shadow: 0 18px 30px -18px rgb(0 0 0 / 0.8);
+  box-shadow: 0 calc(18 * var(--u)) calc(30 * var(--u)) calc(-18 * var(--u)) rgb(0 0 0 / 0.8);
 }
 
 .board-head {
@@ -41,7 +58,7 @@ export const snippetsC: Record<string, Snippet> = {
   align-items: center;
   justify-content: space-between;
   color: #949bc0;
-  font-size: 9px;
+  font-size: calc(9 * var(--u));
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -54,24 +71,24 @@ export const snippetsC: Record<string, Snippet> = {
 
 .board-row {
   display: flex;
-  gap: 3px;
+  gap: calc(3 * var(--u));
 }
 
 .cell {
   position: relative;
-  width: 21px;
-  height: 34px;
-  perspective: 140px; /* its own close camera: a 17px leaf needs a strong one to read as falling */
+  width: calc(21 * var(--u));
+  height: calc(34 * var(--u));
+  perspective: calc(140 * var(--u)); /* its own close camera: a 17-unit leaf needs a strong one to read as falling */
 }
 
 /* the slit between the two halves */
 .cell::after {
   content: '';
   position: absolute;
-  top: calc(50% - 0.5px);
+  top: calc(50% - 0.5 * var(--u));
   right: 0;
   left: 0;
-  height: 1px;
+  height: calc(1 * var(--u));
   background: #05060c;
 }
 
@@ -92,14 +109,14 @@ export const snippetsC: Record<string, Snippet> = {
   left: 0;
   height: 200%;
   color: #f4f1e6;
-  font: 800 22px/34px ui-monospace, monospace;
+  font: 800 calc(22 * var(--u))/calc(34 * var(--u)) ui-monospace, monospace;
   text-align: center;
 }
 
 .cell-top,
 .cell-fall {
   top: 0;
-  border-radius: 4px 4px 0 0;
+  border-radius: calc(4 * var(--u)) calc(4 * var(--u)) 0 0;
   background: #1a1e36;
 }
 
@@ -112,7 +129,7 @@ export const snippetsC: Record<string, Snippet> = {
 .cell-bottom,
 .cell-land {
   bottom: 0;
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 calc(4 * var(--u)) calc(4 * var(--u));
   background: #20254a;
 }
 
@@ -151,11 +168,14 @@ export const snippetsC: Record<string, Snippet> = {
 }`,
     js: `var WORDS = ['NEW YORK', 'HELSINKI', 'LISBON', 'BANGKOK', 'SAN JOSE', 'CSS 3D'];
 
-var cells = Array.prototype.map.call(document.querySelectorAll('.cell'), function (cell) {
-  return { cell: cell, leaves: cell.querySelectorAll('i'), char: ' ' }; // top, bottom, fall, land
+// one list of cells per row; the two rows show two destinations, one behind the other
+var rows = Array.prototype.map.call(document.querySelectorAll('.board-row'), function (row) {
+  return Array.prototype.map.call(row.querySelectorAll('.cell'), function (cell) {
+    return { cell: cell, leaves: cell.querySelectorAll('i'), char: ' ' }; // top, bottom, fall, land
+  });
 });
 
-function show(word, animate) {
+function show(cells, word, animate) {
   var text = word + '        '; // pad so every cell always has a character
   cells.forEach(function (c, i) {
     var next = text[i];
@@ -178,10 +198,15 @@ function show(word, animate) {
 }
 
 var index = 0;
-show(WORDS[0], false);
+rows.forEach(function (cells, r) {
+  show(cells, WORDS[r % WORDS.length], false);
+});
+
 setInterval(function () {
   index = (index + 1) % WORDS.length;
-  show(WORDS[index], true);
+  rows.forEach(function (cells, r) {
+    show(cells, WORDS[(index + r) % WORDS.length], true);
+  });
 }, 2600);`,
   },
 
