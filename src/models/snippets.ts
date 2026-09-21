@@ -1891,7 +1891,12 @@ function settle(c) {
 }
 cards.forEach((c) => c.card.addEventListener('animationend', () => settle(c)));
 
+// The site pauses a model by marking the frame's <html data-paused>: then the clock stands still,
+// and catches up when it is un-paused. With reduced motion the digits change without the flip.
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
+
 function tick() {
+  if (document.documentElement.hasAttribute('data-paused')) return;
   const d = new Date();
   [d.getHours(), d.getMinutes(), d.getSeconds()].forEach((n, i) => {
     const text = String(n).padStart(2, '0');
@@ -1902,7 +1907,7 @@ function tick() {
     if (!first) settle(c); // a flip that never landed (paused) finishes first
     c.value = text;
     c.top.textContent = c.back.textContent = text;
-    if (first) return settle(c);
+    if (first || calm.matches) return settle(c);
 
     void c.card.offsetWidth;          // force reflow so the animation restarts
     c.card.classList.add('is-flipping');

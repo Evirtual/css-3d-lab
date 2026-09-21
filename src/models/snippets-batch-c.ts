@@ -202,7 +202,11 @@ rows.forEach(function (cells, r) {
   show(cells, WORDS[r % WORDS.length], false);
 });
 
+// The site pauses a model by marking the frame's <html data-paused>; a visitor may ask for less
+// motion. Either way the board holds its word.
+var calm = matchMedia('(prefers-reduced-motion: reduce)');
 setInterval(function () {
+  if (document.documentElement.hasAttribute('data-paused') || calm.matches) return;
   index = (index + 1) % WORDS.length;
   rows.forEach(function (cells, r) {
     show(cells, WORDS[(index + r) % WORDS.length], true);

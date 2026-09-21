@@ -1109,7 +1109,7 @@ scene.addEventListener('pointercancel', leave);`,
 
   watch: {
     how: [
-      'Once a second JS writes <code>--h</code>, <code>--m</code>, <code>--s</code> as angles. Each hand stands on the centre (<code>bottom: 50%</code>), turns about its foot and reads its own variable.',
+      'Once a second JS writes <code>--h</code>, <code>--m</code>, <code>--s</code> as angles: not while the frame is paused (<code>&lt;html data-paused&gt;</code>), and not the second hand when the visitor asks for reduced motion. Each hand stands on the centre (<code>bottom: 50%</code>), turns about its foot and reads its own variable.',
       'The angles count from midnight, so they only ever grow: at 59 → 0 seconds the hand keeps going forward instead of sweeping back.',
       'The digits need no DOM writes: JS also sets two integers, <code>counter-reset: hh var(--hh) mm var(--mm)</code> turns them into counters and <code>content: counter(hh, decimal-leading-zero)</code> prints 09:05.',
       'The case is seven rounded slabs 1.5 units apart (they make the rounded sides), with the face and back at <code>±5</code>. The straps are hinged on the case edge with <code>transform-origin</code> and tilted away with <code>rotateX</code>.',
@@ -1322,12 +1322,16 @@ scene.addEventListener('pointercancel', leave);`,
   to   { transform: rotateX(6deg) rotateY(30deg); }
 }`,
     js: `const watch = document.querySelector('.watch');
+// The site pauses a model by marking the frame's <html data-paused>: then the hands stand still,
+// and catch up when it is un-paused. With reduced motion the second hand stays where it is.
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
 
 function tick() {
+  if (document.documentElement.hasAttribute('data-paused')) return;
   const d = new Date();
   // seconds since midnight: the angles only grow, so no hand sweeps backwards at 59 → 0
   const t = d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
-  watch.style.setProperty('--s', t * 6 + 'deg');
+  if (!calm.matches || !watch.style.getPropertyValue('--s')) watch.style.setProperty('--s', t * 6 + 'deg');
   watch.style.setProperty('--m', (t / 10).toFixed(1) + 'deg');
   watch.style.setProperty('--h', (t / 120).toFixed(2) + 'deg');
   // integers for the digital readout (CSS counters)
