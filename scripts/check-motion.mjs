@@ -54,7 +54,11 @@
  *    frames stepped across a loop or a transition: ones 70-100ms apart are too far apart to tell). For interactions it also says when
  *    the pointer can never land on a part (something else is drawn over it), when a pointer on
  *    it does not hover it, when a part's hit area is mostly over empty canvas, and when an action
- *    changes nothing on screen. All of it is a hint for a human to look at, not a verdict.
+ *    changes nothing on screen: under a 0.12 mean change over the whole canvas, and, for an
+ *    action on a part (hover, press, focus, and leaving or blurring it), under 1 round the part
+ *    too (its box two cells wider, or its label's when it is a hidden input), so a small part's
+ *    own tint or focus ring counts though it is a sliver of the canvas. All of it is a hint for a
+ *    human to look at, not a verdict.
  *  - VISUAL. One strip per model in .media-tmp/motion/<id>.jpg: every frame in order, numbered,
  *    the flagged ones outlined red (flicker) or amber (pop), so the whole animation can be read
  *    at once by eye or by an agent. report.json beside them holds the numbers.
@@ -91,6 +95,8 @@ const PATCH = 4; // cells in one connected patch, after the edges are pared off,
 const POP = 2.6; // a change this many times the model's average ...
 const LONELY = 1.8; // ... and this many times the frames either side of it, is a pop
 const QUIET = 1.5; // a change under this (mean channel difference) is too small to call a pop
+const STILL = 0.12; // a mean change over the whole canvas under this changes nothing on screen ...
+const STILL_NEAR = 1; // ... unless the mean change round the part acted on is this or more
 const FINE = 16; // ms of page time: a candidate flicker is filmed again at steps this fine before it is flagged
 
 const BARE = `html, body, .embed, .stage { background: none !important; border: 0 !important; }
@@ -161,6 +167,22 @@ function cells({ width, height, rgba }) {
 }
 
 const far = (p, q, i) => Math.max(Math.abs(p.rgb[i] - q.rgb[i]), Math.abs(p.rgb[i + 1] - q.rgb[i + 1]), Math.abs(p.rgb[i + 2] - q.rgb[i + 2]));
+/**
+ * The mean change in the cells round a part's box ([left, top, right, bottom] in frame pixels),
+ * two cells wider on every side so a focus ring or glow drawn just outside it counts.
+ */
+const changeNear = (p, q, box) => {
+  const x0 = Math.max(0, Math.floor(box[0] / CELL) - 2), x1 = Math.min(p.cols - 1, Math.floor(box[2] / CELL) + 2);
+  const y0 = Math.max(0, Math.floor(box[1] / CELL) - 2), y1 = Math.min(p.rows - 1, Math.floor(box[3] / CELL) + 2);
+  let sum = 0, n = 0;
+  for (let y = y0; y <= y1; y++)
+    for (let x = x0; x <= x1; x++) {
+      const o = (y * p.cols + x) * 3;
+      sum += Math.abs(p.rgb[o] - q.rgb[o]) + Math.abs(p.rgb[o + 1] - q.rgb[o + 1]) + Math.abs(p.rgb[o + 2] - q.rgb[o + 2]);
+      n += 3;
+    }
+  return n ? sum / n : 0;
+};
 const change = (p, q) => {
   let sum = 0;
   for (let i = 0; i < p.rgb.length; i++) sum += Math.abs(p.rgb[i] - q.rgb[i]);
@@ -436,7 +458,13 @@ function partsOf() {
   };
   const add = (el, kind, extra = {}) => {
     all.push(el);
-    return { i: all.length - 1, kind, name: describe(el), ...reach(el), ...extra };
+    // where a change it makes would show: the part itself, or, when it is a hidden input (the
+    // usual custom-control trick), its labels, which is where its focus ring or tint is drawn
+    const own = el.getBoundingClientRect();
+    const hidden = !shows(el) || (el.matches('input') && (+getComputedStyle(el).opacity < 0.05 || (own.width <= 2 && own.height <= 2)));
+    const boxes = (hidden ? [...(el.labels ?? [])] : [el]).filter(shows).map((x) => x.getBoundingClientRect());
+    const box = boxes.length ? [Math.min(...boxes.map((b) => b.left)), Math.min(...boxes.map((b) => b.top)), Math.max(...boxes.map((b) => b.right)), Math.max(...boxes.map((b) => b.bottom))] : null;
+    return { i: all.length - 1, kind, name: describe(el), box, ...reach(el), ...extra };
   };
   const matching = (sels) => {
     const out = [];
@@ -684,7 +712,7 @@ async function filmOn(id, demo) {
    * made by script, or there is none), 8 frames 70ms apart. Says so when the picture after is the
    * picture before.
    */
-  const through = async (name, act, quietOk = false) => {
+  const through = async (name, act, quietOk = false, box = null) => {
     const before = await shoot(clip);
     mark = V;
     await act();
@@ -711,15 +739,19 @@ async function filmOn(id, demo) {
     if (i > least) run.what += `, and ${i - least} steps more while what it set off still moved`;
     const moved = change(before.grid, run.frames.at(-1).grid);
     const most = Math.max(...run.frames.map((f) => change(before.grid, f.grid)));
+    // a small part (an 8vmin pill's tint, a thin focus ring) is a small share of the canvas: what
+    // it changes is also measured round the part itself
+    const near = box ? Math.max(...run.frames.map((f) => changeNear(before.grid, f.grid, box))) : 0;
+    if (box) run.changedNear = +near.toFixed(2);
     run.changed = +moved.toFixed(2);
-    if (most < 0.12 && !quietOk) notes.push({ run: name, text: 'changes nothing on screen' });
+    if (most < STILL && near < STILL_NEAR && !quietOk) notes.push({ run: name, text: 'changes nothing on screen' });
     runs.push(run);
     return run;
   };
 
   /** A pointer lap, a drag or a scroll that leaves every frame as it was does nothing on screen. */
   const still = (run) => {
-    if (Math.max(...run.frames.map((f) => change(run.frames[0].grid, f.grid))) < 0.12) notes.push({ run: run.name, text: 'changes nothing on screen' });
+    if (Math.max(...run.frames.map((f) => change(run.frames[0].grid, f.grid))) < STILL) notes.push({ run: run.name, text: 'changes nothing on screen' });
   };
   const rest = await shoot(clip);
   const parts = await inFrame(partsOf);
@@ -789,10 +821,10 @@ async function filmOn(id, demo) {
     for (const part of parts.hover) {
       const at = aim(part, 'hover');
       if (!at) continue;
-      await through(`hover ${part.name}`, () => toFrame(...at));
+      await through(`hover ${part.name}`, () => toFrame(...at), false, part.box);
       const state = await inFrame(stateOf, part.i);
       if (!state.hovered) notes.push({ run: `hover ${part.name}`, text: `the pointer at ${at.map(Math.round).join(',')} did not hover it` });
-      await through(`leave ${part.name}`, away);
+      await through(`leave ${part.name}`, away, false, part.box);
     }
   } else if (ways.includes('hover') && (await inFrame(holdHover, false))) {
     await through('hover (forced)', () => inFrame(holdHover, true));
@@ -807,7 +839,7 @@ async function filmOn(id, demo) {
     const run = await through(name, async () => {
       if (at) await page.mouse.click(clip.x + at[0], clip.y + at[1]);
       else await inFrame(clickPart, part.i);
-    }, quietOk);
+    }, quietOk, part.box);
     if (at) {
       const got = await inFrame(pressedOn, part.i);
       if (!got.ok) notes.push({ run: name, text: `the press at ${at.map(Math.round).join(',')} landed on ${got.name}, not on it, although elementFromPoint says that point is it` });
@@ -850,18 +882,18 @@ async function filmOn(id, demo) {
   // keyboard focus, where the model styles :focus or :focus-visible
   for (const part of parts.focus) {
     // a key press first, so the browser treats the focus as keyboard focus (:focus-visible)
-    await through(`focus ${part.name}`, async () => { await page.keyboard.press('Shift'); await inFrame(focusPart, part.i); });
+    await through(`focus ${part.name}`, async () => { await page.keyboard.press('Shift'); await inFrame(focusPart, part.i); }, false, part.box);
     const state = await inFrame(stateOf, part.i);
     if (!state.focused) notes.push({ run: `focus ${part.name}`, text: 'could not be focused' });
     else if (!state.visible) notes.push({ run: `focus ${part.name}`, text: 'focused, but the browser did not treat it as :focus-visible (a limit of this check)' });
-    await through(`blur ${part.name}`, () => inFrame(blurAll));
+    await through(`blur ${part.name}`, () => inFrame(blurAll), false, part.box);
   }
 
   // the same finding from a second click on the same part is said once
   const said = new Set();
   notes.splice(0, notes.length, ...notes.filter((n) => !said.has(n.run + n.text) && said.add(n.run + n.text)));
   const judged = runs.map((r) => {
-    const j = { name: r.name, what: r.what, changed: r.changed, ...judge(r.frames.map((f) => f.grid), r.cyclic, !r.response) };
+    const j = { name: r.name, what: r.what, changed: r.changed, changedNear: r.changedNear, ...judge(r.frames.map((f) => f.grid), r.cyclic, !r.response) };
     // a candidate flicker is flagged only when the same stretch, filmed FINE ms at a time, flips
     // too (confirmFlicker); the ones that turn out to be motion are kept apart as `dismissed`
     const g = (i) => r.frames[r.cyclic ? (i + r.frames.length) % r.frames.length : i].grid;
