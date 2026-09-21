@@ -1451,6 +1451,8 @@ document.querySelector('button').addEventListener('click', () => {
       'CSS derives everything from it: offset, depth, opacity and even <code>z-index</code> via <code>calc()</code>.',
       'On click, JS adds <code>.is-leaving</code> to the top card (it flies off), waits for the transition, then moves that card to the end of the order and rewrites <code>--p</code> for all.',
       'The other cards glide forward purely because their <code>--p</code> changed.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the deck is the same share of a gallery card, the editor and a recording canvas.',
+      'The band has to hold the throw, not just the deck: the card in flight is the widest this model ever gets. So the throw is short, and the scene is padded on the right by the amount it carries the card, which puts the deck <i>and</i> its flight path in the middle rather than the shut deck on its own.',
     ],
     html: `<div class="scene">
   <div class="stack">
@@ -1461,13 +1463,21 @@ document.querySelector('button').addEventListener('click', () => {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the deck is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
+  display: grid;
+  place-items: center;
+  /* the top card is thrown to the right: a little room on that side splits the difference
+     between the shut deck and the deck with a card in flight, so neither is off centre */
+  padding-right: calc(30 * var(--u));
+  perspective: calc(800 * var(--u));
 }
 
 .stack {
   position: relative;
-  width: 230px;
-  height: 150px;
+  width: calc(210 * var(--u));
+  height: calc(140 * var(--u));
   cursor: pointer;
   transform-style: preserve-3d;
   transform: rotateX(18deg) rotateY(-14deg);
@@ -1480,19 +1490,22 @@ document.querySelector('button').addEventListener('click', () => {
   z-index: calc(10 - var(--p));
   display: grid;
   place-items: center;
-  border-radius: 16px;
+  border-radius: calc(16 * var(--u));
   color: #fff;
-  font: 900 1.6rem system-ui;
+  font: 900 calc(26 * var(--u)) system-ui;
   background: linear-gradient(135deg, hsl(var(--hue) 85% 64%), hsl(calc(var(--hue) + 40) 80% 46%));
-  box-shadow: 0 12px 22px -12px #000;
+  box-shadow: 0 calc(12 * var(--u)) calc(22 * var(--u)) calc(-12 * var(--u)) #000;
   opacity: calc(1 - var(--p) * 0.18);
-  transform: translateY(calc(var(--p) * -14px)) translateZ(calc(var(--p) * -44px));
+  transform: translateY(calc(var(--p) * -14 * var(--u))) translateZ(calc(var(--p) * -44 * var(--u)));
   transition: transform 0.38s cubic-bezier(0.3, 1.2, 0.5, 1), opacity 0.38s;
 }
 
+/* A quarter of a card to the right, tilted and turned away as it goes. It is a short throw on
+   purpose: the band is centred on everything drawn, so a card that sails off the right drags the
+   whole picture left with it, and the deck at rest ends up nowhere near the middle. */
 .stack i.is-leaving {
   opacity: 0;
-  transform: translateX(130%) translateZ(60px) rotateY(-35deg) rotateZ(18deg);
+  transform: translateX(25%) translateZ(calc(60 * var(--u))) rotateY(-35deg) rotateZ(12deg);
 }`,
     js: `const stack = document.querySelector('.stack');
 let order = [...stack.querySelectorAll('i')];
