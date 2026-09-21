@@ -970,7 +970,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
       '<code>perspective-origin: 120% 50%</code> moves the camera to the right of the frame, so the open door does not collapse into a thin line.',
       'The "light" is simply the frame’s background, revealed as the leaf swings away.',
       '<code>tabindex="0"</code> plus <code>:focus</code> makes it work by tap and by keyboard.',
-      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the frame is 150 × 250 units, so the door is the same share of a gallery card, the editor and a recording canvas. The leaf swings out to the left, so the scene is padded on that side and the door plus its swing is what sits in the middle.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the frame is 150 × 250 units, so the door is the same share of a gallery card, the editor and a recording canvas. The shut door stands in the middle. The leaf swings out to the left, so as it opens the whole door slides right by half of that swing, on the same transition, and the open door plus its leaf is what sits in the middle then.',
     ],
     html: `<div class="scene">
   <div class="door" tabindex="0">
@@ -983,9 +983,6 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   --u: 0.21vmin;
   display: grid;
   place-items: center;
-  /* the leaf swings out to the left, so the frame sits right of the middle and the door plus
-     its swing is what ends up centred, not the shut frame on its own */
-  padding-left: calc(72 * var(--u));
 }
 
 .door {
@@ -998,6 +995,14 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   perspective: calc(700 * var(--u));
   perspective-origin: 120% 50%;
   cursor: pointer;
+  /* shut, the door is centred; open, the leaf reaches out to the left, so the door slides right
+     by half of that to keep the door plus its leaf centred */
+  transition: translate 0.9s cubic-bezier(0.3, 1.2, 0.5, 1);
+}
+
+.door:hover,
+.door:focus {
+  translate: calc(36 * var(--u)) 0;
 }
 
 .leaf {
