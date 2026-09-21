@@ -350,21 +350,24 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the gyroscope is the same share of
+     a gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.24vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .gyro,
 .gyro div {
   display: grid;
   place-items: center;
-  border: 4px solid #8b6cff;
+  border: calc(4 * var(--u)) solid #8b6cff;
   border-radius: 50%;
   transform-style: preserve-3d;
 }
 
 .gyro {
-  width: 220px;
-  height: 220px;
+  width: calc(220 * var(--u));
+  height: calc(220 * var(--u));
   animation: gyro-x 6s linear infinite;
 }
 
@@ -388,7 +391,7 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
   height: 34%;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff, #ffb547 60%);
-  box-shadow: 0 0 22px #ffb547;
+  box-shadow: 0 0 calc(22 * var(--u)) #ffb547;
 }
 
 @keyframes gyro-x { to { transform: rotateX(360deg); } }
