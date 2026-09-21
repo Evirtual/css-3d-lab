@@ -247,14 +247,14 @@ setInterval(function () {
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the word is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.45vmin;
+  --u: 0.51vmin;
   perspective: calc(800 * var(--u));
 }
 
 .depth {
   position: relative;
   transform-style: preserve-3d;
-  transform: translateY(calc(-11 * var(--u))) rotateX(54deg) rotateZ(-32deg);
+  transform: translateY(calc(-17 * var(--u))) rotateX(54deg) rotateZ(-32deg);
   animation: sway 7s ease-in-out infinite alternate;
   font-size: calc(50 * var(--u));
   font-weight: 900;
@@ -289,11 +289,11 @@ setInterval(function () {
   transform: translateZ(calc(-25 * var(--u))) translate(calc(-5 * var(--u)), calc(7 * var(--u)));
 }
 
-/* the 11-unit lift is the floor shadow's half: the word plus its shadow is what has to sit in
-   the middle of the box, and the shadow only ever hangs below */
+/* the 17-unit lift answers the floor shadow and the extrusion, which both hang below the word:
+   the word plus what it casts is what has to sit in the middle of the box */
 @keyframes sway {
-  from { transform: translateY(calc(-11 * var(--u))) rotateX(56deg) rotateZ(-40deg); }
-  to   { transform: translateY(calc(-11 * var(--u))) rotateX(48deg) rotateZ(-22deg); }
+  from { transform: translateY(calc(-17 * var(--u))) rotateX(56deg) rotateZ(-40deg); }
+  to   { transform: translateY(calc(-17 * var(--u))) rotateX(48deg) rotateZ(-22deg); }
 }`,
   },
 
