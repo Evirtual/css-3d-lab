@@ -339,6 +339,7 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
       'Because a child lives inside its parent’s coordinate space, the rotations stack up into complex motion from trivially simple keyframes.',
       'Every level needs <code>transform-style: preserve-3d</code> or the chain flattens there.',
       'Unequal durations keep the pattern from visibly repeating.',
+      'The outer ring is 220 units of one base unit, <code>--u</code>, tied to the canvas, and each ring inside is 84% of the one around it, so the whole gyroscope is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="gyro">
