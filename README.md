@@ -26,9 +26,10 @@ scenes, data), in two honest categories:
   - the **real Sass source** used on the site (imported with `?raw`, so it cannot drift).
 - The code windows are live editors: edits re-run the model, are saved per model in
   `localStorage`, and can be reset. "Copy" and "Copy as one HTML file" buttons.
-- Every model looks the same in a card, the dialog, its page and full screen: the camera
-  (perspective) sits inside the zoomed scene. Sizes and centring are measured from the pixels
-  each model actually draws (`scripts/measure-models.mjs`).
+- Every model looks the same in a card, the dialog, its page, an edited version, a picture and a
+  video: each one runs its own snippet in a frame of 340 × 280 that is scaled to whatever stage it
+  is on. Where it sits in that frame is measured from what it actually draws
+  (`npm run place`), and `npm run check-placement` checks all four surfaces agree.
 - **Lazy mounting**: a model only exists in the DOM while its card is near the viewport, so
   rendering cost follows what is on screen, not the total count.
 - Pause-all-animations switch (on by default when the OS asks for reduced motion), light / dark

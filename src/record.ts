@@ -47,6 +47,8 @@ const frameSize = (ratio: Ratio, quality: Quality): { width: number; height: num
   return aspect >= 1 ? { width: even(quality * aspect), height: quality } : { width: quality, height: even(quality / aspect) };
 };
 const FPS = 30;
+/** How much of a live take may be kept before it is drawn: the service takes 8 MB in one piece. */
+const TAKE_LIMIT = 6 * 1024 * 1024;
 /**
  * How much of the frame the model fills: two thirds, the same as a card and the large stage, so a
  * saved picture, a video and a print all look like the model does on the site.
@@ -275,7 +277,7 @@ export async function captureImage(stage: HTMLElement, { backdrop = 'stage', for
   const scene = captureScene(stage);
   const crop = { x: 0, y: 0, width: scene.width, height: scene.height };
   const frame = frameFor(crop, size, saveAspect);
-  const scale = Math.min(4, Math.max(1, frame.width / crop.width, frame.height / crop.height));
+  const scale = Math.min(6, Math.max(1, frame.width / crop.width, frame.height / crop.height));
   const canvas = document.createElement('canvas');
   canvas.width = frame.width; canvas.height = frame.height;
   const paint = paintOf(stage, format === 'jpeg' && backdrop === 'transparent' ? 'dark' : backdrop, look);
@@ -311,7 +313,7 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
   const count = Math.round(seconds * FPS);
   const scene = captureScene(stage, true);
   const crop = { x: 0, y: 0, width: scene.width, height: scene.height };
-  const scale = Math.min(4, Math.max(1, size.width / crop.width, size.height / crop.height));
+  const scale = Math.min(6, Math.max(1, size.width / crop.width, size.height / crop.height));
   const video = await openVideo(size.width, size.height, backdrop === 'transparent');
   const canvas = document.createElement('canvas');
   canvas.width = size.width; canvas.height = size.height;
@@ -359,12 +361,13 @@ export async function recordLive({ stage, ratio, backdrop, look, quality = 1080,
   const paint = paintOf(stage, backdrop, lookNow?.() ?? look);
   const cover = bleeds(stage);
   const crop = { x: 0, y: 0, width: scene.width, height: scene.height };
-  const scale = Math.min(4, Math.max(1, size.width / crop.width, size.height / crop.height));
+  const scale = Math.min(6, Math.max(1, size.width / crop.width, size.height / crop.height));
 
   /* ----- the take: poses, with the moment each was caught ----- */
   const start = performance.now();
   const at: number[] = [0];
   const poses: PoseChange[][] = [[]];
+  let kept = scene.html.length;
   let previous = poseOf(source);
   const wait = (ms: number): Promise<void> => new Promise((go) => window.setTimeout(go, ms));
   while (!stop?.aborted && performance.now() - start < seconds * 1000 && stage.isConnected) {
@@ -375,9 +378,14 @@ export async function recordLive({ stage, ratio, backdrop, look, quality = 1080,
     const change = poseChange(now, previous);
     previous = now;
     // a pose that is the same as the one before it is simply held: nothing to keep
-    if (change.length) { at.push(when); poses.push(change); }
+    if (change.length) {
+      at.push(when);
+      poses.push(change);
+      for (const [, style] of change) kept += style.length + 8;
+    }
     onTick?.(Math.min(seconds, (performance.now() - start) / 1000), poses.length);
-    if (poses.length >= MAX_SECONDS * FPS) break;
+    // the whole take goes to the render service in one piece, and that has a size limit
+    if (poses.length >= MAX_SECONDS * FPS || kept > TAKE_LIMIT) break;
     // Sampling never takes more than half the time, so the model stays smooth to play with.
     await wait(Math.max(1000 / FPS - cost, cost));
   }

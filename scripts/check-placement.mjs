@@ -151,6 +151,14 @@ for (const id of ids) {
   }, id);
   await settle('.card[data-probe] .stage');
   at.card = await measure('.card[data-probe] .stage');
+  if (!at.card?.reach) {
+    // a card that was still starting up: scroll it away and back, and look once more
+    await page.evaluate(() => window.scrollBy(0, -900));
+    await page.waitForTimeout(400);
+    await page.evaluate(() => document.querySelector('.card[data-probe]')?.scrollIntoView({ block: 'center' }));
+    await settle('.card[data-probe] .stage');
+    at.card = await measure('.card[data-probe] .stage');
+  }
 
   // 2. the viewer dialog, opened from that card
   await page.evaluate((mid) => document.querySelector(`[data-open="${mid}"]`)?.click(), id);

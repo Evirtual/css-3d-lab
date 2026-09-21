@@ -34,20 +34,50 @@ Read these first, they are the reference for style and quality: `src/models/pure
 - `fill: true` only when the demo needs the whole stage (scenes, things with a control bar).
   Then the scene is `position:absolute; inset:0`, so size things in `%`, not assuming a size.
 
-## Sizes
+## Where a model sits, and how big it is
 
-The demo sits in a stage with `perspective: 800px`, centred. A card stage is about 340 × 260 px and
-can be as narrow as 300 px; the large stage scales non-fill scenes by 1.45. **A non-fill demo must
-fit inside about 220 × 190 px including its motion.** Fill demos must look right from 300 × 260 up
-to 700 × 380.
+The site shows a model by running its **snippet** in a frame of 340 × 280 and scaling that frame to
+whatever stage it is on: a gallery card, the viewer, the model's own page, an edited version, a
+picture, a video. One frame everywhere is what stops a model being framed one way on a card and
+another way in the canvas, and it is why editing a model never moves it.
+
+Where the model sits inside that frame is measured once and kept in `src/models/placements.json`:
+
+```bash
+npm run place                 # every model
+npm run place -- cube dice    # just these
+```
+
+The measuring runs each model's animation through, holds its hover state open, and plays with it
+the way its badge promises — click, drag, scroll. What the model shows **on its own** decides the
+middle and the size: two thirds of the frame, middle on middle. What it does when it is **played
+with** can only make it smaller, never move it, so a menu that swings open stays in the frame. A
+model already drawn to the edges of its frame at rest is marked `bleed` and covers the stage
+instead of sitting inside it. Buttons, labels and fields are left out of the middle, so the model
+is centred and its controls sit under it.
+
+So a model does not need a size of its own. Draw it at a comfortable size, keep its motion around
+it, and the framing follows.
+
+**If the measuring gets a model wrong**, correct it by hand in
+`src/models/placement-overrides.json`:
+
+```json
+{ "radial": { "zoom": 1.6, "y": -20 } }
+```
+
+Anything named there wins over the measurement, `npm run place` never touches that file, and every
+surface reads the same place — so a correction holds on a card, in the viewer, on the model's page,
+in an edit, in a video and in a picture.
+
+`npm run check-placement` opens every model on all four surfaces and reports any that differ.
 
 ## Consistency rules (the site checks these; follow them from the start)
 
-- **Size and centring are automatic.** Design the demo at a card's size (340 × 260); do not
-  hand-tune its size or offset. After the build, `scripts/measure-models.mjs` measures every
-  demo over its animation and after it is played with, and records a size and an offset in
-  `src/models/sizes.json` so all demos look equally big and visually centred. Do not add
-  `translate` / `scale` hacks to the root to move it.
+- **Size and centring are automatic.** Design the model at a card's size (340 × 280); do not
+  hand-tune its size or offset, and do not add `translate` / `scale` hacks to the root to move it.
+  `npm run place` works both out — see *Where a model sits* above — and
+  `src/models/placement-overrides.json` is there for the few it gets wrong.
 - **The camera is the site's.** The stage's scene already has `perspective: 800px`, and it
   scales with the stage, so a demo looks the same in a card, the dialog and full screen. A demo
   may set its own `perspective` on an inner wrapper when it needs a different one.

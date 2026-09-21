@@ -5,7 +5,7 @@ export const MAX_BODY = 8 * 1024 * 1024;
 export function validateCapture(p) {
   if (!p || typeof p.html !== 'string' || p.html.length > MAX_BODY || !Array.isArray(p.animations) || p.animations.length > 3000) throw new Error('Invalid scene');
   for (const k of ['width', 'height']) if (!Number.isInteger(p[k]) || p[k] < 1 || p[k] > 8192) throw new Error('Invalid viewport');
-  if (!Number.isFinite(p.scale) || p.scale < .1 || p.scale > 4 || p.width * p.height * Math.ceil(p.scale) ** 2 > 34_000_000) throw new Error('Export resolution is too large');
+  if (!Number.isFinite(p.scale) || p.scale < .1 || p.scale > 6 || p.width * p.height * Math.ceil(p.scale) ** 2 > 34_000_000) throw new Error('Export resolution is too large');
   if (!Number.isInteger(p.count) || p.count < 1 || p.count > 900) throw new Error('Invalid frame count');
   if (p.fps !== 30) throw new Error('Invalid frame rate');
   // A live take sends one pose per frame instead of a clock to wind on.
