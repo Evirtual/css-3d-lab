@@ -633,6 +633,7 @@ root.addEventListener('keydown', key);`,
 
   polaroid: {
     how: [
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the table, the photos and their captions are the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
       'The table and its four photo slots are all one tilted plane (<code>rotateX(24deg)</code> on the container). Only the slots catch the pointer — the photos inside are <code>pointer-events: none</code>.',
       'Each resting photo carries its own <code>--x</code> / <code>--y</code> / <code>--z</code> / <code>--r</code> so the scatter is uneven and the four never sit exactly on top of each other.',
       'The hover state reuses the <b>same list</b> of transform functions (<code>translate3d rotateX rotateZ scale</code>), just with different numbers — same-shape lists let the browser interpolate each value smoothly instead of jumping.',
@@ -648,15 +649,19 @@ root.addEventListener('keydown', key);`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the table is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.32vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .table {
   display: grid;
-  grid-template-columns: repeat(2, 100px);
-  grid-auto-rows: 80px;
+  grid-template-columns: repeat(2, calc(100 * var(--u)));
+  grid-auto-rows: calc(80 * var(--u));
   transform-style: preserve-3d;
-  transform: translateY(12px) rotateX(24deg); /* how far the "table" leans back */
+  /* how far the "table" leans back */
+  transform: translateY(calc(12 * var(--u))) rotateX(24deg);
   /* the table and its four slots are coplanar: only the slots may catch the pointer */
   pointer-events: none;
 }
@@ -672,19 +677,19 @@ root.addEventListener('keydown', key);`,
 
 /* each photo is pushed toward the middle so they overlap, and sits a little higher than the
    previous one so overlapping photos never z-fight */
-.slot:nth-child(1) { --x: 15px;  --y: 9px;   --z: 2px;  --r: -10deg; }
-.slot:nth-child(2) { --x: -12px; --y: 5px;   --z: 6px;  --r: 7deg; }
-.slot:nth-child(3) { --x: 11px;  --y: -8px;  --z: 10px; --r: 5deg; }
-.slot:nth-child(4) { --x: -15px; --y: -10px; --z: 14px; --r: -8deg; }
+.slot:nth-child(1) { --x: calc(15 * var(--u));  --y: calc(9 * var(--u));   --z: calc(2 * var(--u));  --r: -10deg; }
+.slot:nth-child(2) { --x: calc(-12 * var(--u)); --y: calc(5 * var(--u));   --z: calc(6 * var(--u));  --r: 7deg; }
+.slot:nth-child(3) { --x: calc(11 * var(--u));  --y: calc(-8 * var(--u));  --z: calc(10 * var(--u)); --r: 5deg; }
+.slot:nth-child(4) { --x: calc(-15 * var(--u)); --y: calc(-10 * var(--u)); --z: calc(14 * var(--u)); --r: -8deg; }
 
 /* contact shadow: stays on the table and fades as the photo lifts */
 .slot::before {
   content: '';
   position: absolute;
-  top: calc(50% - 44px);
-  left: calc(50% - 36px);
-  width: 72px;
-  height: 88px;
+  top: calc(50% - 44 * var(--u));
+  left: calc(50% - 36 * var(--u));
+  width: calc(72 * var(--u));
+  height: calc(88 * var(--u));
   background: radial-gradient(ellipse, rgb(0 0 0 / 0.6) 30%, transparent 72%);
   pointer-events: none;
   transform: translate(var(--x), var(--y)) rotateZ(var(--r)) scale(1);
@@ -696,19 +701,19 @@ root.addEventListener('keydown', key);`,
 .slot:hover::before,
 .slot:focus-visible::before {
   opacity: 0.35;
-  transform: translate(0, 10px) rotateZ(0deg) scale(1.15);
+  transform: translate(0, calc(10 * var(--u))) rotateZ(0deg) scale(1.15);
 }
 
 .photo {
   position: absolute;
-  top: calc(50% - 44px);
-  left: calc(50% - 36px);
-  width: 72px;
-  height: 88px;
-  padding: 5px 5px 0;
-  border-radius: 3px;
+  top: calc(50% - 44 * var(--u));
+  left: calc(50% - 36 * var(--u));
+  width: calc(72 * var(--u));
+  height: calc(88 * var(--u));
+  padding: calc(5 * var(--u)) calc(5 * var(--u)) 0;
+  border-radius: calc(3 * var(--u));
   background: linear-gradient(170deg, #fbf9f4, #e6e1d6);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+  box-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) rgb(0 0 0 / 0.5);
   pointer-events: none;
   /* same function list in both states, so the browser interpolates number by number */
   transform: translate3d(var(--x), var(--y), var(--z)) rotateX(0deg) rotateZ(var(--r)) scale(1);
@@ -717,16 +722,16 @@ root.addEventListener('keydown', key);`,
 
 .photo i {
   display: block;
-  height: 62px;
-  border-radius: 1px;
+  height: calc(62 * var(--u));
+  border-radius: calc(1 * var(--u));
 }
 
 .photo small {
   display: block;
   color: #4a4658;
-  font-size: 8px;
+  font-size: calc(9 * var(--u));
   font-weight: 600;
-  line-height: 21px;
+  line-height: calc(21 * var(--u));
   text-align: center;
 }
 
@@ -763,7 +768,7 @@ root.addEventListener('keydown', key);`,
 /* lift along the table's normal, then undo the table's tilt so the photo faces the viewer */
 .slot:hover .photo,
 .slot:focus-visible .photo {
-  transform: translate3d(0px, 6px, 52px) rotateX(-24deg) rotateZ(0deg) scale(1.1);
+  transform: translate3d(0, calc(6 * var(--u)), calc(52 * var(--u))) rotateX(-24deg) rotateZ(0deg) scale(1.1);
 }`,
   },
 
