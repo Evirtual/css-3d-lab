@@ -1380,8 +1380,8 @@ input:checked ~ em {
 
   dropdown: {
     how: [
-      'Each item starts folded up: <code>rotateX(-90deg)</code> with <code>transform-origin: top</code>, plus <code>opacity: 0</code>.',
-      'On <code>:hover</code> / <code>:focus</code> of the menu they rotate to 0°.',
+      'Each item hangs from its top edge (<code>transform-origin: top</code>) and rests half folded, <code>rotateX(-50deg)</code>: tilted slats you can still read, so a paused card shows a menu with its items rather than a lone button. The items set their own light text colour, because their dark panel is dark on a light stage too.',
+      'On <code>:hover</code> / <code>:focus</code> of the menu they swing flat to 0°.',
       '<code>transition-delay: calc(var(--i) * 80ms)</code> opens them one after another.',
       'The non-hover rule uses the <b>reversed</b> delay, so closing runs bottom-up. <code>perspective</code> on the list gives the swing its depth.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The menu keeps room under its button for the open list, so it is centred open as well as closed.',
@@ -1398,7 +1398,7 @@ input:checked ~ em {
     css: `.menu {
   /* one base unit: every length below is a multiple of it, so the menu is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.28vmin;
+  --u: 0.3vmin;
   position: relative;
   width: calc(200 * var(--u));
   /* room for the open list under the button, so the menu is centred open, not just closed: the
@@ -1431,18 +1431,17 @@ input:checked ~ em {
   padding: calc(10 * var(--u)) calc(16 * var(--u));
   background: #141830;
   border: calc(1 * var(--u)) solid #2a3054;
-  opacity: 0;
+  color: #eceefb; /* its own colour: the panel is dark on a light stage too */
   transform-origin: top center;
-  transform: rotateX(-90deg);
-  pointer-events: none;                            /* folded items must not catch the pointer */
-  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1), opacity 0.2s;
+  /* at rest the items hang half folded, like slats, so a paused card shows a menu with its items
+     in it, not a lone button; hover swings them flat */
+  transform: rotateX(-50deg);
+  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
   transition-delay: calc((3 - var(--i)) * 50ms);   /* closing: bottom-up */
 }
 
 .menu:hover li,
 .menu:focus li {
-  opacity: 1;
-  pointer-events: auto;
   transform: rotateX(0deg);
   transition-delay: calc(var(--i) * 80ms);         /* opening: top-down */
 }`,

@@ -199,7 +199,7 @@ export const pureDemos2: Demo[] = [
     description: 'Hover or focus the button: items swing down from their top edge, one after another.',
     category: 'css',
     tags: ['hover', 'ui'],
-    technique: ['rotateX(-90deg) → 0 with origin top', 'transition-delay from --i', 'tabindex + :focus for keyboards'],
+    technique: ['rotateX(-50deg) → 0 with origin top', 'transition-delay from --i', 'tabindex + :focus for keyboards'],
     fill: true,
     html: `<div class="d-dropdown" tabindex="0"><span>Menu ${icon('chevron-down')}</span><ul>${['Profile', 'Projects', 'Settings', 'Sign out'].map((t, i) => `<li style="--i:${i}">${t}</li>`).join('')}</ul></div>`,
   },
