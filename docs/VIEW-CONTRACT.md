@@ -286,7 +286,81 @@ is sized to:
   background: linear-gradient(135deg, #6a45f5, #d1206f);
   color: #fff;
 }
+
+/* a slider, inside its pill: track and thumb in vmin, never the browser's own px, so it is the
+   same share of every canvas. The empty track is the unselected tint and the filled part the
+   selected gradient; the thumb is the stage's ink in a gradient ring, because the gradient alone
+   is under 3:1 on the pill's tint on the dark stage. Chrome has no filled part of its own: the
+   model's JS writes --pos (0 to 1) on the input as it moves, and the fill ends under the thumb */
+.controls input[type='range'] {
+  --thumb: 4.5vmin;
+  appearance: none;
+  width: 28vmin;
+  height: var(--thumb);
+  margin: 0; /* the browser's is 2px */
+  background: none;
+  color: inherit; /* the thumb is the stage's ink: a form control does not inherit it by itself */
+  cursor: pointer;
+}
+.controls input[type='range']::-webkit-slider-runnable-track {
+  height: 1.2vmin;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, #6a45f5, #d1206f) 0 0 / calc(var(--thumb) / 2 + var(--pos, 0) * (100% - var(--thumb))) 100% no-repeat,
+    rgb(140 150 220 / 0.2);
+}
+.controls input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  box-sizing: border-box;
+  width: var(--thumb);
+  height: var(--thumb);
+  margin-top: calc((1.2vmin - var(--thumb)) / 2);
+  border: 0.8vmin solid transparent;
+  border-radius: 50%;
+  background:
+    linear-gradient(currentColor, currentColor) padding-box,
+    linear-gradient(135deg, #6a45f5, #d1206f) border-box;
+}
+.controls input[type='range']::-moz-range-track {
+  height: 1.2vmin;
+  border-radius: 999px;
+  background: rgb(140 150 220 / 0.2);
+}
+.controls input[type='range']::-moz-range-progress {
+  height: 1.2vmin;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6a45f5, #d1206f);
+}
+.controls input[type='range']::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--thumb);
+  height: var(--thumb);
+  border: 0.8vmin solid transparent;
+  border-radius: 50%;
+  background:
+    linear-gradient(currentColor, currentColor) padding-box,
+    linear-gradient(135deg, #6a45f5, #d1206f) border-box;
+}
+/* focused from the keyboard, the ring goes round the whole pill, out on the stage like every
+   other control's: round the thumb it would sit on the tint, where #6a45f5 is under 3:1 */
+.controls input[type='range']:focus-visible {
+  outline: 0;
+}
+.controls label:has(input[type='range']:focus-visible) {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
 ```
+
+A slider's JS writes one number as it moves, for Chrome's filled part (Firefox draws its own with
+`::-moz-range-progress`):
+
+```js
+const pos = (input) => input.style.setProperty('--pos', (input.value - input.min) / (input.max - input.min));
+```
+
+A model with several sliders in a narrow row may set a shorter `width` after the block; the track
+and thumb stay as they are.
 
 The colours are part of the block, and they hold on both stages (dark `#07080f`, light `#f3f4fc`,
 and the cards' 70% mixes of them), at the 4.5:1 that 4vmin text needs:
@@ -298,8 +372,19 @@ and the cards' 70% mixes of them), at the 4.5:1 that 4vmin text needs:
 | Focus ring (not text: 3:1) | `#6a45f5` against the stage | 3.5:1 | 5.1:1 |
 | Selected | `#fff` on `#6a45f5` → `#d1206f` | 5.1:1 at the worst end | the same: the pill is opaque |
 | Caption | the stage's ink at 0.7 opacity | 8.5:1 | 6.3:1 |
+| Slider thumb (not text: 3:1) | the stage's ink on the pill's tint, hover the worst | 9.4:1 | 12.1:1 |
+| Slider focus ring (3:1) | `#6a45f5` round the pill, on the stage | 3.5:1 | 5.1:1 |
+| Slider fill | the gradient on the pill's tint | 1.8:1 hovered, 2.5:1 at rest | 3.5:1 |
+
+The thumb marks a slider's value; the fill and the empty track do not, so they are not held to
+3:1. The fill is under it on the dark stage and must stay a second mark, never the only one, and
+the empty track (the tint on the pill's tint, 1.1 to 1.4:1) only hints at the travel. That is also
+why the thumb is the ink in a gradient ring rather than the gradient itself: the gradient on the
+tint would be the fill's 2.5:1.
 
 Measured in the running models, the worst of the solid stage and a card's (`#0a0c16`, `#f6f7fd`).
+The slider rows are worked out from the block's colours over those same four stages, because the
+thumb and track are pseudo-elements the page cannot read a style from.
 
 The ink is inherited, never mixed: `color-mix(in srgb, currentColor …)` for a softened word looked
 right at load, but Chrome kept the old theme's value on a live theme switch. A model whose own
