@@ -250,38 +250,56 @@ export const snippet: Snippet = {
   how: [
     'The data is plain JSON: a starting balance, the gains and losses, and an ending balance with no value. JS walks the steps keeping a <b>running total</b>, so the end is always the sum and can never disagree with the steps.',
     "Every step runs from one level to another (a total from the floor). JS writes three fractions of the scale: <code>--b</code> the box's bottom, <code>--v</code> its height, <code>--e</code> the level the next step starts from. CSS does the drawing.",
-    'A box is three see-through faces the full height of the chart, moved with <code>translateY(calc(var(--b) * -100px))</code> and <b>then</b> squashed with <code>scaleY(var(--v))</code> from the bottom: translate first, or the lift would be squashed too. Only <code>transform</code> changes, so a new month is a smooth glide, each step 60ms after the last.',
+    'A box is three see-through faces the full height of the chart, moved with <code>translateY(calc(var(--b) * -100 units))</code> and <b>then</b> squashed with <code>scaleY(var(--v))</code> from the bottom: translate first, or the lift would be squashed too. Only <code>transform</code> changes, so a new month is a smooth glide, each step 60ms after the last.',
     "The dashed connector is the step's <code>::after</code>, riding at <code>--e</code>: at the top of a gain or a total, at the bottom of a loss. That is what makes it read as a waterfall.",
     "The chart is turned, so the flat boxes around it would catch the pointer first: they get <code>pointer-events: none</code>, and only each step's <b>still, full-height column</b> takes it. It stands in the plane of the box fronts and never moves, so hovering it never flickers mid-glide.",
-    'There is <b>one</b> tooltip. JS moves it to the pointed-at step with <code>--tx</code> / <code>--ty</code> and a transition glides it there while its text changes (put in with <code>textContent</code>, never as HTML). It floats 40px towards you, or the nearer steps on the right would cover it, and a 150ms grace timer keeps it up while you cross a gap.',
+    'There is <b>one</b> tooltip. JS moves it to the pointed-at step with <code>--tx</code> / <code>--ty</code> and a transition glides it there while its text changes (put in with <code>textContent</code>, never as HTML). It floats 40 units towards you, or the nearer steps on the right would cover it, and a 150ms grace timer keeps it up while you cross a gap.',
+    "Every length is a multiple of one base unit, <code>--u</code>, and JS writes the tooltip's place as <b>plain numbers</b> in the chart's own units, which CSS multiplies by it. A length written in px from JS would stay the same size while the chart scaled around it, and the tooltip would drift off its step. The caption and the month switch are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.",
   ],
   html: `<div class="waterfall">
-  <div class="scene">
-    <div class="fall3d"></div>
+  <div class="view">
+    <div class="scene">
+      <div class="fall3d"></div>
+    </div>
   </div>
-  <output></output>
-  <div class="seg">
-${MONTHS.map((m) => `    <button type="button" data-month="${m}">${m}</button>`).join('\n')}
+  <div class="controls">
+    <output class="caption"></output>
+    <div class="row">
+${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>`).join('\n')}
+    </div>
   </div>
 </div>`,
   css: `.waterfall {
+  /* one base unit: every length in the chart is a multiple of it, so it is the same share of a
+     card, the editor, a full screen and a recording canvas. The control zone under it is in
+     plain vmin, because it is the same object in every model. */
+  --u: 0.29vmin;
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
+/* the model box: the same height in every model that has controls */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+}
+
 .scene {
-  perspective: 800px;
-  padding: 36px 40px 44px;
+  perspective: calc(800 * var(--u));
+  /* the scale's numbers stand off the right end: the room on the right balances them, so the
+     drawing is centred in the model box */
+  padding: calc(36 * var(--u)) calc(60 * var(--u)) calc(44 * var(--u)) calc(40 * var(--u));
   pointer-events: none; /* the chart is turned: only the steps take the pointer */
 }
 
-/* 7 steps × 18px + 6 gaps × 9px = 180px */
+/* 7 steps × 18 + 6 gaps × 9 = 180 units */
 .fall3d {
   position: relative;
-  width: 180px;
-  height: 100px; /* the top of the scale */
+  width: calc(180 * var(--u));
+  height: calc(100 * var(--u)); /* the top of the scale */
   transform-style: preserve-3d;
   transform: rotateX(-18deg) rotateY(-28deg);
 }
@@ -289,47 +307,47 @@ ${MONTHS.map((m) => `    <button type="button" data-month="${m}">${m}</button>`)
 /* the floor: a neon grid laid flat along the bottom */
 .floor {
   position: absolute;
-  left: -12px;
-  top: 76px;
-  width: 204px;
-  height: 48px;
-  border: 1px solid rgb(139 108 255 / 0.45);
-  border-radius: 6px;
+  left: calc(-12 * var(--u));
+  top: calc(76 * var(--u));
+  width: calc(204 * var(--u));
+  height: calc(48 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.45);
+  border-radius: calc(6 * var(--u));
   background:
-    repeating-linear-gradient(90deg, rgb(139 108 255 / 0.22) 0 1px, transparent 1px 16px),
-    repeating-linear-gradient(rgb(139 108 255 / 0.22) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, rgb(139 108 255 / 0.22) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(16 * var(--u))),
+    repeating-linear-gradient(rgb(139 108 255 / 0.22) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(16 * var(--u))),
     rgb(139 108 255 / 0.09);
   transform: rotateX(90deg);
 }
 
 /* the scale: lines at 0, half and the top, along the back of the floor, numbers at the right.
-   Its box starts 10px above the scale: a turned layer is clipped at its box, and the top
+   Its box starts 10 units above the scale: a turned layer is clipped at its box, and the top
    number pokes out above its line. */
 .wall {
   position: absolute;
-  top: -10px;
-  left: -12px;
-  width: 204px;
-  height: 110px;
-  transform: translateZ(-24px);
+  top: calc(-10 * var(--u));
+  left: calc(-12 * var(--u));
+  width: calc(204 * var(--u));
+  height: calc(110 * var(--u));
+  transform: translateZ(calc(-24 * var(--u)));
 }
 
 .wall b {
   position: absolute;
   right: 0;
-  bottom: calc(var(--t) * 100px);
+  bottom: calc(var(--t) * calc(100 * var(--u)));
   left: 0;
-  height: 1px;
+  height: calc(1 * var(--u));
   background: rgb(236 238 251 / 0.24);
 }
 
 .wall span {
   position: absolute;
-  top: -6px;
+  top: calc(-6 * var(--u));
   left: 100%;
-  padding-left: 6px;
+  padding-left: calc(6 * var(--u));
   color: ${MUTED};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
 }
 
 /* A step is a still, full-height column: the hit target. It stands in the plane of the box
@@ -341,12 +359,12 @@ ${MONTHS.map((m) => `    <button type="button" data-month="${m}">${m}</button>`)
   --c: ${VIOLET}; /* totals violet */
   position: absolute;
   top: 0;
-  left: calc(var(--i) * 27px);
-  width: 18px;
+  left: calc(var(--i) * calc(27 * var(--u)));
+  width: calc(18 * var(--u));
   height: 100%;
   outline: none;
   transform-style: preserve-3d;
-  transform: translateZ(9px);
+  transform: translateZ(calc(9 * var(--u)));
   pointer-events: auto;
   cursor: pointer;
 }
@@ -366,11 +384,11 @@ ${MONTHS.map((m) => `    <button type="button" data-month="${m}">${m}</button>`)
   content: '';
   position: absolute;
   top: 0;
-  left: 18px;
-  width: 9px;
-  border-top: 1px dashed rgb(236 238 251 / 0.6);
+  left: calc(18 * var(--u));
+  width: calc(9 * var(--u));
+  border-top: calc(1 * var(--u)) dashed rgb(236 238 251 / 0.6);
   pointer-events: none;
-  transform: translateY(calc((1 - var(--e)) * 100px));
+  transform: translateY(calc((1 - var(--e)) * calc(100 * var(--u))));
   transition: transform 0.8s cubic-bezier(0.3, 1.25, 0.5, 1) calc(var(--i) * 60ms);
 }
 
@@ -384,13 +402,13 @@ ${MONTHS.map((m) => `    <button type="button" data-month="${m}">${m}</button>`)
   top: 0;
   left: 0;
   box-sizing: border-box;
-  width: 18px;
+  width: calc(18 * var(--u));
   height: 100%;
-  border: 1px solid color-mix(in srgb, var(--c) 85%, #fff);
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 85%, #fff);
   background: color-mix(in srgb, var(--c) 40%, transparent);
   box-shadow:
-    inset 0 0 10px color-mix(in srgb, var(--c) 40%, transparent),
-    0 0 10px color-mix(in srgb, var(--c) 22%, transparent);
+    inset 0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent),
+    0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 22%, transparent);
   pointer-events: none; /* the faces move: only the still column is hovered */
   transform-origin: bottom center;
   /* past 1: overshoot and settle; each step 60ms after the one before */
@@ -403,7 +421,7 @@ ${MONTHS.map((m) => `    <button type="button" data-month="${m}">${m}</button>`)
   position: absolute;
   inset: 0;
   background: color-mix(in srgb, var(--c) 50%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--c) 60%, transparent);
+  box-shadow: 0 0 calc(20 * var(--u)) color-mix(in srgb, var(--c) 60%, transparent);
   opacity: 0;
   transition: opacity 0.25s;
 }
@@ -414,37 +432,38 @@ ${MONTHS.map((m) => `    <button type="button" data-month="${m}">${m}</button>`)
 
 /* front: lifted to the box's bottom FIRST, then squashed to its height */
 .step i:nth-child(1) {
-  transform: translateY(calc(var(--b) * -100px)) scaleY(var(--v));
+  transform: translateY(calc(var(--b) * calc(-100 * var(--u)))) scaleY(var(--v));
 }
 
 /* right side, darker: back to the box's middle, turned, out to its right edge */
 .step i:nth-child(2) {
   background: color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #05060c) 48%, transparent);
-  transform: translateY(calc(var(--b) * -100px)) translateZ(-9px) rotateY(90deg) translateZ(9px) scaleY(var(--v));
+  transform: translateY(calc(var(--b) * calc(-100 * var(--u)))) translateZ(calc(-9 * var(--u))) rotateY(90deg) translateZ(calc(9 * var(--u))) scaleY(var(--v));
 }
 
-/* the lid: an 18px square laid flat on the box's top */
+/* the lid: an 18-unit square laid flat on the box's top */
 .step i:nth-child(3) {
-  height: 18px;
+  height: calc(18 * var(--u));
   background: color-mix(in srgb, var(--c) 66%, transparent);
   transform-origin: center;
-  transform: translateY(calc((1 - var(--b) - var(--v)) * 100px)) translateZ(-9px) rotateX(90deg) translateZ(9px);
+  transform: translateY(calc((1 - var(--b) - var(--v)) * calc(100 * var(--u)))) translateZ(calc(-9 * var(--u))) rotateX(90deg) translateZ(calc(9 * var(--u)));
 }
 
 /* the label, in front of the step, tilted so the long ones do not collide */
 .step span {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + calc(6 * var(--u)));
   right: 50%;
   color: ${MUTED};
-  font: 700 8px/10px system-ui, sans-serif;
+  font: 700 calc(13 * var(--u))/calc(15 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   transform-origin: 100% 0;
   transform: rotate(-38deg);
 }
 
-/* ONE tooltip for the chart: JS sets --tx / --ty (the top of the pointed-at box) and it glides
-   there. 40px towards you, because the steps on the right stand nearer; +18px undoes the
+/* ONE tooltip for the chart: JS sets --tx / --ty (the top of the pointed-at box, as plain
+   numbers in the chart's own units that CSS multiplies by --u) and it glides there. 40 units
+   towards you, because the steps on the right stand nearer; +18 undoes the
    sideways drift that lift gets from the 28deg turn. Kept flat: its thickness is a hard shadow
    up and to the right, the way the boxes' depth runs on screen. */
 .tip {
@@ -452,19 +471,19 @@ ${MONTHS.map((m) => `    <button type="button" data-month="${m}">${m}</button>`)
   position: absolute;
   top: 0;
   left: 0;
-  padding: 3px 7px;
-  border: 1px solid var(--c);
-  border-radius: 6px;
+  padding: calc(3 * var(--u)) calc(7 * var(--u));
+  border: calc(1 * var(--u)) solid var(--c);
+  border-radius: calc(6 * var(--u));
   background: ${SURFACE};
   box-shadow:
-    3px -3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
-    0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+    calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--c) 55%, #05060c),
+    0 0 calc(14 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent);
   color: ${TEXT};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(calc(var(--tx, 0px) + 18px), calc(var(--ty, 0px) - 24px)) translate(-50%, -100%) translateZ(40px);
+  transform: translate(calc((var(--tx, 0) + 18) * var(--u)), calc((var(--ty, 0) - 14) * var(--u))) translate(-50%, -100%) translateZ(calc(40 * var(--u)));
   transition:
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
@@ -474,30 +493,42 @@ ${MONTHS.map((m) => `    <button type="button" data-month="${m}">${m}</button>`)
   opacity: 1;
 }
 
-output {
-  color: ${MUTED};
-  font-size: 12px;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the chart's own unit. The caption is on its own line above
+   the row, and its line box never changes height, so a new summary cannot move the chart. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-.seg {
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.controls .row {
   display: flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 999px;
+  gap: 2vmin;
 }
 
-.seg button {
-  padding: 4px 14px;
+.controls button {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
-  background: transparent;
+  background: rgb(140 150 220 / 0.2);
   color: ${MUTED};
-  font: 700 12px system-ui, sans-serif;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background 0.35s, color 0.35s;
 }
 
-.seg button[aria-pressed='true'] {
+.controls button[aria-pressed='true'] {
   background: linear-gradient(135deg, ${VIOLET}, ${PINK});
   color: #fff;
 }`,
@@ -506,9 +537,9 @@ const CASHFLOW = ${printed};
 
 const chart = document.querySelector('.fall3d');
 const out = document.querySelector('.waterfall output');
-const buttons = document.querySelectorAll('.seg button');
+const buttons = document.querySelectorAll('.controls .row button');
 const TICKS = [0, 0.5, 1]; // the scale's lines, as fractions of its top
-const W = 18, PITCH = 27, H = 100; // a step's width, its pitch and the scale's height, as in the CSS
+const W = 18, PITCH = 27, H = 100; // a step's width, its pitch and the scale's height, in the chart's own units (as in the CSS)
 
 // money the way dashboards write it: sign in front, a real minus (−), the k glued on
 const money = (v, sign) =>
@@ -574,8 +605,8 @@ function place(i) {
   const wasOn = tipEl.classList.contains('is-on');
   if (!wasOn) tipEl.style.transition = 'none'; // from hidden: appear in place, don't fly in
   tipEl.textContent = tipText(r);
-  tipEl.style.setProperty('--tx', i * PITCH + W / 2 + 'px');
-  tipEl.style.setProperty('--ty', (1 - Math.max(r.from, r.to) / scaleTop) * H + 'px');
+  tipEl.style.setProperty('--tx', i * PITCH + W / 2); // plain numbers: CSS multiplies them by --u
+  tipEl.style.setProperty('--ty', (1 - Math.max(r.from, r.to) / scaleTop) * H);
   tipEl.className = 'tip is-on is-' + r.kind;
   if (!wasOn) {
     void tipEl.offsetWidth; // apply the new place before the transition comes back
