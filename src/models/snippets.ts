@@ -340,6 +340,7 @@ ${CUBE_FACES}
       'Each nested panel is positioned at <code>left: 100%</code> with <code>transform-origin: left</code> — a hinge on the parent’s right edge.',
       'Every level needs <code>transform-style: preserve-3d</code>, or the chain flattens at that level.',
       'Alternate the fold direction (+150° / −150°) for a zig-zag.',
+      'The first panel never moves, so the folded map is a stack at the left end. The map slides right as it folds, on the same timing, so the flat map and the folded stack are both centred, and lifts a little halfway, while the panels stand out toward you.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the map is four panels of 60 × 170 units, so it is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
@@ -366,10 +367,10 @@ ${CUBE_FACES}
   width: calc(240 * var(--u));          /* 4 panels × 60 units */
   height: calc(170 * var(--u));
   transform-style: preserve-3d;
-  /* the panels swing toward you as they fold, which reaches further down than up, so the map
-     sits a little above the middle and the whole fold is what ends up centred */
-  translate: 0 calc(-24 * var(--u));
   transform: rotateX(28deg) rotateY(-8deg);
+  /* the first panel stays put and the others fold onto it, so the folded map is a stack at the
+     left end: the map slides right as it folds, on the same timing, to keep the stack centred */
+  animation: slide 3.4s ease-in-out infinite alternate, dip 3.4s ease-in-out infinite alternate;
 }
 
 .panel {
@@ -390,6 +391,17 @@ ${CUBE_FACES}
 
 .panel .panel .panel        { animation-name: fold-front; }
 .panel .panel .panel .panel { animation-name: fold-back; }
+
+@keyframes slide {
+  0%, 12%   { translate: calc(-5 * var(--u)) calc(-2 * var(--u)); }
+  88%, 100% { translate: calc(78 * var(--u)) calc(-24 * var(--u)); }
+}
+
+/* half folded, the panels stand out toward you and reach down: lift the map while they do */
+@keyframes dip {
+  0%, 12%, 88%, 100% { transform: rotateX(28deg) rotateY(-8deg); }
+  50%                { transform: translateY(calc(-12 * var(--u))) rotateX(28deg) rotateY(-8deg); }
+}
 
 @keyframes fold-back {
   0%, 12%   { transform: rotateY(0deg); }
