@@ -763,6 +763,7 @@ ${CUBE_FACES}
   height: 8vmin;
   min-width: 8vmin;
   padding: 0 3vmin;
+  box-sizing: border-box; /* a label is content-box, so min-width would add to its padding */
   border: 0;
   border-radius: 999px;
   /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
@@ -790,11 +791,9 @@ ${CUBE_FACES}
   color: #fff;
 }
 
-/* a label is not a button: it is inline, and content-box, so the block's min-width would be
-   added to its padding and a one-letter pill would come out 14vmin wide. These two make it
-   measure like a button: 8vmin, and its letter in the middle. */
+/* a label is not a button: it is inline, so it would ignore the block's height. A grid gives it
+   the height and puts its letter in the middle, as a button does. */
 .controls label {
-  box-sizing: border-box;
   display: grid;
   place-items: center;
 }
@@ -1369,6 +1368,7 @@ scene.addEventListener('pointercancel', release);`,
   height: 8vmin;
   min-width: 8vmin;
   padding: 0 3vmin;
+  box-sizing: border-box; /* a label is content-box, so min-width would add to its padding */
   border: 0;
   border-radius: 999px;
   /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
@@ -1522,6 +1522,7 @@ layout();`,
   height: 8vmin;
   min-width: 8vmin;
   padding: 0 3vmin;
+  box-sizing: border-box; /* a label is content-box, so min-width would add to its padding */
   border: 0;
   border-radius: 999px;
   /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full

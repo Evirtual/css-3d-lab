@@ -523,6 +523,7 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
   height: 8vmin;
   min-width: 8vmin;
   padding: 0 3vmin;
+  box-sizing: border-box; /* a label is content-box, so min-width would add to its padding */
   border: 0;
   border-radius: 999px;
   /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
