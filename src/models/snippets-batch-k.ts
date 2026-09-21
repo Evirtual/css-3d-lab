@@ -588,7 +588,7 @@ world.addEventListener('focusout', reset);`,
   chartpanel: {
     how: [
       'The chart is ordinary SVG. JS maps each value in the JSON to a point (x along the width, y by where the value sits between the lowest and highest), then joins them into one path: <code>M x y L x y …</code>. The same path, closed down to the bottom, is the shaded area.',
-      'The 3D is only on containers: the panel is tilted with <code>rotateX / rotateY / rotateZ</code>, and the area, the line and the dots sit at <code>translateZ</code> 8, 16 and 22 units, so they float over the glass at different depths.',
+      'The 3D is only on containers: the panel is tilted with <code>rotateX / rotateY / rotateZ</code>, and the area, the line and the dots sit at <code>translateZ</code> 5, 10 and 14 units, so they float over the glass at different depths.', 'Anything floating over a tilted panel is seen shifted from the spot under it, up and to the side, by about its depth × sin(tilt): 9 units for the dots. So the points keep 24 units from the sides, 16 from the bottom and 36 from the top (room for the label over the highest value as well), and every dot and label stays over the glass at every angle.',
       'Hovering the still wrapper sets the panel to <code>rotateX(0) rotateY(0) rotateZ(0)</code>: it lies flat, and the values fade in, so you can read it. The wrapper never moves, so the hover never flickers.',
       'The neon glow is the same path drawn again, wide and faint, underneath: cheaper than a blur <code>filter</code> and sharp at any zoom.',
       'Because the tilt is on the container, the same CSS works around a chart from any library that draws SVG or canvas.',
@@ -653,7 +653,7 @@ world.addEventListener('focusout', reset);`,
 }
 
 .area {
-  transform: translateZ(calc(8 * var(--u)));
+  transform: translateZ(calc(5 * var(--u)));
 }
 
 .area path {
@@ -661,7 +661,7 @@ world.addEventListener('focusout', reset);`,
 }
 
 .line {
-  transform: translateZ(calc(16 * var(--u)));
+  transform: translateZ(calc(10 * var(--u)));
 }
 
 .line path {
@@ -681,7 +681,7 @@ world.addEventListener('focusout', reset);`,
 .dots {
   position: absolute;
   inset: 0;
-  transform: translateZ(calc(22 * var(--u)));
+  transform: translateZ(calc(14 * var(--u)));
 }
 
 .dots i {
@@ -726,7 +726,7 @@ world.addEventListener('focusout', reset);`,
   color: ${TEXT};
   font: 800 calc(10 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
   letter-spacing: 0.04em;
-  transform: translateZ(calc(10 * var(--u)));
+  transform: translateZ(calc(6 * var(--u)));
 }
 
 .title small {
@@ -737,15 +737,17 @@ world.addEventListener('focusout', reset);`,
 const TREND = ${compactRows(json(TREND)).replace(/\[\s+("Jan"[^\]]+?)\s+\]/, (_, inner: string) => `[${inner.replace(/\s+/g, ' ')}]`)};
 
 // The panel is 200 × 110 units of --u and the SVG viewBox is the same, so one SVG unit is one --u
-const W = 200, H = 110, PAD = 12;
+const W = 200, H = 110;
+// room round the points: a dot floats 14 units over the tilted glass and is seen up to 9 units
+// off the spot under it, and the highest value's label stands over its dot
+const SIDE = 24, TOP = 36, BOTTOM = 16;
 const lo = Math.min(...TREND.values);
 const hi = Math.max(...TREND.values);
 
 // JSON → points: x evenly along the width, y by where the value sits between lo and hi
-// (14 units of headroom at the top for the title)
 const points = TREND.values.map((v, i) => [
-  PAD + (i * (W - 2 * PAD)) / (TREND.values.length - 1),
-  H - PAD - ((v - lo) / (hi - lo)) * (H - 2 * PAD - 14),
+  SIDE + (i * (W - 2 * SIDE)) / (TREND.values.length - 1),
+  H - BOTTOM - ((v - lo) / (hi - lo)) * (H - BOTTOM - TOP),
 ]);
 
 // points → one path: "M x y L x y …"; closed down to the bottom, it is the area
