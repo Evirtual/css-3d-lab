@@ -953,10 +953,11 @@ ${CUBE_FACES}`,
   tilt: {
     how: [
       'CSS cannot read the pointer position — that is the <b>only</b> reason this needs JavaScript.',
-      'JS normalises the pointer to −0.5…0.5 and writes four custom properties: <code>--rx</code>, <code>--ry</code>, <code>--mx</code>, <code>--my</code>.',
+      'The canvas is the pointer’s field, so the card reacts wherever the pointer is. JS normalises its position across the canvas to −0.5…0.5 and writes four custom properties: <code>--rx</code>, <code>--ry</code>, <code>--mx</code>, <code>--my</code>.',
       'CSS uses them for the tilt (<code>rotateX/rotateY</code>) and for the centre of a <code>radial-gradient</code> glare.',
       'Children with <code>translateZ</code> float above the card, producing parallax for free.',
       'A long transition eases the card back to rest; while the pointer is driving it is shortened so it tracks tightly.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, and JS only ever writes angles and percentages, never lengths. So the card, its type and how far its layers float are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="tilt">
