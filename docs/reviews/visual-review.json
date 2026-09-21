@@ -704,5 +704,189 @@
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Retro camera centred at about 68 x 59vmin; 'OBSCURA' readable and paused on a finished three-quarter pose.",
     "motionFlagsResolved": []
+  },
+  {
+    "model": "coffeecup",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Takeaway cup with faint steam, centred at about 28 x 43vmin; slim but above the floor, and the sleeve logo reads on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "text",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Extruded '3D DEPTH' lettering centred at about 75-84 x 45vmin; crisp and readable on a card and on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "layertext",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Layered 'GO DEEP' lettering centred at about 73-81 x 55vmin; on a light stage the white faces wash out and read mainly by their pink edges, weaker than on dark but still legible.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "lit",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Pointer-lit 'LIGHT SHADOW' lettering centred at about 86 x 41vmin; readable on both themes, paused with an even light.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "waveletters",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "'WAVE 3D' letters centred at 82 x 47vmin; paused with every letter face-on, and the wave turns letters edge-on in passing as designed.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "textring",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Ring of 'CSS 3D' letters on a faint ellipse, about 72-85 x 33-37vmin by solid ink, so it sits under the 40vmin height floor while being wide; it does not read as a speck and the letters are legible, but a fixer tightening sizes may want to look.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "foldtext",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Z-folded 'HOVER TO UNFOLD' headline, 55 x 49vmin folded at rest and 89 x 47vmin unfolded; centred, and the folded rest is a deliberate, finished pose.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "anaglyph",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "STEREO panel with 'MOVE YOUR POINTER', about 87 x 42vmin, centred sideways and 4vmin high; readable on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "cubeletters",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Four letter cubes, 54 x 60vmin and centred, paused spelling CUBE; the rolls are clean.",
+    "motionFlagsResolved": [
+      {
+        "flag": "loop: pop 5→6,11→12,17→18,23→0",
+        "reason": "Each pop is the staggered quarter-roll from CUBE to ROLL and back that the loop is built on; between rolls the cubes hold still, so the sampled step across a roll is large by design, not a glitch."
+      }
+    ]
+  },
+  {
+    "model": "button",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "PUSH keycap-style button, 39 x 45vmin and centred; smaller than most peers for a model that is itself a control, but above the floor and reads clearly.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "rollbutton",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Rolling button, 74 x 48vmin and centred, paused on 'Hover me'; both faces are readable.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "switch",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Rocker switch with a status dot, 41 x 68vmin and centred; paused in a clear off position on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "dropdown",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "At rest (what a paused card shows) only the closed 'Menu' bar is drawn: about 56 x 13vmin sitting 24vmin above the canvas middle, a thin strip near the top of an empty card. And on a light stage the open menu's item labels (Profile, Projects, Settings, Sign out) are invisible: they inherit the dark stage text colour onto the menu's hard-coded dark panel.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "zones",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "'Hover around me' card, 83 x 53vmin and centred, flat at rest and tilting towards whichever of its nine invisible zones the pointer is in.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover i#1: its hit area is mostly over empty canvas (80 of 81 reachable points draw nothing)",
+        "reason": "i#1 is the top-left of nine invisible hover zones tiling the canvas; it covers the empty corner by design, as the contract allows for invisible hit areas inside the canvas."
+      },
+      {
+        "flag": "hover i#1: changes nothing on screen",
+        "reason": "The strip shows the card already tilted to zone 1 before the hover, because the pointer was parked at the canvas's top-left corner, inside zone 1; hovering a zone that is already hovered changes nothing."
+      },
+      {
+        "flag": "leave i#1: changes nothing on screen",
+        "reason": "Same parking: the pointer left zone 1 back to a point still inside zone 1, so the tilt correctly stayed."
+      },
+      {
+        "flag": "hover i#2: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
+        "reason": "Invisible hover zone tiling the canvas round the card; mostly empty by design and inside the canvas."
+      },
+      {
+        "flag": "hover i#3: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
+        "reason": "Invisible hover zone tiling the canvas round the card; mostly empty by design and inside the canvas."
+      },
+      {
+        "flag": "hover i#7: its hit area is mostly over empty canvas (55 of 81 reachable points draw nothing)",
+        "reason": "Invisible hover zone tiling the canvas round the card; mostly empty by design and inside the canvas."
+      },
+      {
+        "flag": "hover i#9: its hit area is mostly over empty canvas (59 of 81 reachable points draw nothing)",
+        "reason": "Invisible hover zone tiling the canvas round the card; mostly empty by design and inside the canvas."
+      }
+    ]
+  },
+  {
+    "model": "tilt",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:17:13+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Pointer tilt card, 74 x 51vmin and centred; 'Move your pointer' caption on the card reads on both themes.",
+    "motionFlagsResolved": []
   }
 ]
