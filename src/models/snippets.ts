@@ -1326,39 +1326,46 @@ update();`,
 
   lit: {
     how: [
-      'Same shadow-stack as the extruded text — but every offset is <code>calc(var(--dx) * Npx)</code>.',
-      'So the entire extrusion direction is controlled by just two numbers.',
-      'JS treats the pointer as a light: it writes the <b>opposite</b> direction into <code>--dx</code> / <code>--dy</code>, and the shadow swings away from it.',
+      'Same shadow-stack as the extruded text — but every offset is <code>calc(var(--dx) * N * var(--u))</code>.',
+      'So the entire extrusion direction is controlled by just two numbers, and its size by a third: <code>--u</code>, the one base unit every length here is a multiple of.',
+      'JS treats the pointer as a light: it writes the <b>opposite</b> direction into <code>--dx</code> / <code>--dy</code>, and the shadow swings away from it. It writes plain numbers, never lengths, so the CSS stays in charge of the scale.',
       'Without JS the defaults still give a perfectly good static extrusion — a nice progressive enhancement.',
     ],
     html: `<div class="scene">
-  <h1 class="lit">SHADOW</h1>
+  <h1 class="lit">LIGHT<br>SHADOW</h1>
 </div>`,
     css: `.scene {
+  /* one base unit: every length below is a multiple of it, so the headline is the same share of
+     a card, the editor, a full screen and a recording canvas */
+  --u: 0.25vmin;
   display: grid;
   place-items: center;
-  width: 100vw;
+  width: 100vw;   /* the whole canvas is the light's field, so the pointer is read across it */
   height: 100vh;
 }
 
+/* Two lines, because one is a shape the band cannot hold: SHADOW on its own draws three and a
+   half times wider than it is tall, so sized to the 92vmin width limit it stands well under the
+   40vmin floor. The word the light casts sits under the light itself. */
 .lit {
   --dx: 0.7;   /* direction — overwritten from JS */
   --dy: 0.7;
   margin: 0;
-  font: 900 4.5rem system-ui;
+  font: 900 calc(72 * var(--u))/1.3 system-ui;   /* the lines stand apart: the shadow of one falls across the next */
+  text-align: center;
   color: #fff;
   text-shadow:
-    calc(var(--dx) * 1px)  calc(var(--dy) * 1px)  0 #e6a340,
-    calc(var(--dx) * 2px)  calc(var(--dy) * 2px)  0 #d99a3c,
-    calc(var(--dx) * 3px)  calc(var(--dy) * 3px)  0 #cc9139,
-    calc(var(--dx) * 4px)  calc(var(--dy) * 4px)  0 #bf8835,
-    calc(var(--dx) * 5px)  calc(var(--dy) * 5px)  0 #b37f32,
-    calc(var(--dx) * 6px)  calc(var(--dy) * 6px)  0 #a6762e,
-    calc(var(--dx) * 7px)  calc(var(--dy) * 7px)  0 #996d2b,
-    calc(var(--dx) * 8px)  calc(var(--dy) * 8px)  0 #8c6327,
-    calc(var(--dx) * 9px)  calc(var(--dy) * 9px)  0 #805a24,
-    calc(var(--dx) * 10px) calc(var(--dy) * 10px) 0 #735120,
-    calc(var(--dx) * 22px) calc(var(--dy) * 22px) 20px rgb(0 0 0 / 0.5);
+    calc(var(--dx) * 1 * var(--u))  calc(var(--dy) * 1 * var(--u))  0 #e6a340,
+    calc(var(--dx) * 2 * var(--u))  calc(var(--dy) * 2 * var(--u))  0 #d99a3c,
+    calc(var(--dx) * 3 * var(--u))  calc(var(--dy) * 3 * var(--u))  0 #cc9139,
+    calc(var(--dx) * 4 * var(--u))  calc(var(--dy) * 4 * var(--u))  0 #bf8835,
+    calc(var(--dx) * 5 * var(--u))  calc(var(--dy) * 5 * var(--u))  0 #b37f32,
+    calc(var(--dx) * 6 * var(--u))  calc(var(--dy) * 6 * var(--u))  0 #a6762e,
+    calc(var(--dx) * 7 * var(--u))  calc(var(--dy) * 7 * var(--u))  0 #996d2b,
+    calc(var(--dx) * 8 * var(--u))  calc(var(--dy) * 8 * var(--u))  0 #8c6327,
+    calc(var(--dx) * 9 * var(--u))  calc(var(--dy) * 9 * var(--u))  0 #805a24,
+    calc(var(--dx) * 10 * var(--u)) calc(var(--dy) * 10 * var(--u)) 0 #735120,
+    calc(var(--dx) * 22 * var(--u)) calc(var(--dy) * 22 * var(--u)) calc(20 * var(--u)) rgb(0 0 0 / 0.5);
 }`,
     js: `const scene = document.querySelector('.scene');
 const text = document.querySelector('.lit');
