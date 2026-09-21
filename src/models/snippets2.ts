@@ -1010,10 +1010,11 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   grid-template-columns: repeat(5, calc(46 * var(--u)));
   gap: calc(5 * var(--u));
   transform-style: preserve-3d;
-  /* the near half of a plane tilted this far is its bottom, and the camera magnifies it: the
-     floor draws further below its own middle than above it. This lifts it by that much, so what
-     is centred in the canvas is the shape you see, not the untilted square */
-  transform: translateY(calc(-17 * var(--u))) rotateX(56deg) rotateZ(-45deg);
+  /* the camera magnifies the near half of the tilted floor, so at rest it draws further below its
+     own middle than above; a raised plate at the far corner reaches the other way, up the screen.
+     This small lift splits the two, so the floor at rest and the floor with its highest plate up
+     are both centred to within a few units */
+  transform: translateY(calc(-6 * var(--u))) rotateX(56deg) rotateZ(-45deg);
   /* same plane as its cells: keep the floor itself out of hit-testing, or hover misses in patches */
   pointer-events: none;
 }
