@@ -429,6 +429,7 @@ function groupPage(g) {
           </ul>
         </div>
       </header>
+      <h2 class="visually-hidden">The ${members.length} effects</h2>
       <ul class="page-cards">${members.map((d, i) => demoCard(d, '../../', i)).join('')}</ul>
       <section class="page-related">
         <h2>Other groups</h2>
