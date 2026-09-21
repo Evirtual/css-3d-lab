@@ -11,6 +11,7 @@ export const snippetsD: Record<string, Snippet> = {
       'Every state a card can be in — resting, dimmed, leaning left, leaning right, active — only changes a handful of custom properties fed into <b>one</b> <code>transform</code>.',
       '<code>:has()</code> answers "is a later sibling hovered?" so the cards <i>before</i> the active one can lean away too, not just the ones after it.',
       'Each card rests at a different <code>translateZ</code> so the overlapping fan never z-fights, and the active card jumps to the front on top of that.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the fan is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="fan">
@@ -26,13 +27,16 @@ export const snippetsD: Record<string, Snippet> = {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the fan is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.35vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .fan {
   display: flex;
-  width: 156px;
-  height: 132px;
+  width: calc(156 * var(--u));
+  height: calc(132 * var(--u));
   transform-style: preserve-3d;
   /* coplanar with its slots: only the slots may catch the pointer */
   pointer-events: none;
@@ -48,34 +52,34 @@ export const snippetsD: Record<string, Snippet> = {
 }
 
 /* rest pose: each card a little nearer than the one before so they never z-fight */
-.fan-slot:nth-child(1) { --r: -8deg; --z: 0px; }
-.fan-slot:nth-child(2) { --r: 0deg;  --z: 12px; }
-.fan-slot:nth-child(3) { --r: 8deg;  --z: 24px; }
+.fan-slot:nth-child(1) { --r: -8deg; --z: 0; }
+.fan-slot:nth-child(2) { --r: 0deg;  --z: calc(12 * var(--u)); }
+.fan-slot:nth-child(3) { --r: 8deg;  --z: calc(24 * var(--u)); }
 
 .fan-card {
   position: absolute;
-  top: 6px;
-  left: calc(50% - 42px);
+  top: calc(6 * var(--u));
+  left: calc(50% - 42 * var(--u));
   display: grid;
   align-content: start;
-  gap: 6px;
-  width: 84px;
-  height: 120px;
-  padding: 8px;
-  border: 1px solid color-mix(in srgb, var(--c) 70%, transparent);
-  border-radius: 11px;
+  gap: calc(6 * var(--u));
+  width: calc(84 * var(--u));
+  height: calc(120 * var(--u));
+  padding: calc(8 * var(--u));
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 70%, transparent);
+  border-radius: calc(11 * var(--u));
   background: linear-gradient(
     160deg,
     color-mix(in srgb, var(--c) 46%, #141830),
     color-mix(in srgb, var(--c) 12%, #141830)
   );
-  box-shadow: 0 12px 18px -12px #000;
+  box-shadow: 0 calc(12 * var(--u)) calc(18 * var(--u)) calc(-12 * var(--u)) #000;
   color: #eceefb;
   opacity: var(--o, 1);
   pointer-events: none;
   transform-origin: 50% 100%;
   /* one transform, fed by variables: every state below only ever changes numbers */
-  transform: translate3d(var(--x, 0px), var(--y, 0px), var(--z)) rotateY(var(--ry, 0deg)) rotateZ(var(--r));
+  transform: translate3d(var(--x, 0), var(--y, 0), var(--z)) rotateY(var(--ry, 0deg)) rotateZ(var(--r));
   transition:
     transform 0.45s cubic-bezier(0.3, 1.3, 0.5, 1),
     opacity 0.3s;
@@ -83,22 +87,22 @@ export const snippetsD: Record<string, Snippet> = {
 
 .fan-card i {
   display: block;
-  height: 42px;
-  border-radius: 6px;
+  height: calc(42 * var(--u));
+  border-radius: calc(6 * var(--u));
   background:
     radial-gradient(circle at 70% 30%, rgb(255 255 255 / 0.55), transparent 45%),
     linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 40%, #000));
 }
 
 .fan-card b {
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   line-height: 1;
 }
 
 .fan-card span {
   display: block;
-  height: 4px;
-  border-radius: 2px;
+  height: calc(4 * var(--u));
+  border-radius: calc(2 * var(--u));
   background: color-mix(in srgb, #eceefb 28%, transparent);
 }
 
@@ -115,23 +119,23 @@ export const snippetsD: Record<string, Snippet> = {
 /* ...cards AFTER the active one lean away to the right... */
 .fan-slot:hover ~ .fan-slot,
 .fan-slot:focus-visible ~ .fan-slot {
-  --x: 16px;
+  --x: calc(16 * var(--u));
   --ry: 26deg;
 }
 
 /* ...cards BEFORE it lean away to the left (:has() looks forward for a hovered sibling)... */
 .fan-slot:has(~ .fan-slot:hover),
 .fan-slot:has(~ .fan-slot:focus-visible) {
-  --x: -16px;
+  --x: calc(-16 * var(--u));
   --ry: -26deg;
 }
 
 /* ...and the active one (this rule is last, so it wins) squares up and comes toward you */
 .fan .fan-slot:is(:hover, :focus-visible) {
   --o: 1;
-  --x: 0px;
-  --y: -6px;
-  --z: 80px;
+  --x: 0;
+  --y: calc(-6 * var(--u));
+  --z: calc(80 * var(--u));
   --r: 0deg;
   --ry: 0deg;
 }`,
