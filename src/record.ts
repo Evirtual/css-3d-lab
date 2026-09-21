@@ -326,7 +326,13 @@ async function openVideo(width: number, height: number, transparent: boolean): P
     : (chunk: EncodedVideoChunk, meta?: EncodedVideoChunkMetadata): void => {
       const config = meta?.decoderConfig;
       if (config) {
-        colour = avcColour(config.colorSpace);
+        // The canvas is sRGB and the encoder says so (transfer 13), but the film is labelled BT.709
+        // (transfer 1) in both the SPS and the colr box: Apple's decoders and many players handle
+        // 1/1/1 far more reliably than 13, and Chromium decodes the two identically (measured on a
+        // test pattern: 0.37 levels from the canvas either way). Primaries, matrix and range stay
+        // as the encoder reports them — they describe the numbers actually in the stream.
+        const space: VideoColorSpaceInit | undefined = config.colorSpace?.transfer === 'iec61966-2-1' ? { ...config.colorSpace, transfer: 'bt709' } : config.colorSpace;
+        colour = avcColour(space);
         // no description means an Annex B stream, which is not what the MP4 is written from: left alone
         if (!config.description) colour = null;
         if (colour && config.description) {
@@ -334,7 +340,7 @@ async function openVideo(width: number, height: number, transparent: boolean): P
           const avcC = ArrayBuffer.isView(d) ? new Uint8Array(d.buffer, d.byteOffset, d.byteLength) : new Uint8Array(d);
           lengthSize = (avcC[4]! & 3) + 1;
           try {
-            meta = { ...meta, decoderConfig: { ...config, description: avcCWithColour(avcC, colour) } };
+            meta = { ...meta, decoderConfig: { ...config, colorSpace: space, description: avcCWithColour(avcC, colour) } };
           } catch (err) {
             // an SPS this cannot read is left as the encoder wrote it, and said so
             console.warn('record: the MP4 could not be told its colour; players will guess it', err);
