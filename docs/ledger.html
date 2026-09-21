@@ -83,7 +83,7 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); overflow-x: clip; } /* a leaning panel layer must never make the page scroll sideways */
+html { background: var(--bg); }
 body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font: 15px/1.55 var(--font); overflow-x: clip; }
 /* the site's ambient backdrop, held still: a faint blueprint grid and two washes */
 body::before {
@@ -449,38 +449,6 @@ table.mini code { font-size: 12px; }
   th, td { padding: 8px 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .flash > td { animation: none; } .progress .track span { transition: none; } }
-/* ---------- depth, in the site's vocabulary, sparingly. Text never tilts or moves on its own. ---------- */
-/* Panels sit on the page like the site's cards: the surface, border and a soft layered edge are a
-   layer behind the content, and only that layer leans a degree or two toward the pointer. */
-:root { --edge: 0 1px 0 color-mix(in srgb, var(--border-strong) 70%, transparent), 0 4px 0 -2px color-mix(in srgb, var(--border-strong) 32%, transparent), 0 8px 0 -4px color-mix(in srgb, var(--border-strong) 16%, transparent); }
-.panel:not(.lead) { position: relative; isolation: isolate; background: none; border-color: transparent; box-shadow: none; --rx: 0deg; --ry: 0deg; }
-.panel:not(.lead)::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border: 1px solid var(--border); border-radius: inherit; background: var(--surface);
-  box-shadow: var(--edge), var(--shadow); transform: perspective(1800px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform 0.25s ease-out; }
-section[aria-labelledby="sum-h"] { z-index: 2; } /* its notes popover opens over the panels after it */
-.lead, .hero { box-shadow: var(--edge), var(--shadow); }
-/* chips: a thin extruded edge, so they read as small objects */
-.chip { box-shadow: 0 1.5px 0 color-mix(in srgb, var(--c) 42%, transparent); }
-.s-ok { box-shadow: 0 1.5px 0 color-mix(in srgb, var(--hot) 55%, #000); }
-/* pills: an edge underneath; pressed, they sink onto it (the bottom stays where it was) */
-.btn, .group, .tchip, .tagbtn, .stat__more, .tabs { box-shadow: 0 2px 0 var(--border-strong); }
-.btn, .group, .tchip, .tagbtn, .tab { transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, border-color 0.2s, background 0.2s, color 0.2s; }
-.btn:hover { box-shadow: 0 2px 0 var(--border-strong), 0 8px 20px -10px var(--accent); }
-.btn[aria-pressed="true"], .group[aria-pressed="true"], .tchip[aria-pressed="true"], .tagbtn[aria-expanded="true"],
-.btn:active, .group:active:not(:disabled), .tchip:active, .tagbtn:active { transform: translateY(2px); box-shadow: 0 0 0 var(--border-strong); }
-.tab[aria-pressed="true"] { transform: translateY(1px); box-shadow: inset 0 2px 0 rgb(0 0 0 / 0.22); }
-/* changes arrive rather than snap: new rows, an opened detail, a new card, a breakdown */
-@keyframes arrive { from { opacity: 0; transform: translateY(-3px); } }
-.rows-enter > tr, tr.detail.enter > td, .qitem.enter, .flow__bd.enter { animation: arrive 0.18s ease-out both; }
-/* the one thing that moves by itself: the arrow breathes, slowly and a few pixels, when in view */
-@keyframes breathe { 0%, 100% { transform: rotateX(22deg) translateY(0); } 50% { transform: rotateX(22deg) translateY(-3px); } }
-.flow { animation: breathe 7s ease-in-out infinite; }
-#stats.is-still .flow { animation-play-state: paused; }
-@media (max-width: 900px) { .flow { animation: none; } }
-/* no motion at all when asked */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-  .panel:not(.lead)::before { transform: none; }
-}
 </style>
 </head>
 <body>
@@ -720,7 +688,6 @@ section[aria-labelledby="sum-h"] { z-index: 2; } /* its notes popover opens over
     filter = filter === key ? 'all' : key;
     limit = PAGE; saveView();
     renderFilterChips(); renderRows(); renderStats();
-    arrive($('rows'), 'rows-enter'); arrive($('flow-bd').querySelector('.flow__bd'));
     $('stats').querySelector(`[data-step="${CSS.escape(key)}"]`)?.focus({ preventScroll: true });
   }
   for (const id of ['stats', 'flow-bd']) $(id).addEventListener('click', (e) => {
@@ -950,7 +917,6 @@ section[aria-labelledby="sum-h"] { z-index: 2; } /* its notes popover opens over
     const keep = b.dataset.f ? `[data-f="${CSS.escape(b.dataset.f)}"]` : b.dataset.g ? `[data-g="${CSS.escape(b.dataset.g)}"]` : b.dataset.t ? `[data-t="${CSS.escape(b.dataset.t)}"]` : null;
     renderFilterChips();
     renderRows();
-    arrive($('rows'), 'rows-enter');
     if (keep) $('filters').querySelector(keep)?.focus({ preventScroll: true });
   }
 
@@ -981,13 +947,11 @@ section[aria-labelledby="sum-h"] { z-index: 2; } /* its notes popover opens over
   const groupsScroll = scrollRow($('groups-row'));
   const tagsScroll = scrollRow($('tags-row'));
   $('filters').addEventListener('click', onFilterClick);
-  $('q').addEventListener('input', () => { if (!L) return; query = $('q').value; limit = PAGE; saveView(); renderFilterChips(); renderRows(); arrive($('rows'), 'rows-enter'); });
+  $('q').addEventListener('input', () => { if (!L) return; query = $('q').value; limit = PAGE; saveView(); renderFilterChips(); renderRows(); });
   document.addEventListener('keydown', (e) => {
     if (e.key === '/' && !e.target.matches('input, textarea') && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); $('q').focus(); }
   });
 
-  /* one short entrance, restarted each time: never blocks input, off under reduced motion (CSS) */
-  const arrive = (el, cls = 'enter') => { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 260); };
   let moreObserver = null;
   function renderRows() {
     const f = view();
@@ -1018,7 +982,7 @@ section[aria-labelledby="sum-h"] { z-index: 2; } /* its notes popover opens over
     const rest = matching.length - shown.length;
     if (rest > 0) $('rows').insertAdjacentHTML('beforeend', `<tr class="more"><td colspan="9"><button type="button" class="btn" id="more">Show ${Math.min(PAGE, rest)} more <small>${rest} not on screen yet</small></button></td></tr>`);
     $('rows').querySelectorAll('tr.row').forEach((tr) => {
-      const toggle = () => { const id = tr.dataset.id; const opening = !open.has(id); opening ? open.add(id) : open.delete(id); saveView(); renderRows(); const row = document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`); row?.focus({ preventScroll: true }); if (opening) arrive(row?.nextElementSibling?.matches('tr.detail') ? row.nextElementSibling : null); };
+      const toggle = () => { const id = tr.dataset.id; open.has(id) ? open.delete(id) : open.add(id); saveView(); renderRows(); document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true }); };
       tr.addEventListener('click', toggle);
       tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
     });
@@ -1127,34 +1091,6 @@ section[aria-labelledby="sum-h"] { z-index: 2; } /* its notes popover opens over
   // the browser's own Escape (the dialog's cancel) is not always delivered; close on the key itself too
   dlg.addEventListener('keydown', (e) => { if (e.key === 'Escape' && dlg.open) { e.preventDefault(); dlg.close(); } });
 
-  /* ---------- the panels' lean toward the pointer: a degree or two, on the backing layer only ---------- */
-  (() => {
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-    let el = null, ev = null, raf = 0;
-    const reset = (x) => { x?.style.removeProperty('--rx'); x?.style.removeProperty('--ry'); };
-    const apply = () => {
-      raf = 0;
-      const next = ev?.target?.closest?.('.panel:not(.lead)') ?? null;
-      if (el && el !== next) reset(el);
-      el = next;
-      if (!el) return;
-      const b = el.getBoundingClientRect();
-      const k = 2 * Math.min(1, 700 / b.width); // big panels lean less, so their edge never travels far
-      const x = (ev.clientX - b.left) / b.width - 0.5, y = (ev.clientY - b.top) / b.height - 0.5;
-      el.style.setProperty('--ry', `${(x * k).toFixed(2)}deg`);
-      el.style.setProperty('--rx', `${(-y * k).toFixed(2)}deg`);
-    };
-    document.addEventListener('pointermove', (e) => { if (reduce.matches || e.pointerType !== 'mouse') return; ev = e; if (!raf) raf = requestAnimationFrame(apply); }, { passive: true });
-    document.documentElement.addEventListener('pointerleave', () => { reset(el); el = null; });
-  })();
-  (() => {
-    const box = $('stats');
-    let inView = true;
-    const set = () => box.classList.toggle('is-still', document.hidden || !inView);
-    if ('IntersectionObserver' in window) new IntersectionObserver((es) => { inView = es.some((e) => e.isIntersecting); set(); }).observe(box);
-    document.addEventListener('visibilitychange', set);
-  })();
-
   function renderReadiness() {
     const R = L.readiness;
     if (!R) { $('readiness').innerHTML = '<p class="muted">This ledger was built before it recorded readiness. It fills in on the next build.</p>'; return; }
@@ -1195,7 +1131,6 @@ section[aria-labelledby="sum-h"] { z-index: 2; } /* its notes popover opens over
     if (brief) { const n = brief.dataset.brief; openBriefs.has(n) ? openBriefs.delete(n) : openBriefs.add(n); renderQueue(); return; }
     if (e.target.closest('[data-done-all]')) { doneAll = !doneAll; renderQueue(); }
   });
-  let seenCards = null; // name|status of the cards shown last time, so only new ones arrive
   function renderQueue() {
     const box = $('queue');
     if (qError) { box.innerHTML = `<div class="notice">The lead's record could not be read: ${esc(qError)}</div>`; return; }
@@ -1222,9 +1157,7 @@ section[aria-labelledby="sum-h"] { z-index: 2; } /* its notes popover opens over
       return `<div class="bcol bcol--${k}"><h3><span>${label}</span><b>${list.length}</b></h3>${shown.length ? shown.map(item(known)).join('') : '<p class="muted" style="margin:4px">None.</p>'}${toggle}</div>`;
     }).join('') + '</div>'
       + (other.length ? `<div class="notice">${other.length} item${other.length === 1 ? ' has a status' : 's have statuses'} the board does not know, so ${other.length === 1 ? 'it is' : 'they are'} listed here: ${other.map((i) => `<b>${esc(i.name)}</b> (“${esc(i.status)}”)`).join(', ')}.</div>` : '');
-    rememberCards();
   }
-  const rememberCards = () => { seenCards = new Set((Array.isArray(Q?.items) ? Q.items : []).map((i) => `${i.name}|${i.status}`)); setTimeout(() => $('queue').querySelectorAll('.qitem.enter').forEach((el) => el.classList.remove('enter')), 260); };
   const took = (a, b) => {
     const s = (Date.parse(b) - Date.parse(a)) / 1000;
     if (!Number.isFinite(s) || s < 0) return null;
@@ -1237,7 +1170,7 @@ section[aria-labelledby="sum-h"] { z-index: 2; } /* its notes popover opens over
     const models = Array.isArray(i.models) ? i.models : [];
     const ledger = models.filter((id) => known.has(id)).map((id) => L.models.find((m) => m.id === id));
     const done = ledger.filter((m) => m.converted).length;
-    const cls = (['running', 'queued', 'done'].includes(i.status) ? i.status : '') + (seenCards && !seenCards.has(`${i.name}|${i.status}`) ? ' enter' : '');
+    const cls = ['running', 'queued', 'done'].includes(i.status) ? i.status : '';
     const how = i.status === 'done'
       ? (i.started && i.finished ? `took <b>${esc(took(i.started, i.finished) ?? '?')}</b>` : '<b>no duration</b> (start or finish not recorded)')
       : i.status === 'running' ? (i.started ? `running since ${agoSpan(i.started).replace(' ago', '')}` : 'no start time recorded') : 'not started';
