@@ -139,9 +139,10 @@ ${lines(8, (i) => `    <i style="--i:${i % 4}; --s:${i < 4 ? 1 : -1}"></i>`)}
 
   diamond: {
     how: [
-      'The widest ring (the <b>girdle</b>) is 8 edges, 60px from the axis. Every facet is hinged on one of those edges: <code>rotateY(i × 45deg) translateZ(60px)</code>.',
-      '<b>Crown</b> facets stand on the girdle and lean in 45°: they rise 24px while stepping 24px inward, so their top edge is 36/60 as long. That ratio is the trapezoid\'s <code>clip-path</code>: 20% to 80%.',
-      '<b>Pavilion</b> facets hang from the girdle (<code>transform-origin: top</code>) and lean in by <code>atan(60 / 72)</code> ≈ 39.8°, so a 72px-deep point forms where the tips meet.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the stone is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'The widest ring (the <b>girdle</b>) is 8 edges, 60 units from the axis. Every facet is hinged on one of those edges: <code>rotateY(i × 45deg) translateZ(calc(60 * var(--u)))</code>.',
+      '<b>Crown</b> facets stand on the girdle and lean in 45°: they rise 24 while stepping 24 inward, so their top edge is 36/60 as long. That ratio is the trapezoid\'s <code>clip-path</code>: 20% to 80%.',
+      '<b>Pavilion</b> facets hang from the girdle (<code>transform-origin: top</code>) and lean in by <code>atan(60 / 72)</code> ≈ 39.8°, so a 72-deep point forms where the tips meet.',
       'The glint is a white streak on every facet that only fades in and out. Its <code>animation-delay</code> grows with <code>--i</code>, so the sparkle walks around the stone. Only <code>opacity</code> animates.',
     ],
     html: `<div class="scene">
@@ -152,13 +153,16 @@ ${lines(8, (i) => `    <i class="pav" style="--i:${i}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the stone is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.55vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .gem {
   position: relative;
-  width: 49.71px; /* one girdle edge = 2 × 60px × tan(180deg / 8) */
-  height: 96px;   /* crown 24px + pavilion 72px */
+  width: calc(49.71 * var(--u)); /* one girdle edge = 2 × 60 × tan(180deg / 8) */
+  height: calc(96 * var(--u));   /* crown 24 + pavilion 72 */
   transform-style: preserve-3d;
   animation: spin 14s linear infinite;
 }
@@ -187,38 +191,38 @@ ${lines(8, (i) => `    <i class="pav" style="--i:${i}"></i>`)}
 
 /* crown: trapezoids standing on the girdle, leaning 45deg inward */
 .gem .crown {
-  bottom: 72px;
-  height: 33.94px; /* slant = √2 × 24px */
+  bottom: calc(72 * var(--u));
+  height: calc(33.94 * var(--u)); /* slant = √2 × 24 */
   transform-origin: 50% 100%;
-  transform: rotateY(calc(var(--i) * 45deg)) translateZ(60px) rotateX(45deg);
+  transform: rotateY(calc(var(--i) * 45deg)) translateZ(calc(60 * var(--u))) rotateX(45deg);
   clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%); /* top edge = 36 / 60 of the bottom */
   background:
-    linear-gradient(rgb(46 230 214 / 0.8), rgb(46 230 214 / 0.8)) top / 100% 1.5px no-repeat,
-    linear-gradient(rgb(46 230 214 / 0.8), rgb(46 230 214 / 0.8)) bottom / 100% 1.5px no-repeat,
+    linear-gradient(rgb(46 230 214 / 0.8), rgb(46 230 214 / 0.8)) top / 100% calc(1.5 * var(--u)) no-repeat,
+    linear-gradient(rgb(46 230 214 / 0.8), rgb(46 230 214 / 0.8)) bottom / 100% calc(1.5 * var(--u)) no-repeat,
     linear-gradient(to top, rgb(46 230 214 / var(--alpha)), rgb(46 230 214 / 0.12));
 }
 
 /* pavilion: triangles hanging from the girdle, leaning in by atan(60 / 72) */
 .gem .pav {
   --late: -1.7s;
-  top: 24px;
-  height: 93.72px; /* slant = √(72² + 60²) */
+  top: calc(24 * var(--u));
+  height: calc(93.72 * var(--u)); /* slant = √(72² + 60²) */
   transform-origin: 50% 0;
-  transform: rotateY(calc(var(--i) * 45deg)) translateZ(60px) rotateX(-39.81deg);
+  transform: rotateY(calc(var(--i) * 45deg)) translateZ(calc(60 * var(--u))) rotateX(-39.81deg);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   background:
-    linear-gradient(to top right, transparent 50%, rgb(139 108 255 / 0.8) 50% calc(50% + 1.2px), transparent calc(50% + 1.2px)) left / 50% 100% no-repeat,
-    linear-gradient(to top left, transparent 50%, rgb(139 108 255 / 0.8) 50% calc(50% + 1.2px), transparent calc(50% + 1.2px)) right / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent 50%, rgb(139 108 255 / 0.8) 50% calc(50% + 1.2 * var(--u)), transparent calc(50% + 1.2 * var(--u))) left / 50% 100% no-repeat,
+    linear-gradient(to top left, transparent 50%, rgb(139 108 255 / 0.8) 50% calc(50% + 1.2 * var(--u)), transparent calc(50% + 1.2 * var(--u))) right / 50% 100% no-repeat,
     linear-gradient(rgb(139 108 255 / var(--alpha)), rgb(255 77 157 / 0.14));
 }
 
-/* table: a flat octagon on top, 36px from the axis */
+/* table: a flat octagon on top, 36 from the axis */
 .gem b {
   position: absolute;
-  left: calc(50% - 36px);
-  top: -36px;
-  width: 72px;
-  height: 72px;
+  left: calc(50% - 36 * var(--u));
+  top: calc(-36 * var(--u));
+  width: calc(72 * var(--u));
+  height: calc(72 * var(--u));
   clip-path: polygon(29.29% 0, 70.71% 0, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0 70.71%, 0 29.29%);
   background: linear-gradient(135deg, rgb(46 230 214 / 0.55), rgb(255 255 255 / 0.35), rgb(46 230 214 / 0.3));
   transform: rotateX(90deg);
