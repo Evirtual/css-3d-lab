@@ -342,13 +342,14 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
       'Because a child lives inside its parent’s coordinate space, the rotations stack up into complex motion from trivially simple keyframes.',
       'Every level needs <code>transform-style: preserve-3d</code> or the chain flattens there.',
       'Unequal durations keep the pattern from visibly repeating.',
+      'A flat disc seen edge-on draws nothing, so the glowing core is four discs crossed through one centre (three turned round the vertical by 60deg each, one laid flat): however the rings turn it, one of them faces you.',
       'The outer ring is 220 units of one base unit, <code>--u</code>, tied to the canvas, and each ring inside is 84% of the one around it, so the whole gyroscope is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="gyro">
     <div>
       <div>
-        <b></b>
+        <b><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i></i></b>
       </div>
     </div>
   </div>
@@ -390,12 +391,26 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
   animation: gyro-x 2.6s linear infinite reverse;
 }
 
+/* the core: a flat disc seen edge-on draws nothing, so it is four glowing discs crossed through
+   one centre, three turned round the vertical and one laid flat. Whichever way the rings turn
+   it, at least one of them faces you. */
 .gyro b {
+  position: relative;
   width: 34%;
   height: 34%;
+  transform-style: preserve-3d;
+}
+
+.gyro b i {
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff, #ffb547 60%);
-  box-shadow: 0 0 calc(22 * var(--u)) #ffb547;
+  background: radial-gradient(circle, #fff, #ffb547 50%, rgb(255 181 71 / 0.35) 72%, rgb(255 181 71 / 0) 100%);
+  transform: rotateY(calc(var(--i) * 60deg));
+}
+
+.gyro b i:last-child {
+  transform: rotateX(90deg);
 }
 
 @keyframes gyro-x { to { transform: rotateX(360deg); } }
