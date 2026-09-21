@@ -249,7 +249,7 @@ export const snippet: Snippet = {
     'The data is plain JSON, one object per day, as a market API sends it. JS rounds the lowest low and highest high out to whole thousands for the scale, then turns every price into <b>a fraction of that range</b> (0 at the bottom, 1 at the top): <code>--lo</code>, <code>--hi</code>, <code>--o</code>, <code>--c</code> on each candle. Everything you see is CSS.',
     'Every part is a full-height box, squashed and lifted: the wick is <code>translateY(-lo × 100 units) scaleY(hi − lo)</code> from the bottom, the body the same from <code>min(o, c)</code> with a height of <code>max(o − c, c − o)</code>. Only <code>transform</code> changes, so a new range is a smooth transition with no layout work.',
     'The body is one element and two pseudo-elements: the element is the front, <code>::before</code> is hinged on its right edge and turned <code>rotateY(90deg)</code>, <code>::after</code> is hinged on its top edge and laid flat. A flat lid has no height, so the parent\'s <code>scaleY</code> only carries it to the top. The wick is two 2-unit lines crossed at 90°, so it has depth from any side.',
-    'Each candle sits in a column one slot wide, placed with <code>translateX((x + 0.5) × slot)</code>, and <code>slot = width ÷ --n</code>. Switching to 7D sets <code>--n: 7</code>: the last seven slide apart, the scale zooms in, and the older days sink into the floor with <code>scaleY(0)</code>.',
+    'Each candle sits in a column one slot wide, placed with <code>translateX((x + 0.5) × slot)</code>, and <code>slot = width ÷ --n</code>. Switching to 7D sets <code>--n: 7</code>: the last seven slide apart, the scale zooms in, and the older days sink into the floor with <code>scale3d(1, 0, 0)</code> <b>where they stood</b> (depth as well as height, or the flat lid would stay lying on the floor). JS leaves their <code>--x</code> alone and pins the <code>--n</code> they were laid out with on the candle itself, and the candle works its slot out from its own <code>--n</code>, so a day leaving the range never slides off past the edge of the floor. Switching back, it rises in the same place.',
     'The column is the hover target: the full height of the chart, it never moves on hover, and it is the only thing that takes the pointer. The chart is turned, so its left half lies behind the flat boxes around it: they get <code>pointer-events: none</code>.',
     'There is <b>one</b> tooltip for the whole chart. JS moves it to the pointed-at candle with <code>--tx</code> / <code>--ty</code> and a transform transition glides it there while its text changes, so it slides from candle to candle instead of blinking. It floats 40 units towards you with <code>translateZ</code> (the nearer candles would cover it) and <code>--f</code> makes the end ones hang inwards. It stays flat: <code>opacity</code> on a <code>preserve-3d</code> element flattens it, so its thickness is a hard <code>box-shadow</code>. A finger has no hover, so a tap shows it.',
     'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the chart is 180 × 100 of them. JS writes the tooltip\'s place as <b>plain numbers</b> in those units, which CSS multiplies by <code>--u</code>; a length in px from JS would stay put while the chart scaled around it. The caption and the 7D / 12D switch are in plain <code>vmin</code>, the same control zone as every other model\'s.',
@@ -380,13 +380,17 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   width: var(--slot);
   height: 100%;
   margin-left: calc(var(--slot) * -0.5);
+  /* its own slot, from its own --n: the chart's, or, for a day that has left the range, the one
+     it was laid out with, so it sinks where it stood instead of sliding off the floor */
+  --slot: calc(calc(180 * var(--u)) / var(--n));
   outline: none;
   cursor: pointer;
   pointer-events: auto;
   transform-origin: bottom center;
   transform-style: preserve-3d;
-  /* --in: 1 in the range, 0 outside it (sunk into the floor) */
-  transform: translateX(calc((var(--x) + 0.5) * var(--slot))) scaleY(var(--in));
+  /* --in: 1 in the range, 0 outside it (sunk into the floor). Depth goes with height: the lid
+     lies flat and has no height to lose, so scaleY alone would leave it lying on the floor */
+  transform: translateX(calc((var(--x) + 0.5) * var(--slot))) scale3d(1, var(--in), var(--in));
   transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i) * 30ms);
 }
 
@@ -618,12 +622,20 @@ function show(n) {
   const f = (p) => (p - min) / (max - min);
   view = { n, offset, f };
 
+  const before = chart.style.getPropertyValue('--n') || n; // the layout the candles stand in now
   chart.style.setProperty('--n', n);
   candles.forEach((el, i) => {
     const x = i - offset; // its slot; below 0: outside the range
     const d = CANDLES[i];
     const shown = x >= 0;
-    el.style.setProperty('--x', shown ? x : -1);
+    if (shown) {
+      el.style.setProperty('--x', x);
+      el.style.removeProperty('--n'); // the chart's --n, so the chart's slot
+    } else if (!el.classList.contains('is-out')) {
+      // leaving: it keeps its --x and the --n it stood in, so it sinks where it is
+      if (!el.style.getPropertyValue('--x')) el.style.setProperty('--x', i - CANDLES.length + Number(before));
+      el.style.setProperty('--n', before);
+    }
     el.style.setProperty('--in', shown ? 1 : 0); // 0: sinks into the floor
     if (shown) {
       el.style.setProperty('--lo', f(d.low).toFixed(3));
