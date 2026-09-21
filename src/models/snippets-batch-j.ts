@@ -312,7 +312,10 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
      gallery card, the editor, a full screen and a recording canvas */
   --u: 0.52vmin;
   position: relative;
-  width: calc(200 * var(--u));
+  /* 190 units is 99vmin, inside a square canvas: a box wider than the canvas does not centre, it
+     hangs off the right, 2vmin off the middle on 1:1 and 9:16. Everything in it is placed from its
+     middle, so the width moves nothing */
+  width: calc(190 * var(--u));
   height: calc(132 * var(--u));
   perspective: calc(800 * var(--u));
   /* the eye looks at the rocket's shoulder, just under the nose, so whatever flies away into the
