@@ -7,7 +7,7 @@ function lookOf(stage: HTMLElement | null): PrintLook | undefined {
   if (!stage) return undefined;
   const cs = getComputedStyle(stage);
   const bg = /rgba(.*, 0)|transparent/.test(cs.backgroundColor) ? '#0b0d18' : cs.backgroundColor;
-  const rgb = bg.match(/[d.]+/g)?.map(Number) ?? [11, 13, 24];
+  const rgb = bg.match(/[\d.]+/g)?.map(Number) ?? [11, 13, 24];
   const light = bg.startsWith('#') ? false : 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 140;
   const dotLayer = getComputedStyle(stage, '::before');
   const dots = dotLayer.display !== 'none' && dotLayer.backgroundImage.includes('gradient')
@@ -29,7 +29,7 @@ function lookOf(stage: HTMLElement | null): PrintLook | undefined {
  */
 function clockOf(stage: HTMLElement | null): number | null {
   if (!stage) return null;
-  const doc = stage.querySelector('iframe')?.contentDocument; // an edited version runs in a frame
+  const doc = stage.querySelector('iframe')?.contentDocument; // the model runs in a frame
   const anims = doc ? doc.getAnimations() : stage.getAnimations({ subtree: true });
   const a = anims.find((x) => x instanceof CSSAnimation);
   const t = a ? Number(a.currentTime) : NaN;
