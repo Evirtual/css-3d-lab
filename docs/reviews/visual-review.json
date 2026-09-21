@@ -350,5 +350,186 @@
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Full-canvas crawl: the first frame, which a paused card shows, is the crawl already far off, a smudge of illegible orange lines mid-canvas with no 'EPISODE 3D' title in view, so the card neither looks finished nor has any readable text; the title only appears later in the loop.",
     "motionFlagsResolved": []
+  },
+  {
+    "model": "cubenav",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Photo cube over a '01 · Dawn' caption and an arrow-dot-arrow row, stack about 58vmin and centred; the cube itself is on the small side (about 30vmin) but the pair reads as one unit and turns cleanly.",
+    "motionFlagsResolved": [
+      {
+        "flag": "click button#1 \"Go to Dawn\": its hit area is mostly over empty canvas (51 of 69 reachable points draw nothing)",
+        "reason": "The page dots are drawn as small dots inside full-size (8vmin) invisible hit areas, which the contract allows; the empty points are the padding around each dot, not a misplaced control."
+      },
+      {
+        "flag": "click button#2 \"Go to Reef\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+        "reason": "The page dots are drawn as small dots inside full-size (8vmin) invisible hit areas, which the contract allows; the empty points are the padding around each dot, not a misplaced control."
+      },
+      {
+        "flag": "click button#3 \"Go to Dusk\": its hit area is mostly over empty canvas (60 of 69 reachable points draw nothing)",
+        "reason": "The page dots are drawn as small dots inside full-size (8vmin) invisible hit areas, which the contract allows; the empty points are the padding around each dot, not a misplaced control."
+      },
+      {
+        "flag": "click button#4 \"Go to Night\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+        "reason": "The page dots are drawn as small dots inside full-size (8vmin) invisible hit areas, which the contract allows; the empty points are the padding around each dot, not a misplaced control."
+      }
+    ]
+  },
+  {
+    "model": "chartpanel",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Revenue line chart on a panel, about 80 x 42vmin, centred; paused on a designed tilted rest, flattening on hover with the value labels readable.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "cube",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "See-through numbered cube centred at about 45 x 54vmin; paused face-on with the side edges just visible, and turning cleanly through its loop.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "pyramid",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Glass pyramid with inner glow, centred at about 54 x 51vmin; paused frame is a clean front view.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "cylinder",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Glass cylinder with rings, centred at about 41 x 54vmin; complete on the paused frame and on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "coin",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Gold coin centred at about 59 x 58vmin, paused face-on on the '$' side; the spin is clean on both canvases.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "globe",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Wireframe globe centred at 58 x 59vmin; lines read on both dark and light stages.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "orbit",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Atom with three orbits, centred at about 65 x 57vmin; the thin rings stay legible on a light stage.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "layers",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Stack of layers, paused on the full exploded stack (61 x 64vmin, centred); it collapses to a flat 36vmin-tall plate mid-loop, which is the effect itself.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "explode",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The rest pose, which is what a paused card shows, is a closed cube only about 28 x 33vmin, under the 40vmin floor and small in an empty card; only the exploded state (58 x 45vmin) is big enough, which is why the size check passes.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover div.scene: its hit area is mostly over empty canvas (66 of 81 reachable points draw nothing)",
+        "reason": "The hover target is deliberately the whole scene, so the pointer stays on it while the faces fly out to the exploded size; it is invisible and inside the canvas."
+      }
+    ]
+  },
+  {
+    "model": "radio",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Label cube over a 'Front' caption and six radio circles, stack about 58 x 61vmin, centred; the circles are finger-sized and the checked one is clear.",
+    "motionFlagsResolved": [
+      {
+        "flag": "click input#3 \"Back\": its hit area is mostly over empty canvas (45 of 69 reachable points draw nothing)",
+        "reason": "An unchecked radio is drawn as a thin ring, so most of its round hit area paints nothing; the hit area matches the circle the visitor sees."
+      },
+      {
+        "flag": "click input#5 \"Top\": its hit area is mostly over empty canvas (45 of 69 reachable points draw nothing)",
+        "reason": "An unchecked radio is drawn as a thin ring, so most of its round hit area paints nothing; the hit area matches the circle the visitor sees."
+      }
+    ]
+  },
+  {
+    "model": "drag",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Amber see-through cube centred at about 52 x 54vmin, paused on a three-quarter view; clear of corners.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "sphere",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Point sphere centred at 64 x 64vmin; the dots are bright on dark and fainter but still read on a light stage.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "scrollspin",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Scroll-linked amber cube centred at 40 x 45vmin, face-on at rest until scrolled; small but within the floor.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "prism",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:12:19+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Hexagonal glass prism centred at about 41 x 48vmin; paused on a clear three-quarter view.",
+    "motionFlagsResolved": []
   }
 ]
