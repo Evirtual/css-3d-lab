@@ -763,7 +763,8 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
       'The lens barrel is a cylinder around the <b>Z</b> axis: sixteen strips, each turned with <code>rotateZ(i × 22.5deg)</code>, moved out by the radius, folded flat with <code>rotateX(90deg)</code> and slid forward by half its length so the barrel starts at the body.',
       'Each strip shades itself with <code>cos()</code> of its angle, so the barrel is lit from the top left without any hand-painted gradient per strip.',
       'The glass is a flat disc, so it can clip its reflection with <code>overflow: hidden</code>. The reflection runs the rocking animation in reverse (same duration, same easing), so it seems to stay with the room while the camera turns.',
-      'The shutter button and the dial are flat discs laid on the top with <code>rotateX(90deg)</code>, stacked 1.5px apart: from above they read as short cylinders.',
+      'The shutter button and the dial are flat discs laid on the top with <code>rotateX(90deg)</code>, stacked 1.5 units apart: from above they read as short cylinders.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the camera is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="camera">
@@ -786,27 +787,30 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the camera is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.46vmin;
+  perspective: calc(800 * var(--u));
 }
 
-/* 144 × 88, 40px deep */
+/* 144 × 88, 40 units deep */
 .camera {
   --silver: #d9dce8;
   --silver-dark: #8a90a8;
   --leather: #2d2847;
   position: relative;
-  width: 144px;
-  height: 88px;
+  width: calc(144 * var(--u));
+  height: calc(88 * var(--u));
   transform-style: preserve-3d;
   animation: rock 7s ease-in-out infinite alternate;
 }
 
 .shadow {
   position: absolute;
-  left: -16px;
-  top: 48px;
-  width: 176px;
-  height: 80px;
+  left: calc(-16 * var(--u));
+  top: calc(48 * var(--u));
+  width: calc(176 * var(--u));
+  height: calc(80 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.42), transparent);
   transform: rotateX(90deg);
@@ -817,98 +821,98 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   position: absolute;
   top: 0;
   left: 0;
-  width: 144px;
-  height: 88px;
+  width: calc(144 * var(--u));
+  height: calc(88 * var(--u));
   /* silver plate, a seam, leatherette with grain, a seam, silver plate */
   background:
-    linear-gradient(transparent 24px, rgb(0 0 0 / 0.35) 24px 25px, transparent 25px 79px, rgb(255 255 255 / 0.5) 79px 80px, transparent 80px),
-    radial-gradient(circle, rgb(255 255 255 / 0.07) 0.8px, transparent 1.2px) 0 0 / 3px 3px,
-    linear-gradient(var(--silver) 0 3px, #f4f5fa 8px, var(--silver) 18px, var(--silver-dark) 24px, var(--leather) 24px 80px, var(--silver) 80px, var(--silver-dark));
+    linear-gradient(transparent calc(24 * var(--u)), rgb(0 0 0 / 0.35) calc(24 * var(--u)) calc(25 * var(--u)), transparent calc(25 * var(--u)) calc(79 * var(--u)), rgb(255 255 255 / 0.5) calc(79 * var(--u)) calc(80 * var(--u)), transparent calc(80 * var(--u))),
+    radial-gradient(circle, rgb(255 255 255 / 0.07) calc(0.8 * var(--u)), transparent calc(1.2 * var(--u))) 0 0 / calc(3 * var(--u)) calc(3 * var(--u)),
+    linear-gradient(var(--silver) 0 calc(3 * var(--u)), #f4f5fa calc(8 * var(--u)), var(--silver) calc(18 * var(--u)), var(--silver-dark) calc(24 * var(--u)), var(--leather) calc(24 * var(--u)) calc(80 * var(--u)), var(--silver) calc(80 * var(--u)), var(--silver-dark));
 }
 
-.front { transform: translateZ(20px); }
-.back  { transform: rotateY(180deg) translateZ(20px); }
-.left, .right { left: 52px; width: 40px; }
-.left  { transform: rotateY(-90deg) translateZ(72px); }
-.right { transform: rotateY(90deg) translateZ(72px); }
+.front { transform: translateZ(calc(20 * var(--u))); }
+.back  { transform: rotateY(180deg) translateZ(calc(20 * var(--u))); }
+.left, .right { left: calc(52 * var(--u)); width: calc(40 * var(--u)); }
+.left  { transform: rotateY(-90deg) translateZ(calc(72 * var(--u))); }
+.right { transform: rotateY(90deg) translateZ(calc(72 * var(--u))); }
 .left::after, .right::after { content: ''; position: absolute; inset: 0; background: rgb(0 0 0 / 0.3); }
 .left::after { background: rgb(0 0 0 / 0.12); }
 
-.top, .bottom { top: 24px; height: 40px; }
+.top, .bottom { top: calc(24 * var(--u)); height: calc(40 * var(--u)); }
 .top {
   background:
-    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.18) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.18) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(3 * var(--u))),
     linear-gradient(var(--silver-dark), var(--silver) 20%, #f4f5fa 60%, var(--silver));
-  transform: rotateX(90deg) translateZ(44px);
+  transform: rotateX(90deg) translateZ(calc(44 * var(--u)));
 }
 .bottom {
   background: linear-gradient(var(--silver-dark), #5b6078);
-  transform: rotateX(-90deg) translateZ(44px);
+  transform: rotateX(-90deg) translateZ(calc(44 * var(--u)));
 }
 
 .window {
   position: absolute;
-  top: 6px;
-  left: 11px;
+  top: calc(6 * var(--u));
+  left: calc(11 * var(--u));
   box-sizing: border-box;
-  width: 26px;
-  height: 13px;
-  border: 1.5px solid var(--silver-dark);
-  border-radius: 2px;
+  width: calc(26 * var(--u));
+  height: calc(13 * var(--u));
+  border: calc(1.5 * var(--u)) solid var(--silver-dark);
+  border-radius: calc(2 * var(--u));
   background:
     linear-gradient(120deg, transparent 30%, rgb(255 255 255 / 0.45) 40%, transparent 50%),
     linear-gradient(160deg, #1a4a5a, #05060c);
 }
 
-.window + .window { left: auto; right: 11px; width: 14px; }
+.window + .window { left: auto; right: calc(11 * var(--u)); width: calc(14 * var(--u)); }
 
 .name {
   position: absolute;
-  top: 8px;
+  top: calc(8 * var(--u));
   width: 100%;
   color: #4a4f66;
-  font: 800 7px system-ui, sans-serif;
-  letter-spacing: 2.5px;
+  font: 800 calc(7 * var(--u)) system-ui, sans-serif;
+  letter-spacing: calc(2.5 * var(--u));
   text-align: center;
-  text-indent: 2.5px;
-  text-shadow: 0 1px 0 rgb(255 255 255 / 0.7); /* engraved */
+  text-indent: calc(2.5 * var(--u));
+  text-shadow: 0 calc(1 * var(--u)) 0 rgb(255 255 255 / 0.7); /* engraved */
 }
 
 /* --- the lens: a 0 × 0 anchor at its centre, on the front face --- */
 .lens {
   position: absolute;
-  left: 72px;
-  top: 52px;
+  left: calc(72 * var(--u));
+  top: calc(52 * var(--u));
   transform-style: preserve-3d;
-  transform: translateZ(20px);
+  transform: translateZ(calc(20 * var(--u)));
 }
 
 .mount {
   position: absolute;
-  left: -31px;
-  top: -31px;
-  width: 62px;
-  height: 62px;
+  left: calc(-31 * var(--u));
+  top: calc(-31 * var(--u));
+  width: calc(62 * var(--u));
+  height: calc(62 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, #0b0c12 0 76%, var(--silver-dark) 80%, #f4f5fa 88%, var(--silver) 94%, var(--silver-dark));
-  transform: translateZ(0.5px);
+  transform: translateZ(calc(0.5 * var(--u)));
 }
 
-/* 16 strips, radius 25px, 26px long. Strip top = at the body, bottom = the front. */
+/* 16 strips, radius 25 units, 26 units long. Strip top = at the body, bottom = the front. */
 .strip {
   --a: calc(var(--i) * 22.5deg);
   position: absolute;
-  left: -5.3px;
-  top: -13px;
-  width: 10.6px;
-  height: 26px;
+  left: calc(-5.3 * var(--u));
+  top: calc(-13 * var(--u));
+  width: calc(10.6 * var(--u));
+  height: calc(26 * var(--u));
   backface-visibility: hidden;
   background:
     linear-gradient(rgb(0 0 0 / calc(0.36 - 0.34 * cos(var(--a) + 35deg))) 0 0), /* light from top left */
-    linear-gradient(transparent 0 5px, rgb(0 0 0 / 0.5) 5px 6px, transparent 6px 17px, #ff4d9d 17px 18px, transparent 18px),
-    repeating-linear-gradient(90deg, #2a2c3a 0 1.5px, #0d0e14 1.5px 3px) 0 6px / 100% 11px no-repeat, /* knurled grip */
-    linear-gradient(#1a1b24 0 17px, var(--silver) 17px, #f4f5fa 22px, var(--silver-dark));
-  transform: rotateZ(var(--a)) translateY(-25px) rotateX(90deg) translateY(13px);
+    linear-gradient(transparent 0 calc(5 * var(--u)), rgb(0 0 0 / 0.5) calc(5 * var(--u)) calc(6 * var(--u)), transparent calc(6 * var(--u)) calc(17 * var(--u)), #ff4d9d calc(17 * var(--u)) calc(18 * var(--u)), transparent calc(18 * var(--u))),
+    repeating-linear-gradient(90deg, #2a2c3a 0 calc(1.5 * var(--u)), #0d0e14 calc(1.5 * var(--u)) calc(3 * var(--u))) 0 calc(6 * var(--u)) / 100% calc(11 * var(--u)) no-repeat, /* knurled grip */
+    linear-gradient(#1a1b24 0 calc(17 * var(--u)), var(--silver) calc(17 * var(--u)), #f4f5fa calc(22 * var(--u)), var(--silver-dark));
+  transform: rotateZ(var(--a)) translateY(calc(-25 * var(--u))) rotateX(90deg) translateY(calc(13 * var(--u)));
 }
 
 .ring,
@@ -918,34 +922,34 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 }
 
 .ring {
-  left: -25.5px;
-  top: -25.5px;
-  width: 51px;
-  height: 51px;
-  background: radial-gradient(circle, transparent 0 17px, #05060a 17.5px 18.5px, var(--silver-dark) 19px, #f4f5fa 21.5px, var(--silver) 23px, var(--silver-dark));
-  transform: translateZ(26px);
+  left: calc(-25.5 * var(--u));
+  top: calc(-25.5 * var(--u));
+  width: calc(51 * var(--u));
+  height: calc(51 * var(--u));
+  background: radial-gradient(circle, transparent 0 calc(17 * var(--u)), #05060a calc(17.5 * var(--u)) calc(18.5 * var(--u)), var(--silver-dark) calc(19 * var(--u)), #f4f5fa calc(21.5 * var(--u)), var(--silver) calc(23 * var(--u)), var(--silver-dark));
+  transform: translateZ(calc(26 * var(--u)));
 }
 
 .glass {
-  left: -18px;
-  top: -18px;
-  width: 36px;
-  height: 36px;
+  left: calc(-18 * var(--u));
+  top: calc(-18 * var(--u));
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
   overflow: hidden; /* flat disc: clipping is safe */
   background:
-    radial-gradient(circle, #05060a 0 4px, transparent 5px),
-    radial-gradient(circle, transparent 0 9px, rgb(139 108 255 / 0.5) 10px, transparent 12px),
+    radial-gradient(circle, #05060a 0 calc(4 * var(--u)), transparent calc(5 * var(--u))),
+    radial-gradient(circle, transparent 0 calc(9 * var(--u)), rgb(139 108 255 / 0.5) calc(10 * var(--u)), transparent calc(12 * var(--u))),
     conic-gradient(from 200deg, #183a4e, #0a0c18 25%, #463a8a 50%, #0a0c18 75%, #183a4e);
-  transform: translateZ(22px); /* recessed 4px behind the ring */
+  transform: translateZ(calc(22 * var(--u))); /* recessed 4 units behind the ring */
 }
 
 /* the reflection of a window: runs the rocking in reverse */
 .glass em {
   position: absolute;
-  top: 5px;
-  left: 9px;
-  width: 12px;
-  height: 16px;
+  top: calc(5 * var(--u));
+  left: calc(9 * var(--u));
+  width: calc(12 * var(--u));
+  height: calc(16 * var(--u));
   border-radius: 50% 50% 40% 40%;
   background:
     linear-gradient(90deg, transparent 45%, rgb(0 0 0 / 0.5) 45% 55%, transparent 55%),
@@ -957,10 +961,10 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 /* --- on top --- */
 .flash {
   position: absolute;
-  top: -20px;
-  left: 12px;
-  width: 40px;
-  height: 20px;
+  top: calc(-20 * var(--u));
+  left: calc(12 * var(--u));
+  width: calc(40 * var(--u));
+  height: calc(20 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -972,20 +976,20 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 
 .flash i:nth-child(1) {
   box-sizing: border-box;
-  border: 2px solid var(--silver-dark);
+  border: calc(2 * var(--u)) solid var(--silver-dark);
   background:
-    repeating-linear-gradient(transparent 0 1.5px, rgb(0 0 0 / 0.08) 1.5px 2.5px), /* Fresnel lines */
+    repeating-linear-gradient(transparent 0 calc(1.5 * var(--u)), rgb(0 0 0 / 0.08) calc(1.5 * var(--u)) calc(2.5 * var(--u))), /* Fresnel lines */
     radial-gradient(ellipse at 50% 40%, #fff, #e7e9f3 55%, #b9bed0);
-  transform: translateZ(12px);
+  transform: translateZ(calc(12 * var(--u)));
 }
-.flash i:nth-child(2) { transform: rotateY(180deg) translateZ(12px); }
+.flash i:nth-child(2) { transform: rotateY(180deg) translateZ(calc(12 * var(--u))); }
 .flash i:nth-child(3),
-.flash i:nth-child(4) { left: 8px; width: 24px; background: linear-gradient(var(--silver-dark), #5b6078); }
-.flash i:nth-child(3) { transform: rotateY(90deg) translateZ(20px); }
-.flash i:nth-child(4) { transform: rotateY(-90deg) translateZ(20px); }
+.flash i:nth-child(4) { left: calc(8 * var(--u)); width: calc(24 * var(--u)); background: linear-gradient(var(--silver-dark), #5b6078); }
+.flash i:nth-child(3) { transform: rotateY(90deg) translateZ(calc(20 * var(--u))); }
+.flash i:nth-child(4) { transform: rotateY(-90deg) translateZ(calc(20 * var(--u))); }
 .flash i:nth-child(5) {
-  top: -2px;
-  height: 24px;
+  top: calc(-2 * var(--u));
+  height: calc(24 * var(--u));
   background: linear-gradient(90deg, var(--silver), #f4f5fa 50%, var(--silver));
   transform: rotateX(90deg);
 }
@@ -995,14 +999,14 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 .dial {
   position: absolute;
   border-radius: 50%;
-  transform: translateY(calc(var(--h) * -1px)) rotateX(90deg);
+  transform: translateY(calc(var(--h) * -1 * var(--u))) rotateX(90deg);
 }
 
 .knob {
-  left: 110px;
-  top: -8px;
-  width: 16px;
-  height: 16px;
+  left: calc(110 * var(--u));
+  top: calc(-8 * var(--u));
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
   background: radial-gradient(circle, var(--silver) 0 45%, var(--silver-dark));
 }
 
@@ -1011,16 +1015,16 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 }
 
 .dial {
-  left: 74px;
-  top: -12px;
-  width: 24px;
-  height: 24px;
+  left: calc(74 * var(--u));
+  top: calc(-12 * var(--u));
+  width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
   background: repeating-conic-gradient(#5b6078 0 5deg, var(--silver) 5deg 10deg); /* knurled edge */
 }
 
 .dial-top {
   background:
-    linear-gradient(transparent 46%, #ff4d9d 46% 54%, transparent 54%) 50% 0 / 2px 50% no-repeat,
+    linear-gradient(transparent 46%, #ff4d9d 46% 54%, transparent 54%) 50% 0 / calc(2 * var(--u)) 50% no-repeat,
     radial-gradient(circle, #f4f5fa, var(--silver) 60%, var(--silver-dark) 64%, transparent 66%),
     repeating-conic-gradient(#5b6078 0 5deg, var(--silver) 5deg 10deg);
 }
@@ -1031,8 +1035,8 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 }
 
 @keyframes glare {
-  from { transform: translateX(10px) rotate(-12deg); }
-  to   { transform: translateX(-4px) rotate(-12deg); }
+  from { transform: translateX(calc(10 * var(--u))) rotate(-12deg); }
+  to   { transform: translateX(calc(-4 * var(--u))) rotate(-12deg); }
 }`,
   },
 
