@@ -1960,36 +1960,49 @@ party.addEventListener('pointerdown', () => {
     how: [
       'JS turns the scroll position into one number, <code>--p</code>, from 0 to 1.',
       'CSS does the mapping: <code>rotateY(calc(var(--p) * 720deg))</code>. Change the feel by editing CSS only.',
-      '<code>position: sticky</code> keeps the cube in view while the tall page scrolls past.',
+      'The canvas is the scroll container: <code>.scroller</code> covers it (<code>position: absolute; inset: 0</code>) with <code>overflow-y: auto</code>, so a wheel or a swipe anywhere over the canvas scrolls it, and its native scrollbar is hidden. A spacer three canvases tall gives it something to scroll, and <code>position: sticky</code> keeps the cube in view while it passes.',
       'Where supported, CSS can do this alone with <code>animation-timeline: scroll()</code> — check browser support before relying on it; the JS version works everywhere.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the cube is the same share of a gallery card, the editor and a recording canvas. It is sized for the worst angle the scroll turns it to — corner-on, where it spans its body diagonal — not for the rest pose.',
     ],
-    html: `<div class="sticky">
-  <div class="cube">
-    <div></div><div></div><div></div>
-    <div></div><div></div><div></div>
+    html: `<div class="scroller" tabindex="0" aria-label="Scroll to spin the cube">
+  <div class="sticky">
+    <div class="cube">
+      <div></div><div></div><div></div>
+      <div></div><div></div><div></div>
+    </div>
   </div>
-</div>
-<div class="spacer"></div>`,
-    css: `body {
-  display: block;        /* let the page scroll normally */
-  overflow: auto;
-}
-
-.sticky {
+  <div class="spacer"></div>
+</div>`,
+    css: `/* the canvas is the scroll container: this box covers it, so a wheel anywhere over the canvas
+   scrolls it */
+.scroller {
   /* one base unit: every length below is a multiple of it, so the cube is the same share of a
      card, the editor, a full screen and a recording canvas */
   --u: 0.27vmin;
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  outline: none;
+  scrollbar-width: none; /* the stage's badge already says "Scroll" */
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.sticky {
   position: sticky;
   top: 0;
   display: grid;
   place-items: center;
-  height: 100vh;
+  height: 100%;
   perspective: calc(700 * var(--u));
 }
 
 .spacer {
-  height: 300vh;
+  height: 300%;
 }
 
 .cube {
@@ -1998,7 +2011,7 @@ party.addEventListener('pointerdown', () => {
   width: var(--s);
   height: var(--s);
   transform-style: preserve-3d;
-  /* --p is scroll progress 0…1, set on <html> from JS */
+  /* --p is scroll progress 0…1, set on .scroller from JS */
   transform:
     rotateX(calc(-20deg + var(--p, 0) * 360deg))
     rotateY(calc(var(--p, 0) * 720deg));
@@ -2012,14 +2025,14 @@ party.addEventListener('pointerdown', () => {
 }
 
 ${CUBE_FACES}`,
-    js: `const root = document.documentElement;
+    js: `const box = document.querySelector('.scroller');
 
 function onScroll() {
-  const max = root.scrollHeight - innerHeight;
-  root.style.setProperty('--p', max > 0 ? scrollY / max : 0);
+  const max = box.scrollHeight - box.clientHeight;
+  box.style.setProperty('--p', max > 0 ? box.scrollTop / max : 0);
 }
 
-addEventListener('scroll', onScroll, { passive: true });
+box.addEventListener('scroll', onScroll, { passive: true });
 onScroll();`,
   },
 
