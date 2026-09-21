@@ -460,8 +460,9 @@ render();`,
 
   rating: {
     how: [
-      'Each star is five copies of one <code>clip-path</code> star stacked 1px apart: the front (plain) and back (gold) faces with three edge layers between them, so a turning star shows a real thickness.',
-      'The back is placed with <code>rotateY(180deg) translateZ(2px)</code>: it faces the other way, and once the star turns half round it reads correctly. <code>backface-visibility: hidden</code> on both faces means only the one facing you is drawn.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the stars, the thickness between their layers, the caption — so the row is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'Each star is five copies of one <code>clip-path</code> star stacked 1 unit apart: the front (plain) and back (gold) faces with three edge layers between them, so a turning star shows a real thickness.',
+      'The back is placed with <code>rotateY(180deg) translateZ(2 units)</code>: it faces the other way, and once the star turns half round it reads correctly. <code>backface-visibility: hidden</code> on both faces means only the one facing you is drawn.',
       'The five radios come first, so <code>~</code> can reach everything after them. Rating <i>r</i> is one rule: <code>#star-r:checked ~ .stars label:nth-child(-n + r)</code> selects the first <i>r</i> stars, which turn over.',
       '<code>transition-delay: calc(var(--i) * 90ms)</code> lights them left to right; the resting style has the reverse delay, so a lower rating empties the row from the right. The delay in the state you go <i>to</i> is the one that counts.',
       'The labels are the static hit targets (only the star inside moves), and the real radios keep arrow keys, forms and screen readers working. A ring bursts once as each star lands: an animation that only starts when its rule starts to match.',
@@ -475,10 +476,16 @@ ${WORDS.map((_, i) => `    <label for="star-${i + 1}" style="--i:${i}"><span cla
   <p class="words" aria-hidden="true"><span>Tap a star</span>${WORDS.map((w) => `<span>${w}</span>`).join('')}</p>
 </div>`,
     css: `.rating {
+  /* one base unit: every length below is a multiple of it, so the row is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.38vmin;
   display: grid;
   justify-items: center;
-  gap: 12px;
-  perspective: 800px;
+  /* five stars in a row is a wide shape. The caption and the gaps carry the height: at the old
+     11/12/14 they did not, and the model came out at the 92vmin width limit and under the
+     40vmin floor */
+  gap: calc(18 * var(--u));
+  perspective: calc(800 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -494,7 +501,7 @@ ${WORDS.map((_, i) => `    <label for="star-${i + 1}" style="--i:${i}"><span cla
 
 .title {
   color: #949bc0;
-  font-size: 11px;
+  font-size: calc(16 * var(--u));
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -502,16 +509,16 @@ ${WORDS.map((_, i) => `    <label for="star-${i + 1}" style="--i:${i}"><span cla
 
 .stars {
   display: flex;
-  gap: 9px;
+  gap: calc(9 * var(--u));
   transform-style: preserve-3d;
 }
 
 /* the label is the static hit target; only the star inside it moves */
 .stars label {
   position: relative;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  width: calc(34 * var(--u));
+  height: calc(34 * var(--u));
+  border-radius: calc(8 * var(--u));
   cursor: pointer;
   transform-style: preserve-3d;
 }
@@ -520,8 +527,8 @@ ${WORDS.map((_, i) => `    <label for="star-${i + 1}" style="--i:${i}"><span cla
 .stars label::before {
   content: '';
   position: absolute;
-  inset: -5px;
-  border: 2px solid #ffb547;
+  inset: calc(-5 * var(--u));
+  border: calc(2 * var(--u)) solid #ffb547;
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
@@ -531,12 +538,12 @@ ${WORDS.map((_, i) => `    <label for="star-${i + 1}" style="--i:${i}"><span cla
 .stars label::after {
   content: '';
   position: absolute;
-  inset: -10px;
+  inset: calc(-10 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(255 181 71 / 0.45), transparent);
   opacity: 0;
   pointer-events: none;
-  transform: translateZ(-6px);
+  transform: translateZ(calc(-6 * var(--u)));
   transition: opacity 0.3s;
 }
 
@@ -549,7 +556,7 @@ ${WORDS.map((_, i) => `    <label for="star-${i + 1}" style="--i:${i}"><span cla
 }
 
 label:hover .lift {
-  transform: translateZ(12px) scale(1.14);
+  transform: translateZ(calc(12 * var(--u))) scale(1.14);
 }
 
 .star {
@@ -560,7 +567,7 @@ label:hover .lift {
   transition-delay: calc((4 - var(--i)) * 60ms); /* turning back: the last star first */
 }
 
-/* five copies of one star shape, 1px apart */
+/* five copies of one star shape, 1 unit apart */
 .star i {
   position: absolute;
   inset: 0;
@@ -568,20 +575,20 @@ label:hover .lift {
   background: color-mix(in srgb, #ffb547 40%, #1b1408); /* the edge */
 }
 
-.star i:nth-child(2) { transform: translateZ(1px); }
-.star i:nth-child(4) { transform: translateZ(-1px); }
+.star i:nth-child(2) { transform: translateZ(calc(1 * var(--u))); }
+.star i:nth-child(4) { transform: translateZ(calc(-1 * var(--u))); }
 
 /* front: a darker star inside a lighter one, so it looks outlined */
 .star i:nth-child(1) {
   background: color-mix(in srgb, #eceefb 38%, #141830);
   backface-visibility: hidden;
-  transform: translateZ(2px);
+  transform: translateZ(calc(2 * var(--u)));
 }
 
 .star i:nth-child(1)::before {
   content: '';
   position: absolute;
-  inset: 3px;
+  inset: calc(3 * var(--u));
   clip-path: inherit;
   background: color-mix(in srgb, #eceefb 12%, #141830);
 }
@@ -590,7 +597,7 @@ label:hover .lift {
 .star i:nth-child(5) {
   background: linear-gradient(160deg, #ffe2b8 10%, #ffb547 45%, #e58a2e 90%);
   backface-visibility: hidden;
-  transform: rotateY(180deg) translateZ(2px);
+  transform: rotateY(180deg) translateZ(calc(2 * var(--u)));
 }
 
 /* rating r turns stars 1 to r, one after another */
@@ -622,8 +629,8 @@ label:hover .lift {
 }
 
 @keyframes burst {
-  from { opacity: 0.9; transform: translateZ(-4px) scale(0.5); }
-  to { opacity: 0; transform: translateZ(-4px) scale(1.5); }
+  from { opacity: 0.9; transform: translateZ(calc(-4 * var(--u))) scale(0.5); }
+  to { opacity: 0; transform: translateZ(calc(-4 * var(--u))) scale(1.5); }
 }
 
 /* keyboard focus: ring the star whose radio has focus */
@@ -632,8 +639,8 @@ label:hover .lift {
 #star-3:focus-visible ~ .stars label:nth-child(3),
 #star-4:focus-visible ~ .stars label:nth-child(4),
 #star-5:focus-visible ~ .stars label:nth-child(5) {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 5px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(5 * var(--u));
 }
 
 /* the caption: all words in one grid cell, only the chosen one shows */
@@ -641,7 +648,7 @@ label:hover .lift {
   display: grid;
   margin: 0;
   color: #ffb547;
-  font-size: 14px;
+  font-size: calc(26 * var(--u));
   font-weight: 800;
 }
 
@@ -649,7 +656,7 @@ label:hover .lift {
   grid-area: 1 / 1;
   justify-self: center;
   opacity: 0;
-  transform: translateY(5px);
+  transform: translateY(calc(5 * var(--u)));
   transition: opacity 0.25s, transform 0.25s;
 }
 
@@ -661,7 +668,7 @@ label:hover .lift {
 
 .rating input:checked ~ .words span:first-child {
   opacity: 0;
-  transform: translateY(-5px);
+  transform: translateY(calc(-5 * var(--u)));
 }
 
 #star-1:checked ~ .words span:nth-child(2),
