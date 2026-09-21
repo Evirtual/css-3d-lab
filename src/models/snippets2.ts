@@ -1234,18 +1234,21 @@ input:checked ~ em {
   <output>Click roll</output>
 </div>`,
     css: `.table {
+  /* one base unit: every length is a multiple of it, so the die is the same share of a card,
+     the editor, a full screen and a recording canvas */
+  --u: 0.21vmin;
   display: grid;
   justify-items: center;
-  gap: 50px;
+  gap: 4vmin;
   font-family: system-ui;
 }
 
 .scene {
-  perspective: 700px;
+  perspective: calc(700 * var(--u));
 }
 
 .cube {
-  --s: 120px;
+  --s: calc(120 * var(--u));
   position: relative;
   width: var(--s);
   height: var(--s);
@@ -1261,13 +1264,13 @@ input:checked ~ em {
   inset: 0;
   display: grid;
   place-items: center;
-  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 2px line
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a calc(2 * var(--u)) line
      breaks up, the shade survives */
-  box-shadow: inset 0 0 0 1.5px #c9cbe0, inset 0 0 8px rgb(150 154 190 / 0.45);
-  border-radius: 16px;
+  box-shadow: inset 0 0 0 calc(1.5 * var(--u)) #c9cbe0, inset 0 0 calc(8 * var(--u)) rgb(150 154 190 / 0.45);
+  border-radius: calc(16 * var(--u));
   background: radial-gradient(circle at 30% 30%, #fff, #dfe1f0);
   color: #1a1d33;
-  font: 900 3.4rem system-ui;
+  font: 900 calc(54 * var(--u)) system-ui;
   transform-style: preserve-3d;
 }
 
@@ -1276,19 +1279,21 @@ input:checked ~ em {
 .cube > *::before {
   content: '';
   position: absolute;
-  inset: 8px;
+  inset: calc(8 * var(--u));
   background: #d3d6ea;
-  transform: translateZ(-8px);
+  transform: translateZ(-calc(8 * var(--u)));
 }
 
 ${CUBE_FACES}
 
 button {
-  padding: 8px 26px;
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
   border: 0;
-  border-radius: 10px;
+  border-radius: 999px;
   background: #ffb547;
-  font: 800 1rem system-ui;
+  font: 600 4vmin system-ui;
   cursor: pointer;
 }`,
     js: `const cube = document.querySelector('.cube');
