@@ -34,6 +34,10 @@ Read these first, they are the reference for style and quality: `src/models/pure
 - `fill: true` only when the demo needs the whole stage (scenes, things with a control bar).
   Then the scene is `position:absolute; inset:0`, so size things in `%`, not assuming a size.
 
+> **Being replaced.** [VIEW-CONTRACT.md](VIEW-CONTRACT.md) is the rule models are being rewritten
+> to: one band, one unit, everything in the model's own code. The section below describes the
+> measuring system that contract removes, and goes when the rewrite lands.
+
 ## Where a model sits, and how big it is
 
 The site shows a model by running its **snippet** in a frame of 340 × 280 and scaling that frame to
