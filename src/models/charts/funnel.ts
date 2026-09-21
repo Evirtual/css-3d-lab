@@ -26,29 +26,7 @@ export const FUNNEL = {
   } as Record<string, { label: string; value: number }[]>,
 };
 
-type Stage = { label: string; value: number };
-
-// the slab geometry, the same numbers as _funnel.scss ($w, $row, $pad): the tooltip is placed with them
-const SLAB_W = 132;
-const ROW = 26;
-const PAD = 5;
-
 const SETS = Object.keys(FUNNEL.datasets);
-/** Dashboard numbers: 12,400. */
-const fmt = (n: number): string => n.toLocaleString('en-US');
-/** A share as a percent, glued to its number: one decimal below 10% (3.3%), whole above (40%). */
-const pct = (x: number): string => `${x < 0.1 ? (x * 100).toFixed(1) : Math.round(x * 100)}%`;
-/** A stage's tooltip, and its accessible name: the share is of the stage before it. */
-const tip = (rows: Stage[], i: number): string =>
-  `${rows[i].label} · ${fmt(rows[i].value)} · ${i ? `${pct(rows[i].value / rows[i - 1].value)} of ${rows[i - 1].label.toLowerCase()}` : '100%'}`;
-/** The dock's line: first stage → last stage, and the overall conversion. */
-const summary = (rows: Stage[]): string => {
-  const a = rows[0];
-  const z = rows[rows.length - 1];
-  return `${fmt(a.value)} ${a.label.toLowerCase()} → ${fmt(z.value)} ${z.label.toLowerCase()} · ${pct(z.value / a.value)} overall`;
-};
-/** Where a stage sits on the violet → teal → pink ramp, 0–1. */
-const ramp = (i: number, n: number): string => (n > 1 ? i / (n - 1) : 0).toFixed(3);
 
 export const demo: Demo = {
   id: 'funnel',
@@ -63,116 +41,6 @@ export const demo: Demo = {
     'color-mix(in oklch) ramp violet → teal → pink along --t',
     'one shared tooltip, glided with --tx / --ty',
   ],
-  fill: true,
-  html: (() => {
-    const rows = FUNNEL.datasets[SETS[0]];
-    const top = rows[0].value;
-    return `<div class="d-funnel">
-      <div class="d-funnel__view"><div class="d-funnel__chart">${rows
-        .map(
-          (r, i) =>
-            `<div class="d-funnel__row" style="--i:${i};--t:${ramp(i, rows.length)};--v:${(r.value / top).toFixed(3)}" tabindex="0" aria-label="${tip(rows, i)}"><i></i><i></i><i></i><span><strong>${r.label}</strong><em>${fmt(r.value)}</em></span></div>`,
-        )
-        .join('')}
-        <b class="d-funnel__tip" aria-hidden="true"></b>
-      </div></div>
-      <div class="d-funnel__dock">
-        <output>${summary(rows)}</output>
-        <div class="d-funnel__seg">${SETS.map(
-          (s, i) => `<button type="button" data-set="${s}" aria-pressed="${i === 0}">${s}</button>`,
-        ).join('')}</div>
-      </div>
-    </div>`;
-  })(),
-  init(scene) {
-    const rows = [...scene.querySelectorAll<HTMLElement>('.d-funnel__row')];
-    const tipEl = scene.querySelector<HTMLElement>('.d-funnel__tip')!;
-    const out = scene.querySelector<HTMLOutputElement>('.d-funnel__dock output')!;
-    const seg = scene.querySelector<HTMLElement>('.d-funnel__seg')!;
-    const buttons = [...seg.querySelectorAll<HTMLButtonElement>('button')];
-    let data = FUNNEL.datasets[SETS[0]];
-    let active = -1;
-    let hideTimer = 0;
-
-    // One tooltip for the whole chart: it glides from stage to stage and its text changes on the
-    // way. JS gives it the stage's place (--tx: the slab's right edge, --ty: the slab's top, the
-    // same numbers the CSS uses) and its colour (--t); CSS does the glide.
-    const place = (i: number) => {
-      clearTimeout(hideTimer);
-      const v = data[i].value / data[0].value;
-      const wasOn = tipEl.classList.contains('is-on');
-      // from hidden it appears in place, not flying in from where it was last
-      if (!wasOn) tipEl.style.transition = 'none';
-      tipEl.textContent = tip(data, i);
-      tipEl.style.setProperty('--t', ramp(i, data.length));
-      tipEl.style.setProperty('--tx', `${((1 + v) * SLAB_W) / 2}px`);
-      tipEl.style.setProperty('--ty', `${i * ROW + PAD}px`);
-      if (!wasOn) {
-        void tipEl.offsetWidth; // apply the new place before the transition comes back
-        tipEl.style.transition = '';
-      }
-      tipEl.classList.add('is-on');
-      rows.forEach((r, k) => r.classList.toggle('is-active', k === i));
-      active = i;
-    };
-    // a short grace period, so crossing from one row to the next does not flicker it
-    const hide = () => {
-      clearTimeout(hideTimer);
-      hideTimer = window.setTimeout(() => {
-        tipEl.classList.remove('is-on');
-        rows.forEach((r) => r.classList.remove('is-active'));
-        active = -1;
-      }, 150);
-    };
-    const rowOf = (e: Event) => (e.target as HTMLElement).closest<HTMLElement>('.d-funnel__row');
-    const over = (e: Event) => {
-      const row = rowOf(e);
-      if (row) place(rows.indexOf(row));
-    };
-    const leave = (e: Event) => {
-      const to = (e as PointerEvent | FocusEvent).relatedTarget as HTMLElement | null;
-      if (!to?.closest?.('.d-funnel__row')) hide();
-    };
-    // a finger has no hover: a tap on a stage shows its tooltip, a tap elsewhere hides it
-    const tap = (e: PointerEvent) => {
-      if (e.pointerType === 'mouse') return;
-      const row = rowOf(e);
-      if (row) place(rows.indexOf(row));
-      else hide();
-    };
-
-    // JS writes one number per stage (and the texts, as textContent); the motion is CSS
-    const pick = (e: Event) => {
-      const btn = (e.target as HTMLElement).closest('button');
-      if (!btn) return;
-      data = FUNNEL.datasets[btn.dataset.set!];
-      data.forEach((r, i) => {
-        const row = rows[i];
-        row.style.setProperty('--v', (r.value / data[0].value).toFixed(3));
-        row.setAttribute('aria-label', tip(data, i));
-        row.querySelector('strong')!.textContent = r.label;
-        row.querySelector('em')!.textContent = fmt(r.value);
-      });
-      out.textContent = summary(data);
-      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      if (active >= 0) place(active); // the tooltip follows its slab to the new edge
-    };
-
-    const on: [string, EventListener][] = [
-      ['pointerover', over],
-      ['focusin', over],
-      ['pointerout', leave],
-      ['focusout', leave],
-      ['pointerup', tap as EventListener],
-    ];
-    on.forEach(([type, fn]) => scene.addEventListener(type, fn));
-    seg.addEventListener('click', pick);
-    return () => {
-      clearTimeout(hideTimer);
-      on.forEach(([type, fn]) => scene.removeEventListener(type, fn));
-      seg.removeEventListener('click', pick);
-    };
-  },
 };
 
 // ---- the copy-paste snippet ----

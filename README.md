@@ -20,17 +20,18 @@ cards & galleries, loaders & patterns, scenes & objects, data & tools), in two h
 - Search, category tabs, groups and tag filters. Counts always reflect what you would actually
   see, and the URL keeps the filter state so it can be shared.
 - A page per model (`/models/<id>/`) and per group (`/groups/<group>/`), and the same detail in
-  a dialog on the home page: a larger live stage, a step-by-step explanation, and tabs with
-  - the **minimal standalone HTML / CSS / JS snippet** (no Sass, no build step) — the build fails
-    if a model has none,
-  - a **Sass source** tab, showing `src/styles/models/_<id>.scss`. The site no longer draws any
-    model from that Sass: it is the older implementation, kept until it is removed (see
-    [docs/VIEW-CONTRACT.md](docs/VIEW-CONTRACT.md), "What goes with this").
+  a dialog on the home page: a larger live stage, a step-by-step explanation, and HTML / CSS / JS
+  tabs with the **minimal standalone snippet** (plain CSS, no build step) — the build fails if a
+  model has none. The GitHub button opens that snippet in the repository.
 - **The snippet is the model.** Every surface — card, dialog, model page, edited version,
   recording, snapshot — runs the model's own snippet in a frame (`src/preview.ts`) that fills
   its stage. That frame is the model's canvas: `1vmin` is a hundredth of its short side, and every
   model sizes and places itself in those units by the rules in
   [docs/VIEW-CONTRACT.md](docs/VIEW-CONTRACT.md). Nothing outside a model sizes or moves it.
+  There is no second implementation: the site's stylesheet (`src/styles/`) is only the site's
+  own chrome, and a model's CSS reaches the page only inside its frame. The page's JavaScript
+  still carries every snippet (the gallery, the editors and "Copy" need them), so it is the
+  heaviest thing a page loads.
 - The code windows are live editors: a CSS edit is applied to the running frame without
   remounting it (the animation keeps its pose), HTML or JS edits rebuild the frame. Edits are saved
   per model in `localStorage` (`c3d-edit:<id>`) and can be reset. "Copy" and "Copy as one HTML

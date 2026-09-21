@@ -525,7 +525,7 @@ ${lines(10, (i) => `<i style="--i:${i}"></i>`, '  ')}
       'Hundreds of DOM nodes would be wasteful. Instead each layer is <b>one</b> element a single unit square, and every star is a <code>box-shadow</code> of it.',
       'A box-shadow with zero blur and a spread radius is just a dot at an offset — and you can have as many as you like.',
       'Flying the single element along Z moves all its stars at once, with correct perspective.',
-      'Three layers on staggered delays hide the loop. In Sass the list comes from <code>random()</code> at build time (see the SCSS tab); here it is written out.',
+      'Three layers on staggered delays hide the loop. The star lists are written out, so the field is the same on every load.',
       'The field is <code>inset: 0</code>, so it fills the canvas edge to edge. Its lengths are multiples of one base unit, <code>--u</code>, tied to the canvas. Each layer sets <code>font-size: var(--u)</code>, so its star offsets are written in <code>em</code>: one em is one unit, and the list stays short enough to read.',
     ],
     html: `<div class="space">

@@ -1,18 +1,14 @@
 import type { Demo } from './types';
 
-const rep = (n: number, fn: (i: number) => string): string =>
-  Array.from({ length: n }, (_, i) => fn(i)).join('');
-
-/** Demos that run with zero JavaScript — markup + SCSS only. */
+/** Demos that run with zero JavaScript — HTML and CSS only. */
 export const pureDemos: Demo[] = [
   {
     id: 'cube',
     title: 'Rotating cube',
     description: 'Six faces placed with rotate + translateZ, spun by a single keyframe animation.',
     category: 'css',
-    tags: ['loop', 'sass-loop'],
-    technique: ['transform-style: preserve-3d', 'perspective', '@keyframes', 'Sass @mixin + @for'],
-    html: `<div class="d-cube">${rep(6, (i) => `<i>${i + 1}</i>`)}</div>`,
+    tags: ['loop'],
+    technique: ['transform-style: preserve-3d', 'perspective', '@keyframes', ':nth-child places each face'],
   },
   {
     id: 'flip',
@@ -21,30 +17,22 @@ export const pureDemos: Demo[] = [
     category: 'css',
     tags: ['hover'],
     technique: ['backface-visibility: hidden', 'transition', ':hover / :focus-visible'],
-    html: `<div class="d-flip" tabindex="0" role="group" aria-label="Flip card">
-      <div class="d-flip__inner">
-        <div class="d-flip__face"><b>Front</b><span>hover or focus me</span></div>
-        <div class="d-flip__face d-flip__face--back"><b>Back</b><span>no JavaScript here</span></div>
-      </div>
-    </div>`,
   },
   {
     id: 'carousel',
     title: 'Ring carousel',
-    description: 'Panels arranged on a circle. The radius is computed in Sass with math.tan().',
+    description: 'Panels arranged on a circle. The radius comes from tan(): (width / 2) / tan(180° / count).',
     category: 'css',
-    tags: ['loop', 'sass-loop'],
-    technique: ['preserve-3d', 'rotateY + translateZ', 'sass:math'],
-    html: `<div class="d-carousel"><div class="d-carousel__ring">${rep(8, (i) => `<i>${i + 1}</i>`)}</div></div>`,
+    tags: ['loop'],
+    technique: ['preserve-3d', 'rotateY + translateZ', 'radius = (width / 2) / tan(180° / n)'],
   },
   {
     id: 'text',
     title: 'Extruded text',
-    description: 'A Sass function generates a stack of text-shadows that reads as solid depth.',
+    description: 'A stack of hard text-shadows, each one step further and a little darker, reads as solid depth.',
     category: 'css',
-    tags: ['text', 'faux-3d', 'loop', 'sass-loop'],
-    technique: ['text-shadow stack', 'Sass @function', 'rotateY rocking'],
-    html: `<div class="d-text">DEPTH</div>`,
+    tags: ['text', 'faux-3d', 'loop'],
+    technique: ['text-shadow stack', 'darker layer per step', 'rotateY rocking'],
   },
   {
     id: 'layers',
@@ -53,16 +41,14 @@ export const pureDemos: Demo[] = [
     category: 'css',
     tags: ['loop'],
     technique: ['rotateX + rotateZ isometric view', 'translateZ', 'var() in the resting pose, one keyframe to close'],
-    html: `<div class="d-layers">${rep(4, (i) => `<i style="--i:${i}"></i>`)}</div>`,
   },
   {
     id: 'button',
     title: 'Push button',
     description: 'Press it. The edge is a generated box-shadow stack that collapses on :active.',
     category: 'css',
-    tags: ['controls', 'faux-3d', 'sass-loop'],
+    tags: ['controls', 'faux-3d'],
     technique: ['box-shadow stack', ':active on a static hit target', 'rotateX tilt'],
-    html: `<button class="d-button" type="button"><span>PUSH</span></button>`,
   },
   {
     id: 'fold',
@@ -71,27 +57,22 @@ export const pureDemos: Demo[] = [
     category: 'css',
     tags: ['loop'],
     technique: ['nested preserve-3d', 'transform-origin: left', 'alternating keyframes'],
-    html: `<div class="d-fold"><div class="p"><div class="p"><div class="p"><div class="p"></div></div></div></div></div>`,
   },
   {
     id: 'orbit',
     title: 'Atom orbits',
     description: 'Three rings tilted into different planes, each spinning inside its own plane.',
     category: 'css',
-    tags: ['loop', 'sass-loop'],
-    technique: ['preserve-3d', 'static tilt wrapper + spinning child', 'Sass @each'],
-    html: `<div class="d-orbit"><b></b>${rep(3, () => `<div class="d-orbit__plane"><div class="d-orbit__ring"><i></i></div></div>`)}</div>`,
+    tags: ['loop'],
+    technique: ['preserve-3d', 'static tilt wrapper + spinning child', 'own tilt and duration per ring'],
   },
   {
     id: 'bars',
     title: '3D bar chart',
     description: 'Each bar is a real cuboid — front, side and top face — growing on a staggered delay.',
     category: 'css',
-    tags: ['loop', 'sass-loop'],
+    tags: ['loop'],
     technique: ['preserve-3d inside flexbox', 'scaleY walls + translateY lid (no layout)', 'animation-delay stagger'],
-    html: `<div class="d-bars">${[60, 95, 45, 120, 80]
-      .map((h) => `<div class="d-bars__bar" style="--hn:${h}"><i></i><i></i><i></i></div>`)
-      .join('')}</div>`,
   },
   {
     id: 'book',
@@ -100,7 +81,6 @@ export const pureDemos: Demo[] = [
     category: 'css',
     tags: ['loop'],
     technique: ['transform-origin: left', 'var() end angle per sheet', 'one @property --open, a staggered slice per sheet'],
-    html: `<div class="d-book">${rep(5, (i) => `<i style="--n:${i}"></i>`)}<b>CSS<br />3D</b></div>`,
   },
   {
     id: 'radio',
@@ -109,13 +89,6 @@ export const pureDemos: Demo[] = [
     category: 'css',
     tags: ['form-hack', 'controls'],
     technique: [':checked ~ sibling selector', 'transition on transform', '<label for> as the button'],
-    fill: true,
-    html: `<div class="d-radio">
-      ${['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']
-        .map((l, i) => `<input type="radio" name="face-{{uid}}" aria-label="${l}" title="${l}"${i === 0 ? ' checked' : ''} />`)
-        .join('')}
-      <div class="d-radio__cube">${['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom'].map((l) => `<i>${l}</i>`).join('')}</div>
-    </div>`,
   },
   {
     id: 'grid',
@@ -124,25 +97,21 @@ export const pureDemos: Demo[] = [
     category: 'css',
     tags: ['loop'],
     technique: ['perspective on parent', 'rotateX floor plane', 'line layer slid with transform (not background-position)'],
-    fill: true,
-    html: `<div class="d-grid"><div class="d-grid__sun"></div><div class="d-grid__floor"></div></div>`,
   },
   {
     id: 'helix',
     title: 'DNA helix',
     description: 'Rungs spin on negative delays; dots counter-rotate so they always face the camera.',
     category: 'css',
-    tags: ['loop', 'sass-loop'],
-    technique: ['negative animation-delay', 'billboard counter-rotation', 'Sass @for'],
-    html: `<div class="d-helix">${rep(14, () => `<div class="d-helix__rung"><i></i><i></i></div>`)}</div>`,
+    tags: ['loop'],
+    technique: ['negative animation-delay', 'billboard counter-rotation', 'delay from --i per rung'],
   },
   {
     id: 'tiles',
     title: 'Tile wave',
     description: 'A 4×4 grid of two-sided tiles flipping in a diagonal wave.',
     category: 'css',
-    tags: ['loop', 'sass-loop'],
-    technique: ['backface-visibility', 'delay = (row + column) × step', 'Sass nested @for'],
-    html: `<div class="d-tiles">${rep(16, () => `<i></i>`)}</div>`,
+    tags: ['loop'],
+    technique: ['backface-visibility', 'delay = (row + column) × step', '--d per tile in its style'],
   },
 ];

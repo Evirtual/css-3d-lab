@@ -12,23 +12,7 @@
   }
 }
 
-// Rounded faces leave a hole at every corner of a box, and an empty box shows daylight through
-// it. This puts a plate the full size of the face a little way behind it ($inset). On all faces
-// together the plates close the inside: a plate only $inset smaller would leave an open channel
-// along every edge, and at a rounded corner you could look straight down it to the far corner.
-@mixin solid-core($inset, $color) {
-  transform-style: preserve-3d;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: $color;
-    transform: translateZ(-$inset);
-  }
-}
-
-// A translucent "glass" face used by most solids.
+// A translucent "glass" face (the hero cube and the logo).
 @mixin face($color: var(--accent), $alpha: 28%) {
   background: color-mix(in srgb, #{$color} #{$alpha}, transparent);
   border: 1px solid color-mix(in srgb, #{$color} 75%, transparent);

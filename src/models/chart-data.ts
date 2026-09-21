@@ -1,7 +1,6 @@
 /**
- * The JSON the chart models are drawn from. One copy, used by the models on the site AND printed
- * into their copy-paste snippets, so the two can never show different numbers. Shaped like an
- * API response: plain objects and arrays, nothing chart-specific.
+ * The JSON the chart models are drawn from, printed into their copy-paste snippets. Shaped like
+ * an API response: plain objects and arrays, nothing chart-specific.
  */
 
 /** neonbars: monthly sales per year, in thousands of dollars: shown as $88k. */
@@ -53,6 +52,3 @@ export const TREND = {
   labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
   values: [18, 24, 21, 30, 27, 36, 33, 41, 37, 47, 44, 55],
 };
-
-/** The top of a chart's scale: the largest value rounded up to a tidy step. */
-export const niceMax = (max: number, step = 20): number => Math.ceil(max / step) * step;

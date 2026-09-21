@@ -1,4 +1,3 @@
-import { niceMax } from '../chart-data';
 import type { Snippet } from '../snippet-utils';
 import type { Demo } from '../types';
 
@@ -15,7 +14,7 @@ interface Step {
   kind?: 'total';
 }
 
-/** The JSON, shaped like an API response. The same const drives the model and its snippet. */
+/** The JSON, shaped like an API response. The snippet prints it in. */
 export const CASHFLOW = {
   prefix: '$',
   suffix: 'k',
@@ -42,61 +41,6 @@ export const CASHFLOW = {
 };
 
 const MONTHS = Object.keys(CASHFLOW.months);
-// the wall's lines sit at these fractions of the scale
-const TICKS = [0, 0.5, 1];
-// the step geometry, the same numbers as _waterfall.scss ($w, $gap, $h): the tooltip is placed with them
-const STEP_W = 18;
-const STEP_PITCH = 18 + 9;
-const STEP_H = 100;
-
-/** Money the way dashboards write it: sign in front, a real minus, the k glued on ("−$64k"). */
-const money = (v: number, sign = false): string =>
-  `${v < 0 ? '−' : sign && v > 0 ? '+' : ''}${CASHFLOW.prefix}${Math.abs(v)}${CASHFLOW.suffix}`;
-
-interface Row {
-  label: string;
-  kind: 'total' | 'gain' | 'loss';
-  value: number;
-  from: number;
-  to: number;
-}
-
-/**
- * One month as the chart needs it. Every step runs from one level to another (a total from the
- * floor); `--b` is the box's bottom, `--v` its height, `--e` where the next step starts (the
- * connector), all as fractions of the scale's top.
- */
-const month = (m: string) => {
-  let run = 0;
-  const rows: Row[] = CASHFLOW.months[m].map((s) => {
-    if (s.kind === 'total') {
-      if (s.value !== undefined) run = s.value;
-      return { label: s.label, kind: 'total', value: run, from: 0, to: run };
-    }
-    const value = s.value ?? 0;
-    const from = run;
-    run += value;
-    return { label: s.label, kind: value < 0 ? 'loss' : 'gain', value, from, to: run };
-  });
-  const top = niceMax(Math.max(...rows.map((r) => Math.max(r.from, r.to))));
-  const start = rows[0].to;
-  const end = rows[rows.length - 1].to;
-  const pct = Math.round(((end - start) / start) * 100);
-  return {
-    rows,
-    top,
-    vars: rows.map((r) => ({
-      b: (Math.min(r.from, r.to) / top).toFixed(3),
-      v: (Math.abs(r.to - r.from) / top).toFixed(3),
-      e: (r.to / top).toFixed(3),
-    })),
-    summary: `${money(start)} → ${money(end)} · ${pct < 0 ? '−' : pct > 0 ? '+' : ''}${Math.abs(pct)}%`,
-  };
-};
-
-/** A step's tooltip, and its accessible name: "Salaries · −$64k → $123k". */
-const tip = (r: Row): string =>
-  r.kind === 'total' ? `${r.label} · ${money(r.to)}` : `${r.label} · ${money(r.value, true)} → ${money(r.to)}`;
 
 export const demo: Demo = {
   id: 'waterfall',
@@ -111,124 +55,6 @@ export const demo: Demo = {
     'connector line: ::after riding at the running total',
     'still full-height column per step + one gliding tooltip',
   ],
-  fill: true,
-  html: (() => {
-    const { rows, top, vars, summary } = month(MONTHS[0]);
-    return `<div class="d-waterfall">
-      <div class="d-waterfall__view"><div class="d-waterfall__chart">
-        <div class="d-waterfall__floor"></div>
-        <div class="d-waterfall__wall">${TICKS.map((t) => `<b style="--t:${t}"><span>${Math.round(t * top)}</span></b>`).join('')}</div>
-        ${rows
-          .map(
-            (r, i) =>
-              `<div class="d-waterfall__step is-${r.kind}" style="--i:${i};--b:${vars[i].b};--v:${vars[i].v};--e:${vars[i].e}" tabindex="0" aria-label="${tip(r)}"><i></i><i></i><i></i><span>${r.label}</span></div>`,
-          )
-          .join('')}
-        <b class="d-waterfall__tip" aria-hidden="true"></b>
-      </div></div>
-      <div class="d-waterfall__dock">
-        <output>${summary}</output>
-        <div class="d-waterfall__seg">${MONTHS.map(
-          (m, i) => `<button type="button" data-month="${m}" aria-pressed="${i === 0}">${m}</button>`,
-        ).join('')}</div>
-      </div>
-    </div>`;
-  })(),
-  init(scene) {
-    const steps = [...scene.querySelectorAll<HTMLElement>('.d-waterfall__step')];
-    const ticks = [...scene.querySelectorAll<HTMLElement>('.d-waterfall__wall span')];
-    const tipEl = scene.querySelector<HTMLElement>('.d-waterfall__tip')!;
-    const out = scene.querySelector<HTMLOutputElement>('.d-waterfall__dock output')!;
-    const seg = scene.querySelector<HTMLElement>('.d-waterfall__seg')!;
-    const buttons = [...seg.querySelectorAll<HTMLButtonElement>('button')];
-    let shown = month(MONTHS[0]);
-    let active = -1;
-    let hideTimer = 0;
-
-    // One tooltip for the whole chart: it glides from step to step and its text changes on the
-    // way. JS gives it the top of the step's box (--tx, --ty, the same numbers the CSS uses) and
-    // CSS does the glide.
-    const place = (i: number) => {
-      clearTimeout(hideTimer);
-      const r = shown.rows[i];
-      const wasOn = tipEl.classList.contains('is-on');
-      // from hidden it appears in place, not flying in from where it was last
-      if (!wasOn) tipEl.style.transition = 'none';
-      tipEl.textContent = tip(r);
-      tipEl.style.setProperty('--tx', `${i * STEP_PITCH + STEP_W / 2}px`);
-      tipEl.style.setProperty('--ty', `${(1 - Math.max(r.from, r.to) / shown.top) * STEP_H}px`);
-      tipEl.classList.remove('is-total', 'is-gain', 'is-loss');
-      tipEl.classList.add(`is-${r.kind}`);
-      if (!wasOn) {
-        void tipEl.offsetWidth; // apply the new place before the transition comes back
-        tipEl.style.transition = '';
-      }
-      tipEl.classList.add('is-on');
-      steps.forEach((s, k) => s.classList.toggle('is-active', k === i));
-      active = i;
-    };
-    // a short grace period, so crossing the gap between two steps does not flicker it
-    const hide = () => {
-      clearTimeout(hideTimer);
-      hideTimer = window.setTimeout(() => {
-        tipEl.classList.remove('is-on');
-        steps.forEach((s) => s.classList.remove('is-active'));
-        active = -1;
-      }, 150);
-    };
-    const stepOf = (e: Event) => (e.target as HTMLElement).closest<HTMLElement>('.d-waterfall__step');
-    const over = (e: Event) => {
-      const step = stepOf(e);
-      if (step) place(steps.indexOf(step));
-    };
-    const leave = (e: Event) => {
-      const to = (e as PointerEvent | FocusEvent).relatedTarget as HTMLElement | null;
-      if (!to?.closest?.('.d-waterfall__step')) hide();
-    };
-    // a finger has no hover: a tap on a step shows its tooltip, a tap elsewhere hides it
-    const tap = (e: PointerEvent) => {
-      if (e.pointerType === 'mouse') return;
-      const step = stepOf(e);
-      if (step) place(steps.indexOf(step));
-      else hide();
-    };
-
-    // JS writes three numbers per step; the glide, the stagger and the colours are CSS
-    const pick = (e: Event) => {
-      const btn = (e.target as HTMLElement).closest('button');
-      if (!btn) return;
-      shown = month(btn.dataset.month!);
-      shown.rows.forEach((r, i) => {
-        const s = steps[i];
-        s.style.setProperty('--b', shown.vars[i].b);
-        s.style.setProperty('--v', shown.vars[i].v);
-        s.style.setProperty('--e', shown.vars[i].e);
-        s.classList.remove('is-total', 'is-gain', 'is-loss');
-        s.classList.add(`is-${r.kind}`);
-        s.setAttribute('aria-label', tip(r));
-        s.querySelector('span')!.textContent = r.label;
-      });
-      ticks.forEach((t, k) => (t.textContent = String(Math.round(TICKS[k] * shown.top))));
-      out.textContent = shown.summary;
-      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      if (active >= 0) place(active); // the tooltip follows its step to the new place
-    };
-
-    const on: [string, EventListener][] = [
-      ['pointerover', over],
-      ['focusin', over],
-      ['pointerout', leave],
-      ['focusout', leave],
-      ['pointerup', tap as EventListener],
-    ];
-    on.forEach(([type, fn]) => scene.addEventListener(type, fn));
-    seg.addEventListener('click', pick);
-    return () => {
-      clearTimeout(hideTimer);
-      on.forEach(([type, fn]) => scene.removeEventListener(type, fn));
-      seg.removeEventListener('click', pick);
-    };
-  },
 };
 
 // ---- the copy-paste snippet: plain HTML + CSS + JS, the same JSON printed at the top of its JS ----

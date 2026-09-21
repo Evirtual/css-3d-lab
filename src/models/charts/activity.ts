@@ -26,21 +26,6 @@ export const ACTIVITY: { rings: { key: Key; label: string; unit: string }[]; day
   ],
 };
 
-const { rings: RINGS, days: DAYS } = ACTIVITY;
-const START = 0;
-const LAYERS = '<i></i>'.repeat(6);
-
-/** A ring's progress: 1 is the goal, more than 1 runs into a second lap. */
-const progress = (d: Day, k: Key): number => d[k][0] / d[k][1];
-const pct = (d: Day, k: Key): number => Math.round(progress(d, k) * 100);
-/** The dock's line for a whole day. */
-const summary = (d: Day): string => `${d.day} · ${RINGS.map((r) => `${r.label} ${pct(d, r.key)}%`).join(' · ')}`;
-/** One ring's numbers: the dock's line while it is pointed at, and its accessible name. */
-const detail = (d: Day, i: number): string => {
-  const r = RINGS[i];
-  return `${d.day} · ${r.label} ${d[r.key][0]}/${d[r.key][1]} ${r.unit} · ${pct(d, r.key)}%`;
-};
-
 export const demo: Demo = {
   id: 'activity',
   title: 'Activity rings from JSON',
@@ -54,98 +39,6 @@ export const demo: Demo = {
     '@property <number>: the gradient transitions',
     'three layers stepping back: a solid band',
   ],
-  fill: true,
-  html: (() => {
-    const d = DAYS[START];
-    return `<div class="d-activity">
-      <div class="d-activity__view"><div class="d-activity__rings">${RINGS.map(
-        (r, i) =>
-          `<div class="d-activity__ring${progress(d, r.key) > 1 ? ' is-lap' : ''}" style="--r:${i};--d-activity-p:${progress(d, r.key).toFixed(3)}" tabindex="0" aria-label="${detail(d, i)}"><div class="d-activity__band">${LAYERS}<em></em></div></div>`,
-      ).join('')}
-        <div class="d-activity__hub">${d.day}</div>
-      </div></div>
-      <div class="d-activity__dock">
-        <output>${summary(d)}</output>
-        <div class="d-activity__seg">${DAYS.map(
-          (x, i) => `<button type="button" data-day="${i}" aria-pressed="${i === START}">${x.day}</button>`,
-        ).join('')}</div>
-      </div>
-    </div>`;
-  })(),
-  init(scene) {
-    const box = scene.querySelector<HTMLElement>('.d-activity__rings')!;
-    const rings = [...box.querySelectorAll<HTMLElement>('.d-activity__ring')];
-    const hub = box.querySelector<HTMLElement>('.d-activity__hub')!;
-    const out = scene.querySelector<HTMLOutputElement>('.d-activity__dock output')!;
-    const seg = scene.querySelector<HTMLElement>('.d-activity__seg')!;
-    const buttons = [...seg.querySelectorAll<HTMLButtonElement>('button')];
-    let day = START;
-    let active = -1;
-    let hideTimer = 0;
-    const ringOf = (el: EventTarget | null): number =>
-      el instanceof Element ? rings.indexOf(el.closest<HTMLElement>('.d-activity__ring')!) : -1;
-
-    // the pointed-at ring lifts and fills in (CSS), and the dock shows its numbers as text
-    const show = (i: number) => {
-      clearTimeout(hideTimer);
-      active = i;
-      rings.forEach((r, k) => r.classList.toggle('is-active', k === i));
-      out.textContent = i >= 0 ? detail(DAYS[day], i) : summary(DAYS[day]);
-    };
-    // a short grace period, so crossing from one ring to the next does not flicker the dock
-    const hide = () => {
-      clearTimeout(hideTimer);
-      hideTimer = window.setTimeout(() => show(-1), 150);
-    };
-    // a mouse points by hovering, the keyboard by focusing (a tap also focuses: that is `tap`'s)
-    const mine = (e: Event): boolean =>
-      e instanceof PointerEvent ? e.pointerType === 'mouse' : (e.target as HTMLElement).matches(':focus-visible');
-    const over = (e: Event) => {
-      const i = ringOf(e.target);
-      if (i >= 0 && mine(e)) show(i);
-    };
-    const leave = (e: Event) => {
-      if (e instanceof PointerEvent && e.pointerType !== 'mouse') return;
-      if (ringOf((e as PointerEvent | FocusEvent).relatedTarget) < 0) hide();
-    };
-    // a finger has no hover: a tap on a ring picks it, a second tap or a tap beside it lets go
-    const tap = (e: PointerEvent) => {
-      if (e.pointerType === 'mouse' || seg.contains(e.target as Node)) return;
-      const i = ringOf(e.target);
-      if (i >= 0 && i !== active) show(i);
-      else hide();
-    };
-    // JS writes one number per ring; the sweep, the stagger and the lap are CSS
-    const pick = (e: Event) => {
-      const btn = (e.target as HTMLElement).closest('button');
-      if (!btn) return;
-      day = Number(btn.dataset.day);
-      const d = DAYS[day];
-      RINGS.forEach((r, i) => {
-        rings[i].style.setProperty('--d-activity-p', progress(d, r.key).toFixed(3));
-        rings[i].classList.toggle('is-lap', progress(d, r.key) > 1);
-        rings[i].setAttribute('aria-label', detail(d, i));
-      });
-      hub.textContent = d.day;
-      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      show(active);
-    };
-
-    const on: [string, EventListener][] = [
-      ['pointerover', over],
-      ['focusin', over],
-      ['pointerout', leave],
-      ['focusout', leave],
-      ['pointerup', tap as EventListener],
-    ];
-    on.forEach(([type, fn]) => box.addEventListener(type, fn));
-    seg.addEventListener('click', pick);
-    return () => {
-      clearTimeout(hideTimer);
-      on.forEach(([type, fn]) => box.removeEventListener(type, fn));
-      seg.removeEventListener('click', pick);
-    };
-  },
 };
 
 // ---------------------------------------------------------------------------------------------

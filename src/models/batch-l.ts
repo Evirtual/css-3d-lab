@@ -1,7 +1,7 @@
 /**
- * More charts drawn from JSON, one file per chart in ./charts/ (the model and its copy-paste
- * snippet side by side, fed by the same data const). Collected here for the gallery and the
- * snippet map.
+ * More charts drawn from JSON, one file per chart in ./charts/ (the gallery entry and its
+ * copy-paste snippet side by side, the snippet fed by the file's data const). Collected here for
+ * the gallery and the snippet map.
  */
 import * as activity from './charts/activity';
 import * as candles from './charts/candles';

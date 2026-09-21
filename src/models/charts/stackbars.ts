@@ -1,12 +1,11 @@
-import { niceMax } from '../chart-data';
 import type { Snippet } from '../snippet-utils';
 import type { Demo } from '../types';
 
 /*
  * stackbars: quarterly revenue split by product, one stacked column per quarter. JS turns the JSON
  * into two numbers per segment, --base (where it starts) and --v (how tall it is), both fractions of
- * the scale; CSS draws the glass cuboids and moves them with transform only. The same REVENUE const
- * feeds the site model and is printed into the snippet, so the two always show the same numbers.
+ * the scale; CSS draws the glass cuboids and moves them with transform only. The REVENUE const is
+ * printed into the snippet.
  */
 
 /** Revenue per quarter and product, in thousands of dollars (shown as $38k), shaped like an API response. */
@@ -20,61 +19,6 @@ const REVENUE = {
     { name: 'Starter', values: [18, 22, 20, 27] },
   ],
 };
-
-const { quarters: QUARTERS, products: PRODUCTS } = REVENUE;
-// the wall's lines sit at these fractions of the scale
-const TICKS = [0, 0.5, 1];
-// the column geometry, the same numbers as _stackbars.scss ($w, $gap, $h): the tooltip is placed with them
-const COL_W = 24;
-const COL_PITCH = 24 + 16;
-const COL_H = 100;
-
-/** A value as money: the sign in front, the k right after the number ($38k). */
-const money = (v: number): string => `${REVENUE.prefix}${v}${REVENUE.suffix}`;
-/** A segment's tooltip, and its accessible name. */
-const tip = (q: number, p: number): string => `${QUARTERS[q]} · ${PRODUCTS[p].name} · ${money(PRODUCTS[p].values[q])}`;
-
-/** Escape text from the data before it goes into an HTML template. */
-const esc = (s: string): string =>
-  s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-
-interface Seg {
-  base: number;
-  v: number;
-  top: boolean;
-}
-
-/**
- * The chart for a set of switched-on products: the scale's top (the tallest column rounded up to a
- * tidy step), and per quarter and product where its segment starts and how tall it is (0–1).
- */
-const layout = (on: boolean[]) => {
-  const totals = QUARTERS.map((_, q) => PRODUCTS.reduce((s, p, k) => s + (on[k] ? p.values[q] : 0), 0));
-  const most = Math.max(...totals);
-  const top = Math.max(20, niceMax(most));
-  const segs: Seg[][] = QUARTERS.map((_, q) => {
-    let base = 0;
-    const col = PRODUCTS.map((p, k) => {
-      const v = on[k] ? p.values[q] / top : 0;
-      const s = { base, v, top: false };
-      base += v;
-      return s;
-    });
-    const last = col.map((s) => s.v > 0).lastIndexOf(true);
-    if (last >= 0) col[last].top = true; // only the highest segment shows its lid
-    return col;
-  });
-  const names = PRODUCTS.filter((_, k) => on[k]).map((p) => p.name);
-  const sum = totals.reduce((a, b) => a + b, 0);
-  const best = totals.indexOf(most);
-  const summary = !names.length
-    ? 'No product shown · switch one on'
-    : `${names.length === PRODUCTS.length ? 'All products' : names.join(' + ')} · ${money(sum)} · best ${QUARTERS[best]}, ${money(most)}`;
-  return { top, segs, summary };
-};
-
-const f = (n: number): string => n.toFixed(4);
-const ALL_ON = PRODUCTS.map(() => true);
 
 export const demo: Demo = {
   id: 'stackbars',
@@ -90,139 +34,6 @@ export const demo: Demo = {
     'tooltip on a twin 3D layer over the chart',
     'legend = <button aria-pressed> toggles',
   ],
-  fill: true,
-  html: (() => {
-    const { top, segs, summary } = layout(ALL_ON);
-    return `<div class="d-stackbars">
-      <div class="d-stackbars__view"><div class="d-stackbars__chart">
-        <div class="d-stackbars__floor"></div>
-        <div class="d-stackbars__wall">${TICKS.map((t) => `<b style="--t:${t}"><span>${Math.round(t * top)}</span></b>`).join('')}</div>
-        <div class="d-stackbars__cols">${QUARTERS.map(
-          (q, i) =>
-            `<div class="d-stackbars__col" style="--i:${i}">${PRODUCTS.map((_, k) => {
-              const s = segs[i][k];
-              return `<div class="d-stackbars__seg${s.top ? ' is-top' : ''}" data-p="${k}" style="--base:${f(s.base)};--v:${f(s.v)}"><i role="img" tabindex="0" aria-label="${esc(tip(i, k))}"></i><i></i><i></i></div>`;
-            }).join('')}<span>${esc(q)}</span></div>`,
-        ).join('')}</div>
-        <b class="d-stackbars__tip" data-p="0" aria-hidden="true"></b>
-      </div></div>
-      <div class="d-stackbars__dock">
-        <output>${esc(summary)}</output>
-        <div class="d-stackbars__legend">${PRODUCTS.map(
-          (p, k) => `<button type="button" data-p="${k}" aria-pressed="true">${esc(p.name)}</button>`,
-        ).join('')}</div>
-      </div>
-    </div>`;
-  })(),
-  init(scene) {
-    const cols = [...scene.querySelectorAll<HTMLElement>('.d-stackbars__col')];
-    const segs = cols.map((c) => [...c.querySelectorAll<HTMLElement>('.d-stackbars__seg')]);
-    const all = segs.flat();
-    const ticks = [...scene.querySelectorAll<HTMLElement>('.d-stackbars__wall span')];
-    const tipEl = scene.querySelector<HTMLElement>('.d-stackbars__tip')!;
-    const out = scene.querySelector<HTMLOutputElement>('.d-stackbars__dock output')!;
-    const legend = scene.querySelector<HTMLElement>('.d-stackbars__legend')!;
-    const buttons = [...legend.querySelectorAll<HTMLButtonElement>('button')];
-    const on = [...ALL_ON];
-    let shown = layout(on);
-    let active: [number, number] | null = null; // [quarter, product] the tooltip is on
-    let hideTimer = 0;
-
-    // One tooltip for the whole chart: it glides from segment to segment and its text changes on
-    // the way. JS gives it the segment's place (--tx, --ty, the same numbers the CSS uses) and CSS
-    // does the glide.
-    const place = (q: number, p: number) => {
-      clearTimeout(hideTimer);
-      const s = shown.segs[q][p];
-      const wasOn = tipEl.classList.contains('is-on');
-      // from hidden it appears in place, not flying in from where it was last
-      if (!wasOn) tipEl.style.transition = 'none';
-      tipEl.textContent = tip(q, p);
-      tipEl.dataset.p = String(p);
-      tipEl.style.setProperty('--tx', `${q * COL_PITCH + COL_W / 2}px`);
-      tipEl.style.setProperty('--ty', `${(1 - s.base - s.v) * COL_H}px`);
-      if (!wasOn) {
-        void tipEl.offsetWidth; // apply the new place before the transition comes back
-        tipEl.style.transition = '';
-      }
-      tipEl.classList.add('is-on');
-      all.forEach((el) => el.classList.toggle('is-active', el === segs[q][p]));
-      active = [q, p];
-    };
-    const hideNow = () => {
-      clearTimeout(hideTimer);
-      tipEl.classList.remove('is-on');
-      all.forEach((el) => el.classList.remove('is-active'));
-      active = null;
-    };
-    // a short grace period, so crossing the gap between two segments does not flicker it
-    const hide = () => {
-      clearTimeout(hideTimer);
-      hideTimer = window.setTimeout(hideNow, 150);
-    };
-    const segOf = (e: Event) => (e.target as HTMLElement).closest<HTMLElement>('.d-stackbars__seg');
-    const where = (el: HTMLElement): [number, number] => [cols.indexOf(el.parentElement!), Number(el.dataset.p)];
-    const over = (e: Event) => {
-      const seg = segOf(e);
-      if (seg && !seg.classList.contains('is-off')) place(...where(seg));
-    };
-    const leave = (e: Event) => {
-      const to = (e as PointerEvent | FocusEvent).relatedTarget as HTMLElement | null;
-      if (!to?.closest?.('.d-stackbars__seg')) hide();
-    };
-    // a finger has no hover: a tap on a segment shows its tooltip, a tap elsewhere hides it
-    const tap = (e: PointerEvent) => {
-      if (e.pointerType === 'mouse') return;
-      const seg = segOf(e);
-      if (seg && !seg.classList.contains('is-off')) place(...where(seg));
-      else hide();
-    };
-
-    // JS writes two numbers per segment; the shrinking, the sliding and the stagger are CSS
-    const toggle = (e: Event) => {
-      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button');
-      if (!btn) return;
-      const k = Number(btn.dataset.p);
-      on[k] = !on[k];
-      shown = layout(on);
-      shown.segs.forEach((col, q) =>
-        col.forEach((s, p) => {
-          const el = segs[q][p];
-          const front = el.firstElementChild as HTMLElement;
-          el.style.setProperty('--base', f(s.base));
-          el.style.setProperty('--v', f(s.v));
-          el.classList.toggle('is-top', s.top);
-          el.classList.toggle('is-off', !on[p]);
-          // a switched-off segment is gone: out of the tab order and the accessibility tree
-          front.tabIndex = on[p] ? 0 : -1;
-          front.toggleAttribute('aria-hidden', !on[p]);
-        }),
-      );
-      ticks.forEach((t, n) => (t.textContent = String(Math.round(TICKS[n] * shown.top))));
-      out.textContent = shown.summary;
-      buttons.forEach((b, n) => b.setAttribute('aria-pressed', String(on[n])));
-      // the tooltip follows its segment to its new place, or goes if the segment did
-      if (active) {
-        if (on[active[1]]) place(...active);
-        else hideNow();
-      }
-    };
-
-    const events: [string, EventListener][] = [
-      ['pointerover', over],
-      ['focusin', over],
-      ['pointerout', leave],
-      ['focusout', leave],
-      ['pointerup', tap as EventListener],
-    ];
-    events.forEach(([type, fn]) => scene.addEventListener(type, fn));
-    legend.addEventListener('click', toggle);
-    return () => {
-      clearTimeout(hideTimer);
-      events.forEach(([type, fn]) => scene.removeEventListener(type, fn));
-      legend.removeEventListener('click', toggle);
-    };
-  },
 };
 
 /* ---------------------------------------------------------------- the copy-paste snippet */

@@ -4,7 +4,7 @@ import type { Demo } from '../types';
 /*
  * treemap: a market map drawn from JSON. JS lays the tiles out once (each tile's AREA is its
  * market cap) and writes one number per tile for the move; CSS turns that into a height and a
- * colour. The same MARKET const is printed into the snippet, so the two never differ.
+ * colour. The MARKET const is printed into the snippet.
  */
 
 /** Sample data, shaped like an API response. cap: market cap in $B; change: % move per period. */
@@ -23,76 +23,6 @@ export const MARKET = {
   ] as { name: string; cap: number; change: Record<string, number> }[],
 };
 
-type Coin = (typeof MARKET.coins)[number];
-type Tile = Coin & { x: number; y: number; w: number; h: number };
-
-// the plate's inner area in px (at card scale): the layout is done in these units, then written
-// to CSS as % of it
-const W = 184;
-const H = 136;
-
-const sum = (list: Coin[]): number => list.reduce((s, d) => s + d.cap, 0);
-
-/** How far from square (1 = square) the worst tile of a row is, laid along a side `side` long. */
-const worst = (row: Coin[], side: number, scale: number): number => {
-  const depth = (sum(row) * scale) / side; // the row's thickness
-  return Math.max(...row.map((d) => Math.max((d.cap * scale) / depth ** 2, depth ** 2 / (d.cap * scale))));
-};
-
-/**
- * Squarified treemap. `scale` is px² per unit of cap, so every tile's area is its cap. Items come
- * biggest first. Lay a row of them along the SHORTER side of the space that is left, adding the
- * next one while that makes the row's worst tile more square; then the row takes a strip off
- * that space and the next row starts in what remains.
- */
-const treemap = (items: Coin[], x: number, y: number, w: number, h: number): Tile[] => {
-  const tiles: Tile[] = [];
-  const scale = (w * h) / sum(items);
-  let rest = [...items];
-  while (rest.length) {
-    const side = Math.min(w, h);
-    const row = [rest[0]];
-    while (row.length < rest.length && worst([...row, rest[row.length]], side, scale) <= worst(row, side, scale)) {
-      row.push(rest[row.length]);
-    }
-    const depth = (sum(row) * scale) / side;
-    let at = 0; // where the next tile starts along the row
-    for (const d of row) {
-      const len = (d.cap * scale) / depth;
-      tiles.push(w >= h ? { ...d, x, y: y + at, w: depth, h: len } : { ...d, x: x + at, y, w: len, h: depth });
-      at += len;
-    }
-    if (w >= h) {
-      x += depth;
-      w -= depth;
-    } else {
-      y += depth;
-      h -= depth;
-    }
-    rest = rest.slice(row.length);
-  }
-  return tiles;
-};
-
-const TILES = treemap([...MARKET.coins].sort((a, b) => b.cap - a.cap), 0, 0, W, H);
-/** The height scale is shared by both periods, so a week's bigger moves stand taller. */
-const MAX_MOVE = Math.max(...MARKET.coins.flatMap((c) => Object.values(c.change).map(Math.abs)));
-/** Label size by footprint: a big name, a name + %, or only the name on the smallest tiles. */
-const size = (t: Tile): string => (t.w >= 70 && t.h >= 46 ? 'is-lg' : t.w >= 38 && t.h >= 26 ? 'is-md' : 'is-sm');
-
-const pct = (v: number): string => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}%`;
-const tileText = (c: Coin, p: string): string => `${c.name} · $${c.cap}B · ${pct(c.change[p])}`;
-const summary = (p: string): string => {
-  const moves = MARKET.coins.map((c) => c.change[p]);
-  const up = moves.filter((v) => v > 0).length;
-  const big = MARKET.coins.reduce((a, c) => (Math.abs(c.change[p]) > Math.abs(a.change[p]) ? c : a));
-  return `${p} · ${up} up, ${moves.length - up} down · biggest ${big.name} ${pct(big.change[p])}`;
-};
-/** The numbers a tile needs for one period: its height (0–1) and whether it fell. */
-const move = (c: Coin, p: string) => ({ v: (Math.abs(c.change[p]) / MAX_MOVE).toFixed(3), down: c.change[p] < 0 });
-
-const r = (n: number): string => (Math.round(n * 1000) / 1000).toString();
-
 export const demo: Demo = {
   id: 'treemap',
   title: '3D treemap from JSON',
@@ -106,82 +36,6 @@ export const demo: Demo = {
     'color-mix(teal | pink, grey) by |change|',
     'real <button> per tile, plate ignores the pointer',
   ],
-  fill: true,
-  html: (() => {
-    const p = MARKET.periods[0];
-    return `<div class="d-treemap">
-      <div class="d-treemap__view"><div class="d-treemap__plate">${TILES.map((t, i) => {
-        const { v, down } = move(t, p);
-        return `<button type="button" class="d-treemap__tile ${size(t)}${down ? ' is-down' : ''}" style="--i:${i};--x:${r((t.x / W) * 100)};--y:${r((t.y / H) * 100)};--w:${r((t.w / W) * 100)};--h:${r((t.h / H) * 100)};--v:${v}" aria-label="${tileText(t, p)}"><i><span>${t.name}</span><small>${pct(t.change[p])}</small></i></button>`;
-      }).join('')}</div></div>
-      <div class="d-treemap__dock">
-        <output>${summary(p)}</output>
-        <div class="d-treemap__seg">${MARKET.periods
-          .map((q, i) => `<button type="button" data-period="${q}" aria-pressed="${i === 0}">${q}</button>`)
-          .join('')}</div>
-      </div>
-    </div>`;
-  })(),
-  init(scene) {
-    const tiles = [...scene.querySelectorAll<HTMLButtonElement>('.d-treemap__tile')];
-    const out = scene.querySelector<HTMLOutputElement>('.d-treemap__dock output')!;
-    const seg = scene.querySelector<HTMLElement>('.d-treemap__seg')!;
-    const buttons = [...seg.querySelectorAll<HTMLButtonElement>('button')];
-    let period = MARKET.periods[0];
-
-    // The dock repeats what the pointed-at (or focused, or tapped) tile holds; that tile's roof
-    // is lit by .is-on. Otherwise it shows the period's summary.
-    const light = (tile: HTMLElement | null) => {
-      tiles.forEach((t) => t.classList.toggle('is-on', t === tile));
-      out.textContent = tile ? tile.getAttribute('aria-label') : summary(period);
-    };
-    // back to the summary only after a short grace period, so crossing the gap between two tiles
-    // changes the read-out straight from one tile to the next instead of blinking
-    let grace = 0;
-    const show = (e: Event) => {
-      const tile = (e.target as HTMLElement).closest<HTMLElement>('.d-treemap__tile');
-      if (!tile) return;
-      clearTimeout(grace);
-      light(tile);
-    };
-    const reset = (e: Event) => {
-      const to = (e as FocusEvent | PointerEvent).relatedTarget as HTMLElement | null;
-      if (to?.closest?.('.d-treemap__tile')) return;
-      clearTimeout(grace);
-      grace = window.setTimeout(() => light(null), 150);
-    };
-
-    // a new period: one number per tile (--v) and a class for the sign; the heights are CSS
-    const pick = (e: Event) => {
-      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button');
-      if (!btn) return;
-      period = btn.dataset.period!;
-      TILES.forEach((t, i) => {
-        const { v, down } = move(t, period);
-        tiles[i].style.setProperty('--v', v);
-        tiles[i].classList.toggle('is-down', down);
-        tiles[i].setAttribute('aria-label', tileText(t, period));
-        tiles[i].querySelector('small')!.textContent = pct(t.change[period]);
-      });
-      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      clearTimeout(grace);
-      light(null);
-    };
-
-    scene.addEventListener('pointerover', show);
-    scene.addEventListener('focusin', show);
-    scene.addEventListener('pointerout', reset);
-    scene.addEventListener('focusout', reset);
-    seg.addEventListener('click', pick);
-    return () => {
-      scene.removeEventListener('pointerover', show);
-      scene.removeEventListener('focusin', show);
-      scene.removeEventListener('pointerout', reset);
-      scene.removeEventListener('focusout', reset);
-      seg.removeEventListener('click', pick);
-      clearTimeout(grace);
-    };
-  },
 };
 
 // ── the copy-paste snippet ──────────────────────────────────────────────────────────────────────

@@ -23,11 +23,10 @@ The `id` is lowercase letters and digits. The JSON-driven charts keep both halve
 
 `src/models/index.ts` also holds `FEATURED`, which decides what the gallery opens with.
 
-**What is left of the old implementation.** `Demo` still has `html`, `fill` and `init`, and most
-models still have a `src/styles/models/_<id>.scss` imported by `src/styles/main.scss`. None of
-them draws anything any more: the type still requires `html`, and the Sass is only shown in the
-"Sass source" tab. A new model does not need a Sass file (the tab is then empty). They are due to
-go; see VIEW-CONTRACT.md, "What goes with this".
+**The old implementation is gone** (2026-09-22). `Demo` no longer has `html`, `fill` or `init`,
+there are no `src/styles/models/_<id>.scss` files and no "Sass source" tab: a model is its
+snippet and its gallery entry, nothing else. `src/styles/` is the site's own chrome only; never
+add a model's CSS there.
 
 Read these first, as the reference for style: `docs/VIEW-CONTRACT.md`, the `cube` snippet at the
 top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.

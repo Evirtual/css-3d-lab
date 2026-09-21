@@ -7,7 +7,7 @@ import type { Demo } from '../types';
  * scaleY + translateY, so a new range is only a transition on transform.
  */
 
-/** Daily OHLC prices, shaped like a market API's response. The site model and the snippet both use it. */
+/** Daily OHLC prices, shaped like a market API's response. The snippet prints it in. */
 export const CANDLES = [
   { date: 'Sep 08', open: 57120, high: 58450, low: 56800, close: 58100 },
   { date: 'Sep 09', open: 58100, high: 58900, low: 57350, close: 57540 },
@@ -23,81 +23,9 @@ export const CANDLES = [
   { date: 'Sep 19', open: 59770, high: 60480, low: 59310, close: 59860 },
 ];
 
-type Day = (typeof CANDLES)[number];
-
 /** The range switch: how many of the latest days are shown. The last one is the default. */
 const RANGES = [7, 12];
-/** The price scale is rounded out to half-thousands, and to a whole number of thousands across,
- * so its three numbers stay tidy while the candles use most of its height. */
-const STEP = 500;
-const bounds = (low: number, high: number): [number, number] => {
-  let min = Math.floor(low / STEP) * STEP;
-  let max = Math.ceil(high / STEP) * STEP;
-  if ((max - min) % (2 * STEP)) {
-    if (low - min < max - high) min -= STEP;
-    else max += STEP;
-  }
-  return [min, max];
-};
-/** The chart's size in px: the same numbers as $w and $h in _candles.scss. */
-const CHART_W = 180;
-const CHART_H = 100;
 
-/** Prices the way trading apps write them. */
-const usd = (v: number): string => `$${v.toLocaleString('en-US')}`;
-/** The scale's short form: $58.5k. */
-const usdK = (v: number): string => `$${(v / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`;
-/** A change with its sign in front, and a real minus. */
-const pct = (v: number): string => `${v < 0 ? '−' : '+'}${Math.abs(v).toFixed(1)}%`;
-/** A candle's tooltip, and its accessible name. */
-const tip = (d: Day): string =>
-  `${d.date} · O ${usd(d.open)} H ${usd(d.high)} L ${usd(d.low)} C ${usd(d.close)}`;
-
-/** Everything the chart needs to show the last `n` days. */
-const view = (n: number) => {
-  const offset = CANDLES.length - n;
-  const days = CANDLES.slice(offset);
-  const low = Math.min(...days.map((d) => d.low));
-  const high = Math.max(...days.map((d) => d.high));
-  const [min, max] = bounds(low, high);
-  /** A price as a fraction of the scale: 0 at the bottom, 1 at the top. */
-  const f = (p: number): number => (p - min) / (max - min);
-  const change = ((days[n - 1].close - days[0].open) / days[0].open) * 100;
-  return {
-    n,
-    offset,
-    ticks: [min, (min + max) / 2, max].map(usdK),
-    first: days[0].date,
-    last: days[n - 1].date,
-    summary: `${n} days · ${pct(change)} · high ${usd(high)}`,
-    /** Where the tooltip goes for candle i: its middle, its high (px), and how far it hangs left. */
-    tipAt: (i: number) => {
-      const x = i - offset;
-      return {
-        tx: `${(((x + 0.5) * CHART_W) / n).toFixed(1)}px`,
-        ty: `${((1 - f(CANDLES[i].high)) * CHART_H).toFixed(1)}px`,
-        f: (x / (n - 1)).toFixed(3),
-      };
-    },
-    /** The custom properties of candle i (of all of CANDLES). A day outside the range keeps its
-     * prices and only sinks (--in: 0) at the left edge. */
-    props: (i: number): Record<string, string> => {
-      const x = i - offset;
-      if (x < 0) return { '--x': '-1', '--in': '0' };
-      const d = CANDLES[i];
-      return {
-        '--x': String(x),
-        '--in': '1',
-        '--lo': f(d.low).toFixed(3),
-        '--hi': f(d.high).toFixed(3),
-        '--o': f(d.open).toFixed(3),
-        '--c': f(d.close).toFixed(3),
-      };
-    },
-  };
-};
-
-const TICK_AT = [0, 0.5, 1];
 const START = RANGES[RANGES.length - 1];
 
 export const demo: Demo = {
@@ -113,132 +41,6 @@ export const demo: Demo = {
     'cuboid body from one element: ::before side, ::after lid',
     'one shared tooltip gliding on --tx / --ty; slot = width ÷ --n',
   ],
-  fill: true,
-  html: (() => {
-    const v = view(START);
-    const style = (i: number) =>
-      Object.entries({ '--i': String(i), ...v.props(i) })
-        .map(([k, val]) => `${k}:${val}`)
-        .join(';');
-    return `<div class="d-candles">
-      <div class="d-candles__chart" style="--n:${START}">
-        <div class="d-candles__floor"></div>
-        <div class="d-candles__wall">${TICK_AT.map((t, k) => `<span style="--t:${t}">${v.ticks[k]}</span>`).join('')}</div>
-        <span class="d-candles__date">${v.first}</span><span class="d-candles__date">${v.last}</span>
-        ${CANDLES.map(
-          (d, i) =>
-            `<div class="d-candles__candle${d.close < d.open ? ' is-down' : ''}${i < v.offset ? ' is-out' : ''}" style="${style(i)}" tabindex="${i < v.offset ? -1 : 0}" aria-label="${tip(d)}"><i class="d-candles__wick"></i><i class="d-candles__body"></i></div>`,
-        ).join('')}
-        <b class="d-candles__tip" aria-hidden="true"></b>
-      </div>
-      <div class="d-candles__dock">
-        <output>${v.summary}</output>
-        <div class="d-candles__seg">${RANGES.map(
-          (n) => `<button type="button" data-days="${n}" aria-pressed="${n === START}">${n}D</button>`,
-        ).join('')}</div>
-      </div>
-    </div>`;
-  })(),
-  init(scene) {
-    const chart = scene.querySelector<HTMLElement>('.d-candles__chart')!;
-    const candles = [...scene.querySelectorAll<HTMLElement>('.d-candles__candle')];
-    const ticks = [...scene.querySelectorAll<HTMLElement>('.d-candles__wall span')];
-    const dates = [...scene.querySelectorAll<HTMLElement>('.d-candles__date')];
-    const tipEl = scene.querySelector<HTMLElement>('.d-candles__tip')!;
-    const out = scene.querySelector<HTMLOutputElement>('.d-candles__dock output')!;
-    const seg = scene.querySelector<HTMLElement>('.d-candles__seg')!;
-    const buttons = [...seg.querySelectorAll<HTMLButtonElement>('button')];
-    let shown = view(START);
-    let active = -1;
-    let hideTimer = 0;
-
-    // One tooltip for the whole chart: it glides from candle to candle and its text changes on
-    // the way. JS gives it the candle's place (--tx, --ty) and CSS does the glide.
-    const place = (i: number) => {
-      clearTimeout(hideTimer);
-      const at = shown.tipAt(i);
-      const wasOn = tipEl.classList.contains('is-on');
-      // from hidden it appears in place, not flying in from where it was last
-      if (!wasOn) tipEl.style.transition = 'none';
-      tipEl.textContent = tip(CANDLES[i]);
-      tipEl.style.setProperty('--tx', at.tx);
-      tipEl.style.setProperty('--ty', at.ty);
-      tipEl.style.setProperty('--f', at.f);
-      tipEl.classList.toggle('is-down', CANDLES[i].close < CANDLES[i].open);
-      if (!wasOn) {
-        void tipEl.offsetWidth; // apply the new place before the transition comes back
-        tipEl.style.transition = '';
-      }
-      tipEl.classList.add('is-on');
-      candles.forEach((c, k) => c.classList.toggle('is-active', k === i));
-      active = i;
-    };
-    const hideNow = () => {
-      clearTimeout(hideTimer);
-      tipEl.classList.remove('is-on');
-      candles.forEach((c) => c.classList.remove('is-active'));
-      active = -1;
-    };
-    // a short grace period, so crossing from one candle to the next does not flicker it
-    const hide = () => {
-      clearTimeout(hideTimer);
-      hideTimer = window.setTimeout(hideNow, 150);
-    };
-    const candleOf = (e: Event) => (e.target as HTMLElement).closest<HTMLElement>('.d-candles__candle:not(.is-out)');
-    const over = (e: Event) => {
-      const c = candleOf(e);
-      if (c) place(candles.indexOf(c));
-    };
-    const leave = (e: Event) => {
-      const to = (e as PointerEvent | FocusEvent).relatedTarget as HTMLElement | null;
-      if (!to?.closest?.('.d-candles__candle')) hide();
-    };
-    // a finger has no hover: a tap on a candle shows its tooltip, a tap elsewhere hides it
-    const tap = (e: PointerEvent) => {
-      if (e.pointerType === 'mouse') return;
-      const c = candleOf(e);
-      if (c) place(candles.indexOf(c));
-      else hide();
-    };
-
-    // JS writes the numbers; the sliding, sinking and rescaling are CSS transitions on transform
-    const pick = (e: Event) => {
-      const btn = (e.target as HTMLElement).closest('button');
-      if (!btn) return;
-      shown = view(Number(btn.dataset.days));
-      chart.style.setProperty('--n', String(shown.n));
-      candles.forEach((el, i) => {
-        const gone = i < shown.offset;
-        for (const [k, val] of Object.entries(shown.props(i))) el.style.setProperty(k, val);
-        el.classList.toggle('is-out', gone);
-        el.tabIndex = gone ? -1 : 0;
-        el.toggleAttribute('aria-hidden', gone);
-      });
-      ticks.forEach((t, k) => (t.textContent = shown.ticks[k]));
-      dates[0].textContent = shown.first;
-      dates[1].textContent = shown.last;
-      out.textContent = shown.summary;
-      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      // the tooltip follows its candle to the new place, or goes if the candle left the range
-      if (active >= shown.offset) place(active);
-      else if (active >= 0) hideNow();
-    };
-
-    const on: [string, EventListener][] = [
-      ['pointerover', over],
-      ['focusin', over],
-      ['pointerout', leave],
-      ['focusout', leave],
-      ['pointerup', tap as EventListener],
-    ];
-    on.forEach(([type, fn]) => scene.addEventListener(type, fn));
-    seg.addEventListener('click', pick);
-    return () => {
-      clearTimeout(hideTimer);
-      on.forEach(([type, fn]) => scene.removeEventListener(type, fn));
-      seg.removeEventListener('click', pick);
-    };
-  },
 };
 
 /* ---------- the copy-paste snippet ---------- */

@@ -16,7 +16,8 @@ function generatedPages(): Record<string, string> {
 }
 
 /**
- * Home page: puts in the generated plain-link list of every demo, and the real number of demos
+ * Home page: puts in the generated plain-link list of every demo, the snippet locations the viewer
+ * links to, and the real number of demos
  * wherever the markup says %MODEL_COUNT% (title, description), so the count can never go stale.
  */
 function allModelsLinks(): Plugin {
@@ -34,6 +35,8 @@ function allModelsLinks(): Plugin {
         .replace('<!--all-models-->', readFileSync(file, 'utf8'))
         .replace('<!--site-footer-->', readFileSync(resolve(root, 'src/generated/footer.html'), 'utf8'))
         .replace('<!--logo-->', readFileSync(resolve(root, 'src/generated/logo.html'), 'utf8'))
+        // where each snippet sits in the repository, for the viewer's Source on GitHub button
+        .replace('<!--snippet-sources-->', () => `<script type="application/json" id="snippet-sources">${readFileSync(resolve(root, 'src/generated/snippet-sources.json'), 'utf8')}</script>`)
         .replaceAll('%MODEL_COUNT%', count)
         .replaceAll('%IMAGE_VERSION%', version);
     },

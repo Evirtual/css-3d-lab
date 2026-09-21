@@ -2611,7 +2611,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   }
 
   // code window bar: one row. The tabs (scrolling sideways if they must), the editor colours and
-  // an icon-only Copy; "Sass source" says just "Sass" here.
+  // an icon-only Copy.
   .codebox__bar {
     flex-wrap: nowrap;
     gap: 4px;
@@ -2627,18 +2627,9 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     scrollbar-width: none;
   }
 
-  .codebox__more {
-    display: none;
-  }
-
   // tighter spacing, so the tabs, the colours and Copy all fit on one row
   .codebox__seg button {
     padding-inline: 7px;
-    font-size: 11.5px;
-  }
-
-  .codebox__tab--source {
-    padding-inline: 5px;
     font-size: 11.5px;
   }
 

@@ -1,4 +1,4 @@
-export type Lang = 'html' | 'css' | 'scss' | 'js';
+export type Lang = 'html' | 'css' | 'js';
 
 const escape = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -11,13 +11,11 @@ const RULES: Record<Lang, [RegExp, string[]]> = {
     /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|(@[\w-]+|\$[\w-]+)|(--[\w-]+)|([\w-]+)(?=\s*:\s[^{}]*?;)|(#[0-9a-fA-F]{3,8}\b|-?\b\d*\.?\d+(?:px|deg|s|ms|%|em|rem|turn|rad|vh|vw)?)/g,
     ['com', 'kw', 'var', 'prop', 'num'],
   ],
-  scss: [/$^/g, []],
   js: [
     /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`)|\b(const|let|var|function|return|if|else|for|of|new|document|window|Math)\b|\b(\d*\.?\d+)\b/g,
     ['com', 'str', 'kw', 'num'],
   ],
 };
-RULES.scss = RULES.css;
 
 export function highlight(code: string, lang: Lang): string {
   const [re, classes] = RULES[lang];

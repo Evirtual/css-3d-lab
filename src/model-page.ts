@@ -96,10 +96,7 @@ if (stage && demo && box) {
       const others = Object.fromEntries([...editors].map(([p, e]) => [p, lineCount(e.value())]));
       pane.insertAdjacentHTML('beforeend', shortHint(key, lineCount(editor.value()), others));
     }
-    note.textContent =
-      key === 'scss'
-        ? 'This site’s own stylesheet for this effect (read-only). It needs the project’s Sass mixins, so copy from HTML / CSS instead.'
-        : 'Editable · type here and the effect updates. Saved in this browser only.';
+    note.textContent = 'Editable · type here and the effect updates. Saved in this browser only.';
   };
 
   box.addEventListener('click', (e) => {

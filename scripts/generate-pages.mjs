@@ -16,6 +16,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createServer } from 'vite';
+import { workingSources } from './model-sources.mjs';
 
 const site = JSON.parse(readFileSync('site.config.json', 'utf8'));
 const root = resolve('.');
@@ -40,6 +41,25 @@ const { CATEGORY_LABEL } = await vite.ssrLoadModule('/src/models/types.ts');
 const { highlight } = await vite.ssrLoadModule('/src/highlight.ts');
 const { icon } = await vite.ssrLoadModule('/src/icons.ts');
 await vite.close();
+
+// Where each snippet sits in the repository, for the "GitHub" buttons: "src/models/<file>.ts#L<n>",
+// the line that opens the snippet (a chart file's `export const snippet`). The same lookup the
+// ledger uses (model-sources.mjs), so it is read from the files, never kept by hand.
+const sources = workingSources();
+const snippetSource = Object.fromEntries(
+  demos.map((d) => {
+    const s = sources.get(d.id)?.snippet;
+    if (!s) return [d.id, null];
+    let line = s.line;
+    if (s.file.includes('/charts/')) {
+      const at = readFileSync(s.file, 'utf8').replace(/\r\n/g, '\n').split('\n').findIndex((l) => l.startsWith('export const snippet'));
+      line = at >= 0 ? at + 1 : null;
+    }
+    return [d.id, line ? `${s.file}#L${line}` : s.file];
+  }),
+);
+const missingSource = demos.filter((d) => !snippetSource[d.id]).map((d) => d.id);
+if (missingSource.length) throw new Error(`No snippet found in src/models for: ${missingSource.join(', ')}`);
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const strip = (html) => html.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
@@ -178,15 +198,10 @@ function demoPage(d, index) {
   const title = `${d.title} in ${kind(d)} — 3D effect with copy-paste code | ${site.name}`;
   const description = `${d.description} Live preview, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`;
 
-  // The site's own Sass for this demo: shown for reading, like in the gallery dialog.
-  const scssFile = `src/styles/models/_${d.id}.scss`;
-  const scss = existsSync(scssFile) ? readFileSync(scssFile, 'utf8').replace(/\r\n/g, '\n') : '';
-
   const panes = [
     { key: 'html', label: 'HTML', lang: 'html', code: snip.html },
     { key: 'css', label: 'CSS', lang: 'css', code: snip.css },
     ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js', code: snip.js }] : []),
-    ...(scss ? [{ key: 'scss', label: 'Sass source', lang: 'scss', code: scss }] : []),
   ];
 
   // Every pane is real HTML, so crawlers and no-JS visitors get all of the code, stacked with
@@ -196,9 +211,8 @@ function demoPage(d, index) {
             <div class="codebox__bar">
               <div class="codebox__tabs" role="tablist">
                 <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
-                  ${panes.filter((x) => x.key !== 'scss').map((x) => `<button type="button" role="tab" data-pane="${x.key}" aria-selected="${x.key === 'css'}">${x.label}</button>`).join('')}
+                  ${panes.map((x) => `<button type="button" role="tab" data-pane="${x.key}" aria-selected="${x.key === 'css'}">${x.label}</button>`).join('')}
                 </div>
-                ${scss ? `<button type="button" role="tab" class="codebox__tab--source" data-pane="scss" aria-selected="false" title="How this site builds the effect, using the project Sass mixins. For reading, not for pasting">Sass<span class="codebox__more"> source</span></button>` : ''}
               </div>
               <div class="codebox__look"><div class="codebox__dots" role="group" aria-label="Editor background"><button type="button" data-tint-set="default" aria-pressed="false" aria-label="default background" title="Default background"></button><button type="button" data-tint-set="rose" aria-pressed="false" aria-label="rose background" title="Rose background"></button><button type="button" data-tint-set="amber" aria-pressed="false" aria-label="amber background" title="Amber background"></button><button type="button" data-tint-set="green" aria-pressed="false" aria-label="green background" title="Green background"></button></div><button type="button" class="codebox__mode" data-editor-mode aria-label="Switch editor to light mode"></button></div>
               <button type="button" class="codebox__copy" data-copy-code>${icon('copy')} Copy</button>
@@ -272,7 +286,7 @@ function demoPage(d, index) {
             <button type="button" class="btn" data-print>${icon('printer')} Print / PDF</button>
             <button type="button" class="btn" data-share-link>${icon('share')} Share</button>
             <button type="button" class="btn" data-share-embed>Embed</button>
-            <a class="btn" href="${site.repo}/blob/main/src/styles/models/_${d.id}.scss" target="_blank" rel="noopener">GitHub ${icon('arrow-up-right')}</a>
+            <a class="btn" href="${site.repo}/blob/main/${snippetSource[d.id]}" target="_blank" rel="noopener" title="This snippet in the repository">GitHub ${icon('arrow-up-right')}</a>
           </div>
           ${thanksHtml()}
         </div>
@@ -482,6 +496,8 @@ write(
 );
 write('src/generated/footer.html', siteFooter(''));
 write('src/generated/logo.html', LOGO);
+// the same links for the home page's viewer (main.ts reads it), put in by vite.config.ts
+write('src/generated/snippet-sources.json', JSON.stringify(snippetSource).replace(/</g, '\\u003c'));
 
 // <lastmod> is when a page's content last really changed, not when the site was last deployed:
 // a date that is always "today" teaches search engines to ignore it. Each page's generated HTML

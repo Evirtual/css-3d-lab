@@ -7,7 +7,10 @@
  *  - its snippet entry, the line `  <id>: {` in a src/models/*.ts map, up to the next entry;
  *  - its gallery entry, the `  {` object in a demo array whose `    id: '<id>'` names it;
  *  - src/models/charts/<file>.ts as a whole, for the charts that keep model and snippet together;
- *  - src/styles/models/_<id>.scss.
+ *  - src/styles/models/_<id>.scss, in commits before the old Sass implementation was removed
+ *    (2026-09-22). The files are gone from the tree; they are still read here so the ledger's
+ *    history (ledger.mjs replays every commit) keeps counting the commits that changed them.
+ * Also used by scripts/generate-pages.mjs, for the file and line of each snippet.
  * Shared helpers outside those entries (a `rep()` or `lines()` at the top of a file) belong to no
  * one model, so a change to them does not count as a change to any model.
  */

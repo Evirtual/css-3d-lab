@@ -186,7 +186,7 @@ ${CUBE_FACES}
       'There is no real depth here — it is many hard-edged <code>text-shadow</code>s, each offset one unit further.',
       'Darken each layer slightly and the stack reads as a solid side wall.',
       'Finish with one blurred shadow for the drop shadow on the "ground".',
-      'In Sass a <code>@function</code> with a <code>@for</code> loop writes the list for you (see the Sass source tab).',
+      'The list is written out in full: one line per layer, so every step can be read and changed.',
       'Every length is a multiple of one base unit, <code>--u</code>, the offsets included, so the whole extrusion keeps its proportions on a gallery card, in the editor and in a recording canvas.',
     ],
     html: `<div class="scene">
@@ -1004,7 +1004,7 @@ ${CUBE_FACES}`,
     how: [
       'Each tile has two faces from <code>::before</code> and <code>::after</code>, back to back, both with <code>backface-visibility: hidden</code>.',
       'Every tile runs the same flip animation.',
-      'The wave comes purely from <code>animation-delay = (row + column) × step</code>. In plain CSS you set <code>--d</code> per tile; in Sass a nested <code>@for</code> loop writes it.',
+      'The wave comes purely from <code>animation-delay = (row + column) × step</code>. Each tile sets its <code>--d</code>, row + column, in its <code>style</code>.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a tile is 48 units square, 8 apart, and sinks 14 as it turns, so the wave is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">

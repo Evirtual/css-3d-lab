@@ -191,12 +191,13 @@ These are the things that would otherwise be found one model at a time.
 
 ## What goes with this
 
-Every model still carries a second implementation from before the snippet became the only thing
-the site renders: its gallery markup (`html`, and `init` for CSS + JS models, on the `Demo`
-object) and its per-model Sass (135 files, 16,728 lines in `src/styles/models/`, still imported by
-`src/styles/main.scss` and shown in the "Sass source" tab). Nothing draws them any more, only the
-metadata around them is read. They are deleted as part of this pass, so there is one version of
-each model and no way for the two to drift. As of 2026-09-21 that deletion has not happened.
+Every model used to carry a second implementation from before the snippet became the only thing
+the site renders: its gallery markup (`html`, `fill`, and `init` for CSS + JS models, on the
+`Demo` object) and its per-model Sass (135 files, 16,728 lines in `src/styles/models/`, imported
+by `src/styles/main.scss` and shown in a "Sass source" tab). Nothing drew them any more. They were
+deleted on 2026-09-22, so there is one version of each model and no way for two to drift: a
+`Demo` is metadata only, `src/styles/` is the site's own chrome, and the code tabs show the
+snippet's HTML, CSS and JS.
 
 ## Ground rules for writing a model
 

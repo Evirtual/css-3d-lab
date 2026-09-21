@@ -23,19 +23,11 @@ import { demos, type GroupedDemo } from './models';
 import { GROUPS, GROUP_ORDER, type Group } from './models/groups';
 import { snippets } from './models/snippets';
 import { CATEGORY_LABEL, type Category, type Demo } from './models/types';
-import { highlight, type Lang } from './highlight';
+import type { Lang } from './highlight';
 import { hydrateIcons, icon } from './icons';
 import { mountModel } from './preview';
 
 const REPO = 'https://github.com/Evirtual/css-3d-lab';
-
-// Real SCSS source of every demo, pulled in at build time so it can never drift.
-const scssSources = import.meta.glob<string>('./styles/models/_*.scss', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-});
-const scssFor = (id: string): string => scssSources[`./styles/models/_${id}.scss`] ?? '';
 
 // Data strings shown as plain text (a technique like 'static <button>' must not become a real button).
 const escapeText = (s: string): string =>
@@ -352,11 +344,26 @@ let unmountViewer: (() => void) | undefined;
 let restage: (() => void) | undefined;
 
 interface Pane {
-  key: string;
+  key: Part;
   label: string;
-  lang?: Lang;
-  code?: string;
+  lang: Lang;
 }
+
+/**
+ * Where each model's snippet sits in the repository ("src/models/….ts#L12"), for the Source on
+ * GitHub button: written into the page by the build (scripts/generate-pages.mjs), read once.
+ */
+let snippetSources: Record<string, string> | undefined;
+const snippetSource = (id: string): string | undefined => {
+  if (!snippetSources) {
+    try {
+      snippetSources = JSON.parse(document.getElementById('snippet-sources')?.textContent ?? '{}') as Record<string, string>;
+    } catch {
+      snippetSources = {};
+    }
+  }
+  return snippetSources[id];
+};
 
 function openViewer(id: string): void {
   const demo = demos.find((d) => d.id === id);
@@ -368,14 +375,13 @@ function openViewer(id: string): void {
   const panes: Pane[] = [
     { key: 'html', label: 'HTML', lang: 'html' },
     { key: 'css', label: 'CSS', lang: 'css' },
-    ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js' as Lang }] : []),
-    { key: 'scss', label: 'Sass<span class="codebox__more"> source</span>', lang: 'scss', code: scssFor(id) },
+    ...(snip.js ? [{ key: 'js', label: 'JS', lang: 'js' } as Pane] : []),
   ];
-  const isPart = (key: string): key is Part => key === 'html' || key === 'css' || key === 'js';
   const lineCount = (code: string) => code.trimEnd().split('\n').length;
+  const source = snippetSource(id);
 
-  const tab = (p: Pane, cls = '', title = ''): string =>
-    `<button type="button" role="tab" class="${cls}" data-pane="${p.key}" aria-selected="${p.key === 'css'}"${title ? ` title="${title}"` : ''}>${p.label}</button>`;
+  const tab = (p: Pane): string =>
+    `<button type="button" role="tab" data-pane="${p.key}" aria-selected="${p.key === 'css'}">${p.label}</button>`;
 
   viewerBody.innerHTML = `
     <header class="viewer__head">
@@ -406,9 +412,8 @@ function openViewer(id: string): void {
           <div class="codebox__bar">
             <div class="codebox__tabs" role="tablist">
               <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
-                ${panes.filter((p) => isPart(p.key)).map((p) => tab(p)).join('')}
+                ${panes.map(tab).join('')}
               </div>
-              ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'The older Sass version of this model. The site no longer draws from it; the snippet is the model')}
             </div>
             <div class="codebox__look">${dotsHtml()}${modeHtml()}</div>
             <button type="button" class="codebox__copy" data-copy="pane">${icon('copy')} Copy</button>
@@ -422,7 +427,7 @@ function openViewer(id: string): void {
           <button type="button" class="btn" data-act="print">${icon('printer')} Print / PDF</button>
           <button type="button" class="btn" data-act="share">${icon('share')} Share</button>
           <button type="button" class="btn" data-act="newtab">${icon('arrow-up-right')} Open in new tab</button>
-          <a class="btn" href="${REPO}/blob/main/src/styles/models/_${id}.scss" target="_blank" rel="noopener">Source on GitHub ${icon('arrow-up-right')}</a>
+          ${source ? `<a class="btn" href="${REPO}/blob/main/${source}" target="_blank" rel="noopener" title="This snippet in the repository">Source on GitHub ${icon('arrow-up-right')}</a>` : ''}
           <a class="btn" href="models/${id}/">Full page ${icon('arrow-right')}</a>
         </div>
         ${thanksHtml()}
@@ -457,23 +462,17 @@ function openViewer(id: string): void {
       t.setAttribute('aria-selected', String(t.dataset.pane === pane.key));
     }
 
-    if (isPart(pane.key)) {
-      const part = pane.key;
-      const editor = createEditor(pane.lang!, pane.label, live.current[part] ?? '', (code) => {
-        live.set(part, code);
-        lines.textContent = `${lineCount(code)} lines`;
-        refreshSoon();
-      });
-      panel.replaceChildren(editor.el);
-      const counts = Object.fromEntries(panes.filter((p) => isPart(p.key)).map((p) => [p.key, lineCount(live.current[p.key as Part] ?? '')]));
-      panel.insertAdjacentHTML('beforeend', shortHint(part, counts[part], counts));
-      lines.textContent = `${counts[part]} lines`;
-      note.textContent = 'Editable \u00b7 type here and the effect updates. Saved in this browser only.';
-    } else {
-      panel.innerHTML = `<pre><code>${highlight(pane.code!, pane.lang!)}</code></pre>`;
-      lines.textContent = `${lineCount(pane.code!)} lines`;
-      note.textContent = 'This site\u2019s own stylesheet for this effect (read-only). It needs the project\u2019s Sass mixins, so copy from HTML / CSS instead.';
-    }
+    const part = pane.key;
+    const editor = createEditor(pane.lang, pane.label, live.current[part] ?? '', (code) => {
+      live.set(part, code);
+      lines.textContent = `${lineCount(code)} lines`;
+      refreshSoon();
+    });
+    panel.replaceChildren(editor.el);
+    const counts = Object.fromEntries(panes.map((p) => [p.key, lineCount(live.current[p.key] ?? '')]));
+    panel.insertAdjacentHTML('beforeend', shortHint(part, counts[part], counts));
+    lines.textContent = `${counts[part]} lines`;
+    note.textContent = 'Editable \u00b7 type here and the effect updates. Saved in this browser only.';
   };
 
   const copy = async (btn: HTMLButtonElement, text: string, what: string) => {
@@ -509,7 +508,7 @@ function openViewer(id: string): void {
     if (!el) return;
     if (el.dataset.pane) show(panes.find((p) => p.key === el.dataset.pane)!);
     else if (el.dataset.copy === 'file') void copy(el, live.doc(), 'file');
-    else void copy(el, isPart(current.key) ? (live.current[current.key] ?? '') : (current.code ?? ''), current.key);
+    else void copy(el, live.current[current.key] ?? '', current.key);
   };
 
   initFullscreen(viewerBody);
