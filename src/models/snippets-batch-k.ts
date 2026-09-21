@@ -391,7 +391,7 @@ show('${YEARS[0]}');`,
   heatmap: {
     how: [
       'The JSON is a list of weeks, each a list of numbers. JS writes one number per block: <code>--v = value ÷ the largest value</code>, plus its grid position <code>--x</code> / <code>--y</code>.',
-      'A block is three surfaces: the element itself is the <b>roof</b>, lifted by <code>translateZ(calc(var(--v) * 70 * var(--u)))</code>; <code>::before</code> and <code>::after</code> are the two walls you can see, hanging down from its edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>. Their height is the same <code>--v × 70</code> units.',
+      'A block is three surfaces: the <code>&lt;i&gt;</code> inside each button is the <b>roof</b>, lifted by <code>translateZ(calc(var(--v) * 70 * var(--u)))</code>; <code>::before</code> and <code>::after</code> are the two walls you can see, hanging down from its edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>. Their height is the same <code>--v × 70</code> units.',
       'The colour follows the value too: <code>color-mix(in srgb, pink calc(var(--v) * 100%), teal)</code> runs from cold to hot with no colour scale in JS.',
       'Each block sits in a real <code>&lt;button&gt;</code>, so it can be tabbed to and tapped. The floor has <code>pointer-events: none</code>: blocks in 3D share a plane, and only the buttons should be hit.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the grid is the same share of a gallery card, the editor and a recording canvas. The line under it that names the pointed-at block is in plain <code>vmin</code>: it is the caption of the same control zone every model has, and it keeps the zone\'s height whatever it says, so it cannot move the grid.',
