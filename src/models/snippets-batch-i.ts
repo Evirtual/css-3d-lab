@@ -730,6 +730,7 @@ ${Array.from({ length: n }, (_, d) =>
       'Both are shared keyframes staggered with <code>animation-delay</code> from <code>--i</code> (block 0…7) and <code>--c</code> (column 0…3), so eight blocks need only one "arrive" and one "leave" animation.',
       'The invisible resets are timed to happen while something else hides them: a block snaps back up while its column is gone, and the column snaps back while both its blocks are scaled to 0 — so the loop never shows a jump.',
       'Every keyframe keeps the same function list (<code>translateZ … scale3d</code>), and <code>scale3d(0, 0, 0)</code> rather than <code>scale(0)</code>, because a 2D scale would leave a block\'s height standing as a line.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a block is 34 units, and it drops in from 56 above its place, so the stack is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="stack" role="img" aria-label="Loading">

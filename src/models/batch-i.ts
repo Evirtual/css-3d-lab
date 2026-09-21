@@ -129,7 +129,7 @@ export const demosI: Demo[] = [
       'Eight blocks pop into the air and drop one by one onto an isometric floor until they form a 2×2×2 cube, then the cube comes apart column by column and floats away, and it all starts again.',
     category: 'css',
     tags: ['loop', 'loader', 'shape', 'isometric'],
-    technique: ['rotateX(60deg) rotateZ(45deg) = isometric floor', 'block = 3 visible faces only', 'two nested animations: block drops, column leaves', 'shared keyframes + delays from --i'],
+    technique: ['rotateX(58deg) rotateZ(45deg) = isometric floor', 'block = 3 visible faces only', 'two nested animations: block drops, column leaves', 'shared keyframes + delays from --i'],
     html: `<div class="d-blockstack" role="img" aria-label="Loading">${rep(
       4,
       (c) => `<div class="d-blockstack__col" style="--c:${c}">${rep(2, (l) => `<div class="d-blockstack__block" style="--i:${c + 4 * l};--l:${l}"><i></i><i></i><i></i></div>`)}</div>`,
