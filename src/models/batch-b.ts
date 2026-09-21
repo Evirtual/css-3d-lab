@@ -126,7 +126,7 @@ export const demosB: Demo[] = [
     id: 'logo3d',
     title: 'Extruded logo',
     description:
-      'One clip-path shape repeated in 14 layers, 2px apart. The stack reads as a solid block; back layers are darker and the front one carries a sweeping shine.',
+      'One clip-path shape repeated in 14 layers, two units apart. The stack reads as a solid block; back layers are darker and the front one carries a sweeping shine.',
     category: 'css',
     tags: ['loop', 'sass-loop', 'product', 'logo', 'brand'],
     technique: ['clip-path polygon with a hole (evenodd)', 'translateZ per layer from --i', 'darkening by depth with calc() alpha', 'shine moved with transform only'],
