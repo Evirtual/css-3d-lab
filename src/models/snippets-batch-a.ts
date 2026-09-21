@@ -592,9 +592,10 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
   grid-template-columns: repeat(4, calc(36 * var(--u)));
   gap: calc(10 * var(--u));
   transform-style: preserve-3d;
-  /* isometric floor: turn 45deg, then tip back. The wave lifts the cubes towards the top of the
-     canvas, so the floor sits that much lower and the whole field stays centred. */
-  transform: translateY(calc(18 * var(--u))) rotateX(58deg) rotateZ(-45deg);
+  /* isometric floor: turn 45deg, then tip back. The cube sides fold down below the floor and the
+     near corner is magnified, so what the field paints hangs below its layout box even with the
+     wave lifting the cubes: the floor is raised that much and the whole field stays centred. */
+  transform: translateY(calc(-8 * var(--u))) rotateX(58deg) rotateZ(-45deg);
 }
 
 /* the element itself is the top of the cube */
