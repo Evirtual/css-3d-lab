@@ -1338,6 +1338,7 @@ setInterval(tick, 1000);`,
       'JS tracks one number. On <code>pointerdown</code> it captures the pointer, each <code>pointermove</code> adds the sideways delta to the angle and writes it as <code>--ry</code>; CSS does the rotating.',
       'On release it keeps the last delta as a velocity and runs a short <code>requestAnimationFrame</code> loop that loses 6% per frame and <b>stops itself</b> once the speed is tiny: inertia without a loop running forever.',
       '<code>touch-action: pan-y</code> gives sideways drags to the viewer and leaves vertical swipes to the page. The swatches just set <code>--c</code>, and every face mixes its colour from it.',
+      'Every length in the speaker is a multiple of one base unit, <code>--u</code>, tied to the canvas: it is 86 × 124 × 72 of them, so it is the same share of a gallery card, the editor and a recording canvas. The swatches are in plain <code>vmin</code>, the same size in every model.',
     ],
     html: `<div class="viewer">
   <div class="view" tabindex="0" aria-label="Speaker. Drag sideways or use the arrow keys to rotate it">
