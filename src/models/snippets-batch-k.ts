@@ -625,8 +625,10 @@ world.addEventListener('focusout', reset);`,
   width: calc(200 * var(--u));
   height: calc(110 * var(--u));
   /* more room below than above: the panel's shadow falls well below it, so this is what
-     centres what is drawn rather than the panel's box */
-  margin: calc(32 * var(--u)) calc(40 * var(--u)) calc(48 * var(--u));
+     centres what is drawn rather than the panel's box. None at the sides: with them the box was
+     112vmin wide, wider than a square canvas, and a box wider than the canvas does not centre, it
+     hangs off the right-hand side (6vmin off the middle on a 1:1 or 9:16 canvas) */
+  margin: calc(32 * var(--u)) 0 calc(48 * var(--u));
   outline: none;
   transform-style: preserve-3d;
   perspective: calc(800 * var(--u));
