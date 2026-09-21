@@ -157,7 +157,7 @@ export const demosA: Demo[] = [
       'Pick 3 to 12 sides. JS rebuilds the panels and computes the apothem and side length with cos() and sin(); CSS places every panel from those numbers.',
     category: 'js',
     tags: ['controls', 'generated', 'shape', 'loop'],
-    technique: ['JS: r = R·cos(180°/n), side = 2R·sin(180°/n)', 'rotateY(calc(i × 1turn / n))', 'generated clip-path polygon caps', '@starting-style fly-in'],
+    technique: ['JS: r = R·cos(180°/n), side = 2R·sin(180°/n)', 'rotateY(calc(i × 1turn / n))', 'generated clip-path polygon caps', '@starting-style grow-in from the axis'],
     fill: true,
     html: `<div class="d-shapeshift">
       <div class="d-shapeshift__view"><div class="d-shapeshift__prism" style="${styleAttr(prismVars(SHAPE_START))}">${prismPanels(SHAPE_START)}</div></div>

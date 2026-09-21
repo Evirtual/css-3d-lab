@@ -731,67 +731,92 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
 
   shapeshift: {
     how: [
-      'Keep the corner radius <code>R</code> fixed and derive the rest: side = <code>2R × sin(180° / n)</code>, apothem = <code>R × cos(180° / n)</code>. JS computes both and hands them to CSS as <code>--w</code> and <code>--r</code>.',
-      'CSS places every panel from those numbers: <code>rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(var(--r))</code>. JS never touches a transform.',
+      'Keep the corner radius <code>R</code> fixed and derive the rest: side = <code>2R × sin(180° / n)</code>, apothem = <code>R × cos(180° / n)</code>. JS computes both and hands them to CSS as <code>--w</code> and <code>--r</code> — plain numbers, never lengths: CSS multiplies them by <code>--u</code>, the one base unit every length here is a multiple of, so the prism is the same share of a gallery card, the editor and a recording canvas.',
+      'CSS places every panel from those numbers: <code>rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(var(--apothem))</code>, where <code>--apothem</code> is <code>calc(var(--r) * var(--u))</code>. JS never touches a transform.',
       'The caps are a <code>2R</code> square cut to the polygon. JS writes the <code>clip-path</code>: one corner every <code>360° / n</code>, starting half a side from the centre of panel 0.',
-      'Changing <code>n</code> rebuilds the panels. <code>@starting-style</code> gives brand-new elements a first frame to transition from, so they fly in without any animation JS.',
+      'Changing <code>n</code> rebuilds the panels. <code>@starting-style</code> gives brand-new elements a first frame to transition from, so they grow out from the axis without any animation JS.',
     ],
-    html: `<div class="app">
-  <div class="scene">
-    <div class="prism"></div>
+    html: `<div class="band">
+  <div class="view">
+    <div class="scene">
+      <div class="prism"></div>
+    </div>
   </div>
-  <label>Sides <input type="range" min="3" max="12" value="6" /> <output>6</output></label>
+  <div class="controls">
+    <output class="caption">6 sides</output>
+    <div class="row">
+      <label>Sides <input type="range" min="3" max="12" value="6" aria-label="Number of sides" /></label>
+    </div>
+  </div>
 </div>`,
-    css: `.app {
+    css: `/* the prism and the control zone stand in one stack, so the zone is the same distance below
+   the model in every model */
+.band {
+  /* one base unit: every length in the prism is a multiple of it, so it is the same share of a
+     card, the editor, a full screen and a recording canvas. The control zone is in plain vmin,
+     because it is the same object in every model. */
+  --u: 0.26vmin;
   display: grid;
   justify-items: center;
-  gap: 48px;
+  gap: 4vmin;
+}
+
+/* the model box */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
 }
 
 .scene {
-  perspective: 800px;
+  perspective: calc(800 * var(--u));
 }
 
 .prism {
-  --h: 120px;
+  --h: calc(120 * var(--u));
   position: relative;
-  width: calc(var(--R) * 2);
+  /* JS writes --R, --r and --w as plain numbers; they become lengths here, in the model's unit */
+  --radius: calc(var(--R) * var(--u));
+  --apothem: calc(var(--r) * var(--u));
+  --side: calc(var(--w) * var(--u));
+  width: calc(var(--radius) * 2);
   height: var(--h);
   transform-style: preserve-3d;
   animation: spin 14s linear infinite;
 }
 
-/* JS sets --n, --R, --r (apothem), --w (side) and --cap; CSS only places things */
+/* JS sets --n, --R (radius), --r (apothem), --w (side) and --cap; CSS only places things */
 .prism i {
   --hue: calc(214 - 39 * cos(var(--i) * 1turn / var(--n))); /* teal ... violet ... teal */
   position: absolute;
   top: 0;
-  left: calc(50% - var(--w) / 2);
-  width: var(--w);
+  left: calc(50% - var(--side) / 2);
+  width: var(--side);
   height: 100%;
   background: hsl(var(--hue) 85% 64% / 0.26);
-  border: 1px solid hsl(var(--hue) 85% 64% / 0.75);
-  box-shadow: inset 0 0 24px hsl(var(--hue) 85% 64% / 0.3);
-  transform: rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(var(--r));
+  border: calc(1 * var(--u)) solid hsl(var(--hue) 85% 64% / 0.75);
+  box-shadow: inset 0 0 calc(24 * var(--u)) hsl(var(--hue) 85% 64% / 0.3);
+  transform: rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(var(--apothem));
   transition: transform 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.1), opacity 0.35s;
   transition-delay: calc(var(--i) * 30ms);
 }
 
-/* the first frame of a newly inserted panel: further out and invisible */
+/* the first frame of a newly inserted panel: on the axis and invisible, so it grows out into place
+   and never reaches past the prism's own footprint on the way */
 @starting-style {
   .prism i {
     opacity: 0;
-    transform: rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(calc(var(--r) + 70px));
+    transform: rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(0);
   }
 }
 
 /* caps: both rotateX(90deg), pushed up or down, so an odd polygon lines up on both ends */
 .prism b {
   position: absolute;
-  left: calc(50% - var(--R));
-  top: calc(50% - var(--R));
-  width: calc(var(--R) * 2);
-  height: calc(var(--R) * 2);
+  left: calc(50% - var(--radius));
+  top: calc(50% - var(--radius));
+  width: calc(var(--radius) * 2);
+  height: calc(var(--radius) * 2);
   clip-path: var(--cap);
   background: radial-gradient(circle, rgb(255 77 157 / 0.1) 15%, rgb(255 77 157 / 0.5));
   transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
@@ -806,18 +831,41 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
   .prism b { opacity: 0; }
 }
 
-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #949bc0;
-  font: 14px system-ui;
+/* the control zone: the same object, at the same size, in every model that has one */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-output {
-  min-width: 2ch;
-  color: #eceefb;
-  font-family: ui-monospace, monospace;
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.controls .row {
+  display: flex;
+  gap: 2vmin;
+}
+
+.controls label {
+  display: flex;
+  align-items: center;
+  gap: 2vmin;
+  height: 8vmin;
+  padding: 0 3vmin;
+  border-radius: 999px;
+  background: rgb(148 155 192 / 0.2);
+  font: 600 4vmin system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.controls input {
+  width: 28vmin;
+  accent-color: #2ee6d6;
+  cursor: pointer;
 }
 
 @keyframes spin {
@@ -827,16 +875,17 @@ output {
     js: `const prism = document.querySelector('.prism');
 const input = document.querySelector('input');
 const output = document.querySelector('output');
-const R = 80; // corner radius: the prism keeps this footprint for every n
+const R = 80; // corner radius, in the model's units: the prism keeps this footprint for every n
 
 function build() {
   const n = Number(input.value);
   const half = Math.PI / n; // half the angle one side spans
 
   prism.style.setProperty('--n', n);
-  prism.style.setProperty('--R', R + 'px');
-  prism.style.setProperty('--r', R * Math.cos(half) + 'px');     // apothem
-  prism.style.setProperty('--w', 2 * R * Math.sin(half) + 'px'); // side length
+  // plain numbers: CSS multiplies them by --u, so the prism scales with the canvas
+  prism.style.setProperty('--R', R);
+  prism.style.setProperty('--r', R * Math.cos(half));     // apothem
+  prism.style.setProperty('--w', 2 * R * Math.sin(half)); // side length
 
   // cap outline: a corner half a side either side of every panel's centre
   const corners = [];
@@ -850,7 +899,7 @@ function build() {
   let html = '';
   for (let i = 0; i < n; i++) html += '<i style="--i:' + i + '"></i>';
   prism.innerHTML = html + '<b></b><b></b>';
-  output.textContent = n;
+  output.textContent = n + ' sides';
 }
 
 input.addEventListener('input', build);
