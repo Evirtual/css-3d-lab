@@ -979,7 +979,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the frame is 150 × 250 units, so the door is the same share of a gallery card, the editor and a recording canvas. The shut door stands in the middle. The leaf swings out to the left, so as it opens the whole door slides right by half of that swing, on the same transition, and the open door plus its leaf is what sits in the middle then.',
     ],
     html: `<div class="scene">
-  <div class="door" tabindex="0">
+  <div class="door" tabindex="0" role="img" aria-label="Door that swings open on hover or focus">
     <div class="leaf"><i></i></div>
   </div>
 </div>`,
@@ -1044,7 +1044,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
       'Hover is detected on a larger, non-rotating wrapper so the target does not spin out from under the pointer.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the side is 110 units, so a closed cube would have <code>--d</code> at 55; it rests at 64, the faces standing a little apart so even a paused cube shows six loose panels, and hover pushes it to 108. The cube, and how far it flies apart, are the same share of a gallery card, the editor and a recording canvas.',
     ],
-    html: `<div class="scene" tabindex="0">
+    html: `<div class="scene" tabindex="0" role="img" aria-label="Cube whose faces fly apart on hover or focus">
   <div class="cube">
     <div></div><div></div><div></div>
     <div></div><div></div><div></div>

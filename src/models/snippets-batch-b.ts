@@ -1671,7 +1671,7 @@ controls.addEventListener('click', (e) => {
       'The bob sits on the window, the hover on a static wrapper, and the window has <code>pointer-events: none</code>, so the bobbing never slides out from under the pointer.',
     ],
     html: `<div class="scene">
-  <div class="browser" tabindex="0">
+  <div class="browser" tabindex="0" role="img" aria-label="Browser window whose layers lift apart on hover or focus">
     <div class="win">
       <i class="shadow"></i>
       <div class="frame"><span></span><span></span><span></span><em></em></div>

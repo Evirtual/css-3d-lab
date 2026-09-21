@@ -25,7 +25,7 @@ export const snippetsG: Record<string, Snippet> = {
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the headset is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
-  <div class="headphones" tabindex="0">
+  <div class="headphones" tabindex="0" role="img" aria-label="Headphones that turn and light up on hover or focus">
    <div class="rig">
     <i class="shadow"></i>
     <div class="band">
