@@ -494,7 +494,7 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
 
   ferris: {
     how: [
-      'Every cabin is a zero-size point at the wheel’s centre with <code>rotate(a) translateY(-68 units) rotate(-a)</code>: turn, walk out to the rim, turn back. It lands on the rim, upright.',
+      'Every cabin is a zero-size point at the wheel’s centre with <code>rotate(a)</code>, a <code>translateY</code> of −68 units, then <code>rotate(-a)</code>: turn, walk out to the rim, turn back. It lands on the rim, upright.',
       'The wheel spins <code>0 → 360deg</code>. Each cabin appends <code>rotate(0 → -360deg)</code> with the same duration, so the two cancel at every moment and the cabins keep hanging straight down.',
       'Because the cabin element is a point, <code>transform-origin</code> is the pivot. The body is a pseudo-element hanging below it, free to swing a few degrees on its own.',
       'Depth comes cheap: two rims 7 units in front of and behind the centre (<code>translateZ</code>), every spoke drawn twice with <code>::before/::after</code>, and two A-frames in front of and behind the wheel. Turn the whole thing with <code>rotateY</code> to see it.',
