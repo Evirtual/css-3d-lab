@@ -31,9 +31,9 @@ ${SPOTS.map((s) => `      <b style="--x:${s.x}; --z:${s.z}"></b>`).join('\n')}
 // the face of a triangle: its two slanted edges and the bottom edge are painted, because
 // clip-path cuts borders away
 const TRIANGLE_BG = `background:
-    linear-gradient(to top left, transparent calc(50% - 1.5px), var(--edge) calc(50% - 1.5px) 50%, transparent 50%) left / 50% 100% no-repeat,
-    linear-gradient(to top right, transparent calc(50% - 1.5px), var(--edge) calc(50% - 1.5px) 50%, transparent 50%) right / 50% 100% no-repeat,
-    linear-gradient(var(--edge), var(--edge)) bottom / 100% 1.5px no-repeat,
+    linear-gradient(to top left, transparent calc(50% - 1.5 * var(--u)), var(--edge) calc(50% - 1.5 * var(--u)) 50%, transparent 50%) left / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 1.5 * var(--u)), var(--edge) calc(50% - 1.5 * var(--u)) 50%, transparent 50%) right / 50% 100% no-repeat,
+    linear-gradient(var(--edge), var(--edge)) bottom / 100% calc(1.5 * var(--u)) no-repeat,
     linear-gradient(90deg, transparent 42%, rgb(255 255 255 / 0.16) 50%, transparent 58%),
     linear-gradient(to top, rgb(var(--c) / var(--alpha)), rgb(var(--c) / 0.08));`;
 
@@ -46,6 +46,7 @@ export const snippetsF: Record<string, Snippet> = {
       'Hinge each on its bottom edge and lean it in. The faces of a tetrahedron meet the floor at <code>atan(2√2) ≈ 70.53°</code>, so an upright face leans the other <b>19.47°</b>, and the three tips meet exactly above the centre. The floor is the same triangle leaned all the way, 90°, so its tip lands on the back corner.',
       'Tumble it round its <b>centroid</b>, a quarter of the height up from the floor (<code>transform-origin</code>), not round the box centre, or it wobbles as it turns.',
       'The core undoes the tumble: the same three turns backwards and in reverse order, on the same timing. So it always faces you and stays a round glow.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the tetrahedron is the same share of a gallery card, the editor and a recording canvas. The numbers above are those units.',
     ],
     html: `<div class="scene">
   <div class="tetra">
@@ -55,17 +56,23 @@ ${lines(3, (i) => `<i style="--i:${i}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the tetrahedron is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.4vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .tetra {
-  --a: 140px;    /* edge length */
-  --r: 40.41px;  /* floor inradius = a / (2√3) */
+  --a: calc(140 * var(--u));    /* edge length */
+  --r: calc(40.41 * var(--u));  /* floor inradius = a / (2√3) */
   position: relative;
   width: var(--a);
-  height: 121.24px;              /* face height = a × √3 / 2 */
+  height: calc(121.24 * var(--u));              /* face height = a × √3 / 2 */
   transform-style: preserve-3d;
-  transform-origin: 50% 92.66px; /* the centroid: it stands a·√(2/3) = 114.31px tall, a quarter of that up */
+  transform-origin: 50% calc(92.66 * var(--u)); /* the centroid: it stands a·√(2/3) = 114.31 units tall, a quarter of that up */
+  /* it turns round the centroid, 32 units below the middle of its box, so the box is lifted by
+     that much to put the centroid, and so the whole tumble, in the middle of the canvas */
+  translate: 0 calc(-32.05 * var(--u));
   animation: tumble 16s linear infinite;
 }
 
@@ -100,11 +107,11 @@ ${lines(3, (i) => `<i style="--i:${i}"></i>`)}
 /* the core sits on the centroid */
 .tetra u {
   position: absolute;
-  top: 92.66px;
+  top: calc(92.66 * var(--u));
   left: 50%;
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
+  width: calc(40 * var(--u));
+  height: calc(40 * var(--u));
+  margin: calc(-20 * var(--u)) 0 0 calc(-20 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, #fff 0 8%, #ffcb7e 22%, rgb(255 181 71 / 0.55) 42%, transparent 70%);
   animation: face-you 16s linear infinite, pulse 2.4s ease-in-out infinite alternate;
