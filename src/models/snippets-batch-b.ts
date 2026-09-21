@@ -684,8 +684,9 @@ scene.addEventListener('pointercancel', leave);`,
 
   vinyl: {
     how: [
-      'The sleeve is a real sandwich in Z: back board at <code>translateZ(-3px)</code>, record at 0, front board at <code>translateZ(3px)</code>. The record hides behind the front board with no <code>z-index</code> at all.',
-      'Sliding out is one transition on the record: <code>translateX(70px)</code>. The whole set turns at the same time, so the open end swings toward you.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the sleeve, its type and the record\'s grooves are the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'The sleeve is a real sandwich in Z: back board at <code>translateZ(-3 units)</code>, record at 0, front board at <code>+3</code>. The record hides behind the front board with no <code>z-index</code> at all.',
+      'Sliding out is one transition on the record: <code>translateX(66 units)</code>. The whole set turns at the same time, so the open end swings toward you.',
       'The label spins with an animation that starts <code>paused</code>; <code>:hover</code> only flips <code>animation-play-state</code> to <code>running</code>, so it stops where it is instead of snapping back.',
       'The grooves are a <code>repeating-radial-gradient</code>; the reflections are a <code>conic-gradient</code> on the same element that does <b>not</b> spin, like light on a real record.',
     ],
@@ -700,28 +701,31 @@ scene.addEventListener('pointercancel', leave);`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the sleeve is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.48vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* static hit area */
 .vinyl {
   display: grid;
   place-items: center;
-  width: 216px;
-  height: 160px;
-  border-radius: 16px;
-  outline-offset: -4px;
+  width: calc(216 * var(--u));
+  height: calc(160 * var(--u));
+  border-radius: calc(16 * var(--u));
+  outline-offset: calc(-4 * var(--u));
   cursor: pointer;
   transform-style: preserve-3d;
 }
 
 .set {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: calc(120 * var(--u));
+  height: calc(120 * var(--u));
   pointer-events: none;
   transform-style: preserve-3d;
-  transform: translateX(-8px) rotateX(4deg) rotateY(18deg);
+  transform: translateX(calc(-8 * var(--u))) rotateX(4deg) rotateY(18deg);
   transition: transform 0.7s cubic-bezier(0.3, 1.2, 0.5, 1);
 }
 
@@ -729,12 +733,12 @@ scene.addEventListener('pointercancel', leave);`,
 .back {
   position: absolute;
   inset: 0;
-  border-radius: 3px;
+  border-radius: calc(3 * var(--u));
 }
 
 .back {
   background: #312a5d;
-  transform: translateZ(-3px);
+  transform: translateZ(calc(-3 * var(--u)));
 }
 
 .front {
@@ -742,28 +746,40 @@ scene.addEventListener('pointercancel', leave);`,
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
-  padding: 10px;
+  padding: calc(10 * var(--u));
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.22);
+  border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.22);
   background:
-    radial-gradient(circle at 78% 72%, transparent 0 17px, rgb(255 255 255 / 0.9) 17.5px 19px, transparent 19.5px 27px, rgb(255 255 255 / 0.55) 27.5px 29px, transparent 29.5px 38px, rgb(255 255 255 / 0.3) 38.5px 40px, transparent 40.5px),
-    radial-gradient(circle at 78% 72%, #ffb547 0 17px, transparent 17.5px),
+    radial-gradient(circle at 78% 72%, transparent 0 calc(17 * var(--u)), rgb(255 255 255 / 0.9) calc(17.5 * var(--u)) calc(19 * var(--u)), transparent calc(19.5 * var(--u)) calc(27 * var(--u)), rgb(255 255 255 / 0.55) calc(27.5 * var(--u)) calc(29 * var(--u)), transparent calc(29.5 * var(--u)) calc(38 * var(--u)), rgb(255 255 255 / 0.3) calc(38.5 * var(--u)) calc(40 * var(--u)), transparent calc(40.5 * var(--u))),
+    radial-gradient(circle at 78% 72%, #ffb547 0 calc(17 * var(--u)), transparent calc(17.5 * var(--u))),
     linear-gradient(150deg, #8b6cff, #ff4d9d 85%);
   color: #fff;
   font-family: system-ui, sans-serif;
   backface-visibility: hidden;
-  transform: translateZ(3px);
+  transform: translateZ(calc(3 * var(--u)));
 }
 
-.front b { font-size: 17px; font-weight: 900; line-height: 0.95; letter-spacing: -0.5px; }
-.front span { font-size: 7px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: 0.85; }
+.front b {
+  font-size: calc(17 * var(--u));
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: calc(-0.5 * var(--u));
+}
+
+.front span {
+  font-size: calc(8 * var(--u));
+  font-weight: 700;
+  letter-spacing: calc(1 * var(--u));
+  text-transform: uppercase;
+  opacity: 0.85;
+}
 
 /* closes the left side: centred on the left edge, turned side-on */
 .spine {
   position: absolute;
   top: 0;
-  left: -3px;
-  width: 6px;
+  left: calc(-3 * var(--u));
+  width: calc(6 * var(--u));
   height: 100%;
   background: #5846a3;
   transform: rotateY(90deg);
@@ -771,35 +787,35 @@ scene.addEventListener('pointercancel', leave);`,
 
 .disc {
   position: absolute;
-  inset: 6px;
+  inset: calc(6 * var(--u));
   display: grid;
   place-items: center;
   border-radius: 50%;
   background:
     conic-gradient(from 35deg, transparent 0 6%, rgb(255 255 255 / 0.22) 11%, transparent 17% 56%, rgb(255 255 255 / 0.16) 61%, transparent 67%),
-    repeating-radial-gradient(circle, #0c0c12 0 1.5px, #1f1f2a 1.5px 3px);
-  transform: translateX(12px);
+    repeating-radial-gradient(circle, #0c0c12 0 calc(1.5 * var(--u)), #1f1f2a calc(1.5 * var(--u)) calc(3 * var(--u)));
+  transform: translateX(calc(12 * var(--u)));
   transition: transform 0.7s cubic-bezier(0.3, 1.1, 0.5, 1);
 }
 
 .label {
-  width: 40px;
-  height: 40px;
+  width: calc(40 * var(--u));
+  height: calc(40 * var(--u));
   border-radius: 50%;
   background:
-    radial-gradient(circle, #0c0c12 0 2.5px, transparent 3px),
+    radial-gradient(circle, #0c0c12 0 calc(2.5 * var(--u)), transparent calc(3 * var(--u))),
     conic-gradient(#ffb547 0 25%, #ff4d9d 0 50%, #ffb547 0 75%, #ff4d9d 0);
   animation: spin 1.8s linear infinite paused;
 }
 
 .vinyl:hover .set,
 .vinyl:focus-visible .set {
-  transform: translateX(-36px) rotateX(6deg) rotateY(-22deg);
+  transform: translateX(calc(-36 * var(--u))) rotateX(6deg) rotateY(-22deg);
 }
 
 .vinyl:hover .disc,
 .vinyl:focus-visible .disc {
-  transform: translateX(70px);
+  transform: translateX(calc(66 * var(--u)));
 }
 
 .vinyl:hover .label,
