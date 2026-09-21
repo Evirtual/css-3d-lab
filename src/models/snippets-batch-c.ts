@@ -1256,11 +1256,11 @@ stage.addEventListener('pointercancel', leave);`,
       '<code>translate3d(...)</code> plus two <code>rotate</code>s built from the same <code>--mx</code>/<code>--my</code> shift the button toward the pointer and lean it the way it is being pulled, all in one <code>transform</code>.',
       'The label is lifted another 30 units off the button’s face with <code>translateZ</code>. It shares the tilt but stands further from the pivot, so it travels further and visibly slides apart from its cap: parallax from one shared tilt.',
       'While the pointer is inside the field (<code>.is-live</code>) the transition is a quick 0.14s <code>ease-out</code> so it tracks closely; on release a long <code>cubic-bezier</code> with overshoot takes over, reading as a spring pulling the button home.',
-      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the field, the button, its lift and how far it travels — so the whole thing is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the field, the button, its lift and how far it travels — so the whole thing is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units. The button is the model, so it is a big 150 × 112 tile with its label on two lines, and the field round it is a faint violet pad that reads on a dark stage and a light one alike.',
     ],
     html: `<div class="magnet">
   <i class="glow"></i>
-  <button type="button" class="btn"><span>Pull me</span></button>
+  <button type="button" class="btn"><span>Pull<br />me</span></button>
 </div>`,
     css: `.magnet {
   /* one base unit: every length below is a multiple of it, so the field is the same share of a
@@ -1271,8 +1271,11 @@ stage.addEventListener('pointercancel', leave);`,
   place-items: center;
   width: calc(220 * var(--u));
   height: calc(160 * var(--u));
-  border: calc(1 * var(--u)) dashed #262b4a;
-  border-radius: calc(18 * var(--u));
+  /* the field: a faint violet pad, the same tint on a dark stage and a light one (a grey dashed
+     line was near invisible on dark and a hard black box on light) */
+  border: calc(1.5 * var(--u)) solid rgb(139 108 255 / 0.3);
+  border-radius: calc(26 * var(--u));
+  background: radial-gradient(ellipse at 50% 50%, rgb(139 108 255 / 0.14), rgb(139 108 255 / 0.04) 72%);
   perspective: calc(800 * var(--u));
   transform-style: preserve-3d;
   touch-action: none; /* let a finger drag inside the field instead of scrolling the page */
@@ -1281,37 +1284,37 @@ stage.addEventListener('pointercancel', leave);`,
 /* the glow lies on the floor of the field, behind the button, and runs further than it */
 .glow {
   position: absolute;
-  top: calc(50% - 60 * var(--u));
-  left: calc(50% - 60 * var(--u));
-  width: calc(120 * var(--u));
-  height: calc(120 * var(--u));
+  top: calc(50% - 70 * var(--u));
+  left: calc(50% - 95 * var(--u));
+  width: calc(190 * var(--u));
+  height: calc(140 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, rgb(46 230 214 / 0.55), transparent 68%);
   opacity: 0;
   pointer-events: none;
-  /* 50 and 20, not 70 and 44: the glow's box is 120 across, so at full deflection the old travel
-     swung it 20 units past the field on each side and 24 above and below. These two numbers are
-     60 less than half the field, so the glow reaches the edge of the field and stops there, and
-     the band holds the field rather than the glow */
-  transform: translate3d(calc(var(--mx, 0) * 50 * var(--u)), calc(var(--my, 0) * 20 * var(--u)), 0);
+  /* the glow is 190 × 140 and the field 220 × 160, so it may travel 15 and 10: at full deflection
+     it reaches the edge of the field and stops there, and the band holds the field, not the glow */
+  transform: translate3d(calc(var(--mx, 0) * 15 * var(--u)), calc(var(--my, 0) * 10 * var(--u)), 0);
   transition: transform 0.7s cubic-bezier(0.3, 1.6, 0.5, 1), opacity 0.4s;
 }
 
-/* the button shifts toward the pointer and leans the way it is pulled; it floats 34 units above
-   the field so its far, tipped-back edge still stays in front of the field's own plane */
+/* the button is the model, so it is big: a 150 × 112 tile, the label on two lines. It shifts toward
+   the pointer and leans the way it is pulled; it floats 34 units above the field so its far,
+   tipped-back edge still stays in front of the field's own plane */
 .btn {
   position: relative;
-  width: calc(138 * var(--u));
-  height: calc(50 * var(--u));
+  width: calc(150 * var(--u));
+  height: calc(112 * var(--u));
   padding: 0;
   border: calc(1 * var(--u)) solid #a996ff;
-  border-radius: calc(14 * var(--u));
+  border-radius: calc(24 * var(--u));
   background: linear-gradient(140deg, #8b6cff, #bf5ed3);
   box-shadow: 0 calc(16 * var(--u)) calc(26 * var(--u)) calc(-14 * var(--u)) rgb(139 108 255 / 0.9);
   color: #fff;
   font: inherit;
-  font-size: calc(15 * var(--u));
+  font-size: calc(34 * var(--u));
   font-weight: 800;
+  line-height: 1;
   cursor: pointer;
   transform-style: preserve-3d;
   transform:
