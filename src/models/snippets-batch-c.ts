@@ -1084,28 +1084,28 @@ stage.addEventListener('pointercancel', leave);`,
   radial: {
     how: [
       'A real checkbox holds the open/closed state and takes the keyboard; the button visitors see is its <code>&lt;label&gt;</code>, which is why only the plus icon inside needs to rotate on <code>:checked</code>, not the whole button.',
-      'Every item starts tucked directly behind the button (<code>scale(0.4)</code>, pulled back in Z, flipped with <code>rotateX(-100deg)</code>). <code>:checked</code> swaps in a transform list with the <b>same functions</b> but different numbers, so the browser animates each one independently.',
+      'Closed, every item rests just behind the button, a little way out along its spoke and shrunk (<code>scale(0.7)</code>, pulled back in Z), so the five colours peek out round it like a bud: even a paused card shows a menu, not a lone plus. <code>:checked</code> swaps in a transform list with the <b>same functions</b> but different numbers, so the browser animates each one independently.',
       '<code>rotate(a) translateX(r) rotate(-a)</code> walks a point out along a straight spoke at angle <code>a</code> while the trailing <code>rotate(-a)</code> cancels the turn, so every icon stays upright as it travels its own arc. The five spokes are 72° apart, a full ring round the button.',
       '<code>--i</code> staggers the opening so the items fan out one after another; on close the delay is reversed (<code>(4 - var(--i))</code>) so the <b>last</b> item to open is the <b>first</b> to leave.',
-      'Closed items get <code>visibility: hidden</code> and <code>pointer-events: none</code> so Tab and clicks skip them until the menu is actually open.',
+      'Closed items get <code>visibility: hidden</code> and <code>pointer-events: none</code> so Tab and clicks skip them until the menu is actually open. The bud you see is the <code>::before</code> of each item, which sets <code>visibility: visible</code> for itself: a hidden parent can still show a visible child, and a hidden button cannot take focus.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The button sits in the middle and the items open into a full ring round it, so the menu is centred closed and open alike, and opening never moves the button.',
     ],
     html: `<div class="scene">
   <div class="radial">
     <input type="checkbox" id="radial-toggle" aria-label="Open the action menu" />
+    <label class="fab" for="radial-toggle" title="Actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></label>
     <span class="ring"></span>
     <button type="button" class="item" style="--i:0;--c:#ff4d9d" aria-label="Like" title="Like"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/></svg></button>
     <button type="button" class="item" style="--i:1;--c:#ffb547" aria-label="Edit" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
     <button type="button" class="item" style="--i:2;--c:#2ee6d6" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m7 8 5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>
     <button type="button" class="item" style="--i:3;--c:#8b6cff" aria-label="Copy" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="13" height="13" x="8" y="8" rx="2"/><path d="M5 16a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2"/></svg></button>
     <button type="button" class="item" style="--i:4;--c:#ff4d9d" aria-label="Search" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.5-4.5"/></svg></button>
-    <label class="fab" for="radial-toggle" title="Actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></label>
   </div>
 </div>`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the menu is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.34vmin;
+  --u: 0.39vmin;
   perspective: calc(800 * var(--u));
 }
 
@@ -1114,7 +1114,9 @@ stage.addEventListener('pointercancel', leave);`,
   width: calc(200 * var(--u));
   height: calc(200 * var(--u));
   transform-style: preserve-3d;
-  transform: rotateX(16deg); /* lean the whole menu back a little so the depth can be seen */
+  /* lean the whole menu back a little so the depth can be seen; the five spokes reach further up
+     than down (one straight up, two at the bottom corners), so it sits a little low to be centred */
+  transform: translateY(calc(6 * var(--u))) rotateX(16deg);
 }
 
 /* the real checkbox: invisible, but it holds the open/closed state and takes the keyboard */
@@ -1133,12 +1135,12 @@ stage.addEventListener('pointercancel', leave);`,
    inside turns */
 .fab {
   position: absolute;
-  top: calc(50% - 24 * var(--u));
-  left: calc(50% - 24 * var(--u));
+  top: calc(50% - 32 * var(--u));
+  left: calc(50% - 32 * var(--u));
   display: grid;
   place-items: center;
-  width: calc(48 * var(--u));
-  height: calc(48 * var(--u));
+  width: calc(64 * var(--u));
+  height: calc(64 * var(--u));
   border-radius: 50%;
   background: linear-gradient(140deg, #8b6cff, #ff4d9d);
   box-shadow: 0 calc(10 * var(--u)) calc(22 * var(--u)) calc(-8 * var(--u)) rgb(139 108 255 / 0.8);
@@ -1148,8 +1150,8 @@ stage.addEventListener('pointercancel', leave);`,
 }
 
 .fab svg {
-  width: calc(22 * var(--u));
-  height: calc(22 * var(--u));
+  width: calc(28 * var(--u));
+  height: calc(28 * var(--u));
   pointer-events: none;
   transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
 }
@@ -1166,10 +1168,10 @@ stage.addEventListener('pointercancel', leave);`,
 /* a faint ring that shows the circle the items travel to, all the way round the button */
 .ring {
   position: absolute;
-  top: calc(50% - 80 * var(--u));
-  left: calc(50% - 80 * var(--u));
-  width: calc(160 * var(--u));
-  height: calc(160 * var(--u));
+  top: calc(50% - 70 * var(--u));
+  left: calc(50% - 70 * var(--u));
+  width: calc(140 * var(--u));
+  height: calc(140 * var(--u));
   border: calc(1 * var(--u)) dashed rgb(139 108 255 / 0.55);
   border-radius: 50%;
   opacity: 0;
@@ -1183,8 +1185,8 @@ stage.addEventListener('pointercancel', leave);`,
   transform: scale(1);
 }
 
-/* every item starts hidden behind the button, centre on centre; its place on the arc is
-   turn-to-angle, walk out, turn back (so the icon stays upright) */
+/* every item rests behind the button, a short way out along its spoke, so it peeks out round the
+   button; its place on the ring is turn-to-angle, walk out, turn back (so the icon stays upright) */
 .item {
   --a: calc(-90deg + var(--i) * 72deg); /* five spokes, 72deg apart, the first straight up */
   position: absolute;
@@ -1200,15 +1202,31 @@ stage.addEventListener('pointercancel', leave);`,
   background: color-mix(in srgb, var(--c) 30%, #0b0d18);
   color: #eceefb;
   cursor: pointer;
-  opacity: 0;
   visibility: hidden; /* closed items must not be reachable by Tab */
   pointer-events: none;
-  transform: rotate(var(--a)) translateX(0) rotate(calc(var(--a) * -1)) translateZ(calc(-30 * var(--u))) rotateX(-100deg) scale(0.4);
+  transform: rotate(var(--a)) translateX(calc(51 * var(--u))) rotate(calc(var(--a) * -1)) translateZ(calc(-10 * var(--u))) rotateX(0deg) scale(0.7);
   /* closing: the last item leaves first */
   transition:
     transform 0.35s ease-in calc((4 - var(--i)) * 35ms),
-    opacity 0.25s linear calc((4 - var(--i)) * 35ms + 0.1s),
     visibility 0s linear 0.55s;
+}
+
+/* the bud: a plain disc in the item's colour, shown while the button itself is hidden. It sets
+   its own visibility, which a hidden parent allows, and fades once the real button is out */
+.item::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--u));
+  border: inherit;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c) 55%, #0b0d18);
+  visibility: visible;
+  transition: opacity 0.25s linear calc((4 - var(--i)) * 35ms + 0.1s);
+}
+
+.radial > input:checked ~ .item::before {
+  opacity: 0;
+  transition: opacity 0.2s linear calc(var(--i) * 45ms + 0.1s);
 }
 
 .item svg {
@@ -1222,14 +1240,12 @@ stage.addEventListener('pointercancel', leave);`,
 }
 
 .radial > input:checked ~ .item {
-  opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: rotate(var(--a)) translateX(calc(80 * var(--u))) rotate(calc(var(--a) * -1)) translateZ(calc(26 * var(--u))) rotateX(0deg) scale(1);
+  transform: rotate(var(--a)) translateX(calc(70 * var(--u))) rotate(calc(var(--a) * -1)) translateZ(calc(26 * var(--u))) rotateX(0deg) scale(1);
   /* opening: staggered by index, with a little overshoot */
   transition:
     transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) calc(var(--i) * 45ms),
-    opacity 0.2s linear calc(var(--i) * 45ms),
     visibility 0s;
 }`,
   },

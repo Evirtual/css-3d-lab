@@ -204,7 +204,7 @@ export const demosC: Demo[] = [
   {
     id: 'radial',
     title: 'Radial action menu',
-    description: 'A floating action button built from a checkbox and its label. Checked, five actions walk out along their spokes onto an arc, flipping up as they come forward, one after another.',
+    description: 'A floating action button built from a checkbox and its label. Closed, its five actions wait as coloured chips tucked round it; checked, they walk out along their spokes into a ring, coming forward one after another.',
     category: 'css',
     tags: ['controls', 'form-hack', 'menu'],
     technique: ['rotate(a) translateX(r) rotate(-a)', 'matching transform lists animate per function', 'transition-delay from --i', 'checkbox + label toggle'],
