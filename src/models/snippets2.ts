@@ -2009,6 +2009,11 @@ for (let row = 0; row < N; row++) {
 
 /* JS writes --x, --y and --z as plain numbers; they are counted in units here */
 @keyframes fly {
+  /* bright until the burst has nearly spread, then gone quickly: faded on the same curve as the
+     flight, a particle is half see-through before it is halfway out, and the burst reads small */
+  50% {
+    opacity: 1;
+  }
   to {
     opacity: 0;
     /* + 200 units on Y is the "gravity" */
@@ -2024,9 +2029,10 @@ party.addEventListener('pointerdown', () => {
   // 18 random vectors, each thrown twice, once to the left and once to the right, so the burst
   // is balanced around the middle however the dice fall; a little jitter keeps the two from
   // reading as a mirror image. Each height is drawn from its own eighteenth of the range, so
-  // the burst always reaches as high and as low.
+  // the burst always reaches as high and as low: -520 to 120, which the 200 of gravity turns
+  // into -320 to 320, a burst centred on the words.
   for (let i = 0; i < 18; i++) {
-    const x = rand(0, 340), y = -505 + (i + rand(0.2, 0.8)) * 640 / 18, z = rand(-100, 100);
+    const x = rand(0, 340), y = -520 + (i + rand(0.2, 0.8)) * 640 / 18, z = rand(-100, 100);
     for (const side of [-1, 1]) {
       const p = document.createElement('i');
       // plain numbers: the CSS multiplies them by --u, so the burst scales with the canvas
