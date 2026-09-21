@@ -176,25 +176,37 @@ ${CUBE_FACES}
       'Darken each layer slightly and the stack reads as a solid side wall.',
       'Finish with one blurred shadow for the drop shadow on the "ground".',
       'In Sass a <code>@function</code> with a <code>@for</code> loop writes the list for you (see the Sass source tab).',
+      'Every length is a multiple of one base unit, <code>--u</code>, the offsets included, so the whole extrusion keeps its proportions on a gallery card, in the editor and in a recording canvas.',
     ],
     html: `<div class="scene">
-  <h1 class="extruded">DEPTH</h1>
+  <h1 class="extruded">3D<br>DEPTH</h1>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the headline is the same share of
+     a card, the editor, a full screen and a recording canvas */
+  --u: 0.30vmin;
+  perspective: calc(800 * var(--u));
 }
 
+/* Two lines, because one is a shape the band cannot hold: DEPTH on its own is two and a half
+   times wider than it is tall, so sized to the 92vmin width limit it stands under the 40vmin
+   floor. A kicker line over the word is what a headline does anyway. */
 .extruded {
   margin: 0;
-  font: 900 5rem system-ui;
+  font: 900 calc(80 * var(--u))/1.04 system-ui;
   letter-spacing: 0.04em;
+  text-align: center;
   color: #fff;
   text-shadow:
-    1px 1px 0 #7f63e8, 2px 2px 0 #785ddb,
-    3px 3px 0 #7057cd, 4px 4px 0 #6951c0,
-    5px 5px 0 #614bb2, 6px 6px 0 #5a45a5,
-    7px 7px 0 #523f97, 8px 8px 0 #4b398a,
-    14px 18px 18px rgb(0 0 0 / 0.5);
+    calc(1 * var(--u)) calc(1 * var(--u)) 0 #7f63e8,
+    calc(2 * var(--u)) calc(2 * var(--u)) 0 #785ddb,
+    calc(3 * var(--u)) calc(3 * var(--u)) 0 #7057cd,
+    calc(4 * var(--u)) calc(4 * var(--u)) 0 #6951c0,
+    calc(5 * var(--u)) calc(5 * var(--u)) 0 #614bb2,
+    calc(6 * var(--u)) calc(6 * var(--u)) 0 #5a45a5,
+    calc(7 * var(--u)) calc(7 * var(--u)) 0 #523f97,
+    calc(8 * var(--u)) calc(8 * var(--u)) 0 #4b398a,
+    calc(14 * var(--u)) calc(18 * var(--u)) calc(18 * var(--u)) rgb(0 0 0 / 0.5);
   animation: rock 5s ease-in-out infinite alternate;
 }
 
