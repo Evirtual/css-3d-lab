@@ -408,7 +408,7 @@ function openViewer(id: string): void {
               <div class="codebox__seg" title="The standalone snippet: edit it here, copy it into your project">
                 ${panes.filter((p) => isPart(p.key)).map((p) => tab(p)).join('')}
               </div>
-              ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'How this site builds the effect, using the project Sass mixins. For reading, not for pasting')}
+              ${tab(panes.find((p) => p.key === 'scss')!, 'codebox__tab--source', 'The older Sass version of this model. The site no longer draws from it; the snippet is the model')}
             </div>
             <div class="codebox__look">${dotsHtml()}${modeHtml()}</div>
             <button type="button" class="codebox__copy" data-copy="pane">${icon('copy')} Copy</button>
