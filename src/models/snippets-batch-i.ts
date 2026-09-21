@@ -645,6 +645,10 @@ ${Array.from({ length: n }, (_, d) =>
   /* one base unit: every length below is a multiple of it, so the atom is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
   --u: 0.39vmin;
+  /* where the loop starts: every animation is set 36s into its run, one shared moment, so the
+     timing between them is kept. There the dots are spread round the core, and a paused atom
+     (which shows this first frame) is centred; at 0s they bunch on one side */
+  --t0: -36s;
   perspective: calc(800 * var(--u));
 }
 
@@ -654,7 +658,7 @@ ${Array.from({ length: n }, (_, d) =>
   width: calc(152 * var(--u));
   height: calc(152 * var(--u));
   transform-style: preserve-3d;
-  animation: atom-turn 16s linear infinite;
+  animation: atom-turn 16s linear var(--t0) infinite;
 }
 
 /* the core */
@@ -663,7 +667,7 @@ ${Array.from({ length: n }, (_, d) =>
   inset: calc(50% - 20 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 40% 36%, #fff 0 7%, #c5b6ff 20%, #8b6cff 46%, #463680 70%, transparent 72%);
-  animation: atom-face 16s linear infinite;
+  animation: atom-face 16s linear var(--t0) infinite;
 }
 
 /* a soft halo that breathes (a gradient, no blur) */
@@ -673,7 +677,7 @@ ${Array.from({ length: n }, (_, d) =>
   inset: calc(-16 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(139 108 255 / 0.45), transparent);
-  animation: atom-breathe 1.6s ease-in-out infinite alternate;
+  animation: atom-breathe 1.6s ease-in-out var(--t0) infinite alternate;
 }
 
 /* an orbit: a circle laid over by 72°, its axis turned by --phi */
@@ -704,7 +708,7 @@ ${Array.from({ length: n }, (_, d) =>
   height: calc(12 * var(--u));
   transform-style: preserve-3d;
   animation: dot-orbit var(--dur) linear infinite var(--dir);
-  animation-delay: calc(var(--lag) * var(--dur) * 0.017 - var(--p) * var(--dur) - var(--dur));
+  animation-delay: calc(var(--t0) + var(--lag) * var(--dur) * 0.017 - var(--p) * var(--dur) - var(--dur));
 }
 
 /* the glow; trail copies are smaller and fainter */
@@ -720,7 +724,7 @@ ${Array.from({ length: n }, (_, d) =>
     transparent 70%);
   opacity: calc(1 - var(--lag) * 0.3);
   scale: calc(1.25 - var(--lag) * 0.25);
-  animation: atom-face 16s linear infinite;
+  animation: atom-face 16s linear var(--t0) infinite;
 }
 
 @keyframes atom-turn {
