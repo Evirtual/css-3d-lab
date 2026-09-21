@@ -54,6 +54,9 @@ const ASPECT = { '1:1': 1, '4:3': 4 / 3, '3:2': 3 / 2, '16:9': 16 / 9, '9:16': 9
 const FILLS = [25, 50, 100];
 const T = Number(process.env.CAPTURE_T || 1137);
 const INK = 28; // levels (0-255) from the backdrop that count as the model
+// levels from the same canvas with the scene hidden that count as the scene's at all: the slider's
+// scaling is judged on this footprint (see screen())
+const FAINT = 6;
 const TOL = 0.015; // a box edge may be this share of the side off before it is a mismatch
 const PIC_TOL = 6; // mean luminance difference (0-255) between screen and file, downscaled
 const LIVE_MS = 1200; // a live take for the size matrix
@@ -260,15 +263,23 @@ async function screen() {
   const without = (await page.screenshot({ clip, timeout: 90_000 })).toString('base64');
   await frame.evaluate(() => { const s = document.getElementById('c3d-scene'); s.style.opacity = s.dataset.was; });
   await dlg(() => { for (const [el, v] of window.__hidden) el.style.visibility = v; });
-  const m = await lab.evaluate(async ([a, b, c]) => {
+  const m = await lab.evaluate(async ([a, b, c, faint]) => {
     const A = await __px.decode(__px.fromB64(a)), B = await __px.decode(__px.fromB64(b)), C = await __px.decode(__px.fromB64(c));
     const flat = __px.flat(C);
     // ink is what the scene adds to the canvas: the same pixel with the scene hidden is the
     // reference, so the frame's rounded corners (which show the dialog behind) cancel out
     const box = __px.box(A, flat.color, undefined, C);
+    // The scene's whole footprint, for the slider's scaling: every pixel the scene changes at all.
+    // INK alone is not scale-free. Dice's top face is white on a near-white stage and its edge is
+    // a hairline 1.5 units wide; at 70% that line clears INK, at 25% it is a third of a pixel and
+    // does not, so the INK box starts lower on a smaller die and reads its height at x0.336 where
+    // the DOM (and this footprint, of the same pixels) says x0.357. Against the scene-hidden
+    // reference the backdrop cancels exactly, so a low threshold picks up no noise. The file is
+    // still compared with the INK box, measured the same way on both.
+    const full = __px.box(A, flat.color, faint, C);
     let moved = 0; for (let i = 0; i < A.data.length; i += 4) if (Math.abs(A.data[i] - B.data[i]) + Math.abs(A.data[i + 1] - B.data[i + 1]) + Math.abs(A.data[i + 2] - B.data[i + 2]) > 30) moved++;
-    return { bg: flat.color, bgWorst: flat.worst, bgOff: flat.off, box, moving: moved / (A.data.length / 4) };
-  }, [withModel, again, without]);
+    return { bg: flat.color, bgWorst: flat.worst, bgOff: flat.off, box, full, moving: moved / (A.data.length / 4) };
+  }, [withModel, again, without, FAINT]);
   return { ...info, ...m, png: withModel };
 }
 
@@ -466,28 +477,30 @@ async function checkImages(id) {
         const file = await make();
         if (file.error) { miss(id, 'slider', `${shape} ${fill}%`, `no file: ${file.error}`, 'app'); continue; }
         const m = await measureImage(file, scr);
-        at[fill] = { screen: scr.box, file: m.box, like: m.like };
+        at[fill] = { screen: scr.box, full: scr.full, file: m.box, like: m.like };
         await back();
       }
       await dlg(() => { const s = document.querySelector('.maker [data-zoom]'); s.value = '70'; s.dispatchEvent(new Event('input', { bubbles: true })); });
       row.slider ??= {};
       row.slider[shape] = at;
-      const ref = at[70]?.screen;
+      // scaling and centre are judged on the footprint; the file against the screen on INK
+      const ref = at[70]?.full;
       for (const fill of [70, ...FILLS]) {
-        const s = at[fill]; if (!s || !ref || !s.screen) continue;
+        const s = at[fill]; if (!s || !ref || !s.full) continue;
+        const f = s.full;
         const k = fill / 70;
         const touches = (b) => b.l < 0.003 || b.t < 0.003 || b.r > 0.997 || b.b > 0.997;
-        const wr = (s.screen.r - s.screen.l) / (ref.r - ref.l), hr = (s.screen.b - s.screen.t) / (ref.b - ref.t);
+        const wr = (f.r - f.l) / (ref.r - ref.l), hr = (f.b - f.t) / (ref.b - ref.t);
         // Scaling about the canvas centre moves a box whose middle is off the centre towards it
         // (or away) by the same ratio: a model drawn 2% low at 70% is 0.7% low at 25%. So the
         // centre is judged against where scaling about the canvas middle puts it.
         const expect = (c) => 0.5 + (c - 0.5) * k;
-        const dcx = (s.screen.l + s.screen.r) / 2 - expect((ref.l + ref.r) / 2), dcy = (s.screen.t + s.screen.b) / 2 - expect((ref.t + ref.b) / 2);
+        const dcx = (f.l + f.r) / 2 - expect((ref.l + ref.r) / 2), dcy = (f.t + f.b) / 2 - expect((ref.t + ref.b) / 2);
         const gap = boxGap(s.file, s.screen);
-        say(`  slider ${shape} ${String(fill).padStart(3)}%: screen ${boxText(s.screen)} (w ×${wr.toFixed(3)}, h ×${hr.toFixed(3)}, want ×${k.toFixed(3)}; centre off scaling-about-the-middle by ${pc(dcx)}%,${pc(dcy)}%), file ${boxText(s.file)} (edge gap ${pc(gap)}%, diff ${s.like.toFixed(1)})`);
+        say(`  slider ${shape} ${String(fill).padStart(3)}%: screen ${boxText(s.screen)} footprint ${boxText(f)} (w ×${wr.toFixed(3)}, h ×${hr.toFixed(3)}, want ×${k.toFixed(3)}; centre off scaling-about-the-middle by ${pc(dcx)}%,${pc(dcy)}%), file ${boxText(s.file)} (edge gap ${pc(gap)}%, diff ${s.like.toFixed(1)})`);
         if (!(gap <= TOL)) miss(id, 'slider', `${shape} ${fill}%`, `file ${boxText(s.file)} vs screen ${boxText(s.screen)} (${pc(gap)}% off)`, 'app');
         if (fill === 70) continue;
-        const clipped = touches(s.screen);
+        const clipped = touches(f);
         const refFull = ref.l < 0.003 && ref.r > 0.997;
         if (!clipped && !refFull) {
           if (Math.abs(hr / k - 1) > 0.04) miss(id, 'slider', `${shape} ${fill}%`, `height scaled ×${hr.toFixed(3)}, want ×${k.toFixed(3)}`, 'app (the zoom does not scale the model by the ratio) — or model, if it sizes by something other than vmin');
