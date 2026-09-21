@@ -159,18 +159,23 @@ const json = JSON.stringify(ACTIVITY, null, 2)
 export const snippet: Snippet = {
   how: [
     'The data is plain JSON, shaped like an API response: for each day a <code>[value, goal]</code> pair per ring. JS turns each pair into <b>one number</b>, <code>--p = value ÷ goal</code>, written on the ring. 1 is a closed ring, more is a second lap.',
-    'The arc is a <code>conic-gradient</code> that stops at <code>calc(var(--p) * 360deg)</code> and turns <code>transparent</code>. A <code>radial-gradient</code> mask keeps only the outer 16px of the disc, so the pie becomes a band.',
+    'The arc is a <code>conic-gradient</code> that stops at <code>calc(var(--p) * 360deg)</code> and turns <code>transparent</code>. A <code>radial-gradient</code> mask keeps only the outer 16 units of the disc, so the pie becomes a band.',
     "A gradient can't be transitioned, and <code>--p</code> as an ordinary custom property would jump. <code>@property --p { syntax: '&lt;number&gt;' }</code> tells the browser it is a number, so <code>transition: --p 1.1s</code> interpolates it and the arc sweeps. That repaints the gradient every frame, which is why it is kept to three rings; everything else moves with <code>transform</code> and <code>opacity</code>.",
-    'Depth: each arc is drawn three times, 2px apart in Z and darker each step. Seen tilted, their edges read as a solid band. The dim full track sits 6px behind, and a wider, see-through copy with a soft mask is the glow.',
+    'Depth: each arc is drawn three times, 2 units apart in Z and darker each step. Seen tilted, their edges read as a solid band. The dim full track sits 6 units behind, and a wider, see-through copy with a soft mask is the glow.',
     'The rounded tip is a dot on a box as big as the ring, turned by <code>rotate(calc(var(--p) * 1turn))</code>: the same number, as a transform. Past 100% it keeps turning, over the start of the ring.',
-    "Each ring is a static disc (the inner ones 1px nearer, so they win where they overlap) that never moves. The pointed-at one gets <code>.is-active</code>: its band lifts inside the disc and a full-colour copy of the arc fades in. A finger has no hover, so a tap picks a ring, and its numbers go in the <code>&lt;output&gt;</code>.",
+    "Each ring is a static disc (the inner ones a unit nearer, so they win where they overlap) that never moves. The pointed-at one gets <code>.is-active</code>: its band lifts inside the disc and a full-colour copy of the arc fades in. A finger has no hover, so a tap picks a ring, and its numbers go in the <code>&lt;output&gt;</code>.",
+    'Every length is a multiple of one base unit, <code>--u</code>, so the rings scale as one piece. JS writes only plain numbers (the ring index and <code>--p</code>). The caption and the day buttons are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.',
   ],
   html: `<div class="activity">
-  <div class="scene">
-    <div class="rings"></div>
+  <div class="view">
+    <div class="scene">
+      <div class="rings"></div>
+    </div>
   </div>
-  <output></output>
-  <div class="seg"></div>
+  <div class="controls">
+    <output class="caption"></output>
+    <div class="row"></div>
+  </div>
 </div>`,
   css: `/* A registered property can be transitioned: the browser knows it is a number and interpolates
    it, so every gradient that uses it is redrawn on the way. An unregistered one would jump. */
@@ -181,38 +186,49 @@ export const snippet: Snippet = {
 }
 
 .activity {
+  /* one base unit: every length in the rings is a multiple of it, so they are the same share of
+     a card, the editor, a full screen and a recording canvas. The control zone under them is in
+     plain vmin, because it is the same object in every model. */
+  --u: 0.28vmin;
   display: grid;
   justify-items: center;
-  gap: 6px;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
+/* the model box: the same height in every model that has controls */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+}
+
 .scene {
-  perspective: 800px;
-  padding: 20px 40px 26px;
+  perspective: calc(800 * var(--u));
+  padding: calc(20 * var(--u)) calc(40 * var(--u)) calc(26 * var(--u));
   pointer-events: none; /* the rings are tilted: only the rings and the hub take the pointer */
 }
 
 .rings {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: calc(160 * var(--u));
+  height: calc(160 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(34deg) rotateY(-16deg);
 }
 
-/* The hit target: a static disc per ring, each inner one 1px nearer so it wins where they
-   overlap. Ring n is inset by n × 19px (a 16px band and a 3px gap). */
+/* The hit target: a static disc per ring, each inner one a unit nearer so it wins where they
+   overlap. Ring n is inset by n × 19 units (a 16-unit band and a 3-unit gap). */
 .ring {
   --c: #ff4d9d;
   position: absolute;
-  inset: calc(var(--r) * 19px);
+  inset: calc(var(--r) * calc(19 * var(--u)));
   border-radius: 50%;
   outline: none;
   pointer-events: auto;
   cursor: pointer;
   transform-style: preserve-3d;
-  transform: translateZ(calc(var(--r) * 1px));
+  transform: translateZ(calc(var(--r) * calc(1 * var(--u))));
   /* past 1: the arc overshoots a little and settles; each ring 90ms after the one around it */
   transition: --p 1.1s cubic-bezier(0.3, 1.15, 0.5, 1) calc(var(--r) * 90ms);
 }
@@ -229,40 +245,40 @@ export const snippet: Snippet = {
   transition: transform 0.35s ease;
 }
 
-/* every layer is the disc cut to its outer 16px by a radial mask */
+/* every layer is the disc cut to its outer 16 units by a radial mask */
 .band i {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  mask: radial-gradient(closest-side, transparent calc(100% - 16px), #000 calc(100% - 15.5px));
+  mask: radial-gradient(closest-side, transparent calc(100% - calc(16 * var(--u))), #000 calc(100% - calc(15.5 * var(--u))));
   transition: opacity 0.25s;
 }
 
 /* the track: the whole ring, dim, recessed behind the arc */
 .band i:nth-child(1) {
   background: color-mix(in srgb, var(--c) 16%, #141830);
-  transform: translateZ(-6px);
+  transform: translateZ(calc(-6 * var(--u)));
 }
 
 /* the glow: the same arc, wider and see-through, its edges faded by a soft mask */
 .band i:nth-child(2) {
-  inset: -6px;
+  inset: calc(-6 * var(--u));
   background: conic-gradient(color-mix(in srgb, var(--c) 42%, transparent) calc(var(--p) * 360deg), transparent calc(var(--p) * 360deg + 10deg));
-  mask: radial-gradient(closest-side, transparent calc(100% - 30px), #000 calc(100% - 22px) calc(100% - 6px), transparent);
+  mask: radial-gradient(closest-side, transparent calc(100% - calc(30 * var(--u))), #000 calc(100% - calc(22 * var(--u))) calc(100% - calc(6 * var(--u))), transparent);
   opacity: 0.55;
-  transform: translateZ(-5.5px);
+  transform: translateZ(calc(-5.5 * var(--u)));
 }
 
 /* the arc three times, stepping back and darker: tilted, the edges read as a solid band.
    "transparent 0" ends the colour exactly at the arc's angle */
 .band i:nth-child(3) {
   background: conic-gradient(color-mix(in srgb, var(--c) 32%, #05060c) calc(var(--p) * 360deg), transparent 0);
-  transform: translateZ(-4px);
+  transform: translateZ(calc(-4 * var(--u)));
 }
 
 .band i:nth-child(4) {
   background: conic-gradient(color-mix(in srgb, var(--c) 55%, #05060c) calc(var(--p) * 360deg), transparent 0);
-  transform: translateZ(-2px);
+  transform: translateZ(calc(-2 * var(--u)));
 }
 
 /* the front: from a softer start to the full colour at the tip */
@@ -274,7 +290,7 @@ export const snippet: Snippet = {
 .band i:nth-child(6) {
   background: conic-gradient(var(--c) calc(var(--p) * 360deg), transparent 0);
   opacity: 0;
-  transform: translateZ(0.25px);
+  transform: translateZ(calc(0.25 * var(--u)));
 }
 
 /* the round start (on the band) and the round tip (on a box turned by the same number) */
@@ -292,40 +308,40 @@ export const snippet: Snippet = {
   content: '';
   position: absolute;
   top: 0;
-  left: calc(50% - 8px);
-  width: 16px;
-  height: 16px;
+  left: calc(50% - calc(8 * var(--u)));
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
   border-radius: 50%;
 }
 
 .band::before {
   background: color-mix(in srgb, var(--c) 60%, #141830);
-  transform: translateZ(0.5px);
+  transform: translateZ(calc(0.5 * var(--u)));
 }
 
 .band::after,
 .band em::after {
   background: color-mix(in srgb, var(--c) 32%, #05060c);
-  transform: translateZ(-3.5px);
+  transform: translateZ(calc(-3.5 * var(--u)));
 }
 
 .band em::before {
   background: var(--c);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 60%, transparent);
-  transform: translateZ(1px);
+  box-shadow: 0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 60%, transparent);
+  transform: translateZ(calc(1 * var(--u)));
 }
 
 /* a second lap: a dark rim sets the tip apart from the arc it runs over */
 .ring.is-lap em::before {
   box-shadow:
-    0 0 0 1.5px color-mix(in srgb, var(--c) 40%, #05060c),
-    0 0 10px color-mix(in srgb, var(--c) 60%, transparent);
+    0 0 0 calc(1.5 * var(--u)) color-mix(in srgb, var(--c) 40%, #05060c),
+    0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 60%, transparent);
 }
 
 /* The pointed-at ring lifts, fills in and glows more: transform and opacity only, and on the
    flat layers (opacity on a 3D group would flatten it). The others stay as they are. */
 .ring.is-active > .band {
-  transform: translateZ(8px);
+  transform: translateZ(calc(8 * var(--u)));
 }
 
 .ring.is-active > .band::before {
@@ -340,46 +356,57 @@ export const snippet: Snippet = {
 /* the day, in the hole: it also catches the pointer there, so the middle picks no ring */
 .hub {
   position: absolute;
-  top: calc(50% - 24px);
-  left: calc(50% - 24px);
+  top: calc(50% - calc(24 * var(--u)));
+  left: calc(50% - calc(24 * var(--u)));
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: calc(48 * var(--u));
+  height: calc(48 * var(--u));
   border-radius: 50%;
   color: #eceefb;
-  font: 800 12px/1 system-ui, sans-serif;
+  font: 800 calc(15 * var(--u))/1 system-ui, sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   pointer-events: auto;
-  transform: translateZ(4px);
+  transform: translateZ(calc(4 * var(--u)));
 }
 
-output {
-  color: #949bc0;
-  font-size: 12px;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the rings' own unit. The caption is on its own line above
+   the row, and its line box never changes height, so a new read-out cannot move the rings. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
+}
+
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.7;
 }
 
-.seg {
+.controls .row {
   display: flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 999px;
+  gap: 2vmin;
 }
 
-.seg button {
-  padding: 4px 12px;
+.controls button {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
-  background: transparent;
+  background: rgb(140 150 220 / 0.2);
   color: #949bc0;
-  font: 700 12px system-ui, sans-serif;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background 0.35s, color 0.35s;
 }
 
-.seg button[aria-pressed='true'] {
+.controls button[aria-pressed='true'] {
   background: linear-gradient(135deg, #8b6cff, #ff4d9d);
   color: #fff;
 }`,
@@ -388,7 +415,7 @@ const ACTIVITY = ${json};
 
 const box = document.querySelector('.rings');
 const out = document.querySelector('.activity output');
-const seg = document.querySelector('.activity .seg');
+const seg = document.querySelector('.activity .controls .row');
 const { rings: RINGS, days: DAYS } = ACTIVITY;
 
 // Build it once from the data: per ring a static disc holding a band of six layers and a tip,
@@ -409,7 +436,8 @@ const hub = box.querySelector('.hub');
 const buttons = seg.querySelectorAll('button');
 
 const pct = (pair) => Math.round((pair[0] / pair[1]) * 100);
-const summary = (d) => d.day + ' · ' + RINGS.map((r) => \`\${r.label} \${pct(d[r.key])}%\`).join(' · ');
+// the day is in the hub and on its pressed button, so the caption leaves it out and stays one line
+const summary = (d) => RINGS.map((r) => \`\${r.label} \${pct(d[r.key])}%\`).join(' · ');
 const detail = (d, i) => {
   const r = RINGS[i];
   return \`\${d.day} · \${r.label} \${d[r.key][0]}/\${d[r.key][1]} \${r.unit} · \${pct(d[r.key])}%\`;
