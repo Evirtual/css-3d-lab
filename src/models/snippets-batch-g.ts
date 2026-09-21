@@ -1042,11 +1042,12 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 
   coffeecup: {
     how: [
-      'A paper cup is a <b>frustum</b>: a cone with its tip cut off. Twenty strips stand on the base circle (<code>rotateY(i × 18deg) translateZ(27px)</code>), hinged on their bottom edge, and lean <b>out</b> by <code>atan((36 − 27) / 100) ≈ 5.14°</code> so the rim is wider than the base.',
-      'Each strip is a trapezoid cut with <code>clip-path</code>: 11.4px wide at the rim, 8.6px at the base (both are 2 · r · tan(9°)). Its height is the slant length, √(100² + 9²).',
-      'The sleeve and its logo are painted on <b>one</b> canvas, exactly one lap long, and every strip slides it by its index (<code>background-position</code>). The lap is measured at the sleeve\'s middle height, where the strips are 9.86px wide, so the logo wraps round without a seam.',
+      'A paper cup is a <b>frustum</b>: a cone with its tip cut off. Twenty strips stand on the base circle (<code>rotateY(i × 18deg) translateZ(27 units)</code>), hinged on their bottom edge, and lean <b>out</b> by <code>atan((36 − 27) / 100) ≈ 5.14°</code> so the rim is wider than the base.',
+      'Each strip is a trapezoid cut with <code>clip-path</code>: 11.4 units wide at the rim, 8.6 units at the base (both are 2 · r · tan(9°)). Its height is the slant length, √(100² + 9²).',
+      'The sleeve and its logo are painted on <b>one</b> canvas, exactly one lap long, and every strip slides it by its index (<code>background-position</code>). The lap is measured at the sleeve\'s middle height, where the strips are 9.86 units wide, so the logo wraps round without a seam.',
       'The light stays put while the cup turns: every strip has a dark overlay whose opacity runs one lap, started i/20 of the way round with a negative <code>animation-delay</code>.',
-      'The lid is five discs stacked 1.5px apart plus a raised spout. The steam rises from the sip slot: it sits there inside the spinning part, so it goes round with the cup, and a counter-turn keeps each wisp facing you. Each S-shaped wisp rises, grows and fades, and starts and ends invisible so the loop never shows.',
+      'The lid is five discs stacked 1.5 units apart plus a raised spout. The steam rises from the sip slot: it sits there inside the spinning part, so it goes round with the cup, and a counter-turn keeps each wisp facing you. Each S-shaped wisp rises, grows and fades, and starts and ends invisible so the loop never shows.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the cup is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="coffee">
@@ -1061,10 +1062,13 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the cup is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.36vmin;
+  perspective: calc(800 * var(--u));
 }
 
-/* a 0-wide column, 100px tall: the cup's axis */
+/* a 0-wide column, 100 units tall: the cup's axis */
 .coffee {
   --paper: #f4f1ea;
   --paper-dark: #d9d3c6;
@@ -1073,8 +1077,11 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   --lid: #22232e;
   position: relative;
   width: 0;
-  height: 100px;
+  height: calc(100 * var(--u));
   transform-style: preserve-3d;
+  /* the lid and the steam rise above this column, so the drawing's middle is above the column's:
+     move it down by that much, and the whole cup is centred */
+  translate: 0 calc(20 * var(--u));
   transform: rotateX(-20deg);
 }
 
@@ -1087,41 +1094,41 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 
 .shadow {
   position: absolute;
-  left: -60px;
-  top: 70px;
-  width: 120px;
-  height: 60px;
+  left: calc(-60 * var(--u));
+  top: calc(70 * var(--u));
+  width: calc(120 * var(--u));
+  height: calc(60 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
   transform: rotateX(90deg);
 }
 
-/* 20 trapezoids hinged on the base circle (r 27px), leaning out towards the rim (r 36px) */
+/* 20 trapezoids hinged on the base circle (r 27 units), leaning out towards the rim (r 36 units) */
 .strip {
   position: absolute;
-  left: -6.3px;
+  left: calc(-6.3 * var(--u));
   bottom: 0;
-  width: 12.6px;      /* 11.4px at the rim, plus a little overlap */
-  height: 100.4px;    /* the slant length */
+  width: calc(12.6 * var(--u));      /* 11.4 units at the rim, plus a little overlap */
+  height: calc(100.4 * var(--u));    /* the slant length */
   transform-origin: 50% 100%;
-  transform: rotateY(calc(var(--i) * 18deg)) translateZ(27px) rotateX(-5.14deg);
-  clip-path: polygon(0 0, 100% 0, calc(50% + 4.9px) 100%, calc(50% - 4.9px) 100%);
+  transform: rotateY(calc(var(--i) * 18deg)) translateZ(calc(27 * var(--u))) rotateX(-5.14deg);
+  clip-path: polygon(0 0, 100% 0, calc(50% + 4.9 * var(--u)) 100%, calc(50% - 4.9 * var(--u)) 100%);
   backface-visibility: hidden;
   /* a soft shade under the lid: the lid's discs are nearly side-on, and their edge against
      bare white paper steps and reads as a dashed line; against the shade it reads as one edge */
-  box-shadow: inset 0 5px 3px -2px rgb(20 20 30 / 0.8);
-  /* one 197px canvas = one lap round the sleeve's middle; each strip shows its own slice */
+  box-shadow: inset 0 calc(5 * var(--u)) calc(3 * var(--u)) calc(-2 * var(--u)) rgb(20 20 30 / 0.8);
+  /* one 197 units canvas = one lap round the sleeve's middle; each strip shows its own slice */
   background-image:
-    radial-gradient(ellipse 1.2px 5px at 49.3px 53px, #f0d9b8 0 60%, transparent 90%),
-    radial-gradient(ellipse 4.5px 6.5px at 49.3px 53px, #fff 0 20%, #6b3e22 30% 92%, transparent),
-    radial-gradient(circle 11px at 49.3px 53px, var(--violet) 0 86%, #fff 87% 93%, var(--violet) 94% 100%, transparent 100%),
-    radial-gradient(ellipse 1.2px 5px at 148px 53px, #f0d9b8 0 60%, transparent 90%),
-    radial-gradient(ellipse 4.5px 6.5px at 148px 53px, #fff 0 20%, #6b3e22 30% 92%, transparent),
-    radial-gradient(circle 11px at 148px 53px, var(--violet) 0 86%, #fff 87% 93%, var(--violet) 94% 100%, transparent 100%),
-    linear-gradient(transparent 34px, var(--kraft) 34px 36px, #d8b08c 36px 37px, var(--kraft) 37px 70px, #d8b08c 70px 71px, var(--kraft) 71px 73px, transparent 73px),
-    linear-gradient(var(--paper-dark) 0 1px, var(--paper) 3px 12px, var(--violet) 12px 14px, var(--paper) 14px calc(100% - 3px), var(--paper-dark));
-  background-size: 197.3px 100%;
-  background-position: calc(1.07px - var(--i) * 9.864px) 0;
+    radial-gradient(ellipse calc(1.2 * var(--u)) calc(5 * var(--u)) at calc(49.3 * var(--u)) calc(53 * var(--u)), #f0d9b8 0 60%, transparent 90%),
+    radial-gradient(ellipse calc(4.5 * var(--u)) calc(6.5 * var(--u)) at calc(49.3 * var(--u)) calc(53 * var(--u)), #fff 0 20%, #6b3e22 30% 92%, transparent),
+    radial-gradient(circle calc(11 * var(--u)) at calc(49.3 * var(--u)) calc(53 * var(--u)), var(--violet) 0 86%, #fff 87% 93%, var(--violet) 94% 100%, transparent 100%),
+    radial-gradient(ellipse calc(1.2 * var(--u)) calc(5 * var(--u)) at calc(148 * var(--u)) calc(53 * var(--u)), #f0d9b8 0 60%, transparent 90%),
+    radial-gradient(ellipse calc(4.5 * var(--u)) calc(6.5 * var(--u)) at calc(148 * var(--u)) calc(53 * var(--u)), #fff 0 20%, #6b3e22 30% 92%, transparent),
+    radial-gradient(circle calc(11 * var(--u)) at calc(148 * var(--u)) calc(53 * var(--u)), var(--violet) 0 86%, #fff 87% 93%, var(--violet) 94% 100%, transparent 100%),
+    linear-gradient(transparent calc(34 * var(--u)), var(--kraft) calc(34 * var(--u)) calc(36 * var(--u)), #d8b08c calc(36 * var(--u)) calc(37 * var(--u)), var(--kraft) calc(37 * var(--u)) calc(70 * var(--u)), #d8b08c calc(70 * var(--u)) calc(71 * var(--u)), var(--kraft) calc(71 * var(--u)) calc(73 * var(--u)), transparent calc(73 * var(--u))),
+    linear-gradient(var(--paper-dark) 0 calc(1 * var(--u)), var(--paper) calc(3 * var(--u)) calc(12 * var(--u)), var(--violet) calc(12 * var(--u)) calc(14 * var(--u)), var(--paper) calc(14 * var(--u)) calc(100% - 3 * var(--u)), var(--paper-dark));
+  background-size: calc(197.3 * var(--u)) 100%;
+  background-position: calc(1.07 * var(--u) - var(--i) * 9.864 * var(--u)) 0;
 }
 
 /* lighting that stays put: one lap of shade, each strip started i/20 of the way round */
@@ -1136,7 +1143,7 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 
 /* discs centred on the rim, lifted by --y, laid flat */
 .lid {
-  --r: 38.4px;
+  --r: calc(38.4 * var(--u));
   position: absolute;
   left: calc(var(--r) * -1);
   top: calc(var(--r) * -1);
@@ -1144,31 +1151,31 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   height: calc(var(--r) * 2);
   border-radius: 50%;
   background: radial-gradient(circle, var(--lid) 0 80%, #646570 94%, var(--lid));
-  transform: translateY(calc(var(--y) * -1px)) rotateX(90deg);
+  transform: translateY(calc(var(--y) * -1 * var(--u))) rotateX(90deg);
 }
 
 .lid-top {
-  --r: 35.4px;
+  --r: calc(35.4 * var(--u));
   background:
     radial-gradient(circle, transparent 0 70%, rgb(255 255 255 / 0.12) 72% 74%, transparent 76%),
     radial-gradient(circle at 35% 30%, #4e4f58, var(--lid) 60%);
 }
 
 .spout {
-  --r: 13px;
+  --r: calc(13 * var(--u));
   background:
-    radial-gradient(ellipse 7px 2.5px at 50% 70%, #05060a 0 90%, transparent), /* the sip slot */
+    radial-gradient(ellipse calc(7 * var(--u)) calc(2.5 * var(--u)) at 50% 70%, #05060a 0 90%, transparent), /* the sip slot */
     radial-gradient(circle at 40% 30%, #6a6b74, var(--lid) 70%);
-  transform: translateY(calc(var(--y) * -1px)) translateZ(19px) rotateX(90deg);
+  transform: translateY(calc(var(--y) * -1 * var(--u))) translateZ(calc(19 * var(--u))) rotateX(90deg);
 }
 
 /* steam rises from the sip slot: placed there inside .spin, so it goes round with the cup... */
 .vent {
   position: absolute;
-  top: -7px;
+  top: calc(-7 * var(--u));
   left: 0;
   transform-style: preserve-3d;
-  transform: translateZ(24px);
+  transform: translateZ(calc(24 * var(--u)));
 }
 
 /* ...and turned back the other way, so the wisps always face you */
@@ -1181,10 +1188,10 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 /* two arcs make an S */
 .steam {
   position: absolute;
-  top: -30px;
-  left: -5px;
-  width: 10px;
-  height: 30px;
+  top: calc(-30 * var(--u));
+  left: calc(-5 * var(--u));
+  width: calc(10 * var(--u));
+  height: calc(30 * var(--u));
   opacity: 0;
   animation: steam 3.6s linear infinite;
   animation-delay: calc(var(--d) * -1.8s);
@@ -1198,7 +1205,7 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   box-sizing: border-box;
   width: 100%;
   height: 52%;
-  border: 2.5px solid transparent;
+  border: calc(2.5 * var(--u)) solid transparent;
   border-radius: 50%;
 }
 
@@ -1220,10 +1227,10 @@ ${lines(20, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
 }
 
 @keyframes steam {
-  0%   { opacity: 0; transform: translate(calc(var(--x) * 1px), 10px) scale(0.6); }
+  0%   { opacity: 0; transform: translate(calc(var(--x) * 1 * var(--u)), calc(10 * var(--u))) scale(0.6); }
   30%  { opacity: 0.9; }
-  60%  { transform: translate(calc(var(--x) * 1px + 4px), -12px) scale(0.9, 1.1); }
-  100% { opacity: 0; transform: translate(calc(var(--x) * 1px - 2px), -34px) scale(1.1, 1.3); }
+  60%  { transform: translate(calc(var(--x) * 1 * var(--u) + 4 * var(--u)), calc(-12 * var(--u))) scale(0.9, 1.1); }
+  100% { opacity: 0; transform: translate(calc(var(--x) * 1 * var(--u) - 2 * var(--u)), calc(-34 * var(--u))) scale(1.1, 1.3); }
 }`,
   },
 };
