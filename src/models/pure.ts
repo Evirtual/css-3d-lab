@@ -60,7 +60,7 @@ export const pureDemos: Demo[] = [
     title: 'Push button',
     description: 'Press it. The edge is a generated box-shadow stack that collapses on :active.',
     category: 'css',
-    tags: ['hover', 'faux-3d', 'sass-loop'],
+    tags: ['controls', 'faux-3d', 'sass-loop'],
     technique: ['box-shadow stack', ':active on a static hit target', 'rotateX tilt'],
     html: `<button class="d-button" type="button"><span>PUSH</span></button>`,
   },
@@ -99,7 +99,7 @@ export const pureDemos: Demo[] = [
     description: 'Cover and pages hinge on the spine, each opening to a slightly different angle.',
     category: 'css',
     tags: ['loop'],
-    technique: ['transform-origin: left', 'var() end angle in @keyframes', 'staggered delays'],
+    technique: ['transform-origin: left', 'var() end angle per sheet', 'one @property --open, a staggered slice per sheet'],
     html: `<div class="d-book">${rep(5, (i) => `<i style="--n:${i}"></i>`)}<b>CSS<br />3D</b></div>`,
   },
   {

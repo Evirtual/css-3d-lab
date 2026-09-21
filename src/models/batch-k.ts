@@ -234,7 +234,7 @@ export const demosK: Demo[] = [
       'A neon line chart drawn as SVG from a JSON array, floating on a tilted glass panel in layers. Hover and it lies flat so you can read the values. The tilt is on the container, so the same works for a chart from any library.',
     category: 'js',
     tags: ['hover', 'data', 'chart', 'json', 'svg'],
-    technique: ['JSON → SVG path (M x y L x y …)', 'layers at translateZ 0 / 8 / 16 / 22 units', 'tilt on :hover of a still wrapper → flat', 'glow = a wide faint stroke under the line (no filter)'],
+    technique: ['JSON → SVG path (M x y L x y …)', 'layers at translateZ 0 / 5 / 10 / 14 units', 'tilt on :hover of a still wrapper → flat', 'glow = a wide faint stroke under the line (no filter)'],
     html: `<div class="d-chartpanel" tabindex="0" aria-label="Monthly revenue, ${TREND.labels[0]} to ${TREND.labels.at(-1)}: ${TREND.values.join(', ')} ${TREND.unit}">
       <div class="d-chartpanel__panel">
         <div class="d-chartpanel__glass"></div>
