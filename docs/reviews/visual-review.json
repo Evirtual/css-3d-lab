@@ -1261,5 +1261,155 @@
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Full-canvas neon tunnel; covers the canvas and is paused on a finished, rich frame.",
     "motionFlagsResolved": []
+  },
+  {
+    "model": "starfield",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Full-canvas warp starfield; covers the canvas, and the paused first frame is a sparse but finished night sky that fills in as the warp runs.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "parallax",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Full-canvas moonlit mountain parallax; covers the canvas and is paused on a finished scene.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "door",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "At rest (what a paused card shows) the closed door is about 35 x 54vmin and sits about 8vmin right of the canvas middle, because it hinges at its left edge; only the open door (54 x 66vmin) is centred, which is why the union passes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "laptop",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Laptop paused open (75 x 66vmin, centred) with a glowing screen; mid-loop the lid closes to a flat slab lying about 13vmin low, which is the lid's own hinge and not a framing fault.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "sign",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Hanging neon OPEN sign, about 64-73 x 48-54vmin; it swings about 6vmin either side of centre, paused near one end of the swing, and reads on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "fold",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The unfolded map sits about 7vmin high at rest, and when it folds up mid-loop it collapses towards its left edge, ending about 39vmin wide and 20vmin left of the canvas middle, so a card shows the model parked well off to one side for part of every loop.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "isotiles",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Isometric hover tiles, 83 x 47-49vmin and centred; a raised teal tile stays inside the band and clear of the corners.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "confetti",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "At rest (what a paused card shows) the model is only the grey caption 'click anywhere', about 36 x 5vmin, in an otherwise empty card; nothing reads as a model until someone clicks, which a paused or offscreen card never gets.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "room",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Full-canvas room with a 'Move your pointer' hint; covers the canvas and is paused on a finished interior.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "road",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Full-canvas synthwave drive; covers the canvas and is paused on a finished frame.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "snow",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Full-canvas snowy night with moon and pines; covers the canvas and is paused on a finished scene.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "map",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Map plate with three pins, 87 x 48-54vmin and centred; pins read on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "windmill",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Windmill on a grass tile, about 40-51 x 54-59vmin and centred; paused with the blades square.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "rocket",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "At rest (what a paused card shows) the rocket stands on its pad at only about 27 x 39vmin, under the 40vmin floor and sitting about 8vmin below the canvas middle, so the card reads as a small rocket low down; only the launch reaches 61vmin tall, which is why the size check passes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "lighthouse",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:22:59+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Lighthouse on a sea disc with a sweeping beam, 71 x 58vmin and centred; complete on the paused frame and on both themes.",
+    "motionFlagsResolved": []
   }
 ]
