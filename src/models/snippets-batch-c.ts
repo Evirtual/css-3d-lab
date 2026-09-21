@@ -681,9 +681,6 @@ setInterval(function () {
   box-shadow: 0 calc(22 * var(--u)) calc(34 * var(--u)) calc(-22 * var(--u)) rgb(0 0 0 / 0.85);
   /* the card turns as ONE flat plane in the stage's perspective; not preserve-3d, because the
      screen blend below only works among elements painted into the same flat surface */
-  /* the drop shadow hangs 10 units below the card: lift the card by that much, so card and
-     shadow together sit in the middle of the canvas */
-  translate: 0 calc(-10 * var(--u));
   transform: rotateY(var(--ry, -14deg)) rotateX(var(--rx, 6deg));
   transition: transform 0.7s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
