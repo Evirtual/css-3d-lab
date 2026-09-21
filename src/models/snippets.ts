@@ -847,11 +847,14 @@ ${CUBE_FACES}`,
   </div>
 </div>`,
     css: `.scene {
+  /* one base unit: every length below is a multiple of it, so the card is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.26vmin;
   display: grid;
   place-items: center;
   width: 100vw;
   height: 100vh;
-  perspective: 800px;
+  perspective: calc(800 * var(--u));
 }
 
 .tilt {
@@ -860,15 +863,16 @@ ${CUBE_FACES}`,
   position: relative;
   display: grid;
   align-content: end;
-  gap: 2px;
-  width: 280px;
-  height: 176px;
-  padding: 20px;
-  border-radius: 18px;
+  gap: calc(2 * var(--u));
+  width: calc(280 * var(--u));
+  height: calc(176 * var(--u));
+  padding: calc(20 * var(--u));
+  border-radius: calc(18 * var(--u));
   color: #fff;
-  font-family: system-ui;
+  /* the card's own words, so they scale with the card and not with the page */
+  font: 500 calc(17 * var(--u))/1.35 system-ui, sans-serif;
   background: linear-gradient(135deg, #8b6cff, #ff4d9d);
-  box-shadow: 0 24px 40px -18px #8b6cff;
+  box-shadow: 0 calc(24 * var(--u)) calc(40 * var(--u)) calc(-18 * var(--u)) #8b6cff;
   transform-style: preserve-3d;
   transform: rotateX(var(--rx)) rotateY(var(--ry));
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -890,18 +894,18 @@ ${CUBE_FACES}`,
 .tilt.is-live::after { opacity: 1; }
 
 /* children float above the surface */
-.tilt b     { transform: translateZ(40px); }
-.tilt small { transform: translateZ(22px); opacity: 0.85; }
+.tilt b     { transform: translateZ(calc(40 * var(--u))); }
+.tilt small { transform: translateZ(calc(22 * var(--u))); opacity: 0.85; }
 
 .chip {
   position: absolute;
-  top: 22px;
-  left: 22px;
-  width: 46px;
-  height: 34px;
-  border-radius: 7px;
+  top: calc(22 * var(--u));
+  left: calc(22 * var(--u));
+  width: calc(46 * var(--u));
+  height: calc(34 * var(--u));
+  border-radius: calc(7 * var(--u));
   background: linear-gradient(135deg, #ffe08a, #d89b1d);
-  transform: translateZ(54px);
+  transform: translateZ(calc(54 * var(--u)));
 }`,
     js: `const scene = document.querySelector('.scene');
 const card = document.querySelector('.tilt');
