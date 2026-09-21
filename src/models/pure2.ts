@@ -170,7 +170,7 @@ export const pureDemos2: Demo[] = [
     title: 'No-JS tilt',
     description: 'Pointer-following tilt without JavaScript: nine invisible hover zones steer the card.',
     category: 'css',
-    tags: ['hover', 'form-hack', 'sass-loop'],
+    tags: ['hover', 'sass-loop'],
     technique: ['3 × 3 grid of hover zones', ':hover ~ sibling selector', 'pointer-events: none on the card'],
     fill: true,
     html: `<div class="d-zones">${rep(9, () => '<i></i>')}<div class="d-zones__card">Hover around me<small>zero JavaScript</small></div></div>`,

@@ -402,7 +402,7 @@ setInterval(function () {
       'Panels are nested inside a fixed "hinge": the middle panel swings <code>rotateY(52deg)</code>, and its left/right neighbours hang off its edges and swing back <b>twice</b> as far — so in absolute terms they land at <code>-52deg</code>, folding like a &ldquo;Z&rdquo; seen from above.',
       'Every hinge needs <code>transform-style: preserve-3d</code> or the fold flattens at that level; the visible paper inside each hinge is a separate element that is allowed to clip.',
       'All three panels are windows onto the <b>same</b> sheet, three panels wide, each shifted left by <code>calc(var(--i) * -100%)</code> — so the printed headline lines up across the folds.',
-      'A dark gradient over each panel fades to <code>opacity: 0</code> on hover/focus — cheap, since only opacity is animating, not the gradient itself.',
+      'A shading gradient over each panel (dark on the outer two, a light sheen on the middle one) fades to <code>opacity: 0</code> on hover/focus — cheap, since only opacity is animating, not the gradient itself.',
       'On <code>:hover</code>/<code>:focus-visible</code> every panel’s <code>transform</code> resets to <code>none</code>, flattening the whole sheet in one shared transition.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the headline is the same share of a gallery card, the editor and a recording canvas.',
     ],
@@ -647,7 +647,7 @@ setInterval(function () {
       'Two copies of the word sit in the same spot, one red and one cyan, each shifted apart with <code>translate()</code> and blended with <code>mix-blend-mode: screen</code> — like old red/cyan 3D glasses, where the overlap reads near-white and the fringes stay coloured.',
       'The card itself is a single flat plane that only rotates (<code>rotateY</code> / <code>rotateX</code>); it is deliberately <b>not</b> <code>preserve-3d</code>, because a blend mode only combines elements painted into the same flat surface.',
       'JS reports one thing — the pointer position over the stage — and writes it into four custom properties (<code>--sx</code>, <code>--sy</code>, <code>--ry</code>, <code>--rx</code>); every animated value in the CSS just reads one of them. The shifts are plain numbers, not lengths: CSS multiplies them by <code>--u</code>, the one base unit every length here is a multiple of, so the card is the same share of a gallery card, the editor and a recording canvas.',
-      'While the pointer is over the card the transition is fast and linear (<code>.is-live</code>); once it leaves, the slower springy transition takes over for the way back to rest.',
+      'While the pointer is over the card the transition is fast, 0.12s with <code>ease-out</code> (<code>.is-live</code>); once it leaves, the slower springy transition takes over for the way back to rest.',
     ],
     html: `<div class="scene">
   <div class="anaglyph">
@@ -1091,7 +1091,7 @@ stage.addEventListener('pointercancel', leave);`,
     how: [
       'A real checkbox holds the open/closed state and takes the keyboard; the button visitors see is its <code>&lt;label&gt;</code>, which is why only the plus icon inside needs to rotate on <code>:checked</code>, not the whole button.',
       'Closed, every item rests just behind the button, a little way out along its spoke and shrunk (<code>scale(0.7)</code>, pulled back in Z), so the five colours peek out round it like a bud: even a paused card shows a menu, not a lone plus. <code>:checked</code> swaps in a transform list with the <b>same functions</b> but different numbers, so the browser animates each one independently.',
-      '<code>rotate(a) translateX(r) rotate(-a)</code> walks a point out along a straight spoke at angle <code>a</code> while the trailing <code>rotate(-a)</code> cancels the turn, so every icon stays upright as it travels its own arc. The five spokes are 72° apart, a full ring round the button.',
+      '<code>rotate(a) translateX(r) rotate(-a)</code> walks a point out along a straight spoke at angle <code>a</code> while the trailing <code>rotate(-a)</code> cancels the turn, so every icon stays upright as it travels. Only <code>r</code> changes between closed and open, so each item moves straight out along its spoke. The five spokes are 72° apart, a full ring round the button.',
       '<code>--i</code> staggers the opening so the items fan out one after another; on close the delay is reversed (<code>(4 - var(--i))</code>) so the <b>last</b> item to open is the <b>first</b> to leave.',
       'Closed items get <code>visibility: hidden</code> and <code>pointer-events: none</code> so Tab and clicks skip them until the menu is actually open. The bud you see is the <code>::before</code> of each item, which sets <code>visibility: visible</code> for itself: a hidden parent can still show a visible child, and a hidden button cannot take focus.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The button sits in the middle and the items open into a full ring round it, so the menu is centred closed and open alike, and opening never moves the button.',

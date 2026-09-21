@@ -50,7 +50,7 @@ export const interactiveDemos: Demo[] = [
     title: 'Drag-to-rotate cube',
     description: 'Drag to spin it, release to let it coast. JS only tracks two angles and some inertia.',
     category: 'js',
-    tags: ['pointer'],
+    tags: ['pointer', 'drag'],
     technique: ['Pointer Events + setPointerCapture', 'requestAnimationFrame inertia', 'touch-action: none'],
     fill: true,
     html: `<div class="d-drag"><div class="d-drag__cube">${'<i></i>'.repeat(6)}</div><small>drag me</small></div>`,

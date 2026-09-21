@@ -518,7 +518,7 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
     how: [
       'The card has real thickness: the printed front and back are two planes at <code>translateZ(±2 units)</code>, the back turned with <code>rotateY(180deg)</code>. Both hide their backface, so each shows only while it faces you.',
       'The painted edge is four rounded slabs 1 unit apart (they fill the rounded corners) plus four flat walls on the straight parts, which give the edge a clean, lit surface when the card is edge-on.',
-      'Embossing is real depth: each printed side is itself <code>preserve-3d</code>, and the logo and the lines of text are lifted off it with <code>translateZ(2–6 units)</code>. As the card turns, they slide against the paper.',
+      'Embossing is real depth: each printed side is itself <code>preserve-3d</code>, and the logo and the lines of text are lifted off it with <code>translateZ(1.5–6 units)</code>. As the card turns, they slide against the paper.',
       'The idle sway and the flip are on two different elements, so they never fight over <code>transform</code>. The flip is a plain <code>transition</code> with a small overshoot.',
       'The hovered element is a static wrapper; the moving card inside has <code>pointer-events: none</code>, so the flip cannot pull the card out from under the pointer.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the card is the same share of a gallery card, the editor and a recording canvas.',
@@ -763,7 +763,7 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
       'The lens barrel is a cylinder around the <b>Z</b> axis: sixteen strips, each turned with <code>rotateZ(i × 22.5deg)</code>, moved out by the radius, folded flat with <code>rotateX(90deg)</code> and slid forward by half its length so the barrel starts at the body.',
       'Each strip shades itself with <code>cos()</code> of its angle, so the barrel is lit from the top left without any hand-painted gradient per strip.',
       'The glass is a flat disc, so it can clip its reflection with <code>overflow: hidden</code>. The reflection runs the rocking animation in reverse (same duration, same easing), so it seems to stay with the room while the camera turns.',
-      'The shutter button and the dial are flat discs laid on the top with <code>rotateX(90deg)</code>, stacked 1.5 units apart: from above they read as short cylinders.',
+      'The shutter button and the dial are flat discs laid on the top with <code>rotateX(90deg)</code> and stacked (the button\'s four 1.5 units apart, the dial\'s two 3 units apart): from above they read as short cylinders.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the camera is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
@@ -1043,7 +1043,7 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   coffeecup: {
     how: [
       'A paper cup is a <b>frustum</b>: a cone with its tip cut off. Twenty strips stand on the base circle (<code>rotateY(i × 18deg) translateZ(27 units)</code>), hinged on their bottom edge, and lean <b>out</b> by <code>atan((36 − 27) / 100) ≈ 5.14°</code> so the rim is wider than the base.',
-      'Each strip is a trapezoid cut with <code>clip-path</code>: 11.4 units wide at the rim, 8.6 units at the base (both are 2 · r · tan(9°)). Its height is the slant length, √(100² + 9²).',
+      'Each strip is a trapezoid cut with <code>clip-path</code>: 11.4 units wide at the rim, 8.6 units at the base (both are 2 · r · tan(9°)), each drawn 1.2 units wider so neighbours overlap and no seam shows. Its height is the slant length, √(100² + 9²).',
       'The sleeve and its logo are painted on <b>one</b> canvas, exactly one lap long, and every strip slides it by its index (<code>background-position</code>). The lap is measured at the sleeve\'s middle height, where the strips are 9.86 units wide, so the logo wraps round without a seam.',
       'The light stays put while the cup turns: every strip has a dark overlay whose opacity runs one lap, started i/20 of the way round with a negative <code>animation-delay</code>.',
       'The lid is five discs stacked 1.5 units apart plus a raised spout. The steam rises from the sip slot: it sits there inside the spinning part, so it goes round with the cup, and a counter-turn keeps each wisp facing you. Each S-shaped wisp rises, grows and fades, and starts and ends invisible so the loop never shows.',

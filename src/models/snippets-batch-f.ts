@@ -382,7 +382,7 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
     how: [
       'Every crystal is a hexagonal prism: six panels <code>--w</code> wide in a closed ring, <code>rotateY(i × 60deg) translateZ(w × 0.866)</code>. 0.866 is √3 / 2, the apothem of a hexagon with side <code>w</code>.',
       'The pointed tip needs no extra elements: each panel carries its own facet as a <code>::before</code>. The panel gets <code>transform-style: preserve-3d</code>, so the triangle can fold in along the panel\'s top edge by 40°. Its height, apothem / sin(40°) = <code>1.347 × w</code>, makes the six points meet on the axis.',
-      'A crystal leans by walking its transforms: stand on the floor, <code>rotateY</code> to face its direction, <code>translateZ</code> out from the centre, then <code>rotateX</code> to lean outward. The same four numbers in a style attribute place all five.',
+      'A crystal leans by walking its transforms: stand on the floor, <code>rotateY</code> to face its direction, <code>translateZ</code> out from the centre, then <code>rotateX</code> to lean outward. Three numbers in each crystal\'s style attribute (<code>--az</code>, <code>--off</code>, <code>--tilt</code>) place all five.',
       'The inner glow is two crossed planes of radial gradient, so it has body from every side. Its opacity breathes on a pseudo-element: on the element itself, <code>opacity</code> would flatten its 3D children.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the cluster is the same share of a gallery card, the editor and a recording canvas. The style attribute hands each crystal plain numbers, and CSS turns them into lengths by multiplying by <code>--u</code>.',
     ],
