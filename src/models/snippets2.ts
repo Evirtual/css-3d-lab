@@ -10,7 +10,7 @@ function starShadows(count: number, size: number, seed: number): string {
   return Array.from({ length: count }, () => {
     const x = Math.round(next() * size - size / 2);
     const y = Math.round(next() * size - size / 2);
-    return `${x}px ${y}px 0 ${next() > 0.5 ? 1 : 0.5}px #fff`;
+    return `${x}em ${y}em 0 ${next() > 0.5 ? 1 : 0.5}em #fff`;
   })
     .reduce<string[]>((rows, shadow, i) => {
       if (i % 4 === 0) rows.push('    ' + shadow);
@@ -472,28 +472,32 @@ ${lines(10, (i) => `<i style="--i:${i}"></i>`, '  ')}
 
   starfield: {
     how: [
-      'Hundreds of DOM nodes would be wasteful. Instead each layer is <b>one</b> 1×1px element, and every star is a <code>box-shadow</code> of it.',
+      'Hundreds of DOM nodes would be wasteful. Instead each layer is <b>one</b> element a single unit square, and every star is a <code>box-shadow</code> of it.',
       'A box-shadow with zero blur and a spread radius is just a dot at an offset — and you can have as many as you like.',
       'Flying the single element along Z moves all its stars at once, with correct perspective.',
       'Three layers on staggered delays hide the loop. In Sass the list comes from <code>random()</code> at build time (see the SCSS tab); here it is written out.',
+      'The field is <code>inset: 0</code>, so it fills the canvas edge to edge. Its lengths are multiples of one base unit, <code>--u</code>, tied to the canvas. Each layer sets <code>font-size: var(--u)</code>, so its star offsets are written in <code>em</code>: one em is one unit, and the list stays short enough to read.',
     ],
     html: `<div class="space">
   <i></i><i></i><i></i>
 </div>`,
     css: `.space {
+  /* one base unit, tied to the canvas; the field itself fills the canvas edge to edge */
+  --u: 0.33vmin;
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
-  perspective: 300px;
+  perspective: calc(300 * var(--u));
   background: radial-gradient(circle, #0d1030, #02030a 75%);
 }
 
 .space i {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: 1em;
+  height: 1em;
+  font-size: var(--u);   /* 1em is one unit, so the star list below is in units */
   border-radius: 50%;
   animation: warp 3s linear infinite;
   box-shadow:
@@ -514,9 +518,9 @@ ${starShadows(40, 900, 2024)};
 
 /* stop at 2/3 of the perspective distance; at z = perspective the scale is infinite */
 @keyframes warp {
-  from     { opacity: 0; transform: translateZ(-600px); }
+  from     { opacity: 0; transform: translateZ(calc(-600 * var(--u))); }
   20%, 80% { opacity: 1; }
-  to       { opacity: 0; transform: translateZ(200px); }
+  to       { opacity: 0; transform: translateZ(calc(200 * var(--u))); }
 }`,
   },
 
