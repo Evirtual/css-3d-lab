@@ -27,9 +27,9 @@ One band, the same height in every model, centred in the canvas.
 | | Height |
 | --- | --- |
 | The band | 70vmin |
-| Control zone, when there is one | 10vmin |
+| Control zone, when there is one | 16vmin (a 4.5vmin caption line, a 2vmin gap, an 8vmin row) |
 | Gap between the model and the control zone | 4vmin |
-| Model box, with controls | 56vmin |
+| Model box, with controls | 50vmin |
 | Model box, with no controls | 70vmin |
 
 So a model with a row of buttons under it is automatically a little smaller than one without, and
@@ -40,7 +40,7 @@ one. What everything the model draws must satisfy, in every state, is:
 
 | | |
 | --- | --- |
-| At most, tall | the model box above: 70vmin, or 56vmin with controls |
+| At most, tall | the model box above: 70vmin, or 50vmin with controls |
 | At least, tall | 40vmin, so nothing reads as a speck in the middle |
 | At most, wide | 92% of the canvas width, so nothing touches the sides |
 
@@ -157,7 +157,7 @@ to the canvas. Never write a bare pixel length anywhere else.
 Design in whatever numbers you like — 180 and 100 above are just the proportions you drew — then
 set `--u` so the model lands in the band. Nothing else has to change afterwards.
 
-**2. Land in the band.** 70vmin tall with no controls, 56vmin with them, never under 40vmin, never
+**2. Land in the band.** 70vmin tall with no controls, 50vmin with them, never under 40vmin, never
 over 92% of the canvas wide, centred within 4vmin. Check, do not guess:
 `npm run check-models <id>`.
 
@@ -174,11 +174,13 @@ vmin, not in the model's own unit, because it is the same size in every model wh
 is sized to:
 
 ```css
+/* The model box and the zone stand in one stack, so the zone is the same distance below the
+   model in every model and the pair is centred as the band says. Do NOT position the zone from
+   the canvas middle: a model's drawing can overflow its layout box, and the row lands on it. */
+.band { display: grid; justify-items: center; gap: 4vmin; }
+.view { height: 50vmin; display: grid; place-items: center; }   /* the model box */
+
 .controls {
-  position: absolute;
-  left: 50%;
-  top: calc(50% + 32vmin);   /* the same distance below the middle in every model */
-  translate: -50% 0;
   display: grid;
   justify-items: center;
   gap: 2vmin;
