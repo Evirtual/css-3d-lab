@@ -24,37 +24,55 @@ export const snippetsK: Record<string, Snippet> = {
       'The data is plain JSON, shaped like an API response. JS turns each value into <b>one number</b>: <code>--v = value ÷ top of the scale</code> (0 to 1), written on the bar. Everything you see is CSS.',
       'A bar is a full-height box. Its front and side are squashed with <code>scaleY(var(--v))</code> from the bottom, and its lid rides down by <code>(1 − --v) × height</code>. Only <code>transform</code> changes, so a new dataset is a smooth transition with no layout work.',
       '<code>transition-delay: calc(var(--i) * 60ms)</code> starts each bar a little after the one before, and a <code>cubic-bezier</code> that goes past 1 makes it overshoot and settle.',
-      'The neon look is see-through glass faces with a bright 1px edge and a soft glow (<code>box-shadow</code> inside and out). Colours come from <code>color-mix()</code> along the row, and the tallest bar gets <code>.is-peak</code>. The pointed-at bar fills in and glows: a <code>::after</code> layer on each face whose <code>opacity</code> fades in, so the change is smooth.',
+      'The neon look is see-through glass faces with a bright hairline edge and a soft glow (<code>box-shadow</code> inside and out). Colours come from <code>color-mix()</code> along the row, and the tallest bar gets <code>.is-peak</code>. The pointed-at bar fills in and glows: a <code>::after</code> layer on each face whose <code>opacity</code> fades in, so the change is smooth.',
       'The scale on the back wall is rounded up to a tidy step (<code>Math.ceil(max / 20) * 20</code>), so the numbers stay round whatever the data.',
-      "There is <b>one</b> tooltip for the whole chart. JS moves it to the pointed-at bar with two custom properties (<code>--tx</code>, <code>--ty</code>) and a <code>transition</code> glides it there, so it slides from bar to bar with its text changing instead of blinking. It floats 40px towards you: the chart is turned, so each bar to the right stands nearer. A tap does the same on a touch screen, where there is no hover.",
+      "There is <b>one</b> tooltip for the whole chart. JS moves it to the pointed-at bar with two custom properties (<code>--tx</code>, <code>--ty</code>) and a <code>transition</code> glides it there, so it slides from bar to bar with its text changing instead of blinking. It floats 40 units towards you: the chart is turned, so each bar to the right stands nearer. A tap does the same on a touch screen, where there is no hover.",
+      "Every length is a multiple of one base unit, <code>--u</code>, and JS writes the tooltip's place as <b>plain numbers</b> in the chart's own units, which CSS multiplies by it. A length written in px from JS would stay the same size while the chart scaled around it, and the tooltip would drift off its bar on a big screen. The caption and the year switch are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.",
     ],
     html: `<div class="chart">
-  <div class="scene">
-    <div class="bars3d"></div>
+  <div class="view">
+    <div class="scene">
+      <div class="bars3d"></div>
+    </div>
   </div>
-  <output></output>
-  <div class="seg">
-${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).join('\n')}
+  <div class="controls">
+    <output class="caption"></output>
+    <div class="row">
+${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`).join('\n')}
+    </div>
   </div>
 </div>`,
     css: `.chart {
+  /* one base unit: every length in the chart is a multiple of it, so it is the same share of a
+     card, the editor, a full screen and a recording canvas. The control zone under it is in
+     plain vmin, because it is the same object in every model. */
+  --u: 0.3vmin;
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
+/* the model box: the same height in every model that has controls */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+}
+
 .scene {
-  perspective: 800px;
-  padding: 30px 40px 40px;
+  perspective: calc(800 * var(--u));
+  /* the scale's numbers and the tooltip reach out past the right of the bars: the extra room on
+     the right is what centres what is drawn, not the bars' box */
+  padding: calc(30 * var(--u)) calc(72 * var(--u)) calc(40 * var(--u)) calc(40 * var(--u));
   pointer-events: none; /* the chart is turned: only the bars take the pointer */
 }
 
-/* 6 bars × 19px + 5 gaps × 10px = 164px */
+/* 6 bars × 19 + 5 gaps × 10 = 164 units */
 .bars3d {
   position: relative;
-  width: 164px;
-  height: 100px; /* the top of the scale */
+  width: calc(164 * var(--u));
+  height: calc(100 * var(--u)); /* the top of the scale */
   transform-style: preserve-3d;
   transform: rotateX(-18deg) rotateY(-28deg);
 }
@@ -62,15 +80,15 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
 /* the floor: a neon grid laid flat along the bottom */
 .floor {
   position: absolute;
-  left: -12px;
-  top: 74px;
-  width: 188px;
-  height: 52px;
-  border: 1px solid rgb(139 108 255 / 0.45);
-  border-radius: 6px;
+  left: calc(-12 * var(--u));
+  top: calc(74 * var(--u));
+  width: calc(188 * var(--u));
+  height: calc(52 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.45);
+  border-radius: calc(6 * var(--u));
   background:
-    repeating-linear-gradient(90deg, rgb(139 108 255 / 0.24) 0 1px, transparent 1px 17px),
-    repeating-linear-gradient(rgb(139 108 255 / 0.24) 0 1px, transparent 1px 17px),
+    repeating-linear-gradient(90deg, rgb(139 108 255 / 0.24) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(17 * var(--u))),
+    repeating-linear-gradient(rgb(139 108 255 / 0.24) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(17 * var(--u))),
     rgb(139 108 255 / 0.1);
   transform: rotateX(90deg);
 }
@@ -79,29 +97,29 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
    right end, which reaches out past the last bar */
 .wall {
   position: absolute;
-  top: -10px; /* 10px of room above the scale, so the top number is not clipped */
-  left: -12px;
-  width: 188px;
-  height: 110px;
-  transform: translateZ(-26px);
+  top: calc(-10 * var(--u)); /* 10 units of room above the scale, so the top number is not clipped */
+  left: calc(-12 * var(--u));
+  width: calc(188 * var(--u));
+  height: calc(110 * var(--u));
+  transform: translateZ(calc(-26 * var(--u)));
 }
 
 .wall b {
   position: absolute;
   right: 0;
-  bottom: calc(var(--t) * 100px);
+  bottom: calc(var(--t) * 100 * var(--u));
   left: 0;
-  height: 1px;
+  height: calc(1 * var(--u));
   background: rgb(236 238 251 / 0.26);
 }
 
 .wall span {
   position: absolute;
-  top: -6px;
+  top: calc(-6 * var(--u));
   left: 100%;
-  padding-left: 6px;
+  padding-left: calc(6 * var(--u));
   color: ${MUTED};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
 }
 
 .bars {
@@ -109,7 +127,7 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
   inset: 0;
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: calc(10 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -118,7 +136,7 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
   --c: color-mix(in srgb, ${VIOLET}, ${TEAL} calc(var(--i) * 20%));
   position: relative;
   flex: none;
-  width: 19px;
+  width: calc(19 * var(--u));
   height: 100%;
   transform-style: preserve-3d;
 }
@@ -133,27 +151,28 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
   cursor: pointer;
 }
 
-/* One tooltip for the whole chart: JS moves it to the pointed-at bar (--tx, --ty) and it glides
-   there, text changing on the way. 40px towards you (the chart is turned, so the bars to the
-   right stand nearer); its thickness is a flat edge up and to the right, like the bars' depth */
+/* One tooltip for the whole chart: JS moves it to the pointed-at bar (--tx, --ty, plain numbers
+   in the chart's own units, which CSS multiplies by --u) and it glides there, text changing on
+   the way. 40 units towards you (the chart is turned, so the bars to the right stand nearer);
+   its thickness is a flat edge up and to the right, like the bars' depth */
 .tip {
   --c: color-mix(in srgb, ${VIOLET}, ${TEAL} calc(var(--i, 0) * 20%));
   position: absolute;
   top: 0;
   left: 0;
-  padding: 3px 7px;
-  border: 1px solid var(--c);
-  border-radius: 6px;
+  padding: calc(3 * var(--u)) calc(7 * var(--u));
+  border: calc(1 * var(--u)) solid var(--c);
+  border-radius: calc(6 * var(--u));
   background: ${SURFACE};
   box-shadow:
-    3px -3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
-    0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+    calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--c) 55%, #05060c),
+    0 0 calc(14 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent);
   color: ${TEXT};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(var(--tx, 0px), calc(var(--ty, 0px) - 30px)) translate(-50%, -100%) translateZ(40px);
+  transform: translate(calc(var(--tx, 0) * var(--u)), calc((var(--ty, 0) - 30) * var(--u))) translate(-50%, -100%) translateZ(calc(40 * var(--u)));
   transition:
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
@@ -173,14 +192,14 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
   top: 0;
   left: 0;
   box-sizing: border-box;
-  width: 19px;
+  width: calc(19 * var(--u));
   height: 100%;
-  /* a fine edge: under 1px shows as a hairline on sharp screens */
-  border: 0.6px solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
+  /* a fine edge: under one unit shows as a hairline on sharp screens */
+  border: calc(0.6 * var(--u)) solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
   background: color-mix(in srgb, var(--c) 58%, transparent);
   box-shadow:
-    inset 0 0 8px color-mix(in srgb, var(--c) 30%, transparent),
-    0 0 10px color-mix(in srgb, var(--c) 22%, transparent);
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--c) 30%, transparent),
+    0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 22%, transparent);
   transform-origin: bottom center;
   /* past 1: overshoot and settle; each bar 60ms after the one before */
   transition: transform 0.8s cubic-bezier(0.3, 1.3, 0.5, 1) calc(var(--i) * 60ms);
@@ -192,7 +211,7 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
   position: absolute;
   inset: 0;
   background: color-mix(in srgb, var(--c) 50%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--c) 60%, transparent);
+  box-shadow: 0 0 calc(20 * var(--u)) color-mix(in srgb, var(--c) 60%, transparent);
   opacity: 0;
   transition: opacity 0.25s;
 }
@@ -203,58 +222,69 @@ ${YEARS.map((y) => `    <button type="button" data-year="${y}">${y}</button>`).j
 
 /* front */
 .bar i:nth-child(1) {
-  transform: translateZ(9.5px) scaleY(var(--v));
+  transform: translateZ(calc(9.5 * var(--u))) scaleY(var(--v));
 }
 
 /* right side, darker glass */
 .bar i:nth-child(2) {
   background: color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #05060c) 64%, transparent);
-  transform: rotateY(90deg) translateZ(9.5px) scaleY(var(--v));
+  transform: rotateY(90deg) translateZ(calc(9.5 * var(--u))) scaleY(var(--v));
 }
 
-/* the lid: a 19px square laid flat, riding down with the value */
+/* the lid: a 19-unit square laid flat, riding down with the value */
 .bar i:nth-child(3) {
-  height: 19px;
+  height: calc(19 * var(--u));
   background: color-mix(in srgb, var(--c) 80%, transparent);
   transform-origin: center;
-  transform: translateY(calc((1 - var(--v)) * 100px)) rotateX(90deg) translateZ(9.5px);
+  transform: translateY(calc((1 - var(--v)) * 100 * var(--u))) rotateX(90deg) translateZ(calc(9.5 * var(--u)));
 }
 
 .bar span {
   position: absolute;
-  top: calc(100% + 8px);
-  left: -7px;
-  width: 33px;
+  top: calc(100% + calc(8 * var(--u)));
+  left: calc(-7 * var(--u));
+  width: calc(33 * var(--u));
   color: ${MUTED};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   text-align: center;
-  transform: translateZ(9.5px);
+  transform: translateZ(calc(9.5 * var(--u)));
 }
 
-output {
-  color: ${MUTED};
-  font-size: 12px;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the chart's own unit. The caption's line box never changes
+   height, so a new summary cannot move the chart. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-.seg {
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.controls .row {
   display: flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 999px;
+  gap: 2vmin;
 }
 
-.seg button {
-  padding: 4px 14px;
+.controls button {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
-  background: transparent;
+  background: rgb(140 150 220 / 0.2);
   color: ${MUTED};
-  font: 700 12px system-ui, sans-serif;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background 0.35s, color 0.35s;
 }
 
-.seg button[aria-pressed='true'] {
+.controls button[aria-pressed='true'] {
   background: linear-gradient(135deg, ${VIOLET}, ${PINK});
   color: #fff;
 }`,
@@ -263,7 +293,7 @@ const SALES = ${compactObjects(json(SALES))};
 
 const chart = document.querySelector('.bars3d');
 const out = document.querySelector('.chart output');
-const buttons = document.querySelectorAll('.seg button');
+const buttons = document.querySelectorAll('.controls .row button');
 const TICKS = [0, 0.5, 1]; // the scale's lines, as fractions of its top
 
 // Build the chart once from the data: the floor, the scale, and a bar with three faces per value
@@ -281,7 +311,7 @@ first.forEach((d, i) => (bars[i].querySelector('span').textContent = d.label));
 
 // money as most dashboards write it: the sign in front, the k right after the number ($88k)
 const money = (v) => SALES.prefix + v + SALES.suffix;
-const W = 19, PITCH = 29, H = 100; // a bar's width, width + gap, and the scale's height (as in the CSS)
+const W = 19, PITCH = 29, H = 100; // a bar's width, width + gap, and the scale's height, in the chart's own units (as in the CSS)
 let shown; // the year on screen: { rows, top, peak }
 let active = -1; // the bar the tooltip is on
 let hideTimer;
@@ -312,8 +342,9 @@ function place(i) {
   if (!wasOn) tipEl.style.transition = 'none'; // from hidden: appear in place, don't fly in
   tipEl.textContent = \`\${r.label} · \${money(r.value)}\`;
   tipEl.style.setProperty('--i', i);
-  tipEl.style.setProperty('--tx', i * PITCH + W / 2 + 'px');
-  tipEl.style.setProperty('--ty', (1 - r.value / shown.top) * H + 'px');
+  // plain numbers in the chart's own units: CSS multiplies them by --u
+  tipEl.style.setProperty('--tx', String(i * PITCH + W / 2));
+  tipEl.style.setProperty('--ty', String((1 - r.value / shown.top) * H));
   tipEl.classList.toggle('is-peak', i === shown.peak);
   if (!wasOn) {
     void tipEl.offsetWidth; // apply the new place before the transition comes back
