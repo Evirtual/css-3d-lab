@@ -739,7 +739,7 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
       'Keep the corner radius <code>R</code> fixed and derive the rest: side = <code>2R × sin(180° / n)</code>, apothem = <code>R × cos(180° / n)</code>. JS computes both and hands them to CSS as <code>--w</code> and <code>--r</code> — plain numbers, never lengths: CSS multiplies them by <code>--u</code>, the one base unit every length here is a multiple of, so the prism is the same share of a gallery card, the editor and a recording canvas.',
       'CSS places every panel from those numbers: <code>rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(var(--apothem))</code>, where <code>--apothem</code> is <code>calc(var(--r) * var(--u))</code>. JS never touches a transform.',
       'The caps are a <code>2R</code> square cut to the polygon. JS writes the <code>clip-path</code>: one corner every <code>360° / n</code>, starting half a side from the centre of panel 0.',
-      'Changing <code>n</code> rebuilds the panels. <code>@starting-style</code> gives brand-new elements a first frame to transition from, so they grow out from the axis without any animation JS.',
+      'Changing <code>n</code> rebuilds the panels. <code>@starting-style</code> gives brand-new elements a first frame to transition from, so they grow out from the axis without any animation JS. It is scoped to a <code>.grow</code> class that JS adds only once the slider moves, so the prism the page opens on is whole from its very first frame, and a paused card shows it full-sized.',
     ],
     html: `<div class="band">
   <div class="view">
@@ -807,9 +807,11 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
 }
 
 /* the first frame of a newly inserted panel: on the axis and invisible, so it grows out into place
-   and never reaches past the prism's own footprint on the way */
+   and never reaches past the prism's own footprint on the way. Only once the slider has moved
+   (.grow): the prism the page opens on starts whole, so its first frame, the one a paused card
+   holds, is the full-sized shape */
 @starting-style {
-  .prism i {
+  .prism.grow i {
     opacity: 0;
     transform: rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(0);
   }
@@ -833,7 +835,7 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
 }
 
 @starting-style {
-  .prism b { opacity: 0; }
+  .prism.grow b { opacity: 0; }
 }
 
 /* the control zone: the same object, at the same size, in every model that has one */
@@ -907,7 +909,11 @@ function build() {
   output.textContent = n + ' sides';
 }
 
-input.addEventListener('input', build);
+// the first build stands whole; every rebuild after it flies its new panels in
+input.addEventListener('input', () => {
+  prism.classList.add('grow');
+  build();
+});
 build();`,
   },
 };
