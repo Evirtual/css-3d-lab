@@ -7,6 +7,7 @@
  *   node scripts/capture-check.mjs motion [args…]   scripts/check-motion.mjs
  *   node scripts/capture-check.mjs exports [args…]  scripts/check-exports.mjs
  *   node scripts/capture-check.mjs media [args…]    scripts/check-media.mjs (on the built site)
+ *   node scripts/capture-check.mjs access [args…]   scripts/check-access.mjs
  *   (npm run capture -- models cube dice)
  *
  * Which checks there are is scripts/checks-registry.mjs, the one list the ledger and its page read
@@ -33,6 +34,7 @@
  *    --defaults, which makes exactly them: `npm run capture -- exports --defaults <ids>` is the
  *    per-model run, and its entries say `matrix.defaultsOnly`.
  *  - media: `pass <id> …` and `FAILS <id> …`, with the reasons indented under a failure.
+ *  - access: the same as media.
  *  - seo (a site check: its entries are pages, not models): `FAIL <page> <rule>: <what>` (a page
  *    can have several; they are grouped by page), `pass <page>`, and `listed <page> <rules>`, a pass
  *    whose findings are listed rather than failed (WAIVED or OWN-TEXT), recorded with `listed: true`.
@@ -129,6 +131,17 @@ const parsers = {
     }
     if (/^ {10}\S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
     if (/share previews are right/.test(line)) summaryLine = line.trim();
+  },
+  // access: the same lines as media, `pass <id> …` and `FAILS <id> …` with the problems indented under a failure
+  access(line) {
+    const m = /^(FAILS|pass)\s+(\S+)\s*(.*)$/.exec(line);
+    if (m) {
+      current = m[2];
+      results[current] = { status: m[1] === 'pass' ? 'pass' : 'fail', summary: m[3], detail: [], at: now() };
+      return;
+    }
+    if (/^ {10}\S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
+    if (/pass the access check/.test(line)) summaryLine = line.trim();
   },
   seo(line) {
     const f = /^FAIL (\S+) (.*)$/.exec(line);
@@ -255,7 +268,7 @@ function expectedTotal() {
     const src = workingSources();
     const demoIds = [...src].filter(([, m]) => m.parts.some((p) => p.kind === 'demo' || (p.whole && p.file.includes('/charts/')))).map(([id]) => id);
     const converted = demoIds.filter((id) => src.get(id)?.snippet?.css.includes('--u:'));
-    if (check === 'models' || check === 'stages' || check === 'media') return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
+    if (check === 'models' || check === 'stages' || check === 'media' || check === 'access') return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
     const site = REGISTRY.find((c) => c.key === check && c.scope === 'site');
     if (site) return { total: pagesFor(site), totalIsEstimate: true, totalFrom: 'the page count scripts/checks-registry.mjs gives' };
     if (check === 'motion') return args.includes('--all')

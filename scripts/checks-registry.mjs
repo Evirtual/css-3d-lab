@@ -51,6 +51,11 @@ export const REGISTRY = [
     rule: 'cleared when its latest result is a pass on the model\'s current code: the model page\'s og:image is dist/media/<id>.jpg at the 2400 × 1260 its tags say, its og:title, og:description and image alt are the model\'s own title and description, the headline drawn in the image is the title and fits, and the picture is the model as the built site renders it now, loaded, finished, centred and full-sized. It runs on the built site, after npm run build && npm run media',
   },
   {
+    key: 'access', script: 'check-access.mjs', scope: 'model', name: 'access', short: 'Access',
+    title: 'Pause and access (check-access)', label: 'pause and access check (check-access)',
+    rule: 'cleared when its latest result is a pass on the model\'s current code: paused by the site, with reduced motion emulated, its picture does not change over 4 seconds (a script\'s timer included), and a model that moved moves again when un-paused; every rendered control has an accessible name; Tab reaches everything a mouse can use, and focus shows',
+  },
+  {
     key: 'seo', script: 'check-seo.mjs', scope: 'site', name: 'seo', short: 'SEO',
     title: 'SEO over the built site (check-seo)', label: 'SEO check (check-seo)',
     rule: 'cleared when its latest run on the built site (after npm run build) reports no FAIL line for the page; WAIVED and OWN-TEXT findings are listed, not failed',
