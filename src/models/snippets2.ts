@@ -537,7 +537,7 @@ ${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" aria-hidden="true">$
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the word is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.36vmin;
+  --u: 0.41vmin;
   perspective: calc(600 * var(--u));
 }
 
