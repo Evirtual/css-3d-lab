@@ -94,10 +94,10 @@ export const pureDemos2: Demo[] = [
   {
     id: 'textring',
     title: 'Text ring',
-    description: 'A sentence wrapped around a cylinder, one character per slice.',
+    description: 'A word wrapped around a ring, one character per slice, standing on a rim you can see all the way round.',
     category: 'css',
     tags: ['loop', 'text'],
-    technique: ['rotateY(i × 360° / n) translateZ(r)', 'backface-visibility: hidden', 'monospace for even spacing'],
+    technique: ['rotateY(i × 360° / n) translateZ(r)', 'backface-visibility: hidden', 'monospace for even spacing', 'a rotateX(90deg) rim for the far side'],
     html: `<div class="d-textring" style="--n:${RING_TEXT.length}" aria-label="${RING_TEXT.trim()}">${[...RING_TEXT]
       .map((c, i) => `<span style="--i:${i}" aria-hidden="true">${c === ' ' ? '&nbsp;' : c}</span>`)
       .join('')}</div>`,
