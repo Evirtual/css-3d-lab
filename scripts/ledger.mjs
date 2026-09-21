@@ -32,15 +32,19 @@ import { fileURLToPath } from 'node:url';
 const { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources } = await import(`./model-sources.mjs${new URL(import.meta.url).search}`);
 
 const { evaluateChecklist } = await import(`./checklist-proofs.mjs${new URL(import.meta.url).search}`);
+// the one list of checks: capture-check.mjs runs them, this gates on them, the page draws them
+const { REGISTRY, MODEL_CHECKS, forPage } = await import(`./checks-registry.mjs${new URL(import.meta.url).search}`);
 
 /** The build's own code: a hash of these files as they are on disk right now. */
-const CODE_FILES = ['scripts/ledger.mjs', 'scripts/model-sources.mjs', 'scripts/checklist-proofs.mjs'];
+const CODE_FILES = ['scripts/ledger.mjs', 'scripts/model-sources.mjs', 'scripts/checklist-proofs.mjs', 'scripts/checks-registry.mjs'];
 export const codeVersion = () => createHash('sha1').update(CODE_FILES.map((f) => { try { return norm(readFileSync(join(ROOT, f), 'utf8')); } catch { return `(missing ${f})`; } }).join('\0')).digest('hex').slice(0, 10);
 /** The version this copy of the module was loaded from. A build compares it with the disk. */
 export const LOADED_CODE = codeVersion();
 
 const OUT = join(ROOT, 'docs', 'ledger.json');
-const CHECKS = ['models', 'stages', 'motion', 'exports'];
+const CHECKS = REGISTRY.map((c) => c.key);
+// the checks that say something about each model; the site-wide ones are counted in pages, in checkList
+const MODEL_KEYS = MODEL_CHECKS.map((c) => c.key);
 /**
  * Every automated check gates "checked", in this order (the order the "not yet checked" bucket is
  * split by: a model is counted under the first gate it does not clear). Each gate must be cleared
@@ -50,14 +54,13 @@ const CHECKS = ['models', 'stages', 'motion', 'exports'];
  *    it, and so does a fresh visual review that names the flag in motionFlagsResolved with a
  *    reason (a false alarm). "broke" cannot be cleared by a review;
  *  - exports (check-exports): the default-settings verdict is a pass (capture-check records it;
- *    the full settings matrix is a sample and does not gate).
+ *    the full settings matrix is a sample and does not gate);
+ *  - every other per-model check in scripts/checks-registry.mjs (media, the share preview, and any
+ *    added later): the latest result is a pass.
+ * The list and its order are the registry's. Site-wide checks there are not gates: they are
+ * counted in pages, in `checkList`.
  */
-export const GATES = [
-  { key: 'models', name: 'contract', label: 'contract check (check-models)' },
-  { key: 'stages', name: 'stages', label: 'stage check (check-stages)' },
-  { key: 'motion', name: 'motion', label: 'motion check (check-motion)' },
-  { key: 'exports', name: 'exports', label: 'export check at default settings (check-exports)' },
-];
+export const GATES = MODEL_CHECKS.map((c) => ({ key: c.key, name: c.name, label: c.label }));
 const GATE_KINDS = [
   { key: 'stale-pass', label: 'passed on older code' },
   { key: 'failed', label: 'failed' },
@@ -96,7 +99,7 @@ function GATES_PARTS() {
 }
 export const BUCKETS = [
   { key: 'not converted', label: 'Not converted', means: 'the snippet does not set --u in vmin' },
-  { key: 'converted', label: 'Converted, not yet checked', means: 'sets --u in vmin, but not every automated check (contract, stages, motion, exports) is cleared on the code as it is now',
+  { key: 'converted', label: 'Converted, not yet checked', means: `sets --u in vmin, but not every automated check (${GATES.map((g) => g.name).join(', ')}) is cleared on the code as it is now`,
     parts: GATES_PARTS() },
   { key: 'checked', label: 'Checked, awaiting approval', means: 'every automated check cleared on the current code, but its reviews do not yet approve it',
     parts: [
@@ -540,7 +543,7 @@ const models = demos.map((d) => {
   const converting = [...byDiff].reverse().find((c) => c.addsU) ?? null;
 
   const checks = {};
-  for (const name of CHECKS) {
+  for (const name of MODEL_KEYS) {
     const file = checkFiles[name];
     const r = file?.models?.[d.id];
     if (!r) { checks[name] = { status: 'never' }; continue; }
@@ -596,7 +599,7 @@ const models = demos.map((d) => {
   if (!converted) missing.push(unit === 'other' ? `not converted: the snippet sets --u only in another unit (${uValues(snippet.css).join(', ')}), not vmin` : 'not converted: the snippet CSS does not set --u');
   for (const g of GATES) {
     const k = gates[g.key].kind, c = checks[g.key];
-    if (k === 'never') missing.push(c.status === 'untested' ? `check-exports ran on it, but its run left out the default settings, so there is no default-settings verdict` : `the ${g.label} has never reported this model`);
+    if (k === 'never') missing.push(c.status === 'untested' && g.key === 'exports' ? `check-exports ran on it, but its run left out the default settings, so there is no default-settings verdict` : `the ${g.label} has never reported this model`);
     else if (k === 'stale-pass') missing.push(`the ${g.label} ${g.key === 'motion' && c.status === 'flagged' ? 'was cleared' : 'passed'}, but on source that has changed since`);
     else if (k === 'failed') missing.push(g.key === 'motion' && c.status === 'flagged' ? `the ${g.label} has ${c.openFlags} open flag(s) no fresh visual review marks as a false alarm` : `the ${g.label}'s last result is "${c.status}"`);
   }
@@ -642,6 +645,27 @@ const ledger = {
   tags: [...new Set(demos.flatMap((d) => d.tags ?? []))].sort(),
   build: { by, reason, ms: null, reusedModelLoad, reusedGitReplay, code: (() => { const onDisk = codeVersion(); return { loaded: LOADED_CODE, onDisk, stale: onDisk !== LOADED_CODE, files: CODE_FILES }; })() },
   running,
+  // every registered check, in the registry's order, with its tally: what the page draws a bar,
+  // a table column and a definition from. A registered check that has never run is listed with
+  // every model (or page) under "never", never left out.
+  checkList: forPage(ROOT).map((c) => {
+    const run = running[c.key] ? { done: running[c.key].done ?? 0, total: running[c.key].total ?? null, alive: running[c.key].alive } : null;
+    const captured = Boolean(checkFiles[c.key]);
+    if (c.scope === 'model') {
+      const tally = { pass: 0, stale: 0, fail: 0, never: 0 };
+      for (const m of models) { const k = m.gates[c.key]?.kind; tally[k == null ? 'pass' : k === 'stale-pass' ? 'stale' : k === 'failed' ? 'fail' : 'never']++; }
+      return { ...c, unit: 'models', total: models.length, tally, captured, running: run };
+    }
+    // a site check: its result file's entries are pages
+    const pages = Object.values(checkFiles[c.key]?.models ?? {});
+    const total = Math.max(pages.length, c.pages ?? 0);
+    const tally = { pass: pages.filter((x) => x.status === 'pass').length, stale: 0, fail: pages.filter((x) => x.status !== 'pass').length, never: 0 };
+    tally.never = total - tally.pass - tally.fail;
+    // passes whose findings the check lists rather than fails (check-seo's WAIVED and OWN-TEXT)
+    const listed = pages.filter((x) => x.status === 'pass' && x.listed).length;
+    const lastRun = checkFiles[c.key]?.runs?.[0] ?? null;
+    return { ...c, unit: 'pages', total, tally, listed, captured, running: run, lastRun: lastRun ? { finishedAt: lastRun.finishedAt, commit: lastRun.commit, summaryLine: lastRun.summaryLine } : null };
+  }),
   readiness,
   exportsMatrix: (() => {
     const f = checkFiles.exports;
@@ -662,12 +686,7 @@ const ledger = {
     contractCheck: CONTRACT,
     // each gate's rule on its own, in gate order, for the page's "How these are counted"
     gateRules: GATES.map((g) => ({ key: g.key, name: g.name, label: g.label, source: checkFiles[g.key] ? `docs/checks/${g.key}.json, updated ${checkFiles[g.key].updatedAt}` : 'no result file: never captured',
-      rule: {
-        models: 'cleared when its latest result is a pass on the model\'s current code',
-        stages: 'cleared when its latest result is a pass on the model\'s current code',
-        motion: 'cleared when its latest run is smooth on the current code, or every flag that run raised is named as a false alarm, with a reason, in a fresh visual review (motionFlagsResolved); "broke" cannot be cleared by a review',
-        exports: 'cleared when its verdict at the export dialog\'s default settings (image 1:1 at 1600 px PNG, video 9:16 at 1080p, a loop) is a pass on the current code; a run that left the defaults out counts as never run, and the full settings matrix is a sample that does not gate',
-      }[g.key] })),
+      rule: REGISTRY.find((c) => c.key === g.key).rule })),
     gateKinds: 'Each gate not cleared is one of: passed on older code (it passed, or its flags were cleared, but the model changed since), failed (the latest result did not pass), never run (no captured run has reported it)',
     gates: 'checked = every gate cleared on the current code, in this order: ' + GATES.map((g) => g.label).join(', ') + '. Motion is clear when the latest run is smooth or every flag is named as a false alarm in a fresh visual review (motionFlagsResolved); exports means the default settings only',
     review: 'a visual review: a docs/reviews/ entry of kind "visual", or a commit touching the model (by diff), not its converting commit, with a Reviewed-by: trailer or a subject starting "Review"',
@@ -701,7 +720,7 @@ const ledger = {
       { label: 'reached at least "checked"', count: count((m) => m.status === 'checked' || m.status === 'approved') },
       { label: 'reached "approved"', count: count((m) => m.status === 'approved') },
     ],
-    checks: Object.fromEntries(CHECKS.map((c) => {
+    checks: Object.fromEntries(MODEL_KEYS.map((c) => {
       const tally = {};
       for (const m of models) { const r = m.checks[c]; const k = r.status === 'never' ? 'never' : `${r.status}${r.stale ? ' (stale)' : ''}`; tally[k] = (tally[k] ?? 0) + 1; }
       return [c, tally];
@@ -747,7 +766,7 @@ const wrote = writeAtomic(OUT, JSON.stringify(ledger, null, 1), { log: quiet ? n
 const c = ledger.counts;
 if (!quiet) {
   console.log(`docs/ledger.json: ${c.models} models — ${c.converted} converted (${c.convertedInHead} of them in HEAD), ${c.checked} checked, ${c.approved} approved.`);
-  for (const name of CHECKS) console.log(`  ${name.padEnd(7)} ${Object.entries(c.checks[name]).map(([k, v]) => `${v} ${k}`).join(', ')}`);
+  for (const name of MODEL_KEYS) console.log(`  ${name.padEnd(7)} ${Object.entries(c.checks[name]).map(([k, v]) => `${v} ${k}`).join(', ')}`);
   for (const n of notes) console.log(`  note: ${n}`);
 }
 return { wrote, balanced: problems.length === 0, problems, counts: c, notes: [...notes], head, ms: ledger.build.ms, reusedModelLoad, reusedGitReplay, running };

@@ -87,6 +87,7 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     [/^The build is clean/, () => N('npm run build is slow and writes dist/')],
     [/^QA on the built site finds nothing/, () => N('npm run qa needs a fresh build: slow')],
     [/^The social preview images are made/, () => N('npm run media renders images: slow and writes files')],
+    [/^Every model's share preview is right/, () => { const ok = models.filter((m) => m.checks.media?.status === 'pass' && !m.checks.media.stale).length; return ok === n ? T(`from the recorded results: ${n} of ${n} pass check-media on the current code`) : F(`from the recorded results: ${ok} of ${n} have a fresh check-media pass`); }],
     [/^The build works on the Node the workflow uses/, () => /^v22\./.test(process.version) ? T(`node -v is ${process.version}`) : F(`node -v is ${process.version}, the workflow uses 22 (the item also allows "the build above was run on 22", not checked here)`)],
     [/^The sitemap dates are regenerated/, () => N('its proof runs npm run generate, which writes files')],
     [/^The dev fallback address is not in the production bundle/, KEYS.dist, () => {
