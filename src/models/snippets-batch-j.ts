@@ -1086,14 +1086,16 @@ buttons.forEach((btn) => {
 
   timeline: {
     how: [
-      'Every card stands one step further back: <code>translateZ(calc(var(--i) * -110px))</code>, alternating sides of the road with <code>--s</code> = -1 / 1 and turned a little toward it.',
+      'Every card stands one step further back: <code>translateZ(calc(var(--i) * -110 * var(--u)))</code>, alternating sides of the road with <code>--s</code> = -1 / 1 and turned a little toward it.',
       'JS sets one number, <code>--a</code> (the active card), on the view. The track of cards moves toward you by <code>--a</code> steps, which puts card <code>--a</code> at z = 0: moving the world is moving the camera. A transition does the drive.',
       'Each card works out its own <code>--d = --i − --a</code>. Opacity is <code>clamp(0, min(1 − d·0.2, 1 + d·4), 1)</code>: 1 at the front, fading with distance, 0 as soon as a card is passed. Passed cards also get <code>min(d + 1, 0)</code> extra steps back, so nothing ever gets closer than one step to the camera.',
-      'The road does not travel (its near end would run into the camera). Only its lane of dashes and markers slides. The dash period (22px) divides the step (110px), so at every stop the road looks the same. The marker under the active card lights up with <code>opacity: 1 − min(|d|, 1)</code>, written with <code>max(d, -d)</code>.',
-      'The camera sits high above (<code>perspective-origin: 50% -80px</code>), so cards further away climb up the view instead of hiding behind the ones in front.',
+      'The road does not travel (its near end would run into the camera). Only its lane of dashes and markers slides. The dash period (22 units) divides the step (110), so at every stop the road looks the same. The marker under the active card lights up with <code>opacity: 1 − min(|d|, 1)</code>, written with <code>max(d, -d)</code>.',
+      'The camera sits high above (<code>perspective-origin: 50% -80 units</code>), so cards further away climb up the view instead of hiding behind the ones in front.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the road is the same share of a gallery card, the editor and a recording canvas. JS writes only <code>--a</code>, a plain number; the caption and the buttons under the road are in plain <code>vmin</code>, the same control zone as every other model’s.',
     ],
     html: `<div class="timeline">
-  <div class="view" style="--a:0">
+  <div class="view">
+  <div class="scene" style="--a:0">
     <div class="road">
       <div class="lane">
 ${lines(EVENTS.length, (i) => `<u style="--i:${i}"></u>`, '        ')}
@@ -1103,17 +1105,32 @@ ${lines(EVENTS.length, (i) => `<u style="--i:${i}"></u>`, '        ')}
 ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1 : -1}" aria-current="${i === 0}"><b>${EVENTS[i][0]}</b><span>${EVENTS[i][1]}</span></div>`)}
     </div>
   </div>
-  <output>${EVENTS[0][0]} · ${EVENTS[0][1]}</output>
-  <div class="nav">
-    <button type="button" data-step="-1" disabled>‹ Prev</button>
-    <button type="button" data-step="1">Next ›</button>
+  </div>
+  <div class="controls">
+    <output class="caption">${EVENTS[0][0]} · ${EVENTS[0][1]}</output>
+    <div class="row">
+      <button type="button" data-step="-1" disabled>‹ Prev</button>
+      <button type="button" data-step="1">Next ›</button>
+    </div>
   </div>
 </div>`,
-    css: `.timeline {
+    css: `/* the model box and the control zone stand in one stack, so the zone is the same distance
+   under the road in every model */
+.timeline {
+  /* one base unit: every length of the road and the cards is a multiple of it. The control
+     zone is in plain vmin, because it is the same object in every model. */
+  --u: 0.24vmin;
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 4vmin;
   font-family: system-ui, sans-serif;
+}
+
+/* the model box */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
 }
 
 .timeline * {
@@ -1121,12 +1138,12 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 }
 
 /* the camera: close, and high above the road */
-.view {
+.scene {
   position: relative;
-  width: 340px;
-  height: 200px;
-  perspective: 560px;
-  perspective-origin: 50% -80px;
+  width: calc(340 * var(--u));
+  height: calc(200 * var(--u));
+  perspective: calc(560 * var(--u));
+  perspective-origin: 50% calc(-80 * var(--u));
 }
 
 .track {
@@ -1134,43 +1151,43 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
   left: 50%;
   top: 62%;
   transform-style: preserve-3d;
-  transform: translateZ(calc(var(--a) * 110px)); /* the drive */
+  transform: translateZ(calc(var(--a) * 110 * var(--u))); /* the drive */
   transition: transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1);
 }
 
 /* the road: stood on its near edge, laid back flat; it stays put */
 .road {
   position: absolute;
-  left: calc(50% - 34px);
-  top: calc(62% - 864px); /* its near edge 36px below the cards' centre */
-  width: 68px;
-  height: 900px;
+  left: calc(50% - calc(34 * var(--u)));
+  top: calc(62% - calc(684 * var(--u))); /* its near edge 36 units below the cards' centre */
+  width: calc(68 * var(--u));
+  height: calc(720 * var(--u)); /* it has faded out by its far end, so it stops there */
   overflow: hidden;
   background:
-    linear-gradient(90deg, transparent 3px, ${VIOLET} 3px 5px, transparent 5px calc(100% - 5px), ${VIOLET} calc(100% - 5px) calc(100% - 3px), transparent 0),
+    linear-gradient(90deg, transparent calc(3 * var(--u)), ${VIOLET} calc(3 * var(--u)) calc(5 * var(--u)), transparent calc(5 * var(--u)) calc(100% - calc(5 * var(--u))), ${VIOLET} calc(100% - calc(5 * var(--u))) calc(100% - calc(3 * var(--u))), transparent 0),
     #272551;
-  mask: linear-gradient(to top, transparent, #000 7%, #000 40%, transparent 80%);
+  mask: linear-gradient(to top, transparent, #000 8.75%, #000 50%, transparent);
   transform-origin: 50% 100%;
-  transform: translateZ(64px) rotateX(90deg);
+  transform: translateZ(calc(64 * var(--u))) rotateX(90deg);
 }
 
 /* dashes and markers: longer than the road by the whole trip; they slide, the road does not */
 .lane {
   position: absolute;
-  inset: -440px 0 0;
-  background: linear-gradient(rgb(255 181 71 / 0.8) 50%, transparent 0) 50% 100% / 3px 22px repeat-y;
-  transform: translateY(calc(var(--a) * 110px));
+  inset: calc(-440 * var(--u)) 0 0;
+  background: linear-gradient(rgb(255 181 71 / 0.8) 50%, transparent 0) 50% 100% / calc(3 * var(--u)) calc(22 * var(--u)) repeat-y;
+  transform: translateY(calc(var(--a) * 110 * var(--u)));
   transition: transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1);
 }
 
 .lane u {
   --d: calc(var(--i) - var(--a));
   position: absolute;
-  left: calc(50% - 7px);
-  bottom: calc(57px + var(--i) * 110px);
-  width: 14px;
-  height: 14px;
-  border: 2px solid ${TEAL};
+  left: calc(50% - calc(7 * var(--u)));
+  bottom: calc(calc(57 * var(--u)) + var(--i) * 110 * var(--u));
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
+  border: calc(2 * var(--u)) solid ${TEAL};
   border-radius: 50%;
   background: ${SURFACE};
 }
@@ -1179,10 +1196,10 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 .lane u::after {
   content: '';
   position: absolute;
-  inset: 1px;
+  inset: calc(1 * var(--u));
   border-radius: 50%;
   background: ${TEAL};
-  box-shadow: 0 0 8px ${TEAL};
+  box-shadow: 0 0 calc(8 * var(--u)) ${TEAL};
   opacity: calc(1 - min(max(var(--d), var(--d) * -1), 1));
   transition: opacity 0.5s;
 }
@@ -1190,16 +1207,16 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 .card {
   --d: calc(var(--i) - var(--a)); /* steps from the active card */
   position: absolute;
-  left: -50px;
-  top: -52px;
+  left: calc(-50 * var(--u));
+  top: calc(-52 * var(--u));
   display: grid;
   align-content: center;
-  gap: 2px;
-  width: 100px;
-  height: 56px;
-  padding: 0 12px;
-  border: 1px solid rgb(140 150 220 / 0.34);
-  border-radius: 10px;
+  gap: calc(2 * var(--u));
+  width: calc(100 * var(--u));
+  height: calc(56 * var(--u));
+  padding: 0 calc(12 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(140 150 220 / 0.34);
+  border-radius: calc(10 * var(--u));
   background: linear-gradient(160deg, #3d3576, #202045);
   color: ${TEXT};
   backface-visibility: hidden;
@@ -1207,20 +1224,20 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
   opacity: clamp(0, min(1 - var(--d) * 0.2, 1 + var(--d) * 4), 1);
   /* beside the road, one step back per index; passed cards held one step ahead of the camera */
   transform:
-    translate3d(calc(var(--s) * 62px), 0, calc((var(--i) * -1 + min(var(--d) + 1, 0)) * 110px))
+    translate3d(calc(var(--s) * 62 * var(--u)), 0, calc((var(--i) * -1 + min(var(--d) + 1, 0)) * 110 * var(--u)))
     rotateY(calc(var(--s) * -16deg));
   transition: opacity 0.6s, transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1), border-color 0.4s;
 }
 
 .card b {
-  font-size: 20px;
+  font-size: calc(20 * var(--u));
   font-weight: 900;
   line-height: 1;
 }
 
 .card span {
   color: ${MUTED};
-  font-size: 10px;
+  font-size: calc(12 * var(--u));
   font-weight: 700;
   white-space: nowrap;
 }
@@ -1229,10 +1246,10 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 .card::before {
   content: '';
   position: absolute;
-  left: calc(50% - 1px);
+  left: calc(50% - calc(1 * var(--u)));
   top: 100%;
-  width: 2px;
-  height: 32px;
+  width: calc(2 * var(--u));
+  height: calc(32 * var(--u));
   background: linear-gradient(rgb(140 150 220 / 0.34), rgb(139 108 255 / 0.6));
 }
 
@@ -1244,46 +1261,55 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
   color: ${TEAL};
 }
 
-output {
-  color: ${MUTED};
-  font-size: 14px;
-  font-weight: 600;
+/* the control zone: the same object, at the same size, in every model that has one. The
+   caption's line box never changes height, so a new event cannot move the road. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-.nav {
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  opacity: 0.7;
+}
+
+.controls .row {
   display: flex;
-  gap: 8px;
+  gap: 2vmin;
 }
 
-.nav button {
-  padding: 6px 16px;
-  border: 1px solid rgb(140 150 220 / 0.34);
+.controls button {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
+  border: 0;
   border-radius: 999px;
-  background: transparent;
+  background: rgb(140 150 220 / 0.2);
   color: ${TEXT};
-  font: 700 14px system-ui, sans-serif;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
 }
 
-.nav button:last-child:not(:disabled) {
-  border-color: transparent;
+.controls button:last-child:not(:disabled) {
   background: linear-gradient(135deg, ${VIOLET}, ${PINK});
 }
 
-.nav button:disabled {
+.controls button:disabled {
   opacity: 0.4;
   cursor: default;
 }`,
-    js: `const view = document.querySelector('.view');
+    js: `const scene = document.querySelector('.timeline .scene');
 const cards = document.querySelectorAll('.card');
-const out = document.querySelector('output');
-const [prev, next] = document.querySelectorAll('.nav button');
+const out = document.querySelector('.controls output');
+const [prev, next] = document.querySelectorAll('.controls button');
 let active = 0;
 
 function go(step) {
   active = Math.min(cards.length - 1, Math.max(0, active + step));
   // one number moves the camera; CSS works out every card's depth and fade from it
-  view.style.setProperty('--a', active);
+  scene.style.setProperty('--a', active);
   cards.forEach((c, i) => c.setAttribute('aria-current', String(i === active)));
   const card = cards[active];
   out.textContent = card.querySelector('b').textContent + ' · ' + card.querySelector('span').textContent;
