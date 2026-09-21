@@ -749,13 +749,15 @@ root.addEventListener('keydown', key);`,
     ],
     html: `<div class="cubenav">
   <div class="view">
-    <div class="cube">
-      <i style="--hue:28">Dawn<small>01 / 04</small></i>
-      <i style="--hue:178">Reef<small>02 / 04</small></i>
-      <i style="--hue:300">Dusk<small>03 / 04</small></i>
-      <i style="--hue:240">Night<small>04 / 04</small></i>
-      <i></i>
-      <i></i>
+    <div class="scene">
+      <div class="cube">
+        <i style="--hue:28">Dawn<small>01 / 04</small></i>
+        <i style="--hue:178">Reef<small>02 / 04</small></i>
+        <i style="--hue:300">Dusk<small>03 / 04</small></i>
+        <i style="--hue:240">Night<small>04 / 04</small></i>
+        <i></i>
+        <i></i>
+      </div>
     </div>
   </div>
   <div class="controls">
@@ -779,11 +781,19 @@ root.addEventListener('keydown', key);`,
   --u: 0.25vmin;
   display: grid;
   justify-items: center;
-  gap: 4vmin;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
+/* the model box: the same height in every model that has controls, so the zone below it lands
+   in the same place whatever the model is */
 .view {
+  display: grid;
+  place-items: center;
+  height: 44vmin;
+}
+
+.scene {
   position: relative;
   display: grid;
   place-items: center;
@@ -793,7 +803,7 @@ root.addEventListener('keydown', key);`,
 }
 
 /* a soft shadow on the floor, drawn before the cube so it is always underneath */
-.view::before {
+.scene::before {
   content: '';
   position: absolute;
   bottom: 0;
@@ -883,7 +893,8 @@ root.addEventListener('keydown', key);`,
 }
 
 /* the control zone: the same object, at the same size, in every model that has one — so it is
-   written in plain vmin and not in the cube's own unit */
+   written in plain vmin and not in the cube's own unit. The caption is on its own line above the
+   row, and its line box never changes height, so a new slide cannot move the cube. */
 .controls {
   display: grid;
   justify-items: center;
