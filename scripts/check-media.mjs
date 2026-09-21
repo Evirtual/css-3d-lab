@@ -57,9 +57,14 @@
  *      full-canvas scene and must cover 98%. Here the canvas is the og layout's model area and
  *      the pose is the one the image shows, not every pose check-models goes through.
  *
- * The thresholds were set on known-good models (see the numbers each pass line prints) and proven
- * on broken copies built in .media-tmp/mediacheck/ (a wrong title in the tags, another model's
- * image, a blank model, a cropped headline, a stale image): each of those fails here.
+ * The thresholds were set on known-good models (see the numbers each pass line prints): over all
+ * 135, the file and a fresh render differed in at most 0.41% of the model's area (the opening
+ * crawl's fine text under JPEG; nearly all under 0.1%), and the least visible model (the
+ * starfield) differs from the empty page in 1.2% of its area. They were proven on broken copies
+ * built in .media-tmp/mediacheck/ (never committed): a wrong title in the tags, another model's
+ * image, a blank model, a cropped headline, a stale image (colours changed; turned only 3 degrees:
+ * 1.9%; and one of a model that moves in script), an image of the wrong size, and tags with no
+ * ?v= version each fail here, while untouched models beside them pass.
  */
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -67,10 +72,10 @@ import { extname, join, resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
 import { chromium } from 'playwright';
 import { createServer as createVite } from 'vite';
-import { MOMENT, settle, VIEWPORT } from './og-shot.mjs';
+import { MOMENT, settle, shotContext, VIEWPORT } from './og-shot.mjs';
 
 const DIFF = 40; // a pixel differs when a channel is this far apart (of 255): above JPEG's own noise at quality 88
-const MATCH = 0.004; // at most this share of an area may differ between the file and the fresh render
+const MATCH = 0.006; // at most this share of an area may differ between the file and the fresh render: known-good models reach 0.41% (the opening crawl's fine yellow text under JPEG), deliberately stale ones 1% and more
 const COARSE = 0.02; // for a model moving in script: at most this mean difference (0..1) at 1/16 scale
 const VISIBLE = 0.005; // at least this share of the model's area must differ from the page without the model
 const WOBBLE_GAP = 350; // ms between the two renders that tell a model moving in script
@@ -186,6 +191,7 @@ function fileAndTags(d, why, facts) {
   for (const tag of ['og:image', 'twitter:image']) {
     const v = m[tag];
     if (!v) why.push(`${tag} is missing`);
+    else if (v === img) why.push(`${tag} has no ?v= version: ${v}`);
     else if (!v.startsWith(`${img}?`)) why.push(`${tag} is ${v}, not ${img}`);
     else if (!version.test(v)) why.push(`${tag} has no ?v= version: ${v}`);
   }
@@ -352,7 +358,7 @@ async function compare({ jpg, fresh, again, plate, model, panel, DIFF }) {
 async function checkOne(d, cmp) {
   const why = [], facts = {};
   fileAndTags(d, why, facts);
-  const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, colorScheme: 'dark' });
+  const ctx = await shotContext(browser);
   const errors = [];
   try {
     const page = await ctx.newPage();
@@ -414,7 +420,7 @@ async function checkOne(d, cmp) {
       // page. A model that places things at random on load (snow) differs between two loads as
       // much as from the file, and is then judged as one that moves in script.
       if (c.model != null && c.model > MATCH && c.wobble <= MATCH / 4) {
-        const ctx2 = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, colorScheme: 'dark' });
+        const ctx2 = await shotContext(browser);
         try {
           const p2 = await ctx2.newPage();
           await settle(p2, base, { id: d.id, pointer: pointer.get(d.id) });
