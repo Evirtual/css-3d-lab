@@ -125,6 +125,21 @@ What it holds, exactly:
 | Top corners | all | nothing drawn within 14vmin of either top corner |
 | Full canvas | all | a drawing that covers at least 95% of the canvas both ways is judged as full-canvas, and must cover 98% |
 
+Every row above is measured on the union of every state. **The resting pose is judged on its own
+as well.** A union can be big and centred while the model at rest is small or off to one side (a
+closed book beside the open one, a card folded shut on a hinge at the middle), and the resting
+pose is exactly what a paused card and every card parked offscreen shows (ground rule 9). So the
+first moment of the loop, with no pointer and nothing clicked, must by itself be:
+
+| At rest | Ink | |
+| --- | --- | --- |
+| Shortest | solid | 40vmin |
+| Centred | solid | within 4vmin sideways; vertically within 4vmin, or 11vmin when a control zone shows at rest |
+
+A model whose open and closed states sit in different places balances them: the resting pose is
+centred and the open pose still inside the band. One that cannot do both changes its motion (hinge
+from the middle, fold symmetrically), not the rule.
+
 What the frame clips, the picture cannot show: a model drawn past the canvas edge is measured up
 to the edge, so its numbers are a floor.
 

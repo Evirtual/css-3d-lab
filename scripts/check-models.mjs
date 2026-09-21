@@ -26,6 +26,15 @@
  * is a leak however faint, so a glow that runs off the canvas or under the site's badge still
  * fails.
  *
+ * THE RESTING POSE IS JUDGED ON ITS OWN TOO. Everything above is measured on the union of every
+ * state, which a model can pass while being small or off centre at rest, so long as its open or
+ * mid-animation state is big and centred (a closed book beside an open one that is centred). But
+ * a paused card, and every card parked offscreen, shows exactly the resting pose: the first moment
+ * of the loop, with no pointer and nothing clicked (VIEW-CONTRACT.md, ground rule 9). So that one
+ * picture must itself be centred (the same 4vmin, vertically 11 with a control zone at rest) and at
+ * least the 40vmin floor tall, judged on solid ink like the rest. The union checks stand as they
+ * are: the resting pose is judged as well as, not instead of, every state.
+ *
  * What the frame clips, the picture cannot show: a model drawn past the canvas edge is measured up
  * to that edge and no further, so its numbers are a floor. Over one or two edges it still fails,
  * only by less than the truth. Over all four it covers the canvas, and is judged as a full-canvas
@@ -262,7 +271,9 @@ const frame = () => page.frameLocator('iframe').locator('body');
  * real timeline photographed at the moments momentsOf() picks, then at the same moments with
  * :hover forced on. Its size and offset are the box around the solid ink in all of them; its
  * corner clearance, whether it reaches the canvas edge and how much of the canvas it covers are
- * the box around all the ink in all of them.
+ * the box around all the ink in all of them. `rest` is the first of those pictures on its own (the
+ * start of the timeline, no :hover), measured the same way; it is the resting pose only on the
+ * first look, before anything has been clicked, dragged, swept or scrolled.
  */
 async function look() {
   try {
@@ -272,13 +283,16 @@ async function look() {
     if (!clip) return null;
     // a page that reloaded has lost the bare backdrop and the state it was driven into
     if (!(await page.evaluate(() => window.c3dBare === true))) throw new Error('the page reloaded under the camera');
-    let seen = null, body = null, controls = false;
+    let seen = null, body = null, controls = false, first = null;
     const join = (a, b) => (a ? { ...b, l: Math.min(a.l, b.l), t: Math.min(a.t, b.t), r: Math.max(a.r, b.r), b: Math.max(a.b, b.b) } : b);
     const times = momentsOf(await frame().evaluate(new Function('return ' + PLAN)()));
     const poses = [false, true].flatMap((hover) => times.map((t, k) => ({ t, hover, k, n: times.length })));
     for (const pose of poses) {
-      controls = (await frame().evaluate(new Function('return ' + POSE)(), pose)) || controls;
+      const shows = await frame().evaluate(new Function('return ' + POSE)(), pose);
+      controls = shows || controls;
       const ink = inkBoxes(await page.screenshot({ omitBackground: true, clip }), INK, SOLID);
+      // the first pose is the start of the timeline with no :hover: the resting pose, on a first look
+      first ??= { solid: ink.solid, all: ink.all, controls: shows };
       if (ink.all) seen = join(seen, ink.all);
       if (ink.solid) body = join(body, ink.solid);
     }
@@ -288,7 +302,18 @@ async function look() {
     const unit = Math.min(width, height) / 100;
     // a drawing with no solid ink at all has no body to place or size
     const s = body ?? { l: width / 2, t: height / 2, r: width / 2, b: height / 2 };
+    const f = first?.solid;
+    const rest = {
+      drawn: Boolean(first?.all),
+      faint: !f,
+      width: f ? (f.r - f.l) / unit : 0,
+      height: f ? (f.b - f.t) / unit : 0,
+      offX: f ? ((f.l + f.r) / 2 - width / 2) / unit : 0,
+      offY: f ? ((f.t + f.b) / 2 - height / 2) / unit : 0,
+      controls: Boolean(first?.controls),
+    };
     return {
+      rest,
       // position and size: the solid body
       width: (s.r - s.l) / unit,
       height: (s.b - s.t) / unit,
@@ -324,6 +349,8 @@ for (const id of ids) {
   await page.evaluate(() => { window.c3dBare = true; });
   await page.waitForTimeout(200);
   let seen = await look();
+  // the first look, before any interaction, is the only one whose first picture is the resting pose
+  const rest = seen?.rest;
   const box = await page.locator('.stage[data-demo], .stage').first().boundingBox();
   if (box && seen) {
     const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
@@ -378,11 +405,19 @@ for (const id of ids) {
       if (Math.abs(seen.offX) > CENTRED) broke.push(`${seen.offX.toFixed(0)}vmin off centre sideways`);
       if (Math.abs(seen.offY) > CENTRED + (seen.controls ? 7 : 0)) broke.push(`${seen.offY.toFixed(0)}vmin off centre vertically`);
       if (seen.corner < CORNER) broke.push(`within ${seen.corner.toFixed(0)}vmin of a top corner`);
+      // the resting pose, on its own: what a paused or offscreen card shows
+      if (rest && !rest.drawn) broke.push('at rest: nothing drawn');
+      else if (rest?.faint) broke.push('at rest: no solid ink, only faint');
+      else if (rest) {
+        if (rest.height < FLOOR) broke.push(`at rest: ${rest.height.toFixed(0)}vmin tall, under ${FLOOR}`);
+        if (Math.abs(rest.offX) > CENTRED) broke.push(`at rest: ${rest.offX.toFixed(0)}vmin off centre sideways`);
+        if (Math.abs(rest.offY) > CENTRED + (rest.controls ? 7 : 0)) broke.push(`at rest: ${rest.offY.toFixed(0)}vmin off centre vertically`);
+      }
     }
   }
   rows.push({ id, broke, seen });
   if (broke.length) console.log(`FAILS   ${id.padEnd(14)} ${broke.join('; ')}`);
-  else if (showPasses) console.log(`holds   ${id.padEnd(14)} ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${seen.controls ? ', with controls' : ''}`);
+  else if (showPasses) console.log(`holds   ${id.padEnd(14)} ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${seen.controls ? ', with controls' : ''}${rest ? `; at rest ${rest.width.toFixed(0)} × ${rest.height.toFixed(0)} vmin, off ${rest.offX.toFixed(0)}, ${rest.offY.toFixed(0)}` : ''}`);
   else process.stdout.write('.');
 }
 
