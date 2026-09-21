@@ -45,6 +45,7 @@ export const snippetsF: Record<string, Snippet> = {
       'Stand three of them on the edges of the floor triangle, like carousel panels: <code>rotateY(i × 120deg) translateZ(r)</code>, where <code>r = a / (2√3)</code> is the distance from the floor\'s centre to the middle of an edge.',
       'Hinge each on its bottom edge and lean it in. The faces of a tetrahedron meet the floor at <code>atan(2√2) ≈ 70.53°</code>, so an upright face leans the other <b>19.47°</b>, and the three tips meet exactly above the centre. The floor is the same triangle leaned all the way, 90°, so its tip lands on the back corner.',
       'Tumble it round its <b>centroid</b>, a quarter of the height up from the floor (<code>transform-origin</code>), not round the box centre, or it wobbles as it turns.',
+      'The loop starts 14.5s into the turn (a negative delay), on a pose seen square and centred, because the first frame is what a paused card shows.',
       'The core undoes the tumble: the same three turns backwards and in reverse order, on the same timing. So it always faces you and stays a round glow.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the tetrahedron is the same share of a gallery card, the editor and a recording canvas. The numbers above are those units.',
     ],
@@ -70,10 +71,14 @@ ${lines(3, (i) => `<i style="--i:${i}"></i>`)}
   height: calc(121.24 * var(--u));              /* face height = a × √3 / 2 */
   transform-style: preserve-3d;
   transform-origin: 50% calc(92.66 * var(--u)); /* the centroid: it stands a·√(2/3) = 114.31 units tall, a quarter of that up */
-  /* it turns round the centroid, 32 units below the middle of its box, so the box is lifted by
-     that much to put the centroid, and so the whole tumble, in the middle of the canvas */
-  translate: 0 calc(-32.05 * var(--u));
-  animation: tumble 16s linear infinite;
+  /* it turns round the centroid, 32 units below the middle of its box. The eye reads the middle
+     of what it sees, and over a turn that sits on average 5 units above the centroid (the apex
+     reaches further than the floor), so the box is lifted by 27 units, not 32, and the tumble as
+     seen is what sits in the middle of the canvas */
+  translate: 0 calc(-27 * var(--u));
+  /* the loop starts 14.5s into the turn: a pose seen square, centred on the canvas, which is what
+     a paused card shows. The core starts at the same moment, so it still undoes the tumble */
+  animation: tumble 16s linear -14.5s infinite;
 }
 
 .tetra i,
@@ -114,7 +119,7 @@ ${lines(3, (i) => `<i style="--i:${i}"></i>`)}
   margin: calc(-20 * var(--u)) 0 0 calc(-20 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, #fff 0 8%, #ffcb7e 22%, rgb(255 181 71 / 0.55) 42%, transparent 70%);
-  animation: face-you 16s linear infinite, pulse 2.4s ease-in-out infinite alternate;
+  animation: face-you 16s linear -14.5s infinite, pulse 2.4s ease-in-out infinite alternate;
 }
 
 /* -24deg + 360deg = 336deg: the end pose equals the start pose */
