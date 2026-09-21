@@ -122,7 +122,8 @@ export const snippets2: Record<string, Snippet> = {
   cylinder: {
     how: [
       "There are no curved surfaces in CSS 3D, so approximate: 24 flat strips arranged in a circle.",
-      "Strip width for a closed ring is <code>2 × r × tan(180° / n)</code>. For r = 80px and n = 24 that is ≈ 21px; add 1px so no seams show.",
+      "Every length is a multiple of one base unit, <code>--u</code>, so the tube is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.",
+      "Strip width for a closed ring is <code>2 × r × tan(180° / n)</code>. For r = 80 and n = 24 that is ≈ 21; add 1 so no seams show.",
       "Placement is the carousel trick: <code>rotateY(i × 15deg) translateZ(r)</code>. Semi-transparent strips let the far side show through, which is what makes it read as glass.",
       "The rings of light are circles laid flat with <code>rotateX(90deg)</code>. They rise by animating <code>translate</code>, which is applied before <code>transform</code>, so \"up\" is the tube's own vertical.",
     ],
@@ -134,14 +135,17 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the tube is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.24vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .cylinder {
-  --r: 80px;
-  --h: 180px;
+  --r: calc(80 * var(--u));
+  --h: calc(180 * var(--u));
   position: relative;
-  width: 22px;                 /* 2 × 80 × tan(7.5deg) + 1px */
+  width: calc(22 * var(--u));  /* 2 × 80 × tan(7.5deg) + 1 */
   height: var(--h);
   transform-style: preserve-3d;
   animation: cylinder-spin 14s linear infinite;
@@ -152,7 +156,7 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(rgb(255 255 255 / 0.55) 0 2px, transparent 2px calc(100% - 2px), rgb(255 255 255 / 0.4) calc(100% - 2px)),
+    linear-gradient(rgb(255 255 255 / 0.55) 0 calc(2 * var(--u)), transparent calc(2 * var(--u)) calc(100% - 2 * var(--u)), rgb(255 255 255 / 0.4) calc(100% - 2 * var(--u))),
     linear-gradient(hsl(calc(170 + var(--i) * 6) 85% 62% / 0.5), hsl(calc(250 + var(--i) * 3) 80% 58% / 0.14));
   transform: rotateY(calc(var(--i) * 15deg)) translateZ(var(--r));
 }
@@ -165,7 +169,7 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
   width: calc(var(--r) * 2);
   height: calc(var(--r) * 2);
   box-sizing: border-box;
-  border: 1px solid rgb(255 255 255 / 0.4);
+  border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.4);
   border-radius: 50%;
   background: radial-gradient(circle, rgb(255 255 255 / 0.16), rgb(139 108 255 / 0.22) 70%);
   transform: rotateX(90deg);
@@ -175,21 +179,21 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
 
 .cylinder s {
   top: calc(var(--h) - var(--r));
-  box-shadow: 0 0 40px rgb(46 230 214 / 0.55);
+  box-shadow: 0 0 calc(40 * var(--u)) rgb(46 230 214 / 0.55);
 }
 
 /* rings of light rising through the tube. \`translate\` moves them up the tube's own vertical,
    before the rotateX that lays them flat. */
 .cylinder u {
   position: absolute;
-  top: calc(var(--h) - var(--r) + 8px);
-  left: calc(50% - var(--r) + 8px);
-  width: calc(var(--r) * 2 - 16px);
-  height: calc(var(--r) * 2 - 16px);
+  top: calc(var(--h) - var(--r) + 8 * var(--u));
+  left: calc(50% - var(--r) + 8 * var(--u));
+  width: calc(var(--r) * 2 - 16 * var(--u));
+  height: calc(var(--r) * 2 - 16 * var(--u));
   box-sizing: border-box;
-  border: 2px solid #2ee6d6;
+  border: calc(2 * var(--u)) solid #2ee6d6;
   border-radius: 50%;
-  box-shadow: 0 0 14px #2ee6d6, inset 0 0 14px #2ee6d6;
+  box-shadow: 0 0 calc(14 * var(--u)) #2ee6d6, inset 0 0 calc(14 * var(--u)) #2ee6d6;
   opacity: 0;
   transform: rotateX(90deg);
   animation: rise 3.6s linear infinite;
@@ -204,9 +208,9 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
 }
 
 @keyframes rise {
-  0%       { opacity: 0; translate: 0 -4px; }
+  0%       { opacity: 0; translate: 0 calc(-4 * var(--u)); }
   15%, 80% { opacity: 1; }
-  100%     { opacity: 0; translate: 0 calc(var(--h) * -1 + 12px); }
+  100%     { opacity: 0; translate: 0 calc(var(--h) * -1 + 12 * var(--u)); }
 }`,
   },
 
