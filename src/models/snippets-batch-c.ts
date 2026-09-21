@@ -698,7 +698,8 @@ stage.addEventListener('pointercancel', leave);`,
   check: {
     how: [
       'The real <code>&lt;input type="checkbox"&gt;</code> stays in the page — keyboard, forms and screen readers all keep working — it is only made invisible with <code>opacity: 0</code>. The <code>&lt;label&gt;</code> next to it is the static hit target, since the pressed element must never be the one that moves.',
-      'Each cube is placed with the same "turn, then push half a side out" recipe as a plain CSS cube, in its own tiny <code>perspective: 160px</code> stage so all three read from the same angle.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the rows, the cubes, the tick and the strike-through — so the list is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'Each cube is placed with the same "turn, then push half a side out" recipe as a plain CSS cube, in its own tiny <code>perspective: 160 units</code> stage so all three read from the same angle.',
       'The 6th face is the cube’s <b>bottom</b>: it carries the tick and starts out of sight, tucked underneath.',
       '<code>input:checked + label .cube</code> adds one more <code>rotateX(90deg)</code> on top of the resting view angle — a quarter turn forward brings that bottom face round to the front.',
       'The strike-through line animates <code>scaleX(0 → 1)</code> from a fixed-width element instead of animating <code>width</code>, so it costs only a compositor transform.',
@@ -733,9 +734,15 @@ stage.addEventListener('pointercancel', leave);`,
   </li>
 </ul>`,
     css: `.check-list {
+  /* one base unit: every length below is a multiple of it, so the list is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.37vmin;
   display: grid;
-  gap: 7px;
-  width: 204px;
+  gap: calc(7 * var(--u));
+  /* the row is as wide as its longest line, so the width is what the band binds on. The cube is
+     30 units and the row padding 12, not 22 and 8: at the old sizes the list came out 86 x 54
+     vmin, a third short of the box it is allowed to fill */
+  width: calc(220 * var(--u));
   margin: 0;
   padding: 0;
   list-style: none;
@@ -758,13 +765,13 @@ stage.addEventListener('pointercancel', leave);`,
 .check-list label {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border: 1px solid #262b4a;
-  border-radius: 12px;
+  gap: calc(12 * var(--u));
+  padding: calc(12 * var(--u)) calc(14 * var(--u));
+  border: calc(1 * var(--u)) solid #262b4a;
+  border-radius: calc(12 * var(--u));
   background: rgb(22 26 51 / 0.6);
   color: #eceefb;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.2s;
@@ -775,24 +782,24 @@ stage.addEventListener('pointercancel', leave);`,
 }
 
 .check-list input:focus-visible + label {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 2px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(2 * var(--u));
 }
 
 /* a tiny stage of its own for every box, so all three cubes are seen from the same angle */
 .box {
   flex: none;
-  width: 22px;
-  height: 22px;
-  perspective: 160px;
+  width: calc(30 * var(--u));
+  height: calc(30 * var(--u));
+  perspective: calc(160 * var(--u));
   pointer-events: none;
 }
 
 .cube {
   position: relative;
   display: block;
-  width: 22px;
-  height: 22px;
+  width: calc(30 * var(--u));
+  height: calc(30 * var(--u));
   transform-style: preserve-3d;
   /* view angle first, then the flip happens around the cube's own X axis */
   transform: rotateX(-16deg) rotateY(-24deg) rotateX(0deg);
@@ -800,21 +807,21 @@ stage.addEventListener('pointercancel', leave);`,
 }
 
 /* turn each face outward, then push it half a side out from the centre */
-.cube i:nth-child(1) { transform: rotateY(0deg)   translateZ(11px); }
-.cube i:nth-child(2) { transform: rotateY(90deg)  translateZ(11px); }
-.cube i:nth-child(3) { transform: rotateY(180deg) translateZ(11px); }
-.cube i:nth-child(4) { transform: rotateY(-90deg) translateZ(11px); }
-.cube i:nth-child(5) { transform: rotateX(90deg)  translateZ(11px); }
-.cube i:nth-child(6) { transform: rotateX(-90deg) translateZ(11px); }
+.cube i:nth-child(1) { transform: rotateY(0deg)   translateZ(calc(15 * var(--u))); }
+.cube i:nth-child(2) { transform: rotateY(90deg)  translateZ(calc(15 * var(--u))); }
+.cube i:nth-child(3) { transform: rotateY(180deg) translateZ(calc(15 * var(--u))); }
+.cube i:nth-child(4) { transform: rotateY(-90deg) translateZ(calc(15 * var(--u))); }
+.cube i:nth-child(5) { transform: rotateX(90deg)  translateZ(calc(15 * var(--u))); }
+.cube i:nth-child(6) { transform: rotateX(-90deg) translateZ(calc(15 * var(--u))); }
 
 .cube i {
   position: absolute;
   inset: 0;
-  border-radius: 3px;
+  border-radius: calc(4 * var(--u));
   background: rgb(139 108 255 / 0.22);
-  /* the edge is an inner line, not a border: squeezed side-on, a 1px border breaks up; the
+  /* the edge is an inner line, not a border: squeezed side-on, a 1-unit border breaks up; the
      glass's own inner glow is the soft shade that survives */
-  box-shadow: inset 0 0 0 1px rgb(139 108 255 / 0.75), inset 0 0 12px rgb(139 108 255 / 0.3);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) rgb(139 108 255 / 0.75), inset 0 0 calc(16 * var(--u)) rgb(139 108 255 / 0.3);
 }
 
 /* the 6th face is the BOTTOM of the cube: it carries the tick and is out of sight at rest */
@@ -822,14 +829,14 @@ stage.addEventListener('pointercancel', leave);`,
   display: grid;
   place-items: center;
   background: #2ee6d6;
-  box-shadow: 0 0 12px rgb(46 230 214 / 0.6);
+  box-shadow: 0 0 calc(16 * var(--u)) rgb(46 230 214 / 0.6);
   color: #062b28;
   backface-visibility: hidden; /* looking down into the glass cube you'd see the inside otherwise */
 }
 
 .cube i:last-child svg {
-  width: 15px;
-  height: 15px;
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
 }
 
 /* a quarter turn forward brings the bottom face to the front */
@@ -847,10 +854,10 @@ stage.addEventListener('pointercancel', leave);`,
   content: '';
   position: absolute;
   top: 52%;
-  right: -3px;
-  left: -3px;
-  height: 1.5px;
-  border-radius: 1px;
+  right: calc(-3 * var(--u));
+  left: calc(-3 * var(--u));
+  height: calc(1.5 * var(--u));
+  border-radius: calc(1 * var(--u));
   background: #2ee6d6;
   transform: scaleX(0);
   transform-origin: 0 50%;
