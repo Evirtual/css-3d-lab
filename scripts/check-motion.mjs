@@ -534,8 +534,19 @@ async function filmOn(id, demo) {
   // from here on the page moves only when tick() moves it. The clock cannot be paused in its own
   // past, so it is paused AHEAD ms on from now, and the CSS already running is taken as that much
   // further on too, to stay level with it
-  const AHEAD = 50;
-  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + AHEAD);
+  // The page clock runs on while the check reads it and asks for the pause, so on a busy machine
+  // that round trip can take longer than AHEAD and the pause lands in the clock's past ("Cannot
+  // fast-forward to the past"): then read it again and ask further ahead.
+  let AHEAD = 50;
+  for (;;) {
+    try {
+      await page.clock.pauseAt((await page.evaluate(() => Date.now())) + AHEAD);
+      break;
+    } catch (e) {
+      if (!/fast-forward to the past/.test(e.message) || AHEAD >= 5000) throw e;
+      AHEAD *= 4;
+    }
+  }
   V = 0;
   mark = 0;
   await inFrame(sync, { V, mark, adopt: AHEAD });
