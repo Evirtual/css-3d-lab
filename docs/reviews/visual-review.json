@@ -888,5 +888,213 @@
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Pointer tilt card, 74 x 51vmin and centred; 'Move your pointer' caption on the card reads on both themes.",
     "motionFlagsResolved": []
+  },
+  {
+    "model": "check",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Three 3D checkbox rows, 82 x 67vmin and centred, the model being the control; labels readable on both themes (greyer panels on light, still clear).",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "tabs",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Prism tabs over a text face, 86 x 61vmin and centred; body text is readable on a card. On a light stage the inactive tab labels are low-contrast on their dark bar but still legible.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover label#1 \"Front\": changes nothing on screen",
+        "reason": "'Front' is the selected tab, and hovering the tab that is already selected is meant to change nothing."
+      },
+      {
+        "flag": "leave label#1 \"Front\": changes nothing on screen",
+        "reason": "Leaving the already-selected 'Front' tab likewise has nothing to undo."
+      },
+      {
+        "flag": "hover label#4 \"Top\": changes nothing on screen",
+        "reason": "The strip shows the 'Top' label does brighten on hover, like 'Bottom' and 'Back'; the change is a few pixels of small text, under the check's threshold."
+      },
+      {
+        "flag": "leave label#4 \"Top\": changes nothing on screen",
+        "reason": "Leaving 'Top' dims the label back, the same small text change that is under the check's threshold."
+      }
+    ]
+  },
+  {
+    "model": "radial",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "At rest (what a paused card shows) the radial menu is only its closed '+' button, about 16 x 15vmin in the middle of an empty card: a speck, far under the 40vmin floor, for a model that is itself a control and should fill the 70vmin box. It only reaches size when opened.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "keycaps",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Keycap tray with C, S, S and 3D keys, 80 x 53vmin and centred; legends readable on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "stepper",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Number cube over a 'Quantity 3' caption and minus/plus pills, stack 36 x 63vmin and centred; the pills are finger-sized.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "rating",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "'RATE THIS EFFECT' stars and 'Great', 77 x 43vmin and centred; readable on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "toggle",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "On a light stage the 'Dark mode' label is near-invisible white on white (only 'OFF' shows), so its text does not inherit the stage colour as the contract asks; layout and dark theme are fine (46 x 60vmin, centred). Its motion run broke, which this review cannot clear.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "flip",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Flip card, 82 x 55vmin and centred, paused on 'Front' and flipping cleanly to 'Back'.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "carousel",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Ring carousel of numbered cards, 83 x 56vmin and centred; paused with card 1 in front, turning smoothly.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "boxslider",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Box slideshow 'Design' face over two arrow pills, 70 x 55vmin and centred; arrows finger-sized on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "cardstack",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Card stack showing 'One', 75 x 51vmin and centred; readable and clear of corners.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "cardfan",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "At rest (what a paused card shows) the fan is closed: a single playing card, about 31 x 39vmin, just under the 40vmin floor and not reading as a fan at all; the fan only opens mid-loop (78 x 47vmin), which is why the size check passes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "book",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "At rest (what a paused card shows) the closed book sits about 18vmin right of the canvas middle (37 x 48vmin, offset 18, 5), visibly off-centre; only the open book (65 x 60vmin) is centred, which is why the union passes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "flipgrid",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "On a light stage the tiles turn pale pastel while their numbers stay white, so '03', '04' and '06' are nearly invisible and the rest weak; on dark it is fine (79 x 48vmin, centred).",
+    "motionFlagsResolved": [
+      {
+        "flag": "leave div.tile#2: pop 2→3",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      },
+      {
+        "flag": "hover div.tile#3: pop 3→4",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      },
+      {
+        "flag": "leave div.tile#4: pop 2→3",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      },
+      {
+        "flag": "hover div.tile#5: pop 3→4",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      },
+      {
+        "flag": "leave div.tile#6: pop 2→3",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      },
+      {
+        "flag": "blur div.tile#2: pop 2→3",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      },
+      {
+        "flag": "focus div.tile#3: pop 3→4",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      },
+      {
+        "flag": "blur div.tile#4: pop 2→3",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      },
+      {
+        "flag": "focus div.tile#5: pop 3→4",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      },
+      {
+        "flag": "blur div.tile#6: pop 2→3",
+        "reason": "Each pop is a tile flipping through edge-on to its back ('tilt'/'flip'/'spin' faces); the strip shows the flip continuing smoothly either side, so the big step is the face changing, not a glitch."
+      }
+    ]
+  },
+  {
+    "model": "accordion",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:19:22+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Hinged accordion, 57 x 57vmin and centred; the open panel's body text is small on a card but readable, and the hinges animate cleanly.",
+    "motionFlagsResolved": []
   }
 ]
