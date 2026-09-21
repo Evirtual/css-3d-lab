@@ -564,9 +564,11 @@ ${CUBE_FACES}
   book: {
     how: [
       'Cover and pages are stacked sheets, all with <code>transform-origin: left</code> — the spine is the hinge.',
-      'Each sheet gets its index in <code>--n</code>. A 1px <code>translateZ</code> per sheet stops them z-fighting.',
+      'Each sheet gets its index in <code>--n</code>. One unit of <code>translateZ</code> per sheet stops them z-fighting.',
       'The keyframe’s end angle is <code>var(--end)</code>, computed per sheet, so one animation fans the pages out.',
       'A small per-sheet <code>animation-delay</code> makes the cover lead and the pages follow.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the book is the same share of a gallery card, the editor and a recording canvas.',
+      'The open book is the size the band has to hold, not the shut one: the pages swing past the spine and lift toward you, where the perspective makes them bigger still. The <code>translateX</code> on the book puts the spine right of the middle so the swing has somewhere to go, and the padding above it does the same for the lift.',
     ],
     html: `<div class="scene">
   <div class="book">
@@ -578,40 +580,50 @@ ${CUBE_FACES}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 1000px;
+  /* one base unit: every length below is a multiple of it, so the book is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.28vmin;
+  display: grid;
+  place-items: center;
+  /* the pages lift toward you as they turn, and the perspective magnifies them upward: room
+     above the book splits that between the shut book and the open one */
+  padding-top: calc(30 * var(--u));
+  perspective: calc(1000 * var(--u));
 }
 
 .book {
   position: relative;
-  width: 130px;
-  height: 175px;
-  border-radius: 2px 8px 8px 2px;
+  width: calc(130 * var(--u));
+  height: calc(175 * var(--u));
+  border-radius: calc(2 * var(--u)) calc(8 * var(--u)) calc(8 * var(--u)) calc(2 * var(--u));
   background: #4a3a99;               /* back cover */
   transform-style: preserve-3d;
-  transform: translateX(60px) rotateX(24deg) rotateY(-12deg);
+  /* the pages swing left past the spine, so the spine sits right of the middle and the open
+     book is what ends up centred, not the shut one */
+  transform: translateX(calc(60 * var(--u))) rotateX(24deg) rotateY(-12deg);
 }
 
 .book i {
   --end: calc(-118deg - var(--n) * 12deg);
   position: absolute;
-  inset: 3px 3px 3px 0;
-  border-radius: 0 5px 5px 0;
+  inset: calc(3 * var(--u)) calc(3 * var(--u)) calc(3 * var(--u)) 0;
+  border-radius: 0 calc(5 * var(--u)) calc(5 * var(--u)) 0;
   background: linear-gradient(90deg, #cfd3e6, #fff 14%);
   transform-origin: left center;
-  transform: translateZ(calc(var(--n) * 1px));
+  transform: translateZ(calc(var(--n) * 1 * var(--u)));
   animation: open 3.6s ease-in-out infinite alternate;
   animation-delay: calc((4 - var(--n)) * 0.14s);
 }
 
 .book .cover {
   inset: 0;
-  border-radius: 2px 8px 8px 2px;
+  border-radius: calc(2 * var(--u)) calc(8 * var(--u)) calc(8 * var(--u)) calc(2 * var(--u));
   background: linear-gradient(90deg, #4a3a99, #8b6cff 12%);
 }
 
 @keyframes open {
-  0%, 10%   { transform: translateZ(calc(var(--n) * 1px)) rotateY(0deg); }
-  90%, 100% { transform: translateZ(calc(var(--n) * 1px)) rotateY(var(--end)); }
+  0%, 10%   { transform: translateZ(calc(var(--n) * 1 * var(--u))) rotateY(0deg); }
+  90%, 100% { transform: translateZ(calc(var(--n) * 1 * var(--u))) rotateY(var(--end)); }
 }`,
   },
 
