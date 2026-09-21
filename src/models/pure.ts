@@ -49,10 +49,10 @@ export const pureDemos: Demo[] = [
   {
     id: 'layers',
     title: 'Exploded layers',
-    description: 'Isometric plates lifting apart along the Z axis, each driven by one custom property.',
+    description: 'Isometric plates that rest spread apart along the Z axis and close up together, each placed by one custom property.',
     category: 'css',
     tags: ['loop'],
-    technique: ['rotateX + rotateZ isometric view', 'translateZ', 'var() inside @keyframes'],
+    technique: ['rotateX + rotateZ isometric view', 'translateZ', 'var() in the resting pose, one keyframe to close'],
     html: `<div class="d-layers">${rep(4, (i) => `<i style="--i:${i}"></i>`)}</div>`,
   },
   {
