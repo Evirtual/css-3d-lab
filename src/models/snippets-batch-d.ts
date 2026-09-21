@@ -967,18 +967,42 @@ root.addEventListener('keydown', key);`,
   gap: 2vmin;
 }
 
+.controls button,
+.controls label {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
+  border: 0;
+  border-radius: 999px;
+  /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
+     strength: no colour of the model's, which would vanish on one of the two stages */
+  background: rgb(140 150 220 / 0.2);
+  color: inherit;
+  font: 600 4vmin system-ui, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.35s;
+}
+
+.controls button:hover,
+.controls label:hover {
+  background-color: rgb(140 150 220 / 0.34);
+}
+
+.controls :focus-visible {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
+
+/* the selected pill: the brand gradient, deep enough that white text on it passes */
+.controls [aria-pressed='true'] {
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
+  color: #fff;
+}
+
 .controls button {
   display: grid;
   place-items: center;
-  height: 8vmin;
-  min-width: 8vmin;
   padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #8b6cff, #ff4d9d);
-  color: #fff;
-  font: 600 4vmin system-ui, sans-serif;
-  cursor: pointer;
 }
 
 .controls svg {
@@ -997,19 +1021,23 @@ root.addEventListener('keydown', key);`,
   background: none;
 }
 
+/* the marks are the stage's ink, faded by opacity (a colour mixed from currentColor can keep the
+   old theme's value on a live switch), so they read on both stages */
 .dots button::before {
   content: '';
   width: 2vmin;
   height: 2vmin;
   border-radius: 999px;
-  background: rgb(140 150 220 / 0.6);
-  transition: width 0.3s, background 0.3s;
+  background: currentColor;
+  opacity: 0.55;
+  transition: width 0.3s, background 0.3s, opacity 0.3s;
 }
 
-/* the current one is a longer pill */
+/* the current one is a longer pill, in the zone's violet: 3:1 and over on both stages */
 .dots button[aria-current='true']::before {
   width: 4.5vmin;
-  background: #2ee6d6;
+  background: #6a45f5;
+  opacity: 1;
 }`,
     js: `const cube = document.querySelector('.cube');
 const row = document.querySelector('.controls .row');

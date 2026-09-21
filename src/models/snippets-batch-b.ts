@@ -1540,22 +1540,52 @@ setInterval(tick, 1000);`,
   gap: 2vmin;
 }
 
-.controls button {
-  box-sizing: border-box;
-  width: 8vmin;
+.controls button,
+.controls label {
   height: 8vmin;
   min-width: 8vmin;
-  padding: 0;
-  border: 0.6vmin solid #141830;
+  padding: 0 3vmin;
+  border: 0;
   border-radius: 999px;
-  background: var(--sw);
-  box-shadow: 0 0 0 0.3vmin rgb(140 150 220 / 0.34);
+  /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
+     strength: no colour of the model's, which would vanish on one of the two stages */
+  background: rgb(140 150 220 / 0.2);
+  color: inherit;
   font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background-color 0.35s;
 }
 
-.controls button[aria-pressed='true'] {
-  box-shadow: 0 0 0 0.6vmin #eceefb;
+.controls button:hover,
+.controls label:hover {
+  background-color: rgb(140 150 220 / 0.34);
+}
+
+.controls :focus-visible {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
+
+/* the selected pill: the brand gradient, deep enough that white text on it passes */
+.controls [aria-pressed='true'] {
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
+  color: #fff;
+}
+
+/* a swatch: its colour is what it says, so it keeps it when selected, and the selected one is
+   ringed in the stage's own ink */
+.controls .row button {
+  box-sizing: border-box;
+  width: 8vmin;
+  padding: 0;
+  border: 0.6vmin solid #141830;
+  background: var(--sw);
+  box-shadow: 0 0 0 0.3vmin rgb(140 150 220 / 0.34);
+}
+
+.controls .row button[aria-pressed='true'] {
+  box-shadow: 0 0 0 0.6vmin currentColor;
+  color: inherit;
 }`,
     js: `const viewer = document.querySelector('.viewer');
 const view = viewer.querySelector('.view');

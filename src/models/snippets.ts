@@ -1289,17 +1289,41 @@ scene.addEventListener('pointercancel', release);`,
   gap: 2vmin;
 }
 
-.controls button {
-  display: grid;
-  place-items: center;
+.controls button,
+.controls label {
   height: 8vmin;
   min-width: 8vmin;
   padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
-  background: #2a2f4d;
-  color: #eceefb;
+  /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
+     strength: no colour of the model's, which would vanish on one of the two stages */
+  background: rgb(140 150 220 / 0.2);
+  color: inherit;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background-color 0.35s;
+}
+
+.controls button:hover,
+.controls label:hover {
+  background-color: rgb(140 150 220 / 0.34);
+}
+
+.controls :focus-visible {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
+
+/* the selected pill: the brand gradient, deep enough that white text on it passes */
+.controls [aria-pressed='true'] {
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
+  color: #fff;
+}
+
+.controls button {
+  display: grid;
+  place-items: center;
 }
 
 /* SVG arrows, not text like ‹ ›: a glyph sits on the font's baseline, so it never centres */
@@ -1418,18 +1442,43 @@ layout();`,
   gap: 2vmin;
 }
 
+.controls button,
 .controls label {
-  display: flex;
-  align-items: center;
-  gap: 1.5vmin;
   height: 8vmin;
   min-width: 8vmin;
   padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
-  background: rgb(148 155 192 / 0.2);
-  font: 600 4vmin ui-monospace, monospace;
+  /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
+     strength: no colour of the model's, which would vanish on one of the two stages */
+  background: rgb(140 150 220 / 0.2);
+  color: inherit;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background-color 0.35s;
+}
+
+.controls button:hover,
+.controls label:hover {
+  background-color: rgb(140 150 220 / 0.34);
+}
+
+.controls :focus-visible {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
+
+/* the selected pill: the brand gradient, deep enough that white text on it passes */
+.controls [aria-pressed='true'] {
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
+  color: #fff;
+}
+
+.controls label {
+  display: flex;
+  align-items: center;
+  gap: 1.5vmin;
+  font-family: ui-monospace, monospace;
 }
 
 .controls input {
