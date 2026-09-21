@@ -493,7 +493,8 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   opacity: 1;
 }
 
-/* ONE tooltip for the chart: JS sets --tx / --ty (the candle's middle and its high, in px) and
+/* ONE tooltip for the chart: JS sets --tx / --ty (the candle's middle and its high, as plain
+   numbers in the chart's own units, which CSS multiplies by --u) and
    it glides there. calc(40 * var(--u)) towards you; --f (0 first day … 1 last) makes the ends hang inwards.
    Flat on purpose: its thickness is a hard edge up and to the right, where the depth runs. */
 .tip {
@@ -514,7 +515,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(var(--tx, calc(0 * var(--u))), calc(var(--ty, calc(0 * var(--u))) - calc(12 * var(--u)))) translate(calc(var(--f, 0) * -100%), -100%) translateZ(calc(40 * var(--u)));
+  transform: translate(calc(var(--tx, 0) * var(--u)), calc((var(--ty, 0) - 12) * var(--u))) translate(calc(var(--f, 0) * -100%), -100%) translateZ(calc(40 * var(--u)));
   transition:
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
@@ -655,8 +656,8 @@ function place(i) {
   const wasOn = tip.classList.contains('is-on');
   if (!wasOn) tip.style.transition = 'none'; // from hidden: appear in place, don't fly in
   tip.textContent = tipText(d);
-  tip.style.setProperty('--tx', ((x + 0.5) * W) / view.n + 'px'); // the candle's middle
-  tip.style.setProperty('--ty', (1 - view.f(d.high)) * H + 'px'); // its high
+  tip.style.setProperty('--tx', String(((x + 0.5) * W) / view.n)); // the candle's middle, in the chart's own units
+  tip.style.setProperty('--ty', String((1 - view.f(d.high)) * H)); // its high, in the chart's own units
   tip.style.setProperty('--f', x / (view.n - 1)); // 0 first … 1 last: how far it hangs left
   tip.classList.toggle('is-down', d.close < d.open);
   if (!wasOn) {
