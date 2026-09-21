@@ -820,9 +820,6 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   --u: 0.26vmin;
   display: grid;
   place-items: center;
-  /* the outer cards swing down as well as out: a little room under the hand splits the
-     difference between the closed hand and the open one, so neither sits off centre */
-  padding-bottom: calc(18 * var(--u));
   perspective: calc(800 * var(--u));
 }
 
@@ -831,7 +828,9 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   width: calc(110 * var(--u));
   height: calc(156 * var(--u));
   transform-style: preserve-3d;
-  transform: rotateX(26deg);
+  /* the outer cards swing down as well as out, and their shadows hang lower still: the lift
+     splits the difference between the closed hand and the open one, so neither sits off centre */
+  transform: translateY(calc(-23 * var(--u))) rotateX(26deg);
 }
 
 .hand i {
