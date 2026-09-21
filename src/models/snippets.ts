@@ -357,26 +357,32 @@ ${CUBE_FACES}
   orbit: {
     how: [
       'An animation overwrites the whole <code>transform</code>, so a ring cannot both hold a tilt and animate a spin.',
-      'Fix: two elements. The outer <b>plane</b> holds the static tilt, the inner <b>ring</b> only animates <code>rotateZ</code>.',
-      'The electron is just a dot pinned to the top of the ring — the ring’s spin carries it around.',
+      'Fix: two elements. The outer <b>plane</b> holds the static tilt, and an inner <b>arm</b> only animates <code>rotateZ</code>.',
+      'The electron is a dot pinned to the top of the arm — the arm’s spin carries it around, and the arm draws nothing at all.',
       'Different tilts + different durations = an atom.',
+      'A round thing still lives in a <b>square box</b>, and that box is what has to fit the canvas. Spin the ring itself and its corners sweep a circle √2 the ring’s width; spin an empty arm instead and the ring’s box never moves. Same picture, 40% more of it on the screen.',
+      'For the same reason a plane is tilted with <code>rotateY</code> then <code>rotateX</code>, never with <code>rotateZ</code>. A circle only cares which way its plane faces, and those two reach every direction, while <code>rotateZ</code> turns the square in the screen plane: 60° of it costs 37% more room for the same picture.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the atom is the same share of a gallery card, the editor and a recording canvas. The rings are 200 of those units across.',
     ],
     html: `<div class="scene">
   <div class="atom">
     <b></b>
-    <div class="plane"><div class="orbit"><i></i></div></div>
-    <div class="plane"><div class="orbit"><i></i></div></div>
-    <div class="plane"><div class="orbit"><i></i></div></div>
+    <div class="plane"><u></u><div class="arm"><i></i></div></div>
+    <div class="plane"><u></u><div class="arm"><i></i></div></div>
+    <div class="plane"><u></u><div class="arm"><i></i></div></div>
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the atom is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.32vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .atom {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: calc(200 * var(--u));
+  height: calc(200 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -385,7 +391,7 @@ ${CUBE_FACES}
   inset: 40%;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff, #8b6cff 60%);
-  box-shadow: 0 0 24px #8b6cff;
+  box-shadow: 0 0 calc(24 * var(--u)) #8b6cff;
 }
 
 .plane {
@@ -394,30 +400,39 @@ ${CUBE_FACES}
   transform-style: preserve-3d;
 }
 
-.plane:nth-of-type(1) { transform: rotateX(72deg);                 color: #2ee6d6; }
-.plane:nth-of-type(2) { transform: rotateZ(60deg)  rotateX(72deg); color: #ff4d9d; }
-.plane:nth-of-type(3) { transform: rotateZ(-60deg) rotateX(72deg); color: #ffb547; }
+/* the same three planes as rotateZ(0 / ±60deg) rotateX(72deg), said with rotateY instead: each
+   ring faces exactly the same way, but no square is turned in the screen plane */
+.plane:nth-of-type(1) { transform: rotateX(72deg);                       color: #2ee6d6; }
+.plane:nth-of-type(2) { transform: rotateY(69.44deg)  rotateX(28.39deg); color: #ff4d9d; }
+.plane:nth-of-type(3) { transform: rotateY(-69.44deg) rotateX(28.39deg); color: #ffb547; }
 
-.orbit {
+/* the ring: drawn, and never turned — so its square box is only ever as wide as the circle in it */
+.plane u {
   position: absolute;
   inset: 0;
-  border: 2px solid currentColor;
+  border: calc(2 * var(--u)) solid currentColor;
   border-radius: 50%;
+}
+
+/* the arm: turned, and draws nothing — it exists only to carry the electron round */
+.arm {
+  position: absolute;
+  inset: 0;
   animation: orbit-spin 3s linear infinite;
 }
 
-.plane:nth-of-type(2) .orbit { animation-duration: 3.7s; }
-.plane:nth-of-type(3) .orbit { animation-duration: 4.4s; }
+.plane:nth-of-type(2) .arm { animation-duration: 3.7s; }
+.plane:nth-of-type(3) .arm { animation-duration: 4.4s; }
 
-.orbit i {
+.arm i {
   position: absolute;
-  top: -7px;
-  left: calc(50% - 6px);
-  width: 12px;
-  height: 12px;
+  top: calc(-7 * var(--u));
+  left: calc(50% - 6 * var(--u));
+  width: calc(12 * var(--u));
+  height: calc(12 * var(--u));
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 12px currentColor;
+  box-shadow: 0 0 calc(12 * var(--u)) currentColor;
 }
 
 @keyframes orbit-spin {
