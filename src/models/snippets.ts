@@ -208,7 +208,10 @@ ${CUBE_FACES}
     how: [
       '<code>rotateX(58deg) rotateZ(-45deg)</code> on the parent gives the classic isometric viewing angle.',
       'All plates are stacked at the same position; only <code>translateZ</code> separates them.',
-      'Each plate carries its index in <code>--i</code>, and the keyframe uses <code>calc(var(--i) * 40px)</code> — one animation, four different results.',
+      'Each plate carries its index in <code>--i</code>, and its resting offset is <code>calc((var(--i) - 1.5) * 40 * var(--u))</code> — one line, four different results.',
+      'The 1.5 is what keeps the deck honest. Spread from <b>0</b> and the stack climbs off the top of its own box; spread from the <b>middle</b> and it opens both ways, so the picture stays where the box is however far it is open.',
+      'The single keyframe closes the deck: <code>to { translateZ(0) }</code>. An <code>alternate</code> animation starts from the element’s own transform, so the pose a paused card shows is the open one.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the deck is the same share of a gallery card, the editor and a recording canvas. A plate is 140 of those units square.',
     ],
     html: `<div class="scene">
   <div class="layers">
@@ -219,28 +222,34 @@ ${CUBE_FACES}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 900px;
+  /* one base unit: every length below is a multiple of it, so the deck is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.32vmin;
+  perspective: calc(900 * var(--u));
 }
 
 .layers {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: calc(140 * var(--u));
+  height: calc(140 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(58deg) rotateZ(-45deg);
 }
 
+/* the deck rests open, 40 units between plates, measured from the MIDDLE of the four: it grows
+   both ways at once, so what is drawn stays centred on the model box at every moment */
 .layers i {
   position: absolute;
   inset: 0;
-  border-radius: 16px;
-  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: calc(16 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.35);
   background: hsl(calc(255 + var(--i) * 32) 85% 62% / 0.78);
-  animation: lift 2.6s ease-in-out infinite alternate;
+  transform: translateZ(calc((var(--i) - 1.5) * 40 * var(--u)));
+  animation: close 2.6s ease-in-out infinite alternate;
 }
 
-@keyframes lift {
-  to { transform: translateZ(calc(var(--i) * 40px)); }
+@keyframes close {
+  to { transform: translateZ(0); }
 }`,
   },
 
