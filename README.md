@@ -94,14 +94,15 @@ Without `npm run export` running, everything works in dev except making a video 
 | `dev` | generate + `vite` | Local development. |
 | `build` | generate + `tsc` + `vite build` | The site in `dist/`. |
 | `preview` | `vite preview` | Serve the built `dist/`. |
-| `media` | `scripts/generate-media.mjs` | After a build: the social preview image of every model into `dist/media/`. Runs in the deploy workflow. |
+| `media` | `scripts/generate-media.mjs` | After a build: the social preview image of every model into `dist/media/`. Runs in the deploy workflow. How a shot is taken (the page, the size, the moment it is stopped at) is `scripts/og-shot.mjs`, shared with `check-media`. |
 | `icons` | `scripts/generate-icons.mjs` | Redraws the brand mark and every app icon into `public/` (outputs are committed). |
 | `export` | `server/dev.mjs` | The local render service on `127.0.0.1:8787`, for recording and snapshots in dev. |
 | `check-models` | `scripts/check-models.mjs` | Judges every model (or the ids given) against the view contract on a card, by painted pixels. |
+| `check-media` | `scripts/check-media.mjs` | After `build` and `media`: each model's share preview. The image is the 2400 × 1260 JPEG its tags say, og:title, og:description and the image alt are the model's own, the headline drawn in the image is its title and fits, and the picture is the model as the built site renders it now (compared with a fresh render), loaded, finished, centred and full-sized. Record it for the ledger with `npm run capture -- media <ids>`. |
 | `qa` | `scripts/qa.mjs` | After a build: page errors, clipping, and whether the interaction a model's badge promises changes anything. |
 | `check-seo` | `scripts/check-seo.mjs` | After a build: reads every page in `dist/` as a search engine would. Titles and descriptions fit a search result and are unique (the limits and their sources are in `scripts/seo-limits.mjs`), one canonical on the sitemap's host, one h1 and no skipped heading level, JSON-LD that parses with its dates and image, og and twitter tags present, noindex on embeds and utility pages only, the sitemap and robots.txt right, no dead internal links or orphan pages, each model's title, description and steps in the HTML without JS, and the JS and CSS a model page and the home page load within a gzip budget. One `FAIL` line per problem, exit 1 on any. A finding waiting on a decision prints as `WAIVED` and a model text too long in its own words as `OWN-TEXT`; neither fails unless `--strict`. |
 | `compare` | `scripts/compare-capture.mjs` | Does a snapshot from the render service match the screen? Starts its own service on 8787, so that port must be free. Sheet in `qa/capture-diff.png`. |
-| `capture` | `scripts/capture-check.mjs` | Runs `check-models`, `check-stages`, `check-motion` or `check-exports` unchanged and records each model's result in `docs/checks/<check>.json` for the ledger: `npm run capture -- models cube dice`. The per-model export proof is `npm run capture -- exports --defaults <all 135 ids>`. |
+| `capture` | `scripts/capture-check.mjs` | Runs `check-models`, `check-stages`, `check-motion`, `check-exports` or `check-media` (the list is `scripts/checks-registry.mjs`, which the ledger and its page read too) unchanged and records each model's result in `docs/checks/<check>.json` for the ledger: `npm run capture -- models cube dice`. The per-model export proof is `npm run capture -- exports --defaults <all 135 ids>`. |
 | `ledger` | `scripts/ledger.mjs` | Writes `docs/ledger.json`: per model, converted to the contract or not, its commits, check results and reviews, and whether it is approved. `docs/ledger.html` shows it. |
 | `ledger:watch` | `scripts/ledger-watch.mjs` | Rebuilds `docs/ledger.json` whenever HEAD, a check result, a review, the queue or a model file changes. |
 | `queue` | `scripts/queue.mjs` | Records running and finished work in `docs/ledger-queue.json`: `npm run queue -- start "<name>" "<brief>" <model...>`, `-- done "<name>"`, `-- list`. |
@@ -134,7 +135,9 @@ through [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md).
 
 - `npm run media` (after `npm run build`) screenshots every model in a headless browser into
   `dist/media/<id>.jpg`: the social preview image (og:image) of each model page. It runs in the
-  deploy workflow.
+  deploy workflow. Each model is shot in its resting pose, the first moment of its loop, with every
+  animation stopped there and the picture left to settle, so the same code always gives the same
+  image. `npm run check-media` then proves each image and its tags (see the scripts table).
 - Every model has an embeddable page at `/embed/<id>/`, plus Share and Embed buttons.
 
 ## License

@@ -1,7 +1,7 @@
 /**
  * The one gate every model has to pass: runs every check over every model and prints one summary.
  *
- *   npm run verify                      all four checks over all models
+ *   npm run verify                      every check below over all models
  *   npm run verify -- --fast            only the quick ones (check-models, qa), for after every change
  *   npm run verify -- cube dice         only these models
  *   npm run verify -- --jobs 6          how many workers run at once (default: see JOBS below)
@@ -13,6 +13,9 @@
  *                                             (on the BUILT site, so the site is built first)
  *   check-stages   scripts/check-stages.mjs   the same model on every surface and export shape
  *   check-exports  scripts/check-exports.mjs  recordings and snapshots at every setting (only if the file exists)
+ *   check-media    scripts/check-media.mjs    each model's share preview: image, tags, headline, picture
+ *                                             (on the BUILT site, after its images are made with
+ *                                             generate-media, which this runs for the models checked)
  *
  * Sharding: each check's model list is split into shards, and at most --jobs shards run at a time.
  * Every shard is a process of its own, so it has its own browser and its own Vite server on its own
@@ -135,6 +138,25 @@ const CHECKS = [
     },
   },
   {
+    name: 'check-media',
+    script: 'scripts/check-media.mjs',
+    fast: false,
+    args: [],
+    needsBuild: true,
+    needsMedia: true,
+    // `pass <id> …` or `FAILS <id> …` (reasons indented under it); it ends with `N/M share previews are right.`
+    parse(out) {
+      const verdicts = new Map();
+      let current = null;
+      for (const line of out.split(/\r?\n/)) {
+        const m = /^(FAILS|pass)\s+(\S+)\s*(.*)$/.exec(line);
+        if (m) { current = m[2]; verdicts.set(current, { ok: m[1] === 'pass', why: '' }); continue; }
+        if (current && /^ {10}\S/.test(line) && !verdicts.get(current).ok) verdicts.get(current).why += (verdicts.get(current).why ? '; ' : '') + line.trim();
+      }
+      return { verdicts, finished: /share previews are right/.test(out) };
+    },
+  },
+  {
     name: 'check-exports',
     script: 'scripts/check-exports.mjs',
     fast: false,
@@ -224,6 +246,16 @@ if (runnable.some((c) => c.needsBuild)) {
   }
 }
 
+/* ---------------- the share images check-media looks at ---------------- */
+let mediaOk = true, mediaNote = '';
+if (buildOk && runnable.some((c) => c.needsMedia)) {
+  process.stdout.write('making the share images for check-media (generate-media)... ');
+  const m = await run(process.execPath, ['scripts/generate-media.mjs', ...(wanted.length ? ids : [])], join(LOGS, 'media.log'));
+  mediaOk = m.code === 0;
+  mediaNote = mediaOk ? `share images made in ${clock(m.ms)}` : `generate-media FAILED (exit ${m.code}): see ${join(LOGS, 'media.log')}`;
+  console.log(mediaNote);
+}
+
 /* ---------------- the export service, one for every shard ---------------- */
 let service = null, serviceNote = '';
 if (runnable.some((c) => c.needsService)) {
@@ -251,6 +283,7 @@ const results = new Map(checks.map((c) => [c.name, { verdicts: new Map(), notes:
 const tasks = [];
 for (const c of runnable) {
   if (c.needsBuild && !buildOk) { results.get(c.name).notes.push(`not run: ${buildNote}`); continue; }
+  if (c.needsMedia && !mediaOk) { results.get(c.name).notes.push(`not run: ${mediaNote}`); continue; }
   const shards = c.perModel ? ids.map((id) => [id]) : split(ids, JOBS);
   shards.forEach((shard, i) => tasks.push({ check: c, shard, n: i + 1, of: shards.length }));
 }
@@ -286,11 +319,12 @@ service?.close();
 const line = '='.repeat(78);
 console.log(`\n${line}\nverify: ${ids.length} models (${converted.size} converted, ${ids.length - converted.size} not yet converted), ${JOBS} jobs, ${clock(Date.now() - started)}`);
 if (buildNote) console.log(buildNote);
+if (mediaNote) console.log(mediaNote);
 if (serviceNote) console.log(serviceNote);
 console.log(line);
 
 const list = (xs) => (xs.length ? xs.join(', ') : '-');
-let convertedBad = 0, unconvertedBad = 0, broken = missing.length > 0 || !buildOk;
+let convertedBad = 0, unconvertedBad = 0, broken = missing.length > 0 || !buildOk || !mediaOk;
 const badConverted = new Set(), badUnconverted = new Set();
 for (const c of checks) {
   const r = results.get(c.name);
