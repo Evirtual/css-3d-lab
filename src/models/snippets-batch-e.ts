@@ -935,10 +935,10 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   snow: {
     how: [
       'JS creates forty flakes <b>once</b> and gives each random custom properties: position <code>--x</code>, depth <code>--z</code>, size, opacity, sideways <code>--drift</code>, duration <code>--t</code> and delay <code>--d</code>. After that it does nothing.',
-      'One keyframe animation does all the falling, from 160 units above the top to 560 below it, drifting sideways by <code>--drift</code> at its own depth <code>--z</code>. Perspective makes near flakes big and fast, far ones small and slow.',
-      'The fall path is longer than the screen because perspective pulls far flakes toward the centre: they need the extra distance to reach the top and bottom edges.',
+      'One keyframe animation does all the falling, at each flake\'s own depth <code>--z</code>: from 53% of the canvas above the top to 185% below it, drifting sideways by <code>--drift</code>. The night is a size container, so those are <code>cqh</code> and <code>cqw</code>, shares of the canvas. Perspective makes near flakes big and fast, far ones small and slow.',
+      'The fall path is longer than the canvas because perspective pulls far flakes toward the centre: they need the extra distance to reach the top and bottom edges. Perspective scales everything at one depth by the same amount about the middle, so a flake placed in shares of the canvas stays at the same share on every canvas shape: a tall canvas shows the same snow, not more of it above the trees.',
       'A negative delay between 0 and the duration means every flake starts mid-fall: it is already snowing on the first frame. Trees sit at real depths in the same 3D space, so flakes behind them are hidden.',
-      'The night is <code>inset: 0</code> and laid out in percentages, so it fills the canvas edge to edge whatever its shape. Its lengths are multiples of one base unit, <code>--u</code>, tied to the canvas, and JS writes depth, size and drift as plain numbers that CSS multiplies by it, so the snow is the same on a gallery card and on a full screen.',
+      'The night is <code>inset: 0</code> and laid out in percentages, so it fills the canvas edge to edge whatever its shape. Its lengths are multiples of one base unit, <code>--u</code>, tied to the canvas, and JS writes depth and size as plain numbers that CSS multiplies by it, so a flake is the same size on a gallery card and on a full screen. The drift is a plain number too, which CSS counts in shares of the canvas width.',
     ],
     html: `<div class="night">
   <div class="moon"></div>
@@ -956,6 +956,7 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   position: fixed;
   inset: 0;
   overflow: hidden;
+  container-type: size; /* inside it, 1cqw and 1cqh are 1% of the canvas across and down */
   perspective: calc(400 * var(--u));
   background: linear-gradient(#050817, #1f1d5a 75%, #1a2e4a);
 }
@@ -1014,9 +1015,11 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   animation: fall var(--t) linear var(--d) infinite;
 }
 
+/* the fall and the drift are shares of the canvas (cqh, cqw), so on any canvas shape a flake is at
+   the same share of it at the same moment; only its depth and size are in units */
 @keyframes fall {
-  from { transform: translate3d(0, calc(-160 * var(--u)), calc(var(--z) * var(--u))); }
-  to   { transform: translate3d(calc(var(--drift) * var(--u)), calc(560 * var(--u)), calc(var(--z) * var(--u))); }
+  from { transform: translate3d(0, -53cqh, calc(var(--z) * var(--u))); }
+  to   { transform: translate3d(calc(var(--drift) * 0.33cqw), 185cqh, calc(var(--z) * var(--u))); }
 }`,
     js: `const world = document.querySelector('.world');
 const rand = (min, max) => min + Math.random() * (max - min);
@@ -1027,7 +1030,7 @@ for (let n = 0; n < 40; n++) {
   const near = (z + 300) / 450;                  // 0 = far … 1 = near
   const t = (9 - near * 5) * rand(0.85, 1.15);   // near flakes fall faster
   flake.style.setProperty('--x', rand(-25, 125).toFixed(1) + '%');
-  // lengths go in as plain numbers: the CSS multiplies them by --u, so the snow scales with the canvas
+  // lengths go in as plain numbers: the CSS counts depth and size in --u, and the drift in shares of the canvas
   flake.style.setProperty('--z', z.toFixed(0));
   flake.style.setProperty('--s', rand(4, 8).toFixed(1));
   flake.style.setProperty('--o', (0.45 + near * 0.5).toFixed(2));
