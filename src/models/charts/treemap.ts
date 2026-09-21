@@ -202,64 +202,80 @@ export const snippet: Snippet = {
   how: [
     'The JSON is a list of coins with a market cap and a % move per period. JS does two jobs: it <b>lays the tiles out once</b>, and per period it writes <b>one number per tile</b>, <code>--v = |move| ÷ the largest move</code> (0 to 1). Everything you see is CSS.',
     'The layout is a <b>squarified treemap</b>. Sorted biggest first, the coins are laid in rows along the <i>shorter</i> side of the space that is left; a row takes the next coin as long as that makes its worst tile more square, then the row takes its strip off the space and the next row starts in the rest. Each tile gets <code>area = cap × (plate area ÷ total cap)</code>, so area is proportional to cap, and it is written as <code>--x / --y / --w / --h</code> in % of the plate.',
-    'A tile is a still <code>&lt;button&gt;</code> on the plate (its footprint), and its <code>&lt;i&gt;</code> is the roof, lifted by <code>translateZ(calc(2px + var(--v) * 38px))</code>. The two walls you see are the button\'s <code>::before</code> / <code>::after</code>, stood up from its front edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>.',
+    'A tile is a still <code>&lt;button&gt;</code> on the plate (its footprint), and its <code>&lt;i&gt;</code> is the roof, lifted by <code>translateZ((2 + --v × 38) units)</code>. The two walls you see are the button\'s <code>::before</code> / <code>::after</code>, stood up from its front edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>.',
     'The walls are full height and squashed with <code>scaleY</code> / <code>scaleX</code> by the same fraction the roof rises, from the edge they stand on. So a new period changes only <code>transform</code>: roof and walls move in step, the walls always meet the roof, and <code>transition-delay: calc(var(--i) * 45ms)</code> ripples it across the map.',
-    'The colour is <code>color-mix()</code>: teal for a gain, pink for a loss (<code>.down</code> swaps it), mixed with grey by <code>30% + --v × 70%</code>, so small moves are dull and big ones glow. The faces are glass: the colour mixed with <code>transparent</code> (roof 80%, walls about 60%), with a 0.6px bright edge and a soft inner glow.',
+    'The colour is <code>color-mix()</code>: teal for a gain, pink for a loss (<code>.down</code> swaps it), mixed with grey by <code>30% + --v × 70%</code>, so small moves are dull and big ones glow. The faces are glass: the colour mixed with <code>transparent</code> (roof 80%, walls about 60%), with a 0.6-unit bright edge and a soft inner glow.',
     'The plate and the wrappers ignore the pointer (it is tilted back, behind their plane); only the tiles take it. Hovering, focusing or tapping one prints its numbers in the <code>&lt;output&gt;</code> and fades in a brighter layer on its roof (<code>::after</code>, <code>opacity</code>). Leaving waits 150ms before the summary comes back, so moving across the gap between two tiles never blinks.',
+    "Every length is a multiple of one base unit, <code>--u</code>. JS writes only plain numbers (the layout in % of the plate, the move as 0 to 1) and CSS multiplies them by it, so the map scales as one piece. The caption and the period switch are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.",
   ],
   html: `<div class="market">
-  <div class="scene">
-    <div class="plate"></div>
+  <div class="view">
+    <div class="scene">
+      <div class="plate"></div>
+    </div>
   </div>
-  <output></output>
-  <div class="seg">
-${MARKET.periods.map((p) => `    <button type="button" data-period="${p}">${p}</button>`).join('\n')}
+  <div class="controls">
+    <output class="caption"></output>
+    <div class="row">
+${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}</button>`).join('\n')}
+    </div>
   </div>
 </div>`,
   css: `.market {
+  /* one base unit: every length in the map is a multiple of it, so it is the same share of a
+     card, the editor, a full screen and a recording canvas. The control zone under it is in
+     plain vmin, because it is the same object in every model. */
+  --u: 0.3vmin;
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
+/* the model box: the same height in every model that has controls */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+}
+
 .scene {
-  perspective: 800px;
-  padding: 10px 30px 20px;
+  perspective: calc(800 * var(--u));
+  padding: calc(4 * var(--u)) calc(30 * var(--u)) calc(30 * var(--u)); /* more room under the plate keeps it clear of the caption */
   pointer-events: none; /* the plate is tilted back: only the tiles take the pointer */
 }
 
-/* the layout's area is 184 × 136px, plus a 6px margin */
+/* the layout's area is 184 × 136 units, plus a 6-unit margin */
 .plate {
   position: relative;
-  width: 196px;
-  height: 148px;
-  border: 1px solid rgb(139 108 255 / 0.4);
-  border-radius: 9px;
+  width: calc(196 * var(--u));
+  height: calc(148 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.4);
+  border-radius: calc(9 * var(--u));
   background: color-mix(in srgb, ${VIOLET} 10%, ${SURFACE});
   transform-style: preserve-3d;
-  transform: translateY(14px) rotateX(46deg) rotateZ(28deg);
+  transform: translateY(calc(14 * var(--u))) rotateX(46deg) rotateZ(28deg);
   pointer-events: none;
 }
 
-/* the footprint: --x / --y / --w / --h are % of the 184 × 136 area, with a 3px gap between tiles */
+/* the footprint: --x / --y / --w / --h are % of the 184 × 136 area, with a 3-unit gap between tiles */
 .tile {
   --hue: ${TEAL};
   /* grey for a small move, full colour for the largest */
   --c: color-mix(in srgb, var(--hue) calc(30% + var(--v) * 70%), ${MUTED});
-  /* a fine edge: under 1px shows as a hairline on sharp screens */
-  --edge: 0.6px solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
+  /* a fine edge: under one unit shows as a hairline on sharp screens */
+  --edge: calc(0.6 * var(--u)) solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
   position: absolute;
-  top: calc(7.5px + var(--y) * 1.36px);
-  left: calc(7.5px + var(--x) * 1.84px);
-  width: calc(var(--w) * 1.84px - 3px);
-  height: calc(var(--h) * 1.36px - 3px);
+  top: calc(calc(7.5 * var(--u)) + var(--y) * calc(1.36 * var(--u)));
+  left: calc(calc(7.5 * var(--u)) + var(--x) * calc(1.84 * var(--u)));
+  width: calc(var(--w) * calc(1.84 * var(--u)) - calc(3 * var(--u)));
+  height: calc(var(--h) * calc(1.36 * var(--u)) - calc(3 * var(--u)));
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
-  border-radius: 2px;
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 35%, transparent);
+  border-radius: calc(2 * var(--u));
   background: color-mix(in srgb, var(--c) 12%, transparent);
   color: ${TEXT};
-  font: 700 8px/1 system-ui, sans-serif;
+  font: 700 calc(10 * var(--u))/1 system-ui, sans-serif;
   outline: none;
   transform-style: preserve-3d;
   pointer-events: auto;
@@ -270,32 +286,32 @@ ${MARKET.periods.map((p) => `    <button type="button" data-period="${p}">${p}</
   --hue: ${PINK};
 }
 
-/* the two walls you see, glass: each is 40px (the tallest block), turned up from an edge of the
+/* the two walls you see, glass: each is 40 units (the tallest block), turned up from an edge of the
    footprint and squashed to this block's height from that edge, so it always meets the roof */
 .tile::before,
 .tile::after {
   content: '';
   position: absolute;
   border: var(--edge);
-  box-shadow: inset 0 0 8px color-mix(in srgb, var(--c) 30%, transparent);
+  box-shadow: inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--c) 30%, transparent);
   transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1) calc(var(--i) * 45ms);
 }
 
 .tile::before {
-  top: calc(100% + 1px - 40px);
-  left: -1px;
-  width: calc(100% + 2px);
-  height: 40px;
+  top: calc(100% + calc(1 * var(--u)) - calc(40 * var(--u)));
+  left: calc(-1 * var(--u));
+  width: calc(100% + calc(2 * var(--u)));
+  height: calc(40 * var(--u));
   background: color-mix(in srgb, var(--c) 64%, transparent);
   transform-origin: bottom;
   transform: rotateX(-90deg) scaleY(calc((2 + var(--v) * 38) / 40));
 }
 
 .tile::after {
-  top: -1px;
-  left: calc(100% + 1px - 40px);
-  width: 40px;
-  height: calc(100% + 2px);
+  top: calc(-1 * var(--u));
+  left: calc(100% + calc(1 * var(--u)) - calc(40 * var(--u)));
+  width: calc(40 * var(--u));
+  height: calc(100% + calc(2 * var(--u)));
   background: color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #05060c) 58%, transparent);
   transform-origin: right;
   transform: rotateY(90deg) scaleX(calc((2 + var(--v) * 38) / 40));
@@ -304,21 +320,21 @@ ${MARKET.periods.map((p) => `    <button type="button" data-period="${p}">${p}</
 /* the roof, glass too, lifted by the move; the labels sit on it, top left (the corner least hidden) */
 .tile i {
   position: absolute;
-  inset: -1px;
+  inset: calc(-1 * var(--u));
   z-index: 0; /* its own stacking context: the glow below (z -1) stays under the text */
   display: grid;
   align-content: start;
   justify-items: start;
-  gap: 2px;
-  padding: 3px 4px;
+  gap: calc(2 * var(--u));
+  padding: calc(3 * var(--u)) calc(4 * var(--u));
   border: var(--edge);
   background: color-mix(in srgb, var(--c) 80%, transparent);
   box-shadow:
-    inset 0 0 8px color-mix(in srgb, var(--c) 30%, transparent),
-    0 0 10px color-mix(in srgb, var(--c) 22%, transparent);
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--c) 30%, transparent),
+    0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 22%, transparent);
   font-style: normal;
-  text-shadow: 0 0 3px rgb(11 13 24 / 0.85);
-  transform: translateZ(calc(2px + var(--v) * 38px));
+  text-shadow: 0 0 calc(3 * var(--u)) rgb(11 13 24 / 0.85);
+  transform: translateZ(calc(calc(2 * var(--u)) + var(--v) * calc(38 * var(--u))));
   transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1) calc(var(--i) * 45ms);
 }
 
@@ -326,10 +342,10 @@ ${MARKET.periods.map((p) => `    <button type="button" data-period="${p}">${p}</
 .tile i::after {
   content: '';
   position: absolute;
-  inset: -0.6px;
+  inset: calc(-0.6 * var(--u));
   z-index: -1;
   background: color-mix(in srgb, color-mix(in srgb, var(--c) 70%, #fff) 60%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, #fff), 0 0 22px color-mix(in srgb, var(--c) 75%, transparent);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c) 30%, #fff), 0 0 calc(22 * var(--u)) color-mix(in srgb, var(--c) 75%, transparent);
   opacity: 0;
   transition: opacity 0.25s;
 }
@@ -341,40 +357,53 @@ ${MARKET.periods.map((p) => `    <button type="button" data-period="${p}">${p}</
 
 .tile small {
   color: rgb(236 238 251 / 0.8);
-  font-size: 7px;
+  font-size: calc(9 * var(--u));
 }
 
-.tile.sm i { padding: 2px; }
+.tile.sm i { padding: calc(2 * var(--u)); }
+.tile.sm span { font-size: calc(9 * var(--u)); }
 .tile.sm small { display: none; } /* the smallest tiles only have room for the name */
-.tile.md span { font-size: 9px; }
-.tile.lg i { padding: 6px 7px; }
-.tile.lg span { font-size: 15px; }
-.tile.lg small { font-size: 9px; }
+.tile.md span { font-size: calc(12 * var(--u)); }
+.tile.lg i { padding: calc(6 * var(--u)) calc(7 * var(--u)); }
+.tile.lg span { font-size: calc(20 * var(--u)); }
+.tile.lg small { font-size: calc(12 * var(--u)); }
 
-output {
-  color: ${MUTED};
-  font-size: 12px;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the map's own unit. The caption is on its own line above
+   the row, and its line box never changes height, so a new read-out cannot move the map. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-.seg {
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.controls .row {
   display: flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 999px;
+  gap: 2vmin;
 }
 
-.seg button {
-  padding: 4px 14px;
+.controls button {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
-  background: transparent;
+  background: rgb(140 150 220 / 0.2);
   color: ${MUTED};
-  font: 700 12px system-ui, sans-serif;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background 0.35s, color 0.35s;
 }
 
-.seg button[aria-pressed='true'] {
+.controls button[aria-pressed='true'] {
   background: linear-gradient(135deg, ${VIOLET}, ${PINK});
   color: #fff;
 }`,
@@ -383,8 +412,8 @@ const MARKET = ${marketJson()};
 
 const plate = document.querySelector('.plate');
 const out = document.querySelector('.market output');
-const buttons = document.querySelectorAll('.seg button');
-const W = 184; // the plate's inner area in px: the layout is done in these units,
+const buttons = document.querySelectorAll('.controls .row button');
+const W = 184; // the plate's inner area in the map's own units: the layout is done in them,
 const H = 136; // then written to CSS as % of it
 
 const sum = (list) => list.reduce((s, d) => s + d.cap, 0);
@@ -395,7 +424,7 @@ function worst(row, side, scale) {
   return Math.max(...row.map((d) => Math.max((d.cap * scale) / depth ** 2, depth ** 2 / (d.cap * scale))));
 }
 
-// Squarified treemap. \`scale\` is px² per unit of cap, so every tile's area is its cap. Items come
+// Squarified treemap. \`scale\` is square units per unit of cap, so every tile's area is its cap. Items come
 // biggest first. Lay a row of them along the SHORTER side of the space that is left, adding the
 // next one while that makes the row's worst tile more square; then the row takes a strip off
 // that space and the next row starts in what remains.
