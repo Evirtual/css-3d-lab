@@ -485,6 +485,7 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
       'All three layers run the same 12-second timeline: a quarter turn at 0%, 25%, 50% and 75%, holding in between. Negative delays of <code>-11s</code> and <code>-10s</code> shift layers 2 and 3 one and two seconds later, so they take turns.',
       'After four quarter turns every layer is back at 360°, the same as 0°, so the loop is seamless and the cube solves itself each cycle.',
       'The black faces between layers use <code>backface-visibility: hidden</code>: the two touching faces point in opposite directions, so only one is ever drawn and they never flicker.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the cube and the black lines between its stickers are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="rubik">
@@ -494,13 +495,16 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the cube is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.33vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .rubik {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: calc(120 * var(--u));
+  height: calc(120 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(-28deg) rotateY(-38deg);
 }
@@ -509,15 +513,15 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
 .layer {
   position: absolute;
   left: 0;
-  width: 120px;
-  height: 40px;
+  width: calc(120 * var(--u));
+  height: calc(40 * var(--u));
   transform-style: preserve-3d;
   animation: twist 12s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
 .layer:nth-child(1) { top: 0; }
-.layer:nth-child(2) { top: 40px; animation-delay: -11s; } /* one second later */
-.layer:nth-child(3) { top: 80px; animation-delay: -10s; } /* two seconds later */
+.layer:nth-child(2) { top: calc(40 * var(--u)); animation-delay: -11s; } /* one second later */
+.layer:nth-child(3) { top: calc(80 * var(--u)); animation-delay: -10s; } /* two seconds later */
 
 /* stickers: black lines on the tile edges, 3 across and --row down */
 .layer > * {
@@ -525,30 +529,30 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
   left: 0;
   background-color: var(--c, #10121f);
   background-image:
-    linear-gradient(90deg, #10121f 3px, transparent 3px calc(100% - 3px), #10121f calc(100% - 3px)),
-    linear-gradient(#10121f 3px, transparent 3px calc(100% - 3px), #10121f calc(100% - 3px));
+    linear-gradient(90deg, #10121f calc(3 * var(--u)), transparent calc(3 * var(--u)) calc(100% - 3 * var(--u)), #10121f calc(100% - 3 * var(--u))),
+    linear-gradient(#10121f calc(3 * var(--u)), transparent calc(3 * var(--u)) calc(100% - 3 * var(--u)), #10121f calc(100% - 3 * var(--u)));
   background-size: 33.334% 100%, 100% var(--row, 100%);
   backface-visibility: hidden;
 }
 
 /* four sides: strips of three stickers */
-.layer i { top: 0; width: 120px; height: 40px; }
-.layer i:nth-child(1) { --c: #8b6cff; transform: translateZ(60px); }
-.layer i:nth-child(2) { --c: #2ee6d6; transform: rotateY(90deg) translateZ(60px); }
-.layer i:nth-child(3) { --c: #ff4d9d; transform: rotateY(180deg) translateZ(60px); }
-.layer i:nth-child(4) { --c: #ffb547; transform: rotateY(-90deg) translateZ(60px); }
+.layer i { top: 0; width: calc(120 * var(--u)); height: calc(40 * var(--u)); }
+.layer i:nth-child(1) { --c: #8b6cff; transform: translateZ(calc(60 * var(--u))); }
+.layer i:nth-child(2) { --c: #2ee6d6; transform: rotateY(90deg) translateZ(calc(60 * var(--u))); }
+.layer i:nth-child(3) { --c: #ff4d9d; transform: rotateY(180deg) translateZ(calc(60 * var(--u))); }
+.layer i:nth-child(4) { --c: #ffb547; transform: rotateY(-90deg) translateZ(calc(60 * var(--u))); }
 
 /* top and bottom of a layer: black inside the cube, stickers only on the outside */
 .layer b {
   --row: 33.334%;
-  top: -40px;
-  width: 120px;
-  height: 120px;
-  transform: rotateX(90deg) translateZ(20px);
+  top: calc(-40 * var(--u));
+  width: calc(120 * var(--u));
+  height: calc(120 * var(--u));
+  transform: rotateX(90deg) translateZ(calc(20 * var(--u)));
 }
 
 .layer b + b {
-  transform: rotateX(-90deg) translateZ(20px);
+  transform: rotateX(-90deg) translateZ(calc(20 * var(--u)));
 }
 
 .layer .top    { --c: #f2f3ff; }
