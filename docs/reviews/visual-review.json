@@ -171,5 +171,184 @@
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Sleeve is centred at rest (58 x 59vmin) and the record slides out on hover to about 82vmin wide, still within the band and clear of the corners.",
     "motionFlagsResolved": []
+  },
+  {
+    "model": "swipe",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Deck is centred, 47 x 63vmin, paused on a clean top card with readable 'Cube / six faces'; clear of the corners on both canvases.",
+    "motionFlagsResolved": [
+      {
+        "flag": "focus div.swipe: changes nothing on screen",
+        "reason": "The deck has a :focus-visible outline on its top card (snippets-batch-d.ts), which shows on keyboard focus; a programmatic focus without keyboard modality does not trigger :focus-visible, so nothing changing is expected."
+      }
+    ]
+  },
+  {
+    "model": "diamond",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Gem is centred at about 69 x 55vmin, paused on a clean facet view; reads on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "logo3d",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Extruded hexagon logo centred at about 50 x 57vmin; the purple glow is soft and stays inside the canvas; paused pose is square-on.",
+    "motionFlagsResolved": [
+      {
+        "flag": "loop: flicker at 15,16,39,40,63,64",
+        "reason": "The flagged frames are the logo turning edge-on, where its bright extruded side wall and the sheen cross the face for two frames each turn; it is the designed rotation, smooth on either side."
+      }
+    ]
+  },
+  {
+    "model": "magnet",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The model is the 'Pull me' button, which is only about 55 x 20vmin on a card; the 84 x 61vmin that passes the size check is the dashed field outline, which is barely visible on the dark stage and a harsh black dashed box on the light one. A model that is itself a control should fill the 70vmin box, so on dark it reads as a lone small button.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hold button.btn \"Pull me\" down: changes nothing on screen",
+        "reason": "Pressing the button does get feedback: the click toggles the teal glow under it (strip 'press' row); the hold state is a 0.2s :active change too small to see, not a broken state."
+      },
+      {
+        "flag": "let go of button.btn \"Pull me\": changes nothing on screen",
+        "reason": "Same as holding: releasing leaves the glow the click set, which is the intended feedback; nothing is stuck or jumps."
+      }
+    ]
+  },
+  {
+    "model": "ferris",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Wheel and legs centred at about 45 x 58vmin; paused frame has all cabins placed and it reads on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "pricing",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Three tier cards centred at about 64 x 55vmin at rest; the lifted tier stays inside the band. The 'SOLO / ORG / Start / Talk' labels are tiny on a card but the prices read.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover div.slot#2: pop 1→2",
+        "reason": "The middle card's lift starts on an ease-out, so the first 38ms step is the biggest; the strip shows it continuing smoothly with no jump."
+      }
+    ]
+  },
+  {
+    "model": "browser",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Isometric browser window with lifting layers, about 85 x 48vmin; at rest it sits about 6vmin below centre by solid ink, noticeable only side by side with the running pose.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover div.browser: its hit area is mostly over empty canvas (57 of 81 reachable points draw nothing)",
+        "reason": "The hover target is the tilted browser panel itself; its bounding box is mostly empty because an isometric parallelogram fills only part of its box, not because the hit area reaches past the drawing."
+      }
+    ]
+  },
+  {
+    "model": "watch",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Watch centred at about 29 x 57vmin, paused with a readable 20:08 face; clear of edges and corners.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "shadowtext",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Isometric DEPTH lettering centred at about 77 x 51vmin; readable on a card and on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "polaroid",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Photo scatter centred at about 56 x 49vmin at rest, growing to 60 x 59 as the seaside print lifts; captions are small but readable, corners clear.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "island",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Voxel island with a soft floor shadow, centred at about 53 x 47vmin; paused frame is complete.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "coverflow",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Coverflow of numbered cards over a '4 / 7' caption and two arrow pills in the control zone; stack about 56 x 65vmin, centred, arrows finger-sized.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "badge",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Medal and ribbon centred at about 30 x 60vmin; paused frame is front-on with 'WINNER' legible.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "torus",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Ring torus of hoops, 60 x 51vmin at rest, centred; paused frame reads as a whole ring, and the pale hoops still read on a light stage.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "crawl",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:10:32+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Full-canvas crawl: the first frame, which a paused card shows, is the crawl already far off, a smudge of illegible orange lines mid-canvas with no 'EPISODE 3D' title in view, so the card neither looks finished nor has any readable text; the title only appears later in the loop.",
+    "motionFlagsResolved": []
   }
 ]
