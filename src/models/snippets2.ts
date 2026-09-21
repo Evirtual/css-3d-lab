@@ -404,6 +404,7 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
       'It must come <b>first</b> in the transform list, and must be repeated in every keyframe.',
       'Step 1 flips on X, step 2 flips on Y while X stays at −180°.',
       'Use this form when you cannot add a parent just to hold <code>perspective</code>.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the <code>perspective()</code> distance too, 260 units — so the square and the depth of its flip are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="loader"></div>`,
     css: `.loader {
