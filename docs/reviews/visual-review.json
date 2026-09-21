@@ -1096,5 +1096,170 @@
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Hinged accordion, 57 x 57vmin and centred; the open panel's body text is small on a card but readable, and the hinges animate cleanly.",
     "motionFlagsResolved": []
+  },
+  {
+    "model": "greeting",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "At rest (what a paused card shows) the closed 'For you' card is only about 26vmin wide and sits about 13vmin right of the canvas middle, because it is folded shut on a hinge at the centre; the open card (61 x 56vmin) is centred, which is why the union passes.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover div.greeting: its hit area is mostly over empty canvas (60 of 81 reachable points draw nothing)",
+        "reason": "The hover target is sized to the card's open footprint so the pointer does not fall off it as the card opens; it is invisible and inside the canvas."
+      }
+    ]
+  },
+  {
+    "model": "tiltgallery",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Tilting photo wall of six tiles, 84 x 55vmin and centred; complete on the paused frame and on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "bookshelf",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Bookshelf with five spines, 52 x 55vmin and centred; spine titles are tiny on a card but decorative, and the model reads clearly.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "flipper",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Flipping square loader with a soft glow, 41 x 41vmin and centred; paused face-on and flat, which reads as a finished tile.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "gyro",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Gyroscope rings round a glowing core, 54 x 54vmin at rest and centred; the rings tilt through their loop and stay in the band.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "helix",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "DNA helix of glowing beads, 46 x 58vmin and centred; complete on the paused frame and on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "tiles",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Tile wave grid, about 73 x 57vmin and centred; tiles flip edge-on in passing as designed, paused on a flat whole grid.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "wavegrid",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The wave grid's solid body sits about 6vmin above the canvas middle at rest and about 9vmin above mid-loop (89-90 x 44-45vmin), leaving a visibly larger gap below than above on a card; the limit is 4vmin.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "ripple",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Ripple flip grid of amber tiles, 87 x 50vmin and centred; complete on the paused frame.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "cubeloader",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The first frame, which a paused card shows, has only two of the four squares on the plate (orange and teal), mid-sequence, so the solid body sits about 10vmin left of centre and the loader looks unfinished; the full four-square pose appears only later in the loop.",
+    "motionFlagsResolved": [
+      {
+        "flag": "loop: flicker at 5",
+        "reason": "Frame 5 is a square folding over in mid-flight, which is the loader's own motion; the frames either side continue it smoothly."
+      }
+    ]
+  },
+  {
+    "model": "rings",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Chasing rings round a glowing core, 59 x 42-45vmin and centred; the arcs read on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "dotorbit",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Orbiting dots round a sphere, about 51-57 x 54-55vmin; centred on the sphere, the dots' own positions move the measured middle a few vmin as they orbit.",
+    "motionFlagsResolved": [
+      {
+        "flag": "loop: flicker at 10,59,74,88",
+        "reason": "The flagged frames are dots passing behind or in front of the sphere and crossing each other; the orbit is continuous either side, so it is occlusion, not flicker."
+      }
+    ]
+  },
+  {
+    "model": "blockstack",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Stacking blocks loader, paused on the full 2 x 2 x 2 stack (47 x 50vmin, centred); mid-loop the plate is empty before the blocks rebuild, which is the loader's cycle.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "grid",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Full-canvas synthwave floor and sun; covers the canvas edge to edge and is paused on a finished scene.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "tunnel",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:21:14+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Full-canvas neon tunnel; covers the canvas and is paused on a finished, rich frame.",
+    "motionFlagsResolved": []
   }
 ]
