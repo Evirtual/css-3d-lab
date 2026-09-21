@@ -1048,6 +1048,7 @@ render();`,
       'The outer two cards start <code>rotateY</code>-ed toward the middle one (an arc, not a flat row) and sit a touch further back on Z so the featured card can stand in front of them at rest.',
       'Emphasis comes from <code>translateZ</code>, not <code>scale()</code> — pushing a card toward the camera through real perspective grows it more convincingly at the edges than scaling flatly would.',
       'The active card\'s rule sets <code>--ry: 0deg</code> along with the position, so turning to face you and stepping forward happen as one interpolated transform, not two separate motions.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the row of plans is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="pricing">
@@ -1063,15 +1064,21 @@ render();`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the plans are the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.32vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* same hit-target trick as any hover demo in 3D: static columns catch the pointer,
    the cards inside are pointer-events: none and free to turn and come forward */
 .pricing {
   display: flex;
-  width: 210px;
-  height: 168px;
+  width: calc(210 * var(--u));
+  height: calc(168 * var(--u));
+  /* the shadows under the cards and a card stepping forward both reach down, not up: lift the row
+     by that much, so what it draws is centred */
+  translate: 0 calc(-13 * var(--u));
   transform-style: preserve-3d;
   pointer-events: none;
 }
@@ -1087,43 +1094,43 @@ render();`,
 }
 
 /* the arc: outer cards turn to face the centre and stand a little further back... */
-.slot:nth-child(1) { --ry: 32deg;  --x: 5px;  --z: -14px; }
-.slot:nth-child(3) { --c: #2ee6d6; --ry: -32deg; --x: -5px; --z: -14px; }
+.slot:nth-child(1) { --ry: 32deg;  --x: calc(5 * var(--u));  --z: calc(-14 * var(--u)); }
+.slot:nth-child(3) { --c: #2ee6d6; --ry: -32deg; --x: calc(-5 * var(--u)); --z: calc(-14 * var(--u)); }
 /* ...the middle one stands in front */
-.slot:nth-child(2) { --c: #ff4d9d; --y: -6px; --z: 34px; }
+.slot:nth-child(2) { --c: #ff4d9d; --y: calc(-6 * var(--u)); --z: calc(34 * var(--u)); }
 
 .card {
   position: absolute;
-  top: 14px;
-  left: calc(50% - 33px);
+  top: calc(14 * var(--u));
+  left: calc(50% - 33 * var(--u));
   display: grid;
   align-content: start;
   justify-items: center;
-  gap: 6px;
-  width: 66px;
-  height: 140px;
-  padding: 10px 7px;
-  border: 1px solid color-mix(in srgb, var(--c) 70%, transparent);
-  border-radius: 12px;
+  gap: calc(6 * var(--u));
+  width: calc(66 * var(--u));
+  height: calc(140 * var(--u));
+  padding: calc(10 * var(--u)) calc(7 * var(--u));
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 70%, transparent);
+  border-radius: calc(12 * var(--u));
   background: linear-gradient(
     170deg,
     color-mix(in srgb, var(--c) 30%, #141830),
     color-mix(in srgb, var(--c) 8%, #141830)
   );
   box-shadow:
-    inset 0 0 18px color-mix(in srgb, var(--c) 22%, transparent),
-    0 14px 18px -14px #000;
+    inset 0 0 calc(18 * var(--u)) color-mix(in srgb, var(--c) 22%, transparent),
+    0 calc(14 * var(--u)) calc(18 * var(--u)) calc(-14 * var(--u)) #000;
   color: #eceefb;
   text-align: center;
   pointer-events: none;
-  transform: translate3d(var(--x, 0px), var(--y, 0px), var(--z, 0px)) rotateY(var(--ry, 0deg));
+  transform: translate3d(var(--x, 0), var(--y, 0), var(--z, 0)) rotateY(var(--ry, 0deg));
   transition: transform 0.45s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
 /* plan name */
 .card small {
   color: var(--c);
-  font-size: 8px;
+  font-size: calc(8 * var(--u));
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1131,20 +1138,20 @@ render();`,
 
 /* price */
 .card b {
-  font-size: 21px;
+  font-size: calc(21 * var(--u));
   line-height: 1;
 }
 
 .card b sup {
-  font-size: 10px;
-  vertical-align: 7px;
+  font-size: calc(10 * var(--u));
+  vertical-align: calc(7 * var(--u));
 }
 
 /* feature lines */
 .card span {
   width: 100%;
-  height: 4px;
-  border-radius: 2px;
+  height: calc(4 * var(--u));
+  border-radius: calc(2 * var(--u));
   background: color-mix(in srgb, #eceefb 22%, transparent);
 }
 
@@ -1155,12 +1162,12 @@ render();`,
 .card em {
   align-self: end;
   width: 100%;
-  margin-top: 8px;
-  padding: 4px 0;
-  border-radius: 99px;
+  margin-top: calc(8 * var(--u));
+  padding: calc(4 * var(--u)) 0;
+  border-radius: calc(99 * var(--u));
   background: var(--c);
   color: #fff;
-  font-size: 8px;
+  font-size: calc(8 * var(--u));
   font-style: normal;
   font-weight: 800;
 }
@@ -1183,9 +1190,9 @@ render();`,
 
 /* active card: square to the viewer and well in front of the other two */
 .pricing .slot:is(:hover, :focus-visible) {
-  --x: 0px;
-  --y: -4px;
-  --z: 84px;
+  --x: 0;
+  --y: calc(-4 * var(--u));
+  --z: calc(84 * var(--u));
   --ry: 0deg;
 }`,
   },
