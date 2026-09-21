@@ -155,13 +155,28 @@ async function look(selector, { timeout = 20_000, settle = false, park = true } 
   // canvas.) A model's hover and drag extents are check-models' business, not this tool's.
   // Two moves, not one: a mouse already sitting on the spot sends nothing, and a model that
   // answers the pointer would then be measured at rest on one stage and pointed at on the next.
-  const box = await handle.boundingBox().catch(() => null);
-  if (box && park) {
+  let box = await handle.boundingBox().catch(() => null);
+  let parked = !park;
+  for (let tries = 0; park && box && tries < 3 && !parked; tries++) {
+    // A tenth of the way in from the top left: the same PLACE in the model's own canvas on every
+    // surface, and clear of the middle, where most of these models are drawn.
+    const x = box.x + box.width * 0.1;
+    const y = box.y + box.height * 0.1;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2).catch(() => {});
-    // a model that has only just mounted may not have its pointer listener on yet, and one move
-    // that lands too early leaves it at rest while every other stage has it pointed at
+    // a model that has only just mounted may not have its pointer listener on yet, and a move
+    // that lands too early leaves it at rest while every other surface has it pointed at
     await page.waitForTimeout(150);
-    await page.mouse.move(box.x + 3, box.y + 3, { steps: 3 }).catch(() => {});
+    await page.mouse.move(x, y, { steps: 3 }).catch(() => {});
+    // ...and the pointer has to be ON the model: a card still sliding into place, or a bar of the
+    // site's own chrome, can leave it on the page instead, and then one surface is measured at
+    // rest and the next one pointed at. Checked rather than assumed, and said so when it fails.
+    parked = await page
+      .evaluate(([x, y]) => document.elementFromPoint(x, y)?.tagName === 'IFRAME', [x, y])
+      .catch(() => false);
+    if (!parked) {
+      await page.waitForTimeout(300);
+      box = await handle.boundingBox().catch(() => box);
+    }
   }
   // A model that is still gliding into place is measured mid-glide, which is a moment, not a
   // layout. Settled measurements wait for its transitions to land first.
@@ -175,7 +190,7 @@ async function look(selector, { timeout = 20_000, settle = false, park = true } 
   const seen = await frame.evaluate(lookFn).catch(() => null);
   if (!seen) return null;
   // the canvas the model was given, on the page's own scale: proof the frame really fills the stage
-  return { ...seen, frameW: box?.width ?? null, frameH: box?.height ?? null };
+  return { ...seen, frameW: box?.width ?? null, frameH: box?.height ?? null, parked };
 }
 
 /**
@@ -343,6 +358,8 @@ for (const id of ids) {
   }
 
   for (const stage of STAGES) if (!(stage in row.stages)) row.stages[stage] = null;
+  const adrift = STAGES.filter((s) => row.stages[s] && row.stages[s].parked === false);
+  if (adrift.length) row.notes.push(`the pointer could not be put on the model on: ${adrift.join(', ')} — a model that answers the pointer is at rest there and pointed at everywhere else, so those lines are not comparable`);
   say(STAGES.map((s) => `  ${s.padEnd(11)} ${show(row.stages[s])}${row.stages[s] ? `   canvas ${Math.round(row.stages[s].canvasW)}×${Math.round(row.stages[s].canvasH)}` : ''}`).join('\n'));
   for (const note of row.notes) say(`  note: ${note}`);
 }
