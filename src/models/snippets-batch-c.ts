@@ -300,10 +300,11 @@ setInterval(function () {
   wordcube: {
     how: [
       'Face <code>n</code> is turned <code>n</code> quarter turns backwards around X, then pushed out with <code>translateZ</code> by half the prism’s depth — the same "turn, then push" recipe as a basic cube, just on one axis.',
-      'The whole prism is pulled back by half its depth (<code>translateZ(-18px)</code>) so the face currently in front sits exactly at z&nbsp;=&nbsp;0 and stays crisp.',
+      'The whole prism is pulled back by half its depth (<code>translateZ(calc(-18 * var(--u)))</code>) so the face currently in front sits exactly at z&nbsp;=&nbsp;0 and stays crisp. <code>--u</code> is the one base unit every length here is a multiple of.',
       'The keyframes hold on each face for a stretch, then turn 90deg with their own <code>cubic-bezier</code> — a snappy, springy turn rather than a constant spin.',
       '<code>backface-visibility: hidden</code> stops a word from showing mirrored through the box while it turns.',
       '<code>360deg</code> looks exactly like <code>0deg</code>, so the loop has no seam.',
+      'Mid-turn the prism stands on an edge and sweeps <code>√2 × 36</code> units tall, half of that above the resting face and half below. That corner, not the face, is what the band has to hold.',
     ],
     html: `<div class="scene">
   <div class="wordcube">
@@ -317,15 +318,21 @@ setInterval(function () {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the line is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.72vmin;
+  perspective: calc(800 * var(--u));
 }
 
+/* The lead-in sits over the prism, not beside it: side by side the line is five times wider
+   than it is tall, so at the 92vmin width limit it stands 18vmin high, well under the 40vmin
+   floor. Stacked, it is the shape of the headline it is imitating anyway. */
 .wordcube {
-  display: flex;
-  align-items: center;
-  gap: 9px;
+  display: grid;
+  justify-items: center;
+  gap: calc(9 * var(--u));
   color: #eceefb;
-  font-size: 21px;
+  font-size: calc(21 * var(--u));
   font-weight: 800;
   white-space: nowrap;
   transform-style: preserve-3d;
@@ -334,8 +341,8 @@ setInterval(function () {
 .prism {
   position: relative;
   display: inline-block;
-  width: 104px;
-  height: 36px; /* face height = prism depth: its cross-section is a square */
+  width: calc(104 * var(--u));
+  height: calc(36 * var(--u)); /* face height = prism depth: its cross-section is a square */
   transform-style: preserve-3d;
   animation: cube-turn 9s infinite;
 }
@@ -345,42 +352,42 @@ setInterval(function () {
   inset: 0;
   display: flex;
   align-items: center;
-  padding-left: 13px;
-  border-radius: 8px;
+  padding-left: calc(13 * var(--u));
+  border-radius: calc(8 * var(--u));
   background: color-mix(in srgb, var(--c) 26%, transparent);
-  /* the edge is an inner line, not a border: turning, a face passes side-on, where a 1px
+  /* the edge is an inner line, not a border: turning, a face passes side-on, where a hairline
      border breaks up; the inner glow is the soft shade that survives */
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--c) 80%, transparent),
-    inset 0 0 18px color-mix(in srgb, var(--c) 32%, transparent);
+    inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c) 80%, transparent),
+    inset 0 0 calc(18 * var(--u)) color-mix(in srgb, var(--c) 32%, transparent);
   color: var(--c);
   backface-visibility: hidden;
-  transform: rotateX(calc(var(--i) * -90deg)) translateZ(18px);
+  transform: rotateX(calc(var(--i) * -90deg)) translateZ(calc(18 * var(--u)));
 }
 
 @keyframes cube-turn {
   0%, 19% {
-    transform: translateZ(-18px) rotateX(0deg);
+    transform: translateZ(calc(-18 * var(--u))) rotateX(0deg);
     animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
   }
 
   25%, 44% {
-    transform: translateZ(-18px) rotateX(90deg);
+    transform: translateZ(calc(-18 * var(--u))) rotateX(90deg);
     animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
   }
 
   50%, 69% {
-    transform: translateZ(-18px) rotateX(180deg);
+    transform: translateZ(calc(-18 * var(--u))) rotateX(180deg);
     animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
   }
 
   75%, 94% {
-    transform: translateZ(-18px) rotateX(270deg);
+    transform: translateZ(calc(-18 * var(--u))) rotateX(270deg);
     animation-timing-function: cubic-bezier(0.6, -0.3, 0.3, 1.3);
   }
 
   100% {
-    transform: translateZ(-18px) rotateX(360deg);
+    transform: translateZ(calc(-18 * var(--u))) rotateX(360deg);
   }
 }`,
   },
