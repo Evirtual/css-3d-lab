@@ -6,7 +6,8 @@ export const snippetsB: Record<string, Snippet> = {
     how: [
       'The screen and the back are two panels at <code>translateZ(±depth / 2)</code>. The back is turned with <code>rotateY(180deg)</code> and both hide their backface, so each is only drawn while it faces you.',
       'Four thin walls close the sides. Each one only covers the <b>straight</b> part of its edge: it is inset by the corner radius, because a flat plane cannot follow a rounded corner.',
-      'The corners are filled by nine rounded slabs, 1px apart, stacked through the body. From any angle their edges overlap into a solid rounded rim.',
+      'The corners are filled by nine rounded slabs, one base unit apart, stacked through the body. From any angle their edges overlap into a solid rounded rim.',
+      'Every length is a multiple of that one unit, <code>--u</code>, so the phone — screen type included — is the same share of a gallery card, the editor and a recording canvas.',
       'The turn uses <code>alternate</code> with <code>ease-in-out</code>: it lingers on the front view and on the back view, and it is seamless without matching start and end.',
     ],
     html: `<div class="scene">
@@ -28,27 +29,30 @@ export const snippetsB: Record<string, Snippet> = {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the phone is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.36vmin;
+  perspective: calc(800 * var(--u));
 }
 
-/* 84 × 168, 10px thick, 15px corner radius */
+/* 84 × 168, 10 thick, 15 corner radius */
 .phone {
   --metal: #5a607f;
   --shine: color-mix(in srgb, #eceefb 60%, var(--metal));
   position: relative;
-  width: 84px;
-  height: 168px;
+  width: calc(84 * var(--u));
+  height: calc(168 * var(--u));
   transform-style: preserve-3d;
   animation: turn 7s ease-in-out infinite alternate;
 }
 
-/* nine rounded slabs, 1px apart, fill the body so the corners look solid */
+/* nine rounded slabs, one unit apart, fill the body so the corners look solid */
 .slab {
   position: absolute;
-  inset: 0.5px;
-  border-radius: 15px;
+  inset: calc(0.5 * var(--u));
+  border-radius: calc(15 * var(--u));
   background: var(--metal);
-  transform: translateZ(calc((var(--i) - 4) * 1px));
+  transform: translateZ(calc((var(--i) - 4) * var(--u)));
 }
 
 /* walls cover only the straight part of each edge: inset by the radius */
@@ -59,38 +63,38 @@ export const snippetsB: Record<string, Snippet> = {
 
 .wall-l,
 .wall-r {
-  left: calc(50% - 5px);
-  top: 15px;
-  width: 10px;
-  height: 138px;
+  left: calc(50% - 5 * var(--u));
+  top: calc(15 * var(--u));
+  width: calc(10 * var(--u));
+  height: calc(138 * var(--u));
 }
 
 .wall-t,
 .wall-b {
-  left: 15px;
-  top: calc(50% - 5px);
-  width: 54px;
-  height: 10px;
+  left: calc(15 * var(--u));
+  top: calc(50% - 5 * var(--u));
+  width: calc(54 * var(--u));
+  height: calc(10 * var(--u));
   background: linear-gradient(var(--metal), var(--shine) 50%, var(--metal));
 }
 
-.wall-l { transform: rotateY(-90deg) translateZ(42px); } /* half the width */
-.wall-r { transform: rotateY(90deg) translateZ(42px); }
-.wall-t { transform: rotateX(90deg) translateZ(84px); }  /* half the height */
-.wall-b { transform: rotateX(-90deg) translateZ(84px); }
+.wall-l { transform: rotateY(-90deg) translateZ(calc(42 * var(--u))); } /* half the width */
+.wall-r { transform: rotateY(90deg) translateZ(calc(42 * var(--u))); }
+.wall-t { transform: rotateX(90deg) translateZ(calc(84 * var(--u))); }  /* half the height */
+.wall-b { transform: rotateX(-90deg) translateZ(calc(84 * var(--u))); }
 
 .front,
 .back {
   position: absolute;
   inset: 0;
-  border-radius: 15px;
+  border-radius: calc(15 * var(--u));
   backface-visibility: hidden;
 }
 
 .front {
-  padding: 4px; /* the bezel */
+  padding: calc(4 * var(--u)); /* the bezel */
   background: #05060c;
-  transform: translateZ(5px); /* half the thickness */
+  transform: translateZ(calc(5 * var(--u))); /* half the thickness */
 }
 
 .screen {
@@ -100,93 +104,101 @@ export const snippetsB: Record<string, Snippet> = {
   align-items: center;
   box-sizing: border-box;
   height: 100%;
-  padding: 18px 7px 7px;
+  padding: calc(18 * var(--u)) calc(7 * var(--u)) calc(7 * var(--u));
   overflow: hidden;
-  border-radius: 11px;
+  border-radius: calc(11 * var(--u));
   background:
     radial-gradient(circle at 80% 8%, rgb(255 181 71 / 0.8), transparent 45%),
     linear-gradient(165deg, #8b6cff, #ff4d9d 70%, #ffb547 120%);
   color: #fff;
 }
 
-.screen strong { font-size: 21px; font-weight: 800; line-height: 1; letter-spacing: -0.5px; }
-.screen small { margin-top: 2px; font-size: 7px; opacity: 0.85; }
+.screen strong {
+  font-size: calc(21 * var(--u));
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: calc(-0.5 * var(--u));
+}
+
+.screen small { margin-top: calc(2 * var(--u)); font-size: calc(8 * var(--u)); opacity: 0.85; }
 
 .notch {
   position: absolute;
-  top: 5px;
-  left: calc(50% - 12px);
-  width: 24px;
-  height: 6px;
-  border-radius: 3px;
+  top: calc(5 * var(--u));
+  left: calc(50% - 12 * var(--u));
+  width: calc(24 * var(--u));
+  height: calc(6 * var(--u));
+  border-radius: calc(3 * var(--u));
   background: #05060c;
 }
 
 .widget {
   display: grid;
-  gap: 4px;
+  gap: calc(4 * var(--u));
   box-sizing: border-box;
   width: 100%;
-  margin-top: 12px;
-  padding: 7px;
-  border: 1px solid rgb(255 255 255 / 0.35);
-  border-radius: 8px;
+  margin-top: calc(12 * var(--u));
+  padding: calc(7 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.35);
+  border-radius: calc(8 * var(--u));
   background: rgb(255 255 255 / 0.18);
 }
 
-.widget i { height: 4px; border-radius: 2px; background: rgb(255 255 255 / 0.85); }
+.widget i { height: calc(4 * var(--u)); border-radius: calc(2 * var(--u)); background: rgb(255 255 255 / 0.85); }
 .widget i:nth-child(2) { width: 70%; opacity: 0.6; }
 .widget i:nth-child(3) { width: 45%; opacity: 0.6; }
 
 .dock {
   display: flex;
-  gap: 5px;
+  gap: calc(5 * var(--u));
   justify-content: center;
   box-sizing: border-box;
   width: 100%;
   margin-top: auto;
-  padding: 5px;
-  border-radius: 9px;
+  padding: calc(5 * var(--u));
+  border-radius: calc(9 * var(--u));
   background: rgb(255 255 255 / 0.2);
 }
 
-.dock i { width: 13px; height: 13px; border-radius: 4px; background: rgb(255 255 255 / 0.9); }
+.dock i { width: calc(13 * var(--u)); height: calc(13 * var(--u)); border-radius: calc(4 * var(--u)); background: rgb(255 255 255 / 0.9); }
 .dock i:nth-child(2) { background: #2ee6d6; }
 .dock i:nth-child(3) { background: #05060c; }
 
 .back {
   /* an inner line plus a soft shade instead of a hard border: turning, the back passes
-     side-on, where a 1px line breaks up; the shade survives */
-  box-shadow: inset 0 0 0 1px rgb(236 238 251 / 0.25), inset 0 0 8px rgb(236 238 251 / 0.1);
+     side-on, where a one-unit line breaks up; the shade survives */
+  box-shadow:
+    inset 0 0 0 calc(1 * var(--u)) rgb(236 238 251 / 0.25),
+    inset 0 0 calc(8 * var(--u)) rgb(236 238 251 / 0.1);
   background:
     linear-gradient(125deg, transparent 40%, rgb(255 255 255 / 0.14) 50%, transparent 60%),
     linear-gradient(160deg, #5546a2, #26254f);
-  transform: rotateY(180deg) translateZ(5px);
+  transform: rotateY(180deg) translateZ(calc(5 * var(--u)));
 }
 
 /* camera island with two lenses */
 .back i {
   position: absolute;
-  top: 9px;
-  left: 9px;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+  top: calc(9 * var(--u));
+  left: calc(9 * var(--u));
+  width: calc(30 * var(--u));
+  height: calc(30 * var(--u));
+  border-radius: calc(9 * var(--u));
   background:
-    radial-gradient(circle at 9px 9px, #4a5078 0 2px, #05060c 2.5px 6px, transparent 6.5px),
-    radial-gradient(circle at 21px 21px, #4a5078 0 2px, #05060c 2.5px 6px, transparent 6.5px),
+    radial-gradient(circle at calc(9 * var(--u)) calc(9 * var(--u)), #4a5078 0 calc(2 * var(--u)), #05060c calc(2.5 * var(--u)) calc(6 * var(--u)), transparent calc(6.5 * var(--u))),
+    radial-gradient(circle at calc(21 * var(--u)) calc(21 * var(--u)), #4a5078 0 calc(2 * var(--u)), #05060c calc(2.5 * var(--u)) calc(6 * var(--u)), transparent calc(6.5 * var(--u))),
     #2f2957;
 }
 
 /* logo */
 .back b {
   position: absolute;
-  top: calc(50% - 8px);
-  left: calc(50% - 8px);
+  top: calc(50% - 8 * var(--u));
+  left: calc(50% - 8 * var(--u));
   box-sizing: border-box;
-  width: 16px;
-  height: 16px;
-  border: 3px solid rgb(255 255 255 / 0.55);
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
+  border: calc(3 * var(--u)) solid rgb(255 255 255 / 0.55);
   border-radius: 50%;
 }
 
