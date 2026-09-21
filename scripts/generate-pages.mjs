@@ -17,7 +17,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, resolve } from 'node:path';
 import { createServer } from 'vite';
 import { workingSources } from './model-sources.mjs';
-import { DESCRIPTION_AIM, DESCRIPTION_MAX, TITLE_AIM, TITLE_MAX } from './seo-limits.mjs';
+import { DESCRIPTION_AIM, DESCRIPTION_MAX, DESCRIPTION_MIN, TITLE_AIM, TITLE_MAX } from './seo-limits.mjs';
 
 const site = JSON.parse(readFileSync('site.config.json', 'utf8'));
 const root = resolve('.');
@@ -73,6 +73,25 @@ const inSentence = (t) => (/^[A-Z][a-z]/.test(t) ? t[0].toLowerCase() + t.slice(
  * check-seo then names if even they are too long). Limits: scripts/seo-limits.mjs.
  */
 const fit = (candidates, aim, max) => candidates.find((c) => c.length <= aim) ?? candidates.find((c) => c.length <= max) ?? candidates.at(-1);
+/**
+ * A model description too long for a search result, cut for the meta description and
+ * og:description only (the page shows it whole, and src/models keeps it whole): the whole
+ * sentences that fit within `max`; if those come to under DESCRIPTION_MIN characters, up to the last
+ * clause boundary (a comma, semicolon, colon or dash) that fits, then "…". Never mid-word. These are
+ * exactly the cuts check-media's descriptionCut accepts.
+ */
+function cutToFit(text, max) {
+  if (text.length <= max) return text;
+  let sentences = '';
+  for (const m of text.matchAll(/[.!?](?=\s)/g)) if (m.index + 1 <= max) sentences = text.slice(0, m.index + 1);
+  if (sentences.length >= DESCRIPTION_MIN) return sentences;
+  let clause = '';
+  for (const m of text.matchAll(/\s*(?:[,;:]|\s[—–])\s/g)) {
+    const kept = text.slice(0, m.index).trimEnd();
+    if (kept.length + 1 <= max) clause = kept;
+  }
+  return clause ? `${clause}…` : sentences || text;
+}
 // JSON-LD dates, filled in once each page's dates are known (see <lastmod> below): the page is
 // fingerprinted with these placeholders in it, so its own date never changes its fingerprint.
 const PUBLISHED = '%DATE_PUBLISHED%';
@@ -215,11 +234,15 @@ function demoPage(d, index) {
   // og:description to the description), then as much of the fixed wording as still fits.
   const head = `${d.title} in ${kind(d)}`;
   const title = fit([`${head} — 3D effect with copy-paste code | ${site.name}`, `${head} with copy-paste code | ${site.name}`, `${head} | ${site.name}`, head], TITLE_AIM, TITLE_MAX);
-  const description = fit(
-    [` Live preview, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`, ' Live preview, explanation and copy-paste code.', ' With copy-paste code.', ''].map((s) => d.description + s),
-    DESCRIPTION_AIM,
-    DESCRIPTION_MAX,
-  );
+  // A description too long even alone is cut cleanly (cutToFit); the page body keeps it whole.
+  const description =
+    d.description.length > DESCRIPTION_MAX
+      ? cutToFit(d.description, DESCRIPTION_AIM)
+      : fit(
+          [` Live preview, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`, ' Live preview, explanation and copy-paste code.', ' With copy-paste code.', ''].map((s) => d.description + s),
+          DESCRIPTION_AIM,
+          DESCRIPTION_MAX,
+        );
   const image = `media/${d.id}.jpg`;
 
   const panes = [
