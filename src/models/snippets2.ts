@@ -1615,9 +1615,10 @@ document.querySelector('nav').addEventListener('click', (e) => {
   /* one base unit: every length below is a multiple of it, so the wave is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
   --u: 0.24vmin;
-  /* the cells rise towards you on a tilted plane, so the wave reaches further up than down:
-     this leans the grid back down by half of that, and the whole wave ends up centred */
-  padding-top: calc(40 * var(--u));
+  /* a cell rising towards you is nearer the camera, and the near half of a plane tilted this far
+     is its bottom: the wave spreads further down than up. This lifts the grid by half of that,
+     so the wave is what sits in the middle of the canvas, not the flat grid */
+  padding-bottom: calc(36 * var(--u));
   perspective: calc(800 * var(--u));
 }
 
