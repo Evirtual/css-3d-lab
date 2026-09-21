@@ -1582,6 +1582,15 @@ setInterval(tick, 1000);`,
   border: 0.6vmin solid #141830;
   background: var(--sw);
   box-shadow: 0 0 0 0.3vmin rgb(140 150 220 / 0.34);
+  transition: box-shadow 0.35s;
+}
+
+/* the swatch's own colour wins over the block's hover tint, so a pointed-at or focused swatch
+   answers with a ring in the stage's ink instead: thinner than the selected one's, so the two
+   states stay apart. It lights up in 0.12s and fades in 0.35s */
+.controls .row button[aria-pressed='false']:is(:hover, :focus-visible) {
+  box-shadow: 0 0 0 0.35vmin currentColor;
+  transition-duration: 0.12s;
 }
 
 .controls .row button[aria-pressed='true'] {
