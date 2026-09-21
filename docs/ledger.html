@@ -197,7 +197,7 @@ button, input { font: inherit; color: inherit; }
 .step:focus-visible .step__label { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 4px; }
 .flow__hint { margin: 0; font-size: 13px; }
 .flow__bd { margin-top: 4px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.flow__bd .bd li { grid-template-columns: minmax(0, 8em) minmax(0, 1fr) auto; }
+
 @media (prefers-reduced-motion: reduce) { .step { transition: none; } }
 /* narrow screens and phones: the arrow runs top to bottom, flat, each step pointing down into the next */
 @media (max-width: 900px) {
@@ -221,16 +221,36 @@ button, input { font: inherit; color: inherit; }
 .stat__sum { margin: 0; font-size: 12px; font-weight: 600; color: var(--accent-2); font-variant-numeric: tabular-nums; }
 .stat__sum.is-plain { color: var(--muted); font-weight: 500; }
 .stat__sum.odd { color: var(--hot); }
-.bd { list-style: none; padding: 0; margin: 0; font-size: 12.5px; }
-.bd li { display: grid; grid-template-columns: minmax(0, 7em) minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; padding: 3px 0; color: var(--muted); }
+:root { --never: color-mix(in srgb, var(--muted) 62%, var(--surface-solid)); --track: color-mix(in srgb, var(--muted) 12%, transparent); }
+.bdhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px 16px; margin-bottom: 10px; }
+.bdhead__title { margin: 0; font-size: 15px; font-weight: 750; letter-spacing: -0.01em; text-transform: none; color: var(--text); }
+.bdhead__n { margin-left: 4px; font-variant-numeric: tabular-nums; color: var(--accent); }
+.bdhead__means { margin: 2px 0 0; font-size: 13px; max-width: 70ch; }
+.bdhead__acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.bdhead__all { padding: 5px 12px; font-size: 12.5px; }
+.bdtoggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.bdtoggle input { accent-color: var(--accent); margin: 0; }
+.bd { list-style: none; padding: 0; margin: 0; font-size: 13px; }
+.bd li { display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 4ch; gap: 4px 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); }
+.bd li:first-child { border-top: 0; }
+.bd__name { color: var(--text); font-weight: 650; overflow-wrap: anywhere; }
+.bd li.is-empty .bd__name { color: var(--muted); font-weight: 600; }
 .bd li.odd, .bd li.odd .bd__name { color: var(--hot); }
-.bd__name { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
-.bd li > b { display: inline; margin: 0; font-size: 12.5px; line-height: inherit; font-weight: 700; color: var(--text); background: none; -webkit-text-fill-color: currentColor; }
-.seg { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--muted) 16%, transparent); }
-.seg i { display: block; height: 100%; }
-.bd__segs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 11.5px; }
-.bd__segs i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: 0; }
-.bd__zeros { margin-top: 6px; font-size: 12px; }
+.bd__n { justify-self: end; font-variant-numeric: tabular-nums; font-weight: 750; color: var(--text); }
+.bd li.is-empty .bd__n { color: var(--muted); font-weight: 600; }
+.bdbar { display: flex; gap: 2px; height: 16px; border-radius: 999px; overflow: hidden; background: var(--track); }
+.bdbar i { display: grid; place-items: center; min-width: 0; height: 100%; font-style: normal; }
+.bdbar i.bdbar__rest { background: none; }
+.bdbar em { font-style: normal; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; color: #fff; text-shadow: 0 1px 1px rgb(0 0 0 / 0.35); }
+.bd__under { grid-column: 2 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.bdpill { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border: 1px solid var(--border); border-radius: 999px; font-size: 11.5px; color: var(--muted); }
+.bdpill i { width: 8px; height: 8px; border-radius: 50%; }
+.bdpill b { color: var(--text); font-variant-numeric: tabular-nums; }
+.bdpill.is-zero { opacity: 0.6; }
+.bd__note { font-size: 12px; color: var(--muted); font-style: italic; }
+.bdsum { margin: 10px 0 0; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 12px; font-weight: 600; color: var(--accent-2); font-variant-numeric: tabular-nums; }
+.bdsum.odd { color: var(--hot); }
+@media (max-width: 600px) { .bd li { grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr) 4ch; gap: 4px 8px; } .bd__under { grid-column: 1 / -1; } }
 .balance { margin-top: 12px; padding: 8px 12px; border-radius: 10px; font-size: 14px; font-variant-numeric: tabular-nums; }
 .balance.ok { border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, transparent); }
 .balance.ok .tick { color: var(--accent-2); font-weight: 900; }
@@ -663,28 +683,43 @@ table.mini code { font-size: 12px; }
   let showZeros = false;
   try { showZeros = localStorage.getItem('ledger-zeros') === '1'; } catch {}
   const SHORT = { 'not converted': 'no --u in vmin yet', converted: 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
-  const KIND = [['stale-pass', 'older code', 'var(--warm)'], ['failed', 'failed', 'var(--hot)'], ['never', 'never run', 'color-mix(in srgb, var(--muted) 55%, transparent)']];
+  /* the breakdown under the arrow: one row per check (or per missing item), totals in one column */
+  const KIND = [['stale-pass', 'passed on older code', 'var(--warm)'], ['failed', 'failed', 'var(--hot)'], ['never', 'never run', 'var(--never)']];
   const GATE_NAME = { models: 'contract', stages: 'stages', motion: 'motion', exports: 'exports' };
-  const segBar = (segs, total) => `<span class="seg" aria-hidden="true">${segs.filter((s) => s.n).map((s) => `<i style="width:${(100 * s.n) / Math.max(1, total)}%;background:${s.c}"></i>`).join('')}</span>`;
+  const REASON_COLOR = { 'no-visual': 'var(--accent)', 'no-text': 'var(--accent-2)', 'stale-review': 'var(--warm)', problem: 'var(--hot)', unexplained: 'var(--hot)' };
+  /** A rounded bar of segments with a hairline between them; a segment shows its count when there is room. */
+  const segBar = (segs, total) => {
+    const live = segs.filter((s) => s.n);
+    return `<span class="bdbar" aria-hidden="true">${live.map((s) => { const share = s.n / Math.max(1, total); return `<i style="flex-grow:${s.n};background:${s.c}">${share >= 0.15 ? `<em>${s.n}</em>` : ''}</i>`; }).join('')}<i class="bdbar__rest" style="flex-grow:${Math.max(0, total - live.reduce((a, x) => a + x.n, 0))}"></i></span>`;
+  };
   function breakdown(b) {
     const zeros = showZeros;
     let rows;
     if (b.key === 'converted') {
-      // one row per check, in the stated order: older code / failed / never run
       const gates = [...new Set(b.parts.filter((p) => p.gate).map((p) => p.gate))];
       rows = gates.map((g) => {
         const segs = KIND.map(([k, label, c]) => ({ label: g === 'motion' && k === 'failed' ? 'open flag or broke' : g === 'exports' && k === 'never' ? 'never run at defaults' : g === 'motion' && k === 'stale-pass' ? 'clear on older code' : label, n: b.parts.find((p) => p.key === `${g}:${k}`)?.count ?? 0, c }));
-        const n = segs.reduce((s, x) => s + x.n, 0);
-        return { name: GATE_NAME[g] ?? g, n, segs };
+        return { name: GATE_NAME[g] ?? g, n: segs.reduce((s, x) => s + x.n, 0), segs };
       });
     } else {
-      rows = b.parts.map((p) => ({ name: p.label, n: p.count, segs: [{ label: '', n: p.count, c: p.key === 'problem' || p.key === 'unexplained' ? 'var(--hot)' : p.key === 'stale-review' ? 'var(--warm)' : 'var(--accent)' }], odd: p.key === 'unexplained' }));
+      rows = b.parts.map((p) => ({ name: p.label, n: p.count, segs: [{ label: p.label, n: p.count, c: REASON_COLOR[p.key] ?? 'var(--accent)' }], odd: p.key === 'unexplained', single: true }));
     }
-    const shown = rows.filter((r) => zeros || r.n);
-    const hidden = rows.length - shown.length;
-    return `<ul class="bd">${shown.map((r) => `<li${r.odd ? ' class="odd"' : ''}><span class="bd__name">${esc(r.name)}</span>${segBar(r.segs, b.count)}<b>${r.n}</b>
-        ${r.segs.length > 1 ? `<span class="bd__segs">${r.segs.filter((s) => zeros || s.n).map((s) => `<span><i style="background:${s.c}"></i>${esc(s.label)} ${s.n}</span>`).join('')}</span>` : ''}</li>`).join('') || '<li class="muted">Nothing in this bucket.</li>'}</ul>
-      <button type="button" class="linkish bd__zeros" data-zeros>${zeros ? 'Hide zeros' : hidden ? `Show zeros (${hidden} empty row${hidden === 1 ? '' : 's'})` : 'Show zeros'}</button>`;
+    // a model is counted under the first row it does not clear, so a later row only sees the models
+    // no earlier row kept: say so, so a 0 is never read as a pass
+    let earlier = 0;
+    const unit = b.key === 'converted' ? 'check' : 'item';
+    const html = rows.map((r) => {
+      const reached = b.count - earlier;
+      const note = reached === 0 && earlier > 0 ? `not reached yet: all ${earlier} stop at an earlier ${unit}`
+        : r.n === 0 && reached > 0 ? (earlier ? `all ${reached} that got this far cleared it` : `all ${reached} cleared it`)
+        : earlier ? `${reached} got this far; ${earlier} stopped at an earlier ${unit}` : '';
+      earlier += r.n;
+      const pills = r.single ? '' : r.segs.filter((s) => zeros || s.n).map((s) => `<span class="bdpill${s.n ? '' : ' is-zero'}"><i style="background:${s.c}"></i>${esc(s.label)} <b>${s.n}</b></span>`).join('');
+      return `<li class="${r.odd ? 'odd' : ''}${r.n ? '' : ' is-empty'}">
+        <span class="bd__name">${esc(r.name)}</span>${segBar(r.segs, b.count)}<b class="bd__n">${r.n}</b>
+        ${pills || note ? `<span class="bd__under">${pills}${note ? `<span class="bd__note">${esc(note)}</span>` : ''}</span>` : ''}</li>`;
+    }).join('');
+    return `<ul class="bd">${html || '<li class="muted">Nothing in this bucket.</li>'}</ul>`;
   }
   /* the four buckets as one extruded arrow; the step the filter picks opens its breakdown below */
   const STEP_SHORT = { 'not converted': 'Not converted', converted: 'Converted, not yet checked', checked: 'Checked, awaiting approval', approved: 'Approved' };
@@ -705,8 +740,12 @@ table.mini code { font-size: 12px; }
     // the chosen bucket's breakdown, and its sum, under the arrow
     const b = lastBuckets.find((x) => x.key === filter);
     $('flow-bd').innerHTML = !b ? '<p class="muted flow__hint">Pick a step to see its breakdown and show only its models in the table.</p>'
-      : `<div class="flow__bd"><div class="head"><b>${esc(b.label)}: ${b.count}</b><button type="button" class="linkish" data-step="${esc(b.key)}">Show all models again</button></div>
-        ${b.parts ? `${breakdown(b)}<p class="stat__sum ${b.partsBalance ? '' : 'odd'}">${b.partsBalance ? '✓' : '✗'} its parts sum to ${b.partsSum}${b.partsBalance ? '' : `, not ${b.count}`}</p>` : `<p class="muted" style="margin:6px 0 0">One condition, no split: ${esc(b.means ?? '')}.</p>`}</div>`;
+      : `<div class="flow__bd">
+        <div class="bdhead">
+          <div><h3 class="bdhead__title">${esc(b.label)} <span class="bdhead__n">${b.count}</span></h3><p class="muted bdhead__means">${esc(b.means ?? '')}.</p></div>
+          <div class="bdhead__acts">${b.parts ? `<label class="bdtoggle"><input type="checkbox" data-zeros${showZeros ? ' checked' : ''}> Show zeros</label>` : ''}<button type="button" class="btn bdhead__all" data-step="${esc(b.key)}">Show all models again</button></div>
+        </div>
+        ${b.parts ? `${breakdown(b)}<p class="bdsum ${b.partsBalance ? '' : 'odd'}">${b.partsBalance ? '✓' : '✗'} Its parts sum to ${b.partsSum}${b.partsBalance ? '' : `, not ${b.count}`}</p>` : `<p class="muted" style="margin:6px 0 0">One condition, no split.</p>`}</div>`;
   }
   function pickStep(key) {
     filter = filter === key ? 'all' : key;
@@ -717,7 +756,8 @@ table.mini code { font-size: 12px; }
   for (const id of ['stats', 'flow-bd']) $(id).addEventListener('click', (e) => {
     const step = e.target.closest('[data-step]');
     if (step && L) { pickStep(step.dataset.step); return; }
-    if (e.target.closest('[data-zeros]')) { showZeros = !showZeros; try { localStorage.setItem('ledger-zeros', showZeros ? '1' : '0'); } catch {} renderStats(); }
+    const z = e.target.closest('[data-zeros]');
+    if (z) { showZeros = z.type === 'checkbox' ? z.checked : !showZeros; try { localStorage.setItem('ledger-zeros', showZeros ? '1' : '0'); } catch {} renderStats(); $('flow-bd').querySelector('[data-zeros]')?.focus({ preventScroll: true }); }
   });
 
   /* ---------- notes: collapsed to a badge; each closable; back when its content changes ---------- */
