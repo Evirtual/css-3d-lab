@@ -1286,6 +1286,7 @@ render();`,
       'One <code>@keyframes</code> block serves all three rings: <code>var(--tilt)</code> and <code>var(--spin)</code> inside the keyframe let each ring plug in its own numbers.',
       '<code>--spin</code> is always a whole number of turns (720deg, -720deg, 1080deg) so the ring\'s rotation ends exactly where it started — that is what makes the loop seamless.',
       'The core is a plain breathing <code>radial-gradient</code>, no blur or filter, which keeps the whole loader cheap to animate.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the rings are 132, 100 and 68 units across, so the loader is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="rings" role="img" aria-label="Loading">
