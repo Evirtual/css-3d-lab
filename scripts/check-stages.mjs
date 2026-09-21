@@ -100,6 +100,14 @@ const LOOK = `() => {
     }
   } finally {
     if (held) held.textContent = was;
+    // The forced :hover started transitions of its own, and taking it off again starts the way
+    // back. Left running, they are still there for the next reading, which then scrubs a way back
+    // instead of the hover (flip, businesscard and rollbutton read smaller on every surface reached
+    // by an action, because each of those is read twice). They are the check's own doing, so they
+    // go: the model is back at rest, as the visitor left it, and the next reading starts where
+    // this one did.
+    const before = new Set(animations);
+    for (const a of doc.getAnimations()) if (!before.has(a) && a.constructor.name === 'CSSTransition') a.cancel();
     for (const { a, t: time, state } of saved) { a.currentTime = time; if (state === 'running') a.play(); }
   }
   if (!Number.isFinite(l)) return null;
