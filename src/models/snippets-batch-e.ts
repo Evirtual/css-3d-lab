@@ -1354,6 +1354,7 @@ plot.addEventListener('pointercancel', up);`,
       'Each pin anchor is a zero-size point on the map. Its pulse ring is a child of that point, so it stays flat in the ground plane and spreads as an ellipse.',
       'The pin undoes the plane in reverse order, <code>rotateZ(14deg) rotateX(-54deg)</code>, around <code>transform-origin: 50% 100%</code>: its tip. It stands up exactly on its spot and faces you.',
       'Bounce keyframes repeat that inverse and add <code>translateY</code> and a squash <code>scale</code> after it, so the hop happens in screen space. <code>animation-delay: calc(var(--i) * 0.8s)</code> makes the pins take turns.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the map is 190 × 150 units and a pin 26 wide, so the scene is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="map">
@@ -1363,7 +1364,12 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the map is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.4vmin;
+  display: grid;
+  place-items: center;
+  perspective: calc(800 * var(--u));
 }
 
 .map {
