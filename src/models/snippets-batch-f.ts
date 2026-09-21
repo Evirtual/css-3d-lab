@@ -268,22 +268,30 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
   height: calc(63.39 * var(--u));
   transform-origin: 50% 100%;
   transform: rotateY(calc(var(--i) * 45deg)) translateZ(calc(30.73 * var(--u))) rotateX(29deg);
-  clip-path: polygon(50% 0, 0 100%, 100% 100%);
-  background: linear-gradient(to top, #ffa851, #ffcb7e);
+  /* the triangle is painted, not clipped: each half of the box is a gradient cut on its diagonal.
+     A clip-path in the sand, which is scaled every frame, makes the browser redraw the clipped
+     faces at every new scale, and that stalls the whole animation for seconds without a GPU */
+  --lo: #ffa851;
+  --hi: #ffcb7e;
+  background:
+    linear-gradient(to bottom right, transparent 50%, var(--hi) 50%, var(--lo)) left / 50% 100% no-repeat,
+    linear-gradient(to bottom left, transparent 50%, var(--hi) 50%, var(--lo)) right / 50% 100% no-repeat;
 }
 
 .sand i:nth-child(odd) {
-  background: linear-gradient(to top, #d18a41, #ffb547);
+  --lo: #d18a41;
+  --hi: #ffb547;
 }
 
-/* the flat face, 1.5 units inside the cone so it never touches the strips */
+/* the flat face, 1.5 units inside the cone so it never touches the strips. A disc, not an octagon:
+   it fits inside the eight sides, and it needs no clip-path (see above) */
 .sand b {
   position: absolute;
   top: calc(100% - 32.23 * var(--u));
   left: 0;
   width: calc(61.46 * var(--u));
   height: calc(61.46 * var(--u));
-  clip-path: polygon(29.29% 0, 70.71% 0, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0 70.71%, 0 29.29%);
+  border-radius: 50%;
   background: radial-gradient(circle, #ffd391, #ffa851);
   transform: rotateX(90deg) scale(0.95);
 }
@@ -345,11 +353,13 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
   43%   { transform: translateY(0) rotateZ(180deg) scale3d(0.794, 0.794, 0.794); animation-timing-function: linear; }
   60.5% { transform: translateY(0) rotateZ(180deg) scale3d(0.63, 0.63, 0.63); animation-timing-function: linear; }
   71%   { transform: translateY(0) rotateZ(180deg) scale3d(0.464, 0.464, 0.464); animation-timing-function: linear; }
-  78%, 100% { transform: translateY(0) rotateZ(180deg) scale3d(0.01, 0.01, 0.01); }
+  /* emptied: hidden as well as shrunk. A cone of 18 faces squeezed to a point is so degenerate
+     that the browser spends seconds sorting its faces in depth for every frame */
+  78%, 100% { transform: translateY(0) rotateZ(180deg) scale3d(0.01, 0.01, 0.01); visibility: hidden; }
 }
 
 @keyframes fill {
-  0%, 8% { transform: scale3d(0.01, 0.01, 0.01); animation-timing-function: linear; }
+  0%, 8% { transform: scale3d(0.01, 0.01, 0.01); visibility: hidden; animation-timing-function: linear; }
   15%    { transform: scale3d(0.464, 0.464, 0.464); animation-timing-function: linear; }
   25.5%  { transform: scale3d(0.63, 0.63, 0.63); animation-timing-function: linear; }
   43%    { transform: scale3d(0.794, 0.794, 0.794); animation-timing-function: linear; }
