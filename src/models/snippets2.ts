@@ -655,8 +655,8 @@ ${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" data-c="${c}" aria-h
       'A monospace font keeps the spacing even. Pick the radius so that <code>2πr ≈ count × character width</code>.',
       'Every length is a multiple of one base unit, <code>--u</code>: the radius is 52 of them, a character cell 36 × 64, so the ring is the same share of a gallery card, the editor and a recording canvas.',
       'The ring is as wide as it is allowed to be, so the number of characters decides how big each one is. Nine of them, <code>CSS 3D •</code>, are big enough to read on a gallery card; the thirteen and the twenty-four it had before were not.',
-      'The tilt is the other half of the height. At <code>rotateX(-28deg)</code> you look down on the ring, so the letter in front drops well below the ones at the sides and the word curves round instead of running across.',
-      'The letters stand on a rim: a <code>::after</code> circle of the same radius, laid flat with <code>rotateX(90deg)</code>. The letters only show their near half, but the rim shows all of it, so the back of the ring is still there to see.',
+      'The tilt is the other half of the height. At <code>rotateX(-32deg)</code> you look down on the ring, so the letter in front drops well below the ones at the sides and the word curves round instead of running across.',
+      'The letters stand on a rim: a <code>::after</code> circle of the same radius, laid flat with <code>rotateX(90deg)</code>. The letters only show their near half, but the rim shows all of it, so the back of the ring is still there to see. It is drawn nearly as solid as the letters: it is what holds the ring’s full height in every pose, so even a paused ring, with only three letters in front, stands as tall as the whole ring.',
       'What is drawn sits low — the near half of the letters and the front of the rim both drop below the middle — so <code>translateY</code> lifts the ring by part of that, which puts it back in the middle of the box. The spin starts at <code>-40deg</code>, so a paused ring faces you with CSS.',
     ],
     html: `<div class="scene">
@@ -703,18 +703,19 @@ ${[...RING_TEXT].map((c, i) => `    <span style="--i:${i}" aria-hidden="true">${
   width: calc(2 * var(--r));
   height: calc(2 * var(--r));
   box-sizing: border-box;
-  border: calc(1.5 * var(--u)) solid color-mix(in srgb, #2ee6d6 45%, transparent);
+  border: calc(1.5 * var(--u)) solid color-mix(in srgb, #2ee6d6 80%, transparent);
   border-radius: 50%;
   transform: rotateX(90deg);
 }
 
 /* The tilt is what lets you see the rim as a ring rather than a line, and it drops the letter in
-   front below the ones at the sides, so the word reads as going round. The lift puts what is
+   front below the ones at the sides, so the word reads as going round. At 32deg the rim stands
+   over 40vmin tall, so the ring is tall enough at any turn, paused included. The lift puts what is
    drawn back in the middle; starting at -40deg puts CSS, not the bullet, in front of a paused
    ring. */
 @keyframes ring-spin {
-  from { transform: translateY(calc(-14 * var(--u))) rotateX(-28deg) rotateY(-40deg); }
-  to   { transform: translateY(calc(-14 * var(--u))) rotateX(-28deg) rotateY(-400deg); }
+  from { transform: translateY(calc(-14 * var(--u))) rotateX(-32deg) rotateY(-40deg); }
+  to   { transform: translateY(calc(-14 * var(--u))) rotateX(-32deg) rotateY(-400deg); }
 }`,
   },
 
