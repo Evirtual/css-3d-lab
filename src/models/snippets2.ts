@@ -1030,7 +1030,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
       'Hovering the wrapper changes <code>--d</code> — one declaration moves all six faces.',
       'Because each face has a <code>transition</code> on <code>transform</code>, the change animates even though only a custom property was touched.',
       'Hover is detected on a larger, non-rotating wrapper so the target does not spin out from under the pointer.',
-      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the side is 110 units, so <code>--d</code> rests at 55 and hover pushes it to 115. The cube, and how far it flies apart, are the same share of a gallery card, the editor and a recording canvas.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the side is 110 units, so a closed cube would have <code>--d</code> at 55; it rests at 64, the faces standing a little apart so even a paused cube shows six loose panels, and hover pushes it to 108. The cube, and how far it flies apart, are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene" tabindex="0">
   <div class="cube">
@@ -1041,9 +1041,11 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the cube is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.23vmin;
+  --u: 0.28vmin;
   --s: calc(110 * var(--u));
-  --d: calc(var(--s) / 2);     /* distance of each face from the centre */
+  /* distance of each face from the centre: at rest a little more than half the side, so the
+     faces stand just apart and even a paused cube shows it is six loose panels */
+  --d: calc(64 * var(--u));
   display: grid;
   place-items: center;
   /* a hit area wider than the cube, so the pointer does not fall off it between the faces */
@@ -1055,7 +1057,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
 
 .scene:hover,
 .scene:focus {
-  --d: calc(115 * var(--u));
+  --d: calc(108 * var(--u));
 }
 
 .cube {
@@ -1088,8 +1090,8 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
 .cube > :nth-child(n + 5) { border-color: transparent; }
 
 @keyframes spin {
-  from { transform: rotateX(-24deg) rotateY(0deg); }
-  to   { transform: rotateX(-24deg) rotateY(360deg); }
+  from { transform: rotateX(-24deg) rotateY(-35deg); }
+  to   { transform: rotateX(-24deg) rotateY(325deg); }
 }`,
   },
 
