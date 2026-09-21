@@ -574,6 +574,7 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
       'From this angle only the top and two sides of a cube can ever be seen. So each cube is <b>one</b> element: the element is the top, and <code>::before</code> / <code>::after</code> are the sides, hinged on its edges and folded down.',
       'Every cube runs the same up-and-down animation. <code>--d</code> is row + column, so cubes on the same diagonal share a delay and the wave travels corner to corner.',
       'The cube never leaves its grid cell and only <code>transform</code> animates, so 16 cubes stay cheap.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a cube is 36 units, and the wave lifts it 44. The field is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="field">
