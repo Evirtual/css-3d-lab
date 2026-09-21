@@ -155,23 +155,82 @@ button, input { font: inherit; color: inherit; }
 .notice b.big { display: block; font-size: 15px; color: var(--text); }
 
 /* summary cards, like the hero stats */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 12px; }
-.stat { padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
-.stat b { display: block; font-size: 32px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; margin: 4px 0 2px; }
-.stat .sub { font-size: 12.5px; color: var(--muted); }
-.stat.conv b { color: var(--accent); }
-.stat.chk b { color: var(--accent-2); }
 /* the same gradient as the legend swatch, spread over the digits themselves: as a block it spans the
    whole card, and a short number at its left edge only ever shows the violet end */
-.stat.ok b { width: fit-content; background: var(--st-ok); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* ---------- the four buckets as one arrow, built like the site's models: a lit top face, a darker side ---------- */
+.flowwrap { --notch: 24px; --depth: 26px; margin-top: 14px; perspective: 2600px; perspective-origin: 50% 30%; }
+.flow { list-style: none; margin: 0; padding: 8px 4px calc(var(--depth) + 14px); display: flex; transform-style: preserve-3d; transform: rotateX(22deg); transform-origin: 50% 50%; }
+.flow__li { flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1 + 8px); transform-style: preserve-3d; }
+.flow__li:first-child { margin-left: 0; }
+.step { --c: var(--muted); position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; transform-style: preserve-3d; transition: transform 0.25s ease; }
+.step--2 { --c: var(--accent); }
+.step--3 { --c: var(--accent-2); }
+.step--4 { --c: var(--hot); }
+.step__body { position: relative; display: block; height: 122px; transform-style: preserve-3d; }
+.step__top, .step__side { position: absolute; left: 0; right: 0; }
+.step__top { top: 0; bottom: 0; overflow: hidden; background: color-mix(in srgb, var(--c) 16%, var(--surface-solid));
+  clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%, var(--notch) 50%); }
+.step--1 .step__top { clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%); }
+.step--4 .step__top { clip-path: polygon(0 0, calc(100% - var(--notch) * 2) 0, 100% 50%, calc(100% - var(--notch) * 2) 100%, 0 100%, var(--notch) 50%); }
+/* the extrusion: hangs from the front edge and folds back under the top face */
+.step__side { top: 100%; height: var(--depth); left: var(--notch); right: var(--notch); transform-origin: 50% 0; transform: rotateX(-90deg); background: color-mix(in srgb, var(--c) 42%, #03040a); }
+.step--1 .step__side { left: 0; }
+.step--4 .step__side { right: calc(var(--notch) * 2); }
+.step__fill { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--full) * 100%); background: color-mix(in srgb, var(--c) 22%, transparent); }
+.step__text { position: relative; display: grid; align-content: center; height: 100%; padding: 8px calc(var(--notch) + 10px) 8px calc(var(--notch) + 14px); }
+.step--1 .step__text { padding-left: 16px; }
+.step--4 .step__text { padding-right: calc(var(--notch) * 2 + 8px); }
+.step__label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); line-height: 1.25; }
+.step__n { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--c); }
+.step--1 .step__n { color: var(--text); }
+.step--4 .step__n { width: fit-content; background: var(--st-ok); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.step__sub { font-size: 11.5px; line-height: 1.3; color: var(--muted); }
+/* where the work is: raised, and lit more strongly */
+.step.has-work { transform: translateZ(12px); }
+.step.has-work .step__top { background: color-mix(in srgb, var(--c) 30%, var(--surface-solid)); }
+.step--4.has-work .step__top { background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 45%, var(--surface-solid)), color-mix(in srgb, var(--hot) 45%, var(--surface-solid))); }
+.step:hover { transform: translateZ(18px); }
+.step[aria-pressed="true"] { transform: translateZ(22px); }
+.step[aria-pressed="true"] .step__top { box-shadow: inset 0 -4px 0 var(--c); }
+.step[aria-pressed="true"] .step__label { color: var(--text); }
+.step:focus-visible { outline: none; }
+.step:focus-visible .step__label { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 4px; }
+.flow__hint { margin: 0; font-size: 13px; }
+.flow__bd { margin-top: 4px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.flow__bd .bd li { grid-template-columns: minmax(0, 8em) minmax(0, 1fr) auto; }
+@media (prefers-reduced-motion: reduce) { .step { transition: none; } }
+/* narrow screens and phones: the arrow runs top to bottom, flat, each step pointing down into the next */
+@media (max-width: 900px) {
+  .flowwrap { perspective: none; --notch: 14px; }
+  .flow { flex-direction: column; transform: none; padding: 0 0 6px; }
+  .flow__li { margin: calc(var(--notch) * -1 + 4px) 0 0; }
+  .flow__li:first-child { margin-top: 0; }
+  .step, .step.has-work, .step:hover, .step[aria-pressed="true"] { transform: none; }
+  .step__body { height: 86px; }
+  .step__top, .step--1 .step__top, .step--4 .step__top { clip-path: polygon(0 0, 50% var(--notch), 100% 0, 100% calc(100% - var(--notch)), 50% 100%, 0 calc(100% - var(--notch))); }
+  .step--1 .step__top { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), 50% 100%, 0 calc(100% - var(--notch))); }
+  .step__side { display: none; }
+  .step__text, .step--1 .step__text, .step--4 .step__text { padding: calc(var(--notch) + 2px) 16px calc(var(--notch) + 2px); grid-template-columns: 1fr auto; align-items: center; column-gap: 12px; }
+  .step--1 .step__text { padding-top: 10px; }
+  .step__label { grid-column: 1; }
+  .step__n { grid-column: 2; grid-row: 1 / span 2; font-size: 26px; }
+  .step__sub { grid-column: 1; }
+}
 .bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 16px; background: color-mix(in srgb, var(--muted) 22%, transparent); }
 .bar span { display: block; height: 100%; }
-.parts { list-style: none; padding: 0; margin: 10px 0 0; font-size: 12.5px; }
-.parts li { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; color: var(--muted); }
-.stat .parts li b { display: inline; font-size: 12.5px; font-weight: 700; line-height: inherit; margin: 0; color: var(--text); background: none; -webkit-text-fill-color: currentColor; }
-.parts li.psum { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px; }
-.parts li.psum span { color: var(--accent-2); font-weight: 600; }
-.parts li.odd, .parts li.odd span, .stat .parts li.odd b { color: var(--hot); }
+.stat__sum { margin: 0; font-size: 12px; font-weight: 600; color: var(--accent-2); font-variant-numeric: tabular-nums; }
+.stat__sum.is-plain { color: var(--muted); font-weight: 500; }
+.stat__sum.odd { color: var(--hot); }
+.bd { list-style: none; padding: 0; margin: 0; font-size: 12.5px; }
+.bd li { display: grid; grid-template-columns: minmax(0, 7em) minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; padding: 3px 0; color: var(--muted); }
+.bd li.odd, .bd li.odd .bd__name { color: var(--hot); }
+.bd__name { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+.bd li > b { display: inline; margin: 0; font-size: 12.5px; line-height: inherit; font-weight: 700; color: var(--text); background: none; -webkit-text-fill-color: currentColor; }
+.seg { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--muted) 16%, transparent); }
+.seg i { display: block; height: 100%; }
+.bd__segs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 11.5px; }
+.bd__segs i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: 0; }
+.bd__zeros { margin-top: 6px; font-size: 12px; }
 .balance { margin-top: 12px; padding: 8px 12px; border-radius: 10px; font-size: 14px; font-variant-numeric: tabular-nums; }
 .balance.ok { border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, transparent); }
 .balance.ok .tick { color: var(--accent-2); font-weight: 900; }
@@ -240,6 +299,12 @@ button, input { font: inherit; color: inherit; }
 .tchip b { font-variant-numeric: tabular-nums; opacity: 0.65; }
 .tchip:hover:not(:disabled) { color: var(--text); border-color: var(--border-strong); }
 .tchip[aria-pressed="true"] { color: var(--bg); background: var(--accent-2); border-color: var(--accent-2); }
+/* five long status names: below 1100px the tabs take a row of their own and may wrap, rather than push the bar wider than the page */
+@media (max-width: 1100px) {
+  .fbar__controls { flex: 1 1 100%; }
+  .tabs { flex: 1 1 auto; min-width: 0; }
+  .tab { flex: 1 1 0; min-width: 0; white-space: normal; line-height: 1.2; }
+}
 @media (max-width: 600px) {
   .fbar { padding: 12px 12px 10px; }
   /* phones: [search][#] on one row, the status tabs full width under it */
@@ -355,7 +420,6 @@ table.mini code { font-size: 12px; }
 @media (max-width: 640px) {
   .hero { padding: 20px 16px 18px; }
   .panel { padding: 16px 14px; }
-  .stat b { font-size: 26px; }
   th, td { padding: 8px 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .flash > td { animation: none; } .progress .track span { transition: none; } }
@@ -384,10 +448,11 @@ table.mini code { font-size: 12px; }
       <button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" hidden></button>
       <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
     </div>
-    <div class="stats" id="stats"></div>
+    <div class="flowwrap" id="stats"></div>
+    <p class="balance" id="balance" role="status"></p>
+    <div id="flow-bd"></div>
     <div class="bar" id="bar" role="img"></div>
     <div class="legend" id="legend"></div>
-    <p class="balance" id="balance" role="status"></p>
     <p class="reached" id="reached"></p>
     <p class="rules" id="rules"></p>
   </section>
@@ -526,6 +591,67 @@ table.mini code { font-size: 12px; }
   let flash = new Set();
 
   const rowSig = (m) => JSON.stringify([m.status, m.converted, m.convertedInHead, ...COLS.map(([k]) => [m.checks[k]?.status, m.checks[k]?.stale, m.checks[k]?.ranAt]), m.commits.length, (m.reviews ?? []).map((r) => [r.kind, r.verdict, r.stale])]);
+
+  /* ---------- summary cards: same height; breakdowns behind a disclosure, sums always shown ---------- */
+  let lastBuckets = [];
+  let showZeros = false;
+  try { showZeros = localStorage.getItem('ledger-zeros') === '1'; } catch {}
+  const SHORT = { 'not converted': 'no --u in vmin yet', converted: 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
+  const KIND = [['stale-pass', 'older code', 'var(--warm)'], ['failed', 'failed', 'var(--hot)'], ['never', 'never run', 'color-mix(in srgb, var(--muted) 55%, transparent)']];
+  const GATE_NAME = { models: 'contract', stages: 'stages', motion: 'motion', exports: 'exports' };
+  const segBar = (segs, total) => `<span class="seg" aria-hidden="true">${segs.filter((s) => s.n).map((s) => `<i style="width:${(100 * s.n) / Math.max(1, total)}%;background:${s.c}"></i>`).join('')}</span>`;
+  function breakdown(b) {
+    const zeros = showZeros;
+    let rows;
+    if (b.key === 'converted') {
+      // one row per check, in the stated order: older code / failed / never run
+      const gates = [...new Set(b.parts.filter((p) => p.gate).map((p) => p.gate))];
+      rows = gates.map((g) => {
+        const segs = KIND.map(([k, label, c]) => ({ label: g === 'motion' && k === 'failed' ? 'open flag or broke' : g === 'exports' && k === 'never' ? 'never run at defaults' : g === 'motion' && k === 'stale-pass' ? 'clear on older code' : label, n: b.parts.find((p) => p.key === `${g}:${k}`)?.count ?? 0, c }));
+        const n = segs.reduce((s, x) => s + x.n, 0);
+        return { name: GATE_NAME[g] ?? g, n, segs };
+      });
+    } else {
+      rows = b.parts.map((p) => ({ name: p.label, n: p.count, segs: [{ label: '', n: p.count, c: p.key === 'problem' || p.key === 'unexplained' ? 'var(--hot)' : p.key === 'stale-review' ? 'var(--warm)' : 'var(--accent)' }], odd: p.key === 'unexplained' }));
+    }
+    const shown = rows.filter((r) => zeros || r.n);
+    const hidden = rows.length - shown.length;
+    return `<ul class="bd">${shown.map((r) => `<li${r.odd ? ' class="odd"' : ''}><span class="bd__name">${esc(r.name)}</span>${segBar(r.segs, b.count)}<b>${r.n}</b>
+        ${r.segs.length > 1 ? `<span class="bd__segs">${r.segs.filter((s) => zeros || s.n).map((s) => `<span><i style="background:${s.c}"></i>${esc(s.label)} ${s.n}</span>`).join('')}</span>` : ''}</li>`).join('') || '<li class="muted">Nothing in this bucket.</li>'}</ul>
+      <button type="button" class="linkish bd__zeros" data-zeros>${zeros ? 'Hide zeros' : hidden ? `Show zeros (${hidden} empty row${hidden === 1 ? '' : 's'})` : 'Show zeros'}</button>`;
+  }
+  /* the four buckets as one extruded arrow; the step the filter picks opens its breakdown below */
+  const STEP_SHORT = { 'not converted': 'Not converted', converted: 'Converted, not yet checked', checked: 'Checked, awaiting approval', approved: 'Approved' };
+  function renderStats() {
+    const total = lastBuckets.reduce((s, b) => s + b.count, 0) || 1;
+    $('stats').innerHTML = `<ol class="flow">${lastBuckets.map((b, i) => {
+      const on = filter === b.key;
+      const full = b.count / total;
+      return `<li class="flow__li"><button type="button" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-step="${esc(b.key)}" aria-pressed="${on}"
+          aria-label="${esc(STEP_SHORT[b.key] ?? b.label)}: ${b.count} of ${total} models. ${on ? 'Showing only these; press again to show all' : 'Show only these in the table, with the breakdown'}">
+        <span class="step__body" aria-hidden="true">
+          <span class="step__top"><span class="step__fill" style="--full:${full}"></span>
+            <span class="step__text"><span class="step__label">${esc(STEP_SHORT[b.key] ?? b.label)}</span><span class="step__n">${b.count}</span><span class="step__sub">${esc(SHORT[b.key] ?? '')}</span></span></span>
+          <span class="step__side"></span>
+        </span></button></li>`;
+    }).join('')}</ol>`;
+    // the chosen bucket's breakdown, and its sum, under the arrow
+    const b = lastBuckets.find((x) => x.key === filter);
+    $('flow-bd').innerHTML = !b ? '<p class="muted flow__hint">Pick a step to see its breakdown and show only its models in the table.</p>'
+      : `<div class="flow__bd"><div class="head"><b>${esc(b.label)}: ${b.count}</b><button type="button" class="linkish" data-step="${esc(b.key)}">Show all models again</button></div>
+        ${b.parts ? `${breakdown(b)}<p class="stat__sum ${b.partsBalance ? '' : 'odd'}">${b.partsBalance ? '✓' : '✗'} its parts sum to ${b.partsSum}${b.partsBalance ? '' : `, not ${b.count}`}</p>` : `<p class="muted" style="margin:6px 0 0">One condition, no split: ${esc(b.means ?? '')}.</p>`}</div>`;
+  }
+  function pickStep(key) {
+    filter = filter === key ? 'all' : key;
+    limit = PAGE; saveView();
+    renderFilterChips(); renderRows(); renderStats();
+    $('stats').querySelector(`[data-step="${CSS.escape(key)}"]`)?.focus({ preventScroll: true });
+  }
+  for (const id of ['stats', 'flow-bd']) $(id).addEventListener('click', (e) => {
+    const step = e.target.closest('[data-step]');
+    if (step && L) { pickStep(step.dataset.step); return; }
+    if (e.target.closest('[data-zeros]')) { showZeros = !showZeros; try { localStorage.setItem('ledger-zeros', showZeros ? '1' : '0'); } catch {} renderStats(); }
+  });
 
   /* ---------- notes: collapsed to a badge; each closable; back when its content changes ---------- */
   let NOTES = []; // [{ key, html, col? }]
@@ -673,10 +799,8 @@ table.mini code { font-size: 12px; }
     const sum = buckets.reduce((s, b) => s + b.count, 0);
     const bal = c.balance ?? { ok: sum === n, sum, models: n, problems: sum === n ? [] : [`the buckets sum to ${sum}, not ${n}`] };
     const cls = { 'not converted': 'none', converted: 'conv', checked: 'chk', approved: 'ok' };
-    $('stats').innerHTML = buckets.map((b) => `<div class="stat ${cls[b.key] ?? ''}"><span class="label">${esc(b.label)}</span><b>${b.count}</b>
-        <span class="sub">${esc(b.means ?? '')}</span>
-        ${b.parts ? `<ul class="parts">${b.parts.map((p) => `<li${p.key === 'unexplained' ? ' class="odd"' : ''}><span>${esc(p.label)}</span><b>${p.count}</b></li>`).join('')}
-          <li class="psum ${b.partsBalance ? '' : 'odd'}"><span>${b.partsBalance ? '✓ sums to' : '✗ sums to'}</span><b>${b.partsSum}</b></li></ul>` : ''}</div>`).join('');
+    lastBuckets = buckets;
+    renderStats();
     $('balance').className = `balance ${bal.ok ? 'ok' : 'bad'}`;
     $('balance').innerHTML = bal.ok
       ? `<span class="tick" aria-hidden="true">✓</span> <b>Total ${buckets.map((b) => b.count).join(' + ')} = ${bal.sum}</b>, which is every one of the ${bal.models} models, each in exactly one bucket.`
@@ -732,6 +856,7 @@ table.mini code { font-size: 12px; }
     $('tags-row').hidden = !tagsOpen;
     $('q-clear').hidden = !query;
     if ($('q').value !== query) $('q').value = query;
+    if (lastBuckets.length) renderStats();
     queueMicrotask(() => { groupsScroll.reveal($('f-group').querySelector('.group[aria-pressed="true"]')); tagsScroll.update(); });
   }
   function onFilterClick(e) {
