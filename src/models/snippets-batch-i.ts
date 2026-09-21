@@ -604,6 +604,7 @@ ${BOOKS.map(
       'The whole atom turns slowly around Y. The core and every glow turn back by exactly as much with a second animation of the same length (reverse order, reverse signs), so nothing flat ever goes edge-on.',
       'A trail is just more copies of a dot running the same animation a little later (<code>--lag</code>), each smaller and fainter. Every delay has one full lap subtracted, so all of them are negative and no dot waits at the centre when the page loads.',
       'Laps are whole turns and the animations are <code>linear</code>, so the loop has no seam; three lap times (1.6s, 2.4s, 3.3s) and one reversed ring keep it from ever looking in sync.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the orbits are 76 units in radius and a dot 12 across, so the atom is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="atom" role="img" aria-label="Loading">
