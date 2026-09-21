@@ -803,7 +803,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
       'The index runs −2…2, so <code>rotateZ(calc(var(--i) * 16deg))</code> fans symmetrically around an upright middle card.',
       'A few units of <code>translateZ</code> per card gives each its own depth, which avoids flicker where they overlap.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the hand is the same share of a gallery card, the editor and a recording canvas.',
-      'How far below the card the pivot sits is what decides the width: the further down, the flatter the arc and the wider the spread. At 170% the open hand was a third wider than the canvas, so the pivot came up to 150% and the same 16° fans into an arc the band can hold. The outer cards also swing downward, so the scene carries a little padding under it and the open hand and the closed one share the miss rather than one of them being centred and the other not.',
+      'How far below the card the pivot sits is what decides the width: the further down, the flatter the arc and the wider the spread. At 170% the open hand was a third wider than the canvas, so the pivot came up to 150% and the same 16° fans into an arc the band can hold. The outer cards also swing downward, so the hand is lifted 23 units with <code>translateY</code> and the open hand and the closed one share the miss rather than one of them being centred and the other not.',
     ],
     html: `<div class="scene">
   <div class="hand">
