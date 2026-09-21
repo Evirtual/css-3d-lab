@@ -534,6 +534,7 @@ setInterval(function () {
       'Two copies of the text sit on that floor, half an animation apart (<code>animation-delay: -15s</code> on the second), so the crawl is never empty while one copy finishes and the other is only half way up.',
       'The fade into the distance is a plain gradient overlay <b>on top of</b> the tipped plane, not a mask on it — masking a 3D ancestor would flatten the whole scene.',
       'Only <code>transform: translateY(...)</code> animates the text, so the scroll runs on the compositor even though the paragraphs are long.',
+      'The crawl fills the canvas (<code>inset: 0</code>); the plane, the text and the fade are multiples of one base unit, <code>--u</code>, tied to the canvas, so the crawl reads the same on a gallery card and on a full screen.',
     ],
     html: `<div class="crawl">
   <div class="plane">
@@ -553,13 +554,16 @@ setInterval(function () {
   <div class="fade"></div>
 </div>`,
     css: `.crawl {
+  /* one base unit: every length below is a multiple of it, so the crawl is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.36vmin;
   position: fixed;
   inset: 0;
   overflow: hidden;
   background: #05060f;
   /* the camera sits at the bottom edge; with the plane tipped back 55deg the text converges on
      a vanishing line above the bottom, whatever the box's own size */
-  perspective: 420px;
+  perspective: calc(420 * var(--u));
   perspective-origin: 50% 100%;
 }
 
@@ -570,8 +574,8 @@ setInterval(function () {
   right: 0;
   bottom: 0;
   left: 0;
-  width: min(74%, 310px);
-  height: 950px;
+  width: min(74%, 310 * var(--u));
+  height: calc(950 * var(--u));
   margin: 0 auto;
   overflow: hidden;
   transform: rotateX(55deg);
@@ -587,7 +591,7 @@ setInterval(function () {
   left: 0;
   margin: 0;
   color: #ffb547;
-  font-size: 17px;
+  font-size: calc(17 * var(--u));
   font-weight: 700;
   line-height: 1.45;
   text-align: justify;
@@ -615,19 +619,19 @@ setInterval(function () {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 12% 18%, #fff 0.7px, transparent 1.3px),
-    radial-gradient(circle at 31% 9%, #cfd6ff 0.7px, transparent 1.3px),
-    radial-gradient(circle at 55% 22%, #fff 1px, transparent 1.7px),
-    radial-gradient(circle at 72% 12%, #ffe9c2 0.7px, transparent 1.3px),
-    radial-gradient(circle at 88% 27%, #fff 0.7px, transparent 1.3px),
-    radial-gradient(circle at 22% 34%, #cfd6ff 0.7px, transparent 1.3px),
-    radial-gradient(circle at 93% 6%, #fff 1px, transparent 1.7px),
-    linear-gradient(to top, transparent 90px, #05060f 185px);
+    radial-gradient(circle at 12% 18%, #fff calc(0.7 * var(--u)), transparent calc(1.3 * var(--u))),
+    radial-gradient(circle at 31% 9%, #cfd6ff calc(0.7 * var(--u)), transparent calc(1.3 * var(--u))),
+    radial-gradient(circle at 55% 22%, #fff calc(1 * var(--u)), transparent calc(1.7 * var(--u))),
+    radial-gradient(circle at 72% 12%, #ffe9c2 calc(0.7 * var(--u)), transparent calc(1.3 * var(--u))),
+    radial-gradient(circle at 88% 27%, #fff calc(0.7 * var(--u)), transparent calc(1.3 * var(--u))),
+    radial-gradient(circle at 22% 34%, #cfd6ff calc(0.7 * var(--u)), transparent calc(1.3 * var(--u))),
+    radial-gradient(circle at 93% 6%, #fff calc(1 * var(--u)), transparent calc(1.7 * var(--u))),
+    linear-gradient(to top, transparent calc(90 * var(--u)), #05060f calc(185 * var(--u)));
   pointer-events: none;
 }
 
 @keyframes crawl-roll {
-  from { transform: translateY(950px); }
+  from { transform: translateY(calc(950 * var(--u))); }
   to   { transform: translateY(-100%); }
 }`,
   },
