@@ -32,11 +32,11 @@
   {
     "model": "solar",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:07:40+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Orbits sit centred and within the band (about 70 x 46vmin); the paused frame has every planet placed and the faint rings read on both themes.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "New start spreads the planets round the sun, centred at rest (60 x 49vmin); orbits and billboarded planets run cleanly and the rings read on both stages. The how steps still match.",
     "motionFlagsResolved": []
   },
   {
@@ -52,15 +52,15 @@
   {
     "model": "package",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:07:40+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The rest pose, which is what a paused card shows, is a closed box only about 38 x 32vmin, under the 40vmin floor, and sitting about 10vmin below the canvas middle, so the card reads as a small box low in empty space; only the open state reaches 56vmin, which is why the size check passes.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "At rest the lid stands ajar with the card peeking over the rim, a larger box (44 x 54vmin) centred on a paused card; hover lifts the lid past vertical and raises the card without it passing through the lid, and both stages read. Reads as a box to open, not a squeezed one.",
     "motionFlagsResolved": [
       {
-        "flag": "hover div.package: its hit area is mostly over empty canvas (60 of 81 reachable points draw nothing)",
-        "reason": "The oversized hit area is deliberate room for the lid and card that rise on hover, so the pointer stays on it while it opens; it is invisible and inside the canvas."
+        "flag": "hover div.package: its hit area is mostly over empty canvas (53 of 81 reachable points draw nothing)",
+        "reason": "The oversized hit area is room for the lid and card that rise on hover, so the pointer stays on it while it opens; it is invisible and inside the canvas."
       }
     ]
   },
@@ -215,21 +215,12 @@
   {
     "model": "magnet",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:10:32+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The model is the 'Pull me' button, which is only about 55 x 20vmin on a card; the 84 x 61vmin that passes the size check is the dashed field outline, which is barely visible on the dark stage and a harsh black dashed box on the light one. A model that is itself a control should fill the 70vmin box, so on dark it reads as a lone small button.",
-    "motionFlagsResolved": [
-      {
-        "flag": "hold button.btn \"Pull me\" down: changes nothing on screen",
-        "reason": "Pressing the button does get feedback: the click toggles the teal glow under it (strip 'press' row); the hold state is a 0.2s :active change too small to see, not a broken state."
-      },
-      {
-        "flag": "let go of button.btn \"Pull me\": changes nothing on screen",
-        "reason": "Same as holding: releasing leaves the glow the click set, which is the intended feedback; nothing is stuck or jumps."
-      }
-    ]
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "The button is now a big two-line Pull me tile (60 x 45vmin) on a faint violet pad that reads on both stages, centred; it leans and shifts toward the pointer with the label sliding apart, and springs home. It fills less of the box than a 70vmin control model could, but reads as the model, not a lone small button.",
+    "motionFlagsResolved": []
   },
   {
     "model": "ferris",
@@ -259,15 +250,15 @@
   {
     "model": "browser",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:10:32+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Isometric browser window with lifting layers, about 85 x 48vmin; at rest it sits about 6vmin below centre by solid ink, noticeable only side by side with the running pose.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "The window now bobs up from its layout box, so a paused card is centred (85 x 47vmin); hover lifts the layers apart and the focus ring is drawn round the wrapper. Reads on both stages.",
     "motionFlagsResolved": [
       {
-        "flag": "hover div.browser: its hit area is mostly over empty canvas (57 of 81 reachable points draw nothing)",
-        "reason": "The hover target is the tilted browser panel itself; its bounding box is mostly empty because an isometric parallelogram fills only part of its box, not because the hit area reaches past the drawing."
+        "flag": "hover div.browser: its hit area is mostly over empty canvas (59 of 81 reachable points draw nothing)",
+        "reason": "The hover target is the static wrapper round the isometric window, whose parallelogram fills only part of its box; invisible and inside the canvas."
       }
     ]
   },
@@ -344,11 +335,11 @@
   {
     "model": "crawl",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:10:32+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Full-canvas crawl: the first frame, which a paused card shows, is the crawl already far off, a smudge of illegible orange lines mid-canvas with no 'EPISODE 3D' title in view, so the card neither looks finished nor has any readable text; the title only appears later in the loop.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Full-canvas crawl whose first frame now has the EPISODE 3D title and the opening paragraph in view, legible on a card and crisp full screen; the second copy follows half a loop later so it is never empty. It paints its own space, so it is the same on both stages. (A light strip at the right of the light-stage captures is the embed page's 15px gutter outside the frame, not the model.)",
     "motionFlagsResolved": []
   },
   {
@@ -461,15 +452,15 @@
   {
     "model": "explode",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:12:19+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The rest pose, which is what a paused card shows, is a closed cube only about 28 x 33vmin, under the 40vmin floor and small in an empty card; only the exploded state (58 x 45vmin) is big enough, which is why the size check passes.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Rests as a larger cube with its faces just apart (48 x 47vmin), centred and clearly six loose panels; hover blows them out to 71 x 57vmin and they close back without crossing. Pink glass reads on both stages.",
     "motionFlagsResolved": [
       {
-        "flag": "hover div.scene: its hit area is mostly over empty canvas (66 of 81 reachable points draw nothing)",
-        "reason": "The hover target is deliberately the whole scene, so the pointer stays on it while the faces fly out to the exploded size; it is invisible and inside the canvas."
+        "flag": "hover div.scene: its hit area is mostly over empty canvas (58 of 81 reachable points draw nothing)",
+        "reason": "The hover target is the whole scene so the pointer stays on it while the faces fly out; it is invisible and inside the canvas."
       }
     ]
   },
@@ -575,31 +566,31 @@
   {
     "model": "net",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:15:01+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The rest pose, which a paused card shows, is the folded cube at only about 19 x 25vmin, a speck in the middle of the card and far under the 40vmin floor; it only reaches size while unfolding (up to 82 x 68 over the loop), which is why the size check passes.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "The paused card is now full-sized (55 x 46vmin, centred), but it is the net seen dead face-on: a flat plus sign of translucent squares with no depth cue, so a paused card reads as a 2D icon, not a cube net lying open (the mid-loop frames, where the open net lies tilted in perspective, show what it should look like). And for about a third of the loop the folded cube is still only about 19 x 25vmin in the middle of the card. On the light stage the orange and teal faces are very pale. A tilted first frame, the net seen lying on a floor, would make the rest pose read as 3D.",
     "motionFlagsResolved": []
   },
   {
     "model": "shapeshift",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:15:01+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Hexagonal prism over a '6 sides' caption and a Sides slider pill in the control zone, stack about 43 x 63vmin and centred; the slider reads on both themes.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Opens on a whole hexagonal prism (43 x 63vmin with the control zone, centred) instead of an empty first frame; the slider rebuilds 3 to 12 sides with panels growing from the axis, and the caption and slider read on both stages. The how steps describe the .grow scoping.",
     "motionFlagsResolved": []
   },
   {
     "model": "tetra",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:15:01+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "At rest and through most of the turn the tetrahedron's solid body sits about 8vmin above the canvas middle (paused 57 x 50vmin, offset -8), so the card has a visibly larger gap below it than above; the limit is 4vmin, and it only passes because the union of every pose over the turn is centred.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Paused on a square, centred pose (43 x 49vmin); the tumble stays centred, the glass faces never z-fight, and the core stays a round glow. Reads on both stages.",
     "motionFlagsResolved": []
   },
   {
@@ -728,11 +719,11 @@
   {
     "model": "layertext",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:17:13+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Layered 'GO DEEP' lettering centred at about 73-81 x 55vmin; on a light stage the white faces wash out and read mainly by their pink edges, weaker than on dark but still legible.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "GO DEEP starts a third into its rock, centred at rest (80 x 56vmin), big and legible, with the stacked side wall turning correctly. On the light stage the white faces read mainly by their pink walls; weaker than on dark but legible.",
     "motionFlagsResolved": []
   },
   {
@@ -758,11 +749,11 @@
   {
     "model": "textring",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:17:13+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Ring of 'CSS 3D' letters on a faint ellipse, about 72-85 x 33-37vmin by solid ink, so it sits under the 40vmin height floor while being wide; it does not read as a speck and the letters are legible, but a fixer tightening sizes may want to look.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Not gaming the ruler. The letters themselves are big (glyphs about a quarter of the canvas tall; CSS reads clearly on a card) and the rim is a real, clearly drawn ring they stand on, so the 84 x 45vmin the check measures is what the eye reads as the ring. For a couple of seconds each turn only the bullet and edge-on letters face you, so the ring looks sparse then, but the rim keeps it whole. Teal on the light stage is low contrast yet legible at this letter size.",
     "motionFlagsResolved": []
   },
   {
@@ -833,11 +824,11 @@
   {
     "model": "dropdown",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:17:13+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "At rest (what a paused card shows) only the closed 'Menu' bar is drawn: about 56 x 13vmin sitting 24vmin above the canvas middle, a thin strip near the top of an empty card. And on a light stage the open menu's item labels (Profile, Projects, Settings, Sign out) are invisible: they inherit the dark stage text colour onto the menu's hard-coded dark panel.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Rests with the items hanging as tilted slats under the Menu button (60 x 62vmin, centred), so a paused card shows a menu; hover swings them flat in order and closes bottom-up. The item labels now set their own light colour and read on the light stage. On a dark card the resting slat labels are small and dim but legible.",
     "motionFlagsResolved": []
   },
   {
@@ -929,11 +920,11 @@
   {
     "model": "radial",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:19:22+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "At rest (what a paused card shows) the radial menu is only its closed '+' button, about 16 x 15vmin in the middle of an empty card: a speck, far under the 40vmin floor, for a model that is itself a control and should fill the 70vmin box. It only reaches size when opened.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Rests as a bud of five coloured chips round a larger + button, 47 x 43vmin and centred, so a paused card shows a menu; opening walks the five out into a ring (69 x 65vmin) round a fixed button, closing reverses it, icons read on both stages. The batch run of check-models reported radial at rest as 24vmin tall, but run alone it measures 47 x 43 and a direct capture of the first frame agrees, so that was an order-dependent measuring artefact, not the model.",
     "motionFlagsResolved": []
   },
   {
@@ -1019,21 +1010,21 @@
   {
     "model": "cardfan",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:19:22+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "At rest (what a paused card shows) the fan is closed: a single playing card, about 31 x 39vmin, just under the 40vmin floor and not reading as a fan at all; the fan only opens mid-loop (78 x 47vmin), which is why the size check passes.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Rests as a gathered hand spread 7 degrees a card (59 x 44vmin, centred), so a paused card reads as a hand of five, and fans out and back without cards crossing. On the gathered hand the Q index is partly covered and reads a little like C; minor.",
     "motionFlagsResolved": []
   },
   {
     "model": "book",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:19:22+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "At rest (what a paused card shows) the closed book sits about 18vmin right of the canvas middle (37 x 48vmin, offset 18, 5), visibly off-centre; only the open book (65 x 60vmin) is centred, which is why the union passes.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "The shut book is centred on a paused card (37 x 48vmin) and the open book stays centred as the spine slides over (65 x 61vmin); cover and pages open and shut in order with nothing passing through, on both stages. The how steps match the sliding spine.",
     "motionFlagsResolved": []
   },
   {
@@ -1100,15 +1091,15 @@
   {
     "model": "greeting",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:21:14+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "At rest (what a paused card shows) the closed 'For you' card is only about 26vmin wide and sits about 13vmin right of the canvas middle, because it is folded shut on a hinge at the centre; the open card (61 x 56vmin) is centred, which is why the union passes.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "The half-open card is centred at rest (26 x 61vmin, a tall standing card) and the open card is centred after the hover swing; the heart halves meet cleanly, the For you and Happy day! text reads on both stages.",
     "motionFlagsResolved": [
       {
-        "flag": "hover div.greeting: its hit area is mostly over empty canvas (60 of 81 reachable points draw nothing)",
-        "reason": "The hover target is sized to the card's open footprint so the pointer does not fall off it as the card opens; it is invisible and inside the canvas."
+        "flag": "hover div.greeting: its hit area is mostly over empty canvas (62 of 81 reachable points draw nothing)",
+        "reason": "The hover target is sized to the open card so the pointer does not fall off it as the card swings open and slides; it is invisible and inside the canvas."
       }
     ]
   },
@@ -1175,11 +1166,11 @@
   {
     "model": "wavegrid",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:21:14+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The wave grid's solid body sits about 6vmin above the canvas middle at rest and about 9vmin above mid-loop (89-90 x 44-45vmin), leaving a visibly larger gap below than above on a card; the limit is 4vmin.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Centred at rest (81 x 45vmin) on an even moment of the ripple; the wave rides centred through the loop with no seam. On the light stage the lower, darker cells go pale peach but the grid still reads.",
     "motionFlagsResolved": []
   },
   {
@@ -1195,15 +1186,15 @@
   {
     "model": "cubeloader",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:21:14+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The first frame, which a paused card shows, has only two of the four squares on the plate (orange and teal), mid-sequence, so the solid body sits about 10vmin left of centre and the loader looks unfinished; the full four-square pose appears only later in the loop.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "The first frame now shows all four squares resting on the plate (74 x 54vmin, centred); the flaps chase round without a seam and read on both stages.",
     "motionFlagsResolved": [
       {
-        "flag": "loop: flicker at 5",
-        "reason": "Frame 5 is a square folding over in mid-flight, which is the loader's own motion; the frames either side continue it smoothly."
+        "flag": "loop: pop 11 to 12",
+        "reason": "Frames 11 and 12 are the last flap folding away and the next folding in over a 100ms step, the loader's own motion; the frames either side continue it smoothly."
       }
     ]
   },
@@ -1220,15 +1211,15 @@
   {
     "model": "dotorbit",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:21:14+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Orbiting dots round a sphere, about 51-57 x 54-55vmin; centred on the sphere, the dots' own positions move the measured middle a few vmin as they orbit.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Starting every animation 36s in spreads the dots round the core, centred at rest (55 x 55vmin). The loop reads cleanly on dark; on the light stage the glowing dots show pale centres, like small rings. The how steps do not mention the shared --t0 start but are otherwise accurate.",
     "motionFlagsResolved": [
       {
-        "flag": "loop: flicker at 10,59,74,88",
-        "reason": "The flagged frames are dots passing behind or in front of the sphere and crossing each other; the orbit is continuous either side, so it is occlusion, not flicker."
+        "flag": "loop: flicker at 35,50,71,82",
+        "reason": "Not real. Filmed again in 40ms steps round each flagged moment, every dot moves continuously in front of and behind the core with no depth order flipping; at the strip's 166ms steps the 1.6s-lap dots jump far enough between frames to trip the cell comparison."
       }
     ]
   },
@@ -1285,11 +1276,11 @@
   {
     "model": "door",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:22:59+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "At rest (what a paused card shows) the closed door is about 35 x 54vmin and sits about 8vmin right of the canvas middle, because it hinges at its left edge; only the open door (54 x 66vmin) is centred, which is why the union passes.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "The shut door is centred (35 x 54vmin, narrow as a door is) and the open door with its swung leaf is centred as it slides on the same transition; the lit doorway reads on both stages. The sideways slide is small and reads as the camera following the swing, not a hack.",
     "motionFlagsResolved": []
   },
   {
@@ -1305,21 +1296,21 @@
   {
     "model": "sign",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:22:59+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Hanging neon OPEN sign, about 64-73 x 48-54vmin; it swings about 6vmin either side of centre, paused near one end of the swing, and reads on both themes.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Now paused hanging straight down, centred (63 x 59vmin); the swing is smooth ease-in-out and the neon OPEN reads on both stages.",
     "motionFlagsResolved": []
   },
   {
     "model": "fold",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:22:59+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The unfolded map sits about 7vmin high at rest, and when it folds up mid-loop it collapses towards its left edge, ending about 39vmin wide and 20vmin left of the canvas middle, so a card shows the model parked well off to one side for part of every loop.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Flat map centred at rest (82 x 54vmin), and the folded stack now stays centred too as the map slides while it folds; no panel passes through another, both stages read. The how steps describe the slide.",
     "motionFlagsResolved": []
   },
   {
@@ -1335,11 +1326,11 @@
   {
     "model": "confetti",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:22:59+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "At rest (what a paused card shows) the model is only the grey caption 'click anywhere', about 36 x 5vmin, in an otherwise empty card; nothing reads as a model until someone clicks, which a paused or offscreen card never gets.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "At rest twenty-four pieces wait in a loose ring round the words (70 x 44vmin), so a paused card shows confetti; a click flicks them out with a balanced 36-piece burst from the middle and they fade back in place about 2s later. The caption reads on both stages; the how steps match (24 waiting, 36 in a burst).",
     "motionFlagsResolved": []
   },
   {
@@ -1395,11 +1386,11 @@
   {
     "model": "rocket",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:22:59+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "At rest (what a paused card shows) the rocket stands on its pad at only about 27 x 39vmin, under the 40vmin floor and sitting about 8vmin below the canvas middle, so the card reads as a small rocket low down; only the launch reaches 61vmin tall, which is why the size check passes.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "It does not read as the same size class as its neighbours. Side by side with laptop, ferris, lighthouse, sign, bars and phone on paused cards, the rocket (about 35 x 49vmin at rest, the rocket body itself about 44vmin) is visibly the smallest object: a slim rocket and gantry in a lot of empty dark, with the pad ellipse doing much of the width. And for roughly 40% of the loop only the empty pad and gantry, about 30vmin tall, are on screen while the rocket is a speck. It is a clear improvement on 27 x 39, centred and reading on both stages, but the climb headroom still eats the band: the rocket needs to be larger in the frame (send the climb more into depth than upward, or let the rocket start bigger and shrink sooner).",
     "motionFlagsResolved": []
   },
   {
@@ -1415,11 +1406,11 @@
   {
     "model": "bars",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The first frame, which a paused card shows, has the bars at their low start values, so the chart's solid body (77 x 44vmin) sits about 8vmin below the canvas middle with a visibly empty top; once the bars grow it recentres (offset 5), which is why the union passes. The limit is 4vmin.",
+    "reviewer": "re-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "The loop now opens with the chart grown, 77 x 61vmin and centred on a paused card; bars shrink and regrow cleanly with their lids riding on top, and read on both stages.",
     "motionFlagsResolved": []
   },
   {
@@ -1520,11 +1511,11 @@
   {
     "model": "candles",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent",
     "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The candlestick chart itself is small inside its box, and its text is too small to read on a card: the hover readout 'Sep 19 · O $59,770 H $60,480 L $59,310 C $59,860' and the axis labels are about 5px at card size. The caption and 7D/12D pills are fine.",
+    "reviewedAt": "2026-09-21T22:30:00+07:00",
+    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
+    "notes": "Centred now and the caption and 7D/12D pills read on both stages, but the chart itself is still small in its box: on a card the candles fill only about 45 x 15vmin, a thin strip under a mostly empty price plane, and the axis labels ($62k, Sep 08) and the hover tooltip are about 2.5vmin (7px on a 360 x 300 card), well under the 4vmin control text, so they read only up close. The fix grew the labels from about 5px and centred the chart; the chart body needs to be larger (taller candles, less empty range above them) for the text and the candles to read at card size.",
     "motionFlagsResolved": []
   },
   {
