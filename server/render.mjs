@@ -2,13 +2,27 @@
 // are persisted. A stream owns exactly one isolated browser context and disposes it on cancel.
 // Not run on its own: imported by server/dev.mjs (npm run export) and worker/src/index.ts.
 // validateCapture / readCapture check a posted scene (at most 8 MB, 900 frames, 30 fps, 8192 px a
-// side); renderCapture draws it and streams one `{ index, png }` JSON line per frame.
+// side, MAX_PIXELS device pixels a frame); renderCapture draws it and streams one
+// `{ index, png }` JSON line per frame.
 export const MAX_BODY = 8 * 1024 * 1024;
+
+/**
+ * How big a frame may be drawn. The real limit is the pixel budget: the page is drawn at
+ * ceil(scale) device pixels per CSS pixel, and width × height × ceil(scale)² device pixels is what
+ * a frame costs. MAX_SCALE is only a sanity bound on the device pixel ratio, far above what any
+ * canvas the dialog shows needs (a 3200 px picture of a 200 px canvas is 16×). src/record.ts
+ * imports these, so the page asks for exactly what this accepts.
+ */
+export const MAX_PIXELS = 34_000_000;
+export const MAX_SCALE = 32;
+export function renderFits(width, height, scale) {
+  return Number.isFinite(scale) && scale >= .1 && scale <= MAX_SCALE && width * height * Math.ceil(scale) ** 2 <= MAX_PIXELS;
+}
 
 export function validateCapture(p) {
   if (!p || typeof p.html !== 'string' || p.html.length > MAX_BODY || !Array.isArray(p.animations) || p.animations.length > 3000) throw new Error('Invalid scene');
   for (const k of ['width', 'height']) if (!Number.isInteger(p[k]) || p[k] < 1 || p[k] > 8192) throw new Error('Invalid viewport');
-  if (!Number.isFinite(p.scale) || p.scale < .1 || p.scale > 6 || p.width * p.height * Math.ceil(p.scale) ** 2 > 34_000_000) throw new Error('Export resolution is too large');
+  if (!renderFits(p.width, p.height, p.scale)) throw new Error('Export resolution is too large');
   if (!Number.isInteger(p.count) || p.count < 1 || p.count > 900) throw new Error('Invalid frame count');
   if (p.fps !== 30) throw new Error('Invalid frame rate');
   // A live take sends one pose per frame instead of a clock to wind on.

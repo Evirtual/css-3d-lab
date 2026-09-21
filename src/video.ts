@@ -12,6 +12,7 @@ import {
   recordLive,
   recordModel,
   stageLook,
+  tooBig,
   type Backdrop,
   type ImageFormat,
   type ImageRatio,
@@ -435,6 +436,16 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   };
 
   /* ---------- what it will be, said plainly ---------- */
+  /**
+   * The file is drawn from the model's canvas at no less than its own size, within the render
+   * service's pixel budget. A canvas too big for that budget at this size is said so here, before
+   * the button is pressed, rather than drawn smaller and stretched to the size the caption names.
+   */
+  const tooBigNote = (frame: { width: number; height: number }): string => {
+    const body = stage?.querySelector('iframe')?.contentDocument?.body;
+    const why = body ? tooBig({ width: body.clientWidth, height: body.clientHeight }, frame) : null;
+    return why ? ' · too big to draw from this canvas: pick a smaller size' : '';
+  };
   const sizeLine = (): string => {
     if (kind === 'video') {
       const aspect = ASPECT_OF[chosen().ratio] ?? 1;
@@ -444,11 +455,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       const wrapper = backdrop() === 'transparent' ? 'WebM, see-through' : 'MP4';
       const turn = stage ? motionSeconds(stage) : 0;
       const length = chosen().motion === 'live' ? `up to ${MAX_SECONDS}s, you decide` : turn ? `${Math.min(turn, MAX_SECONDS).toFixed(1)}s of loop` : 'this model has no loop';
-      return `${width} × ${height} · ${wrapper} · ${length}`;
+      return `${width} × ${height} · ${wrapper} · ${length}${tooBigNote({ width, height })}`;
     }
     if (kind === 'image') {
       const { width, height } = frameFor({ width: shape, height: 1 }, chosen().size, ASPECT_OF[chosen().imageRatio] ?? shape);
-      return `${width} × ${height} · ${format().toUpperCase()}`;
+      return `${width} × ${height} · ${format().toUpperCase()}${tooBigNote({ width, height })}`;
     }
     return `A4 ${chosen().paper} · ${chosen().paper === 'landscape' ? '297 × 210' : '210 × 297'} mm · ${PRINT_SIZE} px, edge to edge`;
   };

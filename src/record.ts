@@ -2,6 +2,7 @@ import { ArrayBufferTarget as Mp4Target, Muxer as Mp4Muxer } from 'mp4-muxer';
 import { ArrayBufferTarget as WebmTarget, Muxer as WebmMuxer } from 'webm-muxer';
 import { captureScene, captureSource, poseChange, poseOf, type PoseChange } from './capture-scene';
 import { renderedFrames } from './capture-client';
+import { MAX_PIXELS, renderFits } from '../server/render.mjs';
 
 export type Ratio = '9:16' | '1:1' | '16:9';
 export type Backdrop = 'stage' | 'dark' | 'light' | 'transparent';
@@ -205,6 +206,30 @@ export function frameFor(canvas: { width: number; height: number }, size: number
 }
 
 /**
+ * How many times the canvas is drawn for a file this size, or null when the render service
+ * cannot draw it that big. The canvas is drawn at no less than the file's own size, so the file
+ * is never a smaller drawing stretched up: the service renders at ceil(scale) device pixels a CSS
+ * pixel and the frame is scaled down from that. The service's pixel budget (server/render.mjs,
+ * which this shares) is the only limit.
+ */
+export function renderScale(canvas: { width: number; height: number }, frame: { width: number; height: number }): number | null {
+  const scale = Math.max(1, frame.width / canvas.width, frame.height / canvas.height);
+  return renderFits(canvas.width, canvas.height, scale) ? scale : null;
+}
+
+/** Whether this canvas can be drawn for a file this size; the reason, in the visitor's words, if not. */
+export function tooBig(canvas: { width: number; height: number }, frame: { width: number; height: number }): string | null {
+  if (!(canvas.width > 0) || !(canvas.height > 0) || renderScale(canvas, frame)) return null;
+  return `this ${canvas.width} × ${canvas.height} canvas cannot be drawn at ${frame.width} × ${frame.height} — the render service stops at ${MAX_PIXELS / 1e6} million pixels a frame. Pick a smaller size.`;
+}
+
+const scaleFor = (canvas: { width: number; height: number }, frame: { width: number; height: number }): number => {
+  const scale = renderScale(canvas, frame);
+  if (scale === null) throw new Error(tooBig(canvas, frame)!);
+  return scale;
+};
+
+/**
  * One frame painted: the backdrop, then the model's canvas over the whole of it.
  *
  * Nothing is fitted into the frame here and nothing is placed inside it. The canvas already IS
@@ -314,7 +339,7 @@ async function openVideo(width: number, height: number, transparent: boolean): P
 export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, look, saveAspect }: ImageOptions = {}): Promise<Blob> {
   const scene = captureScene(stage);
   const frame = frameFor(scene, size, saveAspect);
-  const scale = Math.min(6, Math.max(1, frame.width / scene.width, frame.height / scene.height));
+  const scale = scaleFor(scene, frame);
   const canvas = document.createElement('canvas');
   canvas.width = frame.width; canvas.height = frame.height;
   const paint = paintOf(stage, format === 'jpeg' && backdrop === 'transparent' ? 'dark' : backdrop, look);
@@ -348,7 +373,7 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
   const seconds = loop ? Math.min(MAX_SECONDS, loop / 1000) : 4;
   const count = Math.round(seconds * FPS);
   const scene = captureScene(stage, true);
-  const scale = Math.min(6, Math.max(1, size.width / scene.width, size.height / scene.height));
+  const scale = scaleFor(scene, size);
   const video = await openVideo(size.width, size.height, backdrop === 'transparent');
   const canvas = document.createElement('canvas');
   canvas.width = size.width; canvas.height = size.height;
@@ -393,7 +418,7 @@ export async function recordLive({ stage, ratio, backdrop, look, quality = 1080,
   const source = captureSource(stage);
   const scene = captureScene(stage);
   const paint = paintOf(stage, backdrop, lookNow?.() ?? look);
-  const scale = Math.min(6, Math.max(1, size.width / scene.width, size.height / scene.height));
+  const scale = scaleFor(scene, size);
 
   /* ----- the take: poses, with the moment each was caught ----- */
   const start = performance.now();
