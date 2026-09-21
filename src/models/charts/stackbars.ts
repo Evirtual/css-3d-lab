@@ -87,6 +87,7 @@ export const demo: Demo = {
     'JSON → --base + --v per segment (fractions of the scale)',
     'translateY(--base) then scaleY(--v): stacking with transform only',
     'one shared tooltip gliding on --tx / --ty',
+    'tooltip on a twin 3D layer over the chart',
     'legend = <button aria-pressed> toggles',
   ],
   fill: true,
@@ -246,6 +247,7 @@ export const snippet: Snippet = {
     'Switch a product off and JS sets its <code>--v</code> to 0 and recomputes every <code>--base</code> above it. Collapse and slide use the <b>same duration and easing</b>, so the stack stays glued while it moves (an easing that overshoots would turn a shrinking face inside out, so this one does not). Only the highest segment (<code>.is-top</code>) shows its lid.',
     'The faces are see-through glass: the colour mixed with <code>transparent</code>, a hairline edge and a soft glow. The pointed-at segment fills in and glows: a <code>::after</code> layer on each face whose <code>opacity</code> fades in.',
     'The chart is turned, so parts of it sit behind the flat boxes around it: <code>pointer-events: none</code> on everything, <code>auto</code> only on the faces.',
+    "The tooltip is not in the chart's 3D context. Inside it, the browser splits every plane against the columns' faces, and slivers of the neighbouring bar showed through across its text. It sits in a second layer with the chart's own box and turn, laid over it: the same place, painted after the chart, so no bar can cross it.",
     "There is <b>one</b> tooltip for the whole chart. JS moves it to the pointed-at segment with <code>--tx</code> / <code>--ty</code> and a <code>transition</code> glides it there while its text changes; it hides 150ms after the pointer leaves, so crossing a gap doesn't flicker. A tap does the same on a touch screen. Names go in with <code>textContent</code>, never as HTML.",
     "Every length is a multiple of one base unit, <code>--u</code>, and JS writes the tooltip's place as <b>plain numbers</b> in the chart's own units, which CSS multiplies by it. A length written in px from JS would stay the same size while the chart scaled around it, and the tooltip would drift off its segment. The caption and the legend are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.",
   ],
@@ -253,6 +255,7 @@ export const snippet: Snippet = {
   <div class="view">
     <div class="scene">
       <div class="stack3d"></div>
+      <div class="float"><b class="tip" data-p="0" aria-hidden="true"></b></div>
     </div>
   </div>
   <div class="controls">
@@ -279,6 +282,7 @@ export const snippet: Snippet = {
 }
 
 .scene {
+  position: relative; /* the tooltip's layer is laid over the chart */
   perspective: calc(800 * var(--u));
   /* the floor and the quarter labels hang below the columns: more room under them than over
      them keeps the drawing centred in the model box and clear of the caption */
@@ -446,6 +450,20 @@ export const snippet: Snippet = {
   pointer-events: none; /* collapsed: nothing to point at */
 }
 
+/* The tooltip's own layer: the chart's box and turn again, laid exactly over it. It is a second
+   3D context, painted after the chart, so no face of a column can ever cross the tooltip. In the
+   chart's own context, the faces' planes split it, and slivers of the bar beside it showed
+   through across the text */
+.float {
+  position: absolute;
+  top: calc(22 * var(--u)); /* the scene's padding: the same box as .stack3d */
+  left: calc(40 * var(--u));
+  width: calc(144 * var(--u));
+  height: calc(100 * var(--u));
+  transform-style: preserve-3d;
+  transform: rotateX(-18deg) rotateY(-28deg);
+}
+
 /* One tooltip for the whole chart: JS moves it to the pointed-at segment (--tx, --ty) and it
    glides there. It floats 40 units towards you (the columns to the right stand nearer); its
    thickness is a flat edge offset up and to the right, the way the columns' depth runs */
@@ -580,7 +598,7 @@ const money = (v) => REVENUE.prefix + v + REVENUE.suffix;
 const tipText = (q, p) => \`\${quarters[q]} · \${products[p].name} · \${money(products[p].values[q])}\`;
 
 // Build the chart once: the floor, the scale, per quarter a column with one segment (front, side,
-// lid) per product, and one tooltip
+// lid) per product. The tooltip is in the HTML, on a layer of its own over the chart
 chart.innerHTML =
   '<div class="floor"></div>' +
   '<div class="wall">' + TICKS.map((t) => \`<b style="--t:\${t}"><span></span></b>\`).join('') + '</div>' +
@@ -588,14 +606,13 @@ chart.innerHTML =
   quarters.map((_, q) => \`<div class="col" style="--i:\${q}">\` +
     products.map((_, p) => \`<div class="seg" data-p="\${p}"><i role="img" tabindex="0"></i><i></i><i></i></div>\`).join('') +
     '<span></span></div>').join('') +
-  '</div>' +
-  '<b class="tip" data-p="0" aria-hidden="true"></b>';
+  '</div>';
 legend.innerHTML = products.map((_, p) => \`<button type="button" data-p="\${p}"></button>\`).join('');
 
 const cols = [...chart.querySelectorAll('.col')];
 const segs = cols.map((c) => [...c.querySelectorAll('.seg')]);
 const ticks = chart.querySelectorAll('.wall span');
-const tipEl = chart.querySelector('.tip');
+const tipEl = document.querySelector('.tip');
 const buttons = [...legend.querySelectorAll('button')];
 
 // names and labels go in as text, never as HTML: data from an API is not trusted markup
