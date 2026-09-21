@@ -15,6 +15,7 @@
     "preview": "vite preview",
     "export": "node server/dev.mjs",
     "check-models": "node scripts/check-models.mjs",
+    "check-seo": "node scripts/check-seo.mjs",
     "verify": "node scripts/verify.mjs",
     "ledger": "node scripts/ledger.mjs",
     "ledger:watch": "node scripts/ledger-watch.mjs",
