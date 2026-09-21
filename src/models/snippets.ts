@@ -1257,11 +1257,14 @@ scene.addEventListener('pointermove', (e) => {
   <div class="ball"></div>
 </div>`,
     css: `.scene {
-  perspective: 600px;
+  /* one base unit: every length below is a multiple of it, so the ball is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.245vmin;
+  perspective: calc(600 * var(--u));
 }
 
 .ball {
-  --r: 130px;
+  --r: calc(130 * var(--u));
   position: relative;
   width: 0;
   height: 0;
@@ -1271,10 +1274,10 @@ scene.addEventListener('pointermove', (e) => {
 
 .ball i {
   position: absolute;
-  top: -4px;
-  left: -4px;
-  width: 8px;
-  height: 8px;
+  top: calc(-4 * var(--u));
+  left: calc(-4 * var(--u));
+  width: calc(8 * var(--u));
+  height: calc(8 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, #fff 15%, #ffb547 60%);
 }
