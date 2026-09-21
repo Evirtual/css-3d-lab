@@ -101,8 +101,9 @@ scrolled:
 Two checks judge this; neither adjusts anything.
 
 `npm run check-models` (`scripts/check-models.mjs`) opens every model on a card (a 360 × 300
-page), drives it through those states as its tags say — 12 moments of its loop and the same 12
-with `:hover` forced, up to six of its controls clicked, a drag, a pointer sweep to the corners
+page, each model in a fresh browser context), drives it through those states as its tags say —
+12 moments of its loop, plus the moments between them where a quick pass over up to 480 moments
+finds its parts reaching furthest, and the same with `:hover` forced, up to six of its controls clicked, a drag, a pointer sweep to the corners
 and sides of the canvas, a scroll down and back — and measures the box around the pixels it
 paints, in vmin, with two thresholds for two jobs:
 
@@ -259,10 +260,49 @@ is sized to:
   padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
+  /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
+     strength: no colour of the model's, which would vanish on one of the two stages */
+  background: rgb(140 150 220 / 0.2);
+  color: inherit;
   font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background-color 0.35s;
+}
+
+.controls button:hover,
+.controls label:hover {
+  background-color: rgb(140 150 220 / 0.34);
+}
+
+.controls :focus-visible {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
+
+/* the selected pill: the brand gradient, deep enough that white text on it passes */
+.controls [aria-pressed='true'] {
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
+  color: #fff;
 }
 ```
+
+The colours are part of the block, and they hold on both stages (dark `#07080f`, light `#f3f4fc`,
+and the cards' 70% mixes of them), at the 4.5:1 that 4vmin text needs:
+
+| State | Text on it | Dark stage | Light stage |
+| --- | --- | --- | --- |
+| Unselected | the stage's ink on the 20% tint | 12.6:1 | 13.7:1 |
+| Hover | the stage's ink on the 34% tint | 9.4:1 | 12.1:1 |
+| Focus ring (not text: 3:1) | `#6a45f5` against the stage | 3.5:1 | 5.1:1 |
+| Selected | `#fff` on `#6a45f5` → `#d1206f` | 5.1:1 at the worst end | the same: the pill is opaque |
+| Caption | the stage's ink at 0.7 opacity | 8.5:1 | 6.3:1 |
+
+Measured in the running models, the worst of the solid stage and a card's (`#0a0c16`, `#f6f7fd`).
+
+The ink is inherited, never mixed: `color-mix(in srgb, currentColor …)` for a softened word looked
+right at load, but Chrome kept the old theme's value on a live theme switch. A model whose own
+controls mean something (a swatch's colour, a series' colour) may restyle the selected pill's
+background after the block, so long as its text still reaches 4.5:1 on both stages.
 
 The row is flat: no perspective, no 3D transform, no shadow belonging to the scene. It is chrome,
 and it should read as chrome.
