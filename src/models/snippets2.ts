@@ -1953,6 +1953,7 @@ party.addEventListener('pointerdown', () => {
       'CSS does the mapping: <code>rotateY(calc(var(--p) * 720deg))</code>. Change the feel by editing CSS only.',
       '<code>position: sticky</code> keeps the cube in view while the tall page scrolls past.',
       'Where supported, CSS can do this alone with <code>animation-timeline: scroll()</code> — check browser support before relying on it; the JS version works everywhere.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the cube is the same share of a gallery card, the editor and a recording canvas. It is sized for the worst angle the scroll turns it to — corner-on, where it spans its body diagonal — not for the rest pose.',
     ],
     html: `<div class="sticky">
   <div class="cube">
@@ -1967,12 +1968,15 @@ party.addEventListener('pointerdown', () => {
 }
 
 .sticky {
+  /* one base unit: every length below is a multiple of it, so the cube is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.27vmin;
   position: sticky;
   top: 0;
   display: grid;
   place-items: center;
   height: 100vh;
-  perspective: 700px;
+  perspective: calc(700 * var(--u));
 }
 
 .spacer {
@@ -1980,7 +1984,7 @@ party.addEventListener('pointerdown', () => {
 }
 
 .cube {
-  --s: 130px;
+  --s: calc(130 * var(--u));
   position: relative;
   width: var(--s);
   height: var(--s);
@@ -1995,7 +1999,7 @@ party.addEventListener('pointerdown', () => {
   position: absolute;
   inset: 0;
   background: rgb(255 181 71 / 0.32);
-  border: 1px solid rgb(255 181 71 / 0.85);
+  border: calc(1 * var(--u)) solid rgb(255 181 71 / 0.85);
 }
 
 ${CUBE_FACES}`,
