@@ -1,0 +1,175 @@
+[
+  {
+    "model": "phone",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Phone stands centred at about 60vmin tall on card and editor canvas, clear of the corners; the paused pose is a clean three-quarter view and it reads on light and dark stages.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "rubik",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Cube is centred at about 60vmin, paused on a solved, square pose; the twist reads cleanly on both canvases and both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "paycard",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Card is centred, about 77 x 51vmin, paused on a gentle tilt with all its text crisp; nothing near the edges or corners.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "solar",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Orbits sit centred and within the band (about 70 x 46vmin); the paused frame has every planet placed and the faint rings read on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "flaptext",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Departure board is centred, 86 x 48vmin, paused on a complete NEW YORK / HELSINKI board; letters are readable on a card.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "package",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The rest pose, which is what a paused card shows, is a closed box only about 38 x 32vmin, under the 40vmin floor, and sitting about 10vmin below the canvas middle, so the card reads as a small box low in empty space; only the open state reaches 56vmin, which is why the size check passes.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover div.package: its hit area is mostly over empty canvas (60 of 81 reachable points draw nothing)",
+        "reason": "The oversized hit area is deliberate room for the lid and card that rise on hover, so the pointer stays on it while it opens; it is invisible and inside the canvas."
+      }
+    ]
+  },
+  {
+    "model": "city",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Isometric block is centred, 78 x 56vmin, clear of corners; paused frame is complete and it reads on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "hovercards",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Fan of three cards is centred, about 85 x 54vmin, paused fanned out with labels readable; the hover lifts stay inside the band.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover div.fan: pop 1→2",
+        "reason": "The strip shows the lift starting on a fast ease-out: the first 38ms step is the largest and the rest follow smoothly, with no jump back or skipped pose."
+      },
+      {
+        "flag": "hover div.fan-slot#2: pop 1→2",
+        "reason": "Same ease-out start of the Build card lifting; the following frames continue it smoothly."
+      },
+      {
+        "flag": "focus div.fan-slot#2: pop 1→2",
+        "reason": "Focus runs the same transition as hover on the Build card, so this is the same ease-out start, not a jump."
+      }
+    ]
+  },
+  {
+    "model": "can",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Can is centred, about 40 x 60vmin, paused on a clean tilted pose; label and rim read on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "dice",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Die sits above a standard caption and Roll pill in the control zone, whole stack about 58vmin tall and centred; paused on a readable 1-2-3 corner.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "wordcube",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The lead-in 'We make' is hard-coded color #eceefb (snippets-batch-c.ts, .wordcube), so on a light stage it is near-invisible white on white; the contract says a band model inherits the text colour. Layout and dark theme are fine.",
+    "motionFlagsResolved": [
+      {
+        "flag": "loop: pop 5→6,11→12,17→18,23→0",
+        "reason": "The prism is designed to hold each word for about 2s and then turn quickly to the next; the strip shows each pop is exactly that quarter-turn between two whole faces, with no glitch in between."
+      }
+    ]
+  },
+  {
+    "model": "turntable",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Speaker with drag hint and colour swatches in the control zone; the stack is centred at about 61vmin, the swatches are finger-sized, and the paused pose is square-on and finished.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "neonbars",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Bar chart with caption and year pills, stack about 64 x 59vmin and centred; the month and axis labels are small on a card but still legible, and the caption and pills are standard.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "equalizer",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Bars on a plate, centred at about 75 x 50vmin; paused frame shows a full set of bars and it reads on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "vinyl",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:07:40+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Sleeve is centred at rest (58 x 59vmin) and the record slides out on hover to about 82vmin wide, still within the band and clear of the corners.",
+    "motionFlagsResolved": []
+  }
+]
