@@ -1594,10 +1594,11 @@ layout();`,
 
   parallax: {
     how: [
-      'Every layer has its own <code>translateZ</code>: moon far away (−300px), mountains, hills, trees in front (+70px).',
-      'Pushing a layer back makes it look smaller, so far layers get a compensating <code>scale()</code> to keep filling the frame.',
+      'Every layer has its own <code>translateZ</code>: moon far away (−300 units), mountains, hills, trees in front (+70 units).',
+      'Pushing a layer back makes it look smaller, so far layers get a compensating <code>scale()</code> to keep filling the frame: (perspective + depth) / perspective, so 1.6 for the moon at 300 units behind a 500-unit perspective.',
       'JS only rotates the <b>world</b> container a few degrees with the pointer. Real perspective then shifts near layers more than far ones — that is parallax, with no per-layer maths.',
       'Layers are oversized (<code>inset: -20%</code>) so their edges never show while tilting.',
+      'The view is <code>inset: 0</code> and the layers are sized in percentages, so the scene fills the canvas edge to edge. Depths, the perspective and the moon are multiples of one base unit, <code>--u</code>, tied to the canvas, so the parallax is the same on a gallery card and on a full screen.',
     ],
     html: `<div class="view">
   <div class="world">
@@ -1605,10 +1606,12 @@ layout();`,
   </div>
 </div>`,
     css: `.view {
+  /* one base unit, tied to the canvas; the view itself fills the canvas edge to edge */
+  --u: 0.33vmin;
   position: fixed;
   inset: 0;
   overflow: hidden;
-  perspective: 500px;
+  perspective: calc(500 * var(--u));
   background: linear-gradient(#0c1033, #3a1d5e 60%, #ff7a59);
 }
 
@@ -1635,33 +1638,33 @@ layout();`,
 /* moon */
 .world i:nth-child(1) {
   inset: 14% auto auto 62%;
-  width: 70px;
-  height: 70px;
+  width: calc(70 * var(--u));
+  height: calc(70 * var(--u));
   border-radius: 50%;
   background: #fff4d1;
-  box-shadow: 0 0 40px #fff4d1;
-  transform: translateZ(-300px) scale(1.6);
+  box-shadow: 0 0 calc(40 * var(--u)) #fff4d1;
+  transform: translateZ(calc(-300 * var(--u))) scale(1.6);
 }
 
 /* far mountains */
 .world i:nth-child(2) {
   background: #4a2a73;
   clip-path: polygon(0 100%, 0 62%, 18% 44%, 34% 60%, 52% 38%, 70% 58%, 86% 42%, 100% 60%, 100% 100%);
-  transform: translateZ(-160px) scale(1.32);
+  transform: translateZ(calc(-160 * var(--u))) scale(1.32);
 }
 
 /* near hills */
 .world i:nth-child(3) {
   background: #2a1648;
   clip-path: polygon(0 100%, 0 70%, 22% 58%, 44% 72%, 66% 56%, 84% 70%, 100% 62%, 100% 100%);
-  transform: translateZ(-40px) scale(1.08);
+  transform: translateZ(calc(-40 * var(--u))) scale(1.08);
 }
 
 /* foreground trees */
 .world i:nth-child(4) {
   background: #0d0820;
   clip-path: polygon(0 100%, 0 78%, 6% 78%, 10% 60%, 14% 78%, 80% 80%, 85% 58%, 90% 80%, 100% 80%, 100% 100%);
-  transform: translateZ(70px) scale(0.9);
+  transform: translateZ(calc(70 * var(--u))) scale(0.9);
 }`,
     js: `const view = document.querySelector('.view');
 const world = document.querySelector('.world');
