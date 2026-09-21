@@ -587,9 +587,10 @@ ${[...RING_TEXT].map((c, i) => `    <span style="--i:${i}" aria-hidden="true">${
   layertext: {
     how: [
       'The shadow-stack text is a 2D trick: its "depth" always points the same way. This version has real depth.',
-      'Ten copies of the word are stacked with <code>position: absolute</code> and pushed back <code>3px × i</code> along Z.',
+      'Ten copies of the word are stacked with <code>position: absolute</code> and pushed back <code>3 units × i</code> along Z.',
       'Each copy is darker than the one in front of it, which shades the side wall.',
       'Rotate the parent and the side wall appears on the correct side, with true perspective. Cost: more DOM, and the copies need <code>aria-hidden</code>.',
+      'The unit is <code>--u</code>, one number on the root that every length here is a multiple of, so the wall is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <h1 class="deep">
@@ -598,13 +599,16 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   </h1>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the word is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.37vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .deep {
   position: relative;
   margin: 0;
-  font: 900 5.5rem system-ui;
+  font: 900 calc(88 * var(--u)) system-ui;
   transform-style: preserve-3d;
   animation: deep-rock 5s ease-in-out infinite alternate;
 }
@@ -618,7 +622,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   position: absolute;
   inset: 0;
   color: color-mix(in srgb, #ff4d9d calc(100% - var(--i) * 7%), #000);
-  transform: translateZ(calc(var(--i) * -3px));
+  transform: translateZ(calc(var(--i) * -3 * var(--u)));
 }
 
 @keyframes deep-rock {
