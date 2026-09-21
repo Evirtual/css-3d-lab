@@ -52,8 +52,9 @@ top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
   no margin, `overflow: hidden`, and the model's HTML inside `#c3d-scene`, which is
   `position: absolute; inset: 0; display: grid; place-items: center`. `1vmin` is a hundredth of
   the canvas's short side.
-- The backdrop and the text colour are the site's (light or dark stage). The model paints no
-  backdrop and inherits its text colour. Pasted into an empty file, the snippet gets a dark page
+- The backdrop and the text colour are the site's (light or dark stage). A model in the band
+  paints no backdrop and inherits its text colour. A full-canvas scene paints its own background,
+  since the background is the scene (VIEW-CONTRACT.md, rule 8). Pasted into an empty file, the snippet gets a dark page
   (`#0b0d18`, text `#eceefb`).
 - Plain CSS only (no Sass), hard-coded accent colours (violet `#8b6cff`, teal `#2ee6d6`, pink
   `#ff4d9d`, amber `#ffb547`), generic class names (`.scene`, `.cube`...). Expand any loop by hand

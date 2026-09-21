@@ -152,9 +152,15 @@ These are the things that would otherwise be found one model at a time.
   fills 70% by default, which is the canvas exactly as the contract lays it out. Another setting
   writes `--zoom` (the setting ÷ 0.7) on the stage and the frame's scene is zoomed by it, the same
   for every model (`src/video.ts`, `src/preview.ts`).
-- **No model paints the backdrop.** The stage's colour, its dots and its theme are the site's. A
-  model's text colour is inherited, so it reads on a light stage and a dark one, and a see-through
-  export has nothing of the model's own behind it.
+- **A model in the band paints no backdrop.** The stage's colour, its dots and its theme are the
+  site's. Its text colour is inherited, so it reads on a light stage and a dark one, and a
+  see-through export has nothing of the model's own behind it.
+- **A full-canvas scene paints its own background, because the background is the scene.** The
+  starfield's night sky, the room's walls, the snow's winter dusk and the text crawl's deep space
+  are the model, not a backdrop laid under one. Such a model covers the whole canvas, so the
+  stage's colour and dots never show, and a see-through export of it is the scene itself. It still
+  takes nothing from the site: no dots, no theme colours, and any text it draws on its own
+  background sets its own colour rather than inheriting one meant for the stage.
 
 ## What goes with this
 
@@ -242,8 +248,10 @@ menu: the control IS the model, it fills the 70vmin box, and it is centred like 
 **7. A model that fills the canvas says so itself.** `inset: 0` on the scene and percentages
 inside it. Do not mark it from outside, and do not give it a band.
 
-**8. Nothing of the site belongs to the model.** No backdrop, no dots, no theme colours. Inherit
-the text colour. The stage paints behind you.
+**8. Nothing of the site belongs to the model.** No dots, no theme colours. A model in the band
+paints no backdrop and inherits the text colour: the stage paints behind it. A full-canvas scene
+is the exception, and only for its background: the sky, the room or the space it happens in IS
+the model, so it paints it, edge to edge, and sets the colour of any text it draws on it.
 
 **9. Start on a good pose.** The site can pause every animation, so the first frame of the loop is
 what a paused card shows. It cannot be mid-turn or mid-fade.
