@@ -185,7 +185,7 @@ export const demosK: Demo[] = [
       'A week-by-weekday grid of commits where every value is a block: taller and hotter the bigger it is. Hover or tap a block to read it. JSON sets one number per block; CSS turns it into a height and a colour.',
     category: 'js',
     tags: ['hover', 'data', 'chart', 'json', 'isometric'],
-    technique: ['JSON → --v per cell (value ÷ max)', 'roof translateZ(--v × 70 units), walls as ::before / ::after', 'colour: color-mix(hot --v%, teal)', 'real <button> per cell, floor ignores the pointer'],
+    technique: ['JSON → --v per cell (value ÷ max)', 'roof translateZ(--v × 52 units), walls as ::before / ::after', 'colour: color-mix(hot --v%, teal)', 'real <button> per cell, floor ignores the pointer'],
     fill: true,
     html: `<div class="d-heatmap">
       <div class="d-heatmap__view"><div class="d-heatmap__world">

@@ -425,7 +425,7 @@ show('${YEARS[0]}');`,
 .heat {
   /* one base unit: every length of the grid is a multiple of it. The caption under it is in
      plain vmin, because the control zone is the same object in every model. */
-  --u: 0.33vmin;
+  --u: 0.29vmin;
   display: grid;
   justify-items: center;
   gap: 4vmin;
@@ -441,9 +441,10 @@ show('${YEARS[0]}');`,
 
 .scene {
   perspective: calc(800 * var(--u));
-  /* the blocks rise off the floor, so the drawing reaches higher than the floor's box: the room
-     above puts what is drawn, not the box, in the middle of the model box */
-  padding-top: calc(12 * var(--u));
+  /* tilted back, the floor's near corner hangs lower than its box: the room under it lifts what
+     is drawn, not the box, into the middle of the model box, so the corner stays clear of the
+     caption by the band's gap */
+  padding-bottom: calc(44 * var(--u));
   pointer-events: none; /* the floor is tilted back: only the blocks take the pointer */
 }
 
@@ -451,7 +452,7 @@ show('${YEARS[0]}');`,
 .world {
   position: relative;
   width: calc(182 * var(--u));
-  height: calc(148 * var(--u));
+  height: calc(160 * var(--u)); /* 4 rows, and a strip along the near edge for the day names */
   border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.4);
   border-radius: calc(10 * var(--u));
   background: #1c1d3d;
@@ -465,10 +466,11 @@ show('${YEARS[0]}');`,
   to { transform: rotateX(48deg) rotateZ(50deg); }
 }
 
-/* the day names, printed on the floor along the edge that faces you */
+/* the day names, printed on the floor along the edge that faces you: wholly on the dark floor,
+   so they read the same on either stage */
 .world em {
   position: absolute;
-  top: calc(140 * var(--u));
+  top: calc(143 * var(--u));
   left: calc((10 + var(--x) * 34) * var(--u));
   width: calc(26 * var(--u));
   color: ${MUTED};
