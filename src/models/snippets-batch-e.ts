@@ -929,24 +929,28 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   snow: {
     how: [
       'JS creates forty flakes <b>once</b> and gives each random custom properties: position <code>--x</code>, depth <code>--z</code>, size, opacity, sideways <code>--drift</code>, duration <code>--t</code> and delay <code>--d</code>. After that it does nothing.',
-      'One keyframe animation does all the falling: <code>translate3d(0, -160px, var(--z))</code> → <code>translate3d(var(--drift), 560px, var(--z))</code>. Perspective makes near flakes big and fast, far ones small and slow.',
+      'One keyframe animation does all the falling, from 160 units above the top to 560 below it, drifting sideways by <code>--drift</code> at its own depth <code>--z</code>. Perspective makes near flakes big and fast, far ones small and slow.',
       'The fall path is longer than the screen because perspective pulls far flakes toward the centre: they need the extra distance to reach the top and bottom edges.',
       'A negative delay between 0 and the duration means every flake starts mid-fall: it is already snowing on the first frame. Trees sit at real depths in the same 3D space, so flakes behind them are hidden.',
+      'The night is <code>inset: 0</code> and laid out in percentages, so it fills the canvas edge to edge whatever its shape. Its lengths are multiples of one base unit, <code>--u</code>, tied to the canvas, and JS writes depth, size and drift as plain numbers that CSS multiplies by it, so the snow is the same on a gallery card and on a full screen.',
     ],
     html: `<div class="night">
   <div class="moon"></div>
   <div class="hill"></div>
   <div class="world">
-    <b style="--x:8%;--z:-240px"></b>
-    <b style="--x:66%;--z:-140px"></b>
-    <b style="--x:34%;--z:-20px"></b>
+    <b style="--x:8%;--z:-240"></b>
+    <b style="--x:66%;--z:-140"></b>
+    <b style="--x:34%;--z:-20"></b>
   </div>
 </div>`,
     css: `.night {
+  /* one base unit, tied to the canvas; the scene itself fills the canvas edge to edge, its
+     layout in percentages of it and its lengths in units */
+  --u: 0.33vmin;
   position: fixed;
   inset: 0;
   overflow: hidden;
-  perspective: 400px;
+  perspective: calc(400 * var(--u));
   background: linear-gradient(#050817, #1f1d5a 75%, #1a2e4a);
 }
 
@@ -954,11 +958,11 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   position: absolute;
   top: 12%;
   right: 16%;
-  width: 38px;
-  height: 38px;
+  width: calc(38 * var(--u));
+  height: calc(38 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 60% 40%, #fffbe8, #e6e2ff 70%);
-  box-shadow: 0 0 24px rgb(255 250 230 / 0.55), 0 0 70px rgb(139 108 255 / 0.45);
+  box-shadow: 0 0 calc(24 * var(--u)) rgb(255 250 230 / 0.55), 0 0 calc(70 * var(--u)) rgb(139 108 255 / 0.45);
 }
 
 .hill {
@@ -978,26 +982,26 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   pointer-events: none;
 }
 
-/* pine trees at real depths */
+/* pine trees at real depths; --z, --s and --drift are plain numbers, counted in units */
 .world b {
   position: absolute;
   bottom: 3%;
   left: var(--x);
-  width: 70px;
-  height: 104px;
+  width: calc(70 * var(--u));
+  height: calc(104 * var(--u));
   background:
     linear-gradient(transparent 26%, #e9ecff 26% 30%, transparent 30% 55%, #e9ecff 55% 59%, transparent 59%),
     linear-gradient(#135a55, #07161c);
   clip-path: polygon(50% 0, 72% 28%, 62% 28%, 84% 57%, 70% 57%, 96% 88%, 56% 88%, 56% 100%, 44% 100%, 44% 88%, 4% 88%, 30% 57%, 16% 57%, 38% 28%, 28% 28%);
-  transform: translateZ(var(--z));
+  transform: translateZ(calc(var(--z) * var(--u)));
 }
 
 .world i {
   position: absolute;
   top: 0;
   left: var(--x);
-  width: var(--s);
-  height: var(--s);
+  width: calc(var(--s) * var(--u));
+  height: calc(var(--s) * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, #fff 0 35%, rgb(255 255 255 / 0) 70%);
   opacity: var(--o);
@@ -1005,8 +1009,8 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
 }
 
 @keyframes fall {
-  from { transform: translate3d(0, -160px, var(--z)); }
-  to   { transform: translate3d(var(--drift), 560px, var(--z)); }
+  from { transform: translate3d(0, calc(-160 * var(--u)), calc(var(--z) * var(--u))); }
+  to   { transform: translate3d(calc(var(--drift) * var(--u)), calc(560 * var(--u)), calc(var(--z) * var(--u))); }
 }`,
     js: `const world = document.querySelector('.world');
 const rand = (min, max) => min + Math.random() * (max - min);
@@ -1017,10 +1021,11 @@ for (let n = 0; n < 40; n++) {
   const near = (z + 300) / 450;                  // 0 = far … 1 = near
   const t = (9 - near * 5) * rand(0.85, 1.15);   // near flakes fall faster
   flake.style.setProperty('--x', rand(-25, 125).toFixed(1) + '%');
-  flake.style.setProperty('--z', z.toFixed(0) + 'px');
-  flake.style.setProperty('--s', rand(4, 8).toFixed(1) + 'px');
+  // lengths go in as plain numbers: the CSS multiplies them by --u, so the snow scales with the canvas
+  flake.style.setProperty('--z', z.toFixed(0));
+  flake.style.setProperty('--s', rand(4, 8).toFixed(1));
   flake.style.setProperty('--o', (0.45 + near * 0.5).toFixed(2));
-  flake.style.setProperty('--drift', rand(-40, 40).toFixed(0) + 'px');
+  flake.style.setProperty('--drift', rand(-40, 40).toFixed(0));
   flake.style.setProperty('--t', t.toFixed(2) + 's');
   flake.style.setProperty('--d', -rand(0, t).toFixed(2) + 's'); // already falling
   world.append(flake);
