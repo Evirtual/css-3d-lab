@@ -576,7 +576,10 @@ setInterval(function () {
   right: 0;
   bottom: 0;
   left: 0;
-  width: min(74%, 310 * var(--u));
+  /* a fixed number of units, not a share of the canvas: a column that narrowed with a square or
+     tall canvas broke its lines in other places, so the text ran longer and a different part of
+     it was in view at the same moment. 240 units is 86vmin, inside even a 9:16 canvas */
+  width: calc(240 * var(--u));
   height: calc(950 * var(--u));
   margin: 0 auto;
   overflow: hidden;
