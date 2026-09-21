@@ -649,28 +649,33 @@ ${[...RING_TEXT].map((c, i) => `    <span style="--i:${i}" aria-hidden="true">${
   layertext: {
     how: [
       'The shadow-stack text is a 2D trick: its "depth" always points the same way. This version has real depth.',
-      'Ten copies of the word are stacked with <code>position: absolute</code> and pushed back <code>3 units × i</code> along Z.',
+      'Ten copies of the words are stacked with <code>position: absolute</code> and pushed back <code>3 units × i</code> along Z.',
+      'The words are two lines, GO over DEEP, and every copy carries the same <code>&lt;br&gt;</code>, so the copies line up and the wall runs down both lines. DEEP alone is nearly three times wider than it is tall, and at the width limit it stood under the 40vmin floor.',
       'Each copy is darker than the one in front of it, which shades the side wall.',
       'Rotate the parent and the side wall appears on the correct side, with true perspective. Cost: more DOM, and the copies need <code>aria-hidden</code>.',
       'The unit is <code>--u</code>, one number on the root that every length here is a multiple of, so the wall is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <h1 class="deep">
-    <b>DEEP</b>
-${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
+    <b>GO<br>DEEP</b>
+${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</span>`)}
   </h1>
 </div>`,
     css: `.scene {
-  /* one base unit: every length below is a multiple of it, so the word is the same share of a
+  /* one base unit: every length below is a multiple of it, so the words are the same share of a
      card, the editor, a full screen and a recording canvas */
   --u: 0.37vmin;
   perspective: calc(800 * var(--u));
 }
 
+/* Two lines, because DEEP on its own is nearly three times wider than it is tall: sized to the
+   92vmin width limit it stood 28vmin high, under the 40vmin floor. A kicker over the word is what
+   a headline does anyway, and every copy carries the same two lines, so the wall runs down both. */
 .deep {
   position: relative;
   margin: 0;
-  font: 900 calc(88 * var(--u)) system-ui;
+  font: 900 calc(90 * var(--u))/0.92 system-ui;
+  text-align: center;
   transform-style: preserve-3d;
   animation: deep-rock 5s ease-in-out infinite alternate;
 }

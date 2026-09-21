@@ -105,11 +105,11 @@ export const pureDemos2: Demo[] = [
   {
     id: 'layertext',
     title: 'Layered text',
-    description: 'Real depth this time: ten copies of the word stacked along Z, so perspective is correct.',
+    description: 'Real depth this time: ten copies of GO DEEP stacked along Z, so perspective is correct.',
     category: 'css',
     tags: ['loop', 'text'],
     technique: ['stacked copies with translateZ', 'aria-hidden duplicates', 'compare with the shadow version'],
-    html: `<div class="d-layertext"><b>DEEP</b>${rep(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}</div>`,
+    html: `<div class="d-layertext"><b>GO<br>DEEP</b>${rep(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</span>`)}</div>`,
   },
   {
     id: 'sign',
