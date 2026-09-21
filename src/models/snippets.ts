@@ -24,9 +24,9 @@ const CUBE_FACE_LOOK = `.cube > * {
   inset: 0;
   display: grid;
   place-items: center;
-  font: 700 1.5rem system-ui;
+  font: 700 calc(24 * var(--u)) system-ui;
   background: rgb(139 108 255 / 0.28);
-  border: 1px solid rgb(139 108 255 / 0.8);
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.8);
 }`;
 
 const snippets1: Record<string, Snippet> = {
@@ -36,6 +36,7 @@ const snippets1: Record<string, Snippet> = {
       'Give the cube <code>transform-style: preserve-3d</code>, otherwise its children are flattened into its plane.',
       'Stack all six faces in the same spot, rotate each to face outward, then <code>translateZ</code> by half the side length.',
       'Animate only the cube. The faces ride along for free.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the cube is the same share of a gallery card, the editor and a recording canvas. The side is 120 of those units.',
     ],
     html: `<div class="scene">
   <div class="cube">
@@ -44,11 +45,14 @@ const snippets1: Record<string, Snippet> = {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the cube is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .cube {
-  --s: 120px;
+  --s: calc(120 * var(--u));
   position: relative;
   width: var(--s);
   height: var(--s);
