@@ -289,8 +289,8 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
 
 .scene {
   perspective: calc(800 * var(--u));
-  /* the scale's numbers stand off the right end: the room on the right balances them, so the
-     drawing is centred in the model box */
+  /* the scale's numbers stand off the right end: the room on the right balances them, and the
+     chart's shift left (on .fall3d) centres the solid drawing in the model box */
   padding: calc(36 * var(--u)) calc(60 * var(--u)) calc(44 * var(--u)) calc(40 * var(--u));
   pointer-events: none; /* the chart is turned: only the steps take the pointer */
 }
@@ -301,6 +301,9 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
   width: calc(180 * var(--u));
   height: calc(100 * var(--u)); /* the top of the scale */
   transform-style: preserve-3d;
+  /* turned, the solid steps and the scale's numbers lean right of the middle; the faint floor
+     reaches further left than they do. Shifted left, the solid chart is centred */
+  translate: calc(-7 * var(--u)) 0;
   transform: rotateX(-18deg) rotateY(-28deg);
 }
 
