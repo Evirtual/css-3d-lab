@@ -1649,6 +1649,7 @@ view.addEventListener('pointerleave', () => {
       'The box is pulled back by <code>translateZ(-width / 2)</code>, so whichever face is in front sits at z = 0 and renders at its true size.',
       'JS keeps a plain counter that never wraps. CSS multiplies it: <code>rotateY(calc(var(--step) * -90deg))</code>.',
       'Because the angle keeps growing instead of resetting, "next" always turns the same way — no rewind from slide 4 to slide 1.',
+      'Every length in the box is a multiple of one base unit, <code>--u</code>, tied to the canvas: a slide is 280 × 170 of them, so the box is the same share of a gallery card, the editor and a recording canvas. The arrows are in plain <code>vmin</code>, the same size in every model that has controls.',
     ],
     html: `<div class="slider">
   <div class="scene">
