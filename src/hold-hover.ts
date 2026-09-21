@@ -17,7 +17,7 @@ export function markHolds(stage: Element | null, css: string): void {
   const wrap = stage?.closest<HTMLElement>('.stage-wrap');
   if (!wrap) return;
   wrap.toggleAttribute('data-hoverable', css.includes(':hover'));
-  wrap.toggleAttribute('data-animated', /animation(-name)?s*:/.test(css));
+  wrap.toggleAttribute('data-animated', /animation(-name)?\s*:/.test(css));
   // a new model (or a new version of it) starts moving and un-held
   wrap.classList.remove('is-held', 'is-frozen');
   for (const b of wrap.querySelectorAll('[data-hold-hover], [data-freeze]')) b.setAttribute('aria-pressed', 'false');
