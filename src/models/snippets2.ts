@@ -1053,6 +1053,8 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
       'Both are pushed out by half the bar’s height, so together they form two sides of a square prism.',
       'Hover rotates the whole bar <code>rotateX(90deg)</code>, rolling the bottom face up to the front.',
       'The extra <code>translateZ(-h/2)</code> on the bar keeps the front face at z = 0, so the text stays the same size and sharp.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the bar, its type and the depth it rolls through are the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'The prism is square in section, so halfway through the roll it stands on a corner and sweeps <code>√2 × h</code> tall. That corner, not the resting bar, is what has to fit the band — which is why the bar rests at about 50vmin and touches 70vmin only in passing.',
     ],
     html: `<div class="scene">
   <button class="roll" type="button">
@@ -1063,20 +1065,23 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   </button>
 </div>`,
     css: `.scene {
-  perspective: 600px;
+  /* one base unit: every length below is a multiple of it, so the bar is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.32vmin;
+  perspective: calc(600 * var(--u));
 }
 
 /* the button is the hit target and never moves */
 .roll {
-  --h: 56px;
+  --h: calc(150 * var(--u));
   display: block;
-  width: 220px;
+  width: calc(230 * var(--u));
   height: var(--h);
   padding: 0;
   border: 0;
   background: none;
   color: #fff;
-  font: 800 1.1rem system-ui;
+  font: 800 calc(24 * var(--u)) system-ui;
   cursor: pointer;
   transform-style: preserve-3d;
 }
@@ -1103,7 +1108,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 6px;
+  border-radius: calc(12 * var(--u));
   backface-visibility: hidden;
 }
 
