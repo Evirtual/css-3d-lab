@@ -3330,9 +3330,10 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 .stage[data-in-maker] {
   border: 0;
   border-radius: 0;
-  // a tall frame keeps the model in a band (see fit() in video.ts): the padding is a share of
-  // the frame's width, which is the container's
-  padding-block: calc(var(--band, 0) * 100cqw);
+  // Nothing insets the model here. The stage fills the frame, so the frame's shape IS the
+  // model's canvas and the model lays itself out in it (docs/VIEW-CONTRACT.md): a 9:16 picture
+  // is the model's canvas at 9:16, not a card-shaped picture in a taller box.
+  padding: 0;
 
   &[data-clear] {
     background: transparent !important;

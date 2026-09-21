@@ -61,6 +61,13 @@ interface Choice<T> {
 const A4 = 297 / 210;
 /** A printed snapshot is 2400 px on its long side — about 200 dots per inch on A4. */
 const PRINT_SIZE = 2400;
+/**
+ * How much of the frame a model fills when nothing has been touched: the band the view contract
+ * gives every model is 70vmin, seven tenths of the canvas's short side (docs/VIEW-CONTRACT.md).
+ * So the slider sits at 70% to start with and the file is exactly what the frame shows; moving it
+ * is the visitor deciding to depart from that.
+ */
+const CONTRACT_FILL = 0.7;
 
 const MOTIONS: Choice<Motion>[] = [
   { value: 'loop', label: 'Its own loop', hint: 'one whole turn' },
@@ -135,8 +142,9 @@ export function trackDownloads(track: (event: string) => void): void {
 
 /** Wires every Video / Image / Print button on the page. Call once. */
 export function initVideoMaker(track: (event: string) => void = () => {}, print?: (stage: HTMLElement, setup: PrintSetup) => void): void {
-  // fill: how much of the frame the model takes. Two thirds matches the site; the slider goes from
-  // far away to filling the frame, so a wide, airy picture or a tight crop are both possible.
+  // fill: how much of the frame's short side the model takes. It starts at the contract's own
+  // 70%, so an untouched export is exactly what the frame shows; the slider goes from far away
+  // (25%) to filling the frame edge to edge (100%).
   interface Setup {
     motion: Motion;
     ratio: Ratio;
@@ -157,7 +165,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     movie: 'mp4',
     size: 1600,
     paper: 'landscape',
-    fill: 0.65,
+    fill: CONTRACT_FILL,
   });
   // one set of choices per tab: what you set up for a video stays on the video tab
   const setups: Record<Kind, Setup> = { video: fresh(), image: fresh(), print: fresh() };
@@ -306,25 +314,21 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   };
 
   /**
-   * How big the model is inside its stage. The site already has a knob for this — the scene is
-   * zoomed by `--fit × --size` — so the slider writes --size and the model grows or shrinks the
-   * way it would anywhere else on the site. 65% is the site's own framing, so that is 1.
+   * The frame takes the shape that was picked, the stage fills the frame, and the model lays
+   * itself out in that canvas — which is the whole of the view contract. Nothing here fits,
+   * insets or letterboxes a model: a 9:16 picture is the model's canvas at 9:16.
+   *
+   * The one thing the visitor may change is how big the model is in that canvas, and `--zoom`
+   * says so: 1 is the 70vmin band the contract gives, and the preview (which runs the model in a
+   * frame of its own) zooms the scene by it. The export reads the zoom back out of the model's
+   * computed styles, so the file is what the frame showed.
    */
   const fit = (): void => {
     const frame = el<HTMLElement>('[data-frame]');
     if (!stage || !frame) return;
-    const aspect = aspectOf() ?? shape;
-    frame.style.setProperty('--aspect', String(aspect));
-    // A tall frame is not filled top to bottom: the model and its own controls keep to a band no
-    // taller than 5:4, with backdrop above and below. On a phone the top and bottom of a tall
-    // picture sit under the app's own bars, and a model's buttons docked at the very bottom would
-    // be covered — and far from the model besides. The band is a share of the frame's width, so
-    // the padding is in container-query units (see .stage[data-in-maker]).
-    stage.style.setProperty('--band', Math.max(0, (1 / aspect - 1.25) / 2).toFixed(4));
-    // the site's own zoom takes a third factor, so this neither fights --fit nor a demo's --size
-    const zoom = (chosen().fill / 0.65).toFixed(3);
-    stage.style.setProperty('--zoom', zoom);
-    // an edited model lays itself out inside its own frame, which knows nothing of our variables
+    frame.style.setProperty('--aspect', String(aspectOf() ?? shape));
+    stage.style.setProperty('--zoom', (chosen().fill / CONTRACT_FILL).toFixed(4));
+    // the model runs in a frame of its own, which knows nothing of our variables: hand it over
     syncPreview(stage);
     stage.toggleAttribute('data-clear', clear());
   };
@@ -666,7 +670,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
             backdrop: backdrop(),
             look: paintNow(),
             lookNow: () => paintNow(),
-            fill: chosen().fill,
             seconds: MAX_SECONDS,
             stop: stopper.signal,
             onTick: (seconds) => {
@@ -687,7 +690,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
             quality: chosen().quality,
             backdrop: backdrop(),
             look: paintNow(),
-            fill: chosen().fill,
             signal: stopper.signal,
             onProgress: (done) => {
               mine.progress = done;

@@ -85,7 +85,14 @@ export class Preview {
     const stage = this.frame.closest<HTMLElement>('.stage');
     const wrap = stage?.closest('.stage-wrap');
     // The frame fills the stage, so inside a model 1vmin is one hundredth of the canvas's short
-    // side, and the model sizes and places itself from that. Nothing out here adjusts a model.
+    // side, and the model sizes and places itself from that. Nothing out here adjusts a model —
+    // except when the visitor asks for it: the export dialog's Model size slider writes --zoom on
+    // the stage, and the scene is zoomed by it. Zoom, not scale, so the model is laid out and
+    // drawn at its new size and 3D layers stay sharp; and because a zoom is an ordinary computed
+    // style, a capture picks it up with everything else and the file matches the frame.
+    const zoom = stage?.style.getPropertyValue('--zoom').trim() ?? '';
+    const scene = doc.getElementById('c3d-scene');
+    if (scene && scene.style.zoom !== zoom) scene.style.zoom = zoom;
     const theme = stage?.closest<HTMLElement>('[data-theme]')?.dataset.theme ?? this.theme;
     doc.body.style.color = theme === 'light' ? '#14172b' : '#eceefb';
     const paused = document.documentElement.hasAttribute('data-paused') || Boolean(wrap?.classList.contains('is-frozen')) || Boolean(stage?.closest('.is-offscreen'));

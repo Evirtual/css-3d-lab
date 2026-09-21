@@ -8,10 +8,10 @@ export type Backdrop = 'stage' | 'dark' | 'light' | 'transparent';
 /** The video's short side: 480p is small and quick, 4K is for a big screen. */
 export type Quality = 480 | 720 | 1080 | 2160;
 export type ImageFormat = 'png' | 'jpeg';
-/** The shape of a saved picture: 'auto' hugs the model, the rest are fixed frames. */
+/** The shape of a saved picture: 'auto' keeps the model view's own shape, the rest are fixed. */
 export type ImageRatio = 'auto' | '1:1' | '4:3' | '3:2' | '16:9' | '9:16';
 
-/** Each named shape as width ÷ height; 'auto' has none, so the frame is cut to the model. */
+/** Each named shape as width ÷ height; 'auto' has none, so the model view's shape is kept. */
 export const ASPECT_OF: Record<ImageRatio, number | null> = { auto: null, '1:1': 1, '4:3': 4 / 3, '3:2': 3 / 2, '16:9': 16 / 9, '9:16': 9 / 16 };
 
 export interface RecordOptions {
@@ -21,8 +21,6 @@ export interface RecordOptions {
   /** The backdrop to paint, ready-made ('none' for see-through). Left out, the stage is asked. */
   look?: Paint | 'none';
   quality?: Quality;
-  /** How much of the frame the model fills (1 = edge to edge). */
-  fill?: number;
   /** 0 → 1 while the frames are drawn and encoded. */
   onProgress?: (done: number) => void;
   signal?: AbortSignal;
@@ -40,7 +38,12 @@ export interface Recording {
   turn: number;
 }
 
-/** The frame, from the shape and the quality: the short side is the quality, and it stays even. */
+/**
+ * The frame, from the shape and the quality: the short side is the quality, and it stays even.
+ * The model's canvas is already this shape — the dialog gives the stage the shape that was picked,
+ * and the model lays itself out in whatever canvas it is given — so the frame IS that canvas,
+ * drawn at the size asked for.
+ */
 const frameSize = (ratio: Ratio, quality: Quality): { width: number; height: number } => {
   const aspect = ASPECT_OF[ratio] ?? 1;
   const even = (n: number): number => Math.round(n / 2) * 2;
@@ -49,10 +52,6 @@ const frameSize = (ratio: Ratio, quality: Quality): { width: number; height: num
 const FPS = 30;
 /** How much of a live take may be kept before it is drawn: the service takes 8 MB in one piece. */
 const TAKE_LIMIT = 6 * 1024 * 1024;
-/**
- * How much of the frame the model fills: two thirds, the same as a card and the large stage, so a
- * saved picture, a video and a print all look like the model does on the site.
- */
 /** How long any video may be. A whole loop below this joins up; anything longer is cut here. */
 export const MAX_SECONDS = 30;
 
@@ -71,7 +70,6 @@ export async function canRecordClear(): Promise<boolean> {
 }
 
 
-interface Crop { x: number; y: number; width: number; height: number }
 const isPaint = (v: string): boolean => Boolean(v) && !['none', 'transparent', 'rgba(0, 0, 0, 0)'].includes(v);
 export interface Paint {
   color: string;
@@ -131,72 +129,56 @@ function backdropOf(stage: HTMLElement, backdrop: Backdrop): Paint | null {
 }
 
 /**
- * One picture of the model as it stands: the same drawing as a video frame, cropped to the model
- * and big enough to use anywhere (its longest side is `size`). Fast, so it needs no dialog.
+ * One picture of the model as it stands: the same drawing as a video frame, at the shape asked
+ * for and big enough to use anywhere (its longest side is `size`). Fast, so it needs no dialog.
  */
 export interface ImageOptions {
   backdrop?: Backdrop;
   format?: ImageFormat;
-  /** How much of the frame the model fills (1 = edge to edge). */
-  fill?: number;
   /** The picture's longest side in pixels. */
   size?: number;
-  /** The frame's shape, width ÷ height. Left out, the frame is cut to the model instead. */
-  aspect?: number | null;
   /** The backdrop to paint, ready-made ('none' for see-through). Left out, the stage is asked. */
   look?: Paint | 'none';
-  /** The shape to save at, width ÷ height. Left out, the stage's own shape is kept. */
+  /** The shape to save at, width ÷ height. Left out, the canvas's own shape is kept. */
   saveAspect?: number;
 }
 
-/** The stage itself, whole: the picture is of the stage, because the stage is the frame. */
-
-/** The file's size in pixels: `size` on the long side, at the shape asked for or the stage's own. */
-export function frameFor(crop: { width: number; height: number }, size: number, aspect?: number): { width: number; height: number } {
-  if (!(crop.width > 0) || !(crop.height > 0)) throw new Error('this model is not on screen, so there is nothing to draw');
-  const shape = aspect && aspect > 0 ? aspect : crop.width / crop.height;
+/** The file's size in pixels: `size` on the long side, at the shape asked for or the canvas's own. */
+export function frameFor(canvas: { width: number; height: number }, size: number, aspect?: number): { width: number; height: number } {
+  if (!(canvas.width > 0) || !(canvas.height > 0)) throw new Error('this model is not on screen, so there is nothing to draw');
+  const shape = aspect && aspect > 0 ? aspect : canvas.width / canvas.height;
   const even = (n: number): number => Math.max(2, Math.round(n / 2) * 2);
   return shape >= 1 ? { width: even(size), height: even(size / shape) } : { width: even(size * shape), height: even(size) };
 }
 
 /**
- * Is this model drawn to the edges of its frame? The preview works that out once and leaves the
- * answer on the frame; a picture or a video then frames it the same way the screen does — a
- * backdrop covers the file, anything else sits inside it.
+ * One frame painted: the backdrop, then the model's canvas over the whole of it.
+ *
+ * Nothing is fitted into the frame here and nothing is placed inside it. The canvas already IS
+ * the shape of the file — the dialog gives the stage the shape that was picked and the model
+ * lays itself out in it, which is what the view contract is for — so all that is left is to draw
+ * that canvas at the file's size. Rounding a canvas to whole pixels leaves it a fraction off the
+ * exact shape; the canvas covers the frame rather than leaving a border, so the model's own
+ * proportions are never stretched to make up the difference.
  */
-const bleeds = (stage: HTMLElement): boolean => {
-  try {
-    return Boolean(JSON.parse(stage.querySelector<HTMLElement>('iframe')?.dataset.placement ?? 'null')?.bleed);
-  } catch {
-    return false;
-  }
-};
-
-/** One frame painted: the backdrop, then the model as large as `fill` allows, in the middle. */
 function paintFrame(
   ctx: CanvasRenderingContext2D,
-  img: CanvasImageSource,
-  crop: Crop,
-  zoom: number,
+  img: ImageBitmap,
+  canvas: { width: number; height: number },
   frame: { width: number; height: number },
-  fill: number,
   paint: Paint | null,
-  cover = false,
 ): void {
   ctx.clearRect(0, 0, frame.width, frame.height);
   if (paint) {
     ctx.fillStyle = paint.color;
     ctx.fillRect(0, 0, frame.width, frame.height);
     // the same grid the stage shows, at the size the picture is: the stage's own dots, no denser
-    paintDots(ctx, paint, frame.width, frame.height, frame.width / (crop.width || frame.width));
+    paintDots(ctx, paint, frame.width, frame.height, frame.width / (canvas.width || frame.width));
   }
-  const shown = { width: crop.width * zoom, height: crop.height * zoom };
-  const scale = cover
-    ? Math.max((frame.width * fill) / shown.width, (frame.height * fill) / shown.height)
-    : Math.min((frame.width * fill) / shown.width, (frame.height * fill) / shown.height);
-  const w = shown.width * scale;
-  const h = shown.height * scale;
-  ctx.drawImage(img, crop.x * zoom, crop.y * zoom, shown.width, shown.height, (frame.width - w) / 2, (frame.height - h) / 2, w, h);
+  const scale = Math.max(frame.width / img.width, frame.height / img.height);
+  const w = img.width * scale;
+  const h = img.height * scale;
+  ctx.drawImage(img, (frame.width - w) / 2, (frame.height - h) / 2, w, h);
 }
 
 /** The backdrop for this capture: the one handed in, or the one the stage is showing. */
@@ -275,15 +257,13 @@ async function openVideo(width: number, height: number, transparent: boolean): P
 /** Snapshot of one synchronously sampled pose, rendered by Chromium. */
 export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, look, saveAspect }: ImageOptions = {}): Promise<Blob> {
   const scene = captureScene(stage);
-  const crop = { x: 0, y: 0, width: scene.width, height: scene.height };
-  const frame = frameFor(crop, size, saveAspect);
-  const scale = Math.min(6, Math.max(1, frame.width / crop.width, frame.height / crop.height));
+  const frame = frameFor(scene, size, saveAspect);
+  const scale = Math.min(6, Math.max(1, frame.width / scene.width, frame.height / scene.height));
   const canvas = document.createElement('canvas');
   canvas.width = frame.width; canvas.height = frame.height;
   const paint = paintOf(stage, format === 'jpeg' && backdrop === 'transparent' ? 'dark' : backdrop, look);
-  const cover = bleeds(stage);
   for await (const bitmap of renderedFrames(scene, scale, 1)) {
-    try { paintFrame(canvas.getContext('2d')!, bitmap, crop, bitmap.width / crop.width, frame, 1, paint, cover); }
+    try { paintFrame(canvas.getContext('2d')!, bitmap, scene, frame, paint); }
     finally { bitmap.close(); }
   }
   const blob = await new Promise<Blob | null>(ok => canvas.toBlob(ok, 'image/' + format, .92));
@@ -312,8 +292,7 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
   const seconds = loop ? Math.min(MAX_SECONDS, loop / 1000) : 4;
   const count = Math.round(seconds * FPS);
   const scene = captureScene(stage, true);
-  const crop = { x: 0, y: 0, width: scene.width, height: scene.height };
-  const scale = Math.min(6, Math.max(1, size.width / crop.width, size.height / crop.height));
+  const scale = Math.min(6, Math.max(1, size.width / scene.width, size.height / scene.height));
   const video = await openVideo(size.width, size.height, backdrop === 'transparent');
   const canvas = document.createElement('canvas');
   canvas.width = size.width; canvas.height = size.height;
@@ -321,9 +300,8 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
   const paint = paintOf(stage, backdrop, look);
   let index = 0;
   try {
-    const cover = bleeds(stage);
     for await (const bitmap of renderedFrames(scene, scale, count, signal)) {
-      try { paintFrame(ctx, bitmap, crop, bitmap.width / crop.width, size, 1, paint, cover); }
+      try { paintFrame(ctx, bitmap, scene, size, paint); }
       finally { bitmap.close(); }
       const frame = new VideoFrame(canvas, { timestamp: Math.round(index * 1e6 / FPS), duration: Math.round(1e6 / FPS) });
       try { video.encoder.encode(frame, { keyFrame: index % (FPS * 2) === 0 }); } finally { frame.close(); }
@@ -359,9 +337,7 @@ export async function recordLive({ stage, ratio, backdrop, look, quality = 1080,
   const source = captureSource(stage);
   const scene = captureScene(stage);
   const paint = paintOf(stage, backdrop, lookNow?.() ?? look);
-  const cover = bleeds(stage);
-  const crop = { x: 0, y: 0, width: scene.width, height: scene.height };
-  const scale = Math.min(6, Math.max(1, size.width / crop.width, size.height / crop.height));
+  const scale = Math.min(6, Math.max(1, size.width / scene.width, size.height / scene.height));
 
   /* ----- the take: poses, with the moment each was caught ----- */
   const start = performance.now();
@@ -403,7 +379,7 @@ export async function recordLive({ stage, ratio, backdrop, look, quality = 1080,
   try {
     for await (const bitmap of renderedFrames({ ...scene, poses }, scale, poses.length)) {
       try {
-        paintFrame(ctx, bitmap, crop, bitmap.width / crop.width, size, 1, paint, cover);
+        paintFrame(ctx, bitmap, scene, size, paint);
         // this pose is held until the next one was sampled — that is what was on screen
         const until = index + 1 < at.length ? Math.round((at[index + 1]! / 1000) * FPS) : count;
         for (let frame = written; frame < Math.min(until, count); frame++) {
