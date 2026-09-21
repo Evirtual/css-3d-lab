@@ -389,9 +389,11 @@ export const snippetsD: Record<string, Snippet> = {
 
   swipe: {
     how: [
-      'Every card stores its position in the stack in <code>--p</code> (0 = top). CSS turns that into <b>real</b> depth with <code>translateZ(calc(var(--p) * -45px))</code> — perspective does the shrinking, no <code>scale()</code> needed.',
-      'JS only ever writes numbers into custom properties (<code>--dx</code>, <code>--rot</code>...) while a <a><code>pointerdown</code>/<code>pointermove</code></a> drag is in progress; the CSS <code>transform</code> and <code>transition</code> do every bit of motion.',
-      'While dragging, the card gets <code>transition: none</code> so it follows the finger 1:1; release it and the transition comes back, so it either springs home or flies off.',
+      'Every card stores its position in the stack in <code>--p</code> (0 = top). CSS turns that into <b>real</b> depth with <code>translateZ(calc(var(--p) * -45 * var(--u)))</code> — perspective does the shrinking, no <code>scale()</code> needed.',
+      'JS only ever writes plain <b>numbers</b> into custom properties (<code>--dx</code>, <code>--rot</code>...) while a <a><code>pointerdown</code>/<code>pointermove</code></a> drag is in progress; CSS multiplies each one by the model\'s base unit <code>--u</code> and does every bit of motion. A drag therefore means the same thing on a gallery card and on a full screen.',
+      'The canvas is the model, so there is no off-screen edge to fling a card over. The slide <b>gives</b> instead: <code>REACH × tanh(dx / REACH)</code> is 1:1 under the finger at first and eases to a limit however far you go. The card turns as it slides, and <code>rotateY</code> narrows what it draws, which is most of what pays for the slide.',
+      'A sent card leaves by going <b>back</b> — <code>translateZ</code> far into the depth while it fades — which is where it rejoins the deck anyway.',
+      'While dragging, the card gets <code>transition: none</code> so it answers the finger at once; release it and the transition comes back, so it either springs home or carries on away.',
       'A fling does not remove the card. JS flags it <code>.is-back</code> (opacity 0, no transition) to jump it behind the deck invisibly, then removes that class a frame later so it fades back in at the bottom — the illusion of an endless deck.',
       'Use <code>setPointerCapture</code> so the drag keeps receiving events even if the pointer leaves the card, and arrow keys call the exact same <code>fling()</code> function as a completed drag.',
     ],
@@ -404,46 +406,55 @@ export const snippetsD: Record<string, Snippet> = {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the deck is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.36vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .swipe {
   position: relative;
-  width: 130px;
-  height: 150px;
+  width: calc(130 * var(--u));
+  height: calc(150 * var(--u));
   outline: none;
   touch-action: pan-y; /* horizontal drags are ours, vertical ones still scroll the page */
   transform-style: preserve-3d;
-  transform: translateY(-14px); /* the stack trails off downward: nudge it up to look centred */
+  transform: translateY(calc(-14 * var(--u))); /* the stack trails off downward: nudge it up */
 }
 
 .swipe:focus-visible i.is-top {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 3px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(3 * var(--u));
 }
 
 /* --p is the position in the stack (0 = top), written by JS. Depth is REAL: cards further
    back sit further away on Z, and the perspective makes them smaller — no scale() needed.
-   --dx / --dy / --rot / --tilt follow the pointer while dragging. */
+   --dx / --dy / --dz / --rot / --tilt are plain numbers the pointer writes, and every one of
+   them is multiplied by the model's own unit here, so a drag means the same thing on a card
+   and on a full screen. */
 .swipe i {
   position: absolute;
   inset: 0;
   display: grid;
   align-content: end;
-  gap: 2px;
-  padding: 12px;
-  border: 1px solid hsl(var(--hue) 90% 78% / 0.7);
-  border-radius: 14px;
+  gap: calc(2 * var(--u));
+  padding: calc(12 * var(--u));
+  border: calc(1 * var(--u)) solid hsl(var(--hue) 90% 78% / 0.7);
+  border-radius: calc(14 * var(--u));
   background:
     radial-gradient(circle at 75% 22%, rgb(255 255 255 / 0.5), transparent 32%),
     linear-gradient(160deg, hsl(var(--hue) 85% 64%), hsl(calc(var(--hue) + 40) 75% 34%));
-  box-shadow: 0 14px 20px -14px #000;
+  box-shadow: 0 calc(14 * var(--u)) calc(20 * var(--u)) calc(-14 * var(--u)) #000;
   color: #fff;
   font-style: normal;
   opacity: calc(1 - var(--p) * 0.2);
   user-select: none;
   touch-action: pan-y;
-  transform: translate3d(var(--dx, 0px), calc(var(--p) * 14px + var(--dy, 0px)), calc(var(--p) * -45px))
+  transform: translate3d(
+      calc(var(--dx, 0) * var(--u)),
+      calc((var(--p) * 14 + var(--dy, 0)) * var(--u)),
+      calc((var(--p) * -45 + var(--dz, 0)) * var(--u))
+    )
     rotateY(var(--tilt, 0deg)) rotateZ(var(--rot, 0deg));
   transition:
     transform 0.4s cubic-bezier(0.3, 1.3, 0.5, 1),
@@ -460,7 +471,7 @@ export const snippetsD: Record<string, Snippet> = {
   transition: none;
 }
 
-/* flying off: JS has set --dx far outside the deck, CSS does the flight */
+/* on its way out: JS has set the far pose, CSS does the flight */
 .swipe i.is-leaving {
   opacity: 0;
   transition:
@@ -475,35 +486,35 @@ export const snippetsD: Record<string, Snippet> = {
 }
 
 .swipe i strong {
-  font-size: 17px;
+  font-size: calc(17 * var(--u));
   line-height: 1;
 }
 
 .swipe i small {
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   opacity: 0.85;
 }
 
 /* LIKE / NOPE stamps, faded in by how far the card has been dragged */
 .swipe i b {
   position: absolute;
-  top: 12px;
-  padding: 2px 6px;
-  border: 2px solid currentcolor;
-  border-radius: 6px;
-  font-size: 11px;
+  top: calc(12 * var(--u));
+  padding: calc(2 * var(--u)) calc(6 * var(--u));
+  border: calc(2 * var(--u)) solid currentcolor;
+  border-radius: calc(6 * var(--u));
+  font-size: calc(11 * var(--u));
   letter-spacing: 0.08em;
 }
 
 .swipe i b:nth-of-type(1) {
-  left: 10px;
+  left: calc(10 * var(--u));
   color: #7dffb0;
   opacity: var(--like, 0);
   transform: rotate(-14deg);
 }
 
 .swipe i b:nth-of-type(2) {
-  right: 10px;
+  right: calc(10 * var(--u));
   color: #ffd0d8;
   opacity: var(--nope, 0);
   transform: rotate(14deg);
@@ -513,7 +524,21 @@ let order = [...root.querySelectorAll('i')];
 let drag = null;
 let busy = false;
 let timer = 0;
-const THRESHOLD = 60;
+const WIDE = 130;      // the deck's width in the model's own units, for pixels → units
+const THRESHOLD = 26;  // pointer travel, in units, that counts as sending the card away
+// The canvas IS the model, so there is no off-screen edge to fling a card over, and a card that
+// slid far enough to look flung would drag the whole picture off centre. So the slide gives:
+// however far the finger goes, the card eases to REACH and no further, and it turns as it goes —
+// rotateY narrows what it draws, which is most of what pays for the slide. A sent card leaves by
+// going BACK instead, to where it rejoins the deck anyway.
+const REACH = 18;      // the furthest across a card is ever drawn
+const RISE = 8;        // and the furthest up or down
+const GONE = 900;      // how far back a sent card goes while it fades
+
+/** Eases to a limit: 1:1 under the finger at first, never past the limit however far it goes. */
+function ease(v, limit) {
+  return limit * Math.tanh(v / limit);
+}
 
 function layout(cards) {
   cards.forEach((el, p) => {
@@ -522,17 +547,19 @@ function layout(cards) {
   });
 }
 
-function pose(card, dx, dy) {
-  card.style.setProperty('--dx', dx.toFixed(1) + 'px');
-  card.style.setProperty('--dy', dy.toFixed(1) + 'px');
-  card.style.setProperty('--rot', (dx * 0.08).toFixed(2) + 'deg');
-  card.style.setProperty('--tilt', (dx * 0.12).toFixed(2) + 'deg');
+function pose(card, dx, dy, back) {
+  const across = ease(dx, REACH);
+  card.style.setProperty('--dx', across.toFixed(1));
+  card.style.setProperty('--dy', ease(dy, RISE).toFixed(1));
+  card.style.setProperty('--dz', String(-(back || 0)));
+  card.style.setProperty('--rot', (across * 0.15).toFixed(2) + 'deg');
+  card.style.setProperty('--tilt', (across * 1.3).toFixed(2) + 'deg');
   card.style.setProperty('--like', Math.min(1, Math.max(0, dx / THRESHOLD)).toFixed(2));
   card.style.setProperty('--nope', Math.min(1, Math.max(0, -dx / THRESHOLD)).toFixed(2));
 }
 
 function unpose(card) {
-  ['--dx', '--dy', '--rot', '--tilt', '--like', '--nope'].forEach((p) => card.style.removeProperty(p));
+  ['--dx', '--dy', '--dz', '--rot', '--tilt', '--like', '--nope'].forEach((p) => card.style.removeProperty(p));
 }
 
 function fling(dir, dy) {
@@ -542,7 +569,7 @@ function fling(dir, dy) {
   const rest = order.slice(1);
   card.classList.remove('is-top');
   card.classList.add('is-leaving');
-  pose(card, dir * 260, dy || 0);
+  pose(card, dir * THRESHOLD * 4, dy || 0, GONE); // out to its limit, and away into the depth
   layout(rest); // the others move up right away
   timer = window.setTimeout(() => {
     // jump to the back invisibly (no transition), then let it fade in there
@@ -564,26 +591,27 @@ function down(e) {
   e.preventDefault();
   root.focus({ preventScroll: true });
   root.setPointerCapture(e.pointerId);
-  // screen pixels → CSS pixels (in case the page scales the deck)
-  const scale = root.getBoundingClientRect().width / root.offsetWidth || 1;
-  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, scale, dx: 0 };
+  // screen pixels → the model's own units: the deck is WIDE units across, so one unit is that
+  // fraction of what it measures on screen, whatever size the canvas is
+  const unit = root.getBoundingClientRect().width / WIDE || 1;
+  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, unit, dx: 0 };
   order[0].classList.add('is-dragging');
 }
 
 function move(e) {
   if (!drag || e.pointerId !== drag.id) return;
-  drag.dx = (e.clientX - drag.x) / drag.scale;
-  pose(order[0], drag.dx, ((e.clientY - drag.y) / drag.scale) * 0.4);
+  drag.dx = (e.clientX - drag.x) / drag.unit;
+  pose(order[0], drag.dx, ((e.clientY - drag.y) / drag.unit) * 0.4);
 }
 
 function up(e) {
   if (!drag || e.pointerId !== drag.id) return;
-  const { dx, scale, y } = drag;
+  const { dx, unit, y } = drag;
   drag = null;
   const card = order[0];
   card.classList.remove('is-dragging');
   if (e.type === 'pointerup' && Math.abs(dx) > THRESHOLD) {
-    fling(Math.sign(dx), ((e.clientY - y) / scale) * 0.4);
+    fling(Math.sign(dx), ((e.clientY - y) / unit) * 0.4);
   } else {
     unpose(card); // the transition is back on, so it springs home
   }
