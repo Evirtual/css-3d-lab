@@ -169,17 +169,19 @@ A model that only fits at rest is not finished.
 over the top right. Stay 14vmin from both.
 
 **5. Controls are the same object in every model.** Copy this block unchanged into any model that
-has a caption or a row of controls, and change only what is inside the row:
+has a caption or a row of controls, and change only what is inside the row. It is written in plain
+vmin, not in the model's own unit, because it is the same size in every model whatever the model
+is sized to:
 
 ```css
 .controls {
   position: absolute;
   left: 50%;
-  top: calc(50% + 32 * var(--u) / 0.3 * 0.3);  /* 32vmin below the middle */
+  top: calc(50% + 32vmin);   /* the same distance below the middle in every model */
   translate: -50% 0;
   display: grid;
   justify-items: center;
-  gap: calc(2 * var(--u) / 0.3 * 0.3);
+  gap: 2vmin;
   text-align: center;
 }
 .controls .caption { font: 500 4.5vmin/1.2 system-ui, sans-serif; opacity: 0.7; }
