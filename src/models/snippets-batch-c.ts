@@ -320,7 +320,7 @@ setInterval(function () {
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the line is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.72vmin;
+  --u: 0.83vmin;
   perspective: calc(800 * var(--u));
 }
 
@@ -336,6 +336,9 @@ setInterval(function () {
   font-weight: 800;
   white-space: nowrap;
   transform-style: preserve-3d;
+  /* measured by what it paints, the turning prism reaches further below the line than the lead-in
+     does above it, so the drawing hangs below the layout box; this lift centres it */
+  transform: translateY(calc(-5 * var(--u)));
 }
 
 .prism {
