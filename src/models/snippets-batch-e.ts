@@ -681,6 +681,7 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
       'A block is <b>one element</b>: the element is the top face, lifted with <code>translateZ</code>. <code>::before</code> folds down from its bottom edge with <code>rotateX(-90deg)</code>, <code>::after</code> from its right edge with <code>rotateY(90deg)</code>. Only the two walls that face the camera exist.',
       'The same block makes everything: grass columns, the stepped rock underside (tops at z ≤ 0, walls hanging below), tree trunks and blossoms. Only the colours change.',
       'Floating is two animations with the same timing: the land bobs and sways, while a flat glow underneath shrinks and fades when the land is high.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a cell is 28 units and one step of height 14, so the island is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="island">
@@ -698,24 +699,29 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--z:${ISLAND
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the island is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.33vmin;
+  display: grid;
+  place-items: center;
+  perspective: calc(800 * var(--u));
 }
 
 .island {
-  --cell: 28px;
-  --unit: 14px; /* one step of height */
+  --cell: calc(28 * var(--u));
+  --unit: calc(14 * var(--u)); /* one step of height */
   position: relative;
-  width: 200px;
-  height: 190px;
+  width: calc(200 * var(--u));
+  height: calc(190 * var(--u));
   transform-style: preserve-3d;
 }
 
 .shadow {
   position: absolute;
-  left: 40px;
-  bottom: 4px;
-  width: 120px;
-  height: 24px;
+  left: calc(40 * var(--u));
+  bottom: calc(4 * var(--u));
+  width: calc(120 * var(--u));
+  height: calc(24 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(139 108 255 / 0.5), transparent);
   animation: breathe 3.2s ease-in-out infinite alternate;
@@ -723,10 +729,10 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--z:${ISLAND
 
 .land {
   position: absolute;
-  left: 44px;
-  top: 30px;
-  width: 112px;
-  height: 112px;
+  left: calc(44 * var(--u));
+  top: calc(30 * var(--u));
+  width: calc(112 * var(--u));
+  height: calc(112 * var(--u));
   transform-style: preserve-3d;
   animation: bob 3.2s ease-in-out infinite alternate;
 }
@@ -760,7 +766,7 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--z:${ISLAND
   left: 0;
   width: 100%;
   height: calc(var(--h) * var(--unit));
-  background: linear-gradient(var(--grass) 0 3px, var(--side) 3px);
+  background: linear-gradient(var(--grass) 0 calc(3 * var(--u)), var(--side) calc(3 * var(--u)));
   transform-origin: top;
   transform: rotateX(-90deg);
 }
@@ -773,7 +779,7 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--z:${ISLAND
   height: 100%;
   background:
     linear-gradient(rgb(0 0 0 / 0.25), rgb(0 0 0 / 0.25)),
-    linear-gradient(90deg, var(--grass) 0 3px, var(--side) 3px);
+    linear-gradient(90deg, var(--grass) 0 calc(3 * var(--u)), var(--side) calc(3 * var(--u)));
   transform-origin: left;
   transform: rotateY(90deg);
 }
@@ -784,8 +790,8 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--z:${ISLAND
 .land .leaf  { --top: #ff9cc6; --grass: ${PINK}; --side: ${PINK}; }
 
 @keyframes bob {
-  from { transform: translateY(5px) rotateX(58deg) rotateZ(38deg); }
-  to   { transform: translateY(-5px) rotateX(58deg) rotateZ(52deg); }
+  from { transform: translateY(calc(5 * var(--u))) rotateX(58deg) rotateZ(38deg); }
+  to   { transform: translateY(calc(-5 * var(--u))) rotateX(58deg) rotateZ(52deg); }
 }
 
 @keyframes breathe {
