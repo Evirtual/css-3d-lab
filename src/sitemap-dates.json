@@ -68,7 +68,7 @@
     "date": "2026-09-21"
   },
   "models/dice/": {
-    "hash": "5ecdf8a9b176bdf3",
+    "hash": "e0505b78a3052471",
     "date": "2026-09-21"
   },
   "models/wordcube/": {
@@ -76,7 +76,7 @@
     "date": "2026-09-21"
   },
   "models/turntable/": {
-    "hash": "69b72f8d9269b010",
+    "hash": "c7c8b6647ebcccd7",
     "date": "2026-09-21"
   },
   "models/neonbars/": {
@@ -92,15 +92,15 @@
     "date": "2026-09-21"
   },
   "models/swipe/": {
-    "hash": "56317b07d5d86e4d",
+    "hash": "ab4d9473776ac986",
     "date": "2026-09-21"
   },
   "models/diamond/": {
-    "hash": "f4fca5a471c44e89",
+    "hash": "9b830fdcb1197f6d",
     "date": "2026-09-21"
   },
   "models/logo3d/": {
-    "hash": "62d1f9379b093fe2",
+    "hash": "971e954dc214d3e5",
     "date": "2026-09-21"
   },
   "models/magnet/": {
@@ -144,7 +144,7 @@
     "date": "2026-09-21"
   },
   "models/torus/": {
-    "hash": "82094fe1edcc3321",
+    "hash": "30b085aeee7b0d0e",
     "date": "2026-09-21"
   },
   "models/crawl/": {
@@ -152,7 +152,7 @@
     "date": "2026-09-21"
   },
   "models/cubenav/": {
-    "hash": "4ec65136b7e8ae6e",
+    "hash": "b703734db2654954",
     "date": "2026-09-21"
   },
   "models/chartpanel/": {
@@ -208,19 +208,19 @@
     "date": "2026-09-21"
   },
   "models/prism/": {
-    "hash": "d315d303e0da23af",
+    "hash": "d5c177fb798c1df5",
     "date": "2026-09-21"
   },
   "models/octa/": {
-    "hash": "1e3d34727d5c3c1c",
+    "hash": "dc7ee5600965e581",
     "date": "2026-09-21"
   },
   "models/cone/": {
-    "hash": "6a044b61abe2cf3b",
+    "hash": "fe72116c43a40fd5",
     "date": "2026-09-21"
   },
   "models/stairs/": {
-    "hash": "62e111f3ac06253b",
+    "hash": "a0b9c9de0b1dab2a",
     "date": "2026-09-21"
   },
   "models/cubegrid/": {
@@ -368,7 +368,7 @@
     "date": "2026-09-21"
   },
   "models/boxslider/": {
-    "hash": "ee2a42eb204f03d7",
+    "hash": "7662e3b045b2dbc7",
     "date": "2026-09-21"
   },
   "models/cardstack/": {
@@ -464,7 +464,7 @@
     "date": "2026-09-21"
   },
   "models/laptop/": {
-    "hash": "9540681e6d97f863",
+    "hash": "551372cfa3267190",
     "date": "2026-09-21"
   },
   "models/sign/": {
@@ -476,7 +476,7 @@
     "date": "2026-09-21"
   },
   "models/isotiles/": {
-    "hash": "f877e8f2838cf7d5",
+    "hash": "9068c88f677d9228",
     "date": "2026-09-21"
   },
   "models/confetti/": {
@@ -516,11 +516,11 @@
     "date": "2026-09-21"
   },
   "models/clock/": {
-    "hash": "8c3d2dc826fcc670",
+    "hash": "be7d3bb44e747505",
     "date": "2026-09-21"
   },
   "models/playground/": {
-    "hash": "132fcdfd53ba17e0",
+    "hash": "66a8eb3c915f98fa",
     "date": "2026-09-21"
   },
   "models/pie/": {
@@ -552,7 +552,7 @@
     "date": "2026-09-21"
   },
   "models/candles/": {
-    "hash": "f53087f37e9625a7",
+    "hash": "9b9746c522e6dc68",
     "date": "2026-09-21"
   },
   "models/waterfall/": {
