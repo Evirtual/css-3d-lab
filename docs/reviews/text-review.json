@@ -1,0 +1,833 @@
+[
+  {
+    "model": "accordion",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:53:10+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "activity",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T15:07:36+07:00",
+    "reviewedAtBasis": "time of its own review commit",
+    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+  },
+  {
+    "model": "bars",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:01:05+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "da885cd583800813bc9fc896a70bb2c9a41252a2"
+  },
+  {
+    "model": "blockstack",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:59:50+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "c017187526cdb9d57ce0eb6ec124aba580f038b0"
+  },
+  {
+    "model": "book",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:53:10+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "boxslider",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:52:23+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "966dba3c261631b7d1356387ea9983851db2cf9f"
+  },
+  {
+    "model": "browser",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:47:49+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "dfcb2f7a49a6a8aab22f996e87da9be4c8ac576b"
+  },
+  {
+    "model": "button",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "can",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:45:15+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "candles",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:05:54+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+  },
+  {
+    "model": "cardfan",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:52:43+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "bbf25cdd390daee4f3493926d75fe66d45f2a685"
+  },
+  {
+    "model": "cardstack",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:52:43+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "carousel",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:52:23+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "chartpanel",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:48:50+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "bbd63e65cf7970e89a54af9d6ca741e8d3d42f69"
+  },
+  {
+    "model": "check",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "clock",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:01:20+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "45d0cbddc540a4ce4f2679ea36cb8007a507665b"
+  },
+  {
+    "model": "coin",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:49:20+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "cone",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:03+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "coverflow",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:48:34+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "cube",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:49:20+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "cubegrid",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:51:03+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "40263edb50f2ef67a5eab4a677626f969ccdb0ed"
+  },
+  {
+    "model": "cubeloader",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:58:27+07:00",
+    "reviewedAtBasis": "time of its own review commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "cubenav",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:48:34+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "45471a3ba3990ebd71fd43d38bce0288adb230b8"
+  },
+  {
+    "model": "cylinder",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:49:20+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "diamond",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:47:19+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "dice",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:45:15+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "94e51c7f68228e5a4d54bfe4d194d8900b013d72"
+  },
+  {
+    "model": "door",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:00:12+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "a97b9143141f2523e1f4e578fb0dd7f71fb25c1a"
+  },
+  {
+    "model": "dotorbit",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:59:16+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "7331a1d47d93fc121da7e2e7a6944d5b100d8b7b"
+  },
+  {
+    "model": "equalizer",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:46:11+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "befde9276b2832515356be2b919fb1c44d6e1f0f"
+  },
+  {
+    "model": "explode",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:49:40+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "f08e9957dbc0180291a9a03e9ced2ec3e1f2b0cb"
+  },
+  {
+    "model": "flaptext",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:45:15+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "flip",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:52:23+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "flipgrid",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:53:10+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "flipper",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:53:10+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "b97f70615cad8d72bfd4e4d30cf2ad946b7cf340"
+  },
+  {
+    "model": "funnel",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T15:07:36+07:00",
+    "reviewedAtBasis": "time of its own review commit",
+    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+  },
+  {
+    "model": "gauge",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T15:03:41+07:00",
+    "reviewedAtBasis": "time of its own review commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "globe",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:49:20+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "gyro",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:53:24+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "7058d8db4c3468a3933d5117161c6f26b0e59d86"
+  },
+  {
+    "model": "heatmap",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:04:36+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "62d5f68ef7da1e3e99133c5a0368ed2f73d03110"
+  },
+  {
+    "model": "helix",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:53:57+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "9408d668f4c59f2a58bf2ee59b286b4291a4eaf5"
+  },
+  {
+    "model": "isotiles",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:00:46+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "d4c3f68c91090db53861a9d5328e90fa41d71cb2"
+  },
+  {
+    "model": "laptop",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:00:32+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "66a1cc475cffe873b531d9cbafd8c1e30d8487e4"
+  },
+  {
+    "model": "lattice",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "needsRereview": "--u is 50px, not a canvas unit: not really converted; re-review when it is"
+  },
+  {
+    "model": "layers",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:49:20+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "e7fe750764de9765c61ccf8be8c32ae2f9b6277a"
+  },
+  {
+    "model": "layertext",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "lit",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "logo3d",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:47:19+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "86654f5c97442b878c9fc127f6527fcd4710a184"
+  },
+  {
+    "model": "magnet",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:47:33+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "cf74ef4913f1838218ecb9e86794864281bad966"
+  },
+  {
+    "model": "neonbars",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:46:11+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "octa",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:50:15+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "orbit",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:49:20+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "package",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:45:15+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "paycard",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:44:24+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "bbfa88349df9fc00ab468472e0ae93e432778b6f"
+  },
+  {
+    "model": "phone",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:44:24+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "pie",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T15:03:05+07:00",
+    "reviewedAtBasis": "time of its own review commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "playground",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:02:19+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "31fecaed34d1d642d2144b0d227f97a6eefb9801"
+  },
+  {
+    "model": "polaroid",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:48:34+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "prism",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:50:15+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "pyramid",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:49:20+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "radar",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:07:36+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5",
+    "fixCommit": "4ef3b78e1a351fc6d49ab9d8c990c42fefab5e87"
+  },
+  {
+    "model": "radio",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:49:40+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "rating",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:52:23+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "rings",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:58:27+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "bed874023b7666cc71c5ef091eb414b91718105d"
+  },
+  {
+    "model": "ripple",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:58:12+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "6ff37ef12cc567e3c46ebece55aea7b06a70241a"
+  },
+  {
+    "model": "rollbutton",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "rubik",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:44:24+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "scatter",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T15:03:33+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "1de4487083e4962428a50f80ca8232c495621bac"
+  },
+  {
+    "model": "shadowtext",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:48:06+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "ae457b5128b5e6de5e84c8415e06afd85b756c17"
+  },
+  {
+    "model": "sphere",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:50:15+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "a7ace0e1df66b53e842c2db7909dfb252477f4d5"
+  },
+  {
+    "model": "stackbars",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T15:08:37+07:00",
+    "reviewedAtBasis": "time of its own review commit",
+    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+  },
+  {
+    "model": "stairs",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:03+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "swipe",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:46:55+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "efb6cea24fa121599af6b682b2f1e903e16773e2"
+  },
+  {
+    "model": "switch",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "text",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "textring",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "needsRereview": "being re-converted in the working tree (radius 52, 9 characters); re-review when that lands"
+  },
+  {
+    "model": "tiles",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:57:22+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "46056f38837dce8059f6127cd181367fe284cdda"
+  },
+  {
+    "model": "tilt",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "d1b8a079b3d0bc42b0cce7639cbfa3a41cdb689c"
+  },
+  {
+    "model": "timeline",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T15:03:50+07:00",
+    "reviewedAtBasis": "time of its own review commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "toggle",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:52:23+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "torus",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:48:34+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "treemap",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T15:08:37+07:00",
+    "reviewedAtBasis": "time of its own review commit",
+    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+  },
+  {
+    "model": "turntable",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:45:36+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "487157d71254747d1a93ba859e0e4fdf1e13cd49"
+  },
+  {
+    "model": "vinyl",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:46:55+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "watch",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:48:06+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "waterfall",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T15:08:37+07:00",
+    "reviewedAtBasis": "time of its own review commit",
+    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+  },
+  {
+    "model": "wavegrid",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-21T14:53:44+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+    "fixCommit": "f564e0432acfcb39661e2e5e5e1adae6604be943"
+  },
+  {
+    "model": "waveletters",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:51:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  },
+  {
+    "model": "wordcube",
+    "kind": "text",
+    "reviewer": "text-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T14:45:36+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+  }
+]
