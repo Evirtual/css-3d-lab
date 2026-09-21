@@ -6,7 +6,11 @@
  *   node scripts/capture-check.mjs stages [args…]   scripts/check-stages.mjs
  *   node scripts/capture-check.mjs motion [args…]   scripts/check-motion.mjs
  *   node scripts/capture-check.mjs exports [args…]  scripts/check-exports.mjs
+ *   node scripts/capture-check.mjs media [args…]    scripts/check-media.mjs (on the built site)
  *   (npm run capture -- models cube dice)
+ *
+ * Which checks there are is scripts/checks-registry.mjs, the one list the ledger and its page read
+ * too. A new check is an entry there and a parser for its lines below.
  *
  * It does not change what a check does. It reads the lines the check already prints:
  *  - models: `FAILS <id> …` and `holds <id> …`. A pass only prints its line under --pass, so the
@@ -28,6 +32,12 @@
  *    defaults are listed once, in scripts/export-defaults.mjs, for this and for check-exports
  *    --defaults, which makes exactly them: `npm run capture -- exports --defaults <ids>` is the
  *    per-model run, and its entries say `matrix.defaultsOnly`.
+ *  - media: `pass <id> …` and `FAILS <id> …`, with the reasons indented under a failure.
+ *  - seo (a site check: its entries are pages, not models): `FAIL <page> <rule>: <what>` (a page
+ *    can have several; they are grouped by page), `pass <page>`, and `listed <page> <rules>`, a pass
+ *    whose findings are listed rather than failed (WAIVED or OWN-TEXT), recorded with `listed: true`.
+ *    Site-wide problems are keyed /sitemap.xml and /robots.txt. The wrapper adds --pass, so every
+ *    page gets a line.
  *
  * Each model's entry is replaced only when this run reported it, so a run over two models keeps
  * the last known result of the other 133. Every entry carries the moment its line was printed, the
@@ -49,15 +59,17 @@ import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileS
 import { join } from 'node:path';
 import { fingerprints, ROOT, workingSources } from './model-sources.mjs';
 import { DEFAULTS, DEFAULTS_TEXT, isDefault } from './export-defaults.mjs';
+import { REGISTRY, pagesFor } from './checks-registry.mjs';
 
-const CHECKS = { models: 'check-models.mjs', stages: 'check-stages.mjs', motion: 'check-motion.mjs', exports: 'check-exports.mjs' };
+const CHECKS = Object.fromEntries(REGISTRY.map((c) => [c.key, c.script]));
 const [check, ...rest] = process.argv.slice(2);
+// a registered check whose lines no parser below reads yet is refused further down, once the parsers exist
 if (!CHECKS[check]) {
   console.error(`usage: node scripts/capture-check.mjs <${Object.keys(CHECKS).join('|')}> [args for the check]`);
   process.exit(2);
 }
 const args = [...rest];
-if (check === 'models' && !args.includes('--pass')) args.push('--pass');
+if ((check === 'models' || check === 'seo') && !args.includes('--pass')) args.push('--pass');
 const record = !(check === 'stages' && args.includes('--json'));
 if (!record) console.error('capture-check: --json prints numbers without a verdict, so this run is shown but not recorded.');
 
@@ -105,6 +117,32 @@ const parsers = {
     if (m && current && results[current]) { results[current].mismatches.push({ check: m[1], what: m[2], detail: m[3], fault: m[4] ?? null }); results[current].at = now(); return; }
     if (/^\d+ mismatch(es)? in [\d.]+ min:$/.test(line)) { if (current && results[current]) { results[current].complete = true; finalizeExport(current); } summaryLine = line.trim(); }
   },
+  media(line) {
+    const m = /^(FAILS|pass)\s+(\S+)\s*(.*)$/.exec(line);
+    if (m) {
+      current = m[2];
+      results[current] = { status: m[1] === 'pass' ? 'pass' : 'fail', summary: m[3], detail: [], at: now() };
+      return;
+    }
+    if (/^ {10}\S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
+    if (/share previews are right/.test(line)) summaryLine = line.trim();
+  },
+  seo(line) {
+    const f = /^FAIL (\S+) (.*)$/.exec(line);
+    if (f) {
+      const r = results[f[1]]?.status === 'fail' ? results[f[1]] : (results[f[1]] = { status: 'fail', summary: '', detail: [], at: now() });
+      r.detail.push(f[2]);
+      r.summary = `${r.detail.length} problem(s)`;
+      return;
+    }
+    const m = /^(pass|listed) (\S+)\s*(.*)$/.exec(line);
+    if (m) {
+      if (results[m[2]]?.status === 'fail') return;
+      results[m[2]] = { status: 'pass', summary: m[1] === 'listed' ? `listed, not failed: ${m[3]}` : '', detail: [], at: now(), extra: { listed: m[1] === 'listed' } };
+      return;
+    }
+    if (/pages pass the SEO check/.test(line)) summaryLine = line.trim();
+  },
   motion(line) {
     const m = /^(smooth|LOOK AT|BROKE)\s+(\S+)\s*(.*)$/.exec(line);
     if (m) {
@@ -117,6 +155,10 @@ const parsers = {
   },
 };
 const known = new Set(Object.keys(printsBefore));
+if (!parsers[check]) {
+  console.error(`capture-check: ${check} is in scripts/checks-registry.mjs, but nothing here reads its output yet: add a parser for it.`);
+  process.exit(2);
+}
 
 /**
  * The export dialog's defaults and which of the check's mismatch labels are about them, from
@@ -204,13 +246,15 @@ function finishStages(text) {
 
 /* ---------- what the run will go through (for progress only; the check decides for itself) ---------- */
 function expectedTotal() {
-  const named = args.filter((a, i) => !a.startsWith('-') && !(i > 0 && ['--tol', '--size', '--frames', '--only', '--json'].includes(args[i - 1])));
+  const named = args.filter((a, i) => !a.startsWith('-') && !(i > 0 && ['--tol', '--size', '--frames', '--only', '--json', '--dist', '--keep'].includes(args[i - 1])));
   if (named.length) return { total: named.length, totalIsEstimate: false, totalFrom: 'the model ids named on the command line' };
   try {
     const src = workingSources();
     const demoIds = [...src].filter(([, m]) => m.parts.some((p) => p.kind === 'demo' || (p.whole && p.file.includes('/charts/')))).map(([id]) => id);
     const converted = demoIds.filter((id) => src.get(id)?.snippet?.css.includes('--u:'));
-    if (check === 'models' || check === 'stages') return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
+    if (check === 'models' || check === 'stages' || check === 'media') return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
+    const site = REGISTRY.find((c) => c.key === check && c.scope === 'site');
+    if (site) return { total: pagesFor(site), totalIsEstimate: true, totalFrom: 'the page count scripts/checks-registry.mjs gives' };
     if (check === 'motion') return args.includes('--all')
       ? { total: demoIds.length, totalIsEstimate: true, totalFrom: 'every model (--all)' }
       : { total: converted.length, totalIsEstimate: true, totalFrom: 'the converted models (snippet CSS with --u:), as check-motion runs with no ids' };
