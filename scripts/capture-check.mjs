@@ -426,6 +426,6 @@ child.on('close', (code, signal) => {
     runs: [run, ...(o.runs ?? [])].slice(0, 30),
   };
   writeOut(out);
-  console.error(`\ncapture-check: recorded ${run.reported} model result(s) in docs/checks/${check}.json${run.complete ? '' : ' (the run did not finish normally)'}.`);
+  console.error(`\ncapture-check: recorded ${run.reported} ${REGISTRY.find((c) => c.key === check)?.scope === "site" ? "page" : "model"} result(s) in docs/checks/${check}.json${run.complete ? '' : ' (the run did not finish normally)'}.`);
   process.exit(code ?? 1);
 });
