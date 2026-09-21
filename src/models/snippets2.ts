@@ -905,12 +905,12 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
 
   cardfan: {
     how: [
-      'All five cards sit exactly on top of each other.',
+      'All five cards sit on the same spot and share one pivot. Even gathered they are spread 7° a card, so every corner index shows and a paused card reads as a hand, not a single card.',
       '<code>transform-origin: 50% 150%</code> moves the pivot below the card, so <code>rotateZ</code> swings it along an arc instead of spinning it in place.',
-      'The index runs −2…2, so <code>rotateZ(calc(var(--i) * 16deg))</code> fans symmetrically around an upright middle card.',
+      'The index runs −2…2, so <code>rotateZ(calc(var(--i) * 15deg))</code> fans symmetrically around an upright middle card, and the loop swings between that and the gathered 7°.',
       'A few units of <code>translateZ</code> per card gives each its own depth, which avoids flicker where they overlap.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the hand is the same share of a gallery card, the editor and a recording canvas.',
-      'How far below the card the pivot sits is what decides the width: the further down, the flatter the arc and the wider the spread. At 170% the open hand was a third wider than the canvas, so the pivot came up to 150% and the same 16° fans into an arc the band can hold. The outer cards also swing downward, so the hand is lifted 23 units with <code>translateY</code> and the open hand and the closed one share the miss rather than one of them being centred and the other not.',
+      'How far below the card the pivot sits is what decides the width: the further down, the flatter the arc and the wider the spread. At 170% the open hand was a third wider than the canvas, so the pivot came up to 150% and 15° fans into an arc the band can hold. The outer cards also swing downward, so the hand is lifted 12 units with <code>translateY</code> and the open hand and the gathered one share the miss rather than one of them being centred and the other not.',
     ],
     html: `<div class="scene">
   <div class="hand">
@@ -924,7 +924,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the hand is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.26vmin;
+  --u: 0.28vmin;
   display: grid;
   place-items: center;
   perspective: calc(800 * var(--u));
@@ -937,7 +937,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   transform-style: preserve-3d;
   /* the outer cards swing down as well as out, and their shadows hang lower still: the lift
      splits the difference between the closed hand and the open one, so neither sits off centre */
-  transform: translateY(calc(-23 * var(--u))) rotateX(26deg);
+  transform: translateY(calc(-12 * var(--u))) rotateX(26deg);
 }
 
 .hand i {
@@ -958,8 +958,9 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
 .hand small { display: block; font-size: calc(19 * var(--u)); }
 
 @keyframes fan {
-  0%, 15%   { transform: translateZ(calc(var(--i) * 1 * var(--u))) rotateZ(0deg); }
-  85%, 100% { transform: translateZ(calc(var(--i) * 6 * var(--u))) rotateZ(calc(var(--i) * 16deg)); }
+  /* never closed flat: even the gathered hand is spread 7deg a card, enough to show every corner index, so a paused card shows a fan */
+  0%, 15%   { transform: translateZ(calc(var(--i) * 1 * var(--u))) rotateZ(calc(var(--i) * 7deg)); }
+  85%, 100% { transform: translateZ(calc(var(--i) * 6 * var(--u))) rotateZ(calc(var(--i) * 15deg)); }
 }`,
   },
 
