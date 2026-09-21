@@ -1,6 +1,6 @@
 // Review tool: renders each snippet's standalone page (what "Copy as one HTML file" gives) with no
 // build, reports script errors or empty pages, and photographs them all into .media-tmp/snippets.jpg.
-//   node scripts/snippet-check.mjs <id> [<id> ...]
+//   node scripts/snippet-check.mjs <id> [<id> ...]      (no build; .media-tmp/ must exist)
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
 const ids = process.argv.slice(2);
