@@ -934,10 +934,11 @@ stage.addEventListener('pointercancel', leave);`,
   tabs: {
     how: [
       'Four real radios come <b>before</b> the content in the markup, invisible but focusable, so the <code>~</code> general sibling combinator can reach both the nav and the prism from any of them.',
-      'Each tab panel is a face of a prism, placed with the same "turn backwards, then push out" recipe as a cube: face <code>n</code> gets <code>rotateX(n * -90deg) translateZ(46px)</code>.',
-      'The prism is pulled back by half its own depth (<code>translateZ(-46px)</code>) so the panel currently in front sits exactly at z&nbsp;=&nbsp;0 and its text stays sharp.',
+      'Each tab panel is a face of a prism, placed with the same "turn backwards, then push out" recipe as a cube: face <code>n</code> gets <code>rotateX(n * -90deg) translateZ(46 units)</code>.',
+      'The prism is pulled back by half its own depth (<code>translateZ(-46 units)</code>) so the panel currently in front sits exactly at z&nbsp;=&nbsp;0 and its text stays sharp.',
       'Checking radio <code>n</code> sets <code>--step</code> to <code>n - 1</code> on the prism; <code>rotateX(calc(var(--step) * 90deg))</code> turns to that face, and one shared <code>transition</code> animates every possible jump.',
       '<code>backface-visibility: hidden</code> on the panels stops the back faces from showing through as the prism turns.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the tabs are the same share of a gallery card, the editor and a recording canvas. The tabs are the model, so there is no separate control row: the whole thing fills the frame.',
     ],
     html: `<div class="tabs">
   <input type="radio" name="tabs" id="tab-0" aria-label="Front" checked />
@@ -960,10 +961,13 @@ stage.addEventListener('pointercancel', leave);`,
   </div>
 </div>`,
     css: `.tabs {
+  /* one base unit: every length below is a multiple of it, so the tabs are the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.42vmin;
   position: relative;
   display: grid;
-  gap: 20px;
-  width: 204px;
+  gap: calc(20 * var(--u));
+  width: calc(204 * var(--u));
 }
 
 /* real radios, invisible but focusable; they come first so ~ can reach everything else */
@@ -971,8 +975,8 @@ stage.addEventListener('pointercancel', leave);`,
   position: absolute;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
+  width: calc(1 * var(--u));
+  height: calc(1 * var(--u));
   margin: 0;
   opacity: 0;
   pointer-events: none;
@@ -981,18 +985,18 @@ stage.addEventListener('pointercancel', leave);`,
 .tabs-nav {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 3px;
-  padding: 3px;
-  border: 1px solid #262b4a;
-  border-radius: 10px;
+  gap: calc(3 * var(--u));
+  padding: calc(3 * var(--u));
+  border: calc(1 * var(--u)) solid #262b4a;
+  border-radius: calc(10 * var(--u));
   background: rgb(22 26 51 / 0.6);
 }
 
 .tabs-nav label {
-  padding: 5px 0;
-  border-radius: 7px;
+  padding: calc(5 * var(--u)) 0;
+  border-radius: calc(7 * var(--u));
   color: #949bc0;
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   font-weight: 700;
   text-align: center;
   cursor: pointer;
@@ -1005,8 +1009,8 @@ stage.addEventListener('pointercancel', leave);`,
 
 /* the window the prism is seen through: static, and NOT clipped (clipping would flatten it) */
 .tabs-view {
-  height: 92px;
-  perspective: 520px;
+  height: calc(92 * var(--u));
+  perspective: calc(520 * var(--u));
   pointer-events: none;
 }
 
@@ -1015,7 +1019,7 @@ stage.addEventListener('pointercancel', leave);`,
   position: relative;
   height: 100%;
   transform-style: preserve-3d;
-  transform: translateZ(-46px) rotateX(calc(var(--step, 0) * 90deg));
+  transform: translateZ(calc(-46 * var(--u))) rotateX(calc(var(--step, 0) * 90deg));
   transition: transform 0.75s cubic-bezier(0.3, 1.2, 0.4, 1);
 }
 
@@ -1025,31 +1029,31 @@ stage.addEventListener('pointercancel', leave);`,
   inset: 0;
   display: grid;
   align-content: center;
-  gap: 4px;
-  padding: 0 17px;
+  gap: calc(4 * var(--u));
+  padding: 0 calc(17 * var(--u));
   /* an inner line plus a soft shade instead of a hard border: turning, a face passes
-     side-on, where a 1px line breaks up; the shade survives */
+     side-on, where a 1 units line breaks up; the shade survives */
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent),
-    inset 0 0 8px color-mix(in srgb, var(--c) 28%, transparent);
-  border-radius: 10px;
+    inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c) 70%, transparent),
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--c) 28%, transparent);
+  border-radius: calc(10 * var(--u));
   background:
     linear-gradient(140deg, color-mix(in srgb, var(--c) 34%, transparent), transparent 70%),
     rgb(11 13 24 / 0.88);
   backface-visibility: hidden;
-  transform: rotateX(calc(var(--i) * -90deg)) translateZ(46px);
+  transform: rotateX(calc(var(--i) * -90deg)) translateZ(calc(46 * var(--u)));
 }
 
 .tabs-prism section b {
   color: var(--c);
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   font-weight: 800;
 }
 
 .tabs-prism section p {
   margin: 0;
   color: #949bc0;
-  font-size: 11.5px;
+  font-size: calc(11.5 * var(--u));
   line-height: 1.4;
 }
 
@@ -1072,8 +1076,8 @@ stage.addEventListener('pointercancel', leave);`,
 .tabs input:nth-of-type(2):focus-visible ~ .tabs-nav label:nth-of-type(2),
 .tabs input:nth-of-type(3):focus-visible ~ .tabs-nav label:nth-of-type(3),
 .tabs input:nth-of-type(4):focus-visible ~ .tabs-nav label:nth-of-type(4) {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 2px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(2 * var(--u));
 }`,
   },
 
