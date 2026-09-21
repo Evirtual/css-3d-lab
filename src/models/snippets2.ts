@@ -1875,60 +1875,74 @@ for (let row = 0; row < N; row++) {
 
   confetti: {
     how: [
-      'On click, JS creates 36 particles at the pointer position. Each gets a random vector in custom properties: <code>--x</code>, <code>--y</code>, <code>--z</code>, <code>--spin</code>, <code>--hue</code>.',
+      'On click, JS creates 36 particles in the middle of the canvas. Each gets a random vector in custom properties: <code>--x</code>, <code>--y</code>, <code>--z</code>, <code>--spin</code>, <code>--hue</code>. The vectors come in mirrored pairs, one to the left and one to the right, so the burst is always balanced.',
       'There is only <b>one</b> keyframe rule. It reads those variables, so every particle flies somewhere different.',
       '<code>--z</code> is what makes it 3D: particles coming toward the camera grow, the others shrink away.',
       'Each particle removes itself on <code>animationend</code>, so the DOM never fills up.',
+      'The whole canvas is the click target (<code>inset: 0</code>), but the burst always starts from the words in the middle, so it stays inside the frame wherever you click. JS writes the vector as plain numbers and the keyframe multiplies them by one base unit, <code>--u</code>, tied to the canvas, so the burst is the same share of a gallery card and a full screen.',
     ],
     html: `<div class="party">click anywhere</div>`,
     css: `.party {
+  /* one base unit, tied to the canvas: the burst is measured in it */
+  --u: 0.1vmin;
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
-  perspective: 500px;
+  perspective: calc(850 * var(--u));
   color: #949bc0;
-  font-family: system-ui;
+  font: 600 calc(54 * var(--u)) system-ui, sans-serif;
   cursor: pointer;
   user-select: none;
 }
 
+/* every burst starts from the middle, where the words are, so it stays inside the frame
+   wherever the click lands */
 .party i {
   position: absolute;
-  width: 10px;
-  height: 14px;
-  margin: -7px 0 0 -5px;
-  border-radius: 2px;
+  top: 50%;
+  left: 50%;
+  width: calc(30 * var(--u));
+  height: calc(42 * var(--u));
+  margin: calc(-21 * var(--u)) 0 0 calc(-15 * var(--u));
+  border-radius: calc(6 * var(--u));
   background: hsl(var(--hue) 90% 62%);
   pointer-events: none;
   animation: fly 1.3s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
 }
 
+/* JS writes --x, --y and --z as plain numbers; they are counted in units here */
 @keyframes fly {
   to {
     opacity: 0;
-    /* + 160px on Y is the "gravity" */
+    /* + 200 units on Y is the "gravity" */
     transform:
-      translate3d(var(--x), calc(var(--y) + 160px), var(--z))
+      translate3d(calc(var(--x) * var(--u)), calc((var(--y) + 200) * var(--u)), calc(var(--z) * var(--u)))
       rotate3d(1, 1, 0.4, var(--spin));
   }
 }`,
     js: `const party = document.querySelector('.party');
 const rand = (min, max) => min + Math.random() * (max - min);
 
-party.addEventListener('pointerdown', (e) => {
-  for (let i = 0; i < 36; i++) {
-    const p = document.createElement('i');
-    p.style.left = e.clientX + 'px';
-    p.style.top = e.clientY + 'px';
-    p.style.setProperty('--x', rand(-220, 220) + 'px');
-    p.style.setProperty('--y', rand(-240, 80) + 'px');
-    p.style.setProperty('--z', rand(-200, 300) + 'px');
-    p.style.setProperty('--spin', rand(360, 1080) + 'deg');
-    p.style.setProperty('--hue', rand(0, 360));
-    p.addEventListener('animationend', () => p.remove(), { once: true });
-    party.append(p);
+party.addEventListener('pointerdown', () => {
+  // 18 random vectors, each thrown twice, once to the left and once to the right, so the burst
+  // is balanced around the middle however the dice fall; a little jitter keeps the two from
+  // reading as a mirror image. Each height is drawn from its own eighteenth of the range, so
+  // the burst always reaches as high and as low.
+  for (let i = 0; i < 18; i++) {
+    const x = rand(0, 340), y = -505 + (i + rand(0.2, 0.8)) * 640 / 18, z = rand(-100, 100);
+    for (const side of [-1, 1]) {
+      const p = document.createElement('i');
+      // plain numbers: the CSS multiplies them by --u, so the burst scales with the canvas
+      p.style.setProperty('--x', side * x + rand(-30, 30));
+      p.style.setProperty('--y', y + rand(-15, 15));
+      p.style.setProperty('--z', z);
+      p.style.setProperty('--spin', rand(360, 1080) + 'deg');
+      p.style.setProperty('--hue', rand(0, 360));
+      p.addEventListener('animationend', () => p.remove(), { once: true });
+      party.append(p);
+    }
   }
 });`,
   },
