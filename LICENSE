@@ -1,21 +1,31 @@
-MIT License
+CSS 3D Lab — licence
 
-Copyright (c) 2026 Evirtual
+Copyright (c) 2026 Edgaras Neverdauskas
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This repository is under two licences.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. The snippets: MIT
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+   The model snippets are free to use in any project, commercial or not, under
+   the MIT licence in LICENSES/MIT-snippets.txt. A snippet is the HTML, CSS and
+   JavaScript of one model: what the site's Copy and Download buttons hand out,
+   and what the `html`, `css` and `js` fields of each snippet object under
+   src/models/ contain.
+
+2. Everything else: PolyForm Noncommercial 1.0.0
+
+   The rest of the repository (the site and its code, the render service in
+   server/ and worker/, the checks and scripts, the ledger, the docs and the
+   article) is licensed under the PolyForm Noncommercial License 1.0.0 in
+   LICENSES/PolyForm-Noncommercial-1.0.0.md. You may read it, run it, learn from
+   it and change it for any noncommercial purpose. Any commercial use, including
+   republishing the gallery, the tool or its checks as a product or service,
+   needs written permission from the copyright holder.
+
+Earlier versions
+
+Commits up to and including b1d49c2 (2026-09-19) were published under the MIT
+licence alone, and those versions stay under MIT. The licences above apply from
+the commit that added this file onward.
+
+Required Notice: Copyright (c) 2026 Edgaras Neverdauskas (https://css3dlab.edgarasneverdauskas.com)

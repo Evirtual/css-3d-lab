@@ -135,4 +135,12 @@ through [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Every snippet is free to use in your own projects.
+Two licences — see [LICENSE](LICENSE):
+
+- **The snippets** (the HTML, CSS and JavaScript of each model, as the Copy and Download buttons
+  hand them out) are [MIT](LICENSES/MIT-snippets.txt): free to use in any project, commercial or not.
+- **Everything else** (the site, the render service, the checks, the ledger, the docs) is
+  [PolyForm Noncommercial 1.0.0](LICENSES/PolyForm-Noncommercial-1.0.0.md): read it, run it and
+  learn from it, but commercial use needs permission.
+
+Versions up to b1d49c2 (2026-09-19) were published under MIT alone and stay under MIT.

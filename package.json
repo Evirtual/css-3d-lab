@@ -1,6 +1,7 @@
 {
   "name": "css-3d-lab",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
