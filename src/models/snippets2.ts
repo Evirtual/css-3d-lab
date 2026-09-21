@@ -1612,21 +1612,27 @@ document.querySelector('nav').addEventListener('click', (e) => {
   <div class="grid"></div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the wave is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.24vmin;
+  /* the cells rise towards you on a tilted plane, so the wave reaches further up than down:
+     this leans the grid back down by half of that, and the whole wave ends up centred */
+  padding-top: calc(40 * var(--u));
+  perspective: calc(800 * var(--u));
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(var(--n), 1fr);
-  gap: 4px;
-  width: 260px;
-  height: 260px;
+  gap: calc(4 * var(--u));
+  width: calc(260 * var(--u));
+  height: calc(260 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(58deg) rotateZ(-45deg);
 }
 
 .grid i {
-  border-radius: 3px;
+  border-radius: calc(3 * var(--u));
   background: #ffb547;
   animation: bob 2.4s ease-in-out infinite;
   animation-delay: calc(var(--d) * -0.22s);
@@ -1634,8 +1640,8 @@ document.querySelector('nav').addEventListener('click', (e) => {
 
 /* opacity + transform only: both run on the compositor, even with 100+ cells */
 @keyframes bob {
-  0%, 100% { transform: translateZ(-14px); opacity: 0.4; }
-  50%      { transform: translateZ(40px);  opacity: 1; }
+  0%, 100% { transform: translateZ(calc(-14 * var(--u))); opacity: 0.4; }
+  50%      { transform: translateZ(calc(40 * var(--u)));  opacity: 1; }
 }`,
     js: `const grid = document.querySelector('.grid');
 const N = 11;
