@@ -1,5 +1,8 @@
 // Shared by the Cloudflare Worker and local Playwright service. No files, sessions or images
 // are persisted. A stream owns exactly one isolated browser context and disposes it on cancel.
+// Not run on its own: imported by server/dev.mjs (npm run export) and worker/src/index.ts.
+// validateCapture / readCapture check a posted scene (at most 8 MB, 900 frames, 30 fps, 8192 px a
+// side); renderCapture draws it and streams one `{ index, png }` JSON line per frame.
 export const MAX_BODY = 8 * 1024 * 1024;
 
 export function validateCapture(p) {
