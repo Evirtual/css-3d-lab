@@ -58,6 +58,59 @@ export const MAX_SECONDS = 30;
 /** Is there any way to encode a video in this browser? */
 export const canRecord = (): boolean => typeof VideoEncoder !== 'undefined' && typeof createImageBitmap !== 'undefined';
 
+/**
+ * The H.264 levels a film may be written at, from ITU-T H.264 Table A-1: the most macroblocks
+ * (16 × 16 pixels) in one frame, and the most per second. A level is a ceiling the encoder is
+ * held to — 4.0 stops at 8192 macroblocks, which is 1080p, so a 4K frame (32 400) cannot be
+ * written at it in any browser. Main profile throughout ('4d', no constraint flags).
+ */
+const AVC_LEVELS: { idc: number; maxFrame: number; maxRate: number }[] = [
+  { idc: 0x28, maxFrame: 8192, maxRate: 245_760 }, // 4.0: up to 1080p30
+  { idc: 0x2a, maxFrame: 8704, maxRate: 522_240 }, // 4.2
+  { idc: 0x32, maxFrame: 22_080, maxRate: 589_824 }, // 5.0
+  { idc: 0x33, maxFrame: 36_864, maxRate: 983_040 }, // 5.1: up to 2160p30
+  { idc: 0x34, maxFrame: 36_864, maxRate: 2_073_600 }, // 5.2
+];
+
+/** The codec string for an MP4 of this size: Main profile, at the lowest level that holds it. */
+export function h264Codec(width: number, height: number): string | null {
+  const across = Math.ceil(width / 16), down = Math.ceil(height / 16), frame = across * down;
+  // a level also caps either side at √(8 × its frame size), so a very long thin frame is not free
+  const level = AVC_LEVELS.find((l) => frame <= l.maxFrame && Math.max(across, down) ** 2 <= 8 * l.maxFrame && frame * FPS <= l.maxRate);
+  return level ? `avc1.4d00${level.idc.toString(16)}` : null;
+}
+
+/** What an MP4 of this size would be asked for. */
+const mp4Config = (width: number, height: number): VideoEncoderConfig | null => {
+  const codec = h264Codec(width, height);
+  return codec ? { codec, width, height, bitrate: 8e6, framerate: FPS, alpha: 'discard' } : null;
+};
+
+/**
+ * The qualities this browser can write an MP4 at, in every shape. The level is picked from the
+ * frame's size, but a browser may still lack an encoder for a level (a phone's hardware one
+ * often stops at 1080p) — so each is asked, and one that cannot be made is not offered.
+ */
+export async function mp4Qualities(qualities: readonly Quality[]): Promise<Set<Quality>> {
+  const out = new Set<Quality>();
+  if (!canRecord()) return out;
+  for (const quality of qualities) {
+    let every = true;
+    for (const ratio of ['9:16', '1:1', '16:9'] as const) {
+      const { width, height } = frameSize(ratio, quality);
+      const config = mp4Config(width, height);
+      try {
+        every = Boolean(config && (await VideoEncoder.isConfigSupported(config)).supported);
+      } catch {
+        every = false;
+      }
+      if (!every) break;
+    }
+    if (every) out.add(quality);
+  }
+  return out;
+}
+
 /** Can it encode one that is see-through? (No browser can, at the time of writing — but ask.) */
 export async function canRecordClear(): Promise<boolean> {
   if (!canRecord()) return false;
@@ -213,14 +266,17 @@ interface OpenVideo {
 async function openVideo(width: number, height: number, transparent: boolean): Promise<OpenVideo> {
   // H.264 in an MP4 plays everywhere, but it cannot be see-through: a transparent video is VP9
   // in a WebM instead (Chrome, Edge and Firefox play it; most editors take it).
-  const codec = transparent ? 'vp09.00.10.08' : 'avc1.4d0028';
-  const wanted: VideoEncoderConfig = { codec, width, height, bitrate: 8e6, framerate: FPS, alpha: transparent ? 'keep' : 'discard' };
-  const support = await VideoEncoder.isConfigSupported(wanted);
-  if (!support.supported) {
+  // The MP4's H.264 level follows the frame's size: one level for every size would either cap
+  // the film at 1080p or claim more than a small one needs.
+  const wanted: VideoEncoderConfig | null = transparent
+    ? { codec: 'vp09.00.10.08', width, height, bitrate: 8e6, framerate: FPS, alpha: 'keep' }
+    : mp4Config(width, height);
+  const support = wanted ? await VideoEncoder.isConfigSupported(wanted).catch(() => ({ supported: false })) : { supported: false };
+  if (!wanted || !support.supported) {
     throw new Error(
       transparent
         ? 'this browser cannot encode a see-through video (no browser can yet) — MP4 keeps the backdrop'
-        : 'this browser cannot encode that format',
+        : `this browser cannot encode an MP4 at ${width} × ${height} — pick a lower quality`,
     );
   }
   const target = transparent ? new WebmTarget() : new Mp4Target();

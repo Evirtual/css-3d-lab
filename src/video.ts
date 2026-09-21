@@ -8,6 +8,7 @@ import {
   frameFor,
   MAX_SECONDS,
   motionSeconds,
+  mp4Qualities,
   recordLive,
   recordModel,
   stageLook,
@@ -197,6 +198,25 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   void canRecordClear().then((can) => {
     clearFilms = can;
   });
+  /**
+   * The qualities this browser can write an MP4 at. Until it has answered, every one is offered
+   * (and one that then fails says why); once it has, one it cannot make is shown but not offered.
+   */
+  let films: Set<Quality> | null = null;
+  void mp4Qualities(QUALITIES.map((q) => q.value)).then((can) => {
+    films = can;
+    if (films.has(setups.video.quality)) return;
+    const fallback = [...films].filter((q) => q < setups.video.quality).pop();
+    if (fallback) setups.video.quality = fallback;
+    // the dialog may already be open on the video tab: its chips change in place
+    if (dialog?.open && kind === 'video' && !busy) {
+      el<HTMLElement>('[data-settings]')!.innerHTML = settingsFor('video');
+      caption();
+      paint();
+    }
+  });
+  const qualities = (): Choice<Quality>[] =>
+    QUALITIES.map((q) => (films && !films.has(q.value) ? { ...q, hint: 'not in this browser', off: true } : q));
 
   const job = (): Job => {
     let mine = jobs.get(kind);
@@ -391,7 +411,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       return (
         group('motion', 'What to film', still ? [{ ...MOTIONS[0], hint: 'nothing moves on its own', off: true }, MOTIONS[1]] : MOTIONS, chosen().motion) +
         group('ratio', 'Shape', VIDEO_SHAPES, chosen().ratio, (item) => shapeSwatch(ASPECT_OF[item.value])) +
-        group('quality', 'Quality', QUALITIES, chosen().quality) +
+        group('quality', 'Quality', qualities(), chosen().quality) +
         group(
           'movie',
           'File',
