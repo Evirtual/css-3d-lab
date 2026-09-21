@@ -42,6 +42,7 @@ written by `npm run ledger`.
 - [ ] TypeScript is clean — `npx tsc --noEmit` exits 0
 - [ ] The build is clean — `npm run build` exits 0 and prints `generated 135 model pages, 8 group pages`
 - [ ] QA on the built site finds nothing — `npm run qa` (after the build) ends with `QA: 135 demos, 0 problem(s)` (its exit code is 0 either way, so read the line)
+- [ ] The built site passes the SEO check (tags, canonical, headings, JSON-LD, sitemap, robots.txt, links, page weight) — after `npm run build`, `npm run check-seo` exits 0 and prints `problems: 0`, and each `WAIVED` or `OWN-TEXT` line it prints has been fixed or accepted by the user (`npm run check-seo -- --strict` exits 0 once all are fixed)
 - [ ] The social preview images are made, as the deploy workflow will make them — `npm run media` exits 0 and `ls dist/media/*.jpg | wc -l` prints `136` (135 models and home.jpg)
 - [ ] The build works on the Node the workflow uses — `node -v` prints v22 (deploy.yml sets `node-version: 22`), or the build above was run on 22
 - [ ] The sitemap dates are regenerated and committed — `npm run generate && git status --short src/sitemap-dates.json` prints nothing
