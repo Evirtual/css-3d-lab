@@ -548,24 +548,28 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the field is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .field {
   display: grid;
-  grid-template-columns: repeat(4, 36px);
-  gap: 10px;
+  grid-template-columns: repeat(4, calc(36 * var(--u)));
+  gap: calc(10 * var(--u));
   transform-style: preserve-3d;
-  /* isometric floor: turn 45deg, then tip back */
-  transform: translateY(18px) rotateX(58deg) rotateZ(-45deg);
+  /* isometric floor: turn 45deg, then tip back. The wave lifts the cubes towards the top of the
+     canvas, so the floor sits that much lower and the whole field stays centred. */
+  transform: translateY(calc(18 * var(--u))) rotateX(58deg) rotateZ(-45deg);
 }
 
 /* the element itself is the top of the cube */
 .field i {
   --hue: calc(253 - var(--d) * 13); /* violet corner to teal corner */
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
   background: hsl(var(--hue) 90% 80%);
   transform-style: preserve-3d;
   animation: wave 2.6s ease-in-out infinite;
@@ -583,7 +587,7 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
   left: 0;
   top: 100%;
   width: 100%;
-  height: 36px;
+  height: calc(36 * var(--u));
   background: hsl(var(--hue) 85% 64%);
   transform-origin: top;
   transform: rotateX(-90deg);
@@ -593,7 +597,7 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
 .field i::after {
   right: 100%;
   top: 0;
-  width: 36px;
+  width: calc(36 * var(--u));
   height: 100%;
   background: hsl(var(--hue) 55% 36%);
   transform-origin: right;
@@ -602,7 +606,7 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
 
 @keyframes wave {
   0%, 100% { transform: translateZ(0); }
-  50%      { transform: translateZ(44px); }
+  50%      { transform: translateZ(calc(44 * var(--u))); }
 }`,
   },
 
