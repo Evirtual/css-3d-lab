@@ -254,21 +254,26 @@ export const snippet: Snippet = {
     'There is <b>one</b> tooltip for the whole chart. JS moves it to the pointed-at candle with <code>--tx</code> / <code>--ty</code> and a transform transition glides it there while its text changes, so it slides from candle to candle instead of blinking. It floats <code>translateZ(40px)</code> towards you (the nearer candles would cover it) and <code>--f</code> makes the end ones hang inwards. It stays flat: <code>opacity</code> on a <code>preserve-3d</code> element flattens it, so its thickness is a hard <code>box-shadow</code>. A finger has no hover, so a tap shows it.',
   ],
   html: `<div class="chart">
-  <div class="scene">
-    <div class="candles3d"></div>
+  <div class="view">
+    <div class="scene">
+      <div class="candles3d"></div>
+    </div>
   </div>
-  <output></output>
-  <div class="seg">
-${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`).join('\n')}
+  <div class="controls">
+    <output class="caption"></output>
+    <div class="row">
+${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>`).join('\n')}
+    </div>
   </div>
 </div>`,
   css: `.chart {
-  /* one base unit: every length below is a multiple of it, so the chart is the same share
-     of a card, the editor, a full screen and a recording canvas */
+  /* one base unit: every length in the chart is a multiple of it, so it is the same share
+     of a card, the editor, a full screen and a recording canvas. The control zone under it is
+     in plain vmin, because it is the same object in every model. */
   --u: 0.26vmin;
   display: grid;
   justify-items: center;
-  gap: calc(10 * var(--u));
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
@@ -276,10 +281,19 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
   box-sizing: border-box;
 }
 
+/* the model box: the same height in every model that has controls, so the zone below it lands
+   in the same place whatever the model is */
+.view {
+  display: grid;
+  place-items: center;
+  height: 44vmin;
+}
+
 .scene {
   perspective: calc(800 * var(--u));
-  /* the price labels sit off the right edge, so the room for them is on the right */
-  padding: calc(44 * var(--u)) calc(88 * var(--u)) calc(36 * var(--u)) calc(50 * var(--u));
+  /* the price labels sit off the right edge and the floor and the dates hang below the chart:
+     the room for them is what keeps the chart itself centred in the model box */
+  padding: calc(25 * var(--u)) calc(88 * var(--u)) calc(40 * var(--u)) calc(50 * var(--u));
   pointer-events: none; /* the chart is turned: only the candles' columns take the pointer */
 }
 
@@ -514,51 +528,42 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
   opacity: 1;
 }
 
-output {
-  color: ${MUTED};
-  font-size: calc(12 * var(--u));
-  font-variant-numeric: tabular-nums;
-}
-
-/* two buttons and one pill behind them that slides to the pressed one */
-.seg {
-  position: relative;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the chart's own unit. The caption is on its own line above
+   the row, and its line box never changes height, so a new summary cannot move the chart. */
+.controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: calc(2 * var(--u));
-  padding: calc(3 * var(--u));
-  border: calc(1 * var(--u)) solid rgb(140 150 220 / 0.34);
-  border-radius: calc(999 * var(--u));
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-.seg::before {
-  content: '';
-  position: absolute;
-  top: calc(3 * var(--u));
-  bottom: calc(3 * var(--u));
-  left: calc(3 * var(--u));
-  width: calc(50% - calc(4 * var(--u)));
-  border-radius: calc(999 * var(--u));
-  background: linear-gradient(135deg, ${VIOLET}, ${PINK});
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
 }
 
-.seg:has(button:last-child[aria-pressed='true'])::before {
-  transform: translateX(calc(100% + calc(2 * var(--u))));
+.controls .row {
+  display: flex;
+  gap: 2vmin;
 }
 
-.seg button {
-  position: relative; /* above the pill */
-  padding: calc(4 * var(--u)) calc(16 * var(--u));
+.controls button {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
   border: 0;
-  border-radius: calc(999 * var(--u));
-  background: transparent;
+  border-radius: 999px;
+  background: rgb(140 150 220 / 0.2);
   color: ${MUTED};
-  font: 700 calc(12 * var(--u)) system-ui, sans-serif;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background 0.35s, color 0.35s;
 }
 
-.seg button[aria-pressed='true'] {
+.controls button[aria-pressed='true'] {
+  background: linear-gradient(135deg, ${VIOLET}, ${PINK});
   color: #fff;
 }`,
   js: `// The data, as a market API would send it back: one object per day
@@ -566,7 +571,7 @@ const CANDLES = ${json};
 
 const chart = document.querySelector('.candles3d');
 const out = document.querySelector('.chart output');
-const buttons = document.querySelectorAll('.seg button');
+const buttons = document.querySelectorAll('.controls .row button');
 const STEP = 1000; // the scale is rounded out to whole thousands
 const W = 180, H = 100; // the chart's size in px, as in the CSS
 
