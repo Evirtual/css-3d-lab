@@ -833,6 +833,7 @@ ${CUBE_FACES}`,
       'A <b>negative</b> <code>animation-delay</code> per rung starts each one part-way through its turn — that offset <i>is</i> the twist.',
       'Flat dots would vanish when seen edge-on, so each dot runs the same animation in <code>reverse</code>. The two rotations cancel and the dot always faces the camera (a "billboard").',
       'The rung needs <code>preserve-3d</code> for that cancellation to happen in 3D space.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a rung is 120 units wide and the twelve of them stand 12 apart, so the helix is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="helix">
