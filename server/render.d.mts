@@ -3,6 +3,7 @@
 export const MAX_BODY: number;
 export const MAX_PIXELS: number;
 export const MAX_SCALE: number;
+export const FRAME_TYPES: readonly ('png' | 'webp')[];
 export function renderFits(width: number, height: number, scale: number): boolean;
 export function validateCapture(payload: unknown): any;
 export function readCapture(request: Request): Promise<any>;

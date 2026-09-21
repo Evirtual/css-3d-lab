@@ -381,7 +381,7 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
   const paint = paintOf(stage, backdrop, look);
   let index = 0;
   try {
-    for await (const bitmap of renderedFrames(scene, scale, count, signal)) {
+    for await (const bitmap of renderedFrames(scene, scale, count, signal, backdrop === 'transparent' ? 'png' : 'webp')) {
       try { paintFrame(ctx, bitmap, scene, size, paint); }
       finally { bitmap.close(); }
       const frame = new VideoFrame(canvas, { timestamp: Math.round(index * 1e6 / FPS), duration: Math.round(1e6 / FPS) });
@@ -458,7 +458,7 @@ export async function recordLive({ stage, ratio, backdrop, look, quality = 1080,
   const count = Math.min(MAX_SECONDS * FPS, Math.max(1, Math.round((took / 1000) * FPS)));
   let index = 0, written = 0;
   try {
-    for await (const bitmap of renderedFrames({ ...scene, poses }, scale, poses.length)) {
+    for await (const bitmap of renderedFrames({ ...scene, poses }, scale, poses.length, undefined, backdrop === 'transparent' ? 'png' : 'webp')) {
       try {
         paintFrame(ctx, bitmap, scene, size, paint);
         // this pose is held until the next one was sampled — that is what was on screen

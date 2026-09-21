@@ -3,7 +3,7 @@
 // Not run on its own: imported by server/dev.mjs (npm run export) and worker/src/index.ts.
 // validateCapture / readCapture check a posted scene (at most 8 MB, 900 frames, 30 fps, 8192 px a
 // side, MAX_PIXELS device pixels a frame); renderCapture draws it and streams one
-// `{ index, png }` JSON line per frame.
+// `{ index, png }` (or `{ index, webp }`, when asked for) JSON line per frame.
 export const MAX_BODY = 8 * 1024 * 1024;
 
 /**
@@ -19,12 +19,22 @@ export function renderFits(width, height, scale) {
   return Number.isFinite(scale) && scale >= .1 && scale <= MAX_SCALE && width * height * Math.ceil(scale) ** 2 <= MAX_PIXELS;
 }
 
+/**
+ * How each frame comes back. PNG is lossless and see-through, for pictures and transparent video.
+ * An MP4 cannot be see-through and is lossy anyway, so its frames can be lossy WebP, which keeps
+ * the alpha the page composites over its backdrop and is about a fifth of the PNG's bytes: on
+ * Cloudflare, moving the frame from the browser to the Worker is most of a frame's time.
+ */
+export const FRAME_TYPES = ['png', 'webp'];
+const WEBP_QUALITY = 90;
+
 export function validateCapture(p) {
   if (!p || typeof p.html !== 'string' || p.html.length > MAX_BODY || !Array.isArray(p.animations) || p.animations.length > 3000) throw new Error('Invalid scene');
   for (const k of ['width', 'height']) if (!Number.isInteger(p[k]) || p[k] < 1 || p[k] > 8192) throw new Error('Invalid viewport');
   if (!renderFits(p.width, p.height, p.scale)) throw new Error('Export resolution is too large');
   if (!Number.isInteger(p.count) || p.count < 1 || p.count > 900) throw new Error('Invalid frame count');
   if (p.fps !== 30) throw new Error('Invalid frame rate');
+  if (p.frame !== undefined && !FRAME_TYPES.includes(p.frame)) throw new Error('Invalid frame type');
   // A live take sends one pose per frame instead of a clock to wind on.
   if (p.poses !== undefined) {
     if (!Array.isArray(p.poses) || p.poses.length !== p.count) throw new Error('Invalid poses');
@@ -68,44 +78,29 @@ export async function renderCapture(browser, payload, signal) {
   signal?.addEventListener('abort', abort, { once: true });
   try {
     if (signal?.aborted) throw new Error('Export cancelled');
-    context = await browser.newContext({ viewport: { width: payload.width, height: payload.height }, deviceScaleFactor: Math.ceil(payload.scale), serviceWorkers: 'block' });
+    const dpr = Math.ceil(payload.scale);
+    context = await browser.newContext({ viewport: { width: payload.width, height: payload.height }, deviceScaleFactor: dpr, serviceWorkers: 'block' });
     // Defence in depth: even hostile submitted markup cannot fetch arbitrary URLs.
     await context.route('**/*', route => route.abort());
-    const page = await context.newPage();
-    page.setDefaultTimeout(15_000);
-    await page.setContent(payload.html, { waitUntil: 'load' });
-    await page.evaluate(async () => { await document.fonts.ready; });
-    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-    await page.evaluate((items) => {
-      const animations = [];
-      for (const item of items) {
-        const el = document.querySelector(`[data-capture-id="${Number(item.target)}"]`);
-        if (!el) continue;
-        const effect = new KeyframeEffect(el, item.frames, { ...item.timing, iterations: item.timing.iterations === -1 ? Infinity : item.timing.iterations, pseudoElement: item.pseudo });
-        const a = new Animation(effect, document.timeline);
-        a.pause(); a.currentTime = item.time;
-        animations.push({ a, time: item.time, rate: item.rate });
-      }
-      window.__captureAnimations = animations;
-    }, payload.animations);
+    const type = payload.frame ?? 'png';
+    // One Page.captureScreenshot per frame, straight over CDP. Playwright's page.screenshot makes
+    // about eight round trips to the browser for one picture (sizes, styles, fonts, background,
+    // then the capture), which on Cloudflare cost more than the picture itself. The clip's scale
+    // is the device pixel ratio because this CDP session does not carry Playwright's own device
+    // metrics; the picture is the same pixels page.screenshot gave.
+    const shot = { format: type, ...(type === 'webp' ? { quality: WEBP_QUALITY } : {}), clip: { x: 0, y: 0, width: payload.width, height: payload.height, scale: dpr } };
+    // One page. Three pages drawing frames side by side was 2.6× faster in a probe on Cloudflare,
+    // but deployed, the first frame never came back within 15 s; the cause was not found.
+    const view = await openPage(context, payload);
     let index = 0;
     const encoder = new TextEncoder();
     return new ReadableStream({
       async pull(controller) {
         try {
           if (closed) throw new Error('Export timed out or was cancelled');
-          if (payload.poses) {
-            // A live take: each frame is a pose that was sampled in the visitor's own browser,
-            // so nothing here has to guess what the model was doing at that moment.
-            await page.evaluate((pose) => {
-              for (const [id, style] of pose) document.querySelector(`[data-capture-id="${id}"]`)?.setAttribute('style', style);
-            }, payload.poses[index]);
-          }
-          await page.evaluate(t => {
-            for (const { a, time, rate } of window.__captureAnimations) a.currentTime = time + t * rate;
-          }, index * 1000 / payload.fps);
-          const image = await page.screenshot({ type: 'png', omitBackground: true, animations: 'allow', timeout: 15_000 });
-          controller.enqueue(encoder.encode(JSON.stringify({ index, png: image.toString('base64') }) + '\n'));
+          const data = await within(drawFrame(view, index, payload, shot), 15_000);
+          // CDP already hands the picture over as base64: it goes out as it came in.
+          controller.enqueue(encoder.encode(JSON.stringify({ index, [type]: data }) + '\n'));
           if (++index === payload.count) { await close(); controller.close(); }
         } catch (error) {
           console.warn('Capture failed:', error.message);
@@ -117,4 +112,48 @@ export async function renderCapture(browser, payload, signal) {
       cancel: close,
     }, { highWaterMark: 1 });
   } catch (err) { await close(); throw err; }
+}
+
+/** A page with the scene on it, its animations held still, ready to be wound to any frame. */
+async function openPage(context, payload) {
+  const page = await context.newPage();
+  page.setDefaultTimeout(15_000);
+  await page.setContent(payload.html, { waitUntil: 'load' });
+  await page.evaluate(async () => { await document.fonts.ready; });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await page.evaluate((items) => {
+    const animations = [];
+    for (const item of items) {
+      const el = document.querySelector(`[data-capture-id="${Number(item.target)}"]`);
+      if (!el) continue;
+      const effect = new KeyframeEffect(el, item.frames, { ...item.timing, iterations: item.timing.iterations === -1 ? Infinity : item.timing.iterations, pseudoElement: item.pseudo });
+      const a = new Animation(effect, document.timeline);
+      a.pause(); a.currentTime = item.time;
+      animations.push({ a, time: item.time, rate: item.rate });
+    }
+    window.__captureAnimations = animations;
+  }, payload.animations);
+  const cdp = await context.newCDPSession(page);
+  // what omitBackground did: the page's own background stays see-through
+  await cdp.send('Emulation.setDefaultBackgroundColorOverride', { color: { r: 0, g: 0, b: 0, a: 0 } });
+  return { page, cdp };
+}
+
+/** Frame i, as base64: one round trip to wind the page to it, one to take the picture. */
+async function drawFrame(view, i, payload, shot) {
+  // A live take: each frame is a pose that was sampled in the visitor's own browser, so nothing
+  // here has to guess what the model was doing at that moment. A pose holds only what changed
+  // since the one before.
+  const poses = payload.poses ? [payload.poses[i]] : [];
+  await view.page.evaluate(({ poses, t }) => {
+    for (const pose of poses) for (const [id, style] of pose) document.querySelector(`[data-capture-id="${id}"]`)?.setAttribute('style', style);
+    for (const { a, time, rate } of window.__captureAnimations) a.currentTime = time + t * rate;
+  }, { poses, t: i * 1000 / payload.fps });
+  const { data } = await view.cdp.send('Page.captureScreenshot', shot);
+  return data;
+}
+
+function within(promise, ms) {
+  let timer;
+  return Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Frame timed out')), ms); })]).finally(() => clearTimeout(timer));
 }
