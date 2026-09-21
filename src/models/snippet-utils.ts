@@ -8,6 +8,21 @@ export interface Snippet {
 }
 
 /**
+ * A model's lengths are in vmin, so when its canvas changes size (an export shape, full screen, a
+ * window resized) every one of them changes in px, and a model with a `transition` on transform
+ * would glide there from its old size in px: for half a second after each change the model is
+ * drawn at the size it had on the old canvas (coverflow 12vmin too wide, the accordion 7vmin too
+ * tall). A new canvas is a new layout, not a move, so the frame lands on it at once: when the
+ * canvas changes size, every transition running is taken to its end (the ones the new size has
+ * just started, and a hover caught mid-way, which lands where it was going), and until two frames
+ * later nothing starts a new one. It is a ResizeObserver, not the resize event, because the site
+ * animates some canvases to their new shape over a few frames and the first of those comes a frame
+ * before the first resize event: an observer runs after that frame's layout and before its paint,
+ * so not even that frame is drawn at the old size.
+ */
+const RESIZE_SNAP = `new ResizeObserver(function(){var r=document.documentElement;r.setAttribute('data-c3d-resizing','');document.getAnimations().forEach(function(a){if(a instanceof CSSTransition)a.finish()});r.getBoundingClientRect();requestAnimationFrame(function(){requestAnimationFrame(function(){r.removeAttribute('data-c3d-resizing')})})}).observe(document.documentElement)`;
+
+/**
  * The complete page for a snippet. With `stage`, the page is see-through and its text follows that
  * theme: that is how an edited snippet runs inside the site's own stage. It then also scales its
  * content with the frame, like every stage does (`size` is the demo's own size factor): the frame
@@ -36,7 +51,7 @@ body {
 
 </style>
 <style id="c3d-code">${s.css}</style>
-${stage ? `<style>html,body{width:100%;height:100%;min-height:0}body{display:block;position:relative}#c3d-scene{position:absolute;inset:0;display:grid;place-items:center;transform-style:preserve-3d;translate:0px 0px}:root[data-paused] *, :root[data-paused] *::before, :root[data-paused] *::after{animation-play-state:paused!important}</style><style id="c3d-held"></style>` : ''}
+${stage ? `<style>html,body{width:100%;height:100%;min-height:0}body{display:block;position:relative}#c3d-scene{position:absolute;inset:0;display:grid;place-items:center;transform-style:preserve-3d;translate:0px 0px}:root[data-paused] *, :root[data-paused] *::before, :root[data-paused] *::after{animation-play-state:paused!important}:root[data-c3d-resizing] *, :root[data-c3d-resizing] *::before, :root[data-c3d-resizing] *::after{transition:none!important}</style><style id="c3d-held"></style><script>${RESIZE_SNAP}</script>` : ''}
 </head>
 <body>
 
