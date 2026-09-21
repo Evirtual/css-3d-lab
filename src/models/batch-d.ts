@@ -75,7 +75,7 @@ export const demosD: Demo[] = [
     id: 'swipe',
     title: 'Swipe deck',
     description:
-      'Drag the top card left or right. Past a threshold it flies off and rejoins at the back, and the cards behind move up through real depth. JS only writes numbers; CSS does every motion.',
+      'Drag the top card left or right: it slides and turns, easing to a stop instead of leaving the canvas. Past a threshold it sinks away into the depth and rejoins at the back, and the cards behind move up. JS only writes numbers; CSS does every motion.',
     category: 'js',
     tags: ['pointer', 'drag', 'cards', 'controls'],
     technique: ['Pointer Events + setPointerCapture', 'stack position --p → translateZ', 'transition: none while dragging', 'class swap for the fly-off'],
