@@ -640,7 +640,7 @@ setInterval(function () {
     how: [
       'Two copies of the word sit in the same spot, one red and one cyan, each shifted apart with <code>translate()</code> and blended with <code>mix-blend-mode: screen</code> — like old red/cyan 3D glasses, where the overlap reads near-white and the fringes stay coloured.',
       'The card itself is a single flat plane that only rotates (<code>rotateY</code> / <code>rotateX</code>); it is deliberately <b>not</b> <code>preserve-3d</code>, because a blend mode only combines elements painted into the same flat surface.',
-      'JS reports one thing — the pointer position over the stage — and writes it into four custom properties (<code>--sx</code>, <code>--sy</code>, <code>--ry</code>, <code>--rx</code>); every animated value in the CSS just reads one of them.',
+      'JS reports one thing — the pointer position over the stage — and writes it into four custom properties (<code>--sx</code>, <code>--sy</code>, <code>--ry</code>, <code>--rx</code>); every animated value in the CSS just reads one of them. The shifts are plain numbers, not lengths: CSS multiplies them by <code>--u</code>, the one base unit every length here is a multiple of, so the card is the same share of a gallery card, the editor and a recording canvas.',
       'While the pointer is over the card the transition is fast and linear (<code>.is-live</code>); once it leaves, the slower springy transition takes over for the way back to rest.',
     ],
     html: `<div class="scene">
@@ -653,28 +653,34 @@ setInterval(function () {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the card is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.41vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .anaglyph {
   display: grid;
   place-items: center;
-  gap: 2px;
-  width: 214px;
-  padding: 24px 0 16px;
-  border: 1px solid #3a4070;
-  border-radius: 16px;
+  gap: calc(2 * var(--u));
+  width: calc(214 * var(--u));
+  padding: calc(24 * var(--u)) 0 calc(16 * var(--u));
+  border: calc(1 * var(--u)) solid #3a4070;
+  border-radius: calc(16 * var(--u));
   background: radial-gradient(circle at 50% 30%, #171b38, #07080f 75%);
-  box-shadow: 0 22px 34px -22px rgb(0 0 0 / 0.85);
+  box-shadow: 0 calc(22 * var(--u)) calc(34 * var(--u)) calc(-22 * var(--u)) rgb(0 0 0 / 0.85);
   /* the card turns as ONE flat plane in the stage's perspective; not preserve-3d, because the
      screen blend below only works among elements painted into the same flat surface */
+  /* the drop shadow hangs 10 units below the card: lift the card by that much, so card and
+     shadow together sit in the middle of the canvas */
+  translate: 0 calc(-10 * var(--u));
   transform: rotateY(var(--ry, -14deg)) rotateX(var(--rx, 6deg));
   transition: transform 0.7s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
 .word {
   position: relative;
-  font-size: 43px;
+  font-size: calc(43 * var(--u));
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -687,7 +693,8 @@ setInterval(function () {
   display: block;
   color: #ff1744;
   mix-blend-mode: screen;
-  transform: translate(calc(var(--sx, 3px) * -1), calc(var(--sy, 0px) * -1));
+  /* --sx / --sy are plain numbers from JS; the unit is the model's, like every other length */
+  transform: translate(calc(var(--sx, 3) * -1 * var(--u)), calc(var(--sy, 0) * -1 * var(--u)));
   transition: transform 0.7s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
@@ -695,12 +702,12 @@ setInterval(function () {
   position: absolute;
   inset: 0;
   color: #00e5ff;
-  transform: translate(var(--sx, 3px), var(--sy, 0px));
+  transform: translate(calc(var(--sx, 3) * var(--u)), calc(var(--sy, 0) * var(--u)));
 }
 
 .anaglyph small {
   color: #949bc0;
-  font-size: 9.5px;
+  font-size: calc(9.5 * var(--u));
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -724,8 +731,9 @@ function move(e) {
   var r = stage.getBoundingClientRect();
   var x = clamp((e.clientX - r.left) / r.width - 0.5, -0.5, 0.5);
   var y = clamp((e.clientY - r.top) / r.height - 0.5, -0.5, 0.5);
-  card.style.setProperty('--sx', (x * 16).toFixed(2) + 'px');
-  card.style.setProperty('--sy', (y * 5).toFixed(2) + 'px');
+  // plain numbers for the shift: CSS multiplies them by --u, so it scales with the canvas
+  card.style.setProperty('--sx', (x * 16).toFixed(2));
+  card.style.setProperty('--sy', (y * 5).toFixed(2));
   card.style.setProperty('--ry', (x * 44).toFixed(1) + 'deg');
   card.style.setProperty('--rx', (-y * 30).toFixed(1) + 'deg');
   card.classList.add('is-live');
