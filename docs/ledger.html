@@ -166,6 +166,18 @@ button, input { font: inherit; color: inherit; }
 .stat.ok b { width: fit-content; background: var(--st-ok); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 16px; background: color-mix(in srgb, var(--muted) 22%, transparent); }
 .bar span { display: block; height: 100%; }
+.parts { list-style: none; padding: 0; margin: 10px 0 0; font-size: 12.5px; }
+.parts li { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; color: var(--muted); }
+.stat .parts li b { display: inline; font-size: 12.5px; font-weight: 700; line-height: inherit; margin: 0; color: var(--text); background: none; -webkit-text-fill-color: currentColor; }
+.parts li.psum { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px; }
+.parts li.psum span { color: var(--accent-2); font-weight: 600; }
+.parts li.odd, .parts li.odd span, .stat .parts li.odd b { color: var(--hot); }
+.balance { margin-top: 12px; padding: 8px 12px; border-radius: 10px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.balance.ok { border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, transparent); }
+.balance.ok .tick { color: var(--accent-2); font-weight: 900; }
+.balance.bad { border: 2px solid var(--hot); background: color-mix(in srgb, var(--hot) 16%, var(--surface-solid)); font-size: 15px; }
+.balance.bad .tick { color: var(--hot); font-weight: 900; font-size: 18px; }
+.reached { margin-top: 6px; font-size: 13px; color: var(--muted); }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
 .rules { margin-top: 12px; font-size: 13px; color: var(--muted); }
@@ -375,6 +387,8 @@ table.mini code { font-size: 12px; }
     <div class="stats" id="stats"></div>
     <div class="bar" id="bar" role="img"></div>
     <div class="legend" id="legend"></div>
+    <p class="balance" id="balance" role="status"></p>
+    <p class="reached" id="reached"></p>
     <p class="rules" id="rules"></p>
   </section>
 
@@ -440,12 +454,13 @@ table.mini code { font-size: 12px; }
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const STATUS = [
-    { key: 'not converted', cls: 's-none', color: 'var(--st-none)' },
-    { key: 'converted', cls: 's-conv', color: 'var(--st-conv)' },
-    { key: 'checked', cls: 's-chk', color: 'var(--st-chk)' },
-    { key: 'approved', cls: 's-ok', color: 'var(--st-ok)' },
+    // short names for the same exclusive buckets as the summary: never read as running totals
+    { key: 'not converted', short: 'not converted', cls: 's-none', color: 'var(--st-none)' },
+    { key: 'converted', short: 'converted, not yet checked', cls: 's-conv', color: 'var(--st-conv)' },
+    { key: 'checked', short: 'checked, awaiting approval', cls: 's-chk', color: 'var(--st-chk)' },
+    { key: 'approved', short: 'approved', cls: 's-ok', color: 'var(--st-ok)' },
   ];
-  const chipFor = (s) => `<span class="chip ${STATUS.find((x) => x.key === s)?.cls ?? 's-none'}">${esc(s)}</span>`;
+  const chipFor = (s) => { const x = STATUS.find((y) => y.key === s); return `<span class="chip ${x?.cls ?? 's-none'}">${esc(x?.short ?? s)}</span>`; };
 
   /** Seconds since an ISO time, or null. */
   const age = (iso) => { const t = iso ? Date.parse(iso) : NaN; return Number.isFinite(t) ? (Date.now() - t) / 1000 : null; };
@@ -650,17 +665,26 @@ table.mini code { font-size: 12px; }
     // rewritten only when it changes, so an open tooltip is not pulled out from under the reader
     if ($('thead').dataset.html !== theadHtml) { $('thead').dataset.html = theadHtml; $('thead').innerHTML = theadHtml; }
 
-    const staleContract = L.models.filter((m) => m.checks.models?.status === 'pass' && m.checks.models.stale).length;
-    const stats = [
-      ['conv', 'Converted', c.converted, `of ${n} · ${c.convertedInHead} of them committed`],
-      ['chk', 'Checked', c.checked, `of ${n} · converted and a fresh contract pass${staleContract ? ` · ${staleContract} more passed on old source` : ''}`],
-      ['ok', 'Approved', c.approved, `of ${n} · needs review and text-review commits too`],
-      ['none', 'Not converted', c.notConverted, `of ${n}`],
-    ];
-    $('stats').innerHTML = stats.map(([k, label, v, sub]) => `<div class="stat ${k}"><span class="label">${label}</span><b>${v}</b><span class="sub">${sub}</span></div>`).join('');
-    $('bar').innerHTML = STATUS.map((s) => `<span style="width:${(100 * c.byStatus[s.key]) / n}%;background:${s.color}" title="${s.key}: ${c.byStatus[s.key]}"></span>`).join('');
-    $('bar').setAttribute('aria-label', STATUS.map((s) => `${s.key} ${c.byStatus[s.key]}`).join(', '));
-    $('legend').innerHTML = STATUS.map((s) => `<span><i style="background:${s.color}"></i>${s.key}: ${c.byStatus[s.key]}</span>`).join('');
+    // one set of exclusive buckets, used by the cards, the bar, the legend and the status chips alike
+    const buckets = c.buckets ?? STATUS.map((s) => ({ key: s.key, label: s.key, count: c.byStatus[s.key] }));
+    const sum = buckets.reduce((s, b) => s + b.count, 0);
+    const bal = c.balance ?? { ok: sum === n, sum, models: n, problems: sum === n ? [] : [`the buckets sum to ${sum}, not ${n}`] };
+    const cls = { 'not converted': 'none', converted: 'conv', checked: 'chk', approved: 'ok' };
+    $('stats').innerHTML = buckets.map((b) => `<div class="stat ${cls[b.key] ?? ''}"><span class="label">${esc(b.label)}</span><b>${b.count}</b>
+        <span class="sub">${esc(b.means ?? '')}</span>
+        ${b.parts ? `<ul class="parts">${b.parts.map((p) => `<li${p.key === 'unexplained' ? ' class="odd"' : ''}><span>${esc(p.label)}</span><b>${p.count}</b></li>`).join('')}
+          <li class="psum ${b.partsBalance ? '' : 'odd'}"><span>${b.partsBalance ? '✓ sums to' : '✗ sums to'}</span><b>${b.partsSum}</b></li></ul>` : ''}</div>`).join('');
+    $('balance').className = `balance ${bal.ok ? 'ok' : 'bad'}`;
+    $('balance').innerHTML = bal.ok
+      ? `<span class="tick" aria-hidden="true">✓</span> <b>Total ${buckets.map((b) => b.count).join(' + ')} = ${bal.sum}</b>, which is every one of the ${bal.models} models, each in exactly one bucket.`
+      : `<span class="tick" aria-hidden="true">✗</span> <b>MISMATCH, the books do not balance:</b> ${bal.problems.map(esc).join('; ')} (${bal.models} models, buckets sum to ${bal.sum}). Nothing on this page adds up until this is fixed.`;
+    const parts = (c.buckets ?? []).find((b) => b.key === 'checked');
+    $('reached').innerHTML = (c.reachedAtLeast ?? []).length
+      ? `Running totals, not buckets: ${c.reachedAtLeast.map((x) => `${esc(x.label)} ${x.count}`).join(' · ')}.${parts?.parts ? ` Awaiting approval is split by the first missing item, in this order: ${parts.parts.filter((p) => p.key !== 'unexplained').map((p) => esc(p.label)).join(', then ')}.` : ''}`
+      : '';
+    $('bar').innerHTML = buckets.map((b) => { const s = STATUS.find((x) => x.key === b.key); return `<span style="width:${(100 * b.count) / n}%;background:${s?.color}" title="${esc(b.label)}: ${b.count}"></span>`; }).join('');
+    $('bar').setAttribute('aria-label', buckets.map((b) => `${b.label} ${b.count}`).join(', '));
+    $('legend').innerHTML = buckets.map((b) => { const s = STATUS.find((x) => x.key === b.key); return `<span><i style="background:${s?.color}"></i>${esc(b.label)}: ${b.count}</span>`; }).join('');
     $('rules').innerHTML = `Converted: ${esc(L.sources.converted)}. Checked: converted and the latest <code>check-models</code> result is a pass on the source as it is now. Approved: checked, plus ${esc(L.sources.review)}, plus ${esc(L.sources.textReview)}. Reviews: ${esc(L.sources.reviewLog ?? '')}. ${c.reviewed ? ['visual', 'text'].map((k) => `${k}: ${c.reviewed[k].fresh} models with a fresh review, ${c.reviewed[k].staleOnly} with only stale ones${c.reviewed[k].problem ? `, ${c.reviewed[k].problem} whose latest found a problem` : ''}`).join('; ') + '.' : ''}`;
 
     // a group or tag chosen earlier that no longer exists would hide everything without saying why
@@ -680,7 +704,7 @@ table.mini code { font-size: 12px; }
   const XICON = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
   function renderFilterChips() {
     const n = L.models.length;
-    $('f-status').innerHTML = [['all', 'All'], ...STATUS.map((s) => [s.key, s.key])]
+    $('f-status').innerHTML = [['all', 'All'], ...STATUS.map((s) => [s.key, s.short])]
       .map(([k, label]) => `<button type="button" class="tab" data-f="${esc(k)}" aria-pressed="${filter === k}">${esc(label)} <b>${countWith({ filter: k })}</b></button>`).join('');
     const hidden = n - countWith({});
     const groups = [{ key: 'all', label: 'All groups' }, ...(L.groups ?? [])];

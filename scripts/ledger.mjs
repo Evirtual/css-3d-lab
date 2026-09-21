@@ -45,6 +45,30 @@ const TEXT_REVIEW = { trailer: /^Text-reviewed-by:/im, subject: /^(Text review|R
 let notes = [];
 
 /**
+ * The exclusive buckets: every model is in exactly one, and they must sum to the model count.
+ * Two of them are split further, each model under exactly one reason, so those sum to their bucket.
+ * For "checked, awaiting approval" a model missing several things is counted once, under the first
+ * reason that applies in the order written here.
+ */
+export const BUCKETS = [
+  { key: 'not converted', label: 'Not converted', means: 'the snippet does not set --u in vmin' },
+  { key: 'converted', label: 'Converted, not yet checked', means: 'sets --u in vmin, but has no passing contract check on the code as it is now',
+    parts: [
+      { key: 'stale-pass', label: 'passed on older code', means: 'the contract check passed, but the model changed since' },
+      { key: 'failed', label: 'failed the check', means: 'the latest contract check did not pass' },
+      { key: 'never', label: 'never checked', means: 'no captured contract check has reported it' },
+    ] },
+  { key: 'checked', label: 'Checked, awaiting approval', means: 'a fresh contract pass, but its reviews do not yet approve it',
+    parts: [
+      { key: 'no-visual', label: 'no visual review', means: 'no visual review at all' },
+      { key: 'no-text', label: 'no text review', means: 'no text review at all' },
+      { key: 'stale-review', label: 'stale review', means: 'every review of one kind is on older code' },
+      { key: 'problem', label: 'a review found a problem', means: 'the latest fresh review of one kind says "problem"' },
+    ] },
+  { key: 'approved', label: 'Approved', means: 'checked, plus a fresh visual and a fresh text review, neither "problem"' },
+];
+
+/**
  * What `--u` is set to in some CSS, comments left out. A model is CONVERTED when its snippet sets
  * --u in vmin (the contract's unit, e.g. `--u: 0.3vmin`). One that sets --u only in some other
  * unit (lattice's `--u: 50px` spacing) is not converted; it is listed apart, as "uses --u but not
@@ -476,9 +500,21 @@ const models = demos.map((d) => {
   const approved = missing.length === 0;
   const checked = converted && contractPass;
   const status = approved ? 'approved' : checked ? 'checked' : converted ? 'converted' : 'not converted';
+  // which reason, inside its bucket (see BUCKETS for the order)
+  let part = null;
+  if (status === 'converted') part = contract.status === 'pass' ? 'stale-pass' : contract.status === 'never' ? 'never' : 'failed';
+  if (status === 'checked') {
+    const of = (k) => reviews.filter((r) => r.kind === k);
+    const fresh = (k) => of(k).filter((r) => !r.stale);
+    part = !of('visual').length ? 'no-visual'
+      : !of('text').length ? 'no-text'
+      : !fresh('visual').length || !fresh('text').length ? 'stale-review'
+      : fresh('visual')[0].verdict === 'problem' || fresh('text')[0].verdict === 'problem' ? 'problem'
+      : 'unexplained'; // cannot happen while approval is defined as it is; shown, and fails the balance, if it ever does
+  }
 
   return {
-    id: d.id, title: d.title, group: d.group, groupLabel: groups.find((g) => g.key === d.group)?.label ?? null, tags: d.tags ?? [], status,
+    id: d.id, title: d.title, group: d.group, part, groupLabel: groups.find((g) => g.key === d.group)?.label ?? null, tags: d.tags ?? [], status,
     converted, convertedInHead,
     uNotVmin: unit === 'other' ? uValues(snippet.css) : null,
     reviews,
@@ -521,7 +557,22 @@ const ledger = {
     approved: count((m) => m.approved),
     notConverted: count((m) => !m.converted),
     uNotVmin: count((m) => m.uNotVmin),
-    byStatus: Object.fromEntries(['not converted', 'converted', 'checked', 'approved'].map((s) => [s, count((m) => m.status === s)])),
+    byStatus: Object.fromEntries(BUCKETS.map((b) => [b.key, count((m) => m.status === b.key)])),
+    buckets: BUCKETS.map((b) => {
+      const n = count((m) => m.status === b.key);
+      if (!b.parts) return { ...b, count: n };
+      const parts = b.parts.map((p) => ({ ...p, count: count((m) => m.status === b.key && m.part === p.key) }));
+      const odd = count((m) => m.status === b.key && !b.parts.some((p) => p.key === m.part));
+      if (odd) parts.push({ key: 'unexplained', label: 'no reason found', means: 'in this bucket for no reason the ledger knows: a bug', count: odd });
+      const sum = parts.reduce((s, p) => s + p.count, 0);
+      return { ...b, count: n, parts, partsSum: sum, partsBalance: sum === n && !odd };
+    }),
+    // running totals, for anyone who wants them; never the same names as the buckets
+    reachedAtLeast: [
+      { label: 'reached at least "converted"', count: count((m) => m.status !== 'not converted') },
+      { label: 'reached at least "checked"', count: count((m) => m.status === 'checked' || m.status === 'approved') },
+      { label: 'reached "approved"', count: count((m) => m.status === 'approved') },
+    ],
     checks: Object.fromEntries(CHECKS.map((c) => {
       const tally = {};
       for (const m of models) { const r = m.checks[c]; const k = r.status === 'never' ? 'never' : `${r.status}${r.stale ? ' (stale)' : ''}`; tally[k] = (tally[k] ?? 0) + 1; }
@@ -539,6 +590,16 @@ const ledger = {
   notes,
   models,
 };
+const c0 = ledger.counts;
+// the books must balance: every model in one bucket, every split summing to its bucket
+const bucketSum = c0.buckets.reduce((s, b) => s + b.count, 0);
+const problems = [];
+if (bucketSum !== models.length) problems.push(`the buckets sum to ${bucketSum}, not ${models.length} models`);
+for (const b of c0.buckets) if (b.parts && !b.partsBalance) problems.push(`"${b.label}" is ${b.count}, but its parts sum to ${b.partsSum}${b.parts.some((p) => p.key === 'unexplained') ? ' with some models under no known reason' : ''}`);
+c0.balance = { models: models.length, sum: bucketSum, ok: problems.length === 0, problems };
+if (problems.length) {
+  console.error(`\nLEDGER DOES NOT BALANCE:\n${problems.map((p) => `  - ${p}`).join('\n')}\n`);
+}
 ledger.build.ms = Date.now() - t0;
 writeAtomic(OUT, JSON.stringify(ledger, null, 1));
 const c = ledger.counts;
@@ -547,8 +608,8 @@ if (!quiet) {
   for (const name of CHECKS) console.log(`  ${name.padEnd(7)} ${Object.entries(c.checks[name]).map(([k, v]) => `${v} ${k}`).join(', ')}`);
   for (const n of notes) console.log(`  note: ${n}`);
 }
-return { counts: c, notes: [...notes], head, ms: ledger.build.ms, reusedModelLoad, reusedGitReplay, running };
+return { balanced: problems.length === 0, problems, counts: c, notes: [...notes], head, ms: ledger.build.ms, reusedModelLoad, reusedGitReplay, running };
 }
 
 const invoked = process.argv[1] && resolve(process.argv[1]).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase();
-if (invoked) await buildLedger();
+if (invoked) { const r = await buildLedger(); if (!r.balanced) process.exit(1); }
