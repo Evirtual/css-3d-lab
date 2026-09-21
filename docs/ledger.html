@@ -249,6 +249,30 @@ button, input { font: inherit; color: inherit; }
 .progress .num { font-weight: 800; }
 
 /* ---------- the table ---------- */
+/* ---------- the release checklist, in a dialog over the page ---------- */
+.hero__btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+#cl-btn small { opacity: 0.8; }
+#cl-btn.has-false { border-color: color-mix(in srgb, var(--hot) 60%, transparent); }
+.cldlg { width: min(860px, calc(100vw - 24px)); max-height: min(88vh, 900px); padding: 0; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow), 0 30px 80px -20px rgb(0 0 0 / 0.6); overflow: hidden; }
+.cldlg[open] { display: flex; }
+.cldlg::backdrop { background: color-mix(in srgb, var(--bg) 55%, transparent); backdrop-filter: blur(6px) saturate(1.2); }
+.cldlg__box { display: flex; flex-direction: column; min-height: 0; width: 100%; }
+.cldlg__head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; padding: 18px 20px 12px; border-bottom: 1px solid var(--border); }
+.cldlg__head h2 { font-size: 22px; }
+.cldlg__x { flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--border-strong); border-radius: 50%; background: none; color: var(--text); cursor: pointer; }
+.cldlg__x:hover { border-color: var(--accent); }
+.cldlg__body { overflow: auto; overscroll-behavior: contain; padding: 6px 20px 20px; }
+.cl li.st-true .box, .cl li.st-true-ticked .box { border-color: var(--accent-2); color: var(--accent-2); }
+.cl li.st-false .box { border-color: var(--hot); color: var(--hot); }
+.cl li.st-conflict { background: color-mix(in srgb, var(--hot) 9%, transparent); }
+.cl li.st-conflict .box { border-color: var(--hot); background: var(--hot); color: #fff; }
+.cl li.st-ticked-unproven .box { border-color: var(--warm); color: var(--warm); }
+.cl .found { font-size: 12.5px; }
+.cl .found.bad { color: var(--hot); }
+.cl .proofline { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.cl .proofline code { overflow-wrap: anywhere; }
+@media (max-width: 600px) { .cldlg { max-height: calc(100dvh - 16px); } .cldlg__head { padding: 14px 14px 10px; } .cldlg__body { padding: 4px 14px 16px; } }
+
 /* ---------- the filter bar: the gallery's own (index.html + src/styles/_layout.scss "filters") ---------- */
 .icon { flex: none; width: 16px; height: 16px; pointer-events: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
@@ -435,7 +459,10 @@ table.mini code { font-size: 12px; }
         <span class="eyebrow">CSS 3D Lab · progress</span>
         <h1>View-contract <span>ledger</span></h1>
       </div>
-      <button class="btn" id="theme" type="button">Theme: auto</button>
+      <div class="hero__btns">
+        <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" hidden>Release checklist</button>
+        <button class="btn" id="theme" type="button">Theme: auto</button>
+      </div>
     </div>
     <p class="meta" id="meta">Loading ledger.json…</p>
     <p class="live" id="live"></p>
@@ -514,6 +541,20 @@ table.mini code { font-size: 12px; }
     <div id="readiness"><p class="muted">Loading…</p></div>
   </section>
 </main>
+
+<dialog id="cl-dialog" class="cldlg" aria-labelledby="cl-title">
+  <div class="cldlg__box">
+    <div class="cldlg__head">
+      <div>
+        <span class="eyebrow">Before main is pushed</span>
+        <h2 id="cl-title">Release checklist</h2>
+        <p class="muted" id="cl-sum"></p>
+      </div>
+      <button type="button" class="cldlg__x" id="cl-close" aria-label="Close the checklist"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+    <div class="cldlg__body" id="cl-body"></div>
+  </div>
+</dialog>
 
 <script>
 (() => {
@@ -999,6 +1040,57 @@ table.mini code { font-size: 12px; }
     return parts.join('');
   }
 
+  /* ---------- the release checklist dialog ---------- */
+  const CL_STATE = {
+    'true': ['holds now', 's-chk', '✓'],
+    'true-ticked': ['holds now · ticked', 's-chk', '✓'],
+    'false': ['fails now', 's-bad', '✗'],
+    conflict: ['ticked, but its proof fails now', 's-bad', '!'],
+    'ticked-unproven': ['ticked in the file; not proven here', 's-warn', '?'],
+    'not-evaluated': ['not evaluated here', 's-none', ''],
+  };
+  function renderChecklist() {
+    const cl = L.readiness?.checklist;
+    const btn = $('cl-btn');
+    btn.hidden = false;
+    if (!cl || !cl.exists) {
+      btn.innerHTML = 'Release checklist <small>· not written yet</small>';
+      $('cl-sum').textContent = '';
+      $('cl-body').innerHTML = `<div class="notice"><b class="big">No checklist yet.</b> <code>${esc(cl?.file ?? 'docs/RELEASE-CHECKLIST.md')}</code> does not exist, so there is nothing to show. Lines in it look like <code>- [ ] item — how to prove it</code>.</div>`;
+      return;
+    }
+    const evald = cl.proven != null;
+    btn.classList.toggle('has-false', Boolean(cl.provenFalse || cl.conflicts));
+    btn.innerHTML = evald
+      ? `Release checklist <small>· proven ${cl.proven} of ${cl.total}, ${cl.notEvaluated} not evaluated${cl.conflicts ? `, <b>${cl.conflicts} conflict${cl.conflicts === 1 ? '' : 's'}</b>` : ''}</small>`
+      : `Release checklist <small>· ${cl.done} of ${cl.total} ticked (not evaluated: this ledger predates it)</small>`;
+    $('cl-sum').innerHTML = evald
+      ? `Of ${cl.total} items: <b>${cl.proven}</b> proven true now, <b>${cl.provenFalse}</b> proven false, <b>${cl.notEvaluated}</b> not evaluated here (slow, networked, or needing a person); ${cl.done} ticked in the file${cl.conflicts ? `, <b>${cl.conflicts}</b> of them contradicted by their proof` : ''}. A tick is a claim; only a proof run here counts as proven. From <code>${esc(cl.file)}</code>, as of the ledger built ${agoSpan(L.generatedAt)}.`
+      : `${cl.done} of ${cl.total} ticked in the file. This ledger was built before items were evaluated.`;
+    const groups = [];
+    for (const x of cl.items) { let g = groups.find((y) => y.name === x.group); if (!g) groups.push((g = { name: x.group, items: [] })); g.items.push(x); }
+    $('cl-body').innerHTML = groups.map((g) => {
+      const p = g.items.filter((x) => x.result === 'true').length;
+      return `<h3>${esc(g.name ?? 'Items')} <span class="muted" style="text-transform:none;letter-spacing:0">· ${p} of ${g.items.length} proven</span></h3>
+      <ul class="cl">${g.items.map((x) => {
+        const [label, cls, mark] = CL_STATE[x.state] ?? CL_STATE['not-evaluated'];
+        const said = x.result === 'not-evaluated' ? `<span class="muted found">Not evaluated here: ${esc(x.why)}.</span>` : `<span class="found${x.result === 'false' ? ' bad' : ''}">Found: ${esc(x.found)}</span>`;
+        return `<li class="st-${esc(x.state ?? 'not-evaluated')}"><span class="box" aria-hidden="true">${mark}</span>
+          <div><b>${esc(x.item)}</b> <span class="chip ${cls}">${esc(label)}</span><br>${said}
+            ${x.proof ? `<br><span class="proofline">Proof: ${esc(x.proof)}</span>` : '<br><span class="proofline">No way to prove it is written down.</span>'}</div>
+          <code class="muted">:${x.line}</code></li>`;
+      }).join('')}</ul>`;
+    }).join('');
+  }
+  const dlg = $('cl-dialog');
+  $('cl-btn').addEventListener('click', () => { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); $('cl-close').focus(); });
+  $('cl-close').addEventListener('click', () => dlg.close());
+  // a click on the backdrop lands on the dialog element itself, outside its box
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('close', () => $('cl-btn').focus({ preventScroll: true }));
+  // the browser's own Escape (the dialog's cancel) is not always delivered; close on the key itself too
+  dlg.addEventListener('keydown', (e) => { if (e.key === 'Escape' && dlg.open) { e.preventDefault(); dlg.close(); } });
+
   function renderReadiness() {
     const R = L.readiness;
     if (!R) { $('readiness').innerHTML = '<p class="muted">This ledger was built before it recorded readiness. It fills in on the next build.</p>'; return; }
@@ -1025,7 +1117,8 @@ table.mini code { font-size: 12px; }
       <div class="notice info" style="color:var(--text)">${esc(X.note)}</div>
       ${X.models?.length ? `<div class="table-wrap"><table class="mini"><thead><tr><th>Model</th><th>Run</th><th>Mismatches outside the defaults</th></tr></thead><tbody>${X.models.map((m) => `<tr><td><code>${esc(m.id)}</code></td><td class="num">${m.ranAt ? agoSpan(m.ranAt) : '—'}<br><code class="muted">${esc((m.args ?? []).join(' ') || 'no args')}${m.sizes ? ` · SIZES=${esc(m.sizes)}` : ''}</code></td><td>${m.mismatches.length ? `<ul class="missing">${m.mismatches.map((x) => `<li>${esc(x.check)} ${esc(x.what)}: ${esc(x.detail)}</li>`).join('')}</ul>` : '<span class="muted">none among the settings this run made</span>'}</td></tr>`).join('')}</tbody></table></div>`
         : '<p class="muted">No model has been through check-exports yet.</p>'}`;
-    $('readiness').innerHTML = `${matrix}<h3>Release checklist</h3>${list}
+    renderChecklist();
+    $('readiness').innerHTML = `${matrix}<h3>Release checklist</h3><p class="muted">It opens from the <b>Release checklist</b> button at the top of the page, with each item's proof run here where that is cheap.</p>
       <h3>Documents: when each last reached a commit</h3>${docs}
       <h3>At risk: work that has not reached a commit (${R.atRisk.length})</h3>
       <p class="muted" style="font-size:13px">From <code>git status</code> at the last build, ${agoSpan(R.at)}; oldest first. Untracked files are in no commit at all. Other agents' work in progress shows here too.</p>${risk}`;
