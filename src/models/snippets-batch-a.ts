@@ -654,8 +654,10 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
       'Lay the six faces out flat as the cross-shaped net. Each face sits <b>next to</b> the edge it shares with its parent and uses that edge as <code>transform-origin</code>.',
       'Folding is then one <code>rotateX(±90deg)</code> or <code>rotateY(±90deg)</code> per face. The angle lives in <code>--fx</code> / <code>--fy</code>, and one shared keyframe rule reads it, so every wall folds its own way.',
       'The lid is a <b>child</b> of the north wall, not of the base. Its hinge rides along as the wall stands up, and its 90° adds to the wall\'s: nested transforms compound.',
-      'The loop starts, and holds for a moment, lying open flat: the net itself is the first frame, so a paused card shows the whole cross, not a small closed cube. The walls fold up, the lid shuts last and opens first on its own, wider keyframes, so it never folds through a wall. Both timelines are mirror-symmetric, so the loop is seamless.',
-      'Every length is a multiple of one base unit, <code>--u</code>, so the net is the same share of a gallery card, the editor and a recording canvas. It is sized for its widest moment, lying open flat, not for the closed cube.',
+      'The loop starts, and holds for a moment, lying open flat on a floor seen from above, turned 160° so its long arm reaches towards you: the first frame is what a paused card shows, and at an angle, with the near squares larger than the far ones, it reads as a net lying in 3D rather than a flat plus sign. The lid folds along with its wall, so the two never stand up as one tall plank. Every timeline is mirror-symmetric, so the loop is seamless.',
+      'The cube turns a full circle only while it is up (<code>0%, 8%</code> and <code>92%, 100%</code> hold the same angle, 360° apart), so every side gets seen and the net always opens the same way round.',
+      'The camera is one more keyframe rule on the same 8s: it keeps the tilt and moves in (<code>scale3d(1.45, …)</code>) and down as the walls stand up, so the shut cube fills the frame as the open net does, and the middle of the drawing stays in the middle.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the net is the same share of a gallery card, the editor and a recording canvas. The faces are coloured glass at 55% with a solid edge, so they read on a light stage as well as a dark one.',
     ],
     html: `<div class="scene">
   <div class="net">
@@ -670,31 +672,37 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the net is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.3vmin;
-  perspective: calc(800 * var(--u));
+  --u: 0.33vmin;
+  perspective: calc(560 * var(--u));
 }
 
-/* static camera looking down at the floor */
+/* the camera looks down at a floor the net lies on. It moves in as the walls fold up, so the
+   closed cube is as big in the frame as the open net: the zoom runs on the fold's own timeline */
 .net {
   transform-style: preserve-3d;
-  transform: translateY(calc(18 * var(--u))) rotateX(50deg);
+  animation: zoom 8s ease-in-out infinite;
 }
 
-/* the bottom face only turns, so every side gets seen */
+/* the bottom face turns a full circle while the cube is up, so every side gets seen, and is
+   back where it started before the net lies flat again. So the open net always lies the same
+   way: turned 160deg, the lid's arm reaching towards you, larger than the far squares, so even
+   a paused card shows a net lying on a floor and never a flat plus sign. The north wall then
+   stands up at the front, where its height does not tower over the rest */
 .base {
   --c: 139 108 255;
   position: relative;
   width: calc(60 * var(--u));
   height: calc(60 * var(--u));
   transform-style: preserve-3d;
-  animation: turn 24s linear infinite;
+  animation: turn 8s ease-in-out infinite;
 }
 
 .base,
 .base i {
-  background: rgb(var(--c) / 0.28);
+  /* coloured glass, dense enough to read on a light stage as well as a dark one */
+  background: rgb(var(--c) / 0.55);
   /* inset shadows instead of a border: no layout offset, so hinges sit exactly on the edges */
-  box-shadow: inset 0 0 0 calc(1 * var(--u)) rgb(var(--c) / 0.75), inset 0 0 calc(24 * var(--u)) rgb(var(--c) / 0.3);
+  box-shadow: inset 0 0 0 calc(1.5 * var(--u)) rgb(var(--c)), inset 0 0 calc(18 * var(--u)) rgb(var(--c) / 0.6);
 }
 
 .base i {
@@ -717,20 +725,32 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
 }
 
 @keyframes turn {
-  to { transform: rotateZ(360deg); }
+  0%, 8%    { transform: rotateZ(160deg); }
+  92%, 100% { transform: rotateZ(520deg); }
+}
+
+/* the camera: tilted down at the floor all the time. It follows the middle of what is drawn
+   (the near arm of the open net hangs low, the cube stands up above the floor) and moves in
+   once the walls are up, so the shut cube fills the frame as the open net does */
+@keyframes zoom {
+  0%, 6%, 94%, 100% { transform: translateY(calc(-31 * var(--u))) rotateX(56deg) scale3d(1, 1, 1); }
+  16%, 84%          { transform: translateY(calc(12 * var(--u))) rotateX(56deg) scale3d(1.12, 1.12, 1.12); }
+  28%, 72%          { transform: translateY(calc(33 * var(--u))) rotateX(56deg) scale3d(1.45, 1.45, 1.45); }
 }
 
 /* The loop starts lying open flat, the net itself: that is the first frame, so it is what a
-   paused card shows. walls: flat, fold up, stay closed while the lid shuts and opens, unfold */
+   paused card shows. walls: flat, fold up, stay closed while the cube turns, unfold */
 @keyframes fold {
   0%, 6%, 94%, 100% { transform: rotateX(0deg) rotateY(0deg); }
   28%, 72%          { transform: rotateX(var(--fx, 0deg)) rotateY(var(--fy, 0deg)); }
 }
 
-/* lid: last to close, first to open, so it never folds through a wall */
+/* lid: folds at the same time as the wall that carries it, so the wall and the lid never stand
+   up together as one tall plank. It can never pass through a wall: it is exactly as wide as the
+   base, and the side walls lean outside that width until they are upright */
 @keyframes lid {
-  0%, 24%, 76%, 100% { transform: rotateX(0deg) rotateY(0deg); }
-  46%, 54%           { transform: rotateX(var(--fx, 0deg)) rotateY(var(--fy, 0deg)); }
+  0%, 6%, 94%, 100% { transform: rotateX(0deg) rotateY(0deg); }
+  26%, 74%          { transform: rotateX(var(--fx, 0deg)) rotateY(var(--fy, 0deg)); }
 }`,
   },
 

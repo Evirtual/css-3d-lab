@@ -144,10 +144,10 @@ export const demosA: Demo[] = [
     id: 'net',
     title: 'Unfolding cube',
     description:
-      'A cube opens into its flat cross-shaped net and folds back up. The lid hangs off a wall, so its hinge rides along with the wall’s: nested transforms compound.',
+      'A cube’s cross-shaped net lies open on a floor, folds up into a cube that turns a full circle, and opens flat again. The lid hangs off a wall, so its hinge rides along with the wall’s: nested transforms compound. The camera moves in as it folds, so the cube is as big as the net.',
     category: 'css',
     tags: ['loop', 'shape'],
-    technique: ['nested hinged faces', 'transform-origin on the shared edge', 'var() fold angle inside @keyframes', 'staggered keyframe timing'],
+    technique: ['nested hinged faces', 'transform-origin on the shared edge', 'var() fold angle inside @keyframes', 'camera zoom on the fold’s own timeline'],
     html: `<div class="d-net"><div class="d-net__base"><i class="d-net__n"><i class="d-net__lid"></i></i><i class="d-net__s"></i><i class="d-net__e"></i><i class="d-net__w"></i></div></div>`,
   },
   {
