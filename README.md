@@ -99,7 +99,7 @@ Without `npm run export` running, everything works in dev except making a video 
 | `check-models` | `scripts/check-models.mjs` | Judges every model (or the ids given) against the view contract on a card, by painted pixels. |
 | `qa` | `scripts/qa.mjs` | After a build: page errors, clipping, and whether the interaction a model's badge promises changes anything. |
 | `compare` | `scripts/compare-capture.mjs` | Does a snapshot from the render service match the screen? Starts its own service on 8787, so that port must be free. Sheet in `qa/capture-diff.png`. |
-| `capture` | `scripts/capture-check.mjs` | Runs `check-models`, `check-stages` or `check-motion` unchanged and records each model's result in `docs/checks/<check>.json` for the ledger: `npm run capture -- models cube dice`. |
+| `capture` | `scripts/capture-check.mjs` | Runs `check-models`, `check-stages`, `check-motion` or `check-exports` unchanged and records each model's result in `docs/checks/<check>.json` for the ledger: `npm run capture -- models cube dice`. The per-model export proof is `npm run capture -- exports --defaults <all 135 ids>`. |
 | `ledger` | `scripts/ledger.mjs` | Writes `docs/ledger.json`: per model, converted to the contract or not, its commits, check results and reviews, and whether it is approved. `docs/ledger.html` shows it. |
 | `ledger:watch` | `scripts/ledger-watch.mjs` | Rebuilds `docs/ledger.json` whenever HEAD, a check result, a review, the queue or a model file changes. |
 | `queue` | `scripts/queue.mjs` | Records running and finished work in `docs/ledger-queue.json`: `npm run queue -- start "<name>" "<brief>" <model...>`, `-- done "<name>"`, `-- list`. |
@@ -109,6 +109,8 @@ Without `npm run export` running, everything works in dev except making a video 
 | Command | What it is for |
 | --- | --- |
 | `node scripts/check-stages.mjs [id...]` | The same model on every surface (card, viewer, page, editor states, large, full screen, every export shape) must measure the same in vmin. |
+| `node scripts/check-exports.mjs --defaults [id...]` | The per-model export proof: drives the real export dialog at its default settings only (image 1:1 at 1600 px PNG, video 9:16 at 1080p and its loop) and checks the file's size, picture, drift and format against the dialog's canvas. About 1 to 2 minutes a model; run over all 135 through `npm run capture -- exports --defaults <ids>`, which records the verdict the ledger reads. The settings are listed once, in `scripts/export-defaults.mjs`. |
+| `node scripts/check-exports.mjs [id...]` | The full matrix: every image shape × size, every video shape × quality, the slider and every format. About 11 minutes a model, so it runs on its built-in sample of 8 models; it proves the pipeline, not each model. |
 | `node scripts/check-motion.mjs [id...]` | Films every animation and interaction frame by frame and flags flicker, pops and dead or unreachable controls, with a strip per model in `.media-tmp/motion/`. Hints for a human, not verdicts. |
 | `node scripts/contact-sheet.mjs [id...]` | After a build: photographs models into sheets in `.media-tmp/` for a review by eye. |
 | `node scripts/snippet-check.mjs <id...>` | Renders each snippet's standalone page (what "Copy as one HTML file" gives) and reports script errors or empty pages; sheet in `.media-tmp/snippets.jpg`. |
