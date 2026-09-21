@@ -792,9 +792,11 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   cardfan: {
     how: [
       'All five cards sit exactly on top of each other.',
-      '<code>transform-origin: 50% 170%</code> moves the pivot far below the card, so <code>rotateZ</code> swings it along an arc instead of spinning it in place.',
+      '<code>transform-origin: 50% 150%</code> moves the pivot below the card, so <code>rotateZ</code> swings it along an arc instead of spinning it in place.',
       'The index runs −2…2, so <code>rotateZ(calc(var(--i) * 16deg))</code> fans symmetrically around an upright middle card.',
-      'A few px of <code>translateZ</code> per card gives each its own depth, which avoids flicker where they overlap.',
+      'A few units of <code>translateZ</code> per card gives each its own depth, which avoids flicker where they overlap.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the hand is the same share of a gallery card, the editor and a recording canvas.',
+      'How far below the card the pivot sits is what decides the width: the further down, the flatter the arc and the wider the spread. At 170% the open hand was a third wider than the canvas, so the pivot came up to 150% and the same 16° fans into an arc the band can hold. The outer cards also swing downward, so the scene carries a little padding under it and the open hand and the closed one share the miss rather than one of them being centred and the other not.',
     ],
     html: `<div class="scene">
   <div class="hand">
@@ -806,13 +808,21 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the hand is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.26vmin;
+  display: grid;
+  place-items: center;
+  /* the outer cards swing down as well as out: a little room under the hand splits the
+     difference between the closed hand and the open one, so neither sits off centre */
+  padding-bottom: calc(18 * var(--u));
+  perspective: calc(800 * var(--u));
 }
 
 .hand {
   position: relative;
-  width: 110px;
-  height: 156px;
+  width: calc(110 * var(--u));
+  height: calc(156 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(26deg);
 }
@@ -820,21 +830,23 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
 .hand i {
   position: absolute;
   inset: 0;
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: calc(8 * var(--u)) calc(12 * var(--u));
+  border-radius: calc(10 * var(--u));
   background: linear-gradient(160deg, #fff, #d9dcec);
   color: #14172b;
-  font: 800 1.6rem/1 system-ui;
-  box-shadow: 0 8px 16px -8px #000;
-  transform-origin: 50% 170%;
+  font: 800 calc(26 * var(--u))/1 system-ui;
+  box-shadow: 0 calc(8 * var(--u)) calc(16 * var(--u)) calc(-8 * var(--u)) #000;
+  /* the pivot is half a card below the bottom edge. Further down flattens the arc and throws
+     the outer cards wider — at 170% the open hand ran off the sides of the canvas. */
+  transform-origin: 50% 150%;
   animation: fan 3s ease-in-out infinite alternate;
 }
 
-.hand small { display: block; font-size: 1.2rem; }
+.hand small { display: block; font-size: calc(19 * var(--u)); }
 
 @keyframes fan {
-  0%, 15%   { transform: translateZ(calc(var(--i) * 1px)) rotateZ(0deg); }
-  85%, 100% { transform: translateZ(calc(var(--i) * 6px)) rotateZ(calc(var(--i) * 16deg)); }
+  0%, 15%   { transform: translateZ(calc(var(--i) * 1 * var(--u))) rotateZ(0deg); }
+  85%, 100% { transform: translateZ(calc(var(--i) * 6 * var(--u))) rotateZ(calc(var(--i) * 16deg)); }
 }`,
   },
 
