@@ -1332,7 +1332,8 @@ input:checked ~ em {
       'JS picks a random value, looks up that rotation and adds two more full turns (<code>+720°</code>) on every roll, so it always tumbles instead of taking a shortcut.',
       'It writes two custom properties. The 1.1s <code>transition</code> with an overshoot easing <i>is</i> the roll animation.',
       'A fixed camera tilt comes first in the transform list, so you always see three faces.',
-      'Rounded faces leave see-through holes at the cube’s corners. A square plate 8px behind every face builds a sharp inner cube that fills them.',
+      'Rounded faces leave see-through holes at the cube’s corners. A square plate 8 units behind every face builds a sharp inner cube that fills them.',
+      'Every length in the die is a multiple of one base unit, <code>--u</code>, tied to the canvas, so it is the same share of a gallery card, the editor and a recording canvas. The Roll button and its caption are in plain <code>vmin</code> instead: they are the same size in every model.',
     ],
     html: `<div class="table">
   <div class="view">
