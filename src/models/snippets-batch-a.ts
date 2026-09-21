@@ -313,7 +313,7 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the cone is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.42vmin;
+  --u: 0.46vmin;
   perspective: calc(800 * var(--u));
 }
 
