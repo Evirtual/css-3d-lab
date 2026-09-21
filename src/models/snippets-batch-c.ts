@@ -531,7 +531,7 @@ setInterval(function () {
     how: [
       'The camera is moved to the bottom edge with <code>perspective-origin: 50% 100%</code>, instead of the default centre, so everything converges toward a vanishing point above the text rather than the middle of the box.',
       'The "floor" is hinged on its own bottom edge (<code>transform-origin: 50% 100%</code>) and tipped away from the viewer with <code>rotateX(55deg)</code>.',
-      'Two copies of the text sit on that floor, half an animation apart (<code>animation-delay: -15s</code> on the second), so the crawl is never empty while one copy finishes and the other is only half way up.',
+      'Two copies of the text sit on that floor, half an animation apart (<code>animation-delay</code> <code>-7s</code> and <code>-22s</code>), so the crawl is never empty while one copy finishes and the other is only half way up. The 7s is where the loop starts: the first copy’s title and opening paragraph already in view, so a paused card shows the crawl’s opening, not its illegible far end.',
       'The fade into the distance is a plain gradient overlay <b>on top of</b> the tipped plane, not a mask on it — masking a 3D ancestor would flatten the whole scene.',
       'Only <code>transform: translateY(...)</code> animates the text, so the scroll runs on the compositor even though the paragraphs are long.',
       'The crawl fills the canvas (<code>inset: 0</code>); the plane, the text and the fade are multiples of one base unit, <code>--u</code>, tied to the canvas, so the crawl reads the same on a gallery card and on a full screen.',
@@ -583,7 +583,8 @@ setInterval(function () {
 }
 
 /* two copies of the text, half a loop apart, so the floor is never empty: each one starts just
-   below the near edge and leaves completely past the far edge, so both ends stay invisible */
+   below the near edge and leaves completely past the far edge, so both ends stay invisible. The
+   first is 7s in at the first frame, its EPISODE 3D title mid-canvas, which a paused card shows */
 .text {
   position: absolute;
   top: 0;
@@ -595,11 +596,11 @@ setInterval(function () {
   font-weight: 700;
   line-height: 1.45;
   text-align: justify;
-  animation: crawl-roll 30s linear infinite;
+  animation: crawl-roll 30s linear -7s infinite;
 }
 
 .text + .text {
-  animation-delay: -15s;
+  animation-delay: -22s;
 }
 
 .text h4 {
