@@ -391,36 +391,54 @@ show('${YEARS[0]}');`,
   heatmap: {
     how: [
       'The JSON is a list of weeks, each a list of numbers. JS writes one number per block: <code>--v = value ÷ the largest value</code>, plus its grid position <code>--x</code> / <code>--y</code>.',
-      'A block is three surfaces: the element itself is the <b>roof</b>, lifted by <code>translateZ(calc(var(--v) * 70px))</code>; <code>::before</code> and <code>::after</code> are the two walls you can see, hanging down from its edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>. Their height is the same <code>--v × 70px</code>.',
+      'A block is three surfaces: the element itself is the <b>roof</b>, lifted by <code>translateZ(calc(var(--v) * 70 * var(--u)))</code>; <code>::before</code> and <code>::after</code> are the two walls you can see, hanging down from its edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>. Their height is the same <code>--v × 70</code> units.',
       'The colour follows the value too: <code>color-mix(in srgb, pink calc(var(--v) * 100%), teal)</code> runs from cold to hot with no colour scale in JS.',
       'Each block sits in a real <code>&lt;button&gt;</code>, so it can be tabbed to and tapped. The floor has <code>pointer-events: none</code>: blocks in 3D share a plane, and only the buttons should be hit.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the grid is the same share of a gallery card, the editor and a recording canvas. The line under it that names the pointed-at block is in plain <code>vmin</code>: it is the caption of the same control zone every model has, and it keeps the zone\'s height whatever it says, so it cannot move the grid.',
     ],
     html: `<div class="heat">
-  <div class="scene">
-    <div class="world"></div>
+  <div class="view">
+    <div class="scene">
+      <div class="world"></div>
+    </div>
   </div>
-  <output></output>
+  <div class="controls">
+    <output class="caption"></output>
+  </div>
 </div>`,
-    css: `.heat {
+    css: `/* the model box and the control zone stand in one stack */
+.heat {
+  /* one base unit: every length of the grid is a multiple of it. The caption under it is in
+     plain vmin, because the control zone is the same object in every model. */
+  --u: 0.33vmin;
   display: grid;
   justify-items: center;
-  gap: 18px;
+  gap: 4vmin;
   font-family: system-ui, sans-serif;
 }
 
+/* the model box */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+}
+
 .scene {
-  perspective: 800px;
-  padding: 50px 30px 10px;
+  perspective: calc(800 * var(--u));
+  /* the blocks rise off the floor, so the drawing reaches higher than the floor's box: the room
+     above puts what is drawn, not the box, in the middle of the model box */
+  padding-top: calc(12 * var(--u));
   pointer-events: none; /* the floor is tilted back: only the blocks take the pointer */
 }
 
-/* 5 columns and 4 rows: a 34px pitch, 26px blocks, 10px margin */
+/* 5 columns and 4 rows: a 34-unit pitch, 26-unit blocks, a 10-unit margin */
 .world {
   position: relative;
-  width: 182px;
-  height: 148px;
-  border: 1px solid rgb(139 108 255 / 0.4);
-  border-radius: 10px;
+  width: calc(182 * var(--u));
+  height: calc(148 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.4);
+  border-radius: calc(10 * var(--u));
   background: #1c1d3d;
   transform-style: preserve-3d;
   transform: rotateX(58deg) rotateZ(36deg);
@@ -435,11 +453,11 @@ show('${YEARS[0]}');`,
 /* the day names, printed on the floor along the edge that faces you */
 .world em {
   position: absolute;
-  top: 140px;
-  left: calc(10px + var(--x) * 34px);
-  width: 26px;
+  top: calc(140 * var(--u));
+  left: calc((10 + var(--x) * 34) * var(--u));
+  width: calc(26 * var(--u));
   color: ${MUTED};
-  font: 700 8px/10px system-ui, sans-serif;
+  font: 700 calc(10 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
   font-style: normal;
   text-align: center;
 }
@@ -448,13 +466,13 @@ show('${YEARS[0]}');`,
   /* cold teal → hot pink with the value */
   --c: color-mix(in srgb, ${PINK} calc(var(--v) * 100%), ${TEAL});
   position: absolute;
-  top: calc(10px + var(--y) * 34px);
-  left: calc(10px + var(--x) * 34px);
-  width: 26px;
-  height: 26px;
+  top: calc((10 + var(--y) * 34) * var(--u));
+  left: calc((10 + var(--x) * 34) * var(--u));
+  width: calc(26 * var(--u));
+  height: calc(26 * var(--u));
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
-  border-radius: 3px;
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 45%, transparent);
+  border-radius: calc(3 * var(--u));
   background: color-mix(in srgb, var(--c) 14%, transparent);
   outline: none;
   transform-style: preserve-3d;
@@ -465,11 +483,11 @@ show('${YEARS[0]}');`,
 /* the roof, lifted by the value */
 .cell i {
   position: absolute;
-  inset: -1px;
+  inset: calc(-1 * var(--u));
   background: color-mix(in srgb, var(--c) 68%, ${SURFACE});
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 85%, #fff);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c) 85%, #fff);
   transform-style: preserve-3d;
-  transform: translateZ(calc(var(--v) * 70px));
+  transform: translateZ(calc(var(--v) * 70 * var(--u)));
 }
 
 .cell i::before,
@@ -483,7 +501,7 @@ show('${YEARS[0]}');`,
   top: 100%;
   left: 0;
   width: 100%;
-  height: calc(var(--v) * 70px);
+  height: calc(var(--v) * 70 * var(--u));
   background: color-mix(in srgb, var(--c) 46%, ${SURFACE});
   transform-origin: top;
   transform: rotateX(-90deg);
@@ -493,7 +511,7 @@ show('${YEARS[0]}');`,
 .cell i::after {
   top: 0;
   left: 100%;
-  width: calc(var(--v) * 70px);
+  width: calc(var(--v) * 70 * var(--u));
   height: 100%;
   background: color-mix(in srgb, var(--c) 30%, ${SURFACE});
   transform-origin: left;
@@ -504,18 +522,30 @@ show('${YEARS[0]}');`,
 .cell:hover i,
 .cell:focus-visible i {
   background: color-mix(in srgb, var(--c) 55%, #fff);
-  box-shadow: inset 0 0 0 1px #fff, 0 0 16px var(--c);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) #fff, 0 0 calc(16 * var(--u)) var(--c);
 }
 
-output {
-  color: ${MUTED};
-  font-size: 12px;
+/* the control zone: the same object, at the same size, in every model that has one. It holds
+   only the caption here and keeps the zone's full height, so a new line cannot move the grid. */
+.controls {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  height: 16vmin;
+  text-align: center;
+}
+
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.7;
 }`,
     js: `// The data, as an API would send it back
 const COMMITS = ${compactRows(json(COMMITS)).replace(/\[\s+("Mon"[^\]]+?)\s+\]/, (_, inner: string) => `[${inner.replace(/\s+/g, ' ')}]`)};
 
 const world = document.querySelector('.world');
-const out = document.querySelector('.heat output');
+const out = document.querySelector('.heat .caption');
 const max = Math.max(...COMMITS.weeks.flat());
 
 // One block per value: its place in the grid, and its size as a fraction of the largest value
