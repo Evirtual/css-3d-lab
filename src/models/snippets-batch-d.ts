@@ -1399,41 +1399,44 @@ render();`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the meter is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.41vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .equalizer {
   position: relative;
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  height: 120px;
+  gap: calc(8 * var(--u));
+  height: calc(120 * var(--u));
   transform-style: preserve-3d;
-  transform: translateY(6px) rotateX(-20deg) rotateY(-30deg);
+  transform: translateY(calc(6 * var(--u))) rotateX(-20deg) rotateY(-30deg);
 }
 
 /* glass floor: a strip centred on the bottom edge, laid flat */
 .equalizer::before {
   content: '';
   position: absolute;
-  right: -12px;
-  bottom: -22px;
-  left: -12px;
-  height: 44px;
-  border-radius: 8px;
+  right: calc(-12 * var(--u));
+  bottom: calc(-22 * var(--u));
+  left: calc(-12 * var(--u));
+  height: calc(44 * var(--u));
+  border-radius: calc(8 * var(--u));
   transform: rotateX(90deg);
   background: color-mix(in srgb, #8b6cff 12%, transparent);
-  border: 1px solid color-mix(in srgb, #8b6cff 75%, transparent);
-  box-shadow: inset 0 0 24px color-mix(in srgb, #8b6cff 30%, transparent);
+  border: calc(1 * var(--u)) solid color-mix(in srgb, #8b6cff 75%, transparent);
+  box-shadow: inset 0 0 calc(24 * var(--u)) color-mix(in srgb, #8b6cff 30%, transparent);
 }
 
 /* --hn is the bar's full height as a plain number (set in the markup). The box never changes
    size: the walls are squashed with scaleY from the bottom, and the lid rides down with
    translateY by exactly the amount the walls lost. Transforms only, zero layout. */
 .bar {
-  --h: calc(var(--hn) * 1px);
+  --h: calc(var(--hn) * var(--u));
   position: relative;
-  width: 18px;
+  width: calc(18 * var(--u));
   height: var(--h);
   transform-style: preserve-3d;
 }
@@ -1451,7 +1454,7 @@ render();`,
   position: absolute;
   top: 0;
   left: 0;
-  width: 18px;
+  width: calc(18 * var(--u));
   height: 100%;
   transform-origin: bottom center;
   animation: var(--dur) ease-in-out var(--delay) infinite;
@@ -1460,53 +1463,53 @@ render();`,
 /* front wall */
 .bar i:nth-child(1) {
   background: linear-gradient(to top, hsl(var(--hue) 85% 45% / 0.92), hsl(var(--hue) 90% 68% / 0.92));
-  transform: translateZ(9px);
+  transform: translateZ(calc(9 * var(--u)));
   animation-name: equalizer-front;
 }
 
 /* right wall, darker */
 .bar i:nth-child(2) {
   background: linear-gradient(to top, hsl(var(--hue) 75% 28% / 0.92), hsl(var(--hue) 80% 46% / 0.92));
-  transform: rotateY(90deg) translateZ(9px);
+  transform: rotateY(90deg) translateZ(calc(9 * var(--u)));
   animation-name: equalizer-side;
 }
 
 /* lid: an 18 × 18 square laid flat on top, lightest */
 .bar i:nth-child(3) {
-  height: 18px;
+  height: calc(18 * var(--u));
   background: hsl(var(--hue) 95% 80%);
   transform-origin: center;
-  transform: rotateX(90deg) translateZ(9px);
+  transform: rotateX(90deg) translateZ(calc(9 * var(--u)));
   animation-name: equalizer-lid;
 }
 
 /* the three animations share the same stops and easing, so walls and lid stay glued together */
 @keyframes equalizer-front {
-  0%   { transform: translateZ(9px) scaleY(0.18); }
-  22%  { transform: translateZ(9px) scaleY(1); }
-  42%  { transform: translateZ(9px) scaleY(0.5); }
-  64%  { transform: translateZ(9px) scaleY(0.86); }
-  82%  { transform: translateZ(9px) scaleY(0.34); }
-  100% { transform: translateZ(9px) scaleY(0.18); }
+  0%   { transform: translateZ(calc(9 * var(--u))) scaleY(0.18); }
+  22%  { transform: translateZ(calc(9 * var(--u))) scaleY(1); }
+  42%  { transform: translateZ(calc(9 * var(--u))) scaleY(0.5); }
+  64%  { transform: translateZ(calc(9 * var(--u))) scaleY(0.86); }
+  82%  { transform: translateZ(calc(9 * var(--u))) scaleY(0.34); }
+  100% { transform: translateZ(calc(9 * var(--u))) scaleY(0.18); }
 }
 
 @keyframes equalizer-side {
-  0%   { transform: rotateY(90deg) translateZ(9px) scaleY(0.18); }
-  22%  { transform: rotateY(90deg) translateZ(9px) scaleY(1); }
-  42%  { transform: rotateY(90deg) translateZ(9px) scaleY(0.5); }
-  64%  { transform: rotateY(90deg) translateZ(9px) scaleY(0.86); }
-  82%  { transform: rotateY(90deg) translateZ(9px) scaleY(0.34); }
-  100% { transform: rotateY(90deg) translateZ(9px) scaleY(0.18); }
+  0%   { transform: rotateY(90deg) translateZ(calc(9 * var(--u))) scaleY(0.18); }
+  22%  { transform: rotateY(90deg) translateZ(calc(9 * var(--u))) scaleY(1); }
+  42%  { transform: rotateY(90deg) translateZ(calc(9 * var(--u))) scaleY(0.5); }
+  64%  { transform: rotateY(90deg) translateZ(calc(9 * var(--u))) scaleY(0.86); }
+  82%  { transform: rotateY(90deg) translateZ(calc(9 * var(--u))) scaleY(0.34); }
+  100% { transform: rotateY(90deg) translateZ(calc(9 * var(--u))) scaleY(0.18); }
 }
 
 /* walls lost (1 - level) of the height at each stop: the lid drops by the same distance */
 @keyframes equalizer-lid {
-  0%   { transform: translateY(calc(var(--h) * 0.82)) rotateX(90deg) translateZ(9px); }
-  22%  { transform: translateY(calc(var(--h) * 0))    rotateX(90deg) translateZ(9px); }
-  42%  { transform: translateY(calc(var(--h) * 0.5))  rotateX(90deg) translateZ(9px); }
-  64%  { transform: translateY(calc(var(--h) * 0.14)) rotateX(90deg) translateZ(9px); }
-  82%  { transform: translateY(calc(var(--h) * 0.66)) rotateX(90deg) translateZ(9px); }
-  100% { transform: translateY(calc(var(--h) * 0.82)) rotateX(90deg) translateZ(9px); }
+  0%   { transform: translateY(calc(var(--h) * 0.82)) rotateX(90deg) translateZ(calc(9 * var(--u))); }
+  22%  { transform: translateY(calc(var(--h) * 0))    rotateX(90deg) translateZ(calc(9 * var(--u))); }
+  42%  { transform: translateY(calc(var(--h) * 0.5))  rotateX(90deg) translateZ(calc(9 * var(--u))); }
+  64%  { transform: translateY(calc(var(--h) * 0.14)) rotateX(90deg) translateZ(calc(9 * var(--u))); }
+  82%  { transform: translateY(calc(var(--h) * 0.66)) rotateX(90deg) translateZ(calc(9 * var(--u))); }
+  100% { transform: translateY(calc(var(--h) * 0.82)) rotateX(90deg) translateZ(calc(9 * var(--u))); }
 }`,
   },
 };
