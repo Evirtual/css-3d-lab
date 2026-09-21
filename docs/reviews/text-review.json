@@ -1256,5 +1256,425 @@
     "reviewedAt": "2026-09-22T00:40:56+07:00",
     "reviewedAtBasis": "upper bound: time of my next commit after reading it",
     "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+  },
+  {
+    "model": "package",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "dice",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "wordcube",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "turntable",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "neonbars",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "magnet",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "browser",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "coverflow",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "torus",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "cubenav",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "coin",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "explode",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "radio",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "lattice",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "layertext",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "lit",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "waveletters",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "textring",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "rollbutton",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "toggle",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "boxslider",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "cardstack",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "cardfan",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "flipgrid",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "accordion",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "flipper",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "gyro",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "wavegrid",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "cubeloader",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "rings",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "dotorbit",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "blockstack",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "door",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "bars",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "clock",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "gauge",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "timeline",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "funnel",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "candles",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "waterfall",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "treemap",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "radar",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "activity",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+  },
+  {
+    "model": "button",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
+    "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
+    "finding": "tags: 'hover' became 'controls'; the button answers a press (:active) and nothing on hover, so the badge said Hover for a thing you click"
+  },
+  {
+    "model": "book",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
+    "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
+    "finding": "technique: 'var() end angle in @keyframes' and 'staggered delays' no longer match the code; the book opens by slices of one @property --open"
+  },
+  {
+    "model": "chartpanel",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fixed",
+    "reviewedAt": "2026-09-22T00:52:54+07:00",
+    "reviewedAtBasis": "time of the fix commit",
+    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
+    "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
+    "finding": "technique: the layer chip said translateZ 0 / 8 / 16 / 22 units; the code now floats them at 5 / 10 / 14"
   }
 ]
