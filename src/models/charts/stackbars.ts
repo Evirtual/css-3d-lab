@@ -280,7 +280,9 @@ export const snippet: Snippet = {
 
 .scene {
   perspective: calc(800 * var(--u));
-  padding: calc(36 * var(--u)) calc(40 * var(--u)) calc(34 * var(--u));
+  /* the floor and the quarter labels hang below the columns: more room under them than over
+     them keeps the drawing centred in the model box and clear of the caption */
+  padding: calc(22 * var(--u)) calc(40 * var(--u)) calc(50 * var(--u));
   pointer-events: none; /* the chart is turned: only the faces take the pointer */
 }
 
