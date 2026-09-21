@@ -836,12 +836,15 @@ ${CUBE_FACES}`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the helix is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.29vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .helix {
   display: grid;
-  gap: 12px;
+  gap: calc(12 * var(--u));
   transform-style: preserve-3d;
   transform: rotateZ(-14deg);
 }
@@ -849,8 +852,8 @@ ${CUBE_FACES}`,
 .helix > div {
   --delay: calc(var(--i) * -0.22s);
   position: relative;
-  width: 120px;
-  height: 3px;
+  width: calc(120 * var(--u));
+  height: calc(3 * var(--u));
   background: linear-gradient(90deg, #2ee6d6, transparent 35% 65%, #ff4d9d);
   transform-style: preserve-3d;
   animation: helix-spin 4s linear infinite;
@@ -859,17 +862,17 @@ ${CUBE_FACES}`,
 
 .helix i {
   position: absolute;
-  top: -6px;
-  width: 15px;
-  height: 15px;
+  top: calc(-6 * var(--u));
+  width: calc(15 * var(--u));
+  height: calc(15 * var(--u));
   border-radius: 50%;
   /* same animation, reversed → the dot always faces the camera */
   animation: helix-spin 4s linear infinite reverse;
   animation-delay: var(--delay);
 }
 
-.helix i:first-child { left: -7px;  background: #2ee6d6; box-shadow: 0 0 10px #2ee6d6; }
-.helix i:last-child  { right: -7px; background: #ff4d9d; box-shadow: 0 0 10px #ff4d9d; }
+.helix i:first-child { left: calc(-7 * var(--u));  background: #2ee6d6; box-shadow: 0 0 calc(10 * var(--u)) #2ee6d6; }
+.helix i:last-child  { right: calc(-7 * var(--u)); background: #ff4d9d; box-shadow: 0 0 calc(10 * var(--u)) #ff4d9d; }
 
 @keyframes helix-spin {
   to { transform: rotateY(360deg); }
