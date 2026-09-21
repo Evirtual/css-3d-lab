@@ -1092,7 +1092,8 @@ scene.addEventListener('pointercancel', leave);`,
       'Once a second JS writes <code>--h</code>, <code>--m</code>, <code>--s</code> as angles. Each hand stands on the centre (<code>bottom: 50%</code>), turns about its foot and reads its own variable.',
       'The angles count from midnight, so they only ever grow: at 59 → 0 seconds the hand keeps going forward instead of sweeping back.',
       'The digits need no DOM writes: JS also sets two integers, <code>counter-reset: hh var(--hh) mm var(--mm)</code> turns them into counters and <code>content: counter(hh, decimal-leading-zero)</code> prints 09:05.',
-      'The case is seven rounded slabs 1.5px apart (they make the rounded sides), with the face and back at <code>±5px</code>. The straps are hinged on the case edge with <code>transform-origin</code> and tilted away with <code>rotateX</code>.',
+      'The case is seven rounded slabs 1.5 units apart (they make the rounded sides), with the face and back at <code>±5</code>. The straps are hinged on the case edge with <code>transform-origin</code> and tilted away with <code>rotateX</code>.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the case, the dial and the digits are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="watch">
@@ -1112,7 +1113,10 @@ scene.addEventListener('pointercancel', leave);`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the watch is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .watch {
@@ -1122,20 +1126,20 @@ scene.addEventListener('pointercancel', leave);`,
   animation: sway 7s ease-in-out infinite alternate;
 }
 
-/* 88 × 104, 10px thick, 24px corners */
+/* 88 × 104, 10 thick, 24 corners */
 .body {
   position: relative;
-  width: 88px;
-  height: 104px;
+  width: calc(88 * var(--u));
+  height: calc(104 * var(--u));
   transform-style: preserve-3d;
 }
 
 /* hinged on the back edge of the case, then tilted away round an invisible wrist */
 .strap {
   position: absolute;
-  left: 16px;
-  width: 56px;
-  height: 44px;
+  left: calc(16 * var(--u));
+  width: calc(56 * var(--u));
+  height: calc(44 * var(--u));
   background:
     linear-gradient(90deg, rgb(0 0 0 / 0.35), transparent 22% 78%, rgb(0 0 0 / 0.35)),
     var(--band);
@@ -1143,29 +1147,29 @@ scene.addEventListener('pointercancel', leave);`,
 
 .strap.top {
   bottom: 100%;
-  border-radius: 10px 10px 0 0;
+  border-radius: calc(10 * var(--u)) calc(10 * var(--u)) 0 0;
   transform-origin: 50% 100%;
-  transform: translateZ(-4px) rotateX(38deg);
+  transform: translateZ(calc(-4 * var(--u))) rotateX(38deg);
 }
 
 .strap.bottom {
   top: 100%;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 calc(10 * var(--u)) calc(10 * var(--u));
   background:
-    radial-gradient(circle, rgb(0 0 0 / 0.45) 0 2px, transparent 2.5px) 50% 8px / 100% 10px repeat-y,
+    radial-gradient(circle, rgb(0 0 0 / 0.45) 0 calc(2 * var(--u)), transparent calc(2.5 * var(--u))) 50% calc(8 * var(--u)) / 100% calc(10 * var(--u)) repeat-y,
     linear-gradient(90deg, rgb(0 0 0 / 0.35), transparent 22% 78%, rgb(0 0 0 / 0.35)),
     var(--band);
   transform-origin: 50% 0;
-  transform: translateZ(-4px) rotateX(-38deg);
+  transform: translateZ(calc(-4 * var(--u))) rotateX(-38deg);
 }
 
 /* rounded slabs fill the case, corners included */
 .slab {
   position: absolute;
-  inset: 0.5px;
-  border-radius: 24px;
+  inset: calc(0.5 * var(--u));
+  border-radius: calc(24 * var(--u));
   background: var(--metal);
-  transform: translateZ(calc((var(--i) - 3) * 1.5px));
+  transform: translateZ(calc((var(--i) - 3) * 1.5 * var(--u)));
 }
 
 .slab.mid {
@@ -1175,24 +1179,24 @@ scene.addEventListener('pointercancel', leave);`,
 /* ribbed crown plate, plus its end face turned side-on */
 .crown {
   position: absolute;
-  top: 30px;
-  left: calc(100% - 3px);
-  width: 7px;
-  height: 20px;
-  border-radius: 2px;
-  background: repeating-linear-gradient(var(--metal) 0 1.5px, #a3a7bd 1.5px 3px);
+  top: calc(30 * var(--u));
+  left: calc(100% - 3 * var(--u));
+  width: calc(7 * var(--u));
+  height: calc(20 * var(--u));
+  border-radius: calc(2 * var(--u));
+  background: repeating-linear-gradient(var(--metal) 0 calc(1.5 * var(--u)), #a3a7bd calc(1.5 * var(--u)) calc(3 * var(--u)));
   transform-style: preserve-3d;
-  transform: translateZ(0.75px);
+  transform: translateZ(calc(0.75 * var(--u)));
 }
 
 .crown::before {
   content: '';
   position: absolute;
   top: 0;
-  left: calc(100% - 4px);
-  width: 8px;
+  left: calc(100% - 4 * var(--u));
+  width: calc(8 * var(--u));
   height: 100%;
-  border-radius: 2px;
+  border-radius: calc(2 * var(--u));
   background: inherit;
   transform: rotateY(90deg);
 }
@@ -1202,15 +1206,15 @@ scene.addEventListener('pointercancel', leave);`,
   position: absolute;
   inset: 0;
   box-sizing: border-box;
-  border-radius: 24px;
+  border-radius: calc(24 * var(--u));
   backface-visibility: hidden;
 }
 
 .back {
   background:
-    radial-gradient(circle, #05060c 0 10px, #1e8c85 11px 13px, transparent 14px),
-    radial-gradient(circle, #868ba4 0 30px, var(--metal) 31px);
-  transform: rotateY(180deg) translateZ(5px);
+    radial-gradient(circle, #05060c 0 calc(10 * var(--u)), #1e8c85 calc(11 * var(--u)) calc(13 * var(--u)), transparent calc(14 * var(--u))),
+    radial-gradient(circle, #868ba4 0 calc(30 * var(--u)), var(--metal) calc(31 * var(--u)));
+  transform: rotateY(180deg) translateZ(calc(5 * var(--u)));
 }
 
 /* black glass, the border is the bezel */
@@ -1218,13 +1222,13 @@ scene.addEventListener('pointercancel', leave);`,
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 9px 6px 6px;
+  padding: calc(9 * var(--u)) calc(6 * var(--u)) calc(6 * var(--u));
   overflow: hidden;
-  border: 5px solid #05060c;
+  border: calc(5 * var(--u)) solid #05060c;
   background: radial-gradient(circle at 50% 30%, #231c42, #05060c 70%);
   color: #fff;
   font-family: system-ui, sans-serif;
-  transform: translateZ(5px);
+  transform: translateZ(calc(5 * var(--u)));
 }
 
 .face::after {
@@ -1235,11 +1239,11 @@ scene.addEventListener('pointercancel', leave);`,
 }
 
 .face small {
-  margin-top: 1px;
+  margin-top: calc(1 * var(--u));
   color: #2ee6d6;
-  font-size: 6px;
+  font-size: calc(7 * var(--u));
   font-weight: 700;
-  letter-spacing: 1.2px;
+  letter-spacing: calc(1.2 * var(--u));
   text-transform: uppercase;
 }
 
@@ -1247,23 +1251,23 @@ scene.addEventListener('pointercancel', leave);`,
 .dial {
   position: relative;
   flex: none;
-  width: 50px;
-  height: 50px;
+  width: calc(50 * var(--u));
+  height: calc(50 * var(--u));
   border-radius: 50%;
   background:
-    radial-gradient(circle, #0b0d18 0 19px, transparent 19.5px),
+    radial-gradient(circle, #0b0d18 0 calc(19 * var(--u)), transparent calc(19.5 * var(--u))),
     repeating-conic-gradient(from -1.5deg, rgb(255 255 255 / 0.85) 0 3deg, transparent 3deg 30deg),
     conic-gradient(#ff4d9d 0 68%, rgb(255 77 157 / 0.25) 0);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) rgb(255 255 255 / 0.12);
 }
 
 .dial::after {
   content: '';
   position: absolute;
-  top: calc(50% - 2.5px);
-  left: calc(50% - 2.5px);
-  width: 5px;
-  height: 5px;
+  top: calc(50% - 2.5 * var(--u));
+  left: calc(50% - 2.5 * var(--u));
+  width: calc(5 * var(--u));
+  height: calc(5 * var(--u));
   border-radius: 50%;
   background: #2ee6d6;
 }
@@ -1272,21 +1276,21 @@ scene.addEventListener('pointercancel', leave);`,
 .hand {
   position: absolute;
   bottom: 50%;
-  border-radius: 2px;
+  border-radius: calc(2 * var(--u));
   background: #fff;
   transform-origin: 50% 100%;
 }
 
-.hand.h { left: calc(50% - 1.5px); width: 3px; height: 12px; transform: rotate(var(--h, 300deg)); }
-.hand.m { left: calc(50% - 1px); width: 2px; height: 18px; transform: rotate(var(--m, 54deg)); }
-.hand.s { left: calc(50% - 0.5px); width: 1px; height: 21px; background: #2ee6d6; transform: rotate(var(--s, 180deg)); }
+.hand.h { left: calc(50% - 1.5 * var(--u)); width: calc(3 * var(--u)); height: calc(12 * var(--u)); transform: rotate(var(--h, 300deg)); }
+.hand.m { left: calc(50% - 1 * var(--u)); width: calc(2 * var(--u)); height: calc(18 * var(--u)); transform: rotate(var(--m, 54deg)); }
+.hand.s { left: calc(50% - 0.5 * var(--u)); width: calc(1 * var(--u)); height: calc(21 * var(--u)); background: #2ee6d6; transform: rotate(var(--s, 180deg)); }
 
 /* two integers from JS become counters; decimal-leading-zero pads them */
 .time {
-  margin-top: 5px;
+  margin-top: calc(5 * var(--u));
   counter-reset: hh var(--hh, 10) mm var(--mm, 9);
-  font: 700 15px/1 ui-monospace, Consolas, monospace;
-  letter-spacing: -0.5px;
+  font: 700 calc(15 * var(--u))/1 ui-monospace, Consolas, monospace;
+  letter-spacing: calc(-0.5 * var(--u));
 }
 
 .time::before {
