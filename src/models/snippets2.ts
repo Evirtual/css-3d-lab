@@ -711,6 +711,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
       'Animate <code>rotateX</code> from −32° to +32° with <code>animation-direction: alternate</code>.',
       '<code>ease-in-out</code> is what makes it physical — slow at the ends of the swing, fast through the middle.',
       'A constant <code>rotateY</code> in both keyframes turns the sign slightly so you can see the swing.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the sign is 220 × 190 units, so it is the same share of a gallery card, the editor and a recording canvas, and its swing toward you still stays inside the frame.',
     ],
     html: `<div class="scene">
   <div class="sign">
@@ -718,13 +719,18 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the sign is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.3vmin;
+  display: grid;
+  place-items: center;
+  perspective: calc(800 * var(--u));
 }
 
 .sign {
   position: relative;
-  width: 220px;
-  height: 190px;
+  width: calc(220 * var(--u));
+  height: calc(190 * var(--u));
   transform-origin: top center;
   animation: swing 2.2s ease-in-out infinite alternate;
 }
@@ -733,25 +739,25 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
 .sign::before {
   content: '';
   position: absolute;
-  inset: 0 16px auto;
-  height: 80px;
+  inset: 0 calc(16 * var(--u)) auto;
+  height: calc(80 * var(--u));
   border: solid #949bc0;
-  border-width: 4px 2px 0;
+  border-width: calc(4 * var(--u)) calc(2 * var(--u)) 0;
 }
 
 .board {
   position: absolute;
-  inset: 80px 0 0;
+  inset: calc(80 * var(--u)) 0 0;
   display: grid;
   place-items: center;
-  border: 3px solid #ffb547;
-  border-radius: 12px;
+  border: calc(3 * var(--u)) solid #ffb547;
+  border-radius: calc(12 * var(--u));
   background: #1b1408;
   color: #ffb547;
-  font: 900 2.8rem system-ui;
+  font: 900 calc(45 * var(--u)) system-ui;
   letter-spacing: 0.12em;
-  text-shadow: 0 0 14px #ffb547;
-  box-shadow: 0 0 24px rgb(255 181 71 / 0.45);
+  text-shadow: 0 0 calc(14 * var(--u)) #ffb547;
+  box-shadow: 0 0 calc(24 * var(--u)) rgb(255 181 71 / 0.45);
 }
 
 @keyframes swing {
