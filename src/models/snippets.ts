@@ -1142,58 +1142,104 @@ layout();`,
       '<code>perspective</code> is the distance from your eye to the z=0 plane. Low values (≈150px) distort wildly; high values (≈1200px) look almost flat.',
       'It belongs on the <b>parent</b> of the thing you rotate.',
       'The sliders just write three custom properties; the box’s transform reads them.',
+      'The perspective slider writes a plain number, not a length: the model multiplies it by its own base unit, so 400 here is 400 next to a 120-unit box — the same picture at any canvas size.',
       'Try it: set rotateY to 60° and sweep perspective from one end to the other.',
     ],
     html: `<div class="play">
   <div class="view"><div class="box">3D</div></div>
 
-  <label>perspective <input type="range" data-var="p"  data-unit="px"  min="120" max="1200" value="400"></label>
-  <label>rotateX     <input type="range" data-var="rx" data-unit="deg" min="-80" max="80"   value="20"></label>
-  <label>rotateY     <input type="range" data-var="ry" data-unit="deg" min="-80" max="80"   value="-35"></label>
-
-  <code class="out"></code>
+  <div class="controls">
+    <output class="caption"></output>
+    <div class="row">
+      <label>persp <input type="range" data-var="p"  min="150" max="1200" value="400" aria-label="perspective"></label>
+      <label>rX <input type="range" data-var="rx" data-unit="deg" min="-70" max="70" value="20" aria-label="rotateX"></label>
+      <label>rY <input type="range" data-var="ry" data-unit="deg" min="-70" max="70" value="-35" aria-label="rotateY"></label>
+    </div>
+  </div>
 </div>`,
     css: `.play {
+  /* one base unit: every length in the box below is a multiple of it, so the playground is the
+     same share of a gallery card, the editor, a full screen and a recording canvas. The control
+     zone under it is in plain vmin, because it is the same object in every model. */
+  --u: 0.35vmin;
   display: grid;
-  gap: 10px;
-  width: min(360px, 90vw);
-  font: 14px ui-monospace, monospace;
+  justify-items: center;
+  gap: 4vmin;
 }
 
+/* room for the box at its biggest — perspective down at 150, turned as far as the sliders go —
+   so nothing it draws ever reaches the controls */
 .view {
   display: grid;
   place-items: center;
-  height: 260px;
-  perspective: var(--p, 400px);
+  width: calc(132 * var(--u));
+  height: calc(132 * var(--u));
+  /* the slider writes a plain number; the unit is the model's, like every other length here */
+  perspective: calc(var(--p, 400) * var(--u));
 }
 
 .box {
   display: grid;
   place-items: center;
-  width: 150px;
-  height: 150px;
-  border-radius: 16px;
-  font: 900 2.4rem system-ui;
+  width: calc(120 * var(--u));
+  height: calc(120 * var(--u));
+  border-radius: calc(16 * var(--u));
+  font: 900 calc(38 * var(--u)) system-ui, sans-serif;
   color: #fff;
   background: linear-gradient(135deg, #ffb547, #ff4d9d);
   transform: rotateX(var(--rx, 20deg)) rotateY(var(--ry, -35deg));
 }
 
-label { display: grid; color: #949bc0; }
-input { accent-color: #ffb547; }
-.out  { color: #2ee6d6; }`,
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the box's own unit */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
+}
+
+.controls .caption {
+  font: 500 4.5vmin/1.2 ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.controls .row {
+  display: flex;
+  gap: 2vmin;
+}
+
+.controls label {
+  display: flex;
+  align-items: center;
+  gap: 1.5vmin;
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(148 155 192 / 0.2);
+  font: 600 4vmin ui-monospace, monospace;
+  cursor: pointer;
+}
+
+.controls input {
+  width: 11vmin;
+  accent-color: #ffb547;
+  cursor: pointer;
+}`,
     js: `const root = document.querySelector('.play');
-const out = root.querySelector('.out');
+const out = root.querySelector('.caption');
 const inputs = [...root.querySelectorAll('input[type=range]')];
 
 function update() {
   const v = {};
   for (const input of inputs) {
-    v[input.dataset.var] = input.value + input.dataset.unit;
-    root.style.setProperty('--' + input.dataset.var, v[input.dataset.var]);
+    v[input.dataset.var] = input.value;
+    root.style.setProperty('--' + input.dataset.var, input.value + (input.dataset.unit || ''));
   }
-  out.textContent =
-    'perspective: ' + v.p + '; transform: rotateX(' + v.rx + ') rotateY(' + v.ry + ');';
+  out.textContent = 'persp ' + v.p + ' · rX ' + v.rx + '° · rY ' + v.ry + '°';
 }
 
 root.addEventListener('input', update);
