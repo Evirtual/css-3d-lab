@@ -511,25 +511,45 @@ ${starShadows(40, 900, 2024)};
       'All letters share one keyframe animation: lift toward the camera while flipping 360°.',
       '<code>animation-delay: calc(var(--i) * 0.12s)</code> offsets each letter, and the offsets read as a travelling wave.',
       'Put the real word in <code>aria-label</code> and hide the spans from screen readers, or it is read letter by letter.',
+      '<code>--i</code> carries on across the line break, so the wave rolls off the end of one line and into the start of the next.',
+      'Every length is a multiple of one base unit, <code>--u</code>, the lift toward the camera included, so the word is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <h1 class="wave" aria-label="WAVE 3D">
-${[...'WAVE·3D'].map((c, i) => `    <span style="--i:${i}" aria-hidden="true">${c}</span>`).join('\n')}
+    <span class="line">
+${[...'WAVE'].map((c, i) => `      <span style="--i:${i}" aria-hidden="true">${c}</span>`).join('\n')}
+    </span>
+    <span class="line">
+${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" aria-hidden="true">${c}</span>`).join('\n')}
+    </span>
   </h1>
 </div>`,
     css: `.scene {
-  perspective: 600px;
+  /* one base unit: every length below is a multiple of it, so the word is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.36vmin;
+  perspective: calc(600 * var(--u));
 }
 
+/* Two lines, because seven letters in a row are four times wider than they are tall: sized to
+   the 92vmin width limit the word would stand 26vmin high, well under the 40vmin floor. Stacked,
+   the wave rolls through WAVE and on into 3D. */
 .wave {
-  display: flex;
-  gap: 2px;
+  display: grid;
+  justify-items: center;
+  gap: calc(6 * var(--u));
   margin: 0;
-  font: 900 4rem system-ui;
+  font: 900 calc(64 * var(--u))/1 system-ui;
   transform-style: preserve-3d;
 }
 
-.wave span {
+.wave .line {
+  display: flex;
+  gap: calc(2 * var(--u));
+  transform-style: preserve-3d;
+}
+
+.wave .line span {
   display: inline-block;
   color: hsl(calc(255 + var(--i) * 18) 90% 70%);
   animation: wave 2.8s ease-in-out infinite;
@@ -537,9 +557,9 @@ ${[...'WAVE·3D'].map((c, i) => `    <span style="--i:${i}" aria-hidden="true">$
 }
 
 @keyframes wave {
-  0%        { transform: translateZ(0)    rotateY(0deg); }
-  22%       { transform: translateZ(60px) rotateY(180deg); }
-  45%, 100% { transform: translateZ(0)    rotateY(360deg); }
+  0%        { transform: translateZ(0)                 rotateY(0deg); }
+  22%       { transform: translateZ(calc(60 * var(--u))) rotateY(180deg); }
+  45%, 100% { transform: translateZ(0)                 rotateY(360deg); }
 }`,
   },
 
