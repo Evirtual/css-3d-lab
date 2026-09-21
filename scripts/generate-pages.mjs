@@ -1,6 +1,13 @@
 // Generates one real HTML page per demo and per group, plus sitemap.xml, robots.txt and the
 // "all demos" link list for the home page. Runs before `vite` / `vite build`.
 //
+//   npm run generate     (also the first step of `npm run dev` and `npm run build`)
+//
+// Writes models/, groups/, embed/, public/demos/, src/generated/ (all gitignored, rebuilt from
+// scratch each run) and public/sitemap.xml, public/robots.txt. It also updates
+// src/sitemap-dates.json, which IS committed (see <lastmod> below). Stops with an error if any
+// model has no copy-paste snippet.
+//
 // Why: search engines rank PAGES. A single-page gallery is one page about "3D CSS"; fifty pages
 // can each answer one specific search ("css 3d pyramid"). Everything that matters for ranking —
 // title, description, heading, explanation, code — is written into the HTML as plain text, so it
