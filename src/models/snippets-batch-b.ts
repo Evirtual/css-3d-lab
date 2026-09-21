@@ -1315,13 +1315,17 @@ setInterval(tick, 1000);`,
   --c: #8b6cff;
   display: grid;
   justify-items: center;
-  gap: 4vmin;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
+/* the model box: the same height in every model that has controls, so the zone below it lands
+   in the same place whatever the model is */
 .view {
+  box-sizing: border-box;
   display: grid;
   place-items: center;
+  height: 44vmin;
   /* the round shadow hangs below the box: the room for it keeps the speaker centred */
   padding-bottom: calc(26 * var(--u));
   border-radius: calc(14 * var(--u));
@@ -1456,7 +1460,8 @@ setInterval(tick, 1000);`,
 }
 
 /* the control zone: the same object, at the same size, in every model that has one — so it is
-   written in plain vmin and not in the speaker's own unit */
+   written in plain vmin and not in the speaker's own unit. The caption is on its own line above
+   the row, and its line box never changes height, so a new angle cannot move the speaker. */
 .controls {
   display: grid;
   justify-items: center;
@@ -1465,7 +1470,6 @@ setInterval(tick, 1000);`,
 }
 
 .controls .caption {
-  color: #949bc0;
   font: 500 4.5vmin/1.2 system-ui, sans-serif;
   opacity: 0.7;
 }
