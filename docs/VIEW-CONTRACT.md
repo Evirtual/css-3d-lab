@@ -103,17 +103,27 @@ Two checks judge this; neither adjusts anything.
 `npm run check-models` (`scripts/check-models.mjs`) opens every model on a card (a 360 × 300
 page), drives it through those states as its tags say — 12 moments of its loop and the same 12
 with `:hover` forced, up to six of its controls clicked, a drag, a pointer sweep to the corners
-and sides of the canvas, a scroll down and back — and measures the box around every pixel it
-paints (alpha over 24/255), in vmin. What it holds, exactly:
+and sides of the canvas, a scroll down and back — and measures the box around the pixels it
+paints, in vmin, with two thresholds for two jobs:
 
-| | |
-| --- | --- |
-| Tallest | 70vmin for everything drawn, **the control zone included**. The 50vmin model box inside the band is not measured on its own: the stack in rule 5 is what holds it |
-| Shortest | 40vmin |
-| Widest | 92% of the canvas width |
-| Centred | within 4vmin sideways; vertically within 4vmin, or 11vmin when there is a control zone |
-| Top corners | nothing drawn within 14vmin of either top corner |
-| Full canvas | a drawing that covers at least 95% of the canvas both ways is judged as full-canvas, and must cover 98% |
+- **Position and size are judged on solid ink, alpha 128/255 and over.** The eye reads where a
+  model is and how big it is from its solid body. A soft shadow, a glow, steam or a translucent
+  floor hanging off one side would otherwise pull the measured middle away from the body a person
+  sees, so the model looks off centre while the check passes.
+- **Edges are judged on all ink, alpha over 24/255.** A leak is a leak however faint: a glow that
+  runs off the canvas or under the site's badge still fails.
+
+What it holds, exactly:
+
+| | Ink | |
+| --- | --- | --- |
+| Tallest | solid | 70vmin for everything drawn, **the control zone included**. The 50vmin model box inside the band is not measured on its own: the stack in rule 5 is what holds it |
+| Shortest | solid | 40vmin |
+| Widest | solid | 92% of the canvas width |
+| Centred | solid | within 4vmin sideways; vertically within 4vmin, or 11vmin when there is a control zone |
+| Canvas edge | all | nothing drawn reaches the canvas edge, unless the model is full-canvas |
+| Top corners | all | nothing drawn within 14vmin of either top corner |
+| Full canvas | all | a drawing that covers at least 95% of the canvas both ways is judged as full-canvas, and must cover 98% |
 
 What the frame clips, the picture cannot show: a model drawn past the canvas edge is measured up
 to the edge, so its numbers are a floor.

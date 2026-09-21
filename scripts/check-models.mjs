@@ -17,6 +17,15 @@
  * than what is drawn; and a box-shadow is real ink that no box contains, so a model built out of
  * shadows reads smaller than it looks. The picture has no opinion about either.
  *
+ * TWO THRESHOLDS, FOR TWO JOBS. Position and size (centred, tallest, shortest, widest) are judged
+ * on SOLID ink, alpha 128/255 and over: the eye reads where a model is and how big it is from its
+ * solid body, and a soft shadow, a glow, steam or a translucent floor hanging off one side would
+ * otherwise drag the measured middle away from the body a person sees (the coffee cup's steam put
+ * its cup 8vmin low while the check passed). Edges (the canvas edge, the top-corner clearance, and
+ * whether a full-canvas model covers the canvas) are judged on ALL ink, alpha over 24/255: a leak
+ * is a leak however faint, so a glow that runs off the canvas or under the site's badge still
+ * fails.
+ *
  * What the frame clips, the picture cannot show: a model drawn past the canvas edge is measured up
  * to that edge and no further, so its numbers are a floor. Over one or two edges it still fails,
  * only by less than the truth. Over all four it covers the canvas, and is judged as a full-canvas
@@ -31,7 +40,8 @@ const FLOOR = 40; // nothing may be smaller than this
 const WIDEST = 92; // per cent of the canvas width
 const CORNER = 14; // the site's badge and menu live in the top corners
 const CENTRED = 4; // how far off the middle a model may sit, in vmin
-const INK = 24; // alpha out of 255 that counts as drawn, so a faint glow or soft shadow does not
+const INK = 24; // alpha out of 255 over which a pixel is drawn at all: the edges are judged on this
+const SOLID = 128; // alpha out of 255 from which a pixel is solid body: position and size are judged on this
 
 // The site paints the backdrop, not the model: its colour, its dots and its credit are taken off
 // the page so the only ink in the picture is the model's own.
@@ -148,12 +158,13 @@ const RELEASE = `(body) => {
 }`;
 
 /**
- * The box around every pixel of a PNG whose alpha is over `threshold`, in image pixels, or null
- * when the picture is empty. Chromium writes 8-bit PNGs; a shot taken with omitBackground has an
+ * The box around every pixel of a PNG whose alpha is over `faint` (all ink), and the box around
+ * every pixel whose alpha is `solid` or more (solid ink), in image pixels; each is null when the
+ * picture has no such pixel. Chromium writes 8-bit PNGs; a shot taken with omitBackground has an
  * alpha channel, and one that came out fully opaque may have none, in which case every pixel is
  * ink and the box is the whole picture.
  */
-function inkBox(png, threshold) {
+function inkBoxes(png, faint, solid) {
   let at = 8, width = 0, height = 0, depth = 0, kind = 0;
   const parts = [];
   while (at + 8 <= png.length) {
@@ -171,8 +182,15 @@ function inkBox(png, threshold) {
   const stride = width * channels;
   const row = Buffer.alloc(stride);
   const above = Buffer.alloc(stride);
-  const solid = channels === 1 || channels === 3; // no alpha channel: all of it is ink
-  let l = Infinity, t = Infinity, r = -1, b = -1;
+  const opaque = channels === 1 || channels === 3; // no alpha channel: all of it is solid ink
+  const all = { l: Infinity, t: Infinity, r: -1, b: -1 };
+  const body = { l: Infinity, t: Infinity, r: -1, b: -1 };
+  const grow = (box, x, y) => {
+    if (x < box.l) box.l = x;
+    if (x > box.r) box.r = x;
+    if (y < box.t) box.t = y;
+    if (y > box.b) box.b = y;
+  };
   for (let y = 0, read = 0; y < height; y++) {
     const filter = raw[read++];
     raw.copy(row, 0, read, read + stride);
@@ -191,16 +209,16 @@ function inkBox(png, threshold) {
       }
     }
     row.copy(above);
-    if (solid) { l = 0; t = Math.min(t, y); r = width - 1; b = y; continue; }
+    if (opaque) { for (const box of [all, body]) { grow(box, 0, y); grow(box, width - 1, y); } continue; }
     for (let x = 0; x < width; x++) {
-      if (row[x * channels + channels - 1] <= threshold) continue;
-      if (x < l) l = x;
-      if (x > r) r = x;
-      if (y < t) t = y;
-      if (y > b) b = y;
+      const alpha = row[x * channels + channels - 1];
+      if (alpha <= faint) continue;
+      grow(all, x, y);
+      if (alpha >= solid) grow(body, x, y);
     }
   }
-  return r < 0 ? null : { l, t, r: r + 1, b: b + 1, width, height };
+  const out = (box) => (box.r < 0 ? null : { l: box.l, t: box.t, r: box.r + 1, b: box.b + 1, width, height });
+  return { all: out(all), solid: out(body) };
 }
 
 // No hot reload and no watching: a save anywhere in src (someone else's, mid-run) would reload
@@ -231,6 +249,8 @@ const widest = (a, b) => {
     corner: Math.min(a.corner, b.corner),
     coversW: Math.max(a.coversW, b.coversW),
     coversH: Math.max(a.coversH, b.coversH),
+    edge: a.edge || b.edge,
+    faint: a.faint && b.faint,
     controls: a.controls || b.controls,
   };
 };
@@ -240,7 +260,9 @@ const frame = () => page.frameLocator('iframe').locator('body');
 /**
  * What the model draws in the state it is in now, in vmin, measured from the canvas middle: its
  * real timeline photographed at the moments momentsOf() picks, then at the same moments with
- * :hover forced on, and the box around all the ink in all of them.
+ * :hover forced on. Its size and offset are the box around the solid ink in all of them; its
+ * corner clearance, whether it reaches the canvas edge and how much of the canvas it covers are
+ * the box around all the ink in all of them.
  */
 async function look() {
   try {
@@ -250,28 +272,33 @@ async function look() {
     if (!clip) return null;
     // a page that reloaded has lost the bare backdrop and the state it was driven into
     if (!(await page.evaluate(() => window.c3dBare === true))) throw new Error('the page reloaded under the camera');
-    let seen = null, controls = false;
+    let seen = null, body = null, controls = false;
+    const join = (a, b) => (a ? { ...b, l: Math.min(a.l, b.l), t: Math.min(a.t, b.t), r: Math.max(a.r, b.r), b: Math.max(a.b, b.b) } : b);
     const times = momentsOf(await frame().evaluate(new Function('return ' + PLAN)()));
     const poses = [false, true].flatMap((hover) => times.map((t, k) => ({ t, hover, k, n: times.length })));
     for (const pose of poses) {
       controls = (await frame().evaluate(new Function('return ' + POSE)(), pose)) || controls;
-      const ink = inkBox(await page.screenshot({ omitBackground: true, clip }), INK);
-      if (!ink) continue;
-      seen = seen
-        ? { ...ink, l: Math.min(seen.l, ink.l), t: Math.min(seen.t, ink.t), r: Math.max(seen.r, ink.r), b: Math.max(seen.b, ink.b) }
-        : ink;
+      const ink = inkBoxes(await page.screenshot({ omitBackground: true, clip }), INK, SOLID);
+      if (ink.all) seen = join(seen, ink.all);
+      if (ink.solid) body = join(body, ink.solid);
     }
     await frame().evaluate(new Function('return ' + RELEASE)());
     if (!seen) return null;
     const { l, t, r, b, width, height } = seen;
     const unit = Math.min(width, height) / 100;
+    // a drawing with no solid ink at all has no body to place or size
+    const s = body ?? { l: width / 2, t: height / 2, r: width / 2, b: height / 2 };
     return {
-      width: (r - l) / unit,
-      height: (b - t) / unit,
-      offX: ((l + r) / 2 - width / 2) / unit,
-      offY: ((t + b) / 2 - height / 2) / unit,
-      // how close the drawing comes to each top corner, and how much of the canvas it covers
+      // position and size: the solid body
+      width: (s.r - s.l) / unit,
+      height: (s.b - s.t) / unit,
+      offX: ((s.l + s.r) / 2 - width / 2) / unit,
+      offY: ((s.t + s.b) / 2 - height / 2) / unit,
+      faint: !body,
+      // edges: all the ink, however faint. How close it comes to each top corner, whether it
+      // reaches the canvas edge, and how much of the canvas it covers
       corner: Math.min(Math.hypot(Math.max(0, l - 0), Math.max(0, t - 0)), Math.hypot(Math.max(0, width - r), Math.max(0, t - 0))) / unit,
+      edge: l <= 0 || t <= 0 || r >= width || b >= height,
       coversW: (r - l) / width,
       coversH: (b - t) / height,
       controls,
@@ -343,6 +370,8 @@ for (const id of ids) {
       // a full-canvas model is judged only on actually filling the canvas
       if (seen.coversW < 0.98 || seen.coversH < 0.98) broke.push(`claims the canvas but leaves a gap`);
     } else {
+      if (seen.faint) broke.push('no solid ink, only faint');
+      if (seen.edge) broke.push('reaches the canvas edge');
       if (seen.height > tallest) broke.push(`${seen.height.toFixed(0)}vmin tall, over ${tallest}`);
       if (seen.height < FLOOR) broke.push(`${seen.height.toFixed(0)}vmin tall, under ${FLOOR}`);
       if (seen.width > WIDEST) broke.push(`${seen.width.toFixed(0)}vmin wide, over ${WIDEST}`);
