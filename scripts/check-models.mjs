@@ -35,6 +35,15 @@
  * least the 40vmin floor tall, judged on solid ink like the rest. The union checks stand as they
  * are: the resting pose is judged as well as, not instead of, every state.
  *
+ * EACH MODEL FROM A CLEAN START. A model's numbers must not depend on what was judged before it,
+ * so every model gets a browser context of its own (a new page, no pointer anywhere yet, nothing
+ * focused, no storage or cache from the model before), the code as it is on disk when its turn
+ * comes, and its fonts loaded, before anything is measured. The Vite server does not watch files
+ * (see below), and without watching it would go on serving every module as it was first asked
+ * for: a run that started while a model was being edited judged that model on the half-edited
+ * code of the moment the run began, while a run of that model alone, later, saw the finished
+ * code. So its module cache is emptied before every model instead.
+ *
  * What the frame clips, the picture cannot show: a model drawn past the canvas edge is measured up
  * to that edge and no further, so its numbers are a floor. Over one or two edges it still fails,
  * only by less than the truth. Over all four it covers the canvas, and is judged as a full-canvas
@@ -231,7 +240,8 @@ function inkBoxes(png, faint, solid) {
 }
 
 // No hot reload and no watching: a save anywhere in src (someone else's, mid-run) would reload
-// the page under the camera and put the site's own backdrop back into the picture.
+// the page under the camera and put the site's own backdrop back into the picture. Not watching
+// also means nothing tells Vite a file changed, so freshCode() empties its cache before each model.
 const vite = await createVite({ logLevel: 'error', server: { host: '127.0.0.1', port: 0, hmr: false, watch: null } });
 await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
@@ -243,9 +253,8 @@ const wanted = args.filter((a) => !a.startsWith('-'));
 const ids = wanted.length ? wanted : demos.map((d) => d.id);
 
 const browser = await chromium.launch();
-// Judged on a card, the tightest canvas there is and the one most of the gallery is seen at.
-const page = await browser.newPage({ viewport: { width: 360, height: 300 } });
-page.on('pageerror', (e) => console.log('  page error:', e.message));
+// a new one for every model, in a context of its own: see EACH MODEL FROM A CLEAN START
+let page;
 
 const widest = (a, b) => {
   if (!a || !b) return a ?? b;
@@ -335,18 +344,41 @@ async function look() {
   }
 }
 
+/** Forgets every module Vite has transformed, so the next page load reads the files as they are now. */
+function freshCode() {
+  for (const env of Object.values(vite.environments ?? {})) env.moduleGraph?.invalidateAll();
+  vite.moduleGraph?.invalidateAll();
+}
+
 const rows = [];
 for (const id of ids) {
+  freshCode();
+  // Judged on a card, the tightest canvas there is and the one most of the gallery is seen at.
+  const context = await browser.newContext({ viewport: { width: 360, height: 300 } });
+  page = await context.newPage();
+  page.on('pageerror', (e) => console.log('  page error:', e.message));
+  try {
+    await judgeModel(id);
+  } finally {
+    await context.close();
+  }
+}
+
+async function judgeModel(id) {
   const demo = demos.find((d) => d.id === id);
   await page.goto(`${base}/embed/${id}/`, { waitUntil: 'domcontentloaded' });
   const there = await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(() => false);
   if (!there) {
     rows.push({ id, broke: ['never appeared'] });
     console.log(`FAILS   ${id.padEnd(14)} never appeared`);
-    continue;
+    return;
   }
   await page.addStyleTag({ content: BARE });
   await page.evaluate(() => { window.c3dBare = true; });
+  // the model's fonts, and the page's, are in before the first picture: text drawn in a fallback
+  // font is another size
+  await page.evaluate(() => document.fonts.ready);
+  await frame().evaluate((body) => body.ownerDocument.fonts.ready);
   await page.waitForTimeout(200);
   let seen = await look();
   // the first look, before any interaction, is the only one whose first picture is the resting pose
