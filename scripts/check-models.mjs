@@ -40,11 +40,65 @@ const BARE = `html, body, .embed, .stage { background: none !important; border: 
 .embed__credit, .embed__og { display: none !important; }`;
 
 /**
- * Runs in the frame: freezes every animation on phase `step` of 12, forces :hover from step 12 on,
- * and reports whether a control is on screen. A control zone is a fact about the DOM, not about
- * the picture, so it is still read from the elements.
+ * Runs in the frame: what the model's timeline is. `periods` are the endless animations' loops
+ * (twice the duration when alternating), `lead` the longest delay among them, `end` when the last
+ * animation that runs a set number of times and was there from the start is over. The animations
+ * there at the first call are the page's own timeline; ones started later (transitions, and
+ * one-shots a click or hover sets off) begin whenever the visitor acts, so they are not part of it.
  */
-const POSE = `(body, step) => {
+const PLAN = `(body) => {
+  const win = body.ownerDocument.defaultView, doc = body.ownerDocument;
+  win.c3dFirst ??= new Set(doc.getAnimations());
+  const out = { periods: [], lead: 0, end: 0 };
+  for (const a of doc.getAnimations()) {
+    const t = a.effect?.getComputedTiming();
+    if (!t || typeof t.duration !== 'number' || !(t.duration > 0)) continue;
+    if (t.iterations === Infinity) {
+      out.periods.push(t.duration * (/alternate/.test(t.direction) ? 2 : 1));
+      out.lead = Math.max(out.lead, t.delay ?? 0);
+    } else if (win.c3dFirst.has(a) && isFinite(t.endTime)) out.end = Math.max(out.end, t.endTime);
+  }
+  return out;
+}`;
+
+/**
+ * The moments to photograph, in ms of the page's own timeline: one shared time for every
+ * animation, so parts that start at different moments (delays, offsets) are seen together only
+ * as they really are together. The span is the longest loop, or the whole-set loop when the parts
+ * have different periods (the least common multiple, cut at four of the longest loops), after the
+ * longest delay, and long enough for every run-once animation to end. Twelve moments per longest
+ * loop, at most 48, and never fewer than 12 (a model that moves in script is still seen at 12
+ * moments of real time).
+ */
+function momentsOf({ periods, lead, end }) {
+  const longest = Math.max(0, ...periods);
+  let loop = longest;
+  if (longest) {
+    const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+    let whole = 1;
+    for (const p of periods.map((p) => Math.max(1, Math.round(p / 10)))) {
+      whole = (whole / gcd(whole, p)) * p;
+      if (whole * 10 > 4 * longest) break;
+    }
+    loop = Math.min(whole * 10, 4 * longest);
+  }
+  const span = Math.max(Math.max(0, lead) + loop, end);
+  const n = span ? Math.min(48, Math.max(12, Math.ceil((12 * span) / (longest || span)))) : 12;
+  const times = Array.from({ length: n }, (_, k) => (span * k) / n);
+  // a run-once animation is seen at its end too (an endless one is back at its start there)
+  if (end > 0 || (!longest && span)) times.push(span);
+  return times;
+}
+
+/**
+ * Runs in the frame: puts every animation at time `t` of the page's timeline (the same t for all,
+ * so delays and offsets hold), forces :hover when `hover`, and reports whether a control is on
+ * screen. An animation started after the page's timeline (see PLAN) is put at `k` of `n` of its
+ * own length instead: the visitor can set it off at any moment, so any of its moments is real.
+ * A control zone is a fact about the DOM, not about the picture, so it is still read from the
+ * elements.
+ */
+const POSE = `(body, { t, hover, k, n }) => {
   const win = body.ownerDocument.defaultView, doc = body.ownerDocument;
   const scene = doc.querySelector('#c3d-scene') || doc.body;
   const CONTROL = 'button, label, input, select, textarea, a[href], [role="button"], [role="slider"]';
@@ -52,11 +106,14 @@ const POSE = `(body, step) => {
   const css = doc.querySelector('#c3d-code')?.textContent ?? '';
   // remember the frame as it was found, so the run leaves it running the way it arrived
   win.c3dWas ??= { held: held?.textContent ?? '', animations: doc.getAnimations().map(a => ({ a, t: a.currentTime, state: a.playState })) };
-  if (held) held.textContent = step >= 12 ? css.replace(/:hover/g, ':not(.c3d-never)') : win.c3dWas.held;
+  win.c3dFirst ??= new Set(doc.getAnimations());
+  if (held) held.textContent = hover ? css.replace(/:hover/g, ':not(.c3d-never)') : win.c3dWas.held;
   for (const a of doc.getAnimations()) {
     const timing = a.effect?.getComputedTiming();
     a.pause();
-    a.currentTime = typeof timing?.duration === 'number' ? (timing.delay ?? 0) + timing.duration * (step % 12) / 11 : 0;
+    if (typeof timing?.duration !== 'number') { a.currentTime = 0; continue; }
+    const own = timing.iterations !== Infinity && !win.c3dFirst.has(a) && isFinite(timing.endTime);
+    a.currentTime = own ? timing.endTime * k / Math.max(1, n - 1) : t;
   }
   const shows = (el) => {
     const cs = win.getComputedStyle(el);
@@ -181,9 +238,9 @@ const widest = (a, b) => {
 const frame = () => page.frameLocator('iframe').locator('body');
 
 /**
- * What the model draws in the state it is in now, in vmin, measured from the canvas middle: the
- * whole of its animation photographed at 24 moments — twelve of the loop, then the same twelve
- * with :hover forced on — and the box around all the ink in all of them.
+ * What the model draws in the state it is in now, in vmin, measured from the canvas middle: its
+ * real timeline photographed at the moments momentsOf() picks, then at the same moments with
+ * :hover forced on, and the box around all the ink in all of them.
  */
 async function look() {
   try {
@@ -194,8 +251,10 @@ async function look() {
     // a page that reloaded has lost the bare backdrop and the state it was driven into
     if (!(await page.evaluate(() => window.c3dBare === true))) throw new Error('the page reloaded under the camera');
     let seen = null, controls = false;
-    for (let step = 0; step < 24; step++) {
-      controls = (await frame().evaluate(new Function('return ' + POSE)(), step)) || controls;
+    const times = momentsOf(await frame().evaluate(new Function('return ' + PLAN)()));
+    const poses = [false, true].flatMap((hover) => times.map((t, k) => ({ t, hover, k, n: times.length })));
+    for (const pose of poses) {
+      controls = (await frame().evaluate(new Function('return ' + POSE)(), pose)) || controls;
       const ink = inkBox(await page.screenshot({ omitBackground: true, clip }), INK);
       if (!ink) continue;
       seen = seen
