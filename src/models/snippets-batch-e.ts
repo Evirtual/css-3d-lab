@@ -49,21 +49,6 @@ view.addEventListener('pointerleave', () => {
   target.style.removeProperty('--rz');
 });`;
 
-const HINT_CSS = `/* the hint is a flat overlay, outside the 3D world */
-.hint {
-  position: absolute;
-  inset: auto 0 12px;
-  color: #949bc0;
-  font: 600 13px system-ui;
-  text-align: center;
-  pointer-events: none;
-  transition: opacity 0.4s;
-}
-
-.is-touched .hint {
-  opacity: 0;
-}`;
-
 export const snippetsE: Record<string, Snippet> = {
   solar: {
     how: [
@@ -286,9 +271,10 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   room: {
     how: [
       'Build a box around the camera: a back wall pushed away with <code>translateZ</code>, and side walls, floor and ceiling folded 90° from the edges of the view. Each is turned so its front faces <b>into</b> the room.',
-      'The folds start at <code>translateZ(110px)</code>, in front of the screen, and run 460px deep. That extra length toward the camera is what you see when you turn your head; stop well short of the perspective distance (300px).',
-      'The key line: <code>transform-origin: 50% 50% 300px</code>, the same as the <code>perspective</code>. The box then rotates around the viewer’s eye, which reads as looking around, not as the room swinging.',
+      'The folds start 110 units in front of the screen (<code>translateZ</code>) and run 460 units deep. That extra length toward the camera is what you see when you turn your head; stop well short of the perspective distance (300 units).',
+      'The key line: a <code>transform-origin</code> 300 units in front of the screen, the same as the <code>perspective</code>. The box then rotates around the viewer’s eye, which reads as looking around, not as the room swinging.',
       'JS maps the pointer to <code>--rx</code> / <code>--ry</code> of a few degrees. Everything on the walls (window, poster, door, rug, lamp) is a flat child of its wall, drawn with gradients.',
+      'The room is <code>inset: 0</code> and its walls are percentages of the canvas, so it fills the canvas edge to edge whatever its shape. Its depth and details are multiples of one base unit, <code>--u</code>, tied to the canvas. The hint is the standard caption, in plain <code>vmin</code>, where the control zone sits in every model.',
     ],
     html: `<div class="room">
   <div class="box">
@@ -298,13 +284,18 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
     <div class="wall floor"><i class="light"></i><i class="rug"></i></div>
     <div class="wall ceil"><i class="lamp"></i></div>
   </div>
-  <b class="hint">Move your pointer</b>
+  <div class="controls">
+    <output class="caption">Move your pointer</output>
+  </div>
 </div>`,
     css: `.room {
+  /* one base unit, tied to the canvas; the room itself fills the canvas edge to edge, its walls
+     in percentages of it and its depth in units */
+  --u: 0.33vmin;
   position: fixed;
   inset: 0;
   overflow: hidden;
-  perspective: 300px;
+  perspective: calc(300 * var(--u));
   background: #06070d;
 }
 
@@ -316,7 +307,7 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform-origin: 50% 50% 300px; /* rotate around the camera = turn your head */
+  transform-origin: 50% 50% calc(300 * var(--u)); /* rotate around the camera = turn your head */
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -334,17 +325,17 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   position: absolute;
 }
 
-/* 110px (near end) - 460px (depth) = -350px */
+/* 110 units (near end) - 460 units (depth) = -350 units */
 .back {
   inset: 0;
   background-image: radial-gradient(ellipse 70% 60% at 50% 0%, rgb(255 181 71 / 0.2), transparent 70%);
-  transform: translateZ(-350px);
+  transform: translateZ(calc(-350 * var(--u)));
 }
 
 .left,
 .right {
   top: 0;
-  width: 460px;
+  width: calc(460 * var(--u));
   height: 100%;
 }
 
@@ -352,38 +343,38 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   left: 0;
   background-image: linear-gradient(90deg, rgb(0 0 0 / 0.35), rgb(0 0 0 / 0.08));
   transform-origin: left;
-  transform: translateZ(110px) rotateY(90deg);
+  transform: translateZ(calc(110 * var(--u))) rotateY(90deg);
 }
 
 .right {
   right: 0;
   background-image: linear-gradient(270deg, rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.12));
   transform-origin: right;
-  transform: translateZ(110px) rotateY(-90deg);
+  transform: translateZ(calc(110 * var(--u))) rotateY(-90deg);
 }
 
 .floor,
 .ceil {
   left: 0;
   width: 100%;
-  height: 460px;
+  height: calc(460 * var(--u));
 }
 
 .floor {
   bottom: 0;
   background:
     linear-gradient(transparent 30%, rgb(0 0 0 / 0.45)),
-    repeating-linear-gradient(90deg, transparent 0 30px, rgb(0 0 0 / 0.3) 30px 32px),
+    repeating-linear-gradient(90deg, transparent 0 calc(30 * var(--u)), rgb(0 0 0 / 0.3) calc(30 * var(--u)) calc(32 * var(--u))),
     #6e4f2e;
   transform-origin: bottom;
-  transform: translateZ(110px) rotateX(90deg);
+  transform: translateZ(calc(110 * var(--u))) rotateX(90deg);
 }
 
 .ceil {
   top: 0;
   background-image: linear-gradient(rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.1));
   transform-origin: top;
-  transform: translateZ(110px) rotateX(-90deg);
+  transform: translateZ(calc(110 * var(--u))) rotateX(-90deg);
 }
 
 /* back wall */
@@ -392,14 +383,14 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   left: 16%;
   width: 30%;
   height: 40%;
-  border: 5px solid #948fb0;
-  border-radius: 3px;
+  border: calc(5 * var(--u)) solid #948fb0;
+  border-radius: calc(3 * var(--u));
   background:
-    linear-gradient(90deg, transparent calc(50% - 2px), #948fb0 0 calc(50% + 2px), transparent 0),
-    linear-gradient(transparent calc(50% - 2px), #948fb0 0 calc(50% + 2px), transparent 0),
+    linear-gradient(90deg, transparent calc(50% - calc(2 * var(--u))), #948fb0 0 calc(50% + calc(2 * var(--u))), transparent 0),
+    linear-gradient(transparent calc(50% - calc(2 * var(--u))), #948fb0 0 calc(50% + calc(2 * var(--u))), transparent 0),
     radial-gradient(circle at 72% 28%, #fff7da 0 9%, rgb(255 247 218 / 0.3) 10%, transparent 24%),
-    radial-gradient(circle at 20% 30%, #fff 0 1px, transparent 2px),
-    radial-gradient(circle at 36% 70%, #fff 0 1px, transparent 2px),
+    radial-gradient(circle at 20% 30%, #fff 0 calc(1 * var(--u)), transparent calc(2 * var(--u))),
+    radial-gradient(circle at 36% 70%, #fff 0 calc(1 * var(--u)), transparent calc(2 * var(--u))),
     linear-gradient(#070b24, #2b2466);
 }
 
@@ -408,7 +399,7 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   left: 60%;
   width: 22%;
   height: 28%;
-  border: 4px solid ${AMBER};
+  border: calc(4 * var(--u)) solid ${AMBER};
   background: linear-gradient(160deg, ${TEAL}, ${VIOLET} 55%, ${PINK});
 }
 
@@ -430,10 +421,10 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   left: 14%;
   width: 18%;
   height: 64%;
-  border: 4px solid #4a3220;
+  border: calc(4 * var(--u)) solid #4a3220;
   border-bottom: 0;
   background:
-    radial-gradient(circle at 18% 54%, ${AMBER} 0 3px, transparent 4px),
+    radial-gradient(circle at 18% 54%, ${AMBER} 0 calc(3 * var(--u)), transparent calc(4 * var(--u))),
     #7e5a33;
 }
 
@@ -453,21 +444,46 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   width: 52%;
   height: 34%;
   border-radius: 50%;
-  background: repeating-radial-gradient(ellipse, ${PINK} 0 8px, #463680 8px 16px, ${TEAL} 16px 19px, #463680 19px 26px);
+  background: repeating-radial-gradient(ellipse, ${PINK} 0 calc(8 * var(--u)), #463680 calc(8 * var(--u)) calc(16 * var(--u)), ${TEAL} calc(16 * var(--u)) calc(19 * var(--u)), #463680 calc(19 * var(--u)) calc(26 * var(--u)));
   opacity: 0.85;
 }
 
 /* ceiling: its top edge is near the camera */
 .lamp {
   top: 50%;
-  left: calc(50% - 45px);
-  width: 90px;
-  height: 90px;
+  left: calc(50% - calc(45 * var(--u)));
+  width: calc(90 * var(--u));
+  height: calc(90 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, #fffaf0 0 16%, rgb(255 181 71 / 0.55) 20%, transparent 68%);
 }
 
-${HINT_CSS.replace('#949bc0', '#fff')}`,
+/* the control zone, flat and outside the 3D world, where the band puts it in every model: its
+   top is 19vmin below the middle of the canvas, and it is a fixed height so the caption fading
+   out moves nothing */
+.controls {
+  position: absolute;
+  top: calc(50% + 19vmin);
+  left: 0;
+  right: 0;
+  height: 16vmin;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.controls .caption {
+  color: #fff;
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  opacity: 0.7;
+  transition: opacity 0.4s;
+}
+
+.is-touched .caption {
+  opacity: 0;
+}`,
     js: pointerJs(
       '.room',
       '.box',
