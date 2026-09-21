@@ -93,13 +93,22 @@ export function workingSources() {
     .map((f) => posix(relative(ROOT, f)))
     .filter(isModelPath)
     .sort();
+  return sourcesOf(new Map(files.map((file) => [file, norm(readFileSync(join(ROOT, file), 'utf8'))])));
+}
+
+/**
+ * The same, from file contents already in hand (path → text with \n line ends), e.g. the model
+ * files as they are at some commit. workingSources() is this over the working tree.
+ */
+export function sourcesOf(contents) {
+  const files = [...contents.keys()].filter(isModelPath).sort();
   const byId = new Map();
   const get = (id) => {
     if (!byId.has(id)) byId.set(id, { snippet: null, parts: [], chunks: [] });
     return byId.get(id);
   };
   for (const file of files) {
-    const text = norm(readFileSync(join(ROOT, file), 'utf8'));
+    const text = contents.get(file);
     const owner = fileOwner(file, text);
     if (owner) {
       const m = get(owner);

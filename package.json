@@ -15,6 +15,8 @@
     "export": "node server/dev.mjs",
     "check-models": "node scripts/check-models.mjs",
     "ledger": "node scripts/ledger.mjs",
+    "ledger:watch": "node scripts/ledger-watch.mjs",
+    "queue": "node scripts/queue.mjs",
     "capture": "node scripts/capture-check.mjs"
   },
   "devDependencies": {

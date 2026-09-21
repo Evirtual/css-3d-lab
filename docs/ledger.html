@@ -4,142 +4,388 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>View-contract ledger</title>
-<style>
-:root {
-  --bg: #f7f7f5; --panel: #ffffff; --ink: #1d1d1b; --muted: #66665f; --line: #deddd6;
-  --accent: #2f5fd0;
-  --none-bg: #ecebe6; --none-ink: #55544e;
-  --conv-bg: #fdf0d2; --conv-ink: #7a5300;
-  --chk-bg: #dbe8ff; --chk-ink: #1f4aa8;
-  --ok-bg: #d8f1df; --ok-ink: #17642f;
-  --bad-bg: #fbdcdc; --bad-ink: #9a1c1c;
-  --warn-bg: #fff3c4; --warn-ink: #6d5400;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #151514; --panel: #1f1f1d; --ink: #ecebe6; --muted: #a3a29b; --line: #34332f;
-    --accent: #8fb0ff;
-    --none-bg: #2c2c29; --none-ink: #bdbcb5;
-    --conv-bg: #3d3014; --conv-ink: #f1c96b;
-    --chk-bg: #1b2d52; --chk-ink: #a9c4ff;
-    --ok-bg: #173a22; --ok-ink: #8fe0a6;
-    --bad-bg: #4a1f1f; --bad-ink: #ffb0b0;
-    --warn-bg: #3f3510; --warn-ink: #f3d774;
-    color-scheme: dark;
+<script>
+/* Served by the Vite dev server, this page gets Vite's client, which reloads EVERY open page when
+   any model file changes (a full-reload with no page named). This page refreshes its own data,
+   so it drops those reloads. A reload naming an .html page is let through, so an edit to this
+   file still reloads it. Nothing else from the dev server is touched. */
+(() => {
+  const WS = window.WebSocket;
+  if (!WS) return;
+  const isHmr = (p) => p === 'vite-hmr' || (Array.isArray(p) && p.includes('vite-hmr'));
+  function Guarded(url, protocols) {
+    const ws = protocols === undefined ? new WS(url) : new WS(url, protocols);
+    if (!isHmr(protocols)) return ws;
+    const add = ws.addEventListener.bind(ws);
+    ws.addEventListener = (type, fn, opts) => add(type, type !== 'message' ? fn : (ev) => {
+      try {
+        const p = JSON.parse(ev.data);
+        if (p.type === 'full-reload' && !(p.path && p.path.endsWith('.html'))) { window.ledgerDroppedReloads = (window.ledgerDroppedReloads || 0) + 1; return; }
+      } catch {}
+      fn(ev);
+    }, opts);
+    return ws;
   }
-}
-:root[data-theme="dark"] {
-  --bg: #151514; --panel: #1f1f1d; --ink: #ecebe6; --muted: #a3a29b; --line: #34332f;
-  --accent: #8fb0ff;
-  --none-bg: #2c2c29; --none-ink: #bdbcb5;
-  --conv-bg: #3d3014; --conv-ink: #f1c96b;
-  --chk-bg: #1b2d52; --chk-ink: #a9c4ff;
-  --ok-bg: #173a22; --ok-ink: #8fe0a6;
-  --bad-bg: #4a1f1f; --bad-ink: #ffb0b0;
-  --warn-bg: #3f3510; --warn-ink: #f3d774;
+  Guarded.prototype = WS.prototype;
+  for (const k of ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED']) Guarded[k] = WS[k];
+  window.WebSocket = Guarded;
+})();
+</script>
+<style>
+/* The CSS 3D Lab's own tokens (src/styles/_tokens.scss): dark by default, light by the viewer's
+   system or the theme button. */
+:root {
+  --bg: #07080f; --bg-2: #0d1020;
+  --surface: rgb(22 26 46 / 0.72); --surface-solid: #141830;
+  --border: rgb(140 150 220 / 0.16); --border-strong: rgb(140 150 220 / 0.34);
+  --grid: rgb(140 150 220 / 0.036);
+  --text: #eceefb; --muted: #949bc0;
+  --accent: #8b6cff; --accent-2: #2ee6d6; --hot: #ff4d9d; --warm: #ffb547;
+  --code-bg: #0a0c18;
+  --shadow: 0 20px 50px -20px rgb(0 0 0 / 0.7);
+  --radius: 18px;
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
   color-scheme: dark;
 }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f3f4fc; --bg-2: #e8eafa;
+    --surface: rgb(255 255 255 / 0.78); --surface-solid: #ffffff;
+    --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
+    --grid: rgb(40 50 120 / 0.034);
+    --text: #14172b; --muted: #5a6188;
+    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00;
+    --code-bg: #e8eafa;
+    --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f3f4fc; --bg-2: #e8eafa;
+  --surface: rgb(255 255 255 / 0.78); --surface-solid: #ffffff;
+  --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
+  --grid: rgb(40 50 120 / 0.034);
+  --text: #14172b; --muted: #5a6188;
+  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00;
+  --code-bg: #e8eafa;
+  --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
+  color-scheme: light;
+}
+/* what each status reads as, from the site's palette */
+:root {
+  --st-none: var(--muted);
+  --st-conv: var(--accent);
+  --st-chk: var(--accent-2);
+  --st-ok: linear-gradient(120deg, var(--accent), var(--hot));
+  --st-bad: var(--hot);
+  --st-warn: var(--warm);
+}
+
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+html { background: var(--bg); }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font: 15px/1.55 var(--font); overflow-x: clip; }
+/* the site's ambient backdrop, held still: a faint blueprint grid and two washes */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 48px 48px,
+    radial-gradient(ellipse 60% 60% at 0% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+    radial-gradient(ellipse 60% 60% at 100% 100%, color-mix(in srgb, var(--accent-2) 10%, transparent), transparent 70%);
+}
 main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 64px; }
-h1 { font-size: 22px; margin: 0 0 4px; }
-h2 { font-size: 17px; margin: 0 0 8px; }
-h3 { font-size: 14px; margin: 16px 0 6px; }
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: clamp(28px, 4.4vw, 44px); font-weight: 900; line-height: 1.06; letter-spacing: -0.035em; }
+h1 span { background: linear-gradient(100deg, var(--accent), var(--hot) 55%, var(--warm)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+h2 { font-size: 17px; font-weight: 750; letter-spacing: -0.01em; }
+h3 { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; }
 p { margin: 4px 0; }
-a { color: var(--accent); }
-code, .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 13px; }
+a { color: var(--accent-2); }
+code, .mono { font-family: var(--mono); font-size: 12.5px; }
+code { background: color-mix(in srgb, var(--code-bg) 70%, transparent); border: 1px solid var(--border); border-radius: 5px; padding: 0 4px; }
 .muted { color: var(--muted); }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-top: 16px; }
-.top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 button, input { font: inherit; color: inherit; }
-.theme { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 2px 10px; cursor: pointer; }
-.notice { background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 8px 12px; margin-top: 8px; }
-.notice.bad { background: var(--bad-bg); color: var(--bad-ink); }
 
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-.stat b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
-.bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 14px; background: var(--none-bg); }
+.label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.eyebrow { display: inline-block; margin-bottom: 12px; padding: 4px 12px; border: 1px solid var(--border-strong); border-radius: 999px; color: var(--accent-2); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* ---------- hero: the stage's dotted backdrop ---------- */
+.hero {
+  position: relative; border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 24px 22px; overflow: hidden;
+  background:
+    radial-gradient(color-mix(in srgb, var(--border-strong) 45%, transparent) 1.1px, transparent 1.9px) 0 0 / 18px 18px,
+    color-mix(in srgb, var(--bg) 70%, transparent);
+  box-shadow: var(--shadow);
+}
+.hero .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.hero .meta { margin-top: 10px; color: var(--muted); font-size: 14px; max-width: 72ch; }
+.live { margin-top: 10px; font-size: 13px; font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+.live > span { white-space: nowrap; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--muted); vertical-align: 0; }
+.dot.on { background: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 22%, transparent); }
+.dot.off { background: var(--hot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--hot) 22%, transparent); }
+
+/* ---------- buttons and pills, as on the site ---------- */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--surface); color: var(--text); font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+.btn:hover { border-color: var(--accent); box-shadow: 0 8px 20px -10px var(--accent); }
+.btn[aria-pressed="true"] { border-color: transparent; background: linear-gradient(120deg, var(--accent), var(--hot)); color: #fff; }
+.btn small { font-size: 0.85em; font-weight: 600; font-variant-numeric: tabular-nums; opacity: 0.75; }
+.linkish { padding: 0; border: 0; background: none; color: var(--accent-2); font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+/* outlined badge chips, like PURE CSS / CSS + JS */
+.chip { --c: var(--muted); display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
+  color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); }
+.s-none { --c: var(--st-none); }
+.s-conv { --c: var(--st-conv); }
+.s-chk { --c: var(--st-chk); }
+.s-bad { --c: var(--st-bad); }
+.s-warn { --c: var(--st-warn); }
+.s-ok { color: #fff; background: var(--st-ok); border-color: transparent; }
+
+/* ---------- panels ---------- */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-top: 18px; box-shadow: var(--shadow); }
+.panel > h2 + p, .panel > .head + p { margin-top: 4px; }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+
+.notice { border: 1px solid color-mix(in srgb, var(--warm) 45%, transparent); background: color-mix(in srgb, var(--warm) 11%, var(--surface-solid)); border-radius: 12px; padding: 9px 14px; margin-top: 10px; font-size: 14px; }
+.notice.bad { border-color: color-mix(in srgb, var(--hot) 55%, transparent); background: color-mix(in srgb, var(--hot) 13%, var(--surface-solid)); }
+.notice.info { border-color: var(--border); background: var(--surface); color: var(--muted); }
+.notice b.big { display: block; font-size: 15px; color: var(--text); }
+
+/* summary cards, like the hero stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 12px; }
+.stat { padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.stat b { display: block; font-size: 32px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; margin: 4px 0 2px; }
+.stat .sub { font-size: 12.5px; color: var(--muted); }
+.stat.conv b { color: var(--accent); }
+.stat.chk b { color: var(--accent-2); }
+.stat.ok b { background: linear-gradient(100deg, var(--accent), var(--hot)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 16px; background: color-mix(in srgb, var(--muted) 22%, transparent); }
 .bar span { display: block; height: 100%; }
-.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; font-size: 13px; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.rules { margin-top: 12px; font-size: 13px; color: var(--muted); }
 
-.chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-.s-none { background: var(--none-bg); color: var(--none-ink); }
-.s-conv { background: var(--conv-bg); color: var(--conv-ink); }
-.s-chk { background: var(--chk-bg); color: var(--chk-ink); }
-.s-ok { background: var(--ok-bg); color: var(--ok-ink); }
-.s-bad { background: var(--bad-bg); color: var(--bad-ink); }
-.s-warn { background: var(--warn-bg); color: var(--warn-ink); }
+/* running check */
+.progress { border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, var(--surface-solid)); border-radius: 12px; padding: 10px 14px; margin-top: 10px; font-size: 14px; }
+.progress.gone { border-color: color-mix(in srgb, var(--hot) 55%, transparent); background: color-mix(in srgb, var(--hot) 10%, var(--surface-solid)); }
+.progress .track { height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--muted) 22%, transparent); margin-top: 8px; overflow: hidden; }
+.progress .track span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.4s; }
+.progress .num { font-weight: 800; }
 
-.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
-.filters button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 3px 12px; cursor: pointer; }
-.filters button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.filters input { border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 4px 10px; min-width: 200px; flex: 1 1 200px; max-width: 320px; }
-.showing { font-size: 13px; }
-.linkish { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
-
-.table-wrap { overflow-x: auto; }
+/* ---------- the table ---------- */
+/* ---------- the filter bar: the gallery's own (index.html + src/styles/_layout.scss "filters") ---------- */
+.icon { flex: none; width: 16px; height: 16px; pointer-events: none; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.fbar { position: sticky; top: 0; z-index: 5; margin: 12px -6px 10px; padding: 14px 14px 10px; }
+.fbar::before { content: ''; position: absolute; inset: 0; z-index: -1; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); backdrop-filter: blur(18px) saturate(1.4); box-shadow: var(--shadow); }
+.fbar__row { display: flex; flex-wrap: wrap; gap: 10px; }
+.fbar__controls { display: flex; flex: 0 1 auto; gap: 10px; min-width: 0; }
+.search { position: relative; flex: 1 1 260px; }
+.search__icon { position: absolute; top: 50%; left: 14px; display: grid; translate: 0 -50%; color: var(--muted); pointer-events: none; }
+.search__clear { position: absolute; top: 50%; right: 8px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; translate: 0 -50%; background: none; color: var(--muted); cursor: pointer; }
+.search__clear:hover { background: var(--border); color: var(--text); }
+.search__clear[hidden] { display: none; }
+.search input { width: 100%; padding: 10px 44px 10px 40px; border: 1px solid var(--border-strong); border-radius: 12px; background: color-mix(in srgb, var(--bg) 60%, transparent); font-size: 16px; }
+.search input::placeholder { color: var(--muted); }
+.search input::-webkit-search-cancel-button { appearance: none; }
+.search kbd { position: absolute; top: 50%; right: 12px; translate: 0 -50%; padding: 1px 8px; border: 1px solid var(--border-strong); border-radius: 6px; color: var(--muted); font-family: var(--mono); font-size: 12px; pointer-events: none; }
+.search input:focus + kbd, .search input:not(:placeholder-shown) + kbd { display: none; }
+.tabs { display: flex; padding: 3px; border: 1px solid var(--border-strong); border-radius: 12px; background: color-mix(in srgb, var(--bg) 60%, transparent); }
+.tab { padding: 7px 14px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background 0.2s, color 0.2s; }
+.tab b { margin-left: 4px; font-variant-numeric: tabular-nums; opacity: 0.7; }
+.tab[aria-pressed="true"] { background: linear-gradient(120deg, var(--accent), var(--hot)); color: #fff; }
+.tagbtn { display: inline-flex; flex: none; align-items: center; gap: 6px; padding: 0 14px; border: 1px solid var(--border-strong); border-radius: 12px; background: color-mix(in srgb, var(--bg) 60%, transparent); color: var(--text); font-size: 13px; font-weight: 700; cursor: pointer; transition: border-color 0.2s; }
+.tagbtn b { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--accent-2); color: var(--bg); font-size: 11.5px; }
+.tagbtn:hover, .tagbtn[aria-expanded="true"] { border-color: var(--accent-2); }
+.scrollrow { position: relative; margin-top: 8px; }
+.scrollrow[hidden] { display: none; }
+.scrollrow__track { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.scrollrow__track::-webkit-scrollbar { display: none; }
+.can-next .scrollrow__track { mask: linear-gradient(90deg, #000 calc(100% - 48px), transparent); }
+.can-prev .scrollrow__track { mask: linear-gradient(90deg, transparent, #000 48px); }
+.can-prev.can-next .scrollrow__track { mask: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
+.scrollrow__arrow { position: absolute; top: 50%; z-index: 1; display: none; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid var(--border-strong); border-radius: 50%; translate: 0 -50%; background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
+.scrollrow__arrow:hover { border-color: var(--accent); }
+.scrollrow__arrow--prev { left: -2px; }
+.scrollrow__arrow--next { right: -2px; }
+@media (hover: hover) { .can-prev .scrollrow__arrow--prev, .can-next .scrollrow__arrow--next { display: grid; } }
+.groups, .chips { display: flex; gap: 6px; width: max-content; padding: 3px 2px; }
+.group { flex: none; padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 999px; background: none; color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.2s, border-color 0.2s; }
+.group b { margin-left: 2px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.group:hover:not(:disabled) { border-color: var(--accent); }
+.group[aria-pressed="true"] { border-color: transparent; background: linear-gradient(120deg, var(--accent), var(--hot)); color: #fff; }
+.group[aria-pressed="true"] b { color: inherit; opacity: 0.8; }
+.group:disabled { opacity: 0.35; cursor: not-allowed; }
+.group--clear { display: inline-flex; align-items: center; gap: 4px; border-style: dashed; color: var(--muted); }
+.group--clear .icon { width: 13px; height: 13px; }
+.group--clear:hover { color: var(--text); }
+.tchip { flex: none; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: none; color: var(--muted); font-family: var(--mono); font-size: 12px; cursor: pointer; white-space: nowrap; transition: color 0.2s, border-color 0.2s; }
+.tchip b { font-variant-numeric: tabular-nums; opacity: 0.65; }
+.tchip:hover:not(:disabled) { color: var(--text); border-color: var(--border-strong); }
+.tchip[aria-pressed="true"] { color: var(--bg); background: var(--accent-2); border-color: var(--accent-2); }
+@media (max-width: 600px) {
+  .fbar { padding: 12px 12px 10px; }
+  /* phones: [search][#] on one row, the status tabs full width under it */
+  .fbar__controls { display: contents; }
+  .search { flex: 1 1 0; min-width: 0; }
+  .tabs { flex: 1 1 100%; order: 3; min-width: 0; }
+  /* five statuses, not the gallery's three: the longer names break onto two lines rather than hide */
+  .tab { flex: 1; padding: 6px 3px; white-space: normal; line-height: 1.2; font-size: 12px; }
+  .tab b { display: block; margin: 2px 0 0; }
+  .tagbtn { padding: 0 12px; }
+  .tagbtn .btn__label { display: none; }
+}
+tr.more td { text-align: center; padding: 14px; border-bottom: 0; }
+.rv { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.showing { font-size: 13px; color: var(--muted); }
+.table-wrap { overflow-x: auto; margin: 0 -8px; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
-tbody tr.row { cursor: pointer; }
-tbody tr.row:hover { background: var(--bg); }
-tbody tr.row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-tr.detail td { background: var(--bg); padding: 12px 16px 16px; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; white-space: nowrap; }
+th .chip { margin-left: 4px; vertical-align: 1px; }
+tbody tr.row { cursor: pointer; transition: background 0.15s; }
+tbody tr.row:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+tbody tr.row[aria-expanded="true"] { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+tbody tr.row:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
+td.model b { font-weight: 700; }
+td.model .grp { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); opacity: 0.85; }
+td.model code { background: none; border: 0; padding: 0; }
+tr.detail > td { background: color-mix(in srgb, var(--bg) 55%, transparent); padding: 14px 16px 18px; }
 .num { font-variant-numeric: tabular-nums; }
+.flash > td { animation: flash 1.6s ease-out; }
+@keyframes flash { from { background: color-mix(in srgb, var(--accent-2) 22%, transparent); } to { background: transparent; } }
 
 .commits { list-style: none; padding: 0; margin: 0; }
-.commits li { padding: 4px 0; border-bottom: 1px dashed var(--line); }
-.tag { display: inline-block; font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-left: 4px; color: var(--muted); }
-.tag.strong { border-color: var(--accent); color: var(--accent); }
+.commits li { padding: 6px 0; border-bottom: 1px dashed var(--border); }
+.tag { display: inline-block; font-size: 10.5px; font-weight: 600; border: 1px solid var(--border-strong); border-radius: 999px; padding: 0 7px; margin-left: 4px; color: var(--muted); }
+.tag.strong { border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--accent); }
 .checkgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
-.check { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--panel); }
+.check { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface); }
+.check > b { display: block; margin-bottom: 4px; }
 ul.missing { margin: 4px 0; padding-left: 20px; }
 
-.queue-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
-.lead { border: 2px dashed var(--line); }
-.qitem { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 8px; }
+/* ---------- the lead's record: set apart, never mistaken for the measured table ---------- */
+.lead { background: repeating-linear-gradient(135deg, transparent 0 14px, color-mix(in srgb, var(--warm) 4%, transparent) 14px 28px), var(--surface); border: 1px dashed color-mix(in srgb, var(--warm) 55%, transparent); }
+.lead .eyebrow { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 50%, transparent); margin-bottom: 8px; }
+.board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; align-items: start; }
+.bcol { min-width: 0; border: 1px solid var(--border); border-radius: 14px; padding: 10px; background: color-mix(in srgb, var(--bg) 45%, transparent); }
+.bcol h3 { display: flex; justify-content: space-between; align-items: center; margin: 2px 4px 4px; }
+.bcol h3 b { min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; font-size: 11.5px; letter-spacing: 0; color: var(--bg); background: var(--c); }
+.bcol--running { --c: var(--accent-2); }
+.bcol--queued { --c: var(--muted); }
+.bcol--done { --c: var(--accent); }
+.qitem { border: 1px solid var(--border); border-top: 3px solid var(--c, var(--border-strong)); border-radius: 12px; padding: 10px 12px; margin-top: 8px; background: var(--surface-solid); font-size: 14px; overflow-wrap: anywhere; }
+.qitem.running { --c: var(--accent-2); }
+.qitem.queued { --c: var(--muted); }
+.qitem.done { --c: var(--accent); }
+.qitem .when { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+@media (max-width: 760px) { .board { grid-template-columns: minmax(0, 1fr); } }
+
+/* notes: one badge by the summary, opening a small closable list */
+.notes-anchor { position: relative; }
+.notesbtn { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 5px; border: 1px solid color-mix(in srgb, var(--warm) 50%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--warm) 10%, transparent); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; }
+.notesbtn b { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--warm); color: var(--bg); font-size: 11.5px; }
+.notesbtn small { color: var(--muted); font-weight: 600; }
+.notesbtn.is-quiet { border-color: var(--border-strong); background: none; }
+.notesbtn.is-quiet b { background: var(--muted); }
+.notesbtn:hover, .notesbtn[aria-expanded="true"] { border-color: var(--warm); }
+.notesbtn[hidden], .notes-pop[hidden] { display: none; }
+.notes-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 20; width: min(520px, 100%); max-height: min(70vh, 520px); overflow: auto; padding: 8px; border: 1px solid var(--border-strong); border-radius: 14px; background: var(--surface-solid); box-shadow: var(--shadow), 0 10px 30px -10px rgb(0 0 0 / 0.5); }
+.note { display: flex; gap: 8px; align-items: flex-start; padding: 8px 8px 8px 12px; border-left: 3px solid var(--warm); border-radius: 8px; background: color-mix(in srgb, var(--warm) 7%, transparent); font-size: 13.5px; }
+.note + .note { margin-top: 6px; }
+.note > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.note__x { flex: none; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.note__x:hover { background: var(--border); color: var(--text); }
+th.has-tip { cursor: help; }
+.tipmark { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-left: 3px; border: 1px solid color-mix(in srgb, var(--warm) 60%, transparent); border-radius: 50%; color: var(--warm); font-size: 9.5px; letter-spacing: 0; vertical-align: 1px; }
 .loadbox { margin-top: 12px; }
+
+@media (max-width: 640px) {
+  .hero { padding: 20px 16px 18px; }
+  .panel { padding: 16px 14px; }
+  .stat b { font-size: 26px; }
+  th, td { padding: 8px 6px; }
+}
+@media (prefers-reduced-motion: reduce) { .flash > td { animation: none; } .progress .track span { transition: none; } }
 </style>
 </head>
 <body>
 <main>
-  <div class="top">
-    <div>
-      <h1>View-contract ledger</h1>
-      <p class="muted" id="meta">Loading ledger.json…</p>
+  <header class="hero">
+    <div class="top">
+      <div>
+        <span class="eyebrow">CSS 3D Lab · progress</span>
+        <h1>View-contract <span>ledger</span></h1>
+      </div>
+      <button class="btn" id="theme" type="button">Theme: auto</button>
     </div>
-    <button class="theme" id="theme" type="button">Theme: auto</button>
-  </div>
+    <p class="meta" id="meta">Loading ledger.json…</p>
+    <p class="live" id="live"></p>
+  </header>
+  <div id="livenote" aria-live="polite"></div>
+  <div id="running"></div>
   <div id="notices"></div>
 
   <section class="panel" aria-labelledby="sum-h">
-    <h2 id="sum-h">Where the rewrite stands</h2>
+    <div class="head notes-anchor">
+      <h2 id="sum-h">Where the rewrite stands</h2>
+      <button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" hidden></button>
+      <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
+    </div>
     <div class="stats" id="stats"></div>
     <div class="bar" id="bar" role="img"></div>
     <div class="legend" id="legend"></div>
-    <p class="muted" style="margin-top:10px;font-size:13px" id="rules"></p>
+    <p class="rules" id="rules"></p>
   </section>
 
   <section class="panel" aria-labelledby="tbl-h">
     <h2 id="tbl-h">All models</h2>
-    <div class="filters" id="filters"></div>
-    <p class="showing muted" id="showing"></p>
-    <div class="table-wrap">
+    <div class="fbar" id="filters" role="search" aria-label="Filters">
+      <div class="fbar__row">
+        <label class="search">
+          <span class="visually-hidden">Search models</span>
+          <span class="search__icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+          <input id="q" type="search" placeholder="Search id, title, group, tag…" autocomplete="off">
+          <kbd>/</kbd>
+          <button id="q-clear" class="search__clear" type="button" aria-label="Clear search" hidden><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </label>
+        <div class="fbar__controls">
+          <div id="f-status" class="tabs" role="group" aria-label="Status"></div>
+          <button id="tags-toggle" class="tagbtn" type="button" aria-expanded="false" aria-controls="tags-row"></button>
+        </div>
+      </div>
+      <div class="scrollrow" id="groups-row">
+        <button class="scrollrow__arrow scrollrow__arrow--prev" type="button" aria-label="Scroll groups left" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+        <div class="scrollrow__track"><div id="f-group" class="groups" role="group" aria-label="Group"></div></div>
+        <button class="scrollrow__arrow scrollrow__arrow--next" type="button" aria-label="Scroll groups right" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+      <div class="scrollrow" id="tags-row" hidden>
+        <button class="scrollrow__arrow scrollrow__arrow--prev" type="button" aria-label="Scroll tags left" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+        <div class="scrollrow__track"><div id="f-tags" class="chips" role="group" aria-label="Tags"></div></div>
+        <button class="scrollrow__arrow scrollrow__arrow--next" type="button" aria-label="Scroll tags right" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+    </div>
+    <p class="showing" id="showing"></p>
+    <div class="table-wrap" id="tablewrap">
       <table>
-        <thead><tr><th>Model</th><th>Status</th><th>Contract check</th><th>Stages</th><th>Motion</th><th>Last commit</th><th class="num">Commits</th></tr></thead>
+        <thead><tr id="thead"><th>Model</th><th>Status</th><th>Contract check</th><th>Stages</th><th>Motion</th><th>Reviews</th><th>Last commit</th><th class="num">Commits</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
   </section>
 
   <section class="panel lead" aria-labelledby="q-h">
-    <div class="queue-head">
-      <h2 id="q-h">Running and queued work: the lead's record</h2>
-      <span class="chip s-warn">Kept by hand, not measured</span>
+    <div class="head">
+      <div>
+        <span class="eyebrow">The lead's record</span>
+        <h2 id="q-h">Running and queued work</h2>
+      </div>
+      <span class="chip s-warn">Reported, not measured</span>
     </div>
-    <p class="muted">From <code>ledger-queue.json</code>, which the lead session edits. Nothing here is checked against git or the checks; the table above is.</p>
+    <p class="muted">From <code>ledger-queue.json</code>, which the lead session and its agents report through <code>npm run queue -- start|done</code>. Nothing here is checked against git or the checks; the table above is.</p>
     <div id="queue"></div>
   </section>
 </main>
@@ -150,24 +396,29 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const STATUS = [
-    { key: 'not converted', cls: 's-none', color: 'var(--none-ink)' },
-    { key: 'converted', cls: 's-conv', color: 'var(--conv-ink)' },
-    { key: 'checked', cls: 's-chk', color: 'var(--chk-ink)' },
-    { key: 'approved', cls: 's-ok', color: 'var(--ok-ink)' },
+    { key: 'not converted', cls: 's-none', color: 'var(--st-none)' },
+    { key: 'converted', cls: 's-conv', color: 'var(--st-conv)' },
+    { key: 'checked', cls: 's-chk', color: 'var(--st-chk)' },
+    { key: 'approved', cls: 's-ok', color: 'var(--st-ok)' },
   ];
   const chipFor = (s) => `<span class="chip ${STATUS.find((x) => x.key === s)?.cls ?? 's-none'}">${esc(s)}</span>`;
 
-  const ago = (iso) => {
-    if (!iso) return 'unknown';
-    const s = (Date.now() - new Date(iso).getTime()) / 1000;
-    if (!Number.isFinite(s)) return 'unknown';
-    if (s < 0) return 'in the future (clock skew?)';
+  /** Seconds since an ISO time, or null. */
+  const age = (iso) => { const t = iso ? Date.parse(iso) : NaN; return Number.isFinite(t) ? (Date.now() - t) / 1000 : null; };
+  const fmtAge = (s) => {
+    if (s == null) return 'unknown';
+    if (s < -5) return 'in the future (clock skew?)';
+    s = Math.max(0, s);
     if (s < 90) return `${Math.round(s)} s ago`;
     if (s < 5400) return `${Math.round(s / 60)} min ago`;
     if (s < 129600) return `${Math.round(s / 3600)} h ago`;
     return `${Math.round(s / 86400)} days ago`;
   };
-  const when = (iso) => iso ? `${new Date(iso).toLocaleString()} (${ago(iso)})` : 'unknown';
+  const ago = (iso) => fmtAge(age(iso));
+  /** A live "N s ago": the one-second tick rewrites every [data-ago]. */
+  const agoSpan = (iso) => `<span data-ago="${esc(iso ?? '')}">${esc(ago(iso))}</span>`;
+  const when = (iso) => iso ? `${esc(new Date(iso).toLocaleString())} (${agoSpan(iso)})` : 'unknown';
+  const clock = (iso) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   /* ---------- theme (per viewer, a convenience only) ---------- */
   const modes = ['auto', 'light', 'dark'];
@@ -187,85 +438,279 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 
   /* ---------- checks ---------- */
   const CHECK_NAMES = { models: 'Contract check (check-models)', stages: 'Same on every surface (check-stages)', motion: 'Motion flags (check-motion)' };
+  const COLS = [['models', 'Contract check'], ['stages', 'Stages'], ['motion', 'Motion']];
   const checkChip = (r) => {
-    if (!r || r.status === 'never') return '<span class="chip s-none">never run</span>';
-    const cls = r.status === 'pass' ? (r.stale ? 's-warn' : 's-ok') : r.status === 'flagged' ? 's-warn' : 's-bad';
+    if (!r || r.status === 'never') return '<span class="chip s-warn">never run</span>';
+    const cls = r.status === 'pass' ? (r.stale ? 's-warn' : 's-chk') : r.status === 'flagged' ? 's-warn' : 's-bad';
     const label = { pass: 'pass', fail: 'fail', flagged: 'flagged', broke: 'broke' }[r.status] ?? r.status;
-    return `<span class="chip ${cls}" title="${esc(r.ranAt ? 'ran ' + when(r.ranAt) : '')}">${esc(label)}${r.stale ? ' · stale' : ''}</span>`;
+    return `<span class="chip ${cls}" title="${esc(r.ranAt ? 'ran ' + new Date(r.ranAt).toLocaleString() : '')}">${esc(label)}${r.stale ? ' · stale' : ''}</span>`;
   };
 
   /* ---------- state ---------- */
-  let L = null, Q = null, qError = null;
-  let filter = 'all', query = '';
+  let L = null, Q = null, W = null, qError = null, wMissing = false;
+  // what the reader has chosen; kept for this tab (a convenience: the page works without it)
+  const PAGE = 40; // rows rendered at first, and added each time the list end comes near
+  let filter = 'all', group = 'all', tags = new Set(), query = '', limit = PAGE, tagsOpen = false;
   const open = new Set();
-  try { filter = sessionStorage.getItem('ledger-filter') || 'all'; } catch {}
+  try {
+    const s = JSON.parse(sessionStorage.getItem('ledger-view') || '{}');
+    filter = s.filter || 'all'; group = s.group || 'all'; tags = new Set(s.tags || []); query = s.query || ''; tagsOpen = Boolean(s.tagsOpen);
+    for (const id of s.open || []) open.add(id);
+    limit = Math.max(PAGE, s.limit || PAGE);
+    if (tags.size) tagsOpen = true; // as the gallery does when it opens with tags picked
+  } catch {}
+  const saveView = () => { try { sessionStorage.setItem('ledger-view', JSON.stringify({ filter, group, tags: [...tags], query, open: [...open], limit, tagsOpen })); } catch {} };
+  let prevSig = null; // model id → what its row shows, to mark rows that changed on a refresh
+  let flash = new Set();
+
+  const rowSig = (m) => JSON.stringify([m.status, m.converted, m.convertedInHead, ...COLS.map(([k]) => [m.checks[k]?.status, m.checks[k]?.stale, m.checks[k]?.ranAt]), m.commits.length, (m.reviews ?? []).map((r) => [r.kind, r.verdict, r.stale])]);
+
+  /* ---------- notes: collapsed to a badge; each closable; back when its content changes ---------- */
+  let NOTES = []; // [{ key, html, col? }]
+  let notesOpen = false;
+  let dismissed = {}; // key → the content signature that was dismissed
+  try { dismissed = JSON.parse(localStorage.getItem('ledger-dismissed') || '{}') || {}; } catch {}
+  const sig = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(36); };
+  const plain = (html) => { const d = document.createElement('div'); d.innerHTML = html; return d.textContent; };
+  const saveDismissed = () => {
+    const live = new Set(NOTES.map((n) => n.key));
+    for (const k of Object.keys(dismissed)) if (!live.has(k)) delete dismissed[k]; // a note that is gone forgets its dismissal
+    try { localStorage.setItem('ledger-dismissed', JSON.stringify(dismissed)); } catch {}
+  };
+  const isShown = (n) => dismissed[n.key] !== sig(n.html);
+  function renderNotes() {
+    const shown = NOTES.filter(isShown);
+    const hid = NOTES.length - shown.length;
+    const btn = $('notes-btn');
+    btn.hidden = !NOTES.length;
+    btn.innerHTML = `<b>${shown.length}</b> note${shown.length === 1 ? '' : 's'}${hid ? ` <small>· ${hid} dismissed</small>` : ''}`;
+    btn.setAttribute('aria-expanded', String(notesOpen));
+    btn.classList.toggle('is-quiet', !shown.length);
+    const pop = $('notes-pop');
+    pop.hidden = !notesOpen || !NOTES.length;
+    pop.innerHTML = (shown.length
+      ? shown.map((n) => `<div class="note"><div>${n.html}</div><button type="button" class="note__x" data-dismiss="${esc(n.key)}" aria-label="Dismiss this note">${XICON}</button></div>`).join('')
+      : '<p class="muted" style="margin:4px 2px">Every note is dismissed.</p>')
+      + (hid ? `<p style="margin:8px 2px 2px"><button type="button" class="linkish" data-undismiss>Show the ${hid} dismissed note${hid === 1 ? '' : 's'}</button> <span class="muted" style="font-size:12px">A dismissed note comes back by itself if what it says changes.</span></p>` : '');
+  }
+  $('notes-btn').addEventListener('click', (e) => { e.stopPropagation(); notesOpen = !notesOpen; renderNotes(); });
+  $('notes-pop').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const x = e.target.closest('[data-dismiss]');
+    if (x) { const n = NOTES.find((k) => k.key === x.dataset.dismiss); if (n) dismissed[n.key] = sig(n.html); saveDismissed(); renderNotes(); return; }
+    if (e.target.closest('[data-undismiss]')) { for (const n of NOTES) delete dismissed[n.key]; saveDismissed(); renderNotes(); }
+  });
+  document.addEventListener('click', () => { if (notesOpen) { notesOpen = false; renderNotes(); } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && notesOpen) { notesOpen = false; renderNotes(); $('notes-btn').focus(); } });
+
+  /** Whether a model passes a set of filters. Every count on a chip is this, over all models. */
+  const passes = (m, f) => {
+    if (f.filter !== 'all' && m.status !== f.filter) return false;
+    if (f.group !== 'all' && m.group !== f.group) return false;
+    for (const t of f.tags) if (!(m.tags ?? []).includes(t)) return false;
+    const needle = f.query.trim().toLowerCase();
+    if (needle && ![m.id, m.title, m.groupLabel, ...(m.tags ?? [])].join(' ').toLowerCase().includes(needle)) return false;
+    return true;
+  };
+  const view = () => ({ filter, group, tags, query });
+  const countWith = (over) => { const f = { ...view(), ...over }; return L.models.filter((m) => passes(m, f)).length; };
+
+  /** The latest review of a kind, as a chip: fresh verdict, stale, or none. */
+  const reviewChip = (m, kind) => {
+    const list = (m.reviews ?? []).filter((r) => r.kind === kind);
+    if (!list.length) return `<span class="chip s-none">${kind}: none</span>`;
+    const fresh = list.find((r) => !r.stale);
+    if (!fresh) return `<span class="chip s-warn" title="${esc(list[0].staleWhy)}">${kind}: stale</span>`;
+    const v = fresh.verdict ?? 'marked';
+    const cls = v === 'problem' ? 's-bad' : v === 'fixed' ? 's-conv' : 's-chk';
+    return `<span class="chip ${cls}" title="${esc(fresh.source === 'log' ? `${fresh.reviewer}, ${fresh.reviewedAt}` : `commit ${fresh.commit}: ${fresh.subject}`)}">${kind}: ${esc(v)}</span>`;
+  };
 
   function render() {
     if (!L) return;
     const c = L.counts, n = c.models;
-    $('meta').innerHTML = `Generated ${esc(when(L.generatedAt))} at HEAD <code>${esc(L.head)}</code>. Regenerate with <code>npm run ledger</code>; commits and check runs since then are not in it.`;
+    const by = L.build?.by ? ` by <code>${esc(L.build.by)}</code>${L.build.reason ? ` (${esc(L.build.reason)})` : ''}` : '';
+    $('meta').innerHTML = `Built ${when(L.generatedAt)}${by} at HEAD <code>${esc(L.head)}</code>. Every status below is read from git, the model files and the captured checks.`;
 
-    const notices = [];
-    const hours = (Date.now() - new Date(L.generatedAt).getTime()) / 3.6e6;
-    if (hours > 6) notices.push(`This ledger is ${ago(L.generatedAt)} old. Run <code>npm run ledger</code> before trusting it.`);
-    for (const [name, src] of Object.entries(L.sources.checks)) if (/never been captured/.test(src)) notices.push(`<b>${esc(CHECK_NAMES[name] ?? name)}</b> has no result file: its column says “never run” for every model because no run was captured, not because models failed. Capture one with <code>npm run capture -- ${esc(name)}</code>.`);
-    for (const note of L.notes ?? []) notices.push(esc(note));
-    $('notices').innerHTML = notices.map((t) => `<div class="notice">${t}</div>`).join('');
+    const notes = [];
+    for (const [name, src] of Object.entries(L.sources.checks)) if (/never been captured/.test(src)) notes.push({ key: `never:${name}`, col: name, html: `<b>${esc(CHECK_NAMES[name] ?? name)}</b> has no result file: its column says “never run” for every model because no run was captured, not because models failed. Capture one with <code>npm run capture -- ${esc(name)}</code>.` });
+    const other = L.models.filter((m) => m.uNotVmin);
+    if (other.length) notes.push({ key: 'u-not-vmin', html: `<b>${other.length} model${other.length === 1 ? ' uses' : 's use'} --u but not in vmin</b>, so ${other.length === 1 ? 'it is' : 'they are'} not counted as converted: ${other.map((m) => `<code>${esc(m.id)}</code> (${m.uNotVmin.map((v) => `--u: ${esc(v)}`).join(', ')})`).join(', ')}.` });
+    for (const note of L.notes ?? []) notes.push({ key: `ledger:${sig(note)}`, html: esc(note) });
+    NOTES = notes;
+    $('notices').innerHTML = '';
+    renderNotes();
+
+    // checks in progress, as the last build saw their result files
+    const runs = Object.entries(L.running ?? {}).filter(([, p]) => p);
+    $('running').innerHTML = runs.map(([name, p]) => {
+      const pct = p.total ? Math.min(100, (100 * p.done) / p.total) : 0;
+      const gone = p.alive === false;
+      return `<div class="progress${gone ? ' gone' : ''}" role="status">
+        <b>${esc(CHECK_NAMES[name] ?? name)} ${gone ? 'stopped without finishing' : 'is running'}:</b>
+        <span class="num">${esc(p.done)}</span> of <span class="num">${p.total ?? '?'}</span> ${esc(p.counts ?? 'done')}${p.total != null && p.totalIsEstimate ? ` <span class="muted">(the total is an estimate: ${esc(p.totalFrom)})</span>` : ''}.
+        ${p.last ? `Latest: <code>${esc(p.last)}</code>, ` : ''}last write ${agoSpan(p.updatedAt)}; started ${esc(clock(p.startedAt))}${p.commit ? ` at <code>${esc(p.commit)}</code>` : ''}${p.args?.length ? `, args <code>${esc(p.args.join(' '))}</code>` : ''}.
+        ${gone ? `<br>Its process (pid ${esc(p.pid)}) is gone. The results it wrote are kept; the rest of the run never reported.` : ''}
+        <div class="track" aria-hidden="true"><span style="width:${pct}%"></span></div></div>`;
+    }).join('');
+    $('thead').innerHTML = `<th>Model</th><th>Status</th>${COLS.map(([k, label]) => {
+      const p = L.running?.[k];
+      const note = NOTES.find((n) => n.col === k); // why the column reads as it does, even after the note is dismissed
+      return `<th${note ? ` class="has-tip" tabindex="0" title="${esc(plain(note.html))}"` : ''}>${label}${note ? ' <span class="tipmark" aria-hidden="true">?</span>' : ''}${p ?` <span class="chip ${p.alive === false ? 's-bad' : 's-chk'}">${p.alive === false ? 'stopped' : 'running'} ${esc(p.done)}/${p.total ?? '?'}</span>` : ''}</th>`;
+    }).join('')}<th>Reviews</th><th>Last commit</th><th class="num">Commits</th>`;
 
     const staleContract = L.models.filter((m) => m.checks.models?.status === 'pass' && m.checks.models.stale).length;
     const stats = [
-      ['Converted', c.converted, `of ${n} · ${c.convertedInHead} of them committed`],
-      ['Checked', c.checked, `of ${n} · converted and a fresh contract pass${staleContract ? ` · ${staleContract} more passed on old source` : ''}`],
-      ['Approved', c.approved, `of ${n} · needs review and text-review commits too`],
-      ['Not converted', c.notConverted, `of ${n}`],
+      ['conv', 'Converted', c.converted, `of ${n} · ${c.convertedInHead} of them committed`],
+      ['chk', 'Checked', c.checked, `of ${n} · converted and a fresh contract pass${staleContract ? ` · ${staleContract} more passed on old source` : ''}`],
+      ['ok', 'Approved', c.approved, `of ${n} · needs review and text-review commits too`],
+      ['none', 'Not converted', c.notConverted, `of ${n}`],
     ];
-    $('stats').innerHTML = stats.map(([k, v, sub]) => `<div class="stat"><span class="muted">${k}</span><b>${v}</b><span class="muted" style="font-size:13px">${sub}</span></div>`).join('');
+    $('stats').innerHTML = stats.map(([k, label, v, sub]) => `<div class="stat ${k}"><span class="label">${label}</span><b>${v}</b><span class="sub">${sub}</span></div>`).join('');
     $('bar').innerHTML = STATUS.map((s) => `<span style="width:${(100 * c.byStatus[s.key]) / n}%;background:${s.color}" title="${s.key}: ${c.byStatus[s.key]}"></span>`).join('');
     $('bar').setAttribute('aria-label', STATUS.map((s) => `${s.key} ${c.byStatus[s.key]}`).join(', '));
     $('legend').innerHTML = STATUS.map((s) => `<span><i style="background:${s.color}"></i>${s.key}: ${c.byStatus[s.key]}</span>`).join('');
-    $('rules').innerHTML = `Converted: ${esc(L.sources.converted)}. Checked: converted and the latest <code>check-models</code> result is a pass on the source as it is now. Approved: checked, plus ${esc(L.sources.review)}, plus ${esc(L.sources.textReview)}. Review commits found: ${c.reviewCommits} models; text-review commits: ${c.textReviewCommits} models.`;
+    $('rules').innerHTML = `Converted: ${esc(L.sources.converted)}. Checked: converted and the latest <code>check-models</code> result is a pass on the source as it is now. Approved: checked, plus ${esc(L.sources.review)}, plus ${esc(L.sources.textReview)}. Reviews: ${esc(L.sources.reviewLog ?? '')}. ${c.reviewed ? ['visual', 'text'].map((k) => `${k}: ${c.reviewed[k].fresh} models with a fresh review, ${c.reviewed[k].staleOnly} with only stale ones${c.reviewed[k].problem ? `, ${c.reviewed[k].problem} whose latest found a problem` : ''}`).join('; ') + '.' : ''}`;
 
-    // filters
-    const counts = Object.fromEntries(STATUS.map((s) => [s.key, c.byStatus[s.key]]));
-    $('filters').innerHTML = [['all', n], ...STATUS.map((s) => [s.key, counts[s.key]])]
-      .map(([k, v]) => `<button type="button" data-f="${esc(k)}" aria-pressed="${filter === k}">${esc(k)} (${v})</button>`).join('')
-      + `<input id="q" type="search" placeholder="Search id or title" value="${esc(query)}" aria-label="Search models">`;
-    $('filters').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-      filter = b.dataset.f;
-      try { sessionStorage.setItem('ledger-filter', filter); } catch {}
-      render();
-    }));
-    const q = $('q');
-    q.addEventListener('input', () => { query = q.value; renderRows(); });
+    // a group or tag chosen earlier that no longer exists would hide everything without saying why
+    if (group !== 'all' && !(L.groups ?? []).some((g) => g.key === group)) group = 'all';
+    for (const t of [...tags]) if (!(L.tags ?? []).includes(t)) tags.delete(t);
+    renderFilterChips();
     renderRows();
     renderQueue();
   }
 
-  function renderRows() {
-    const needle = query.trim().toLowerCase();
-    const shown = L.models.filter((m) => (filter === 'all' || m.status === filter) && (!needle || m.id.toLowerCase().includes(needle) || (m.title ?? '').toLowerCase().includes(needle)));
-    const hidden = L.models.length - shown.length;
-    const why = [filter !== 'all' ? `status “${filter}”` : '', needle ? `search “${query.trim()}”` : ''].filter(Boolean).join(' and ');
-    $('showing').innerHTML = hidden
-      ? `Showing ${shown.length} of ${L.models.length}; ${hidden} hidden by ${esc(why)}. <button type="button" class="linkish" id="clear">Show all ${L.models.length}</button>`
-      : `Showing all ${L.models.length}. Click a row for its commits and check results.`;
-    $('clear')?.addEventListener('click', () => { filter = 'all'; query = ''; try { sessionStorage.setItem('ledger-filter', 'all'); } catch {} render(); });
+  /**
+   * The gallery's filter bar, filled in: status tabs, the Tags button, group and tag chips. Each
+   * count is what the list would hold with that choice, given every other filter and the search.
+   */
+  const HASH = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>';
+  const XICON = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+  function renderFilterChips() {
+    const n = L.models.length;
+    $('f-status').innerHTML = [['all', 'All'], ...STATUS.map((s) => [s.key, s.key])]
+      .map(([k, label]) => `<button type="button" class="tab" data-f="${esc(k)}" aria-pressed="${filter === k}">${esc(label)} <b>${countWith({ filter: k })}</b></button>`).join('');
+    const hidden = n - countWith({});
+    const groups = [{ key: 'all', label: 'All groups' }, ...(L.groups ?? [])];
+    $('f-group').innerHTML = (hidden ? `<button type="button" class="group group--clear" data-clear title="Clear every filter and the search">${XICON} Clear <b>${hidden} hidden</b></button>` : '')
+      + groups.map((g) => {
+        const c = countWith({ group: g.key });
+        const on = group === g.key;
+        return `<button type="button" class="group" data-g="${esc(g.key)}" aria-pressed="${on}"${c === 0 && !on ? ' disabled' : ''}>${esc(g.label)} <b>${c}</b></button>`;
+      }).join('');
+    // as in the gallery: tags combine (a model needs every picked tag); a tag that would leave
+    // nothing is left out, the picked ones always stay
+    $('f-tags').innerHTML = (L.tags ?? []).map((t) => {
+      const on = tags.has(t);
+      const c = on ? countWith({}) : countWith({ tags: new Set([...tags, t]) });
+      if (c === 0 && !on) return '';
+      return `<button type="button" class="tchip" data-t="${esc(t)}" aria-pressed="${on}">#${esc(t)} <b>${c}</b></button>`;
+    }).join('');
+    const btn = $('tags-toggle');
+    btn.innerHTML = `${HASH} <span class="btn__label">Tags</span>${tags.size ? ` <b>${tags.size}</b>` : ''}`;
+    btn.setAttribute('aria-label', tags.size ? `Tags, ${tags.size} selected` : 'Tags');
+    btn.setAttribute('aria-expanded', String(tagsOpen));
+    $('tags-row').hidden = !tagsOpen;
+    $('q-clear').hidden = !query;
+    if ($('q').value !== query) $('q').value = query;
+    queueMicrotask(() => { groupsScroll.reveal($('f-group').querySelector('.group[aria-pressed="true"]')); tagsScroll.update(); });
+  }
+  function onFilterClick(e) {
+    const b = e.target.closest('button');
+    if (!b || !L) return;
+    if (b.dataset.f) filter = b.dataset.f;
+    else if (b.dataset.g) group = b.dataset.g;
+    else if (b.dataset.t) tags.has(b.dataset.t) ? tags.delete(b.dataset.t) : tags.add(b.dataset.t);
+    else if ('clear' in b.dataset) { filter = 'all'; group = 'all'; tags.clear(); query = ''; }
+    else if (b.id === 'tags-toggle') { tagsOpen = !tagsOpen; saveView(); renderFilterChips(); return; }
+    else if (b.id === 'q-clear') { query = ''; $('q').focus(); }
+    else return;
+    limit = PAGE;
+    saveView();
+    const keep = b.dataset.f ? `[data-f="${CSS.escape(b.dataset.f)}"]` : b.dataset.g ? `[data-g="${CSS.escape(b.dataset.g)}"]` : b.dataset.t ? `[data-t="${CSS.escape(b.dataset.t)}"]` : null;
+    renderFilterChips();
+    renderRows();
+    if (keep) $('filters').querySelector(keep)?.focus({ preventScroll: true });
+  }
 
+  /* the groups and tags rows: fade and show an arrow only where there is more to scroll (main.ts scrollRow) */
+  function scrollRow(row) {
+    const track = row.querySelector('.scrollrow__track');
+    const update = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = track;
+      row.classList.toggle('can-prev', scrollLeft > 2);
+      row.classList.toggle('can-next', scrollLeft + clientWidth < scrollWidth - 2);
+    };
+    track.addEventListener('scroll', update, { passive: true });
+    if ('ResizeObserver' in window) new ResizeObserver(update).observe(track);
+    for (const [sel, dir] of [['.scrollrow__arrow--prev', -1], ['.scrollrow__arrow--next', 1]]) {
+      row.querySelector(sel).addEventListener('click', (e) => { e.stopPropagation(); track.scrollBy({ left: dir * track.clientWidth * 0.7, behavior: 'smooth' }); });
+    }
+    const reveal = (el) => {
+      if (el) {
+        const { offsetLeft, offsetWidth } = el;
+        const { scrollLeft, clientWidth } = track;
+        if (offsetLeft < scrollLeft + 48) track.scrollLeft = offsetLeft - 48;
+        else if (offsetLeft + offsetWidth > scrollLeft + clientWidth - 48) track.scrollLeft = offsetLeft + offsetWidth - clientWidth + 48;
+      }
+      update();
+    };
+    return { update, reveal };
+  }
+  const groupsScroll = scrollRow($('groups-row'));
+  const tagsScroll = scrollRow($('tags-row'));
+  $('filters').addEventListener('click', onFilterClick);
+  $('q').addEventListener('input', () => { if (!L) return; query = $('q').value; limit = PAGE; saveView(); renderFilterChips(); renderRows(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && !e.target.matches('input, textarea') && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); $('q').focus(); }
+  });
+
+  let moreObserver = null;
+  function renderRows() {
+    const f = view();
+    const matching = L.models.filter((m) => passes(m, f));
+    const total = L.models.length;
+    const hidden = total - matching.length;
+    const onScreen = Math.min(limit, matching.length);
+    const glabel = (L.groups ?? []).find((g) => g.key === group)?.label ?? group;
+    const why = [filter !== 'all' ? `status “${filter}”` : '', group !== 'all' ? `group “${glabel}”` : '', ...[...tags].map((t) => `#${t}`), query.trim() ? `search “${query.trim()}”` : ''].filter(Boolean).join(', ');
+    const screen = onScreen < matching.length ? ` ${onScreen} on screen; the rest load as you scroll.` : '';
+    $('showing').innerHTML = hidden
+      ? `${matching.length} of ${total} match; ${hidden} hidden by ${esc(why)}.${screen} <button type="button" class="linkish" id="clear">Show all ${total}</button>`
+      : `All ${total} match.${screen} Click a row for its commits, checks and reviews.`;
+    $('clear')?.addEventListener('click', () => { filter = 'all'; group = 'all'; tags.clear(); query = ''; limit = PAGE; saveView(); render(); });
+
+    const shown = matching.slice(0, limit);
     $('rows').innerHTML = shown.map((m) => {
       const last = m.commits.find((x) => x.matchedBy.includes('diff')) ?? m.commits[0];
-      const row = `<tr class="row" tabindex="0" data-id="${esc(m.id)}" aria-expanded="${open.has(m.id)}">
-        <td><b>${esc(m.title)}</b><br><code class="muted">${esc(m.id)}</code></td>
+      const row = `<tr class="row${flash.has(m.id) ? ' flash' : ''}" tabindex="0" data-id="${esc(m.id)}" aria-expanded="${open.has(m.id)}">
+        <td class="model">${m.groupLabel || m.group ? `<span class="grp">${esc(m.groupLabel ?? m.group)}</span>` : ''}<b>${esc(m.title)}</b><br><code class="muted">${esc(m.id)}</code></td>
         <td>${chipFor(m.status)}${m.converted && m.convertedInHead === false ? '<br><span class="chip s-warn" title="the working tree has --u: but HEAD does not">not committed</span>' : ''}</td>
-        <td>${checkChip(m.checks.models)}</td><td>${checkChip(m.checks.stages)}</td><td>${checkChip(m.checks.motion)}</td>
+        ${COLS.map(([k]) => `<td>${checkChip(m.checks[k])}</td>`).join('')}
+        <td><span class="rv">${reviewChip(m, 'visual')}${reviewChip(m, 'text')}</span></td>
         <td class="num">${last ? `${esc(last.date.slice(0, 10))}<br><code class="muted">${esc(last.hash)}</code>` : '<span class="muted">none found</span>'}</td>
         <td class="num">${m.commits.length}</td></tr>`;
-      return row + (open.has(m.id) ? `<tr class="detail"><td colspan="7">${detail(m)}</td></tr>` : '');
-    }).join('') || `<tr><td colspan="7" class="muted">No model matches.</td></tr>`;
+      return row + (open.has(m.id) ? `<tr class="detail"><td colspan="8">${detail(m)}</td></tr>` : '');
+    }).join('') || `<tr><td colspan="8" class="muted">No model matches.${hidden ? ' Every model is hidden by the filters above.' : ''}</td></tr>`;
+    const rest = matching.length - shown.length;
+    if (rest > 0) $('rows').insertAdjacentHTML('beforeend', `<tr class="more"><td colspan="8"><button type="button" class="btn" id="more">Show ${Math.min(PAGE, rest)} more <small>${rest} not on screen yet</small></button></td></tr>`);
     $('rows').querySelectorAll('tr.row').forEach((tr) => {
-      const toggle = () => { const id = tr.dataset.id; open.has(id) ? open.delete(id) : open.add(id); renderRows(); document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`)?.focus(); };
+      const toggle = () => { const id = tr.dataset.id; open.has(id) ? open.delete(id) : open.add(id); saveView(); renderRows(); document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true }); };
       tr.addEventListener('click', toggle);
       tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
     });
+    // more rows as the end of the list comes near; the button does the same for keyboards
+    moreObserver?.disconnect();
+    const more = $('more');
+    if (more) {
+      const grow = () => { limit += PAGE; saveView(); renderRows(); };
+      more.addEventListener('click', grow);
+      if ('IntersectionObserver' in window) {
+        moreObserver = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { moreObserver.disconnect(); grow(); } }, { rootMargin: '600px 0px' });
+        moreObserver.observe(more);
+      }
+    }
+    flash = new Set(); // a row flashes once, on the refresh that changed it
   }
 
   function detail(m) {
@@ -279,12 +724,21 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
     for (const n of m.notes) parts.push(`<div class="notice">${esc(n)}</div>`);
 
     parts.push('<h3>Checks: last known result</h3><div class="checkgrid">' + Object.entries(m.checks).map(([name, r]) => {
-      if (r.status === 'never') return `<div class="check"><b>${esc(CHECK_NAMES[name] ?? name)}</b><br>${checkChip(r)}<p class="muted">No captured run has reported this model.</p></div>`;
-      return `<div class="check"><b>${esc(CHECK_NAMES[name] ?? name)}</b><br>${checkChip(r)} <span class="muted">${esc(r.summary)}</span>
-        <p class="muted" style="font-size:13px">Ran ${esc(when(r.ranAt))} ${r.commit ? `at <code>${esc(r.commit)}</code>` : '(HEAD not recorded)'}${r.args?.length ? `, args <code>${esc(r.args.join(' '))}</code>` : ''}</p>
+      if (r.status === 'never') return `<div class="check"><b>${esc(CHECK_NAMES[name] ?? name)}</b>${checkChip(r)}<p class="muted">No captured run has reported this model.</p></div>`;
+      return `<div class="check"><b>${esc(CHECK_NAMES[name] ?? name)}</b>${checkChip(r)} <span class="muted">${esc(r.summary)}</span>
+        <p class="muted" style="font-size:13px">Ran ${when(r.ranAt)} ${r.commit ? `at <code>${esc(r.commit)}</code>` : '(HEAD not recorded)'}${r.args?.length ? `, args <code>${esc(r.args.join(' '))}</code>` : ''}</p>
         ${r.stale ? `<div class="notice">Stale: ${esc(r.staleWhy.join('; '))}.</div>` : ''}
         ${r.detail?.length ? `<ul class="missing" style="font-size:13px">${r.detail.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}</div>`;
     }).join('') + '</div>');
+
+    const rv = m.reviews ?? [];
+    parts.push(`<h3>Reviews (${rv.length})</h3>` + (rv.length ? `<ul class="commits">${rv.map((r) => {
+      const v = r.verdict ? `<span class="chip ${r.verdict === 'problem' ? 's-bad' : r.verdict === 'fixed' ? 's-conv' : 's-chk'}">${esc(r.verdict)}</span>` : '<span class="chip s-none" title="a commit marker carries no verdict">no verdict</span>';
+      const who = r.source === 'log' ? `${esc(r.reviewer)} · <code>${esc(r.file)}</code>` : `commit marker: ${esc(r.subject)}`;
+      return `<li><span class="chip s-none">${esc(r.kind)}</span> ${v} ${r.stale ? `<span class="chip s-warn">stale</span>` : ''}
+        <span class="muted num">${esc(String(r.reviewedAt).slice(0, 16).replace('T', ' '))}</span> read <code>${esc(String(r.commit).slice(0, 7))}</code> · ${who}
+        ${r.stale ? `<br><span class="muted" style="font-size:13px">Stale: ${esc(r.staleWhy)}.</span>` : ''}</li>`;
+    }).join('')}</ul>` : '<p class="muted">No review recorded, in docs/reviews/ or as a commit marker.</p>'));
 
     const byDiff = m.commits.filter((c) => c.matchedBy.includes('diff')).length;
     parts.push(`<h3>Commits (${m.commits.length}: ${byDiff} by diff, ${m.commits.length - byDiff} by subject only)</h3>
@@ -303,41 +757,159 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
     if (!Q) { box.innerHTML = '<p class="muted">Loading…</p>'; return; }
     const items = Array.isArray(Q.items) ? Q.items : [];
     const known = new Set((L?.models ?? []).map((m) => m.id));
-    const head = `<p class="muted">Last edited by the lead: ${Q.updatedAt ? esc(when(Q.updatedAt)) : '<b>never stamped</b> (updatedAt is empty)'}.</p>`;
-    if (!items.length) { box.innerHTML = head + '<p>No items. The lead has not recorded any running or queued work.</p>'; return; }
-    const groups = ['running', 'queued', 'done'];
-    const other = items.filter((i) => !groups.includes(i.status));
-    box.innerHTML = head + groups.map((g) => {
-      const list = items.filter((i) => i.status === g);
-      return `<h3>${g[0].toUpperCase() + g.slice(1)} (${list.length})</h3>` + (list.length ? list.map(item(known)).join('') : '<p class="muted">None.</p>');
-    }).join('') + (other.length ? `<h3>Unrecognised status (${other.length})</h3>${other.map(item(known)).join('')}` : '');
+    const head = `<p class="muted">Last edited: ${Q.updatedAt ? when(Q.updatedAt) : '<b>never stamped</b> (updatedAt is empty)'}.</p>`;
+    if (!items.length) { box.innerHTML = head + '<p>No items. Nothing running or queued has been reported.</p>'; return; }
+    const cols = [
+      ['running', 'Running', (a, b) => String(b.started ?? '').localeCompare(String(a.started ?? ''))],
+      ['queued', 'Queued', null], // no times to order by: kept in the order the record lists them
+      ['done', 'Done', (a, b) => String(b.finished ?? '').localeCompare(String(a.finished ?? ''))],
+    ];
+    const other = items.filter((i) => !cols.some(([k]) => k === i.status));
+    box.innerHTML = head + '<div class="board">' + cols.map(([k, label, order]) => {
+      const list = items.filter((i) => i.status === k);
+      if (order) list.sort(order);
+      return `<div class="bcol bcol--${k}"><h3><span>${label}</span><b>${list.length}</b></h3>${list.length ? list.map(item(known)).join('') : '<p class="muted" style="margin:4px">None.</p>'}</div>`;
+    }).join('') + '</div>'
+      + (other.length ? `<div class="notice">${other.length} item${other.length === 1 ? ' has a status' : 's have statuses'} the board does not know, so ${other.length === 1 ? 'it is' : 'they are'} listed here: ${other.map((i) => `<b>${esc(i.name)}</b> (“${esc(i.status)}”)`).join(', ')}.</div>` : '');
   }
+  const took = (a, b) => {
+    const s = (Date.parse(b) - Date.parse(a)) / 1000;
+    if (!Number.isFinite(s) || s < 0) return null;
+    if (s < 90) return `${Math.round(s)} s`;
+    if (s < 5400) return `${Math.round(s / 60)} min`;
+    const h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60);
+    return h < 48 ? `${h} h${m ? ` ${m} min` : ''}` : `${Math.round(s / 86400)} days`;
+  };
   const item = (known) => (i) => {
     const models = Array.isArray(i.models) ? i.models : [];
     const unknown = models.filter((id) => !known.has(id));
     const ledger = models.filter((id) => known.has(id)).map((id) => L.models.find((m) => m.id === id));
     const done = ledger.filter((m) => m.converted).length;
-    return `<div class="qitem"><b>${esc(i.name)}</b> <span class="chip ${i.status === 'running' ? 's-chk' : i.status === 'done' ? 's-ok' : 's-none'}">${esc(i.status)}</span>
-      <span class="muted">${i.started ? `started ${esc(when(i.started))}` : 'no start time recorded'}</span>
+    const cls = ['running', 'queued', 'done'].includes(i.status) ? i.status : '';
+    const dur = i.status === 'done' ? (i.started && i.finished ? took(i.started, i.finished) : null) : null;
+    return `<div class="qitem ${cls}"><b>${esc(i.name)}</b>
+      <p class="when">${i.status === 'done'
+        ? `${dur ? `took <b>${esc(dur)}</b> · ` : '<b>no duration</b>: start or finish not recorded · '}done ${i.finished ? when(i.finished) : 'at an unrecorded time'}`
+        : i.started ? `started ${when(i.started)}` : 'not started'}</p>
       <p>${esc(i.brief)}</p>
       <p class="muted" style="font-size:13px">${models.length} model(s): ${models.map((id) => `<code>${esc(id)}</code>`).join(', ') || 'none listed'}.
-      Measured, not claimed: ${done} of ${ledger.length} are converted in the working tree now.${unknown.length ? ` <b>Not models:</b> ${unknown.map(esc).join(', ')}.` : ''}</p></div>`;
+      ${ledger.length ? `Measured, not claimed: ${done} of ${ledger.length} are converted in the working tree now.` : ''}${unknown.length ? ` <b>Not model ids:</b> ${unknown.map(esc).join(', ')}.` : ''}</p></div>`;
   };
 
+  /* ---------- live: what the watcher and the fetches say ---------- */
+  const POLL_MS = 10000;
+  const BEAT_DEAD_S = 90; // the watcher beats every 30 s; three missed beats is not a pause
+  const QUIET_S = 120;
+  let lastFetchAt = null, lastChangeAt = null, fetchError = null;
+
+  function watcherState() {
+    if (wMissing) return { kind: 'none' };
+    if (!W) return { kind: 'unknown' };
+    if (W.stoppedAt) return { kind: 'stopped', at: W.stoppedAt };
+    const beat = age(W.heartbeatAt);
+    return beat != null && beat <= BEAT_DEAD_S ? { kind: 'alive', beat } : { kind: 'dead', beat };
+  }
+
+  function renderLive() {
+    if (!L) return;
+    const w = watcherState();
+    const dataAge = age(L.generatedAt);
+    const dot = { alive: 'on', dead: 'off' }[w.kind] ?? '';
+    const wText = {
+      alive: `Watcher live · heartbeat ${fmtAge(w.beat)}`,
+      dead: `Watcher not responding · last heartbeat ${fmtAge(w.beat)}`,
+      stopped: `Watcher stopped ${ago(w.at)}`,
+      none: 'No watcher has run',
+      unknown: 'Watcher state unknown',
+    }[w.kind];
+    $('live').innerHTML = `<span><i class="dot ${dot}"></i>${esc(wText)}</span>
+      <span>Ledger updated <b>${esc(fmtAge(dataAge))}</b></span>
+      <span class="muted">Page checked ${esc(lastFetchAt ? fmtAge((Date.now() - lastFetchAt) / 1000) : 'never')}${document.hidden ? ' (paused while the tab is hidden)' : `, every ${POLL_MS / 1000} s`}</span>`;
+
+    // the plain-words notice: minute granularity, rewritten only when it changes (it is aria-live)
+    const min = (s) => `${Math.max(1, Math.round(s / 60))} min`;
+    let note = '';
+    if (fetchError) note = `<div class="notice bad"><b class="big">Could not refresh.</b> ${esc(fetchError)}. What you see was fetched ${esc(lastChangeAt ? fmtAge((Date.now() - lastChangeAt) / 1000).replace(/\d+ s ago/, 'under a minute ago') : 'earlier')}.</div>`;
+    else if (w.kind === 'dead' && dataAge > QUIET_S) note = `<div class="notice bad"><b class="big">Stale: this page has stopped updating.</b> The ledger has not changed for ${min(dataAge)}, and the watcher that should rebuild it last reported ${min(w.beat ?? 0)} ago without recording a stop, so it has probably crashed or the laptop slept. Commits and check results since ${esc(clock(W.heartbeatAt))} are missing. Restart it with <code>npm run ledger:watch</code>.</div>`;
+    else if (w.kind === 'dead') note = `<div class="notice">The watcher last reported ${min(w.beat ?? 0)} ago without recording a stop. This data is recent because it was built ${L.build?.by ? `by <code>${esc(L.build.by)}</code>` : 'another way'}, but nothing is rebuilding it. Restart the watcher with <code>npm run ledger:watch</code>.</div>`;
+    else if (w.kind === 'alive' && dataAge > QUIET_S) note = `<div class="notice info">Quiet, not stale: nothing the ledger reads has changed for ${min(dataAge)}. The watcher is alive and looking every 3 s.</div>`;
+    else if ((w.kind === 'stopped' || w.kind === 'none') && dataAge > QUIET_S) note = `<div class="notice"><b class="big">Not live.</b> No watcher is running, so this is the build from ${min(dataAge)} ago and it will not change until someone runs <code>npm run ledger</code> or starts <code>npm run ledger:watch</code>.</div>`;
+    if ($('livenote').dataset.note !== note) { $('livenote').dataset.note = note; $('livenote').innerHTML = note; }
+  }
+
+  function tickAges() {
+    if (document.hidden) return;
+    document.querySelectorAll('[data-ago]').forEach((el) => { const t = ago(el.dataset.ago); if (el.textContent !== t) el.textContent = t; });
+    renderLive();
+  }
+
+  /** Re-render in place, keeping where the reader is: scroll, the focused control, the caret in the search. */
+  function rerender() {
+    const x = scrollX, y = scrollY, tx = $('tablewrap').scrollLeft;
+    const a = document.activeElement;
+    const caret = a?.id === 'q' ? [a.selectionStart, a.selectionEnd] : null;
+    const row = a?.closest?.('tr.row')?.dataset.id;
+    const key = ['f', 'g', 't'].find((k) => a?.closest?.('#filters') && a.dataset?.[k] != null);
+    const btn = key ? `#filters button[data-${key}="${CSS.escape(a.dataset[key])}"]` : null;
+    render();
+    if (caret) { const q = $('q'); q.focus({ preventScroll: true }); try { q.setSelectionRange(...caret); } catch {} }
+    else if (row) document.querySelector(`tr.row[data-id="${CSS.escape(row)}"]`)?.focus({ preventScroll: true });
+    else if (btn) document.querySelector(btn)?.focus({ preventScroll: true });
+    $('tablewrap').scrollLeft = tx;
+    scrollTo(x, y);
+  }
+
   /* ---------- loading ---------- */
-  async function getJson(name) {
-    const r = await fetch(`${name}?t=${Date.now()}`, { cache: 'no-store' });
-    if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
+  const raw = { l: null, q: null, w: null };
+  async function getText(name) {
+    const r = await fetch(name, { cache: 'no-cache' });
+    if (!r.ok) { const e = new Error(`${name}: HTTP ${r.status}`); e.missing = r.status === 404; throw e; }
     const type = r.headers.get('content-type') || '';
     const text = await r.text();
-    try { return JSON.parse(text); } catch { throw new Error(`${name} is not JSON${/html/.test(type) ? ' (the server sent a page instead, so the file is probably missing)' : ''}`); }
+    // a dev server answers a missing file with its index page and a 200: that is not the file
+    if (/html/.test(type) || /^\s*</.test(text)) { const e = new Error(`${name} is missing (the server sent a page instead)`); e.missing = true; throw e; }
+    return text;
   }
+  let first = true;
+  async function refresh() {
+    const [l, q, w] = await Promise.allSettled([getText('ledger.json'), getText('ledger-queue.json'), getText('ledger-watch.json')]);
+    const errs = [];
+    let changedL = false, changedQ = false;
+    if (l.status === 'fulfilled') {
+      if (l.value !== raw.l) {
+        try {
+          const next = JSON.parse(l.value);
+          if (L && prevSig) for (const m of next.models) if (prevSig.get(m.id) !== rowSig(m)) flash.add(m.id);
+          prevSig = new Map(next.models.map((m) => [m.id, rowSig(m)]));
+          L = next; raw.l = l.value; changedL = true;
+        } catch { errs.push('ledger.json did not parse (caught mid-write?); keeping the last good copy'); }
+      }
+    } else errs.push(l.reason.message);
+    if (q.status === 'fulfilled') {
+      if (q.value !== raw.q) { try { Q = JSON.parse(q.value); qError = null; raw.q = q.value; changedQ = true; } catch (e) { qError = `ledger-queue.json is not valid JSON: ${e.message}`; changedQ = true; } }
+    } else if (!Q) { qError = q.reason.message; changedQ = true; }
+    else errs.push(q.reason.message);
+    if (w.status === 'fulfilled') { if (w.value !== raw.w) { try { W = JSON.parse(w.value); wMissing = false; raw.w = w.value; } catch {} } }
+    else if (w.reason.missing) { W = null; wMissing = true; raw.w = null; }
+    lastFetchAt = Date.now();
+    if (!L) { if (first) loadFallback(l.reason); first = false; return; }
+    first = false;
+    fetchError = errs.length ? errs.join('; ') : null;
+    if (!fetchError) lastChangeAt = Date.now();
+    const firstRender = changedL && !rendered;
+    if (changedL) rerender(); else if (changedQ) renderQueue();
+    if (firstRender) { rendered = true; try { const y = Number(sessionStorage.getItem('ledger-scroll')); if (y > 0) scrollTo(0, y); } catch {} }
+    renderLive();
+  }
+  let rendered = false;
+  addEventListener('pagehide', () => { try { sessionStorage.setItem('ledger-scroll', String(Math.round(scrollY))); } catch {} });
+
   function loadFallback(err) {
     $('meta').textContent = 'The ledger could not be loaded.';
-    $('notices').innerHTML = `<div class="notice bad">Could not read <code>ledger.json</code>: ${esc(err.message)}.
+    $('notices').innerHTML = `<div class="notice bad">Could not read <code>ledger.json</code>: ${esc(err?.message)}.
       Opened straight from disk, a browser will not let the page read files beside it. Serve the folder
       (for example <code>npm run dev</code>, then open <code>/docs/ledger.html</code>), run <code>npm run ledger</code> if the file does not exist,
-      or pick the two files here.</div>
+      or pick the two files here. Picked files do not refresh.</div>
       <div class="loadbox"><label>ledger.json and ledger-queue.json: <input type="file" id="pick" accept=".json,application/json" multiple></label></div>`;
     $('pick').addEventListener('change', async (e) => {
       for (const f of e.target.files) {
@@ -346,13 +918,17 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
           if (Array.isArray(data.models)) L = data; else if ('items' in data) { Q = data; qError = null; }
         } catch (x) { alert(`${f.name}: ${x.message}`); }
       }
-      if (L) { if (!Q) qError = 'ledger-queue.json was not picked'; render(); }
+      if (L) { stopPolling(); if (!Q) qError = 'ledger-queue.json was not picked'; render(); $('live').textContent = 'Showing picked files: this copy does not refresh.'; }
     });
   }
-  Promise.allSettled([getJson('ledger.json'), getJson('ledger-queue.json')]).then(([l, q]) => {
-    if (q.status === 'fulfilled') Q = q.value; else qError = q.reason.message;
-    if (l.status === 'fulfilled') { L = l.value; render(); } else loadFallback(l.reason);
-  });
+
+  let timer = null, ticker = null;
+  const schedule = () => { clearTimeout(timer); if (!document.hidden) timer = setTimeout(() => refresh().catch(() => {}).finally(schedule), POLL_MS); };
+  const stopPolling = () => { clearTimeout(timer); clearInterval(ticker); timer = ticker = null; document.removeEventListener('visibilitychange', onVis); };
+  const onVis = () => { if (document.hidden) clearTimeout(timer); else refresh().catch(() => {}).finally(schedule); };
+  document.addEventListener('visibilitychange', onVis);
+  ticker = setInterval(tickAges, 1000);
+  refresh().catch(() => {}).finally(schedule);
 })();
 </script>
 </body>

@@ -21,11 +21,20 @@
  * run it came from, HEAD at the time, and a fingerprint of the model's own source (see
  * model-sources.mjs) taken when the run started, so the ledger can tell a result that still
  * describes the code from one that is stale.
+ *
+ * While the run goes, the file is rewritten as each model's result arrives (at most every half
+ * second), with `running: true` and `progress: { done, total, … }`, so the ledger and its page can
+ * show a run in progress. `total` is what the check will go through, worked out from the same
+ * arguments the check reads; `totalIsEstimate` says when it is inferred rather than named on the
+ * command line. check-stages only gives its verdicts in the report at the end, so during its run
+ * `done` counts the models it has started measuring and no result is written until the end.
+ * The final write clears `running`. If the wrapper dies without it, `progress.pid` lets a reader
+ * see the run is gone.
  */
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fingerprints, ROOT } from './model-sources.mjs';
+import { fingerprints, ROOT, workingSources } from './model-sources.mjs';
 
 const CHECKS = { models: 'check-models.mjs', stages: 'check-stages.mjs', motion: 'check-motion.mjs' };
 const [check, ...rest] = process.argv.slice(2);
@@ -120,6 +129,103 @@ function finishStages(text) {
   return true;
 }
 
+/* ---------- what the run will go through (for progress only; the check decides for itself) ---------- */
+function expectedTotal() {
+  const named = args.filter((a, i) => !a.startsWith('-') && !(i > 0 && ['--tol', '--size', '--frames'].includes(args[i - 1])));
+  if (named.length) return { total: named.length, totalIsEstimate: false, totalFrom: 'the model ids named on the command line' };
+  try {
+    const src = workingSources();
+    const demoIds = [...src].filter(([, m]) => m.parts.some((p) => p.kind === 'demo' || (p.whole && p.file.includes('/charts/')))).map(([id]) => id);
+    const converted = demoIds.filter((id) => src.get(id)?.snippet?.css.includes('--u:'));
+    if (check === 'models') return { total: demoIds.length, totalIsEstimate: true, totalFrom: 'every model with a gallery entry in src/models, as check-models runs with no ids' };
+    if (check === 'motion') return args.includes('--all')
+      ? { total: demoIds.length, totalIsEstimate: true, totalFrom: 'every model (--all)' }
+      : { total: converted.length, totalIsEstimate: true, totalFrom: 'the converted models (snippet CSS with --u:), as check-motion runs with no ids' };
+    if (check === 'stages') {
+      const list = /const CONVERTED = \[([^\]]*)\]/.exec(readFileSync(join(ROOT, 'scripts', CHECKS.stages), 'utf8'));
+      if (list) return { total: (list[1].match(/'[^']+'/g) ?? []).length, totalIsEstimate: true, totalFrom: 'check-stages\' own CONVERTED list, as it runs with no ids' };
+    }
+  } catch {}
+  return { total: null, totalIsEstimate: true, totalFrom: 'unknown' };
+}
+const expected = record ? expectedTotal() : null;
+
+/* ---------- the result file ---------- */
+const dir = join(ROOT, 'docs', 'checks');
+const file = join(dir, `${check}.json`);
+let old = null;
+function readOld() {
+  if (old) return old;
+  old = { models: {}, runs: [] };
+  if (existsSync(file)) { try { old = JSON.parse(readFileSync(file, 'utf8')); } catch { warnings.push(`the previous ${check}.json could not be read and was replaced`); } }
+  // a run that died mid-way left its flag behind; it is not this run's
+  delete old.running; delete old.progress;
+  return old;
+}
+function entry(r, printsNow) {
+  const id = r.id;
+  return {
+    status: r.status,
+    summary: r.summary,
+    detail: r.detail,
+    ranAt: r.at,
+    runId,
+    commit,
+    args,
+    fingerprint: printsBefore[id] ?? null,
+    sourceChangedDuringRun: (printsBefore[id] ?? null) !== (printsNow[id] ?? null),
+  };
+}
+function writeOut(out) {
+  mkdirSync(dir, { recursive: true });
+  const tmp = `${file}.${process.pid}.tmp`;
+  writeFileSync(tmp, JSON.stringify(out, null, 1));
+  for (let i = 0; ; i++) {
+    try { renameSync(tmp, file); return; } catch (e) {
+      if (i >= 20 || !['EPERM', 'EBUSY', 'EACCES'].includes(e.code)) throw e;
+      const until = Date.now() + 25 * (i + 1);
+      while (Date.now() < until) { /* a reader has the file open; try again shortly */ }
+    }
+  }
+}
+const reportedNow = () => Object.entries(results).filter(([, r]) => r.status !== 'unreported');
+/** Mid-run: everything reported so far, merged over the last known results, flagged as running. */
+function writeProgress() {
+  const o = readOld();
+  const printsNow = fingerprints();
+  const models = { ...(o.models ?? {}) };
+  const done = reportedNow();
+  if (check !== 'stages') for (const [id, r] of done) models[id] = entry({ ...r, id }, printsNow);
+  const started = Object.keys(results).length;
+  writeOut({
+    check,
+    note: 'Written by scripts/capture-check.mjs from the check\'s own printed output. Do not edit by hand.',
+    updatedAt: now(),
+    running: true,
+    progress: {
+      runId, startedAt, pid: process.pid, script: `scripts/${CHECKS[check]}`, args, commit,
+      done: check === 'stages' ? started : done.length,
+      counts: check === 'stages' ? 'models started (check-stages gives its verdicts only at the end)' : 'models reported',
+      ...expected,
+      last: current ?? done.at(-1)?.[0] ?? null,
+      updatedAt: now(),
+    },
+    models,
+    runs: o.runs ?? [],
+  });
+}
+let progressTimer = null;
+let lastProgress = 0;
+function progressSoon() {
+  if (!record || progressTimer) return;
+  const wait = Math.max(0, 500 - (Date.now() - lastProgress));
+  progressTimer = setTimeout(() => {
+    progressTimer = null;
+    lastProgress = Date.now();
+    try { writeProgress(); } catch (e) { console.error(`capture-check: could not write progress: ${e.message}`); }
+  }, wait);
+}
+
 /* ---------- run it ---------- */
 const child = spawn(process.execPath, [join('scripts', CHECKS[check]), ...args], { cwd: ROOT, stdio: ['inherit', 'pipe', 'pipe'] });
 let all = '';
@@ -132,7 +238,11 @@ child.stdout.on('data', (chunk) => {
   const lines = partial.split(/\r?\n/);
   partial = lines.pop();
   for (const line of lines) parsers[check](line.replace(/^\.+/, '')); // check-models prints a dot per quiet pass, with no newline
+  const seen = `${Object.keys(results).length}:${Object.values(results).reduce((n, r) => n + r.detail.length, 0)}`;
+  if (seen !== lastSeen) { lastSeen = seen; progressSoon(); }
 });
+let lastSeen = '0:0';
+if (record) progressSoon(); // done 0 of total, straight away
 child.stderr.on('data', (chunk) => process.stderr.write(chunk));
 // Ctrl+C reaches the check too; stay alive long enough to record what it managed to report
 process.on('SIGINT', () => {});
@@ -140,45 +250,31 @@ process.on('SIGINT', () => {});
 child.on('close', (code, signal) => {
   if (partial) parsers[check](partial.replace(/^\.+/, ''));
   if (!record) process.exit(code ?? 1);
+  if (progressTimer) { clearTimeout(progressTimer); progressTimer = null; }
   const finishedAt = now();
   let complete = true;
   if (check === 'stages') complete = finishStages(all);
   if (check === 'stages' && !complete) for (const id of Object.keys(results)) delete results[id];
   const printsAfter = fingerprints();
 
-  const dir = join(ROOT, 'docs', 'checks');
-  mkdirSync(dir, { recursive: true });
-  const file = join(dir, `${check}.json`);
-  let old = { models: {}, runs: [] };
-  if (existsSync(file)) { try { old = JSON.parse(readFileSync(file, 'utf8')); } catch { warnings.push(`the previous ${check}.json could not be read and was replaced`); } }
-  const models = { ...(old.models ?? {}) };
-  for (const [id, r] of Object.entries(results)) {
-    models[id] = {
-      status: r.status,
-      summary: r.summary,
-      detail: r.detail,
-      ranAt: r.at,
-      runId,
-      commit,
-      args,
-      fingerprint: printsBefore[id] ?? null,
-      sourceChangedDuringRun: (printsBefore[id] ?? null) !== (printsAfter[id] ?? null),
-    };
-  }
+  const o = readOld();
+  const models = { ...(o.models ?? {}) };
+  for (const [id, r] of Object.entries(results)) models[id] = entry({ ...r, id }, printsAfter);
   const run = {
     runId, startedAt, finishedAt, script: `scripts/${CHECKS[check]}`, args, exitCode: code, signal,
     commit, uncommittedModelFiles: dirty, reported: Object.keys(results).length,
+    expected: expected?.total ?? null, expectedIsEstimate: expected?.totalIsEstimate ?? true,
     summaryLine, warnings, complete: complete && code != null,
   };
   const out = {
     check,
     note: 'Written by scripts/capture-check.mjs from the check\'s own printed output. Do not edit by hand.',
     updatedAt: finishedAt,
+    running: false,
     models,
-    runs: [run, ...(old.runs ?? [])].slice(0, 30),
+    runs: [run, ...(o.runs ?? [])].slice(0, 30),
   };
-  writeFileSync(`${file}.tmp`, JSON.stringify(out, null, 1));
-  renameSync(`${file}.tmp`, file);
+  writeOut(out);
   console.error(`\ncapture-check: recorded ${run.reported} model result(s) in docs/checks/${check}.json${run.complete ? '' : ' (the run did not finish normally)'}.`);
   process.exit(code ?? 1);
 });
