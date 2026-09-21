@@ -1411,5 +1411,160 @@
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Lighthouse on a sea disc with a sweeping beam, 71 x 58vmin and centred; complete on the paused frame and on both themes.",
     "motionFlagsResolved": []
+  },
+  {
+    "model": "bars",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The first frame, which a paused card shows, has the bars at their low start values, so the chart's solid body (77 x 44vmin) sits about 8vmin below the canvas middle with a visibly empty top; once the bars grow it recentres (offset 5), which is why the union passes. The limit is 4vmin.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "clock",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Flip clock 20:23 with a seconds tile, 76 x 62vmin and centred; digits crisp on both themes and the flips are clean.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "playground",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "3D tile over a 'persp 400 · rX 20° · rY -35°' caption and three slider pills, stack 76 x 64vmin and centred; readable on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "pie",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Donut chart over a caption and legend, 82 x 63vmin and centred; legend readable on both themes. Its motion run broke ('Cannot fast-forward to the past'), which this review cannot clear.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "scatter",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "3D scatter cube of coloured points, about 39-50 x 51-52vmin and centred; axes and points read on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "gauge",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Speed gauge over a 'Low · 22 km/h' caption and Low/Mid/High pills, 46 x 63vmin and centred; dial numbers readable, the inactive pills pale but legible on light. Its motion run broke ('Cannot fast-forward to the past'), which this review cannot clear.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "timeline",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Road timeline with year signs over a caption and Prev/Next pills, 49 x 62vmin and centred; on a light stage the disabled Prev pill all but disappears, which is acceptable for a disabled control but worth knowing.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "heatmap",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "3D commit heatmap over a caption, 76 x 53vmin and centred; the caption updates per cell without moving the model.",
+    "motionFlagsResolved": [
+      {
+        "flag": "across: flicker at 5,6,11",
+        "reason": "The flagged frames are the pointer sweep moving the highlight from one cell to the next and the caption updating to that cell; that jump between cells is the intended per-cell hover, not a glitch."
+      }
+    ]
+  },
+  {
+    "model": "stackbars",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Stacked bars over a caption and Pro/Team/Starter pills, 75 x 62vmin at rest and up to 70vmin with the hover callout, centred; the callout stays clear of the corners.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "funnel",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "When a stage is hovered the 'Sign-ups · 3,720 · 30% of visitors' callout lands on top of the funnel's own stage labels ('Visitors 12,400', 'Sign-ups 3,720'), so both texts collide and neither reads cleanly on a card or on the large canvas.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "candles",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The candlestick chart itself is small inside its box, and its text is too small to read on a card: the hover readout 'Sep 19 · O $59,770 H $60,480 L $59,310 C $59,860' and the axis labels are about 5px at card size. The caption and 7D/12D pills are fine.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "waterfall",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Waterfall chart with an 'End · $131k' callout over a caption and Aug/Sep pills, 63 x 59vmin and centred; step labels small but legible.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "treemap",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "3D treemap of coins over a caption and 24h/7d pills, about 72-84 x 63vmin and centred; the big tiles' labels read, the smallest are tiny but decorative.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "radar",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "On a light stage the 'Ours' and 'Theirs' legend pills turn pale teal and pale pink while their labels stay white, so the labels are unreadable; on dark it is fine (66 x 59-65vmin, centred, flattening on hover).",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "activity",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:25:41+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "On a light stage the 'MON' label in the middle of the rings is white on the pale stage and all but disappears; the rings, caption and day pills are fine, and on dark it reads well (63-76 x 59vmin, centred).",
+    "motionFlagsResolved": []
   }
 ]
