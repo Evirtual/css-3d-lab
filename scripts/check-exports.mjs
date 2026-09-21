@@ -9,7 +9,10 @@
  *   dims      every image shape × size, and every video shape × quality: the file's actual pixel
  *             size is what the dialog's caption said, and its aspect is the shape picked
  *   picture   the model's box in the file, as fractions of the file, against its box on the
- *             dialog's canvas, as fractions of the canvas (and a downscaled picture difference)
+ *             dialog's canvas, as fractions of the canvas (and a downscaled picture difference).
+ *             A scene that paints the whole canvas (starfield, grid, room…) has the canvas as its
+ *             box, so its file must fill the frame and its picture must line up with the canvas's,
+ *             tile by tile (FULL_CANVAS, align())
  *   slider    at 70% the file is the canvas; at 25/50/100% the model is scaled by fill/0.7 and
  *             stays centred, on screen and in the file
  *   drift     a loop recording, decoded frame by frame: the model's box per frame and the change
@@ -44,7 +47,8 @@
  * one flat colour. That colour is read from a screenshot of the canvas with the scene hidden, not
  * assumed. "Ink" is any pixel more than INK levels away from it; the model's box is the box of the
  * ink. The file is measured the same way against the same colour (see-through files are composited
- * over it first), so the two boxes mean the same thing.
+ * over it first), so the two boxes mean the same thing. A video's backdrop is read off its own
+ * border, which the encoder shifts a little, unless that border is the scene's own paint.
  *
  * The animations are held at one moment (CAPTURE_T ms, as compare-capture does) so the screen and
  * the file are of the same pose. A model that moves by script as well is caught (two screenshots
@@ -188,6 +192,78 @@ window.__px = {
     }
     return { clear: clear / (w * h), opaque: opaque / (w * h), cornerAlpha: corner, cornerRGB };
   },
+  // How a file's picture lines up with the canvas's, for a scene that paints the whole canvas, where
+  // a box of ink says nothing (see FULL_CANVAS). Both at the canvas's own size, luminance only; the
+  // dialog's rounded corners (whatever the canvas shows with the scene hidden that is not its
+  // backdrop) are left out. diff: the mean difference, aligned as they are. tiles: the canvas cut
+  // 3 x 3, each tile slid over the file by up to R pixels each way; the slide that fits best is
+  // where that part of the picture really is in the file. An offset moves every tile the same way,
+  // a crop or zoom moves the outer tiles apart; a tile with nothing in it to line up (flat sky)
+  // fits every slide about as well and is not counted.
+  async align(screenImg, bareImg, bg, file) {
+    const W = screenImg.width, H = screenImg.height;
+    const c = new OffscreenCanvas(W, H), x = c.getContext('2d', { willReadFrequently: true });
+    x.imageSmoothingQuality = 'high';
+    x.drawImage(file, 0, 0, W, H);
+    const f = x.getImageData(0, 0, W, H).data, s = screenImg.data, b = bareImg.data;
+    const A = new Float32Array(W * H), F = new Float32Array(W * H), M = new Uint8Array(W * H);
+    for (let p = 0; p < W * H; p++) {
+      const i = p * 4;
+      A[p] = s[i] * .299 + s[i + 1] * .587 + s[i + 2] * .114;
+      F[p] = f[i] * .299 + f[i + 1] * .587 + f[i + 2] * .114;
+      M[p] = Math.max(Math.abs(b[i] - bg[0]), Math.abs(b[i + 1] - bg[1]), Math.abs(b[i + 2] - bg[2])) <= ${INK} ? 1 : 0;
+    }
+    let sum = 0, n = 0;
+    const shift = [0, 0, 0]; // file less canvas, per channel: a colour cast, where the diff is not the framing
+    for (let p = 0; p < W * H; p++) if (M[p]) { sum += Math.abs(A[p] - F[p]); n++; for (let k = 0; k < 3; k++) shift[k] += f[p * 4 + k] - s[p * 4 + k]; }
+    // The tiles are lined up on detail only: each picture less its own blur. Left in, a smooth
+    // gradient (a sunset sky) plus the encoder's slight shift of colour fits best slid along the
+    // gradient, which says nothing about where the picture is.
+    const detail = (L) => {
+      const k = 4, I = new Float64Array((W + 1) * (H + 1));
+      for (let y = 0; y < H; y++) { let row = 0; for (let x = 0; x < W; x++) { row += L[y * W + x]; I[(y + 1) * (W + 1) + x + 1] = I[y * (W + 1) + x + 1] + row; } }
+      const out = new Float32Array(W * H);
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const x0 = Math.max(0, x - k), x1 = Math.min(W, x + k + 1), y0 = Math.max(0, y - k), y1 = Math.min(H, y + k + 1);
+        const mean = (I[y1 * (W + 1) + x1] - I[y0 * (W + 1) + x1] - I[y1 * (W + 1) + x0] + I[y0 * (W + 1) + x0]) / ((x1 - x0) * (y1 - y0));
+        out[y * W + x] = L[y * W + x] - mean;
+      }
+      return out;
+    };
+    const dA = detail(A), dF = detail(F);
+    const R = Math.max(3, Math.round(Math.min(W, H) * 0.04));
+    const tiles = [];
+    for (let ty = 0; ty < 3; ty++) for (let tx = 0; tx < 3; tx++) {
+      const x0 = R + Math.floor(tx * (W - 2 * R) / 3), x1 = R + Math.floor((tx + 1) * (W - 2 * R) / 3);
+      const y0 = R + Math.floor(ty * (H - 2 * R) / 3), y1 = R + Math.floor((ty + 1) * (H - 2 * R) / 3);
+      const fits = [];
+      let best = null, at0 = null;
+      for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+        let t = 0, k = 0;
+        for (let y = y0; y < y1; y++) for (let xx = x0; xx < x1; xx++) {
+          const p = y * W + xx, q = (y + dy) * W + xx + dx;
+          if (M[p] && M[q]) { t += Math.abs(dA[p] - dF[q]); k++; }
+        }
+        if (!k) continue;
+        const d = t / k;
+        fits.push(d);
+        if (!dx && !dy) at0 = d;
+        if (!best || d < best.d - 1e-9 || (Math.abs(d - best.d) <= 1e-9 && Math.hypot(dx, dy) < Math.hypot(best.dx, best.dy))) best = { dx, dy, d };
+      }
+      if (!best) continue;
+      fits.sort((p, q) => p - q);
+      const typical = fits[fits.length >> 1];
+      // Something to line up: sliding it off its best fit costs something. The file's own noise
+      // (H.264 on a dark sky is about half a level) is there at every slide alike, so a sparse
+      // starfield's tile is telling at a small margin: a few bright pixels moving onto dark ones.
+      // A slide counts as the picture being off only if it fits clearly better than no slide at all,
+      // by the same margin: a repeating pattern (a tunnel's rings a few pixels apart) fits about as
+      // well one period along as where it is.
+      const clear = (worse, better) => worse - better >= 0.15 && worse >= 1.15 * better;
+      tiles.push({ dx: best.dx, dy: best.dy, best: best.d, at0, typical, telling: clear(typical, best.d), moved: at0 === null || clear(at0, best.d) });
+    }
+    return { diff: n ? sum / n : Infinity, rgb: shift.map((v) => (n ? v / n : 0)), tiles, R, W, H };
+  },
   // both pictures over bg, downscaled to the same small size: mean luminance difference
   async likeness(a, b, bg) {
     a = await createImageBitmap(a); b = await createImageBitmap(b);
@@ -301,7 +377,41 @@ async function screen() {
     let moved = 0; for (let i = 0; i < A.data.length; i += 4) if (Math.abs(A.data[i] - B.data[i]) + Math.abs(A.data[i + 1] - B.data[i + 1]) + Math.abs(A.data[i + 2] - B.data[i + 2]) > 30) moved++;
     return { bg: flat.color, bgWorst: flat.worst, bgOff: flat.off, box, full, moving: moved / (A.data.length / 4) };
   }, [withModel, again, without, FAINT]);
-  return { ...info, ...m, png: withModel };
+  return { ...info, ...m, png: withModel, bare: without };
+}
+
+/**
+ * A scene that paints the whole canvas (a sky, a floor, a room): its ink box is the canvas on
+ * screen, so a box cannot say where anything in it is. Such a file is judged on two things
+ * instead: it fills the frame (its box against the canvas's backdrop is the whole frame, so a crop
+ * or an offset shows as a strip of backdrop), and its picture lines up with the canvas's (align()).
+ */
+const FULL_CANVAS = (box) => Boolean(box && box.l < 0.003 && box.t < 0.003 && box.r > 0.997 && box.b > 0.997 && box.share >= 0.5);
+const SHIFT_TOL = 1; // pixels of the canvas a tile's best fit may be off (the file is drawn at another size)
+
+/**
+ * A full-canvas file's picture against the canvas: a line for the report, and a mismatch for each
+ * way it is off. A picture with nothing in it to line up is not passed: it is listed as untested.
+ */
+function judgeAlign(a, { id, what, fault, indent }) {
+  const telling = a.tiles.filter((t) => t.telling);
+  const moved = telling.filter((t) => Math.max(Math.abs(t.dx), Math.abs(t.dy)) > SHIFT_TOL && t.moved !== false);
+  // An offset moves every tile and a crop or zoom every outer one; one tile alone fitting better
+  // elsewhere (a soft glow in a corner that is otherwise dark) is not the picture being off.
+  const off = moved.length >= 2 ? moved : [];
+  const worst = telling.reduce((w, t) => Math.max(w, Math.abs(t.dx), Math.abs(t.dy)), 0);
+  const periodic = telling.filter((t) => Math.max(Math.abs(t.dx), Math.abs(t.dy)) > SHIFT_TOL && t.moved === false).length;
+  const text = `picture diff ${a.diff.toFixed(1)} (mean R,G,B ${a.rgb.map((v) => (v >= 0 ? '+' : '') + v.toFixed(1)).join(',')}) at the canvas's ${a.W}×${a.H}, ${telling.length}/9 tiles to line up, worst best-fit shift ${worst}px (±${a.R} searched)${periodic ? `, ${periodic} of them a repeat that fits as well in place` : ''}${moved.length === 1 ? `, 1 lone tile fits best at (${moved[0].dx},${moved[0].dy})px (${moved[0].best.toFixed(2)} vs ${moved[0].at0?.toFixed(2)} in place) with every other in place` : ''}`;
+  const misses = [];
+  // When every tile is in place the difference is the picture's colour, not where it is: say so.
+  const [r, g, b] = a.rgb.map((v) => (v >= 0 ? '+' : '') + v.toFixed(1));
+  const cast = `file less canvas: R ${r}, G ${g}, B ${b}`;
+  if (a.diff > PIC_TOL) misses.push(`the picture differs from the canvas by ${a.diff.toFixed(1)} levels on average (${cast})${telling.length && !off.length ? ' — every tile is in place, so this is its colour, not its framing' : ''}`);
+  if (off.length) misses.push(`${off.length} of ${telling.length} tiles fit best shifted: ${off.map((t) => `(${t.dx},${t.dy})px, fit ${t.best.toFixed(2)} there vs ${t.at0?.toFixed(2)} in place`).join('; ')} — the picture is offset, cropped or zoomed against the canvas`);
+  say(`${indent}full canvas: ${text}`);
+  if (!only.has('picture')) return;
+  for (const m of misses) miss(id, 'picture', what, m, fault);
+  if (!telling.length) untestable.push(`${id}: ${what} — a full-canvas scene with nothing in any tile to line up, so where its picture sits in the file is not proven (it fills the frame, and its mean difference is ${a.diff.toFixed(1)})`);
 }
 
 /** Presses the dialog's button and waits for the file (or its error). Returns the file as base64. */
@@ -354,13 +464,21 @@ const captionSize = (text) => { const m = /(\d+)\s*×\s*(\d+)/.exec(text ?? '');
 
 /** Measures an image file against a screen measurement. */
 async function measureImage(file, scr) {
-  return lab.evaluate(async ([b64, type, bg, screenPng]) => {
+  return lab.evaluate(async ([b64, type, bg, screenPng, bare, full]) => {
     const img = await __px.decode(__px.fromB64(b64, type));
     const box = __px.box(img, bg);
     const alpha = __px.alpha(img);
     const like = await __px.likeness(__px.fromB64(screenPng), __px.fromB64(b64, type), bg);
-    return { box, alpha, like };
-  }, [file.b64, file.type, scr.bg, scr.png]);
+    let align = null;
+    if (full) {
+      // over the backdrop, as the canvas shows it
+      const bmp = await createImageBitmap(__px.fromB64(b64, type));
+      const c = new OffscreenCanvas(bmp.width, bmp.height), x = c.getContext('2d');
+      x.fillStyle = 'rgb(' + bg.join(',') + ')'; x.fillRect(0, 0, c.width, c.height); x.drawImage(bmp, 0, 0); bmp.close();
+      align = await __px.align(await __px.decode(__px.fromB64(screenPng)), await __px.decode(__px.fromB64(bare)), bg, c);
+    }
+    return { box, alpha, like, align };
+  }, [file.b64, file.type, scr.bg, scr.png, scr.bare, FULL_CANVAS(scr.box)]);
 }
 
 /**
@@ -372,20 +490,36 @@ async function measureImage(file, scr) {
  * blurs under INK and the edge is found a few percent inside where it is — on the file and not the
  * screen, which is measured at full size. `first` measures frame 0 only.
  */
-async function measureVideo(file, bg, { first: firstOnly = false } = {}) {
-  return dlg(async ([src, bg, ink, firstOnly]) => {
+async function measureVideo(file, scr, { first: firstOnly = false } = {}) {
+  const bg = scr.bg;
+  const full = FULL_CANVAS(scr.box);
+  const out = await dlg(async ([src, bg, ink, firstOnly, full]) => {
     const v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.src = src;
     await new Promise((ok, no) => { v.onloadeddata = ok; v.onerror = () => no(new Error('the video would not open')); });
     const W = v.videoWidth, H = v.videoHeight;
     const c = new OffscreenCanvas(W, H), x = c.getContext('2d', { willReadFrequently: true });
     const n = firstOnly ? 1 : Math.max(1, Math.round(v.duration * 30));
-    const frames = []; let prev = null, first = null, backdrop = bg;
+    const frames = []; let prev = null, first = null, backdrop = bg, f0png = null;
     for (let i = 0; i < n; i++) {
       v.currentTime = Math.min(v.duration - 0.001, (i + 0.5) / 30);
       await new Promise((ok) => { v.onseeked = ok; });
       x.drawImage(v, 0, 0, W, H);
       const img = x.getImageData(0, 0, W, H);
-      if (!first) { first = img; backdrop = __px.border(img); }
+      if (!first) {
+        first = img;
+        // The frame's border is the backdrop, read off the file itself so the encoder's slight
+        // shift of colour does not count as ink — unless the border is the scene's own paint (a
+        // sky reaching every edge), which is nowhere near the canvas's backdrop. Then the canvas's
+        // backdrop is the one to measure against, as the screen was.
+        const edge = __px.border(img);
+        backdrop = Math.max(...[0, 1, 2].map((k) => Math.abs(edge[k] - bg[k]))) <= ink ? edge : bg;
+        // frame 0, lossless, to be lined up with the canvas in the lab page (see below)
+        if (full) {
+          const u = new Uint8Array(await (await c.convertToBlob({ type: 'image/png' })).arrayBuffer());
+          let s = ''; for (let k = 0; k < u.length; k += 0x8000) s += String.fromCharCode.apply(null, u.subarray(k, k + 0x8000));
+          f0png = btoa(s);
+        }
+      }
       const box = __px.box(img, backdrop, ink);
       let diff = 0;
       if (prev) { for (let k = 0; k < img.data.length; k += 4) diff += Math.abs(img.data[k] - prev.data[k]) + Math.abs(img.data[k+1] - prev.data[k+1]) + Math.abs(img.data[k+2] - prev.data[k+2]); diff /= (img.data.length / 4) * 3; }
@@ -393,8 +527,16 @@ async function measureVideo(file, bg, { first: firstOnly = false } = {}) {
       prev = img;
     }
     let wrap = 0; for (let k = 0; k < first.data.length; k += 4) wrap += Math.abs(first.data[k] - prev.data[k]) + Math.abs(first.data[k+1] - prev.data[k+1]) + Math.abs(first.data[k+2] - prev.data[k+2]);
-    return { frames, backdrop, wrap: wrap / (first.data.length / 4) / 3, n };
-  }, [file.src, bg, INK, firstOnly]);
+    return { frames, backdrop, f0png, wrap: wrap / (first.data.length / 4) / 3, n };
+  }, [file.src, bg, INK, firstOnly, full]);
+  // A full-canvas scene's frame 0 lined up with the canvas. Done in the lab page, which is not the
+  // model's: nothing the model page does to its own pictures can touch the reference.
+  out.align = full ? await lab.evaluate(async ([f0, png, bare, bg]) => {
+    const bmp = await createImageBitmap(__px.fromB64(f0));
+    try { return await __px.align(await __px.decode(__px.fromB64(png)), await __px.decode(__px.fromB64(bare)), bg, bmp); } finally { bmp.close(); }
+  }, [out.f0png, scr.png, scr.bare, bg]) : null;
+  delete out.f0png;
+  return out;
 }
 
 /** Frame-to-frame steps of the box: centre and size, as shares of the frame. */
@@ -479,6 +621,10 @@ async function checkImages(id) {
       if (only.has('picture')) {
         if (!(gap <= TOL)) miss(id, 'picture', `image ${shape} ${size}`, `model on screen ${boxText(scr.box)}, in the file ${boxText(m.box)} (worst edge ${pc(gap)}% off)`, scr.moving > 0.002 ? 'model (moves by script, so screen and file are different moments)' : 'app');
         if (m.like > PIC_TOL) miss(id, 'picture', `image ${shape} ${size}`, `downscaled picture differs from the canvas by ${m.like.toFixed(1)} levels on average`, scr.moving > 0.002 ? 'model (moves by script)' : 'app');
+        if (m.align) {
+          entry.files[size].align = m.align;
+          judgeAlign(m.align, { id, what: `image ${shape} ${size}`, fault: scr.moving > 0.002 ? 'model (moves by script)' : 'app', indent: '         ' });
+        }
       }
       await back();
     }
@@ -552,11 +698,11 @@ async function checkImages(id) {
       say(`  format ${picture.padEnd(9)} ${sig} ${file.type}, see-through ${pc(m.alpha.clear)}%, opaque ${pc(m.alpha.opaque)}%, corner alpha max ${m.alpha.cornerAlpha}, corner rgb ${corner.slice(0, 3).join(',')} (stage ${scr.bg.join(',')}), model ${boxText(m.box)}`);
       if (picture === 'png-clear') {
         if (sig !== 'png') miss(id, 'formats', picture, `file is ${sig}`, 'app');
-        if (m.alpha.clear < 0.2 || m.alpha.cornerAlpha > 0) miss(id, 'formats', picture, `not see-through: ${pc(m.alpha.clear)}% of pixels clear, corners reach alpha ${m.alpha.cornerAlpha}`, id === 'starfield' ? 'model (full-canvas: it draws into the corners) — check it is stars, not a backdrop' : 'model (paints its own backdrop) or app');
+        if (m.alpha.clear < 0.2 || m.alpha.cornerAlpha > 0) miss(id, 'formats', picture, `not see-through: ${pc(m.alpha.clear)}% of pixels clear, corners reach alpha ${m.alpha.cornerAlpha}`, FULL_CANVAS(scr.box) ? 'model (full-canvas: it paints into the corners on screen too)' : 'model (paints its own backdrop) or app');
       } else {
         if (sig !== (picture === 'jpeg' ? 'jpeg' : 'png')) miss(id, 'formats', picture, `file is ${sig}`, 'app');
         if (m.alpha.opaque < 0.999) miss(id, 'formats', picture, `only ${pc(m.alpha.opaque)}% opaque: the backdrop is missing`, 'app');
-        if (offBg > (picture === 'jpeg' ? 8 : 3) && id !== 'starfield') miss(id, 'formats', picture, `corner is ${corner.slice(0, 3).join(',')}, the stage is ${scr.bg.join(',')}`, 'app');
+        if (offBg > (picture === 'jpeg' ? 8 : 3) && !FULL_CANVAS(scr.box)) miss(id, 'formats', picture, `corner is ${corner.slice(0, 3).join(',')}, the stage is ${scr.bg.join(',')}`, 'app');
       }
       await back();
     }
@@ -612,15 +758,18 @@ async function checkVideos(id) {
           continue;
         }
         const said = captionSize(file.caption);
-        const vid = await measureVideo(file, scr.bg, { first: true });
+        const vid = await measureVideo(file, scr, { first: true });
         const f0 = vid.frames[0]?.box;
         const gap = boxGap(f0, scr.box);
-        entry.takes[q] = { caption: file.caption, width: file.width, height: file.height, duration: file.duration, box0: f0 };
+        entry.takes[q] = { caption: file.caption, width: file.width, height: file.height, duration: file.duration, box0: f0, align: vid.align };
         say(`    ${String(q).padEnd(4)} caption "${file.caption}" -> file ${file.width}×${file.height} ${file.type}, ${file.duration.toFixed(2)}s live, frame 0 model ${boxText(f0)} (edge gap ${pc(gap)}%)`);
         if (!said || said.width !== file.width || said.height !== file.height) miss(id, 'dims', `video ${shape} ${q}p`, `caption says ${file.caption}, file is ${file.width}×${file.height}`, 'app');
         if (Math.min(file.width, file.height) !== q) miss(id, 'dims', `video ${shape} ${q}p`, `short side ${Math.min(file.width, file.height)}`, 'app');
         if (Math.abs(file.width / file.height / want - 1) > 0.01) miss(id, 'dims', `video ${shape} ${q}p`, `aspect ${(file.width / file.height).toFixed(3)}, shape ${want.toFixed(3)}`, 'app');
         if (only.has('picture') && !(gap <= TOL * 1.5)) miss(id, 'picture', `video ${shape} ${q}p`, `frame 0 ${boxText(f0)} vs screen ${boxText(scr.box)} (${pc(gap)}% off)`, scr.moving > 0.002 ? 'model (moves by script)' : 'app');
+        if (vid.align) {
+          judgeAlign(vid.align, { id, what: `video ${shape} ${q}p frame 0`, fault: scr.moving > 0.002 ? 'model (moves by script)' : 'app', indent: '         ' });
+        }
         await back();
       }
     }
@@ -639,7 +788,7 @@ async function checkVideos(id) {
         return dlg(async () => { const el = document.querySelector('.maker [data-frame] video'); const v = document.createElement('video'); v.src = el.src; await new Promise((ok) => { v.onloadedmetadata = ok; }); return { src: el.src, width: v.videoWidth, height: v.videoHeight, duration: v.duration, note: document.querySelector('.maker [data-note]').textContent }; });
       })() : await make();
       if (file.error) { miss(id, 'drift', `${shape}`, `no file: ${file.error}`, 'app'); continue; }
-      const vid = await measureVideo(file, scr.bg);
+      const vid = await measureVideo(file, scr);
       const st = steps(vid.frames);
       const diffs = vid.frames.slice(1).map((f) => f.diff);
       const med = { c: median(st.map((s) => s && Math.max(s.cx, s.cy))), s: median(st.map((s) => s && Math.max(s.w, s.h))), d: median(diffs) };
@@ -651,7 +800,7 @@ async function checkVideos(id) {
       const range = boxes.length ? { l: [Math.min(...boxes.map((b) => b.l)), Math.max(...boxes.map((b) => b.l))], t: [Math.min(...boxes.map((b) => b.t)), Math.max(...boxes.map((b) => b.t))], r: [Math.min(...boxes.map((b) => b.r)), Math.max(...boxes.map((b) => b.r))], b: [Math.min(...boxes.map((b) => b.b)), Math.max(...boxes.map((b) => b.b))] } : null;
       const gap0 = boxGap(vid.frames[0]?.box, scr.box);
       const last = boxes[boxes.length - 1], first = boxes[0];
-      entry.drift = { live, width: file.width, height: file.height, duration: file.duration, frames: vid.n, median: med, worst, jumpAt, spikeAt, missing, range, wrap: vid.wrap, gap0, perFrame: diffs.map((d) => +d.toFixed(2)), boxes: vid.frames.map((f) => f.box && [f.box.l, f.box.t, f.box.r, f.box.b].map((v) => +v.toFixed(4))) };
+      entry.drift = { live, width: file.width, height: file.height, duration: file.duration, frames: vid.n, median: med, worst, jumpAt, spikeAt, missing, range, wrap: vid.wrap, gap0, align: vid.align, perFrame: diffs.map((d) => +d.toFixed(2)), boxes: vid.frames.map((f) => f.box && [f.box.l, f.box.t, f.box.r, f.box.b].map((v) => +v.toFixed(4))) };
       say(`    drift ${live ? 'live 2s, untouched' : 'own loop'} ${file.width}×${file.height}, ${vid.n} frames: change per frame median ${med.d.toFixed(2)} worst ${worst.d.toFixed(2)}; box step median ${pc(med.c)}%/${pc(med.s)}% worst ${pc(worst.c)}%/${pc(worst.s)}% (centre/size); end→start ${vid.wrap.toFixed(2)}; frame 0 vs screen ${pc(gap0)}%`);
       if (range) say(`      box range over the clip: left ${pc(range.l[0])}-${pc(range.l[1])} top ${pc(range.t[0])}-${pc(range.t[1])} right ${pc(range.r[0])}-${pc(range.r[1])} bottom ${pc(range.b[0])}-${pc(range.b[1])}`);
       say(`      per frame: ${diffs.map((d) => d.toFixed(1)).join(' ')}`);
@@ -661,6 +810,9 @@ async function checkVideos(id) {
       if (live && worst.d > 0.5) miss(id, 'drift', shape, `an untouched model changes by up to ${worst.d.toFixed(2)} a frame`, 'app');
       if (!live && first && last && boxGap(first, last) > 0.03) miss(id, 'drift', shape, `last frame's box ${boxText(last)} does not return to the first ${boxText(first)}`, 'app or model');
       if (only.has('picture') && !(gap0 <= TOL * 1.5)) miss(id, 'picture', `video ${shape} loop frame 0`, `${boxText(vid.frames[0]?.box)} vs screen ${boxText(scr.box)}`, 'app');
+      if (vid.align) {
+        judgeAlign(vid.align, { id, what: `video ${shape} loop frame 0`, fault: 'app', indent: '      ' });
+      }
       await back();
     }
   }
