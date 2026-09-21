@@ -1295,22 +1295,25 @@ render();`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the loader is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.31vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .rings {
   display: grid;
   place-items: center;
-  width: 140px;
-  height: 140px;
+  width: calc(140 * var(--u));
+  height: calc(140 * var(--u));
   transform-style: preserve-3d;
 }
 
 /* glowing core: a plain radial gradient (no blur, no filter), gently breathing */
 .rings b {
   grid-area: 1 / 1;
-  width: 70px;
-  height: 70px;
+  width: calc(70 * var(--u));
+  height: calc(70 * var(--u));
   border-radius: 50%;
   background: radial-gradient(
     circle,
@@ -1329,7 +1332,7 @@ render();`,
   grid-area: 1 / 1;
   width: var(--d);
   height: var(--d);
-  border: 4px solid transparent;
+  border: calc(4 * var(--u)) solid transparent;
   border-top-color: var(--c);
   border-bottom-color: var(--c);
   border-radius: 50%;
@@ -1340,16 +1343,16 @@ render();`,
 .rings i::before {
   content: '';
   position: absolute;
-  inset: -3px;
-  border: 1px solid color-mix(in srgb, var(--c) 28%, transparent);
+  inset: calc(-3 * var(--u));
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 28%, transparent);
   border-radius: 50%;
 }
 
 /* --tilt picks the axis the ring tumbles around (0 = X, 90 = Y, 45 = the diagonal),
    --spin is how far the arcs travel around the ring per tumble (whole turns only → seamless) */
-.rings i:nth-of-type(1) { --d: 132px; --c: #8b6cff; --tilt: 0deg;  --spin: 720deg;  --t: 3.6s; --delay: -0.5s; }
-.rings i:nth-of-type(2) { --d: 100px; --c: #ff4d9d; --tilt: 90deg; --spin: -720deg; --t: 2.8s; --delay: -1.3s; }
-.rings i:nth-of-type(3) { --d: 68px;  --c: #ffb547; --tilt: 45deg; --spin: 1080deg; --t: 2.2s; --delay: -0.2s; }
+.rings i:nth-of-type(1) { --d: calc(132 * var(--u)); --c: #8b6cff; --tilt: 0deg;  --spin: 720deg;  --t: 3.6s; --delay: -0.5s; }
+.rings i:nth-of-type(2) { --d: calc(100 * var(--u)); --c: #ff4d9d; --tilt: 90deg; --spin: -720deg; --t: 2.8s; --delay: -1.3s; }
+.rings i:nth-of-type(3) { --d: calc(68 * var(--u));  --c: #ffb547; --tilt: 45deg; --spin: 1080deg; --t: 2.2s; --delay: -0.2s; }
 
 /* read right to left: spin the arcs in the ring's plane, tumble the plane around X,
    then turn that X axis to wherever --tilt says */
