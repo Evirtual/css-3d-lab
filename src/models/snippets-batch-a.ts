@@ -760,6 +760,7 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
       'CSS places every panel from those numbers: <code>rotateY(calc(var(--i) * 1turn / var(--n))) translateZ(var(--apothem))</code>, where <code>--apothem</code> is <code>calc(var(--r) * var(--u))</code>. JS never touches a transform.',
       'The caps are a <code>2R</code> square cut to the polygon. JS writes the <code>clip-path</code>: one corner every <code>360° / n</code>, starting half a side from the centre of panel 0.',
       'Changing <code>n</code> rebuilds the panels. <code>@starting-style</code> gives brand-new elements a first frame to transition from, so they grow out from the axis without any animation JS. It is scoped to a <code>.grow</code> class that JS adds only once the slider moves, so the prism the page opens on is whole from its very first frame, and a paused card shows it full-sized.',
+      'The slider is the control block’s own: track and thumb in <code>vmin</code>, so it is the same share of a card and a full screen. <code>build()</code> also writes <code>--pos</code>, how far along the slider is from 0 to 1, which is where its filled track ends.',
     ],
     html: `<div class="band">
   <div class="view">
@@ -910,20 +911,76 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
   color: #fff;
 }
 
+/* a slider, inside its pill: track and thumb in vmin, never the browser's own px, so it is the
+   same share of every canvas. The empty track is the unselected tint and the filled part the
+   selected gradient; the thumb is the stage's ink in a gradient ring, because the gradient alone
+   is under 3:1 on the pill's tint on the dark stage. Chrome has no filled part of its own: the
+   model's JS writes --pos (0 to 1) on the input as it moves, and the fill ends under the thumb */
+.controls input[type='range'] {
+  --thumb: 4.5vmin;
+  appearance: none;
+  width: 28vmin;
+  height: var(--thumb);
+  margin: 0; /* the browser's is 2px */
+  background: none;
+  color: inherit; /* the thumb is the stage's ink: a form control does not inherit it by itself */
+  cursor: pointer;
+}
+.controls input[type='range']::-webkit-slider-runnable-track {
+  height: 1.2vmin;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, #6a45f5, #d1206f) 0 0 / calc(var(--thumb) / 2 + var(--pos, 0) * (100% - var(--thumb))) 100% no-repeat,
+    rgb(140 150 220 / 0.2);
+}
+.controls input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  box-sizing: border-box;
+  width: var(--thumb);
+  height: var(--thumb);
+  margin-top: calc((1.2vmin - var(--thumb)) / 2);
+  border: 0.8vmin solid transparent;
+  border-radius: 50%;
+  background:
+    linear-gradient(currentColor, currentColor) padding-box,
+    linear-gradient(135deg, #6a45f5, #d1206f) border-box;
+}
+.controls input[type='range']::-moz-range-track {
+  height: 1.2vmin;
+  border-radius: 999px;
+  background: rgb(140 150 220 / 0.2);
+}
+.controls input[type='range']::-moz-range-progress {
+  height: 1.2vmin;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6a45f5, #d1206f);
+}
+.controls input[type='range']::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--thumb);
+  height: var(--thumb);
+  border: 0.8vmin solid transparent;
+  border-radius: 50%;
+  background:
+    linear-gradient(currentColor, currentColor) padding-box,
+    linear-gradient(135deg, #6a45f5, #d1206f) border-box;
+}
+/* focused from the keyboard, the ring goes round the whole pill, out on the stage like every
+   other control's: round the thumb it would sit on the tint, where #6a45f5 is under 3:1 */
+.controls input[type='range']:focus-visible {
+  outline: 0;
+}
+.controls label:has(input[type='range']:focus-visible) {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
+
 .controls label {
   display: flex;
   align-items: center;
   gap: 2vmin;
 }
 
-.controls input {
-  width: 28vmin;
-  /* the browser gives a range input 2px of margin: px, not vmin, so the row was wider on a small
-     canvas than on a large one */
-  margin: 0;
-  accent-color: #2ee6d6;
-  cursor: pointer;
-}
 
 @keyframes spin {
   from { transform: rotateX(-22deg) rotateY(0deg); }
@@ -957,6 +1014,8 @@ function build() {
   for (let i = 0; i < n; i++) html += '<i style="--i:' + i + '"></i>';
   prism.innerHTML = html + '<b></b><b></b>';
   output.textContent = n + ' sides';
+  // how far along the slider is, 0 to 1: the filled part of its track
+  input.style.setProperty('--pos', (n - input.min) / (input.max - input.min));
 }
 
 // the first build stands whole; every rebuild after it flies its new panels in
