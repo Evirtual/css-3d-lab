@@ -1,5 +1,6 @@
 import { ArrayBufferTarget as Mp4Target, Muxer as Mp4Muxer } from 'mp4-muxer';
 import { ArrayBufferTarget as WebmTarget, Muxer as WebmMuxer } from 'webm-muxer';
+import { accessUnitWithColour, avcColour, avcCWithColour, type AvcColour } from './avc-colour';
 import { captureScene, captureSource, poseChange, poseOf, type PoseChange } from './capture-scene';
 import { renderedFrames } from './capture-client';
 import { MAX_PIXELS, renderFits } from '../server/render.mjs';
@@ -314,8 +315,42 @@ async function openVideo(width: number, height: number, transparent: boolean): P
   // codec and the next encode complains about that instead, so it is kept and thrown where the
   // frames are, in the visitor's own words.
   let failed: Error | null = null;
+  // An MP4's H.264 stream is told the colour it was written in (see avc-colour.ts): without it,
+  // a decoder that reads only the stream (Chromium's software one, ffmpeg's) guesses BT.601 and
+  // the film comes out darker and greener than the canvas. A WebM's VP9 already says so in every
+  // key frame.
+  let colour: AvcColour | null = null;
+  let lengthSize = 4;
+  const output = transparent
+    ? (chunk: EncodedVideoChunk, meta?: EncodedVideoChunkMetadata): void => muxer.addVideoChunk(chunk, meta)
+    : (chunk: EncodedVideoChunk, meta?: EncodedVideoChunkMetadata): void => {
+      const config = meta?.decoderConfig;
+      if (config) {
+        colour = avcColour(config.colorSpace);
+        // no description means an Annex B stream, which is not what the MP4 is written from: left alone
+        if (!config.description) colour = null;
+        if (colour && config.description) {
+          const d = config.description;
+          const avcC = ArrayBuffer.isView(d) ? new Uint8Array(d.buffer, d.byteOffset, d.byteLength) : new Uint8Array(d);
+          lengthSize = (avcC[4]! & 3) + 1;
+          try {
+            meta = { ...meta, decoderConfig: { ...config, description: avcCWithColour(avcC, colour) } };
+          } catch (err) {
+            // an SPS this cannot read is left as the encoder wrote it, and said so
+            console.warn('record: the MP4 could not be told its colour; players will guess it', err);
+            colour = null;
+          }
+        }
+      }
+      if (!colour) return (muxer as Mp4Muxer<Mp4Target>).addVideoChunk(chunk, meta);
+      const data = new Uint8Array(chunk.byteLength);
+      chunk.copyTo(data);
+      let unit: Uint8Array | null = null;
+      try { unit = accessUnitWithColour(data, colour, lengthSize); } catch { /* an in-band SPS it cannot read stays as it was */ }
+      (muxer as Mp4Muxer<Mp4Target>).addVideoChunkRaw(unit ?? data, chunk.type, chunk.timestamp, chunk.duration ?? Math.round(1e6 / FPS), meta);
+    };
   const encoder = new VideoEncoder({
-    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+    output,
     error: (err) => {
       failed = err instanceof Error ? err : new Error(String(err));
     },
