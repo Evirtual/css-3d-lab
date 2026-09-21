@@ -1435,6 +1435,7 @@ update();`,
   margin: 0;
   font: 900 calc(72 * var(--u))/1.3 system-ui;   /* the lines stand apart: the shadow of one falls across the next */
   text-align: center;
+  transform: translateY(calc(-4 * var(--u)));
   color: #fff;
   text-shadow:
     calc(var(--dx) * 1 * var(--u))  calc(var(--dy) * 1 * var(--u))  0 #e6a340,
