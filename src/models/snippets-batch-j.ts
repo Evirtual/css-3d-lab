@@ -281,10 +281,10 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
     how: [
       'The body is a <b>cylinder of 10 strips</b>: each one <code>rotateY(n × 36deg)</code>, then a <code>translateZ</code> of 13 units. The nose uses the same angles with triangles that stand on the body’s top edge and lean in by <code>atan(13 / 30)</code>, so their tips meet on the axis.',
       'One 10s timeline drives everything, with matching percentages in each <code>@keyframes</code>: ignition at 6%, lift-off at 13%, out of sight by 40%, on the way back at 56%, touchdown at 88%. Start and end are the same frame, so the loop has no seam.',
-      'The rocket never leaves the frame. It lifts straight off the pad, then flies <b>away from the camera</b>: the flight layer moves 6000 units back with <code>translateZ</code>, and at that depth an 800-unit perspective draws it an eighth of its size. <code>perspective-origin</code> sits at the top of the frame, so a rocket shrinking into the distance also closes in on the sky above the pad: it reads as a climb, and it is a speck near the top when <code>visibility</code> hides it, before it comes back down. (Not <code>opacity</code>: below 1 it would flatten the 3D rocket into one plane.) Per-keyframe easing speeds the climb up and slows the landing down.',
+      'The rocket never leaves the frame. It lifts straight off the pad, then flies <b>away from the camera</b>: the flight layer moves 6000 units back with <code>translateZ</code>, and at that depth an 800-unit perspective draws it an eighth of its size. <code>perspective-origin</code> sits in the sky just above the nose, so a rocket shrinking into the distance also closes in on that point above the pad: it reads as a climb, and it is a speck up there when <code>visibility</code> hides it, before it comes back down. (Not <code>opacity</code>: below 1 it would flatten the 3D rocket into one plane.) Per-keyframe easing speeds the climb up and slows the landing down.',
       'The flame is two crossed planes of radial gradients. The container scales them on and off (short while the rocket is still on the pad, so the flame never pokes out under it); two pseudo-elements flicker with fast <code>alternate</code> loops. Only <code>transform</code> and <code>opacity</code> move.',
       'The camera sways ±28° on the ground and on the rocket with the same animation, so they stay in step, and the fins show their depth.',
-      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the frame is 260 × 215 units and the rocket 114 tall, so the launch is the same share of a gallery card, the editor and a recording canvas.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the frame is 260 × 215 units, the pad 162 units down it and the rocket 114 tall, so the launch is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="launch">
   <div class="base">
@@ -310,14 +310,15 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
     css: `.launch {
   /* one base unit: every length below is a multiple of it, so the launch is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.3vmin;
+  --u: 0.39vmin;
   position: relative;
   width: calc(260 * var(--u));
   height: calc(215 * var(--u));
   perspective: calc(800 * var(--u));
-  /* the eye looks at the top of the frame, so whatever flies away into the distance closes in
-     on the sky above the pad: the rocket climbs as it shrinks, and never leaves the frame */
-  perspective-origin: 50% 0;
+  /* the eye looks at the sky just above the nose, so whatever flies away into the distance closes
+     in on it: the rocket climbs as it shrinks, and never leaves the frame. That point is not the
+     top of the frame, so the climb stays short enough for the rocket on its pad to be drawn large */
+  perspective-origin: 50% calc(60 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -326,7 +327,7 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 .craft {
   position: absolute;
   left: 50%;
-  top: calc(179 * var(--u));
+  top: calc(162 * var(--u));
   transform-style: preserve-3d;
   animation: sway 16s ease-in-out infinite alternate;
 }
@@ -546,7 +547,7 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
    is hidden there. visibility, not opacity: opacity below 1 would flatten the 3D rocket. */
 @keyframes fly {
   0%, 13% { transform: translate3d(0, 0, 0); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
-  22%     { transform: translate3d(0, calc(-60 * var(--u)), calc(-120 * var(--u))); animation-timing-function: cubic-bezier(0.4, 0, 0.9, 0.7); }
+  22%     { transform: translate3d(0, calc(-40 * var(--u)), calc(-120 * var(--u))); animation-timing-function: cubic-bezier(0.4, 0, 0.9, 0.7); }
   39.9%   { visibility: visible; }
   40%, 56% { visibility: hidden; transform: translate3d(0, calc(-120 * var(--u)), calc(-6000 * var(--u))); animation-timing-function: cubic-bezier(0.15, 0.55, 0.4, 1); }
   56.1%   { visibility: visible; }
