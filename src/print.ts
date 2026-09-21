@@ -2,13 +2,56 @@ import type { LiveEdit } from './live-edit';
 import type { PrintLook, PrintSetup } from './models/snippet-utils';
 import { isHeld } from './hold-hover';
 
+/**
+ * A computed colour as sRGB 0–255 channels and an alpha 0–1, or null if it is in a form this does
+ * not read. Computed colours come as rgb()/rgba() (comma or space syntax, an optional "/ alpha")
+ * or, for colour-mix results and the like, color(srgb r g b / a) with channels 0–1.
+ */
+export function parseColour(c: string): { rgb: [number, number, number]; a: number } | null {
+  const s = c.trim().toLowerCase();
+  if (s === 'transparent') return { rgb: [0, 0, 0], a: 0 };
+  const m = /^(rgba?|color)\(\s*(.*?)\s*\)$/.exec(s);
+  if (!m) return null;
+  let body = m[2];
+  const srgb = m[1] === 'color';
+  if (srgb) {
+    if (!body.startsWith('srgb ')) return null;
+    body = body.slice(5);
+  }
+  const parts = body.split(/\s*[,/]\s*|\s+/).filter(Boolean);
+  if (parts.length !== 3 && parts.length !== 4) return null;
+  const num = (p: string, full: number): number => (p.endsWith('%') ? (parseFloat(p) / 100) * full : parseFloat(p));
+  const rgb = parts.slice(0, 3).map((p) => (srgb ? num(p, 1) * 255 : num(p, 255))) as [number, number, number];
+  const a = parts[3] === undefined ? 1 : num(parts[3], 1);
+  if (![...rgb, a].every(Number.isFinite)) return null;
+  return { rgb, a };
+}
+
 /** What the stage looks like right now (dark or light, dots or not), so the print matches it. */
-function lookOf(stage: HTMLElement | null): PrintLook | undefined {
+export function lookOf(stage: HTMLElement | null): PrintLook | undefined {
   if (!stage) return undefined;
-  const cs = getComputedStyle(stage);
-  const bg = /rgba(.*, 0)|transparent/.test(cs.backgroundColor) ? '#0b0d18' : cs.backgroundColor;
-  const rgb = bg.match(/[\d.]+/g)?.map(Number) ?? [11, 13, 24];
-  const light = bg.startsWith('#') ? false : 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 140;
+  // The colour the stage shows on screen: a card's stage is part see-through (alpha 0.7), so its
+  // own colour is laid over its parents' until one is solid. A layer with alpha exactly 0 adds
+  // nothing; one this cannot read, or none solid at all, leaves the dark default underneath.
+  const layers: { rgb: [number, number, number]; a: number }[] = [];
+  let unread = false;
+  for (let el: Element | null = stage; el; el = el.parentElement) {
+    const c = parseColour(getComputedStyle(el).backgroundColor);
+    if (!c) {
+      unread = true;
+      break;
+    }
+    if (c.a > 0) layers.push(c);
+    if (c.a >= 1) break;
+  }
+  const solid = !unread && layers.length > 0 && layers[layers.length - 1].a >= 1;
+  const rgb = layers.reduceRight<[number, number, number]>(
+    (under, c) => [0, 1, 2].map((i) => c.rgb[i] * c.a + under[i] * (1 - c.a)) as [number, number, number],
+    [11, 13, 24],
+  );
+  const bg = solid ? `rgb(${rgb.map(Math.round).join(', ')})` : '#0b0d18';
+  const [r, g, b] = solid ? rgb : [11, 13, 24];
+  const light = 0.2126 * r + 0.7152 * g + 0.0722 * b > 140;
   const dotLayer = getComputedStyle(stage, '::before');
   const dots = dotLayer.display !== 'none' && dotLayer.backgroundImage.includes('gradient')
     ? { image: dotLayer.backgroundImage, size: dotLayer.backgroundSize }
