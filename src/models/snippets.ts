@@ -1116,35 +1116,56 @@ scene.addEventListener('pointercancel', release);`,
       'CSS turns those into position, depth and angle with <code>calc()</code> — JS never writes a transform.',
       'Because only custom properties change, a plain CSS <code>transition</code> animates every move.',
       '<code>z-index</code> by distance keeps nearer covers on top.',
+      'Only the two covers either side of the active one are drawn. Seven fanned out in full are nearly twice the width of the canvas, so the far ones are faded right out — which is what a real cover flow does anyway, and it is what holds the width still however long the list gets.',
+      'The covers are written in one base unit, <code>--u</code>, so they are the same share of a gallery card, the editor and a recording canvas. The arrows below sit in the standard control zone, in plain <code>vmin</code>, because that is the same object in every model that has one.',
     ],
-    html: `<div class="coverflow" tabindex="0">
-  <div class="track">
-    <i style="--hue:250">1</i><i style="--hue:272">2</i>
-    <i style="--hue:294">3</i><i style="--hue:316">4</i>
-    <i style="--hue:338">5</i><i style="--hue:360">6</i>
-    <i style="--hue:22">7</i>
+    html: `<div class="coverflow">
+  <div class="view" tabindex="0" aria-label="Cover flow. Use the left and right arrow keys">
+    <div class="track">
+      <i style="--hue:250">1</i><i style="--hue:272">2</i>
+      <i style="--hue:294">3</i><i style="--hue:316">4</i>
+      <i style="--hue:338">5</i><i style="--hue:360">6</i>
+      <i style="--hue:22">7</i>
+    </div>
   </div>
-  <nav>
-    <button type="button" data-dir="-1" aria-label="Previous">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-    </button>
-    <button type="button" data-dir="1" aria-label="Next">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-    </button>
-  </nav>
+
+  <div class="controls">
+    <output class="caption" aria-live="polite">4 / 7</output>
+    <div class="row">
+      <button type="button" data-dir="-1" aria-label="Previous">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button type="button" data-dir="1" aria-label="Next">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
 </div>`,
     css: `.coverflow {
+  /* one base unit: every length in the covers is a multiple of it, so the flow is the same share
+     of a card, the editor, a full screen and a recording canvas. The control zone under it is in
+     plain vmin, because it is the same object in every model. */
+  --u: 0.25vmin;
   display: grid;
   justify-items: center;
-  gap: 40px;
-  perspective: 700px;
-  outline: none;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
+  font-family: system-ui, sans-serif;
+}
+
+/* the model box: the same height in every model that has controls, so the zone below it lands
+   in the same place whatever the model is */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+  perspective: calc(700 * var(--u));
+  outline-offset: calc(6 * var(--u));
 }
 
 .track {
   position: relative;
-  width: 130px;
-  height: 165px;
+  width: calc(130 * var(--u));
+  height: calc(165 * var(--u));
   transform-style: preserve-3d;
   pointer-events: none;   /* same plane as the active cover: let the covers take the pointer */
 }
@@ -1155,42 +1176,69 @@ scene.addEventListener('pointercancel', release);`,
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 12px;
-  font: 900 2.2rem system-ui;
+  border-radius: calc(12 * var(--u));
+  font: 900 calc(35 * var(--u)) system-ui;
   color: #fff;
   cursor: pointer;
   pointer-events: auto;
   background: linear-gradient(160deg, hsl(var(--hue) 85% 64%), hsl(var(--hue) 70% 36%));
-  box-shadow: 0 16px 24px -14px #000;
+  box-shadow: 0 calc(16 * var(--u)) calc(24 * var(--u)) calc(-14 * var(--u)) #000;
+  opacity: calc(1 - var(--abs) * 0.3);
   transform:
-    translateX(calc(var(--o) * 62px + var(--sign) * 46px))
-    translateZ(calc(var(--abs) * -60px))
+    translateX(calc(var(--o) * 44 * var(--u) + var(--sign) * 34 * var(--u)))
+    translateZ(calc(var(--abs) * -60 * var(--u)))
     rotateY(calc(var(--sign) * -58deg));
-  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.55s;
 }
 
-nav { display: flex; gap: 8px; }
+/* Anything more than two out is off the end of the flow: gone, and out of hit-testing with it,
+   so a click never lands on a cover you cannot see. This is what holds the width still. */
+.track i.is-far {
+  opacity: 0;
+  pointer-events: none;
+}
 
-nav button {
-  width: 44px;
-  height: 36px;
-  border: 1px solid #5a6188;
-  border-radius: 8px;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the covers' own unit. The caption's line box never changes
+   height, so counting up cannot move the flow above it. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
+}
+
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  opacity: 0.7;
+}
+
+.controls .row {
+  display: flex;
+  gap: 2vmin;
+}
+
+.controls button {
   display: grid;
   place-items: center;
-  padding: 0;
-  background: #161a2e;
-  color: #fff;
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
+  border: 0;
+  border-radius: 999px;
+  background: #2a2f4d;
+  color: #eceefb;
   cursor: pointer;
 }
 
 /* SVG arrows, not text like ‹ ›: a glyph sits on the font's baseline, so it never centres */
-nav svg {
-  width: 18px;
-  height: 18px;
+.controls svg {
+  width: 4vmin;
+  height: 4vmin;
 }`,
     js: `const root = document.querySelector('.coverflow');
 const items = [...root.querySelectorAll('.track i')];
+const caption = root.querySelector('.caption');
 let active = Math.floor(items.length / 2);
 
 function layout() {
@@ -1200,7 +1248,10 @@ function layout() {
     el.style.setProperty('--abs', Math.abs(o));
     el.style.setProperty('--sign', Math.sign(o));
     el.style.zIndex = items.length - Math.abs(o);
+    // past the third cover out there is nothing left to see: drop it, and its hit area with it
+    el.classList.toggle('is-far', Math.abs(o) > 2);
   });
+  caption.textContent = (active + 1) + ' / ' + items.length;
 }
 
 function go(dir) {
