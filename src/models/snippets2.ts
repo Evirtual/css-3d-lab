@@ -927,15 +927,22 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 900px;
+  /* one base unit: every length below is a multiple of it, so the floor is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.25vmin;
+  perspective: calc(900 * var(--u));
 }
 
 .floor {
   display: grid;
-  grid-template-columns: repeat(5, 46px);
-  gap: 5px;
+  grid-template-columns: repeat(5, calc(46 * var(--u)));
+  gap: calc(5 * var(--u));
   transform-style: preserve-3d;
-  transform: rotateX(56deg) rotateZ(-45deg);
+  /* a raised tile pops towards the camera, and on a plane tilted this far that is up the screen:
+     a swept-over floor sits higher than a resting one. The nudge is half of that rise, so the
+     floor is a little low at rest and a little high with every tile up, instead of right at rest
+     and 5vmin high the moment you sweep across it */
+  transform: translateY(calc(10 * var(--u))) rotateX(56deg) rotateZ(-45deg);
   /* same plane as its cells: keep the floor itself out of hit-testing, or hover misses in patches */
   pointer-events: none;
 }
@@ -944,7 +951,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
 .floor i {
   pointer-events: auto;
   position: relative;
-  height: 46px;
+  height: calc(46 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -952,9 +959,9 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 7px;
+  border-radius: calc(7 * var(--u));
   background: rgb(139 108 255 / 0.35);
-  border: 1px solid rgb(139 108 255 / 0.7);
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.7);
   pointer-events: none;
   /* slow on the way down */
   transition: transform 1.4s ease-out, background 1.4s ease-out;
@@ -962,7 +969,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
 
 .floor i:hover::before {
   background: #2ee6d6;
-  transform: translateZ(46px);
+  transform: translateZ(calc(46 * var(--u)));
   /* instant on the way up */
   transition-duration: 0.08s;
 }`,
@@ -1248,23 +1255,38 @@ input:checked ~ em {
       'Rounded faces leave see-through holes at the cube’s corners. A square plate 8px behind every face builds a sharp inner cube that fills them.',
     ],
     html: `<div class="table">
-  <div class="scene">
-    <div class="cube">
-      <div>1</div><div>2</div><div>6</div>
-      <div>5</div><div>3</div><div>4</div>
+  <div class="view">
+    <div class="scene">
+      <div class="cube">
+        <div>1</div><div>2</div><div>6</div>
+        <div>5</div><div>3</div><div>4</div>
+      </div>
     </div>
   </div>
-  <button type="button">Roll</button>
-  <output>Click roll</output>
+  <div class="controls">
+    <output class="caption">Click roll</output>
+    <div class="row">
+      <button type="button">Roll</button>
+    </div>
+  </div>
 </div>`,
     css: `.table {
-  /* one base unit: every length is a multiple of it, so the die is the same share of a card,
-     the editor, a full screen and a recording canvas */
+  /* one base unit: every length in the die is a multiple of it, so it is the same share of a
+     card, the editor, a full screen and a recording canvas. The control zone under it is in
+     plain vmin, because it is the same object in every model. */
   --u: 0.21vmin;
   display: grid;
   justify-items: center;
-  gap: 4vmin;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui;
+}
+
+/* the model box: the same height in every model that has controls, so the zone below it lands
+   in the same place whatever the model is */
+.view {
+  display: grid;
+  place-items: center;
+  height: 44vmin;
 }
 
 .scene {
@@ -1310,13 +1332,34 @@ input:checked ~ em {
 
 ${CUBE_FACES}
 
-button {
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the die's own unit. The caption is on its own line above the
+   row, and its line box never changes height, so a new result cannot move the die. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
+}
+
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  opacity: 0.7;
+}
+
+.controls .row {
+  display: flex;
+  gap: 2vmin;
+}
+
+.controls button {
   height: 8vmin;
   min-width: 8vmin;
   padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
   background: #ffb547;
+  color: #1a1d33;
   font: 600 4vmin system-ui;
   cursor: pointer;
 }`,
