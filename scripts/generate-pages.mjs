@@ -17,6 +17,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, resolve } from 'node:path';
 import { createServer } from 'vite';
 import { workingSources } from './model-sources.mjs';
+import { DESCRIPTION_AIM, DESCRIPTION_MAX, TITLE_AIM, TITLE_MAX } from './seo-limits.mjs';
 
 const site = JSON.parse(readFileSync('site.config.json', 'utf8'));
 const root = resolve('.');
@@ -64,6 +65,18 @@ if (missingSource.length) throw new Error(`No snippet found in src/models for: $
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const strip = (html) => html.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 const kind = (d) => (d.category === 'css' ? 'pure CSS' : 'CSS + JavaScript');
+/** A title inside a sentence: its first letter lower-case, unless it is an initialism ("3D bar chart", "JSON"). */
+const inSentence = (t) => (/^[A-Z][a-z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t);
+/**
+ * The longest of the candidates (longest first) that fits a search result: the first within the
+ * aim, else the first within the hard limit, else the last one (the page's own words alone, which
+ * check-seo then names if even they are too long). Limits: scripts/seo-limits.mjs.
+ */
+const fit = (candidates, aim, max) => candidates.find((c) => c.length <= aim) ?? candidates.find((c) => c.length <= max) ?? candidates.at(-1);
+// JSON-LD dates, filled in once each page's dates are known (see <lastmod> below): the page is
+// fingerprinted with these placeholders in it, so its own date never changes its fingerprint.
+const PUBLISHED = '%DATE_PUBLISHED%';
+const MODIFIED = '%DATE_MODIFIED%';
 
 // Share images are 2400 × 1260 (1200 × 630 laid out at 2x): see scripts/generate-media.mjs.
 // ?v= changes with every build, so a link shared after a deploy gets the current image instead of
@@ -72,6 +85,8 @@ const kind = (d) => (d.category === 'css' ? 'pure CSS' : 'CSS + JavaScript');
 // To the minute, not the day: social sites cache an image by its address, so a same-day fix to
 // the images must get a new one, or they keep showing the old picture.
 const IMAGE_VERSION = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+/** A share image's address, as og:image, twitter:image and the JSON-LD image all give it. */
+const imageUrl = (image) => `${site.url}/${image}?v=${IMAGE_VERSION}`;
 /** The footer on every page: brand, what the site is, Ko-fi, then licence, GitHub, copyright. */
 function siteFooter(up) {
   const year = new Date().getFullYear();
@@ -112,13 +127,13 @@ function shell({ path, depth, title, description, jsonLd, body, script, image, i
     <meta property="og:url" content="${url}" />
     ${
       image
-        ? `<meta property="og:image" content="${site.url}/${image}?v=${IMAGE_VERSION}" />
+        ? `<meta property="og:image" content="${imageUrl(image)}" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="2400" />
     <meta property="og:image:height" content="1260" />
     <meta property="og:image:alt" content="${esc(imageAlt)}" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="${site.url}/${image}?v=${IMAGE_VERSION}" />
+    <meta name="twitter:image" content="${imageUrl(image)}" />
     <meta name="twitter:image:alt" content="${esc(imageAlt)}" />`
         : '<meta name="twitter:card" content="summary" />'
     }
@@ -195,8 +210,16 @@ function demoPage(d, index) {
   const prev = demos[index - 1];
   const next = demos[index + 1];
   const path = `models/${d.id}/`;
-  const title = `${d.title} in ${kind(d)} — 3D effect with copy-paste code | ${site.name}`;
-  const description = `${d.description} Live preview, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`;
+  // The model's own words first (check-media holds og:title to "<title> in <kind>" and
+  // og:description to the description), then as much of the fixed wording as still fits.
+  const head = `${d.title} in ${kind(d)}`;
+  const title = fit([`${head} — 3D effect with copy-paste code | ${site.name}`, `${head} with copy-paste code | ${site.name}`, `${head} | ${site.name}`, head], TITLE_AIM, TITLE_MAX);
+  const description = fit(
+    [` Live preview, step-by-step explanation and copy-paste HTML/CSS${snip.js ? '/JS' : ''}.`, ' Live preview, explanation and copy-paste code.', ' With copy-paste code.', ''].map((s) => d.description + s),
+    DESCRIPTION_AIM,
+    DESCRIPTION_MAX,
+  );
+  const image = `media/${d.id}.jpg`;
 
   const panes = [
     { key: 'html', label: 'HTML', lang: 'html', code: snip.html },
@@ -236,6 +259,9 @@ function demoPage(d, index) {
         headline: `${d.title} in ${kind(d)}`,
         description,
         url: `${site.url}/${path}`,
+        image: imageUrl(image),
+        datePublished: PUBLISHED,
+        dateModified: MODIFIED,
         inLanguage: 'en',
         isAccessibleForFree: true,
         // the page holds both: the snippet is MIT, the prose and the site PolyForm Noncommercial
@@ -247,7 +273,7 @@ function demoPage(d, index) {
       },
       {
         '@type': 'HowTo',
-        name: `How to build a ${d.title.toLowerCase()} in ${kind(d)}`,
+        name: `How to build a ${inSentence(d.title)} in ${kind(d)}`,
         step: snip.how.map((text, i) => ({ '@type': 'HowToStep', position: i + 1, text: strip(text) })),
       },
       crumbs([[site.name, `${site.url}/`], [group, `${site.url}/groups/${d.group}/`], [d.title, `${site.url}/${path}`]]),
@@ -328,7 +354,7 @@ function demoPage(d, index) {
       </section>
     </main>`;
 
-  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'model-page.ts', image: `media/${d.id}.jpg`, imageAlt: `${d.title}: a CSS 3D effect, ${kind(d)}` });
+  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'model-page.ts', image, imageAlt: `${d.title}: a CSS 3D effect, ${kind(d)}` });
 }
 
 /* ---------- embed pages: just the demo, for iframes and for the build-time recorder ---------- */
@@ -396,11 +422,15 @@ function groupPage(g) {
   const members = demos.filter((d) => d.group === g);
   const label = GROUPS[g];
   const path = `groups/${g}/`;
-  const title = `${label}: ${members.length} CSS 3D effects with copy-paste code | ${site.name}`;
-  const description = `${members.length} free ${label.toLowerCase()} built with CSS 3D transforms — ${members
-    .slice(0, 4)
-    .map((d) => d.title.toLowerCase())
-    .join(', ')} and more. Live effects, explanations and copy-paste code.`;
+  const title = fit([`${label}: ${members.length} CSS 3D effects with copy-paste code | ${site.name}`, `${label}: ${members.length} CSS 3D effects | ${site.name}`, `${label}: ${members.length} CSS 3D effects`], TITLE_AIM, TITLE_MAX);
+  // as many of the group's first effects as fit, named in the sentence
+  const examples = (n) => `${members.length} free ${inSentence(label)} built with CSS 3D transforms — ${members.slice(0, n).map((d) => inSentence(d.title)).join(', ')} and more.`;
+  const description = fit(
+    [4, 3, 2, 1].flatMap((n) => [`${examples(n)} Live effects, explanations and copy-paste code.`, `${examples(n)} With copy-paste code.`]).concat(examples(1)),
+    DESCRIPTION_AIM,
+    DESCRIPTION_MAX,
+  );
+  const image = 'media/home.jpg';
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -409,6 +439,9 @@ function groupPage(g) {
         name: `${label} — CSS 3D effects`,
         description,
         url: `${site.url}/${path}`,
+        image: imageUrl(image),
+        datePublished: PUBLISHED,
+        dateModified: MODIFIED,
         hasPart: members.map((d) => ({ '@type': 'TechArticle', headline: d.title, url: `${site.url}/models/${d.id}/` })),
       },
       crumbs([[site.name, `${site.url}/`], [label, `${site.url}/${path}`]]),
@@ -438,7 +471,7 @@ function groupPage(g) {
           .join(' ')}</p>
       </section>
     </main>`;
-  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'model-page.ts', image: 'media/home.jpg', imageAlt: `${site.name}: ${demos.length} live CSS 3D effects with copy-paste code` });
+  return shell({ path, depth: 2, title, description, jsonLd, body, script: 'model-page.ts', image, imageAlt: `${site.name}: ${demos.length} live CSS 3D effects with copy-paste code` });
 }
 
 /* ---------- write everything ---------- */
@@ -515,10 +548,17 @@ const fingerprint = (...files) =>
     .update(files.map((f) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n').replaceAll(`?v=${IMAGE_VERSION}`, '')).join('\n'))
     .digest('hex')
     .slice(0, 16);
+//
+// Each entry also keeps `published`: the day the page first appeared, for the JSON-LD
+// datePublished. A page the file has not seen yet is published today. (The entries there before
+// 2026-09-22 were filled in once from git history: a model's day is the commit that first added its
+// id under src/, the group and home pages' the commit that first generated them, the article's the
+// commit that added it.)
 const dates = {};
 const dated = (url, ...files) => {
   const hash = fingerprint(...files);
-  dates[url] = known[url]?.hash === hash ? known[url] : { hash, date: today };
+  const published = known[url]?.published ?? today;
+  dates[url] = known[url]?.hash === hash ? { ...known[url], published } : { hash, date: today, published };
   return dates[url].date;
 };
 for (const g of GROUP_ORDER) dated(`groups/${g}/`, `groups/${g}/index.html`);
@@ -529,6 +569,13 @@ const own = dated('', 'index.html', 'src/generated/all-models.html');
 const lastmod = (u) => (u === '' ? (own > newest ? own : newest) : dates[u].date);
 const datesJson = JSON.stringify(dates, null, 2) + '\n';
 if (!existsSync(DATES) || readFileSync(DATES, 'utf8').replace(/\r\n/g, '\n') !== datesJson) writeFileSync(DATES, datesJson);
+
+// Now the dates are known, into each page's JSON-LD: dateModified is the sitemap's lastmod, so the
+// two never disagree. The home page's are put into index.html by vite.config.ts.
+const fillDates = (file, url) => writeFileSync(file, readFileSync(file, 'utf8').replaceAll(PUBLISHED, dates[url].published).replaceAll(MODIFIED, lastmod(url)));
+for (const g of GROUP_ORDER) fillDates(`groups/${g}/index.html`, `groups/${g}/`);
+for (const d of demos) fillDates(`models/${d.id}/index.html`, `models/${d.id}/`);
+write('src/generated/home-dates.json', JSON.stringify({ published: dates[''].published, modified: lastmod('') }));
 
 const urls = ['', ...(dates['article/'] ? ['article/'] : []), ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `models/${d.id}/`)];
 write(

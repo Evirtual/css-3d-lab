@@ -31,6 +31,8 @@ function allModelsLinks(): Plugin {
       const count = String(JSON.parse(readFileSync(ids, 'utf8')).length);
       // %IMAGE_VERSION%: a new share-image address per build (see IMAGE_VERSION in generate-pages)
       const version = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, ''); // to the minute: a same-day fix gets a new address too
+      // the JSON-LD dates: the day the home page first appeared and its sitemap lastmod (generate-pages)
+      const dates = JSON.parse(readFileSync(resolve(root, 'src/generated/home-dates.json'), 'utf8'));
       return html
         .replace('<!--all-models-->', readFileSync(file, 'utf8'))
         .replace('<!--site-footer-->', readFileSync(resolve(root, 'src/generated/footer.html'), 'utf8'))
@@ -38,7 +40,9 @@ function allModelsLinks(): Plugin {
         // where each snippet sits in the repository, for the viewer's Source on GitHub button
         .replace('<!--snippet-sources-->', () => `<script type="application/json" id="snippet-sources">${readFileSync(resolve(root, 'src/generated/snippet-sources.json'), 'utf8')}</script>`)
         .replaceAll('%MODEL_COUNT%', count)
-        .replaceAll('%IMAGE_VERSION%', version);
+        .replaceAll('%IMAGE_VERSION%', version)
+        .replaceAll('%DATE_PUBLISHED%', dates.published)
+        .replaceAll('%DATE_MODIFIED%', dates.modified);
     },
   };
 }
