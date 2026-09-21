@@ -174,38 +174,51 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:
       '<code>::before</code> hangs from the roof’s bottom edge (<code>transform-origin: top; rotateX(-90deg)</code>) and <code>::after</code> from its right edge (<code>transform-origin: left; rotateY(90deg)</code>). With a 45° turn those are exactly the two walls you can see; the hidden two are never built.',
       'Windows are two layered repeating gradients: opaque wall bands across, over lit/unlit columns. The side wall’s own x axis points down the building, so its pattern is turned 90°.',
       'JS only turns the pointer into <code>--rx</code> / <code>--rz</code>; a transition eases the block there, fast while the pointer moves and slow on the way back.',
+      'Every length in the block is a multiple of one base unit, <code>--u</code>, tied to the canvas: the ground is 172 units square and one em of height is 17 of them, so the city is the same share of a gallery card, the editor and a recording canvas. The whole canvas stays the pointer’s field and the block stands in the middle of it. There is no hint line: the badge in the corner of the stage already says to move the pointer.',
     ],
     html: `<div class="city">
-  <div class="world">
-${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H[i]};--c:${CITY_C[i % CITY_C.length]}"></i>`)}
+  <div class="view">
+    <div class="world">
+${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H[i]};--c:${CITY_C[i % CITY_C.length]}"></i>`, '      ')}
+    </div>
   </div>
-  <b class="hint">Move your pointer</b>
 </div>`,
-    css: `.city {
+    css: `/* the whole canvas is the pointer's field; the block itself stands in the model box */
+.city {
+  /* one base unit: every length in the block is a multiple of it, so the city is the same share
+     of a gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.33vmin;
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
-  perspective: 900px;
+}
+
+/* the model box */
+.view {
+  height: 70vmin;
+  display: grid;
+  place-items: center;
+  perspective: calc(900 * var(--u));
 }
 
 .world {
-  --cell: 40px; /* grid pitch */
+  --cell: calc(40 * var(--u)); /* grid pitch */
   --line: rgb(255 181 71 / 0.4);
   position: relative;
-  width: 172px;
-  height: 172px;
-  font-size: 17px; /* 1em of building height */
-  border: 1px solid rgb(139 108 255 / 0.45);
-  border-radius: 10px;
-  /* street centre lines, one per 40px, in the gaps between the lots */
+  width: calc(172 * var(--u));
+  height: calc(172 * var(--u));
+  font-size: calc(17 * var(--u)); /* 1em of building height */
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.45);
+  border-radius: calc(10 * var(--u));
+  /* street centre lines, one per 40 units, in the gaps between the lots */
   background:
-    repeating-linear-gradient(90deg, transparent 0 5px, var(--line) 5px 7px, transparent 7px 40px),
-    repeating-linear-gradient(transparent 0 5px, var(--line) 5px 7px, transparent 7px 40px),
+    repeating-linear-gradient(90deg, transparent 0 calc(5 * var(--u)), var(--line) calc(5 * var(--u)) calc(7 * var(--u)), transparent calc(7 * var(--u)) calc(40 * var(--u))),
+    repeating-linear-gradient(transparent 0 calc(5 * var(--u)), var(--line) calc(5 * var(--u)) calc(7 * var(--u)), transparent calc(7 * var(--u)) calc(40 * var(--u))),
     #1f1f40;
   transform-style: preserve-3d;
-  transform: translateY(26px) rotateX(calc(58deg + var(--rx, 0deg))) rotateZ(calc(45deg + var(--rz, 0deg)));
+  transform: translateY(calc(8 * var(--u))) rotateX(calc(58deg + var(--rx, 0deg))) rotateZ(calc(45deg + var(--rz, 0deg)));
   transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -218,12 +231,12 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   --wall: color-mix(in srgb, var(--c) 42%, #141830);
   --lit: #ffd89a;
   position: absolute;
-  left: calc(12px + var(--x) * var(--cell));
-  top: calc(12px + var(--y) * var(--cell));
-  width: 28px;
-  height: 28px;
+  left: calc(calc(12 * var(--u)) + var(--x) * var(--cell));
+  top: calc(calc(12 * var(--u)) + var(--y) * var(--cell));
+  width: calc(28 * var(--u));
+  height: calc(28 * var(--u));
   background: color-mix(in srgb, var(--c) 62%, #141830);
-  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--c) 40%, #141830);
+  box-shadow: inset 0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--c) 40%, #141830);
   transform-style: preserve-3d;
   transform: translateZ(calc(var(--h) * 1em));
 }
@@ -241,9 +254,9 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   width: 100%;
   height: calc(var(--h) * 1em);
   background:
-    repeating-linear-gradient(var(--wall) 0 4px, transparent 4px 8px),
-    repeating-linear-gradient(90deg, var(--wall) 0 4px, var(--lit) 4px 8px);
-  background-position: 0 2px, 2px 0;
+    repeating-linear-gradient(var(--wall) 0 calc(4 * var(--u)), transparent calc(4 * var(--u)) calc(8 * var(--u))),
+    repeating-linear-gradient(90deg, var(--wall) 0 calc(4 * var(--u)), var(--lit) calc(4 * var(--u)) calc(8 * var(--u)));
+  background-position: 0 calc(2 * var(--u)), calc(2 * var(--u)) 0;
   transform-origin: top;
   transform: rotateX(-90deg);
 }
@@ -256,14 +269,12 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   height: 100%;
   background:
     linear-gradient(rgb(0 0 0 / 0.28), rgb(0 0 0 / 0.28)),
-    repeating-linear-gradient(90deg, var(--wall) 0 4px, transparent 4px 8px),
-    repeating-linear-gradient(var(--wall) 0 4px, var(--lit) 4px 8px);
-  background-position: 0 0, 2px 0, 0 2px;
+    repeating-linear-gradient(90deg, var(--wall) 0 calc(4 * var(--u)), transparent calc(4 * var(--u)) calc(8 * var(--u))),
+    repeating-linear-gradient(var(--wall) 0 calc(4 * var(--u)), var(--lit) calc(4 * var(--u)) calc(8 * var(--u)));
+  background-position: 0 0, calc(2 * var(--u)) 0, 0 calc(2 * var(--u));
   transform-origin: left;
   transform: rotateY(90deg);
-}
-
-${HINT_CSS}`,
+}`,
     js: pointerJs(
       '.city',
       '.world',
