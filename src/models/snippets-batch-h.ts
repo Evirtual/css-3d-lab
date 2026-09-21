@@ -676,8 +676,9 @@ label:hover .lift {
 
   toggle: {
     how: [
-      'The track lies on the floor (<code>rotateX(58deg)</code>). Its thickness is five copies of the pill stacked 2.4px apart downward, lighter at the top: stacked layers are the cheap way to extrude a rounded shape.',
-      'The knob is a real cube on the track, lifted by half a side so it stands on it. Its <code>transform-origin</code> is its bottom right edge: <code>100% 50% -17px</code> (the third value is Z, from the cube’s centre).',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the track, the cube on it and the label under it are the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'The track lies on the floor (<code>rotateX(58deg)</code>). Its thickness is five copies of the pill stacked 2.4 units apart downward, lighter at the top: stacked layers are the cheap way to extrude a rounded shape.',
+      'The knob is a real cube on the track, lifted by half a side so it stands on it. Its <code>transform-origin</code> is its bottom right edge: <code>100% 50% -17 units</code> (the third value is Z, from the cube’s centre).',
       'Checked, the cube gets <code>rotateY(90deg)</code> about that edge: exactly how a cube tips over. The centre swings up on an arc and lands one side further on, with no translate and no keyframes. The track is two cube widths long, so one tip is the whole travel.',
       'The moon is on the cube’s left face: a quarter turn to the right brings it up on top. The sun, on the old top, ends up facing right.',
       'Only <code>transform</code> and <code>opacity</code> animate: the track’s “on” colour is a layer that fades in, and Off/On are two words in one grid cell. The whole thing is one <code>&lt;label&gt;</code> around a real <code>role="switch"</code> checkbox.',
@@ -696,15 +697,20 @@ label:hover .lift {
 </label>`,
     css: `/* one label: the static hit target around a real checkbox */
 .toggle {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 18px 10px;
+  /* one base unit: every length below is a multiple of it, so the toggle is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.55vmin;
+  /* the label stands under the track, not beside it: side by side the pair is two and a half
+     times wider than tall, and at the 92vmin width limit the whole model falls under the floor */
+  display: grid;
+  justify-items: center;
+  gap: calc(18 * var(--u));
+  padding: calc(18 * var(--u)) calc(10 * var(--u));
   color: #eceefb;
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   font-weight: 800;
   cursor: pointer;
-  perspective: 800px;
+  perspective: calc(800 * var(--u));
   transform-style: preserve-3d;
   user-select: none;
 }
@@ -721,12 +727,12 @@ label:hover .lift {
   opacity: 0;
 }
 
-/* 34px cube + 8px padding: two cube widths long, so one roll is the whole travel */
+/* 34-unit cube + 8 units of padding: two cube widths long, so one roll is the whole travel */
 .track {
   position: relative;
   flex: none;
-  width: 84px;
-  height: 50px;
+  width: calc(84 * var(--u));
+  height: calc(50 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(58deg); /* lying on the floor, seen from above */
 }
@@ -735,22 +741,22 @@ label:hover .lift {
 .track > i:not(.shadow) {
   position: absolute;
   inset: 0;
-  border-radius: 25px;
+  border-radius: calc(25 * var(--u));
 }
 
-.track > i:nth-child(1) { background: color-mix(in srgb, #eceefb 15%, #101326); transform: translateZ(-12px); }
-.track > i:nth-child(2) { background: color-mix(in srgb, #eceefb 18%, #101326); transform: translateZ(-9.6px); }
-.track > i:nth-child(3) { background: color-mix(in srgb, #eceefb 21%, #101326); transform: translateZ(-7.2px); }
-.track > i:nth-child(4) { background: color-mix(in srgb, #eceefb 24%, #101326); transform: translateZ(-4.8px); }
-.track > i:nth-child(5) { background: color-mix(in srgb, #eceefb 27%, #101326); transform: translateZ(-2.4px); }
+.track > i:nth-child(1) { background: color-mix(in srgb, #eceefb 15%, #101326); transform: translateZ(calc(-12 * var(--u))); }
+.track > i:nth-child(2) { background: color-mix(in srgb, #eceefb 18%, #101326); transform: translateZ(calc(-9.6 * var(--u))); }
+.track > i:nth-child(3) { background: color-mix(in srgb, #eceefb 21%, #101326); transform: translateZ(calc(-7.2 * var(--u))); }
+.track > i:nth-child(4) { background: color-mix(in srgb, #eceefb 24%, #101326); transform: translateZ(calc(-4.8 * var(--u))); }
+.track > i:nth-child(5) { background: color-mix(in srgb, #eceefb 27%, #101326); transform: translateZ(calc(-2.4 * var(--u))); }
 
 /* the top: a groove. "On" is a second layer that only fades in */
 .top {
   position: absolute;
   inset: 0;
-  border-radius: 25px;
+  border-radius: calc(25 * var(--u));
   background: color-mix(in srgb, #949bc0 30%, #141830);
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #eceefb 30%, #141830), inset 0 3px 8px rgb(0 0 0 / 0.35);
+  box-shadow: inset 0 0 0 calc(1.5 * var(--u)) color-mix(in srgb, #eceefb 30%, #141830), inset 0 calc(3 * var(--u)) calc(8 * var(--u)) rgb(0 0 0 / 0.35);
 }
 
 .top::before {
@@ -759,7 +765,7 @@ label:hover .lift {
   inset: 0;
   border-radius: inherit;
   background: linear-gradient(90deg, #8b6cff, #ff4d9d);
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #8b6cff, #fff 35%), inset 0 3px 8px rgb(0 0 0 / 0.35);
+  box-shadow: inset 0 0 0 calc(1.5 * var(--u)) color-mix(in srgb, #8b6cff, #fff 35%), inset 0 calc(3 * var(--u)) calc(8 * var(--u)) rgb(0 0 0 / 0.35);
   opacity: 0;
   transition: opacity 0.4s 0.1s;
 }
@@ -769,45 +775,45 @@ label:hover .lift {
 }
 
 .toggle input:focus-visible ~ .track .top {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 4px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(4 * var(--u));
 }
 
 /* the cube's shadow, sliding along with it */
 .shadow {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 34px;
-  height: 34px;
+  top: calc(8 * var(--u));
+  left: calc(8 * var(--u));
+  width: calc(34 * var(--u));
+  height: calc(34 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.5), transparent);
-  transform: translateZ(0.5px) scale(1.25);
+  transform: translateZ(calc(0.5 * var(--u))) scale(1.25);
   transition: transform 0.5s cubic-bezier(0.55, 0, 0.35, 1);
 }
 
 .toggle input:checked ~ .track .shadow {
-  transform: translateZ(0.5px) translateX(34px) scale(1.25);
+  transform: translateZ(calc(0.5 * var(--u))) translateX(calc(34 * var(--u))) scale(1.25);
 }
 
 /* lifted by half a side, so the cube stands on the track */
 .knob {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 34px;
-  height: 34px;
+  top: calc(8 * var(--u));
+  left: calc(8 * var(--u));
+  width: calc(34 * var(--u));
+  height: calc(34 * var(--u));
   transform-style: preserve-3d;
-  transform: translateZ(17px);
+  transform: translateZ(calc(17 * var(--u)));
 }
 
-/* the pivot is the cube's bottom right edge: x = 100%, z = -17px from its centre */
+/* the pivot is the cube's bottom right edge: x = 100%, z = -17 units from its centre */
 .cube {
-  --s: 34px;
+  --s: calc(34 * var(--u));
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform-origin: 100% 50% -17px;
+  transform-origin: 100% 50% calc(-17 * var(--u));
   transition: transform 0.5s cubic-bezier(0.55, 0, 0.35, 1);
 }
 
@@ -824,7 +830,7 @@ ${CUBE_FACES}
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 5px;
+  border-radius: calc(5 * var(--u));
   background: linear-gradient(145deg, #fff, #dcd9ef);
   transform-style: preserve-3d;
 }
@@ -835,7 +841,7 @@ ${CUBE_FACES}
   position: absolute;
   inset: 0; /* full size: a smaller plate leaves a channel along each edge you can see into */
   background: #c9c5e2;
-  transform: translateZ(-3px);
+  transform: translateZ(calc(-3 * var(--u)));
 }
 
 .cube > i:nth-child(2) { background: linear-gradient(145deg, #eceaf8, #cbc7e3); }
@@ -845,37 +851,38 @@ ${CUBE_FACES}
    corner a sliver of the side face shows, and a dark moon there looked like a hole */
 .cube > i:nth-child(1) {
   background: radial-gradient(circle, #fff6df, #ffe3a6);
-  box-shadow: inset 0 0 0 2.5px #dcd9ef;
+  box-shadow: inset 0 0 0 calc(2.5 * var(--u)) #dcd9ef;
   color: #e08a00;
 }
 
 .cube > i:nth-child(4) {
   background: radial-gradient(circle at 40% 35%, #34396e, #181b3c);
-  box-shadow: inset 0 0 0 2.5px #d4d0ea;
+  box-shadow: inset 0 0 0 calc(2.5 * var(--u)) #d4d0ea;
   color: #e9e4ff;
 }
 
 .cube svg {
-  width: 22px;
-  height: 22px;
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
 }
 
 .cube > i:nth-child(4) svg {
-  width: 19px;
-  height: 19px;
+  width: calc(19 * var(--u));
+  height: calc(19 * var(--u));
 }
 
 /* the label and its state: two words in one grid cell, cross-faded */
 .text {
   display: grid;
-  gap: 2px;
+  justify-items: center;
+  gap: calc(2 * var(--u));
   line-height: 1.1;
 }
 
 .text small {
   display: grid;
   color: #949bc0;
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
