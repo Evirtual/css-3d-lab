@@ -15,6 +15,14 @@ const demo = stage && demos.find((d) => d.id === stage.dataset.demo);
 
 if (stage && demo) mountModel(stage, demo.id, demo.title);
 
+// An embed has no Pause switch, so it follows the OS "reduce motion" setting, now and whenever it
+// changes: paused while it asks for less motion. The model's frame reads data-paused from this
+// root (preview.ts, sync), the same signal the site's own Pause switch sets (chrome.ts).
+const lessMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const followMotion = () => document.documentElement.toggleAttribute('data-paused', lessMotion.matches);
+followMotion();
+lessMotion.addEventListener('change', followMotion);
+
 const params = new URLSearchParams(location.search);
 if (params.has('og')) document.documentElement.dataset.og = '';
 // ?reel=tall (9:16, Reels / Shorts / TikTok) or ?reel=wide (16:9, YouTube): the video-shaped layout
