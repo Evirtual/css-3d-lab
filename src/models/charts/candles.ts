@@ -27,8 +27,18 @@ type Day = (typeof CANDLES)[number];
 
 /** The range switch: how many of the latest days are shown. The last one is the default. */
 const RANGES = [7, 12];
-/** The price scale is rounded out to whole steps of this, so its numbers stay tidy. */
-const STEP = 1000;
+/** The price scale is rounded out to half-thousands, and to a whole number of thousands across,
+ * so its three numbers stay tidy while the candles use most of its height. */
+const STEP = 500;
+const bounds = (low: number, high: number): [number, number] => {
+  let min = Math.floor(low / STEP) * STEP;
+  let max = Math.ceil(high / STEP) * STEP;
+  if ((max - min) % (2 * STEP)) {
+    if (low - min < max - high) min -= STEP;
+    else max += STEP;
+  }
+  return [min, max];
+};
 /** The chart's size in px: the same numbers as $w and $h in _candles.scss. */
 const CHART_W = 180;
 const CHART_H = 100;
@@ -49,8 +59,7 @@ const view = (n: number) => {
   const days = CANDLES.slice(offset);
   const low = Math.min(...days.map((d) => d.low));
   const high = Math.max(...days.map((d) => d.high));
-  const min = Math.floor(low / STEP) * STEP;
-  const max = Math.ceil(high / STEP) * STEP;
+  const [min, max] = bounds(low, high);
   /** A price as a fraction of the scale: 0 at the bottom, 1 at the top. */
   const f = (p: number): number => (p - min) / (max - min);
   const change = ((days[n - 1].close - days[0].open) / days[0].open) * 100;
@@ -246,13 +255,13 @@ const json = JSON.stringify(CANDLES, null, 2).replace(/\{\s+([^{}]+?)\s+\}/g, (_
 
 export const snippet: Snippet = {
   how: [
-    'The data is plain JSON, one object per day, as a market API sends it. JS rounds the lowest low and highest high out to whole thousands for the scale, then turns every price into <b>a fraction of that range</b> (0 at the bottom, 1 at the top): <code>--lo</code>, <code>--hi</code>, <code>--o</code>, <code>--c</code> on each candle. Everything you see is CSS.',
+    'The data is plain JSON, one object per day, as a market API sends it. JS rounds the lowest low and highest high out to half-thousands for the scale (and to a whole number of thousands across, so the middle number is tidy too), which leaves the candles most of its height, then turns every price into <b>a fraction of that range</b> (0 at the bottom, 1 at the top): <code>--lo</code>, <code>--hi</code>, <code>--o</code>, <code>--c</code> on each candle. Everything you see is CSS.',
     'Every part is a full-height box, squashed and lifted: the wick is <code>translateY(-lo × 100 units) scaleY(hi − lo)</code> from the bottom, the body the same from <code>min(o, c)</code> with a height of <code>max(o − c, c − o)</code>. Only <code>transform</code> changes, so a new range is a smooth transition with no layout work.',
     'The body is one element and two pseudo-elements: the element is the front, <code>::before</code> is hinged on its right edge and turned <code>rotateY(90deg)</code>, <code>::after</code> is hinged on its top edge and laid flat. A flat lid has no height, so the parent\'s <code>scaleY</code> only carries it to the top. The wick is two 2-unit lines crossed at 90°, so it has depth from any side.',
     'Each candle sits in a column one slot wide, placed with <code>translateX((x + 0.5) × slot)</code>, and <code>slot = width ÷ --n</code>. Switching to 7D sets <code>--n: 7</code>: the last seven slide apart, the scale zooms in, and the older days sink into the floor with <code>scale3d(1, 0, 0)</code> <b>where they stood</b> (depth as well as height, or the flat lid would stay lying on the floor). JS leaves their <code>--x</code> alone and pins the <code>--n</code> they were laid out with on the candle itself, and the candle works its slot out from its own <code>--n</code>, so a day leaving the range never slides off past the edge of the floor. Switching back, it rises in the same place.',
     'The column is the hover target: the full height of the chart, it never moves on hover, and it is the only thing that takes the pointer. The chart is turned, so its left half lies behind the flat boxes around it: they get <code>pointer-events: none</code>.',
-    'There is <b>one</b> tooltip for the whole chart. JS moves it to the pointed-at candle with <code>--tx</code> / <code>--ty</code> and a transform transition glides it there while its text changes, so it slides from candle to candle instead of blinking. It floats 40 units towards you with <code>translateZ</code> (the nearer candles would cover it) and <code>--f</code> makes the end ones hang inwards. It stays flat: <code>opacity</code> on a <code>preserve-3d</code> element flattens it, so its thickness is a hard <code>box-shadow</code>. A finger has no hover, so a tap shows it.',
-    'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the chart is 180 × 100 of them. JS writes the tooltip\'s place as <b>plain numbers</b> in those units, which CSS multiplies by <code>--u</code>; a length in px from JS would stay put while the chart scaled around it. The caption and the 7D / 12D switch are in plain <code>vmin</code>, the same control zone as every other model\'s.',
+    'There is <b>one</b> tooltip for the whole chart. JS moves it to the pointed-at candle with <code>--tx</code> / <code>--ty</code> and a transform transition glides it there while its text changes, so it slides from candle to candle instead of blinking. It hangs beside the candle on the side with more room (<code>--side</code>), level with its high but clamped inside the scale, so it never covers the candle it describes and never grows the chart upwards. It floats 40 units towards you with <code>translateZ</code> (the nearer candles would cover it). It stays flat: <code>opacity</code> on a <code>preserve-3d</code> element flattens it, so its thickness is a hard <code>box-shadow</code>. A finger has no hover, so a tap shows it.',
+    'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the chart is 180 × 100 of them, and its labels are 11 and the tooltip 10, which is 4vmin and 3.6vmin: the size of the control text, so they read on a card. JS writes the tooltip\'s place as <b>plain numbers</b> in those units, which CSS multiplies by <code>--u</code>; a length in px from JS would stay put while the chart scaled around it. The caption and the 7D / 12D switch are in plain <code>vmin</code>, the same control zone as every other model\'s.',
   ],
   html: `<div class="chart">
   <div class="view">
@@ -271,7 +280,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   /* one base unit: every length in the chart is a multiple of it, so it is the same share
      of a card, the editor, a full screen and a recording canvas. The control zone under it is
      in plain vmin, because it is the same object in every model. */
-  --u: 0.26vmin;
+  --u: 0.36vmin;
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
@@ -287,17 +296,18 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
 .view {
   display: grid;
   place-items: center;
-  height: 44vmin;
+  height: 50vmin;
 }
 
 .scene {
   perspective: calc(800 * var(--u));
-  /* the price labels sit off the right edge and the floor and the dates hang below the chart:
-     the room for them is what keeps the chart itself centred in the model box */
-  padding: calc(25 * var(--u)) calc(88 * var(--u)) calc(40 * var(--u)) calc(50 * var(--u));
-  /* the eye places the chart by its candles and floor, not by the price labels beside them:
-     moved right by this much, the candles sit near the middle and the labels hang off to the right */
-  translate: calc(8 * var(--u)) 0;
+  /* the price labels sit off the right edge and the floor and the dates hang below the chart,
+     further on the near (right) side: the room below is what keeps the last date clear of the
+     caption under the model box. The tooltip never rises above the scale, so little is needed on top */
+  padding: calc(8 * var(--u)) calc(88 * var(--u)) calc(57 * var(--u)) calc(50 * var(--u));
+  /* the turn brings the right end nearer, so it draws larger: moved left by this much, the
+     chart, its labels and its floor together sit in the middle */
+  translate: calc(-11 * var(--u)) 0;
   pointer-events: none; /* the chart is turned: only the candles' columns take the pointer */
 }
 
@@ -351,7 +361,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   left: 100%;
   padding-left: calc(6 * var(--u));
   color: color-mix(in srgb, currentColor 65%, transparent);
-  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif; /* 4vmin, the controls' size */
   white-space: nowrap;
   transform: translateY(50%);
 }
@@ -362,7 +372,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   top: calc(100% + calc(6 * var(--u)));
   left: 0;
   color: color-mix(in srgb, currentColor 65%, transparent);
-  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif; /* 4vmin, the controls' size */
   transform: translateZ(calc(15 * var(--u)));
 }
 
@@ -501,9 +511,10 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   opacity: 1;
 }
 
-/* ONE tooltip for the chart: JS sets --tx / --ty (the candle's middle and its high, as plain
-   numbers in the chart's own units, which CSS multiplies by --u) and
-   it glides there. calc(40 * var(--u)) towards you; --f (0 first day … 1 last) makes the ends hang inwards.
+/* ONE tooltip for the chart: JS sets --tx / --ty (the edge beside the candle and the tooltip's
+   top, level with the candle's high but kept inside the scale, as plain numbers in the chart's
+   own units, which CSS multiplies by --u) and --side (1: it hangs to the right of the candle,
+   -1: to the left), and it glides there. calc(40 * var(--u)) towards you.
    Flat on purpose: its thickness is a hard edge up and to the right, where the depth runs. */
 .tip {
   --tone: ${TEAL};
@@ -518,12 +529,13 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
     calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--tone) 55%, #05060c),
     0 0 calc(14 * var(--u)) color-mix(in srgb, var(--tone) 40%, transparent);
   color: ${TEXT}; /* on its own dark card, so it reads on a light stage too */
-  font: 700 calc(12 * var(--u))/calc(15 * var(--u)) system-ui, sans-serif;
+  /* 10 units is 3.6vmin: it reads on a card. Three lines of 13 + padding + border = TIP_H in the JS */
+  font: 700 calc(10 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: pre; /* three short lines: the date, then open and high, then low and close */
   opacity: 0;
   pointer-events: none;
-  transform: translate(calc(var(--tx, 0) * var(--u)), calc((var(--ty, 0) - 12) * var(--u))) translate(calc(var(--f, 0) * -100%), -100%) translateZ(calc(40 * var(--u)));
+  transform: translate(calc(var(--tx, 0) * var(--u)), calc(var(--ty, 0) * var(--u))) translate(calc((var(--side, 1) - 1) * 50%), 0) translateZ(calc(40 * var(--u)));
   transition:
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
@@ -581,8 +593,20 @@ const CANDLES = ${json};
 const chart = document.querySelector('.candles3d');
 const out = document.querySelector('.chart output');
 const buttons = document.querySelectorAll('.controls .row button');
-const STEP = 1000; // the scale is rounded out to whole thousands
-const W = 180, H = 100; // the chart's size in px, as in the CSS
+const STEP = 500; // the scale is rounded out to half-thousands…
+const W = 180, H = 100; // the chart's size in its own units (--u), as in the CSS
+const TIP_H = 49; // the tooltip's height in the same units: 3 lines of 13, padding and border
+
+// …and to a whole number of thousands across, so its middle number is tidy too
+function bounds(low, high) {
+  let min = Math.floor(low / STEP) * STEP;
+  let max = Math.ceil(high / STEP) * STEP;
+  if ((max - min) % (2 * STEP)) {
+    if (low - min < max - high) min -= STEP;
+    else max += STEP;
+  }
+  return [min, max];
+}
 
 // Prices the way trading apps write them: $61,200, $58.5k, +4.8%, −1.2% (a real minus)
 const usd = (v) => '$' + v.toLocaleString('en-US');
@@ -622,8 +646,7 @@ function show(n) {
   const days = CANDLES.slice(offset);
   const low = Math.min(...days.map((d) => d.low));
   const high = Math.max(...days.map((d) => d.high));
-  const min = Math.floor(low / STEP) * STEP;
-  const max = Math.ceil(high / STEP) * STEP;
+  const [min, max] = bounds(low, high);
   const f = (p) => (p - min) / (max - min);
   view = { n, offset, f };
 
@@ -674,9 +697,14 @@ function place(i) {
   const wasOn = tip.classList.contains('is-on');
   if (!wasOn) tip.style.transition = 'none'; // from hidden: appear in place, don't fly in
   tip.textContent = tipLines(d);
-  tip.style.setProperty('--tx', String(((x + 0.5) * W) / view.n)); // the candle's middle, in the chart's own units
-  tip.style.setProperty('--ty', String((1 - view.f(d.high)) * H)); // its high, in the chart's own units
-  tip.style.setProperty('--f', x / (view.n - 1)); // 0 first … 1 last: how far it hangs left
+  // beside the candle, on the side with more room, so it never covers the candle it describes
+  const side = x < view.n / 2 ? 1 : -1;
+  const slot = W / view.n;
+  tip.style.setProperty('--side', side);
+  tip.style.setProperty('--tx', ((x + 0.5) * slot + side * (slot / 2 + 2)).toFixed(1)); // its near edge, in the chart's own units
+  // level with the candle's high, but never above the top of the scale or below the floor
+  const top = (1 - view.f(d.high)) * H - TIP_H / 2;
+  tip.style.setProperty('--ty', Math.min(Math.max(top, 0), H - TIP_H).toFixed(1));
   tip.classList.toggle('is-down', d.close < d.open);
   if (!wasOn) {
     void tip.offsetWidth; // apply the new place before the transition comes back
