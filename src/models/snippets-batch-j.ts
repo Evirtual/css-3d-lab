@@ -1361,14 +1361,22 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
   color: #fff;
 }
 
-/* Next is the way on, so it wears the selected pill's gradient */
+/* Next is the way on, so it wears the selected pill's gradient. The gradient hides the hover
+   tint, so pointed at it brightens instead */
 .controls button:last-child:not(:disabled) {
   background: linear-gradient(135deg, #6a45f5, #d1206f);
   color: #fff;
+  transition: background-color 0.35s, filter 0.35s;
 }
 
+.controls button:last-child:not(:disabled):hover {
+  filter: brightness(1.2);
+}
+
+/* a button that does nothing does not light up when pointed at */
 .controls button:disabled {
   opacity: 0.4;
+  background-color: rgb(140 150 220 / 0.2);
   cursor: default;
 }`,
     js: `const scene = document.querySelector('.timeline .scene');
