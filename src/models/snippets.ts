@@ -588,7 +588,7 @@ ${CUBE_FACES}
       'Each sheet’s end angle is <code>var(--end)</code>, computed per sheet, so the pages fan out.',
       'One number opens the book: <code>--open</code>, registered with <code>@property</code> so it can be animated, runs 0 → 1 and back. Each sheet turns over its own slice of it, the cover’s first and the bottom page’s last. Played backwards the slices come in the opposite order by themselves, so the book shuts bottom page first and the cover comes down last, on top. (A per-sheet <code>animation-delay</code> cannot do this: it keeps the cover first both ways, so the cover shuts under pages that are still open and they pass through it.)',
       'Every length is a multiple of one base unit, <code>--u</code>, so the book is the same share of a gallery card, the editor and a recording canvas.',
-      'The open book is the size the band has to hold, not the shut one: the pages swing past the spine and lift toward you, where the perspective makes them bigger still. The <code>translateX</code> on the book puts the spine right of the middle so the swing has somewhere to go, and the padding above it does the same for the lift.',
+      'The open book is the size the band has to hold, not the shut one: the pages swing past the spine and lift toward you, where the perspective makes them bigger still. Shut, the book is centred; open, it spreads both ways from the spine. So the <code>translate</code> on the book follows <code>--open</code>: it slides the spine from the middle of the shut book to the middle of the canvas as the book opens, and a paused card, which shows the shut book, shows it centred. The padding above it does the same for the lift.',
     ],
     html: `<div class="scene">
   <div class="book">
@@ -618,9 +618,9 @@ ${CUBE_FACES}
   border-radius: calc(2 * var(--u)) calc(8 * var(--u)) calc(8 * var(--u)) calc(2 * var(--u));
   background: #4a3a99;               /* back cover */
   transform-style: preserve-3d;
-  /* the pages swing left past the spine, so the spine sits right of the middle and the open
-     book is what ends up centred, not the shut one */
-  transform: translateX(calc(60 * var(--u))) rotateX(24deg) rotateY(-12deg);
+  /* the pages swing left past the spine, so the book slides right as it opens: shut, the book
+     is centred, and open, the spine is in the middle and the spread is centred */
+  transform: translate(calc(60 * var(--u) * var(--open) + var(--u)), calc(-6 * var(--u))) rotateX(24deg) rotateY(-12deg);
   animation: open 3.6s ease-in-out infinite alternate;
 }
 
