@@ -1299,7 +1299,7 @@ render();`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the loader is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.31vmin;
+  --u: 0.42vmin;
   perspective: calc(800 * var(--u));
 }
 
