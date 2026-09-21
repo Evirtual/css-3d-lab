@@ -94,7 +94,7 @@ body::before {
     radial-gradient(ellipse 60% 60% at 0% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
     radial-gradient(ellipse 60% 60% at 100% 100%, color-mix(in srgb, var(--accent-2) 10%, transparent), transparent 70%);
 }
-main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 64px; }
+main { max-width: 1520px; margin: 0 auto; padding: 24px 16px 64px; }
 h1, h2, h3, p { margin: 0; }
 h1 { font-size: clamp(28px, 4.4vw, 44px); font-weight: 900; line-height: 1.06; letter-spacing: -0.035em; }
 h1 span { background: linear-gradient(100deg, var(--accent), var(--hot) 55%, var(--warm)); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -241,7 +241,7 @@ button, input { font: inherit; color: inherit; }
 tr.more td { text-align: center; padding: 14px; border-bottom: 0; }
 .rv { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .showing { font-size: 13px; color: var(--muted); }
-.table-wrap { overflow-x: auto; margin: 0 -8px; }
+.table-wrap { position: relative; overflow-x: auto; margin: 0 -8px; } /* relative: hidden help texts in the headers stay inside the scroll box */
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
 th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; white-space: nowrap; }
@@ -276,6 +276,7 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .cl li.is-done .box { border-color: transparent; background: linear-gradient(120deg, var(--accent), var(--hot)); }
 .cl li.is-done b { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent); }
 .cl code { background: none; border: 0; }
+.cl li > div { min-width: 0; overflow-wrap: anywhere; }
 table.mini { font-size: 13.5px; }
 table.mini td { padding: 7px 8px; overflow-wrap: anywhere; }
 table.mini code { font-size: 12px; }
@@ -292,6 +293,24 @@ table.mini code { font-size: 12px; }
 .qitem.done { --c: var(--accent); }
 .qitem .when { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
 @media (max-width: 760px) { .board { grid-template-columns: minmax(0, 1fr); } }
+/* wide screens: the lead's record beside the table, in view while the table scrolls */
+@media (min-width: 1100px) {
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 26vw, 380px); gap: 18px; align-items: start; }
+  .split > .lead { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; overscroll-behavior: contain; padding: 16px 14px; }
+  .split .board { grid-template-columns: minmax(0, 1fr); }
+  .split .lead .head { flex-direction: column; align-items: flex-start; }
+}
+.qitem { cursor: default; }
+.qtop { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.qtop > b { flex: 1 1 auto; min-width: 0; }
+.qbrief { margin: 6px 0 4px; cursor: pointer; border-radius: 6px; }
+.qbrief:not(.is-open) { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.qbrief:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.qids { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.qids .mid { font-family: var(--mono); font-size: 11.5px; padding: 1px 7px; border: 1px solid var(--border-strong); border-radius: 999px; color: var(--text); }
+.qids .mid.not-id { border-style: dashed; color: var(--muted); }
+.qmeasured { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.showall { margin: 8px 4px 2px; }
 
 /* notes: one badge by the summary, opening a small closable list */
 .notes-anchor { position: relative; }
@@ -308,8 +327,15 @@ table.mini code { font-size: 12px; }
 .note > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .note__x { flex: none; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
 .note__x:hover { background: var(--border); color: var(--text); }
-th.has-tip { cursor: help; }
-.tipmark { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-left: 3px; border: 1px solid color-mix(in srgb, var(--warm) 60%, transparent); border-radius: 50%; color: var(--warm); font-size: 9.5px; letter-spacing: 0; vertical-align: 1px; }
+/* help icons and their tooltip: one tooltip element, placed next to whichever icon asked */
+.help { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-left: 4px; padding: 0; border: 1px solid color-mix(in srgb, var(--warm) 60%, transparent); border-radius: 50%; background: none; color: var(--warm); font: 700 10px/1 var(--font); letter-spacing: 0; vertical-align: 1px; cursor: help; }
+.help:hover, .help[aria-expanded="true"] { background: color-mix(in srgb, var(--warm) 16%, transparent); border-color: var(--warm); }
+.tip { position: fixed; z-index: 50; max-width: min(300px, calc(100vw - 16px)); padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow), 0 8px 24px -8px rgb(0 0 0 / 0.45); font: 500 13px/1.45 var(--font); letter-spacing: 0; text-transform: none; white-space: normal; pointer-events: none; }
+.tip[hidden] { display: none; }
+.tip code { font-size: 11.5px; }
+.tip::before { content: ''; position: absolute; left: var(--arrow-x, 50%); width: 10px; height: 10px; translate: -50% 0; rotate: 45deg; background: var(--surface-solid); border: 1px solid var(--border-strong); }
+.tip[data-side="below"]::before { top: -6px; border-right: 0; border-bottom: 0; }
+.tip[data-side="above"]::before { bottom: -6px; border-left: 0; border-top: 0; }
 .loadbox { margin-top: 12px; }
 
 @media (max-width: 640px) {
@@ -350,6 +376,7 @@ th.has-tip { cursor: help; }
     <p class="rules" id="rules"></p>
   </section>
 
+  <div class="split">
   <section class="panel" aria-labelledby="tbl-h">
     <h2 id="tbl-h">All models</h2>
     <div class="fbar" id="filters" role="search" aria-label="Filters">
@@ -386,11 +413,6 @@ th.has-tip { cursor: help; }
     </div>
   </section>
 
-  <section class="panel" aria-labelledby="rel-h">
-    <h2 id="rel-h">Docs and release readiness</h2>
-    <div id="readiness"><p class="muted">Loading…</p></div>
-  </section>
-
   <section class="panel lead" aria-labelledby="q-h">
     <div class="head">
       <div>
@@ -401,6 +423,12 @@ th.has-tip { cursor: help; }
     </div>
     <p class="muted">From <code>ledger-queue.json</code>, which the lead session and its agents report through <code>npm run queue -- start|done</code>. Nothing here is checked against git or the checks; the table above is.</p>
     <div id="queue"></div>
+  </section>
+  </div>
+
+  <section class="panel" aria-labelledby="rel-h">
+    <h2 id="rel-h">Docs and release readiness</h2>
+    <div id="readiness"><p class="muted">Loading…</p></div>
   </section>
 </main>
 
@@ -517,6 +545,51 @@ th.has-tip { cursor: help; }
   document.addEventListener('click', () => { if (notesOpen) { notesOpen = false; renderNotes(); } });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && notesOpen) { notesOpen = false; renderNotes(); $('notes-btn').focus(); } });
 
+  /* ---------- help tooltips ---------- */
+  /** A focusable "?" whose text is also a visually hidden span it is described by. */
+  const helpIcon = (id, label, html) => `<button type="button" class="help" aria-label="${esc(label)}" aria-describedby="help-${esc(id)}" aria-expanded="false" data-help="${esc(id)}">?</button><span id="help-${esc(id)}" class="visually-hidden">${html}</span>`;
+  const tip = document.createElement('div');
+  tip.className = 'tip'; tip.hidden = true; tip.setAttribute('aria-hidden', 'true'); // screen readers get the text via aria-describedby
+  document.body.appendChild(tip);
+  let tipFor = null, tipPinned = false;
+  function showTip(btn, pin = false) {
+    const text = document.getElementById(btn.getAttribute('aria-describedby'));
+    if (!text) return;
+    if (tipFor && tipFor !== btn) tipFor.setAttribute('aria-expanded', 'false');
+    tipFor = btn; tipPinned = pin;
+    btn.setAttribute('aria-expanded', 'true');
+    tip.innerHTML = text.innerHTML;
+    tip.hidden = false;
+    placeTip();
+  }
+  function placeTip() {
+    if (!tipFor || !tipFor.isConnected) { hideTip(); return; }
+    const a = tipFor.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight, gap = 10;
+    const below = a.bottom + gap + h <= innerHeight - 8 || a.top - gap - h < 8;
+    const left = Math.min(Math.max(8, a.left + a.width / 2 - w / 2), innerWidth - w - 8);
+    tip.style.left = `${left}px`;
+    tip.style.top = `${below ? a.bottom + gap : a.top - gap - h}px`;
+    tip.dataset.side = below ? 'below' : 'above';
+    tip.style.setProperty('--arrow-x', `${Math.min(Math.max(12, a.left + a.width / 2 - left), w - 12)}px`);
+  }
+  function hideTip() {
+    tipFor?.setAttribute('aria-expanded', 'false');
+    tipFor = null; tipPinned = false; tip.hidden = true;
+  }
+  document.addEventListener('pointerover', (e) => { const b = e.target.closest?.('.help'); if (b && e.pointerType === 'mouse' && !tipPinned) showTip(b); });
+  document.addEventListener('pointerout', (e) => { const b = e.target.closest?.('.help'); if (b && b === tipFor && e.pointerType === 'mouse' && !tipPinned && !b.contains(e.relatedTarget)) hideTip(); });
+  document.addEventListener('focusin', (e) => { const b = e.target.closest?.('.help'); if (b) showTip(b); });
+  document.addEventListener('focusout', (e) => { if (e.target === tipFor && !tipPinned) hideTip(); });
+  // a tap (or click) pins it open; a tap anywhere else closes it
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest?.('.help');
+    if (b) { e.stopPropagation(); if (tipFor === b && tipPinned) hideTip(); else showTip(b, true); return; }
+    if (tipFor) hideTip();
+  }, true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && tipFor) { const b = tipFor; hideTip(); if (document.activeElement !== b) b.focus({ preventScroll: true }); } });
+  addEventListener('scroll', () => tipFor && placeTip(), { passive: true, capture: true });
+  addEventListener('resize', () => tipFor && placeTip());
+
   /** Whether a model passes a set of filters. Every count on a chip is this, over all models. */
   const passes = (m, f) => {
     if (f.filter !== 'all' && m.status !== f.filter) return false;
@@ -567,11 +640,13 @@ th.has-tip { cursor: help; }
         ${gone ? `<br>Its process (pid ${esc(p.pid)}) is gone. The results it wrote are kept; the rest of the run never reported.` : ''}
         <div class="track" aria-hidden="true"><span style="width:${pct}%"></span></div></div>`;
     }).join('');
-    $('thead').innerHTML = `<th>Model</th><th>Status</th>${COLS.map(([k, label]) => {
+    const theadHtml = `<th>Model</th><th>Status</th>${COLS.map(([k, label]) => {
       const p = L.running?.[k];
       const note = NOTES.find((n) => n.col === k); // why the column reads as it does, even after the note is dismissed
-      return `<th${note ? ` class="has-tip" tabindex="0" title="${esc(plain(note.html))}"` : ''}>${label}${note ? ' <span class="tipmark" aria-hidden="true">?</span>' : ''}${p ?` <span class="chip ${p.alive === false ? 's-bad' : 's-chk'}">${p.alive === false ? 'stopped' : 'running'} ${esc(p.done)}/${p.total ?? '?'}</span>` : ''}</th>`;
+      return `<th>${label}${note ? helpIcon(`col-${k}`, `About the ${label} column`, note.html) : ''}${p ?` <span class="chip ${p.alive === false ? 's-bad' : 's-chk'}">${p.alive === false ? 'stopped' : 'running'} ${esc(p.done)}/${p.total ?? '?'}</span>` : ''}</th>`;
     }).join('')}<th>Reviews</th><th>Last commit</th><th class="num">Commits</th>`;
+    // rewritten only when it changes, so an open tooltip is not pulled out from under the reader
+    if ($('thead').dataset.html !== theadHtml) { $('thead').dataset.html = theadHtml; $('thead').innerHTML = theadHtml; }
 
     const staleContract = L.models.filter((m) => m.checks.models?.status === 'pass' && m.checks.models.stale).length;
     const stats = [
@@ -793,6 +868,13 @@ th.has-tip { cursor: help; }
       <p class="muted" style="font-size:13px">From <code>git status</code> at the last build, ${agoSpan(R.at)}; oldest first. Untracked files are in no commit at all. Other agents' work in progress shows here too.</p>${risk}`;
   }
 
+  let doneAll = false;
+  const openBriefs = new Set();
+  $('queue').addEventListener('click', (e) => {
+    const brief = e.target.closest('[data-brief]');
+    if (brief) { const n = brief.dataset.brief; openBriefs.has(n) ? openBriefs.delete(n) : openBriefs.add(n); renderQueue(); return; }
+    if (e.target.closest('[data-done-all]')) { doneAll = !doneAll; renderQueue(); }
+  });
   function renderQueue() {
     const box = $('queue');
     if (qError) { box.innerHTML = `<div class="notice">The lead's record could not be read: ${esc(qError)}</div>`; return; }
@@ -807,10 +889,16 @@ th.has-tip { cursor: help; }
       ['done', 'Done', (a, b) => String(b.finished ?? '').localeCompare(String(a.finished ?? ''))],
     ];
     const other = items.filter((i) => !cols.some(([k]) => k === i.status));
+    const DONE_SHOWN = 3;
     box.innerHTML = head + '<div class="board">' + cols.map(([k, label, order]) => {
       const list = items.filter((i) => i.status === k);
       if (order) list.sort(order);
-      return `<div class="bcol bcol--${k}"><h3><span>${label}</span><b>${list.length}</b></h3>${list.length ? list.map(item(known)).join('') : '<p class="muted" style="margin:4px">None.</p>'}</div>`;
+      // Done keeps its most recent few unless asked for all; the count on the column is always the whole
+      const cut = k === 'done' && !doneAll && list.length > DONE_SHOWN;
+      const shown = cut ? list.slice(0, DONE_SHOWN) : list;
+      const toggle = k === 'done' && list.length > DONE_SHOWN
+        ? `<p class="showall"><button type="button" class="linkish" data-done-all>${doneAll ? `Show only the latest ${DONE_SHOWN}` : `Show all ${list.length} (${list.length - DONE_SHOWN} older hidden)`}</button></p>` : '';
+      return `<div class="bcol bcol--${k}"><h3><span>${label}</span><b>${list.length}</b></h3>${shown.length ? shown.map(item(known)).join('') : '<p class="muted" style="margin:4px">None.</p>'}${toggle}</div>`;
     }).join('') + '</div>'
       + (other.length ? `<div class="notice">${other.length} item${other.length === 1 ? ' has a status' : 's have statuses'} the board does not know, so ${other.length === 1 ? 'it is' : 'they are'} listed here: ${other.map((i) => `<b>${esc(i.name)}</b> (“${esc(i.status)}”)`).join(', ')}.</div>` : '');
   }
@@ -824,18 +912,19 @@ th.has-tip { cursor: help; }
   };
   const item = (known) => (i) => {
     const models = Array.isArray(i.models) ? i.models : [];
-    const unknown = models.filter((id) => !known.has(id));
     const ledger = models.filter((id) => known.has(id)).map((id) => L.models.find((m) => m.id === id));
     const done = ledger.filter((m) => m.converted).length;
     const cls = ['running', 'queued', 'done'].includes(i.status) ? i.status : '';
-    const dur = i.status === 'done' ? (i.started && i.finished ? took(i.started, i.finished) : null) : null;
-    return `<div class="qitem ${cls}"><b>${esc(i.name)}</b>
-      <p class="when">${i.status === 'done'
-        ? `${dur ? `took <b>${esc(dur)}</b> · ` : '<b>no duration</b>: start or finish not recorded · '}done ${i.finished ? when(i.finished) : 'at an unrecorded time'}`
-        : i.started ? `started ${when(i.started)}` : 'not started'}</p>
-      <p>${esc(i.brief)}</p>
-      <p class="muted" style="font-size:13px">${models.length} model(s): ${models.map((id) => `<code>${esc(id)}</code>`).join(', ') || 'none listed'}.
-      ${ledger.length ? `Measured, not claimed: ${done} of ${ledger.length} are converted in the working tree now.` : ''}${unknown.length ? ` <b>Not model ids:</b> ${unknown.map(esc).join(', ')}.` : ''}</p></div>`;
+    const how = i.status === 'done'
+      ? (i.started && i.finished ? `took <b>${esc(took(i.started, i.finished) ?? '?')}</b>` : '<b>no duration</b> (start or finish not recorded)')
+      : i.status === 'running' ? (i.started ? `running since ${agoSpan(i.started).replace(' ago', '')}` : 'no start time recorded') : 'not started';
+    const chip = `<span class="chip ${i.status === 'running' ? 's-chk' : i.status === 'done' ? 's-conv' : 's-none'}">${esc(i.status)}</span>`;
+    const key = esc(i.name);
+    return `<div class="qitem ${cls}"><div class="qtop"><b>${esc(i.name)}</b>${chip}</div>
+      <p class="when">${how}${i.status === 'done' && i.finished ? ` · done ${agoSpan(i.finished)}` : ''}</p>
+      ${i.brief ? `<p class="qbrief${openBriefs.has(i.name) ? ' is-open' : ''}" data-brief="${key}" title="${openBriefs.has(i.name) ? 'Click to shorten' : 'Click to read all of it'}">${esc(i.brief)}</p>` : ''}
+      <div class="qids">${models.length ? models.map((id) => `<span class="mid${known.has(id) ? '' : ' not-id'}" title="${known.has(id) ? 'a model id' : 'not a model id: a label the reporter wrote'}">${esc(id)}</span>`).join('') : '<span class="muted" style="font-size:12px">no models listed</span>'}</div>
+      ${ledger.length ? `<p class="qmeasured">Measured, not claimed: ${done} of ${ledger.length} converted in the working tree now.</p>` : ''}</div>`;
   };
 
   /* ---------- live: what the watcher and the fetches say ---------- */
