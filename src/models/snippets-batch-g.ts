@@ -516,11 +516,12 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 
   businesscard: {
     how: [
-      'The card has real thickness: the printed front and back are two planes at <code>translateZ(±2px)</code>, the back turned with <code>rotateY(180deg)</code>. Both hide their backface, so each shows only while it faces you.',
-      'The painted edge is four rounded slabs 1px apart (they fill the rounded corners) plus four flat walls on the straight parts, which give the edge a clean, lit surface when the card is edge-on.',
-      'Embossing is real depth: each printed side is itself <code>preserve-3d</code>, and the logo and the lines of text are lifted off it with <code>translateZ(2–6px)</code>. As the card turns, they slide against the paper.',
+      'The card has real thickness: the printed front and back are two planes at <code>translateZ(±2 units)</code>, the back turned with <code>rotateY(180deg)</code>. Both hide their backface, so each shows only while it faces you.',
+      'The painted edge is four rounded slabs 1 unit apart (they fill the rounded corners) plus four flat walls on the straight parts, which give the edge a clean, lit surface when the card is edge-on.',
+      'Embossing is real depth: each printed side is itself <code>preserve-3d</code>, and the logo and the lines of text are lifted off it with <code>translateZ(2–6 units)</code>. As the card turns, they slide against the paper.',
       'The idle sway and the flip are on two different elements, so they never fight over <code>transform</code>. The flip is a plain <code>transition</code> with a small overshoot.',
       'The hovered element is a static wrapper; the moving card inside has <code>pointer-events: none</code>, so the flip cannot pull the card out from under the pointer.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the card is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="bizcard" tabindex="0">
@@ -550,7 +551,10 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 }
 
 .scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the card is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.4vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* the static hit area */
@@ -561,9 +565,9 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   --foil-deep: #aa6c16;
   display: grid;
   place-items: center;
-  width: 220px;
-  height: 170px;
-  border-radius: 16px;
+  width: calc(220 * var(--u));
+  height: calc(170 * var(--u));
+  border-radius: calc(16 * var(--u));
   cursor: pointer;
   font-family: system-ui, sans-serif;
   transform-style: preserve-3d;
@@ -572,8 +576,8 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 /* the tilt and a slow idle sway */
 .float {
   position: relative;
-  width: 176px;
-  height: 100px;
+  width: calc(176 * var(--u));
+  height: calc(100 * var(--u));
   pointer-events: none;
   transform-style: preserve-3d;
   animation: float 6s ease-in-out infinite alternate;
@@ -581,10 +585,10 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 
 .shadow {
   position: absolute;
-  inset: 10px -6px -16px;
+  inset: calc(10 * var(--u)) calc(-6 * var(--u)) calc(-16 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.38), transparent);
-  transform: translateZ(-36px);
+  transform: translateZ(calc(-36 * var(--u)));
 }
 
 /* the flip, on its own element */
@@ -602,16 +606,16 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   --flip: 1;
 }
 
-/* 4px thick: four rounded slabs fill the corners of the edge... */
+/* 4 units thick: four rounded slabs fill the corners of the edge... */
 .slab {
   position: absolute;
-  inset: 0.5px; /* at rest the slabs draw the edge: they face you, so it stays one clean line */
-  border-radius: 6px;
+  inset: calc(0.5 * var(--u)); /* at rest the slabs draw the edge: they face you, so it stays one clean line */
+  border-radius: calc(6 * var(--u));
   background: var(--edge);
-  transform: translateZ(calc((var(--i) - 1.5) * 1px));
+  transform: translateZ(calc((var(--i) - 1.5) * 1 * var(--u)));
 }
 
-/* ...four walls give the straight parts a lit surface (inset by the 6px radius) */
+/* ...four walls give the straight parts a lit surface (inset by the 6 units radius) */
 /* the walls only show near side-on (mid-flip); at rest a thin wall seen side-on breaks into dashes */
 .wall {
   position: absolute;
@@ -619,12 +623,12 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   background: linear-gradient(90deg, #b3366e, var(--edge) 50%, #ff82ba);
 }
 
-.wall-t, .wall-b { left: 6px; top: calc(50% - 2px); width: 164px; height: 4px; }
-.wall-l, .wall-r { top: 6px; left: calc(50% - 2px); width: 4px; height: 88px; }
-.wall-t { transform: rotateX(90deg) translateZ(50px); }
-.wall-b { transform: rotateX(-90deg) translateZ(50px); }
-.wall-l { transform: rotateY(-90deg) translateZ(88px); }
-.wall-r { transform: rotateY(90deg) translateZ(88px); }
+.wall-t, .wall-b { left: calc(6 * var(--u)); top: calc(50% - 2 * var(--u)); width: calc(164 * var(--u)); height: calc(4 * var(--u)); }
+.wall-l, .wall-r { top: calc(6 * var(--u)); left: calc(50% - 2 * var(--u)); width: calc(4 * var(--u)); height: calc(88 * var(--u)); }
+.wall-t { transform: rotateX(90deg) translateZ(calc(50 * var(--u))); }
+.wall-b { transform: rotateX(-90deg) translateZ(calc(50 * var(--u))); }
+.wall-l { transform: rotateY(-90deg) translateZ(calc(88 * var(--u))); }
+.wall-r { transform: rotateY(90deg) translateZ(calc(88 * var(--u))); }
 
 /* each printed side is 3D itself, so its print can be lifted off it */
 .front,
@@ -634,8 +638,8 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.24); /* a faint light rim: the outline reads smooth */
+  border-radius: calc(6 * var(--u));
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) rgb(255 255 255 / 0.24); /* a faint light rim: the outline reads smooth */
   transform-style: preserve-3d;
   backface-visibility: hidden;
 }
@@ -650,41 +654,41 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 .front {
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: calc(3 * var(--u));
   background:
     radial-gradient(circle at 50% 38%, rgb(139 108 255 / 0.38), transparent 55%),
-    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(135deg, rgb(255 255 255 / 0.035) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(6 * var(--u))),
     var(--ink);
-  transform: translateZ(2px);
+  transform: translateZ(calc(2 * var(--u)));
 }
 
 .front strong {
-  margin-top: 6px;
+  margin-top: calc(6 * var(--u));
   color: var(--foil);
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   font-weight: 800;
-  letter-spacing: 5px;
-  text-indent: 5px; /* balances the space after the last letter */
-  text-shadow: 0 1px 0 var(--foil-deep);
-  transform: translateZ(3px);
+  letter-spacing: calc(5 * var(--u));
+  text-indent: calc(5 * var(--u)); /* balances the space after the last letter */
+  text-shadow: 0 calc(1 * var(--u)) 0 var(--foil-deep);
+  transform: translateZ(calc(3 * var(--u)));
 }
 
 .front small {
   color: rgb(255 255 255 / 0.6);
-  font-size: 5.5px;
+  font-size: calc(5.5 * var(--u));
   font-weight: 600;
-  letter-spacing: 2.5px;
-  text-indent: 2.5px;
-  transform: translateZ(1.5px);
+  letter-spacing: calc(2.5 * var(--u));
+  text-indent: calc(2.5 * var(--u));
+  transform: translateZ(calc(1.5 * var(--u)));
 }
 
 /* foil prism logo, lifted the most */
 .logo {
   position: relative;
-  width: 34px;
-  height: 30px;
+  width: calc(34 * var(--u));
+  height: calc(30 * var(--u));
   transform-style: preserve-3d;
-  transform: translateZ(6px);
+  transform: translateZ(calc(6 * var(--u)));
 }
 
 .logo i {
@@ -693,63 +697,63 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 }
 
 .logo i:nth-child(1) { inset: 0; background: linear-gradient(135deg, #fff6dc, var(--foil) 40%, var(--foil-deep)); }
-.logo i:nth-child(2) { inset: 9px 7.5px 3px; background: var(--ink); }
+.logo i:nth-child(2) { inset: calc(9 * var(--u)) calc(7.5 * var(--u)) calc(3 * var(--u)); background: var(--ink); }
 .logo i:nth-child(3) {
-  top: 15px;
-  left: 30px;
-  width: 26px;
-  height: 9px;
+  top: calc(15 * var(--u));
+  left: calc(30 * var(--u));
+  width: calc(26 * var(--u));
+  height: calc(9 * var(--u));
   clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 60%); /* the spectrum fanning out */
   background: linear-gradient(#ff4d9d 0 33%, #ffb547 0 66%, #2ee6d6 0);
 }
 
 .back {
   justify-content: center;
-  padding: 12px 14px;
+  padding: calc(12 * var(--u)) calc(14 * var(--u));
   color: #fff;
   background:
     radial-gradient(circle at 100% 0%, rgb(255 181 71 / 0.55), transparent 50%),
     linear-gradient(135deg, #8b6cff, #c55dcb);
-  transform: rotateY(180deg) translateZ(2px);
+  transform: rotateY(180deg) translateZ(calc(2 * var(--u)));
 }
 
-.back strong { font-size: 13px; font-weight: 800; line-height: 1; text-shadow: 0 1px 0 rgb(0 0 0 / 0.25); transform: translateZ(3px); }
-.back small { margin: 3px 0 9px; font-size: 6.5px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; transform: translateZ(2px); }
+.back strong { font-size: calc(13 * var(--u)); font-weight: 800; line-height: 1; text-shadow: 0 calc(1 * var(--u)) 0 rgb(0 0 0 / 0.25); transform: translateZ(calc(3 * var(--u))); }
+.back small { margin: calc(3 * var(--u)) 0 calc(9 * var(--u)); font-size: calc(6.5 * var(--u)); font-weight: 600; letter-spacing: calc(1.5 * var(--u)); text-transform: uppercase; opacity: 0.85; transform: translateZ(calc(2 * var(--u))); }
 
 .back span {
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin-top: 3px;
-  font-size: 6.5px;
+  gap: calc(5 * var(--u));
+  margin-top: calc(3 * var(--u));
+  font-size: calc(6.5 * var(--u));
   font-weight: 500;
-  transform: translateZ(1.5px);
+  transform: translateZ(calc(1.5 * var(--u)));
 }
 
 .back span::before {
   content: '';
-  width: 4px;
-  height: 4px;
+  width: calc(4 * var(--u));
+  height: calc(4 * var(--u));
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 0 1.5px rgb(255 77 157 / 0.6);
+  box-shadow: 0 0 0 calc(1.5 * var(--u)) rgb(255 77 157 / 0.6);
 }
 
 /* the small mark in the corner */
 .back b {
   position: absolute;
-  top: 12px;
-  right: 14px;
-  width: 18px;
-  height: 16px;
+  top: calc(12 * var(--u));
+  right: calc(14 * var(--u));
+  width: calc(18 * var(--u));
+  height: calc(16 * var(--u));
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
   background: linear-gradient(135deg, #fff, rgb(255 255 255 / 0.55));
-  transform: translateZ(4px);
+  transform: translateZ(calc(4 * var(--u)));
 }
 
 @keyframes float {
-  from { transform: translateY(-3px) rotateX(16deg) rotateY(-20deg) rotateZ(-5deg); }
-  to   { transform: translateY(3px) rotateX(10deg) rotateY(-8deg) rotateZ(-3deg); }
+  from { transform: translateY(calc(-3 * var(--u))) rotateX(16deg) rotateY(-20deg) rotateZ(-5deg); }
+  to   { transform: translateY(calc(3 * var(--u))) rotateX(10deg) rotateY(-8deg) rotateZ(-3deg); }
 }`,
   },
 
