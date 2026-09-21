@@ -1633,7 +1633,7 @@ controls.addEventListener('click', (e) => {
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the window is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.40vmin;
+  --u: 0.47vmin;
   perspective: calc(800 * var(--u));
 }
 
@@ -1812,12 +1812,13 @@ controls.addEventListener('click', (e) => {
   rotate: 90deg;
 }
 
-/* translateY first: the bob is straight up and down on screen. The window is lifted 16 units off
-   its layout box: the shadow is cast below it and the tilt throws the drawing downward, so the
-   window has to sit that much higher for the whole thing to be centred. */
+/* translateY first: the bob is straight up and down on screen. Measured by what it paints, the
+   drawing already sits a little above the layout box (the layers rise towards the viewer, which
+   is up the screen at this tilt), so the bob runs from 7 units below the box to 1 above it and
+   the drawing stays centred over the whole swing. */
 @keyframes bob {
-  from { transform: translateY(calc(-8 * var(--u))) rotateX(55deg) rotateZ(-38deg); }
-  to   { transform: translateY(calc(-16 * var(--u))) rotateX(55deg) rotateZ(-38deg); }
+  from { transform: translateY(calc(7 * var(--u))) rotateX(55deg) rotateZ(-38deg); }
+  to   { transform: translateY(calc(-1 * var(--u))) rotateX(55deg) rotateZ(-38deg); }
 }`,
   },
 };
