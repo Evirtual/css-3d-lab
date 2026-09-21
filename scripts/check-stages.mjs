@@ -18,6 +18,9 @@
  *   large       the page at 1600 × 1000
  *   fullscreen  ...with the stage put full screen
  *   1:1 4:3 3:2 16:9 9:16   the export dialog's canvas at each shape
+ *   file        the page a visitor takes away ("Copy as one HTML file", "Open in new tab"): the
+ *               standalone document on its own, at 1280 × 800, with no page error
+ *   file-400    ...and at 400 × 400
  *
  * Every surface gives the model a different canvas, so nothing here compares pixels: everything is
  * in vmin of the canvas the model is in, which is the unit the contract is written in. A model that
@@ -271,7 +274,8 @@ const LOOK = `() => {
 const lookFn = new Function('return ' + LOOK)();
 
 const SHAPES = ['1:1', '4:3', '3:2', '16:9', '9:16'];
-const STAGES = ['card', 'viewer', 'page', 'edit-live', 'edit-reset', 'edit-saved', 'large', 'fullscreen', ...SHAPES];
+const FILES = [['file', 1280, 800], ['file-400', 400, 400]];
+const STAGES = ['card', 'viewer', 'page', 'edit-live', 'edit-reset', 'edit-saved', 'large', 'fullscreen', ...SHAPES, ...FILES.map(([name]) => name)];
 
 const args = process.argv.slice(2);
 const asJson = args.includes('--json');
@@ -405,6 +409,7 @@ await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
+const { standaloneDoc } = await vite.ssrLoadModule('/src/models/snippet-utils.ts');
 // every model the gallery shows, as check-models runs with no ids
 const ids = wanted.length ? wanted : demos.map((d) => d.id);
 
@@ -485,6 +490,33 @@ async function press(locator) {
  * in its document under :hover, and (for a settled reading) every transition landed. Returns
  * null, never a guess, when there is no frame there or it never says it is ready.
  */
+/**
+ * The file a visitor takes away: the standalone document ("Copy as one HTML file" and "Open in
+ * new tab" both hand over standaloneDoc with no stage: the body a centred grid, always dark, no
+ * #c3d-scene and no resize snap), opened on its own in a tab of the given size, as a page of its
+ * own. The pointer never enters that tab. The one thing added is an empty #c3d-held, so the
+ * reading can force :hover for the widest extent as it does on every other surface. Every page
+ * error is kept: a file that throws is not the model the site showed.
+ */
+async function lookFile(id, title, width, height) {
+  const html = standaloneDoc(title, { how: [], ...snippets[id] }).replace('</head>', '<style id="c3d-held"></style>\n</head>');
+  const tab = await context.newPage();
+  const errors = [];
+  tab.on('pageerror', (e) => errors.push(e.message.split('\n')[0]));
+  try {
+    await tab.setViewportSize({ width, height });
+    const url = `${base}/__c3d-file/${id}.html`;
+    await tab.route(url, (r) => r.fulfill({ contentType: 'text/html', body: html }));
+    await tab.goto(url, { waitUntil: 'load' });
+    await tab.waitForTimeout(800); // the model's own script, and a first frame of its animation
+    const hovered = await tab.evaluate(() => document.querySelector(':hover') !== null).catch(() => true);
+    const seen = await tab.evaluate(lookFn).catch(() => null);
+    return { seen: seen && { ...seen, frameW: width, frameH: height, pose: hovered ? 'pointed' : 'rest', parkedOn: 'nothing (the pointer never entered)' }, errors };
+  } finally {
+    await tab.close();
+  }
+}
+
 async function look(selector, { timeout = 20_000, settle = false } = {}) {
   const handle = await page.waitForSelector(`${selector} iframe[data-ready="true"]`, { timeout, state: 'attached' }).catch(() => null);
   if (!handle) return null;
@@ -677,6 +709,13 @@ for (const id of ids) {
     row.notes.push('full screen could not be entered in this browser, so that stage was not measured');
   }
   await page.setViewportSize({ width: 1280, height: 900 });
+
+  /* ---------- the file a visitor takes away ---------- */
+  for (const [name, width, height] of FILES) {
+    const file = await lookFile(id, demo.title, width, height);
+    row.stages[name] = file.seen;
+    for (const e of file.errors) row.notes.push(`${name} (${width} × ${height}): page error: ${e}`);
+  }
 
   } catch (err) {
     // a stage that could not be driven is reported as unmeasured, never guessed at

@@ -146,8 +146,10 @@ What the frame clips, the picture cannot show: a model drawn past the canvas edg
 to the edge, so its numbers are a floor.
 
 `node scripts/check-stages.mjs` measures the same model on every surface — card, viewer, page,
-the editor's live, reset and saved states, a large page, full screen, and the export dialog's
-canvas at every shape — and reports any whose width, height or offset in vmin disagree.
+the editor's live, reset and saved states, a large page, full screen, the export dialog's
+canvas at every shape, and the file a visitor takes away ("Copy as one HTML file", "Open in new
+tab": the standalone document on its own at 1280 × 800 and 400 × 400, which must also run with no
+page error) — and reports any whose width, height or offset in vmin disagree.
 A full-canvas model has no fixed size to compare, so it is judged on filling the canvas at every
 moment, and on showing the same scene: at 12 instants of its animation, what is in view is
 compared thing by thing on one mapping for the whole scene. Each axis is measured in shares of the
