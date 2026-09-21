@@ -112,12 +112,13 @@
   {
     "model": "dice",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:07:40+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Die sits above a standard caption and Roll pill in the control zone, whole stack about 58vmin tall and centred; paused on a readable 1-2-3 corner.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "Die over the \"Click roll\" caption and the Roll pill, stack about 35 x 58vmin, centred (0.6vmin off sideways); the die itself is about 28vmin, on the small side of its 50vmin box, but reads. Paused on a finished 1-2-3 corner. Roll tumbles it (filmed at 250ms steps: real tumbling, not a snap), it lands with the rolled face to the front and the caption says \"You rolled 5\". The control block measures as the shared one (8vmin pill, 3vmin padding, 600 4vmin text, 4.5vmin caption at 0.7) and reads on both stages. Description and how steps match.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at e1a1c76."
   },
   {
     "model": "wordcube",
@@ -174,22 +175,22 @@
   {
     "model": "neonbars",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:07:40+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Bar chart with caption and year pills, stack about 64 x 59vmin and centred; the month and axis labels are small on a card but still legible, and the caption and pills are standard.",
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "Bar chart over the caption and 2024/2025/2026 pills, about 64 x 65vmin, centred. Paused on the grown 2024 bars. Year pills regrow the bars and rescale the back wall (2025: peak May $109k, 2026: $157k, scale 160), and the single tooltip glides to the pointed-at bar. The pills measure as the shared block. Month and axis labels are small on a card and pale lavender on the light stage, but legible; the caption and pills read on both. Description and how match.",
     "motionFlagsResolved": [
       {
         "flag": "hover button#1 \"2024\": changes nothing on screen",
-        "reason": "2024 is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "2024 is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pills beside it change about 60% of theirs, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at e1a1c76)"
       },
       {
         "flag": "leave button#1 \"2024\": changes nothing on screen",
-        "reason": "2024 is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "2024 is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pills beside it change about 60% of theirs, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at e1a1c76)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at e1a1c7626fa1539e6516e04768be420a5275a9d1 (re-review agent 2): 2 of 2 current flag(s) confirmed false alarms."
   },
   {
     "model": "equalizer",
@@ -361,12 +362,13 @@
   {
     "model": "coverflow",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:10:32+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Coverflow of numbered cards over a '4 / 7' caption and two arrow pills in the control zone; stack about 56 x 65vmin, centred, arrows finger-sized.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "Cover flow of numbered cards over a \"4 / 7\" caption and two arrow pills, about 72 x 65vmin and centred. Paused on cover 4 with two either side. The arrows move the flow (4 to 3 and back) with the caption following, and the pills measure as the shared block (8 x 10vmin). Reads on both stages. The how steps (only two covers either side drawn) match what shows.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at e1a1c76."
   },
   {
     "model": "badge",
@@ -401,46 +403,46 @@
   {
     "model": "cubenav",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:12:19+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Photo cube over a '01 · Dawn' caption and an arrow-dot-arrow row, stack about 58vmin and centred; the cube itself is on the small side (about 30vmin) but the pair reads as one unit and turns cleanly.",
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "Photo cube over a \"01 · Dawn\" caption and an arrow, four dots, arrow row; the stack is 58 x 58vmin and centred, the cube itself small, about 26vmin, in its 50vmin box, but the pair reads as one unit. Arrows and dots turn the cube to Night, Dawn, Reef and Dusk with the caption following. Arrows are the shared 8vmin pills; the dots are 8vmin buttons drawing a small dot, finger-sized as the snippet says. Reads on both stages.",
     "motionFlagsResolved": [
       {
-        "flag": "click button#1 \"Go to Dawn\": its hit area is mostly over empty canvas (51 of 69 reachable points draw nothing)",
-        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "click button#2 \"Go to Reef\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
-        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "click button#3 \"Go to Dusk\": its hit area is mostly over empty canvas (60 of 69 reachable points draw nothing)",
-        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "click button#4 \"Go to Night\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
-        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
-      },
-      {
         "flag": "hover button#1 \"Go to Dawn\": its hit area is mostly over empty canvas (51 of 69 reachable points draw nothing)",
-        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
+        "reason": "Each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target; hovering one shows the pill tint (probed: about half its pixels change) and clicking turns the cube to that face (confirmed by eye at e1a1c76)"
       },
       {
         "flag": "hover button#2 \"Go to Reef\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
-        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
+        "reason": "Each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target; hovering one shows the pill tint (probed: about half its pixels change) and clicking turns the cube to that face (confirmed by eye at e1a1c76)"
       },
       {
         "flag": "hover button#3 \"Go to Dusk\": its hit area is mostly over empty canvas (60 of 69 reachable points draw nothing)",
-        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
+        "reason": "Each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target; hovering one shows the pill tint (probed: about half its pixels change) and clicking turns the cube to that face (confirmed by eye at e1a1c76)"
       },
       {
         "flag": "hover button#4 \"Go to Night\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
-        "reason": "Hit map: each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target (the snippet says so), and hovering it shows the pill tint. Fine. (ruled at 1d88b26)"
+        "reason": "Each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target; hovering one shows the pill tint (probed: about half its pixels change) and clicking turns the cube to that face (confirmed by eye at e1a1c76)"
+      },
+      {
+        "flag": "click button#1 \"Go to Dawn\": its hit area is mostly over empty canvas (51 of 69 reachable points draw nothing)",
+        "reason": "Each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target; hovering one shows the pill tint (probed: about half its pixels change) and clicking turns the cube to that face (confirmed by eye at e1a1c76)"
+      },
+      {
+        "flag": "click button#2 \"Go to Reef\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+        "reason": "Each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target; hovering one shows the pill tint (probed: about half its pixels change) and clicking turns the cube to that face (confirmed by eye at e1a1c76)"
+      },
+      {
+        "flag": "click button#3 \"Go to Dusk\": its hit area is mostly over empty canvas (60 of 69 reachable points draw nothing)",
+        "reason": "Each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target; hovering one shows the pill tint (probed: about half its pixels change) and clicking turns the cube to that face (confirmed by eye at e1a1c76)"
+      },
+      {
+        "flag": "click button#4 \"Go to Night\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+        "reason": "Each dot is a small mark on a finger-sized 8vmin button in the row, a deliberate touch target; hovering one shows the pill tint (probed: about half its pixels change) and clicking turns the cube to that face (confirmed by eye at e1a1c76)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 8 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at e1a1c7626fa1539e6516e04768be420a5275a9d1 (re-review agent 2): 8 of 8 current flag(s) confirmed false alarms."
   },
   {
     "model": "chartpanel",
@@ -541,30 +543,22 @@
   {
     "model": "radio",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:12:19+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Label cube over a 'Front' caption and six radio circles, stack about 58 x 61vmin, centred; the circles are finger-sized and the checked one is clear.",
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "Glass label cube over a caption naming the face and six F R B L U D pills, stack about 61 x 61vmin, centred. The labels now are the shared control block (8vmin tall, 3vmin padding, 600 4vmin), so the old radio circles are gone. Clicking each letter turns the cube to that face and the caption names it (Right, Back, Left, Up, Down), with the selected pill in the brand gradient. Reads on both stages; the see-through cube shows the far faces mirrored, as glass does. The how text (labels in the control zone, cube-puzzle letters) matches.",
     "motionFlagsResolved": [
       {
-        "flag": "click input#3 \"Back\": its hit area is mostly over empty canvas (45 of 69 reachable points draw nothing)",
-        "reason": "An unchecked radio is drawn as a thin ring, so most of its round hit area paints nothing; the hit area matches the circle the visitor sees."
-      },
-      {
-        "flag": "click input#5 \"Top\": its hit area is mostly over empty canvas (45 of 69 reachable points draw nothing)",
-        "reason": "An unchecked radio is drawn as a thin ring, so most of its round hit area paints nothing; the hit area matches the circle the visitor sees."
-      },
-      {
         "flag": "hover label#1 \"Front\": changes nothing on screen",
-        "reason": "Front is the checked radio: its label wears the selected pill's gradient, which paints over the hover tint. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "Front is the checked radio: its label wears the selected pill gradient, which paints over the hover tint. Probed again: 0 pixels change on hovering F, about 55% on each unchecked letter. Normal UI (confirmed by eye at e1a1c76)"
       },
       {
         "flag": "leave label#1 \"Front\": changes nothing on screen",
-        "reason": "Front is the checked radio: its label wears the selected pill's gradient, which paints over the hover tint. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "Front is the checked radio: its label wears the selected pill gradient, which paints over the hover tint. Probed again: 0 pixels change on hovering F, about 55% on each unchecked letter. Normal UI (confirmed by eye at e1a1c76)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at e1a1c7626fa1539e6516e04768be420a5275a9d1 (re-review agent 2): 2 of 2 current flag(s) confirmed false alarms."
   },
   {
     "model": "drag",
@@ -659,12 +653,13 @@
   {
     "model": "shapeshift",
     "kind": "visual",
-    "reviewer": "re-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T22:30:00+07:00",
-    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
-    "notes": "Opens on a whole hexagonal prism (43 x 63vmin with the control zone, centred) instead of an empty first frame; the slider rebuilds 3 to 12 sides with panels growing from the axis, and the caption and slider read on both stages. The how steps describe the .grow scoping.",
-    "motionFlagsResolved": []
+    "reviewer": "re-review agent 2",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "The prism itself is fine: a whole hexagonal prism at rest, 47 x 65vmin with the zone, centred; the slider rebuilds it (12 sides shown) with panels growing from the axis, and it reads on both stages. The problem is the slider inside the shared pill: its thumb and track are the browser's own, in px, so they do not scale with the canvas. On a 360 x 300 card the thumb is about 5vmin and the track short and thick; at full screen the thumb is under 2vmin and the track a hairline inside a 72px pill; on the light stage the unfilled track is the browser's near-black. So the control looks different on every canvas size and export, which the control block exists to prevent. Style the range (thumb and track, e.g. ::-webkit-slider-thumb / ::-moz-range-thumb and the track) in vmin, with the track in the block's tint, so it is the same share of every canvas and reads on both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at e1a1c76."
   },
   {
     "model": "tetra",
@@ -1084,12 +1079,13 @@
   {
     "model": "boxslider",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:19:22+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Box slideshow 'Design' face over two arrow pills, 70 x 55vmin and centred; arrows finger-sized on both themes.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "Box slideshow with the Design slide face-on over two arrow pills, 70 x 55vmin and centred. At rest it is a flat slide seen square-on, which is what a slideshow shows; the depth reads as soon as it turns. The arrows turn the box a quarter each way (Repeat after Previous, back to Design after Next). No caption: the zone is just the row, so it sits 8vmin tall. The pills measure as the shared block (8 x 10.5vmin) and read on both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at e1a1c76."
   },
   {
     "model": "cardstack",
@@ -1531,12 +1527,13 @@
   {
     "model": "playground",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "3D tile over a 'persp 400 · rX 20° · rY -35°' caption and three slider pills, stack 76 x 64vmin and centred; readable on both themes.",
-    "motionFlagsResolved": []
+    "reviewer": "re-review agent 2",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "3D tile over a \"persp 400 · rX 20° · rY -35°\" caption and three slider pills, 79 x 67vmin and centred; the sliders drive the tile (persp 1200, rX 70°, rY 70° shown) and the caption follows live. The problem is the sliders: the range thumb and track are the browser's own, in px, so on a card the thumb is about 5vmin and covers much of a very short track, while at full screen it is under 2vmin on a hairline track; on the light stage the unfilled track is the browser's near-black. The row looks different on every canvas and export size. Style the thumb and track in vmin, in the block's colours. (The caption is set in a monospace face rather than the block's system-ui; that reads as a deliberate readout and is not the problem.)",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at e1a1c76."
   },
   {
     "model": "pie",
@@ -1561,46 +1558,46 @@
   {
     "model": "gauge",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Speed gauge over a 'Low · 22 km/h' caption and Low/Mid/High pills, 46 x 63vmin and centred; dial numbers readable, the inactive pills pale but legible on light. Its motion run broke ('Cannot fast-forward to the past'), which this review cannot clear.",
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "Speed gauge over a \"Low · 22 km/h\" caption and Low/Mid/High pills, about 48 x 68vmin, centred. Paused on a finished dial. Mid and High swing the needle to 58 and 94 with the overshoot, and the caption follows. Pills measure as the shared block; dial numbers read on both stages, the unselected pills pale but legible on light.",
     "motionFlagsResolved": [
       {
         "flag": "hover button#1 \"Low\": changes nothing on screen",
-        "reason": "Low is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "Low is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pills beside it change about 60% of theirs, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at e1a1c76)"
       },
       {
         "flag": "leave button#1 \"Low\": changes nothing on screen",
-        "reason": "Low is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "Low is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pills beside it change about 60% of theirs, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at e1a1c76)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at e1a1c7626fa1539e6516e04768be420a5275a9d1 (re-review agent 2): 2 of 2 current flag(s) confirmed false alarms."
   },
   {
     "model": "timeline",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Road timeline with year signs over a caption and Prev/Next pills, 49 x 62vmin and centred; on a light stage the disabled Prev pill all but disappears, which is acceptable for a disabled control but worth knowing.",
+    "reviewedAt": "2026-09-21T17:07:01Z",
+    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
+    "notes": "Road timeline with year signs over a \"2016 · First sketch\" caption and Prev/Next pills, about 50 x 68vmin, centred (2vmin left, the signs alternate sides). Next drives to 2019 · Launch with the caption following and Prev enabling. Next wears the brand gradient as the forward action even though nothing is selected, a model choice rather than the block's selected state; it reads. The disabled Prev is faint on the light stage, acceptable for a disabled control. Pills measure as the shared block.",
     "motionFlagsResolved": [
       {
         "flag": "hover button#1 \"‹ Prev\": its hit area is mostly over empty canvas (60 of 76 reachable points draw nothing)",
-        "reason": "Prev is disabled at the first card and drawn at 40% opacity, too faint for the check's ink test, so its own pill counts as empty; the hit area is only the pill. Fine. (ruled at 1d88b26)"
+        "reason": "Prev is disabled and drawn at low opacity, too faint for the check's ink test, so its own pill counts as empty; the hit area is only the pill (confirmed by eye at e1a1c76)"
       },
       {
         "flag": "hover button#1 \"‹ Prev\": changes nothing on screen",
-        "reason": "Prev is disabled at the first card; since this fix it no longer lights up on hover, as a button that does nothing should not. (ruled at 1d88b26)"
+        "reason": "Prev is disabled at the first card; probed again, hovering it changes 0 pixels, as a button that does nothing should, while Next brightens (confirmed by eye at e1a1c76)"
       },
       {
         "flag": "leave button#1 \"‹ Prev\": changes nothing on screen",
-        "reason": "Prev is disabled at the first card; since this fix it no longer lights up on hover, as a button that does nothing should not. (ruled at 1d88b26)"
+        "reason": "Prev is disabled at the first card; probed again, hovering it changes 0 pixels, as a button that does nothing should, while Next brightens (confirmed by eye at e1a1c76)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): fixed: Next brightens on hover, disabled Prev stays dark (commit 1d88b26); the remaining Prev flags are ruled."
+    "motion": "Motion flags looked at again by eye at e1a1c7626fa1539e6516e04768be420a5275a9d1 (re-review agent 2): 3 of 3 current flag(s) confirmed false alarms."
   },
   {
     "model": "heatmap",
