@@ -1167,6 +1167,13 @@ table.mini code { font-size: 12px; }
     if (/html/.test(type) || /^\s*</.test(text)) { const e = new Error(`${name} is missing (the server sent a page instead)`); e.missing = true; throw e; }
     return text;
   }
+  /* A writer on Windows may have to write a file in place, and a fetch can catch it half done. That
+     is not news: keep the last good copy, try again next tick, and say so only if it keeps failing. */
+  const parseFails = {};
+  const parseFail = (name, errs) => {
+    parseFails[name] = (parseFails[name] ?? 0) + 1;
+    if (parseFails[name] >= 3) errs.push(`${name} has not parsed for ${parseFails[name]} fetches in a row; showing the last good copy`);
+  };
   let first = true;
   async function refresh() {
     const [l, q, w] = await Promise.allSettled([getText('ledger.json'), getText('ledger-queue.json'), getText('ledger-watch.json')]);
@@ -1178,15 +1185,15 @@ table.mini code { font-size: 12px; }
           const next = JSON.parse(l.value);
           if (L && prevSig) for (const m of next.models) if (prevSig.get(m.id) !== rowSig(m)) flash.add(m.id);
           prevSig = new Map(next.models.map((m) => [m.id, rowSig(m)]));
-          L = next; raw.l = l.value; changedL = true;
-        } catch { errs.push('ledger.json did not parse (caught mid-write?); keeping the last good copy'); }
+          L = next; raw.l = l.value; changedL = true; parseFails['ledger.json'] = 0;
+        } catch { parseFail('ledger.json', errs); }
       }
     } else errs.push(l.reason.message);
     if (q.status === 'fulfilled') {
-      if (q.value !== raw.q) { try { Q = JSON.parse(q.value); qError = null; raw.q = q.value; changedQ = true; } catch (e) { qError = `ledger-queue.json is not valid JSON: ${e.message}`; changedQ = true; } }
+      if (q.value !== raw.q) { try { Q = JSON.parse(q.value); qError = null; raw.q = q.value; parseFails["ledger-queue.json"] = 0; changedQ = true; } catch (e) { if (!Q) { qError = `ledger-queue.json is not valid JSON: ${e.message}`; changedQ = true; } else parseFail('ledger-queue.json', errs); } }
     } else if (!Q) { qError = q.reason.message; changedQ = true; }
     else errs.push(q.reason.message);
-    if (w.status === 'fulfilled') { if (w.value !== raw.w) { try { W = JSON.parse(w.value); wMissing = false; raw.w = w.value; } catch {} } }
+    if (w.status === 'fulfilled') { if (w.value !== raw.w) { try { W = JSON.parse(w.value); wMissing = false; raw.w = w.value; parseFails["ledger-watch.json"] = 0; } catch { parseFail('ledger-watch.json', errs); } } }
     else if (w.reason.missing) { W = null; wMissing = true; raw.w = null; }
     lastFetchAt = Date.now();
     if (!L) { if (first) loadFallback(l.reason); first = false; return; }

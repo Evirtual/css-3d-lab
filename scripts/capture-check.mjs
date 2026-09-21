@@ -42,7 +42,7 @@
  * see the run is gone.
  */
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fingerprints, ROOT, workingSources } from './model-sources.mjs';
 
@@ -246,16 +246,30 @@ function entry(r, printsNow) {
     ...extra,
   };
 }
+/**
+ * Temp file and rename, so a reader never sees half a file; but on Windows a process holding the
+ * file open without delete sharing (the Vite dev server serving it) makes the rename fail however
+ * long one waits, so after a few short retries it is written in place. The way is logged when it changes.
+ */
+let lastWay = null;
 function writeOut(out) {
   mkdirSync(dir, { recursive: true });
+  const text = JSON.stringify(out, null, 1);
   const tmp = `${file}.${process.pid}.tmp`;
-  writeFileSync(tmp, JSON.stringify(out, null, 1));
-  for (let i = 0; ; i++) {
-    try { renameSync(tmp, file); return; } catch (e) {
-      if (i >= 20 || !['EPERM', 'EBUSY', 'EACCES'].includes(e.code)) throw e;
-      const until = Date.now() + 25 * (i + 1);
-      while (Date.now() < until) { /* a reader has the file open; try again shortly */ }
+  writeFileSync(tmp, text);
+  let way = null, why = null;
+  for (let i = 0; i < 4 && !way; i++) {
+    try { renameSync(tmp, file); way = 'renamed'; } catch (e) {
+      if (!['EPERM', 'EBUSY', 'EACCES'].includes(e.code)) { try { unlinkSync(tmp); } catch {} throw e; }
+      why = e.code;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 40 * (i + 1)); // a real sleep, not a spin
     }
+  }
+  if (!way) { writeFileSync(file, text); try { unlinkSync(tmp); } catch {} way = 'in place'; }
+  if (way !== lastWay) {
+    if (way === 'in place') console.error(`capture-check: docs/checks/${check}.json could not be replaced by rename (${why}: another process holds it open), so it was written in place`);
+    else if (lastWay) console.error(`capture-check: docs/checks/${check}.json is replaced by rename again`);
+    lastWay = way;
   }
 }
 const reportedNow = () => Object.entries(results).filter(([, r]) => r.status !== 'unreported');

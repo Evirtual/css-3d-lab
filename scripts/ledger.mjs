@@ -24,15 +24,17 @@
  */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // Imported with this module's own query, so the watcher re-importing ledger.mjs?v=<version> gets
 // model-sources.mjs at that version too, not the copy it loaded at start.
 const { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources } = await import(`./model-sources.mjs${new URL(import.meta.url).search}`);
 
+const { evaluateChecklist } = await import(`./checklist-proofs.mjs${new URL(import.meta.url).search}`);
+
 /** The build's own code: a hash of these files as they are on disk right now. */
-const CODE_FILES = ['scripts/ledger.mjs', 'scripts/model-sources.mjs'];
+const CODE_FILES = ['scripts/ledger.mjs', 'scripts/model-sources.mjs', 'scripts/checklist-proofs.mjs'];
 export const codeVersion = () => createHash('sha1').update(CODE_FILES.map((f) => { try { return norm(readFileSync(join(ROOT, f), 'utf8')); } catch { return `(missing ${f})`; } }).join('\0')).digest('hex').slice(0, 10);
 /** The version this copy of the module was loaded from. A build compares it with the disk. */
 export const LOADED_CODE = codeVersion();
@@ -289,11 +291,14 @@ function readChecklist() {
   const file = join(ROOT, CHECKLIST);
   if (!existsSync(file)) return { file: CHECKLIST, exists: false, items: [], done: 0, total: 0 };
   const items = [];
+  let group = null;
   norm(readFileSync(file, 'utf8')).split('\n').forEach((line, i) => {
+    const h = /^##\s+(.+?)\s*$/.exec(line);
+    if (h) { group = h[1]; return; }
     const m = /^\s*[-*] \[([ xX])\]\s+(.*?)\s*$/.exec(line);
     if (!m) return;
     const [item, ...proof] = m[2].split(/\s+[—–]\s+/);
-    items.push({ done: m[1] !== ' ', item, proof: proof.join(' — ') || null, line: i + 1 });
+    items.push({ done: m[1] !== ' ', item, proof: proof.join(' — ') || null, line: i + 1, group });
   });
   return { file: CHECKLIST, exists: true, items, done: items.filter((x) => x.done).length, total: items.length };
 }
@@ -419,17 +424,39 @@ function runsNow(checkFiles) {
   return out;
 }
 
-/** Write through a temporary file and a rename, so a reader never sees half a file. Windows can refuse the rename while the file is open elsewhere, so it is retried briefly. */
-export function writeAtomic(file, text) {
+const sleepSync = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); // a real sleep, not a spin
+const lastWay = new Map(); // file → how it was last written, so a change of method is logged once, not every write
+/**
+ * Write a file so a reader never sees half of it when that can be had: write a temporary file and
+ * rename it over. On Windows another process can hold the target open with read and write sharing
+ * but not delete sharing (the Vite dev server serving it to the page does), and then a rename over
+ * it is refused however long one waits, while writing in place is allowed. So: a few short retries,
+ * then write in place. A reader that catches an in-place write half done gets bad JSON; the page
+ * keeps its last good copy and tries again. Returns 'renamed' or 'in place', and logs when the way
+ * it had to write a file changes.
+ */
+export function writeAtomic(file, text, { log = console.error } = {}) {
   const tmp = `${file}.${process.pid}.tmp`;
   writeFileSync(tmp, text);
-  for (let i = 0; ; i++) {
-    try { renameSync(tmp, file); return; } catch (e) {
-      if (i >= 20 || !['EPERM', 'EBUSY', 'EACCES'].includes(e.code)) throw e;
-      const until = Date.now() + 25 * (i + 1);
-      while (Date.now() < until) { /* brief wait; the lock is usually a reader finishing */ }
+  let way = null, why = null;
+  for (let i = 0; i < 4 && !way; i++) {
+    try { renameSync(tmp, file); way = 'renamed'; } catch (e) {
+      if (!['EPERM', 'EBUSY', 'EACCES'].includes(e.code)) { try { unlinkSync(tmp); } catch {} throw e; }
+      why = e.code;
+      sleepSync(40 * (i + 1));
     }
   }
+  if (!way) {
+    writeFileSync(file, text);
+    try { unlinkSync(tmp); } catch {}
+    way = 'in place';
+  }
+  if (lastWay.get(file) !== way) {
+    if (way === 'in place') log?.(`write: ${file} could not be replaced by rename (${why}: another process holds it open), so it was written in place`);
+    else if (lastWay.has(file)) log?.(`write: ${file} is replaced by rename again`);
+    lastWay.set(file, way);
+  }
+  return way;
 }
 
 /* ---------- build ---------- */
@@ -445,6 +472,7 @@ export function writeAtomic(file, text) {
 export async function buildLedger({ by = 'npm run ledger', reason = null, cache = null, sourcesKey = null, quiet = false } = {}) {
 notes = [];
 const t0 = Date.now();
+const phases = {}; let lapAt = t0; const lap = (name) => { const now = Date.now(); phases[name] = now - lapAt; lapAt = now; };
 let loaded, reusedModelLoad = false, reusedGitReplay = false;
 if (cache && sourcesKey != null && cache.demos?.key === sourcesKey) { loaded = cache.demos.value; reusedModelLoad = true; }
 else {
@@ -458,6 +486,7 @@ notes.push(...loaded.notes);
 const { demos, snippets, from, groups = [] } = loaded;
 const ids = demos.map((d) => d.id);
 const titles = Object.fromEntries(demos.map((d) => [d.id, d.title]));
+lap('model load');
 const sources = workingSources();
 const headFull = git(['rev-parse', 'HEAD']).trim();
 const historyKey = `${headFull}\0${demos.map((d) => `${d.id}=${d.title}`).join('\n')}`;
@@ -472,17 +501,21 @@ else {
 }
 notes.push(...hist.notes);
 const { perModel, commitCount, headLines, order, shortIndex, headSources } = hist;
+lap('sources + git replay');
 const reviewLog = readReviewLog(new Set(ids));
 // the docs' last commits change only with HEAD or the docs folder's contents
 const docsKey = `${headFull} ${(() => { try { return readdirSync(join(ROOT, 'docs')).join('|'); } catch { return ''; } })()}`;
 let docs;
 if (cache?.docs?.key === docsKey) docs = cache.docs.value; else { docs = docList(); if (cache) cache.docs = { key: docsKey, value: docs }; }
+lap('reviews + docs');
 const readiness = { checklist: readChecklist(), docs, atRisk: atRisk(), at: new Date().toISOString() };
+lap('checklist read + git status');
 const checkFiles = readChecks();
 const running = runsNow(checkFiles);
 const generatedAt = new Date().toISOString();
 const head = git(['rev-parse', '--short', headFull]).trim();
 
+lap('checks');
 const models = demos.map((d) => {
   const src = sources.get(d.id);
   const snippet = src?.snippet ?? null;
@@ -601,6 +634,7 @@ const models = demos.map((d) => {
   };
 });
 
+lap('models');
 const count = (f) => models.filter(f).length;
 const ledger = {
   generatedAt, head,
@@ -675,6 +709,19 @@ const ledger = {
   notes,
   models,
 };
+lap('ledger object');
+// the release checklist: each item's proof run now where it is cheap, local and read-only
+if (ledger.readiness.checklist.exists) {
+  const cl = ledger.readiness.checklist;
+  cl.items = evaluateChecklist(cl.items, { ROOT, counts: ledger.counts, models, atRiskList: ledger.readiness.atRisk, head, checkFiles, cache: cache ? (cache.proofs ??= new Map()) : null });
+  const by = (s) => cl.items.filter((x) => x.state === s).length;
+  cl.proven = cl.items.filter((x) => x.result === 'true').length;
+  cl.provenFalse = cl.items.filter((x) => x.result === 'false').length;
+  cl.notEvaluated = cl.items.filter((x) => x.result === 'not-evaluated').length;
+  cl.conflicts = by('conflict');
+  cl.tickedUnproven = by('ticked-unproven');
+}
+lap('checklist proofs');
 const c0 = ledger.counts;
 // the books must balance: every model in one bucket, every split summing to its bucket
 const bucketSum = c0.buckets.reduce((s, b) => s + b.count, 0);
@@ -686,14 +733,15 @@ if (problems.length) {
   console.error(`\nLEDGER DOES NOT BALANCE:\n${problems.map((p) => `  - ${p}`).join('\n')}\n`);
 }
 ledger.build.ms = Date.now() - t0;
-writeAtomic(OUT, JSON.stringify(ledger, null, 1));
+lap('balance'); ledger.build.phases = phases;
+const wrote = writeAtomic(OUT, JSON.stringify(ledger, null, 1), { log: quiet ? null : console.error });
 const c = ledger.counts;
 if (!quiet) {
   console.log(`docs/ledger.json: ${c.models} models — ${c.converted} converted (${c.convertedInHead} of them in HEAD), ${c.checked} checked, ${c.approved} approved.`);
   for (const name of CHECKS) console.log(`  ${name.padEnd(7)} ${Object.entries(c.checks[name]).map(([k, v]) => `${v} ${k}`).join(', ')}`);
   for (const n of notes) console.log(`  note: ${n}`);
 }
-return { balanced: problems.length === 0, problems, counts: c, notes: [...notes], head, ms: ledger.build.ms, reusedModelLoad, reusedGitReplay, running };
+return { wrote, balanced: problems.length === 0, problems, counts: c, notes: [...notes], head, ms: ledger.build.ms, reusedModelLoad, reusedGitReplay, running };
 }
 
 const invoked = process.argv[1] && resolve(process.argv[1]).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase();

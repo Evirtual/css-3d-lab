@@ -88,7 +88,7 @@ function look() {
     queue: stamp(join(ROOT, 'docs', 'ledger-queue.json')),
     docs: `${jsonStamps(join(ROOT, 'docs'), '.md')}|README.md=${stamp(join(ROOT, 'README.md'))}`,
     models: MODEL_DIRS.flatMap((d) => statTree(d, [])).join('|'),
-    code: ['ledger.mjs', 'model-sources.mjs'].map((f) => stamp(join(ROOT, 'scripts', f))).join('|'),
+    code: ['ledger.mjs', 'model-sources.mjs', 'checklist-proofs.mjs'].map((f) => stamp(join(ROOT, 'scripts', f))).join('|'),
   };
 }
 const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', docs: 'docs', code: 'build code', queue: 'queue', models: 'model files' };
@@ -104,7 +104,7 @@ function beat() {
       note: 'Written by scripts/ledger-watch.mjs. heartbeatAt is refreshed every 30 s while it runs; stoppedAt is set only on a clean stop.',
       pid: process.pid, startedAt, heartbeatAt: at, beatEverySeconds: BEAT / 1000, tickEverySeconds: TICK / 1000,
       stoppedAt: stopped, lastBuild,
-      code: { loaded: lib.LOADED_CODE, loadedAt: codeLoadedAt, onDisk: codeOnDisk, files: ['scripts/ledger.mjs', 'scripts/model-sources.mjs'], note: 'versions are a hash of those files; loaded differs from onDisk only until the next build reloads it' },
+      code: { loaded: lib.LOADED_CODE, loadedAt: codeLoadedAt, onDisk: codeOnDisk, files: ['scripts/ledger.mjs', 'scripts/model-sources.mjs', 'scripts/checklist-proofs.mjs'], note: 'versions are a hash of those files; loaded differs from onDisk only until the next build reloads it' },
     }, null, 1));
   } catch (e) { console.error(`ledger-watch: could not write the heartbeat: ${e.message}`); }
 }
