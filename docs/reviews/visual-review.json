@@ -432,13 +432,13 @@
   {
     "model": "chartpanel",
     "kind": "visual",
-    "reviewer": "re-review agent 2",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T17:18:38Z",
-    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
-    "notes": "Revenue line chart on a tilted glass panel, about 82 x 46vmin, centred (within 4vmin up). Paused on the finished tilted rest; hover lays the panel flat and the point values (18 to 55) read. The panel is dark on both stages, so its own text reads on light too; the small \"Revenue $k\" title is the weakest but legible. The how steps (tilt on the container) match.",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the revenue chart on its tilted glass panel, about 82 x 46vmin, centred on every canvas including the 1:1 and 9:16 exports since d531a10 dropped its side margins; hover lays it flat and the values 18 to 55 read, on both stages. The corrected technique chip is right: the area, line and dots sit at translateZ 5, 10 and 14 units. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [],
-    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 3a5bf07."
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "cube",
@@ -549,12 +549,13 @@
   {
     "model": "drag",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:12:19+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Amber see-through cube centred at about 52 x 54vmin, paused on a three-quarter view; clear of corners.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the amber see-through cube, about 52 x 54vmin, centred at rest; a drag turns it and on release it coasts to a stop, on both stages and on the 1:1 and 9:16 exports. The corrected tags are right: pointer and drag. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "sphere",
@@ -629,24 +630,24 @@
   {
     "model": "net",
     "kind": "visual",
-    "reviewer": "re-review agent 2",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T17:30:00Z",
-    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
-    "notes": "The earlier problem is fixed. The paused card now shows the net lying open on a floor seen at an angle, near squares larger than far ones, about 55 x 46vmin and centred, so it reads as a 3D net, not a flat plus sign. The camera moves in as it folds, so the shut cube is about 35vmin, as big as the net, and it turns a full circle before opening again; the loop is seamless. The orange and teal faces stay pale on the light stage but read. The description and how steps match what is drawn.",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged since the last review: the net lies open on a floor at an angle (55 x 46vmin, centred), folds into a cube that turns a full circle and opens again, seamless, on both stages and the 1:1 and 9:16 exports. The corrected how step is right: the turn keyframes hold 160deg at 0-8% and 520deg at 92-100% under ease-in-out, so it turns between 8% and 92%, mostly while the cube is shut. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [],
-    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at b1761a3."
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "shapeshift",
     "kind": "visual",
-    "reviewer": "re-review agent 2",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T17:07:01Z",
-    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
-    "notes": "The prism itself is fine: a whole hexagonal prism at rest, 47 x 65vmin with the zone, centred; the slider rebuilds it (12 sides shown) with panels growing from the axis, and it reads on both stages. The problem is the slider inside the shared pill: its thumb and track are the browser's own, in px, so they do not scale with the canvas. On a 360 x 300 card the thumb is about 5vmin and the track short and thick; at full screen the thumb is under 2vmin and the track a hairline inside a 72px pill; on the light stage the unfilled track is the browser's near-black. So the control looks different on every canvas size and export, which the control block exists to prevent. Style the range (thumb and track, e.g. ::-webkit-slider-thumb / ::-moz-range-thumb and the track) in vmin, with the track in the block's tint, so it is the same share of every canvas and reads on both stages.",
+    "reviewer": "visual re-review agent 3",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "The earlier problem is fixed: the Sides slider is now the control block's own. Track 1.2vmin and thumb 4.5vmin, in vmin, so in zooms at 360x300, 640x420 and 1440x900 it is the same share of the pill every time; the filled part is the brand gradient up to the thumb (--pos is written at load, so the paused card already shows it filled), the empty part the pill's tint on both stages (no near-black track on light), and the thumb the stage's ink in a gradient ring. Pill measured 8 x 45.5vmin, 3vmin padding, 600 4vmin text, caption \"6 sides\" 4.5vmin at 0.7, 2vmin gap. The prism is whole and centred (47 x 65vmin with the zone, dx 0, dy 2) on every canvas incl. 1:1 and 9:16; sliding to 12 rebuilds it and the caption follows. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [],
-    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at e1a1c76."
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "tetra",
@@ -672,12 +673,13 @@
   {
     "model": "crystal",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:15:01+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Crystal cluster on a base, centred at about 59 x 59vmin; complete and crisp on both themes.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the cluster on its rock, about 59 x 59vmin, centred, the crystals' glow breathing, crisp on both stages and on the 1:1 and 9:16 exports. The corrected how step is right: each crystal's style attribute sets --az, --off and --tilt (with --w, --h and colours besides), and the transform walks rotateY(--az) translateZ(--off) rotateX(--tilt). Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "lattice",
@@ -733,46 +735,48 @@
   {
     "model": "businesscard",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:15:01+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Business card, about 69 x 50vmin, paused on its PRISM back and flipping to the front on hover; centred and readable on both themes.",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the PRISM card sways at rest, about 69 x 50vmin, centred, and hover flips it to the Alex Morgan back; the gold logo and text read on both stages and on the 1:1 and 9:16 exports. The corrected how step is right: the lifted parts sit at translateZ 1.5, 2, 3, 4 and 6 units. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [
       {
         "flag": "hover div.bizcard: pop 7→8",
-        "reason": "Filmed at 30ms steps: a smooth half-turn; the large step is the card passing edge-on, where the dark front gives way to the bright back. It turns back the same way on leave. (ruled at 1d88b26)"
+        "reason": "The card's half-turn: the large step is the card passing edge-on, where the front gives way to the back; seen again in the sheet, it turns smoothly and back on leave (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "focus div.bizcard: pop 7→8",
-        "reason": "Filmed at 30ms steps: a smooth half-turn; the large step is the card passing edge-on, where the dark front gives way to the bright back. It turns back the same way on leave. (ruled at 1d88b26)"
+        "reason": "The card's half-turn: the large step is the card passing edge-on, where the front gives way to the back; seen again in the sheet, it turns smoothly and back on leave (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "hover div.bizcard: its hit area is mostly over empty canvas (61 of 81 reachable points draw nothing)",
-        "reason": "Hit map: the bounding box of the tilted card, the empty parts are its corners; nothing far from the card. Fine. (ruled at 1d88b26)"
+        "reason": "The hit area is the tilted card's bounding box; the empty parts are its corners, nothing far from the card (confirmed by eye at 00ed5b8)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 3 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at 00ed5b891e17554dc14d78cd6523ffe1453e1ba7 (visual re-review agent 3): 3 of 3 current flag(s) confirmed false alarms."
   },
   {
     "model": "camera",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:15:01+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Retro camera centred at about 68 x 59vmin; 'OBSCURA' readable and paused on a finished three-quarter pose.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the rangefinder rocks on the table, about 68 x 59vmin, centred, OBSCURA and the lens reflection read on both stages and on the 1:1 and 9:16 exports. The corrected how step is right: the shutter button is four discs (--h 1, 2.5, 4, 5.5, 1.5 units apart) and the dial two (--h 1 and 4, 3 apart). Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "coffeecup",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:17:13+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Takeaway cup with faint steam, centred at about 28 x 43vmin; slim but above the floor, and the sleeve logo reads on both themes.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the cup turns with its steam, about 28 x 43vmin, slim but above the floor and centred; the sleeve logo wraps without a seam and reads on both stages and on the 1:1 and 9:16 exports. The corrected how step is right: each strip is 12.6 units wide at the rim and 9.8 at the base, 1.2 over 11.4 and 8.6, so neighbours overlap. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "text",
@@ -827,22 +831,24 @@
   {
     "model": "foldtext",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:17:13+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Z-folded 'HOVER TO UNFOLD' headline, 55 x 49vmin folded at rest and 89 x 47vmin unfolded; centred, and the folded rest is a deliberate, finished pose.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the Z-folded HOVER TO UNFOLD headline, centred, flattening on hover into one sheet (89 x 47vmin), on both stages and the 1:1 and 9:16 exports. The corrected how step is right: the outer panels' overlay is a dark gradient and the middle panel's a light sheen (.panel-mid > b::after), both fading out on hover. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "anaglyph",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:17:13+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "STEREO panel with 'MOVE YOUR POINTER', about 87 x 42vmin, centred sideways and 4vmin high; readable on both themes.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the STEREO panel with its red and cyan copies apart at rest, about 87 x 42vmin, centred; the pointer over it draws them together and turns the card, and it reads on both stages and on the 1:1 and 9:16 exports. The corrected how step is right: .is-live sets transition-duration 0.12s with ease-out. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "cubeletters",
@@ -863,12 +869,13 @@
   {
     "model": "button",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:17:13+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "PUSH keycap-style button, 39 x 45vmin and centred; smaller than most peers for a model that is itself a control, but above the floor and reads clearly.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the PUSH cap on its box-shadow side, 39 x 45vmin, centred, reading on both stages and on the 1:1 and 9:16 exports. The corrected tags are right: it is a control (the pressed state is :active; there is no hover style), so controls, not hover. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "rollbutton",
@@ -903,42 +910,42 @@
   {
     "model": "zones",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:17:13+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "'Hover around me' card, 83 x 53vmin and centred, flat at rest and tilting towards whichever of its nine invisible zones the pointer is in.",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the Hover around me card, 83 x 53vmin, centred, tilting towards the zone the pointer is in, on both stages and on the 1:1 and 9:16 exports. The corrected tags are right: hover and sass-loop; there is no form control, so not form-hack. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [
       {
         "flag": "hover i#1: its hit area is mostly over empty canvas (80 of 81 reachable points draw nothing)",
-        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "hover i#1: changes nothing on screen",
-        "reason": "Check artefact: the zones cover the whole canvas, and the check's \"away\" point (the canvas corner) is inside zone 1, so the card is already tilted to zone 1 before the hover and stays so after the leave. Filmed from the middle zone, zone 1 tilts the card. (ruled at 1d88b26)"
+        "reason": "Check artefact: the check's away point (the canvas corner) is inside zone 1, so the card is already tilted to zone 1 before the hover and stays so after the leave (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "leave i#1: changes nothing on screen",
-        "reason": "Check artefact: the zones cover the whole canvas, and the check's \"away\" point (the canvas corner) is inside zone 1, so the card is already tilted to zone 1 before the hover and stays so after the leave. Filmed from the middle zone, zone 1 tilts the card. (ruled at 1d88b26)"
+        "reason": "Check artefact: the check's away point (the canvas corner) is inside zone 1, so the card is already tilted to zone 1 before the hover and stays so after the leave (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "hover i#2: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
-        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "hover i#3: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
-        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "hover i#7: its hit area is mostly over empty canvas (55 of 81 reachable points draw nothing)",
-        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "hover i#9: its hit area is mostly over empty canvas (59 of 81 reachable points draw nothing)",
-        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (\"Hover around me\"); a tilt in a far corner is what the model is for. Fine. (ruled at 1d88b26)"
+        "reason": "Deliberate: nine invisible zones tile the whole canvas so the card tilts toward the pointer anywhere (confirmed by eye at 00ed5b8)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 7 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at 00ed5b891e17554dc14d78cd6523ffe1453e1ba7 (visual re-review agent 3): 7 of 7 current flag(s) confirmed false alarms."
   },
   {
     "model": "tilt",
@@ -991,12 +998,13 @@
   {
     "model": "radial",
     "kind": "visual",
-    "reviewer": "re-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T22:30:00+07:00",
-    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
-    "notes": "Rests as a bud of five coloured chips round a larger + button, 47 x 43vmin and centred, so a paused card shows a menu; opening walks the five out into a ring (69 x 65vmin) round a fixed button, closing reverses it, icons read on both stages. The batch run of check-models reported radial at rest as 24vmin tall, but run alone it measures 47 x 43 and a direct capture of the first frame agrees, so that was an order-dependent measuring artefact, not the model.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: at rest a bud of five chips round the + button, 47 x 43vmin, centred; checked, they walk out into a full ring round the fixed button (x on the button), and it reads on both stages and on the 1:1 and 9:16 exports. The corrected how step holds for the path: closed and open use the same rotate(a) translateX(r) rotate(-a) with the same a and r going from 51 to 70 units, so each item goes straight out along its spoke. Its \"only r changes\" is literal only for that walk: translateZ (-10 to 26) and scale (0.7 to 1) change too, which the step before it says; a wording nit, not wrong about what is seen. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "keycaps",
@@ -1011,13 +1019,13 @@
   {
     "model": "stepper",
     "kind": "visual",
-    "reviewer": "re-review agent 2",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T17:30:00Z",
-    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
-    "notes": "Number cube over a \"Quantity 3\" readout and minus/plus buttons, stack about 37 x 65vmin, centred; the stepper is itself the control, so it has no shared row, which the how text says. The cube rolls a face per press (3 to 2 and back) and the buttons are finger-sized gradient circles. The problem is the readout on the light stage: the snippet hard-codes .bar output { color: #949bc0 }, which on #f3f4fc is about 2.5:1 for 3.8vmin text, so \"Quantity 3\" is faint lavender on light (it reads on dark). The same fix the text models got applies: take the stage's ink (inherit) and soften it with opacity if wanted.",
+    "reviewer": "visual re-review agent 3",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "The earlier problem is fixed: \"Quantity 3\" now takes the stage's ink at reduced opacity, dark grey on the light stage and light on dark, and reads on both (zoomed at card, editor and full screen). The cube rolls a face per press (3 to 2 and back), and the stack of cube, readout and buttons is 37 x 65vmin, centred (dx -0.8, dy 4.8, inside the rule), and since cd8cbb8 narrower than a square canvas, so it is centred on the 1:1 and 9:16 exports too. The stepper is itself the control, so no shared row. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [],
-    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at b1761a3."
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "rating",
@@ -1099,12 +1107,13 @@
   {
     "model": "book",
     "kind": "visual",
-    "reviewer": "re-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T22:30:00+07:00",
-    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
-    "notes": "The shut book is centred on a paused card (37 x 48vmin) and the open book stays centred as the spine slides over (65 x 61vmin); cover and pages open and shut in order with nothing passing through, on both stages. The how steps match the sliding spine.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged: the shut book centred on a paused card, opening with the cover first and shutting bottom page first, the spine sliding so the open book stays centred, on both stages and on the 1:1 and 9:16 exports. The corrected technique chip is right: --end is computed per sheet and one @property --open drives a staggered slice per sheet. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "flipgrid",
@@ -1446,12 +1455,13 @@
   {
     "model": "snow",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:22:59+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Full-canvas snowy night with moon and pines; covers the canvas and is paused on a finished scene.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Full-canvas snowy night (moon, hill, three pines, falling flakes) that covers the canvas edge to edge on every shape and is already snowing on the first paused frame. The fix holds by eye: with Math.random seeded the same, the paused 1:1, 16:9 and 9:16 canvases put every flake in view at the same share of the canvas (14 flakes in view, measured offset median 0.3%, max 0.4% of the canvas), so a tall canvas shows the same snow, not more of it above the trees (sheet snow-shapes.png, paused and running). The moon and pines are in vmin, so on 9:16 they are smaller shares of the tall canvas, which is the scene's own sizing. It paints its own night, so it is the same on both stages. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages, plus 16:9.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "map",
@@ -1476,13 +1486,13 @@
   {
     "model": "rocket",
     "kind": "visual",
-    "reviewer": "re-review agent 2",
+    "reviewer": "visual re-review agent 3",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T17:30:00Z",
-    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
-    "notes": "The earlier problem is fixed. At rest the rocket fills the frame on its pad, about 62vmin tall with gantry and pad, centred, the same size class as its neighbours. Filmed at 400ms steps over the 10s loop: ignition and smoke, lift-off, the climb goes into depth so the rocket shrinks up into the sky rather than leaving the top, a speck by about a quarter of the loop and hidden briefly at the far end, then it comes back down and lands; start and end are the same frame. Roughly 2s of the loop show only the pad and gantry with a small or absent rocket, which is the launch itself. Reads on both stages.",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Visuals unchanged since the 190-unit frame (28c0d00): the rocket fills the frame on its pad, centred, on the card, the editor, full screen and now also the 1:1 and 9:16 exports; it ignites, climbs into depth to a speck and lands again, on both stages. The corrected how step is right: the frame is 190 x 132 units. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [],
-    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at b1761a3."
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "lighthouse",
@@ -1517,13 +1527,13 @@
   {
     "model": "playground",
     "kind": "visual",
-    "reviewer": "re-review agent 2",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T17:07:01Z",
-    "commit": "e1a1c7626fa1539e6516e04768be420a5275a9d1",
-    "notes": "3D tile over a \"persp 400 · rX 20° · rY -35°\" caption and three slider pills, 79 x 67vmin and centred; the sliders drive the tile (persp 1200, rX 70°, rY 70° shown) and the caption follows live. The problem is the sliders: the range thumb and track are the browser's own, in px, so on a card the thumb is about 5vmin and covers much of a very short track, while at full screen it is under 2vmin on a hairline track; on the light stage the unfilled track is the browser's near-black. The row looks different on every canvas and export size. Style the thumb and track in vmin, in the block's colours. (The caption is set in a monospace face rather than the block's system-ui; that reads as a deliberate readout and is not the problem.)",
+    "reviewer": "visual re-review agent 3",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "The earlier problem is fixed: the three sliders (persp, rX, rY) are the control block's, 14vmin tracks with the block's 1.2vmin track and 4.5vmin thumb, so the row is the same share of a card, the editor and full screen (zoomed at all three, both stages); fill is the brand gradient to the thumb, the empty track the pill's tint on light too, the thumb the stage's ink. Pills 8vmin, 3vmin padding, 4vmin 600 labels; the monospace caption follows live (persp 1200, rX 70, rY 70 shown). Tile and row 85 x 67vmin, centred (dy -0.7) on every canvas incl. 1:1 and 9:16. (A mouse drag across the tile selects the \"3D\" text, the browser's own text selection, as on other text models; not a glitch of the model.) Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [],
-    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at e1a1c76."
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "pie",
@@ -1592,45 +1602,45 @@
   {
     "model": "heatmap",
     "kind": "visual",
-    "reviewer": "re-review agent 2",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T17:18:38Z",
-    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
-    "notes": "Commit heatmap of blocks on a dark plate over a \"174 commits in 4 weeks\" caption; hovering a block lights its roof and the caption gives its count (\"Thu, week 4: 15 commits\"), and the light-up is quick and clean now. Two problems at rest, both stages: (1) the plate's near corner, with the \"Fri\" label, comes down onto the caption line, so on the light stage the dark plate corner cuts into \"174 commits in 4 weeks\" between \"in\" and \"4\" at card, editor and full-screen size, and on dark \"Fri\" touches the caption; the drawing overflows its box into the control zone. (2) The weekday labels (Mon to Fri) are pale lavender set along the plate's edge, half on the dark plate and half on the stage, so on the light stage they all but vanish. Raise or shrink the plate so it clears the zone by the contract's 4vmin gap, and give the day labels the stage's ink or put them fully on the plate.",
+    "reviewer": "visual re-review agent 3",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Both earlier problems are fixed. (1) The plate's near corner now clears the \"174 commits in 4 weeks\" caption with room to spare at card, editor, full-screen and export sizes, on both stages, and through the sway; the drawing measures 71 x 56vmin with the caption, centred (dy -3.8). (2) Mon to Fri are printed wholly on the dark plate, so they read the same on the light stage as on dark. They are 2.9vmin, small on a card but legible, tilted with the floor. Hovering a block lights its roof and the caption gives its count (\"Fri, week 4: 13 commits\"). The technique chip now says the roof rises --v x 52 units, which the CSS does. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [],
-    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 3a5bf07."
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 00ed5b8."
   },
   {
     "model": "stackbars",
     "kind": "visual",
-    "reviewer": "re-review agent 2",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T17:18:38Z",
-    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
-    "notes": "Stacked bars over the caption and Pro/Team/Starter legend toggles, about 76 x 67vmin, centred; toggling a product off shrinks its segments and slides the rest down (Team + Starter $246k, Starter $87k, \"No product shown · switch one on\"), and the toggles read on both stages. The problem is the hover callout: pointing at a lower (Pro) segment puts the \"Q4 · Pro · $63k\" / \"Q1 · Pro · $42k\" callout where the bars cut through it in 3D, so a pink and teal sliver of the neighbouring bar is drawn across \"Pro\" and the value, on both stages (filmed at 640 x 420, pointer on Q4 and Q1 Pro). The Team callout higher up is clean. The callout needs to float in front of every bar (as neonbars' tooltip does with its translateZ) or be drawn flat on top.",
+    "reviewer": "visual re-review agent 3",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T18:27:05Z",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "The earlier problem is fixed: the tooltip now sits on its own layer over the chart, and pointing at Q4 Pro, Q1 Pro, Q2 Team and Q3 Starter (filmed at 640x420 on both stages and on a 360x300 card) gives a clean callout every time, no bar face crossing its text. It floats over the neighbouring column, as a tooltip must, and reads on both stages. Legend toggles still work (Team + Starter $246k, Starter $87k, \"No product shown · switch one on\"); pills measure as the block. Chart and zone 76 x 67vmin, centred; the same on 1:1 and 9:16. Looked at: paused card, running card, editor 640x420, full screen and the 1:1 and 9:16 export canvases, both stages.",
     "motionFlagsResolved": [
       {
         "flag": "hover button#1 \"Pro\": changes nothing on screen",
-        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on; switched off, a toggle lightens on hover. An on toggle is its selected state, normal UI; unchanged by the tooltip fix (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "leave button#1 \"Pro\": changes nothing on screen",
-        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on; switched off, a toggle lightens on hover. An on toggle is its selected state, normal UI; unchanged by the tooltip fix (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "hover button#2 \"Team\": changes nothing on screen",
-        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on; switched off, a toggle lightens on hover. An on toggle is its selected state, normal UI; unchanged by the tooltip fix (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "leave button#2 \"Team\": changes nothing on screen",
-        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on; switched off, a toggle lightens on hover. An on toggle is its selected state, normal UI; unchanged by the tooltip fix (confirmed by eye at 00ed5b8)"
       },
       {
         "flag": "leave button#3 \"Starter\": changes nothing on screen",
-        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on; switched off, a toggle lightens on hover. An on toggle is its selected state, normal UI; unchanged by the tooltip fix (confirmed by eye at 00ed5b8)"
       }
     ],
-    "motion": "Motion flags looked at again by eye at 3a5bf0712e62c704122ebf94a418cfdae87af850 (re-review agent 2): 5 of 5 current flag(s) confirmed false alarms."
+    "motion": "Motion flags looked at again by eye at 00ed5b891e17554dc14d78cd6523ffe1453e1ba7 (visual re-review agent 3): 5 of 5 current flag(s) confirmed false alarms."
   },
   {
     "model": "funnel",
