@@ -1094,9 +1094,10 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   zones: {
     how: [
       'CSS cannot read pointer coordinates — but it can tell <b>which element</b> is hovered.',
-      'Lay a 3 × 3 grid of invisible zones over the area. Each zone knows its row and column.',
+      'Lay a 3 × 3 grid of invisible zones over the canvas. Each zone knows its row and column.',
       'The card comes <b>after</b> the zones in the markup, so <code>zone:hover ~ .card</code> can set a tilt toward that zone.',
       '<code>pointer-events: none</code> on the card lets the pointer fall through to the zones. More zones = smoother tilt; the JS version is smoother still.',
+      'The zones fill the whole canvas, so the pointer steers the card from anywhere on it. The card itself is sized in one base unit, <code>--u</code>, tied to the canvas, so it is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="zones">
   <i></i><i></i><i></i>
@@ -1105,12 +1106,17 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   <div class="card">Hover around me</div>
 </div>`,
     css: `.zones {
+  /* one base unit: every length below is a multiple of it, so the card is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.32vmin;
   position: relative;
   display: grid;
   grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-  width: 420px;
-  height: 300px;
-  perspective: 800px;
+  /* the zones are the whole canvas, so the tilt follows the pointer anywhere on it and no hit
+     area ever hangs past the canvas edge */
+  width: 100vw;
+  height: 100vh;
+  perspective: calc(800 * var(--u));
 }
 
 .zones i { z-index: 1; }   /* invisible hover targets, above the card */
@@ -1120,14 +1126,14 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   inset: 0;
   display: grid;
   place-items: center;
-  width: 260px;
-  height: 160px;
+  width: calc(260 * var(--u));
+  height: calc(160 * var(--u));
   margin: auto;
-  border-radius: 18px;
+  border-radius: calc(18 * var(--u));
   color: #fff;
-  font: 800 1.1rem system-ui;
+  font: 800 calc(17.6 * var(--u)) system-ui;
   background: linear-gradient(135deg, #2ee6d6, #8b6cff);
-  box-shadow: 0 22px 36px -16px #8b6cff;
+  box-shadow: 0 calc(22 * var(--u)) calc(36 * var(--u)) calc(-16 * var(--u)) #8b6cff;
   pointer-events: none;
   transition: transform 0.35s ease-out;
 }
