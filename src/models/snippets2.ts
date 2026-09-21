@@ -922,6 +922,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
       'Hovering the wrapper changes <code>--d</code> — one declaration moves all six faces.',
       'Because each face has a <code>transition</code> on <code>transform</code>, the change animates even though only a custom property was touched.',
       'Hover is detected on a larger, non-rotating wrapper so the target does not spin out from under the pointer.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the side is 110 units, so <code>--d</code> rests at 55 and hover pushes it to 115. The cube, and how far it flies apart, are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene" tabindex="0">
   <div class="cube">
