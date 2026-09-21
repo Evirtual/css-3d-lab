@@ -196,34 +196,52 @@ export const snippet: Snippet = {
     'A stage is a slab of three glass faces. The front and the lid are full width and squashed with <code>scaleX(var(--v))</code> from the middle; the right side has a fixed size and rides out to the new edge with <code>translateX(--v × half the width)</code>. Only <code>transform</code> changes, so a new dataset is a smooth transition with no layout work.',
     'The colour comes from where a stage sits, <code>--t</code> from 0 to 1: two nested <code>color-mix(in oklch, …)</code> go violet → teal over the first half and teal → pink over the second, so any number of stages gets a clean ramp (<code>srgb</code> would pass through grey between teal and pink). Mixing with <code>transparent</code> makes the faces glass.',
     'The chart is turned, so part of it lies behind the flat boxes around it and they would catch the pointer. They get <code>pointer-events: none</code>; only the rows take it. A row is the full width of the chart and never moves: the slab inside it is what changes, so pointing never flickers.',
-    '<b>One tooltip</b> serves the whole chart. JS writes the pointed-at slab\'s edge into <code>--tx</code> / <code>--ty</code> and a <code>transform</code> transition glides it there while the text changes. It floats <code>translateZ(40px)</code> so nearer slabs never cover it, and hides 150ms after the pointer leaves every row, so moving between rows never blinks. A finger has no hover, so a tap does the same.',
+    '<b>One tooltip</b> serves the whole chart. JS writes the pointed-at slab\'s middle and top into <code>--tx</code> / <code>--ty</code> and a <code>transform</code> transition glides it there while the text changes. It floats 40 units towards you so nearer slabs never cover it, and hides 150ms after the pointer leaves every row, so moving between rows never blinks. A finger has no hover, so a tap does the same.',
+    "Every length is a multiple of one base unit, <code>--u</code>, and JS writes the tooltip's place as <b>plain numbers</b> in the chart's own units, which CSS multiplies by it. A length written in px from JS would stay the same size while the chart scaled around it, and the tooltip would drift off its slab. The caption and the channel switch are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.",
   ],
   html: `<div class="funnel">
-  <div class="scene">
-    <div class="funnel3d"></div>
+  <div class="view">
+    <div class="scene">
+      <div class="funnel3d"></div>
+    </div>
   </div>
-  <output></output>
-  <div class="seg">
-${SETS.map((s) => `    <button type="button" data-set="${s}">${s}</button>`).join('\n')}
+  <div class="controls">
+    <output class="caption"></output>
+    <div class="row">
+${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).join('\n')}
+    </div>
   </div>
 </div>`,
   css: `.funnel {
+  /* one base unit: every length in the chart is a multiple of it, so it is the same share of a
+     card, the editor, a full screen and a recording canvas. The control zone under it is in
+     plain vmin, because it is the same object in every model. */
+  --u: 0.38vmin;
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
+/* the model box: the same height in every model that has controls */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+}
+
 .scene {
-  perspective: 800px;
-  padding: 40px 20px 20px;
+  perspective: calc(800 * var(--u));
+  /* the last stage's label hangs below the chart: more room under it than over it keeps the
+     drawing centred in the model box and clear of the caption */
+  padding: calc(24 * var(--u)) calc(20 * var(--u)) calc(44 * var(--u));
   pointer-events: none; /* the chart is turned: only the rows take the pointer */
 }
 
-/* 132px for the widest slab, 58px on its right for the labels */
+/* 132 units for the widest slab, 58 on its right for the labels */
 .funnel3d {
   position: relative;
-  width: 190px;
+  width: calc(190 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(-22deg) rotateY(-18deg);
 }
@@ -241,7 +259,7 @@ ${SETS.map((s) => `    <button type="button" data-set="${s}">${s}</button>`).joi
 .stage {
   --v: 1; /* JS writes it: value ÷ first stage */
   position: relative;
-  height: 26px;
+  height: calc(26 * var(--u));
   outline: none;
   transform-style: preserve-3d;
   pointer-events: auto;
@@ -255,12 +273,12 @@ ${SETS.map((s) => `    <button type="button" data-set="${s}">${s}</button>`).joi
 
 /* coloured glass: the colour mixed with transparent, a fine bright edge, a small inner glow */
 .stage i {
-  /* under 1px shows as a hairline on sharp screens */
-  border: 0.6px solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
+  /* under one unit shows as a hairline on sharp screens */
+  border: calc(0.6 * var(--u)) solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
   background: color-mix(in srgb, var(--c) 58%, transparent);
   box-shadow:
-    inset 0 0 8px color-mix(in srgb, var(--c) 30%, transparent),
-    0 0 10px color-mix(in srgb, var(--c) 22%, transparent);
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--c) 30%, transparent),
+    0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 22%, transparent);
   /* past 1: overshoot and settle; each stage 60ms after the one before */
   transition:
     transform 0.8s cubic-bezier(0.3, 1.3, 0.5, 1) calc(var(--i) * 60ms),
@@ -273,7 +291,7 @@ ${SETS.map((s) => `    <button type="button" data-set="${s}">${s}</button>`).joi
   position: absolute;
   inset: 0;
   background: color-mix(in srgb, var(--c) 50%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--c) 60%, transparent);
+  box-shadow: 0 0 calc(20 * var(--u)) color-mix(in srgb, var(--c) 60%, transparent);
   opacity: 0;
   transition: opacity 0.25s;
 }
@@ -287,44 +305,44 @@ ${SETS.map((s) => `    <button type="button" data-set="${s}">${s}</button>`).joi
   opacity: 0.45;
 }
 
-/* front: full width, squashed from the middle. It reaches 1px above the lid: on the same spot
+/* front: full width, squashed from the middle. It reaches one unit above the lid: on the same spot
    as the lid's (nearly side-on) front edge, the two lines would step over each other as dashes */
 .stage i:nth-child(1) {
-  top: 4px;
+  top: calc(4 * var(--u));
   left: 0;
-  width: 132px;
-  height: 17px;
-  transform: translateZ(14px) scaleX(var(--v));
+  width: calc(132 * var(--u));
+  height: calc(17 * var(--u));
+  transform: translateZ(calc(14 * var(--u))) scaleX(var(--v));
 }
 
-/* the lid: 28px deep, laid flat on top, squashed the same way */
+/* the lid: 28 units deep, laid flat on top, squashed the same way */
 .stage i:nth-child(2) {
-  top: -9px;
+  top: calc(-9 * var(--u));
   left: 0;
-  width: 132px;
-  height: 28px;
+  width: calc(132 * var(--u));
+  height: calc(28 * var(--u));
   background: color-mix(in srgb, var(--c) 80%, transparent);
   transform: rotateX(90deg) scaleX(var(--v));
 }
 
 /* the right side, darker, keeps its size and rides out to the slab's edge */
 .stage i:nth-child(3) {
-  top: 5px;
-  left: 52px;
-  width: 28px;
-  height: 16px;
+  top: calc(5 * var(--u));
+  left: calc(52 * var(--u));
+  width: calc(28 * var(--u));
+  height: calc(16 * var(--u));
   background: color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #05060c) 64%, transparent);
-  transform: translateX(calc(var(--v) * 66px)) rotateY(90deg);
+  transform: translateX(calc(var(--v) * calc(66 * var(--u)))) rotateY(90deg);
 }
 
 /* the name and value, following the slab's right edge */
 .stage span {
-  top: 1px;
-  left: 66px;
+  top: calc(1 * var(--u));
+  left: calc(66 * var(--u));
   color: ${TEXT};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
-  transform: translateX(calc(var(--v) * 66px + 12px)) translateZ(14px);
+  transform: translateX(calc(var(--v) * calc(66 * var(--u)) + calc(12 * var(--u)))) translateZ(calc(14 * var(--u)));
   transition: transform 0.8s cubic-bezier(0.3, 1.3, 0.5, 1) calc(var(--i) * 60ms);
 }
 
@@ -340,27 +358,28 @@ ${SETS.map((s) => `    <button type="button" data-set="${s}">${s}</button>`).joi
   font-weight: 600;
 }
 
-/* One tooltip for the chart: JS moves it to the pointed-at slab (--tx = its right edge,
-   --ty = its top) and the transition glides it there. It floats 40px towards you; its
+/* One tooltip for the chart: JS moves it to the pointed-at slab (--tx = its middle,
+   --ty = its top, as plain numbers in the chart's own units that CSS multiplies by --u) and the
+   transition glides it there. It floats 40 units towards you; its
    thickness is a hard shadow offset up and right, the way the slabs' depth runs on screen. */
 .tip {
   position: absolute;
   top: 0;
   left: 0;
-  padding: 3px 7px;
-  border: 1px solid var(--c);
-  border-radius: 6px;
+  padding: calc(3 * var(--u)) calc(7 * var(--u));
+  border: calc(1 * var(--u)) solid var(--c);
+  border-radius: calc(6 * var(--u));
   background: ${SURFACE};
   box-shadow:
-    3px -3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
-    0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+    calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--c) 55%, #05060c),
+    0 0 calc(14 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent);
   color: ${TEXT};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(10 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(calc(var(--tx, 0px) + 16px), calc(var(--ty, 0px) - 4px)) translate(-100%, -100%) translateZ(40px);
+  transform: translate(calc(var(--tx, 0) * var(--u)), calc((var(--ty, 0) - 4) * var(--u))) translate(-50%, -100%) translateZ(calc(40 * var(--u)));
   transition:
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
@@ -370,30 +389,42 @@ ${SETS.map((s) => `    <button type="button" data-set="${s}">${s}</button>`).joi
   opacity: 1;
 }
 
-output {
-  color: ${MUTED};
-  font-size: 12px;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the chart's own unit. The caption is on its own line above
+   the row, and its line box never changes height, so a new summary cannot move the chart. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-.seg {
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.controls .row {
   display: flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 999px;
+  gap: 2vmin;
 }
 
-.seg button {
-  padding: 4px 14px;
+.controls button {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
-  background: transparent;
+  background: rgb(140 150 220 / 0.2);
   color: ${MUTED};
-  font: 700 12px system-ui, sans-serif;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background 0.35s, color 0.35s;
 }
 
-.seg button[aria-pressed='true'] {
+.controls button[aria-pressed='true'] {
   background: linear-gradient(135deg, ${VIOLET}, ${PINK});
   color: #fff;
 }`,
@@ -402,8 +433,8 @@ const FUNNEL = ${json};
 
 const chart = document.querySelector('.funnel3d');
 const out = document.querySelector('.funnel output');
-const buttons = document.querySelectorAll('.seg button');
-const W = 132, ROW = 26, PAD = 5; // the slab width, row height and slab top, as in the CSS
+const buttons = document.querySelectorAll('.controls .row button');
+const W = 132, ROW = 26, PAD = 5; // the slab width, row height and slab top, in the chart's own units (as in the CSS)
 
 const fmt = (n) => n.toLocaleString('en-US'); // 12,400
 // one decimal below 10% (3.3%), whole numbers above (40%)
@@ -426,16 +457,15 @@ const tipText = (i) => {
   return \`\${r.label} · \${fmt(r.value)} · \${prev ? pct(r.value / prev.value) + ' of ' + prev.label.toLowerCase() : '100%'}\`;
 };
 
-// Move the one tooltip to stage i: JS writes the slab's right edge and top, CSS glides it there.
+// Move the one tooltip to stage i: JS writes the slab's middle and top, CSS glides it there.
 function place(i) {
   clearTimeout(hideTimer);
-  const v = data[i].value / data[0].value;
   const wasOn = tipEl.classList.contains('is-on');
   if (!wasOn) tipEl.style.transition = 'none'; // from hidden: appear in place, no fly-in
   tipEl.textContent = tipText(i); // text, never HTML: data from an API is not trusted markup
   tipEl.style.setProperty('--t', i / (data.length - 1));
-  tipEl.style.setProperty('--tx', ((1 + v) * W) / 2 + 'px');
-  tipEl.style.setProperty('--ty', i * ROW + PAD + 'px');
+  tipEl.style.setProperty('--tx', W / 2); // plain numbers: CSS multiplies them by --u
+  tipEl.style.setProperty('--ty', i * ROW + PAD);
   if (!wasOn) {
     void tipEl.offsetWidth; // apply the new place before the transition comes back
     tipEl.style.transition = '';
