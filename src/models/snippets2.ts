@@ -1285,17 +1285,12 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   transform: translateZ(calc(var(--h) / 2));
 }
 
-/* hidden at rest, otherwise its edge shows as a thin line under the button */
+/* At rest it is the bottom of the prism, facing down and away from you, so backface-visibility
+   already hides it. It is never faded: a fade quicker than the roll turned it dark in one step
+   as the pointer left, while it was still rolling away in plain sight. */
 .bar span:last-child {
   background: #ff4d9d;
-  opacity: 0;
   transform: rotateX(-90deg) translateZ(calc(var(--h) / 2));
-  transition: opacity 0.1s;
-}
-
-.roll:hover .bar span:last-child,
-.roll:focus-visible .bar span:last-child {
-  opacity: 1;
 }`,
   },
 
