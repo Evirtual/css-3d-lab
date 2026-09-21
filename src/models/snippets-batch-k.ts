@@ -391,9 +391,9 @@ show('${YEARS[0]}');`,
   heatmap: {
     how: [
       'The JSON is a list of weeks, each a list of numbers. JS writes one number per block: <code>--v = value ÷ the largest value</code>, plus its grid position <code>--x</code> / <code>--y</code>.',
-      'A block is three surfaces: the <code>&lt;i&gt;</code> inside each button is the <b>roof</b>, lifted by <code>translateZ(calc(var(--v) * 70 * var(--u)))</code>; <code>::before</code> and <code>::after</code> are the two walls you can see, hanging down from its edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>. Their height is the same <code>--v × 70</code> units.',
+      'A block is three surfaces. Each button is the <b>roof</b>, lifted by <code>translateZ(calc(var(--v) * 52 * var(--u)))</code>, and the <code>&lt;i&gt;</code> inside it is the roof\'s face; its <code>::before</code> and <code>::after</code> are the two walls you can see, hanging down from its edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>. Their height is the same <code>--v × 52</code> units.',
       'The colour follows the value too: <code>color-mix(in srgb, pink calc(var(--v) * 100%), teal)</code> runs from cold to hot with no colour scale in JS.',
-      'Each block sits in a real <code>&lt;button&gt;</code>, so it can be tabbed to and tapped. The floor has <code>pointer-events: none</code>: blocks in 3D share a plane, and only the buttons should be hit.',
+      'Each block sits in a real <code>&lt;button&gt;</code>, so it can be tabbed to and tapped. The button is the lifted roof, not a tile on the floor: a tile on the floor would be hidden under the taller blocks in front of it, and could never be pointed at. The floor has <code>pointer-events: none</code>, so only the blocks are hit, and the view is tilted no steeper than <code>rotateX(48deg)</code> with blocks no taller than 52 units, so no block ever hides a whole roof behind it.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the grid is the same share of a gallery card, the editor and a recording canvas. The line under it that names the pointed-at block is in plain <code>vmin</code>: it is the caption of the same control zone every model has, and it keeps the zone\'s height whatever it says, so it cannot move the grid.',
     ],
     html: `<div class="heat">
@@ -441,13 +441,13 @@ show('${YEARS[0]}');`,
   border-radius: calc(10 * var(--u));
   background: #1c1d3d;
   transform-style: preserve-3d;
-  transform: rotateX(58deg) rotateZ(36deg);
+  transform: rotateX(48deg) rotateZ(36deg);
   animation: sway 9s ease-in-out infinite alternate;
   pointer-events: none; /* only the blocks are hit */
 }
 
 @keyframes sway {
-  to { transform: rotateX(58deg) rotateZ(50deg); }
+  to { transform: rotateX(48deg) rotateZ(50deg); }
 }
 
 /* the day names, printed on the floor along the edge that faces you */
@@ -462,6 +462,8 @@ show('${YEARS[0]}');`,
   text-align: center;
 }
 
+/* the button IS the roof, lifted by the value: what you see on top of a block is what you point
+   at. A button left on the floor would be hidden under the taller blocks in front of it. */
 .cell {
   /* cold teal → hot pink with the value */
   --c: color-mix(in srgb, ${PINK} calc(var(--v) * 100%), ${TEAL});
@@ -471,23 +473,22 @@ show('${YEARS[0]}');`,
   width: calc(26 * var(--u));
   height: calc(26 * var(--u));
   padding: 0;
-  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 45%, transparent);
-  border-radius: calc(3 * var(--u));
-  background: color-mix(in srgb, var(--c) 14%, transparent);
+  border: 0;
+  background: none;
   outline: none;
   transform-style: preserve-3d;
+  transform: translateZ(calc(var(--v) * 52 * var(--u)));
   pointer-events: auto;
   cursor: pointer;
 }
 
-/* the roof, lifted by the value */
+/* the roof's face */
 .cell i {
   position: absolute;
-  inset: calc(-1 * var(--u));
+  inset: 0;
   background: color-mix(in srgb, var(--c) 68%, ${SURFACE});
   box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c) 85%, #fff);
   transform-style: preserve-3d;
-  transform: translateZ(calc(var(--v) * 70 * var(--u)));
 }
 
 .cell i::before,
@@ -501,7 +502,7 @@ show('${YEARS[0]}');`,
   top: 100%;
   left: 0;
   width: 100%;
-  height: calc(var(--v) * 70 * var(--u));
+  height: calc(var(--v) * 52 * var(--u));
   background: color-mix(in srgb, var(--c) 46%, ${SURFACE});
   transform-origin: top;
   transform: rotateX(-90deg);
@@ -511,7 +512,7 @@ show('${YEARS[0]}');`,
 .cell i::after {
   top: 0;
   left: 100%;
-  width: calc(var(--v) * 70 * var(--u));
+  width: calc(var(--v) * 52 * var(--u));
   height: 100%;
   background: color-mix(in srgb, var(--c) 30%, ${SURFACE});
   transform-origin: left;
