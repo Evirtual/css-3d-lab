@@ -749,7 +749,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   font: 900 calc(90 * var(--u))/0.92 system-ui;
   text-align: center;
   transform-style: preserve-3d;
-  animation: deep-rock 5s ease-in-out infinite alternate;
+  animation: deep-rock 5s ease-in-out -1.75s infinite alternate;
 }
 
 .deep b {
@@ -764,9 +764,13 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   transform: translateZ(calc(var(--i) * -3 * var(--u)));
 }
 
+/* The wall hangs off one side, so the words sit off centre at either end of the rock, further at the
+   38deg end than at the -38deg one: the rock is nudged 2 units left to balance the two ends, and the
+   -1.75s delay starts it a third of the way through a swing, turned about 20deg, so a paused card
+   shows the wall and still sits in the middle. */
 @keyframes deep-rock {
-  from { transform: rotateY(-38deg) rotateX(10deg); }
-  to   { transform: rotateY(38deg)  rotateX(-8deg); }
+  from { transform: translateX(calc(-2 * var(--u))) rotateY(-38deg) rotateX(10deg); }
+  to   { transform: translateX(calc(-2 * var(--u))) rotateY(38deg)  rotateX(-8deg); }
 }`,
   },
 
