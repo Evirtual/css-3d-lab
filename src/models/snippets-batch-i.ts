@@ -23,7 +23,7 @@ export const snippetsI: Record<string, Snippet> = {
   greeting: {
     how: [
       'The card\'s left edge is its spine. The cover is a two-faced panel (front art, inside pattern, each with <code>backface-visibility: hidden</code>) with <code>transform-origin: 0 50%</code>, so <code>rotateY(var(--open))</code> swings it round the spine.',
-      'The hover target is the static wrapper; the card inside is <code>pointer-events: none</code>. Hovering only changes three custom properties: the cover angle, the viewing angle and <code>--x0</code>. Every part transitions with the same easing, so they stay in step.',
+      'The hover target is the static wrapper; the card inside is <code>pointer-events: none</code>. Hovering only changes custom properties: the cover angle, the viewing angle, <code>--x0</code>, the heart, and <code>--shift</code>, which slides the half-shut card back left so it is centred shut as well as open. Every part transitions with the same easing, so they stay in step.',
       'The heart is a <b>floating layer</b>, like in a real pop-up book: each half rides on its own page (the left half is a child of the cover, so it turns with it) and floats 16 units in front of it with <code>translateZ</code>.',
       'Two planes each 16 units in front of their page meet on a line <code>16 units × cot(half the opening angle)</code> from the spine: 14 units when the card is half open, 2 units when it is flat. That is <code>--x0</code>, and it is why the halves always join into one heart.',
       'The left half is turned round with <code>rotateY(180deg)</code> to face the right half, which mirrors it, so its shape is the mirror image of the right half\'s. Each half is cut out by a <code>mask</code>, an SVG path stretched over its box, not by <code>clip-path: path()</code>: a path is in pixels, and would stay the same size while the card scaled round it.',
@@ -56,6 +56,7 @@ export const snippetsI: Record<string, Snippet> = {
   --view: 40deg;   /* how far round we look at the card */
   --x0: calc(14 * var(--u));      /* where the two heart halves meet (see below) */
   --pop: 0;        /* the heart: hidden while the card is closed */
+  --shift: calc(-34 * var(--u)); /* half shut, the card is all on the spine's right: slide it back */
   display: grid;
   place-items: center;
   width: calc(210 * var(--u));
@@ -71,9 +72,11 @@ export const snippetsI: Record<string, Snippet> = {
   --view: 24deg;   /* the card turns to face you as it opens */
   --x0: calc(2 * var(--u));
   --pop: 1;
+  --shift: 0px;    /* open, it spreads both ways from the spine, so the spine goes in the middle */
 }
 
-/* the card's left edge is the spine: move it to the middle, look from above and the left */
+/* the card's left edge is the spine: move it to the middle (less --shift while it is shut, so the
+   shut card is centred too), look from above and the left */
 .card {
   position: relative;
   width: calc(92 * var(--u));
@@ -81,7 +84,7 @@ export const snippetsI: Record<string, Snippet> = {
   pointer-events: none;
   transform-style: preserve-3d;
   transform-origin: 0 50%;
-  transform: translateX(calc(46 * var(--u))) rotateX(-18deg) rotateY(var(--view));
+  transform: translate(calc(46 * var(--u) + var(--shift)), calc(-4 * var(--u))) rotateX(-18deg) rotateY(var(--view));
   transition: transform 0.9s cubic-bezier(0.3, 1.15, 0.45, 1);
 }
 
