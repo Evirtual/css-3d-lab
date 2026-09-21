@@ -298,7 +298,7 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the globe is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.24vmin;
+  --u: 0.29vmin;
   perspective: calc(800 * var(--u));
 }
 
