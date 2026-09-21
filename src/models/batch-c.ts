@@ -89,7 +89,7 @@ export const demosC: Demo[] = [
     description: 'One word stacked twenty times along the Z axis. Laid on a tilted floor, the copies merge into a solid extrusion under a gradient front.',
     category: 'css',
     tags: ['text', 'loop', 'layers'],
-    technique: ['translateZ(calc(var(--i) * -1.2px))', 'rotateX + rotateZ floor', 'lightness from --i', 'background-clip: text'],
+    technique: ['translateZ(calc(var(--i) * -1.2 * var(--u)))', 'rotateX + rotateZ floor', 'lightness from --i', 'background-clip: text'],
     html: `<div class="d-shadowtext"><span style="--i:0">Depth</span>${Array.from({ length: 20 }, (_, i) => `<span aria-hidden="true" style="--i:${i + 1}">Depth</span>`).join('')}</div>`,
   },
   {
