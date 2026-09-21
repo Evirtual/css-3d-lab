@@ -35,6 +35,16 @@
  * least the 40vmin floor tall, judged on solid ink like the rest. The union checks stand as they
  * are: the resting pose is judged as well as, not instead of, every state.
  *
+ * NO MOMENT SLIPS BETWEEN THE PICTURES. The timeline is photographed at 12 regular moments per
+ * loop (see momentsOf), which on a 24s loop is one picture every 2s: a part that overshoots for
+ * less than that can break the band unseen. So before the pictures, a quick pass puts the timeline
+ * at up to 480 moments (FINEST), no closer than 16ms, and reads the scene's element boxes at each
+ * (cheap: no picture); the moments where they reach furthest in each direction, and are tallest
+ * and widest, are photographed and measured on ink like the regular ones. Element boxes only
+ * choose the moments; the ink still does the measuring. With :hover forced the pass is made again.
+ * Its limit: a ::before, ::after or shadow has no box of its own, so an overshoot drawn only by one
+ * of those is found only when its element's own box overshoots with it.
+ *
  * EACH MODEL FROM A CLEAN START. A model's numbers must not depend on what was judged before it,
  * so every model gets a browser context of its own (a new page, no pointer anywhere yet, nothing
  * focused, no storage or cache from the model before), the code as it is on disk when its turn
@@ -59,6 +69,7 @@ const WIDEST = 92; // per cent of the canvas width
 const CORNER = 14; // the site's badge and menu live in the top corners
 const CENTRED = 4; // how far off the middle a model may sit, in vmin
 const INK = 24; // alpha out of 255 over which a pixel is drawn at all: the edges are judged on this
+const FINEST = 480; // at most this many moments in GUIDE's quick pass over the timeline (and at most one per 16ms)
 const SOLID = 128; // alpha out of 255 from which a pixel is solid body: position and size are judged on this
 
 // The site paints the backdrop, not the model: its colour, its dots and its credit are taken off
@@ -96,7 +107,9 @@ const PLAN = `(body) => {
  * have different periods (the least common multiple, cut at four of the longest loops), after the
  * longest delay, and long enough for every run-once animation to end. Twelve moments per longest
  * loop, at most 48, and never fewer than 12 (a model that moves in script is still seen at 12
- * moments of real time).
+ * moments of real time). Those alone can step over a pose that lasts less than a twelfth of a loop
+ * (a wall that stands up as one tall plank for a moment), so look() adds the moments extremes()
+ * finds between them.
  */
 function momentsOf({ periods, lead, end }) {
   const longest = Math.max(0, ...periods);
@@ -115,6 +128,7 @@ function momentsOf({ periods, lead, end }) {
   const times = Array.from({ length: n }, (_, k) => (span * k) / n);
   // a run-once animation is seen at its end too (an endless one is back at its start there)
   if (end > 0 || (!longest && span)) times.push(span);
+  times.span = span;
   return times;
 }
 
@@ -163,6 +177,68 @@ const POSE = `(body, { t, hover, k, n }) => {
   }
   return false;
 }`;
+
+/**
+ * Runs in the frame: a quick first pass over the timeline, to find the moments worth a picture.
+ * For each of `ts` (many, closely spaced) it puts every animation there the way POSE does, with
+ * :hover forced when `hover`, and reads the box round every element in the scene that is showing
+ * (getBoundingClientRect, which takes 3D transforms and perspective into account). It is only a
+ * guide, not the ruler: element boxes miss shadows and overstate circles (see THE RULER), but a
+ * part that reaches out for a moment reaches out in its box too, and that moment is then
+ * photographed like the others.
+ */
+const GUIDE = `(body, { ts, hover, span }) => {
+  const win = body.ownerDocument.defaultView, doc = body.ownerDocument;
+  const scene = doc.querySelector('#c3d-scene') || doc.body;
+  const held = doc.querySelector('#c3d-held');
+  const css = doc.querySelector('#c3d-code')?.textContent ?? '';
+  win.c3dWas ??= { held: held?.textContent ?? '', animations: doc.getAnimations().map(a => ({ a, t: a.currentTime, state: a.playState })) };
+  win.c3dFirst ??= new Set(doc.getAnimations());
+  if (held) held.textContent = hover ? css.replace(/:hover/g, ':not(.c3d-never)') : win.c3dWas.held;
+  const els = [...scene.querySelectorAll('*')];
+  const out = [];
+  for (const t of ts) {
+    for (const a of doc.getAnimations()) {
+      const timing = a.effect?.getComputedTiming();
+      a.pause();
+      if (typeof timing?.duration !== 'number') { a.currentTime = 0; continue; }
+      const own = timing.iterations !== Infinity && !win.c3dFirst.has(a) && isFinite(timing.endTime);
+      a.currentTime = own ? timing.endTime * (span ? Math.min(1, t / span) : 0) : t;
+    }
+    let l = Infinity, tp = Infinity, r = -Infinity, b = -Infinity;
+    for (const el of els) {
+      if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+      const box = el.getBoundingClientRect();
+      if (box.width < 1 || box.height < 1) continue;
+      l = Math.min(l, box.left); tp = Math.min(tp, box.top); r = Math.max(r, box.right); b = Math.max(b, box.bottom);
+    }
+    out.push(r < l ? null : [l, tp, r, b]);
+  }
+  return out;
+}`;
+
+/**
+ * The moments GUIDE says to photograph besides the regular ones: where the scene's boxes reach
+ * furthest left, up, right and down, and where they are tallest and widest. The union is made of
+ * exactly those extremes, so a pose that breaks the band for a moment between two regular
+ * moments is photographed at its worst.
+ */
+async function extremes(times, hover) {
+  const span = times.span ?? Math.max(...times, 0);
+  if (!span) return [];
+  const steps = Math.min(FINEST, Math.ceil(span / 16));
+  const ts = Array.from({ length: steps + 1 }, (_, i) => (span * i) / steps);
+  const boxes = await frame().evaluate(new Function('return ' + GUIDE)(), { ts, hover, span });
+  const pick = new Set();
+  const best = (score) => {
+    let at = -1, top = -Infinity;
+    boxes.forEach((box, i) => { if (box && score(box) > top + 0.5) { top = score(box); at = i; } });
+    if (at >= 0) pick.add(ts[at]);
+  };
+  best(([l]) => -l); best(([, t]) => -t); best(([, , r]) => r); best(([, , , b]) => b);
+  best(([, t, , b]) => b - t); best(([l, , r]) => r - l);
+  return [...pick].filter((t) => !times.includes(t));
+}
 
 /** Runs in the frame: puts the animations and the hover back the way they were found. */
 const RELEASE = `(body) => {
@@ -295,7 +371,13 @@ async function look() {
     let seen = null, body = null, controls = false, first = null;
     const join = (a, b) => (a ? { ...b, l: Math.min(a.l, b.l), t: Math.min(a.t, b.t), r: Math.max(a.r, b.r), b: Math.max(a.b, b.b) } : b);
     const times = momentsOf(await frame().evaluate(new Function('return ' + PLAN)()));
-    const poses = [false, true].flatMap((hover) => times.map((t, k) => ({ t, hover, k, n: times.length })));
+    const poses = [];
+    for (const hover of [false, true]) {
+      const n = times.length, span = times.span ?? Math.max(...times, 0);
+      poses.push(...times.map((t, k) => ({ t, hover, k, n })));
+      // the regular moments first (the first is the resting pose), then the extremes between them
+      for (const t of await extremes(times, hover)) poses.push({ t, hover, k: span ? (t / span) * (n - 1) : 0, n });
+    }
     for (const pose of poses) {
       const shows = await frame().evaluate(new Function('return ' + POSE)(), pose);
       controls = shows || controls;

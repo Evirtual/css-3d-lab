@@ -103,8 +103,9 @@ Two checks judge this; neither adjusts anything.
 `npm run check-models` (`scripts/check-models.mjs`) opens every model on a card (a 360 × 300
 page, each model in a fresh browser context), drives it through those states as its tags say —
 12 moments of its loop, plus the moments between them where a quick pass over up to 480 moments
-finds its parts reaching furthest, and the same with `:hover` forced, up to six of its controls clicked, a drag, a pointer sweep to the corners
-and sides of the canvas, a scroll down and back — and measures the box around the pixels it
+finds its parts reaching furthest, and the same with `:hover` forced, up to six of its controls
+clicked, a drag, a pointer sweep to the corners and sides of the canvas, a scroll down and back —
+and measures the box around the pixels it
 paints, in vmin, with two thresholds for two jobs:
 
 - **Position and size are judged on solid ink, alpha 128/255 and over.** The eye reads where a
