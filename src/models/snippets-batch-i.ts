@@ -234,9 +234,10 @@ export const snippetsI: Record<string, Snippet> = {
     how: [
       'CSS cannot read the pointer, so JS does exactly two things on <code>pointermove</code>: write <code>--rx</code> / <code>--ry</code> for the board and a <code>--lift</code> between 0 and 1 on every photo. All motion is CSS.',
       'The pointer is measured against the <b>wrapper</b>, which never moves — only the board inside it tilts. Measuring the tilted board itself would change the numbers you are measuring, and the wall would wobble.',
-      'A photo\'s lift is how close the pointer is to its centre, in tile sizes, eased with a smoothstep: <code>t * t * (3 - 2 * t)</code>. CSS turns it into <code>translateZ(calc(var(--lift) * 42px))</code>, so the nearest photo rises most and its neighbours a little.',
+      'A photo\'s lift is how close the pointer is to its centre, in tile sizes, eased with a smoothstep: <code>t * t * (3 - 2 * t)</code>. CSS turns it into <code>translateZ(calc(var(--lift) * 42 units))</code>, so the nearest photo rises most and its neighbours a little.',
       'Each photo\'s shadow is a separate layer that stays on the board: as the photo rises, the shadow only fades in and slides away. That gap between them is what reads as height.',
       'One custom property sets every transition\'s duration: 0.14s while the pointer drives (it tracks tightly), 0.7s after it leaves, so everything eases home together.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the wall is the same share of a gallery card, the editor and a recording canvas. JS writes only angles and a 0-to-1 lift, never a length, so nothing it sets escapes the scale.',
     ],
     html: `<div class="scene">
   <div class="wall">
@@ -251,11 +252,14 @@ export const snippetsI: Record<string, Snippet> = {
   </div>
 </div>`,
     css: `.scene {
+  /* one base unit: every length below is a multiple of it, so the wall is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.37vmin;
   display: grid;
   place-items: center;
   width: 100vw;
   height: 100vh;
-  perspective: 800px;
+  perspective: calc(800 * var(--u));
 }
 
 /* the wrapper never moves: JS measures the pointer against it */
@@ -273,11 +277,11 @@ export const snippetsI: Record<string, Snippet> = {
 .board {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 62px);
-  grid-auto-rows: 62px;
-  gap: 9px;
-  padding: 10px;
-  border-radius: 14px;
+  grid-template-columns: repeat(3, calc(62 * var(--u)));
+  grid-auto-rows: calc(62 * var(--u));
+  gap: calc(9 * var(--u));
+  padding: calc(10 * var(--u));
+  border-radius: calc(14 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(calc(12deg + var(--rx))) rotateY(var(--ry));
   transition: transform var(--t) cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -287,10 +291,10 @@ export const snippetsI: Record<string, Snippet> = {
   content: '';
   position: absolute;
   inset: 0;
-  border: 1px solid rgb(140 150 220 / 0.34);
+  border: calc(1 * var(--u)) solid rgb(140 150 220 / 0.34);
   border-radius: inherit;
   background: rgb(20 24 48 / 0.7);
-  transform: translateZ(-1px); /* a hair behind the photos, never in their plane */
+  transform: translateZ(calc(-1 * var(--u))); /* a hair behind the photos, never in their plane */
 }
 
 .cell {
@@ -303,12 +307,12 @@ export const snippetsI: Record<string, Snippet> = {
 .cell::before {
   content: '';
   position: absolute;
-  inset: 6px;
-  border-radius: 10px;
+  inset: calc(6 * var(--u));
+  border-radius: calc(10 * var(--u));
   background: rgb(0 0 0 / 0.3);
-  box-shadow: 0 0 10px 5px rgb(0 0 0 / 0.3); /* static blur: only opacity and position move */
+  box-shadow: 0 0 calc(10 * var(--u)) calc(5 * var(--u)) rgb(0 0 0 / 0.3); /* static blur: only opacity and position move */
   opacity: calc(var(--lift) * 0.9);
-  transform: translate3d(calc(var(--lift) * 5px), calc(var(--lift) * 9px), 1px);
+  transform: translate3d(calc(var(--lift) * 5 * var(--u)), calc(var(--lift) * 9 * var(--u)), calc(1 * var(--u)));
   transition: transform var(--t), opacity var(--t);
 }
 
@@ -316,9 +320,9 @@ export const snippetsI: Record<string, Snippet> = {
 .cell i {
   position: absolute;
   inset: 0;
-  border: 3px solid #fdfcf8;
-  border-radius: 7px;
-  transform: translateZ(calc(2px + var(--lift) * 42px)) scale(calc(1 + var(--lift) * 0.06));
+  border: calc(3 * var(--u)) solid #fdfcf8;
+  border-radius: calc(7 * var(--u));
+  transform: translateZ(calc(2 * var(--u) + var(--lift) * 42 * var(--u))) scale(calc(1 + var(--lift) * 0.06));
   transition: transform var(--t) cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -327,7 +331,7 @@ export const snippetsI: Record<string, Snippet> = {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 4px;
+  border-radius: calc(4 * var(--u));
   background: linear-gradient(125deg, rgb(255 255 255 / 0.5), transparent 45%);
   opacity: var(--lift);
   transition: opacity var(--t);
@@ -354,10 +358,10 @@ export const snippetsI: Record<string, Snippet> = {
 
 .cell:nth-child(4) i {
   background:
-    radial-gradient(circle at 26% 30%, #fff 0 2px, transparent 3px),
-    radial-gradient(circle at 62% 18%, #fff 0 1.5px, transparent 2.5px),
-    radial-gradient(circle at 82% 52%, #fff 0 2px, transparent 3px),
-    radial-gradient(circle at 70% 76%, #f4f1d0 0 7px, transparent 8px),
+    radial-gradient(circle at 26% 30%, #fff 0 calc(2 * var(--u)), transparent calc(3 * var(--u))),
+    radial-gradient(circle at 62% 18%, #fff 0 calc(1.5 * var(--u)), transparent calc(2.5 * var(--u))),
+    radial-gradient(circle at 82% 52%, #fff 0 calc(2 * var(--u)), transparent calc(3 * var(--u))),
+    radial-gradient(circle at 70% 76%, #f4f1d0 0 calc(7 * var(--u)), transparent calc(8 * var(--u))),
     linear-gradient(180deg, #0b0d2a, #3a2a7a);
 }
 
