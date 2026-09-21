@@ -504,6 +504,8 @@ show('${YEARS[0]}');`,
   background: color-mix(in srgb, var(--c) 68%, ${SURFACE});
   box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c) 85%, #fff);
   transform-style: preserve-3d;
+  /* the light fades out, so a pointer passing over leaves a short trail, not a white flash */
+  transition: background-color 0.35s, box-shadow 0.35s;
 }
 
 .cell i::before,
@@ -539,6 +541,7 @@ show('${YEARS[0]}');`,
 .cell:focus-visible i {
   background: color-mix(in srgb, var(--c) 55%, #fff);
   box-shadow: inset 0 0 0 calc(1 * var(--u)) #fff, 0 0 calc(16 * var(--u)) var(--c);
+  transition-duration: 0.12s; /* and comes on quickly */
 }
 
 /* the control zone: the same object, at the same size, in every model that has one. It holds
