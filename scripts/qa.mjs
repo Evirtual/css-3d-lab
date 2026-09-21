@@ -4,8 +4,7 @@
 //  - does the interaction its badge promises (hover, move, drag, click, scroll) change anything.
 //   npm run build && npm run qa [-- id ...]      (or node scripts/qa.mjs [id ...])
 //   QA_W=680 QA_H=560 node scripts/qa.mjs         a bigger stage
-// It ends with `QA: N demos, M problem(s)` and one line per problem. The exit code is 0 either
-// way, so read that line (scripts/verify.mjs parses it).
+// It ends with `QA: N demos, M problem(s)` and one line per problem, and exits 1 if there is any.
 //
 // Every model runs in a frame of its own (src/preview.ts), so the looking is done inside that
 // frame; the clicking and hovering is done on the page, where a visitor's pointer is.
@@ -35,7 +34,7 @@ const base = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch();
 
 const W = Number(process.env.QA_W || 340); // QA_W / QA_H: test a bigger stage (the demo is then zoomed)
-const H = Number(process.env.QA_H || 260);
+const H = Number(process.env.QA_H || 280); // a card's stage is 340 × 280
 const problems = [];
 const notes = [];
 
@@ -162,3 +161,5 @@ await browser.close();
 server.close();
 console.log(`\nQA: ${list.length} demos, ${problems.length} problem(s)`);
 for (const p of problems.sort()) console.log('  ' + p);
+// a check that cannot fail is not a check: problems fail the run
+process.exitCode = problems.length ? 1 : 0;
