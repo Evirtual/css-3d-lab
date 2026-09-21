@@ -268,6 +268,7 @@ ${cup('r')}
       'Every size comes from four custom properties (<code>--w --d --c --h</code>), so the liquid is simply the same prism again, a glass thickness smaller, standing on the thick glass bottom.',
       'Glass is see-through: its faces are tinted, have light edges and are drawn from both sides, so the far walls and the liquid show through the near ones. Top, floor and liquid surface are octagons cut with <code>clip-path</code>.',
       'The glint is a bright gradient inside the front face (a flat face can clip with <code>overflow: hidden</code>), moved with <code>translateX</code> while the bottle passes the front.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the bottle is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="bottle">
@@ -288,25 +289,31 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the bottle is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.4vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .bottle {
   --gold: #ffcf87;
   --gold-deep: #aa6c16;
   position: relative;
-  width: 84px;
-  height: 96px;
+  width: calc(84 * var(--u));
+  height: calc(96 * var(--u));
   transform-style: preserve-3d;
+  /* the neck and the cap stand on top of this box, so the drawing's middle is above the box's:
+     move the box down by that much, and the whole bottle is centred */
+  translate: 0 calc(17 * var(--u));
   animation: sway 8s ease-in-out infinite alternate;
 }
 
 .shadow {
   position: absolute;
-  left: -18px;
-  top: 56px;
-  width: 120px;
-  height: 80px;
+  left: calc(-18 * var(--u));
+  top: calc(56 * var(--u));
+  width: calc(120 * var(--u));
+  height: calc(80 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(80 20 50 / 0.55), transparent);
   transform: rotateX(90deg);
@@ -315,14 +322,14 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 /* --- the octagonal prism: width, depth, corner cut, height --- */
 .prism {
   position: absolute;
-  left: calc((84px - var(--w)) / 2);
+  left: calc((84 * var(--u) - var(--w)) / 2);
   width: var(--w);
   height: var(--h);
   transform-style: preserve-3d;
 }
 
-.glass  { --w: 84px; --d: 44px; --c: 9px; --h: 96px; top: 0; }
-.liquid { --w: 74px; --d: 34px; --c: 6.93px; --h: 50px; top: 33px; } /* 5px glass walls, 13px glass floor */
+.glass  { --w: calc(84 * var(--u)); --d: calc(44 * var(--u)); --c: calc(9 * var(--u)); --h: calc(96 * var(--u)); top: 0; }
+.liquid { --w: calc(74 * var(--u)); --d: calc(34 * var(--u)); --c: calc(6.93 * var(--u)); --h: calc(50 * var(--u)); top: calc(33 * var(--u)); } /* 5 units glass walls, 13 units glass floor */
 
 .prism > i {
   position: absolute;
@@ -331,7 +338,7 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   left: calc((var(--w) - var(--fw)) / 2);
   width: var(--fw);
   height: var(--h);
-  transform: rotateY(calc(var(--n) * 45deg)) translateX(var(--fx, 0px)) translateZ(var(--fz));
+  transform: rotateY(calc(var(--n) * 45deg)) translateX(var(--fx, 0)) translateZ(var(--fz));
 }
 
 /* front and back */
@@ -350,34 +357,34 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 .octagon {
   position: absolute;
   left: 0;
-  width: var(--w, 84px);
-  height: var(--d, 44px);
-  --c: 9px;
+  width: var(--w, calc(84 * var(--u)));
+  height: var(--d, calc(44 * var(--u)));
+  --c: calc(9 * var(--u));
   clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)),
     calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
 }
 
 .top {
-  top: -22px;
-  background: radial-gradient(ellipse 16px 11px, rgb(255 255 255 / 0.3), transparent), rgb(200 190 255 / 0.18);
+  top: calc(-22 * var(--u));
+  background: radial-gradient(ellipse calc(16 * var(--u)) calc(11 * var(--u)), rgb(255 255 255 / 0.3), transparent), rgb(200 190 255 / 0.18);
   transform: rotateX(90deg);
 }
 
 .floor {
-  top: 74px;
+  top: calc(74 * var(--u));
   background: rgb(190 175 255 / 0.2);
   transform: rotateX(-90deg);
 }
 
-/* glass: tinted, light edges, drawn from both sides; the lower 13px is the thick bottom */
+/* glass: tinted, light edges, drawn from both sides; the lower 13 units is the thick bottom */
 .glass > i {
   --lit: 0.1;
   /* an inner line plus a soft shade instead of a hard border: swaying, the corner cuts turn
-     nearly side-on, where a 1px line breaks up; the shade survives */
-  box-shadow: inset 0 0 0 1px rgb(236 238 251 / 0.38), inset 0 0 6px rgb(236 238 251 / 0.15);
-  border-radius: 2px;
+     nearly side-on, where a 1 units line breaks up; the shade survives */
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) rgb(236 238 251 / 0.38), inset 0 0 calc(6 * var(--u)) rgb(236 238 251 / 0.15);
+  border-radius: calc(2 * var(--u));
   background:
-    linear-gradient(transparent calc(100% - 15px), rgb(255 255 255 / 0.35) calc(100% - 14px), rgb(255 255 255 / 0.12) calc(100% - 11px), rgb(255 255 255 / 0.2)),
+    linear-gradient(transparent calc(100% - 15 * var(--u)), rgb(255 255 255 / 0.35) calc(100% - 14 * var(--u)), rgb(255 255 255 / 0.12) calc(100% - 11 * var(--u)), rgb(255 255 255 / 0.2)),
     linear-gradient(90deg, rgb(255 255 255 / calc(var(--lit) * 1.8)), rgb(255 255 255 / var(--lit)) 30%, rgb(255 255 255 / calc(var(--lit) * 0.5)) 70%, rgb(255 255 255 / var(--lit))),
     rgb(139 108 255 / 0.08);
 }
@@ -395,10 +402,10 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 }
 
 .surface {
-  --w: 74px;
-  --d: 34px;
-  --c: 6.93px;
-  top: -17px;
+  --w: calc(74 * var(--u));
+  --d: calc(34 * var(--u));
+  --c: calc(6.93 * var(--u));
+  top: calc(-17 * var(--u));
   background: radial-gradient(ellipse 60% 70% at 40% 40%, rgb(255 255 255 / 0.45), transparent), #ff8a70;
   opacity: 0.9;
   transform: rotateX(90deg);
@@ -408,36 +415,36 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   position: absolute;
   top: -20%;
   left: 0;
-  width: 22px;
+  width: calc(22 * var(--u));
   height: 140%;
   background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7) 45% 55%, transparent);
-  transform: translateX(-40px) rotate(18deg);
+  transform: translateX(calc(-40 * var(--u))) rotate(18deg);
   animation: glint 8s linear infinite;
 }
 
 .label {
   position: absolute;
-  left: 13px;
-  top: 26px;
+  left: calc(13 * var(--u));
+  top: calc(26 * var(--u));
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 3px;
+  gap: calc(3 * var(--u));
   box-sizing: border-box;
-  width: 58px;
-  height: 36px;
-  border: 1px solid var(--gold);
+  width: calc(58 * var(--u));
+  height: calc(36 * var(--u));
+  border: calc(1 * var(--u)) solid var(--gold);
   background: #0d0e17;
-  box-shadow: inset 0 0 0 2px #0d0e17, inset 0 0 0 2.6px var(--gold-deep);
+  box-shadow: inset 0 0 0 calc(2 * var(--u)) #0d0e17, inset 0 0 0 calc(2.6 * var(--u)) var(--gold-deep);
   color: var(--gold);
   font-family: Georgia, 'Times New Roman', serif;
   line-height: 1;
   backface-visibility: hidden;
-  transform: translateZ(22.6px); /* just in front of the glass */
+  transform: translateZ(calc(22.6 * var(--u))); /* just in front of the glass */
 }
 
-.label b { font-size: 11px; font-weight: 400; letter-spacing: 2.5px; text-indent: 2.5px; }
-.label small { font: 4.5px system-ui, sans-serif; letter-spacing: 0.8px; white-space: nowrap; opacity: 0.85; }
+.label b { font-size: calc(11 * var(--u)); font-weight: 400; letter-spacing: calc(2.5 * var(--u)); text-indent: calc(2.5 * var(--u)); }
+.label small { font: calc(4.5 * var(--u)) system-ui, sans-serif; letter-spacing: calc(0.8 * var(--u)); white-space: nowrap; opacity: 0.85; }
 
 /* --- neck and cap: four walls and a lid --- */
 .box {
@@ -455,29 +462,29 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 .box > :nth-child(5) { top: calc(var(--bd) / -2); height: var(--bd); transform: rotateX(90deg); }
 
 .neck {
-  --bw: 24px;
-  --bd: 18px;
-  left: 30px;
-  top: -7px;
-  width: 24px;
-  height: 7px;
+  --bw: calc(24 * var(--u));
+  --bd: calc(18 * var(--u));
+  left: calc(30 * var(--u));
+  top: calc(-7 * var(--u));
+  width: calc(24 * var(--u));
+  height: calc(7 * var(--u));
 }
 
 .neck > * { background: linear-gradient(var(--gold-deep), var(--gold) 50%, var(--gold-deep)); }
 
 .cap {
-  --bw: 42px;
-  --bd: 30px;
-  left: 21px;
-  top: -39px;
-  width: 42px;
-  height: 32px;
+  --bw: calc(42 * var(--u));
+  --bd: calc(30 * var(--u));
+  left: calc(21 * var(--u));
+  top: calc(-39 * var(--u));
+  width: calc(42 * var(--u));
+  height: calc(32 * var(--u));
 }
 
 /* vertical fluting over polished gold */
 .cap > * {
   background:
-    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.22) 0 1.5px, transparent 1.5px 3px, rgb(0 0 0 / 0.12) 3px 4.5px, transparent 4.5px 6px),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.22) 0 calc(1.5 * var(--u)), transparent calc(1.5 * var(--u)) calc(3 * var(--u)), rgb(0 0 0 / 0.12) calc(3 * var(--u)) calc(4.5 * var(--u)), transparent calc(4.5 * var(--u)) calc(6 * var(--u))),
     linear-gradient(90deg, var(--gold-deep), var(--gold) 40%, #fff6dc 50%, var(--gold) 60%, var(--gold-deep));
 }
 
@@ -485,12 +492,12 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 .cap > :nth-child(3),
 .cap > :nth-child(4) {
   background:
-    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.18) 0 1.5px, transparent 1.5px 3px, rgb(0 0 0 / 0.14) 3px 4.5px, transparent 4.5px 6px),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.18) 0 calc(1.5 * var(--u)), transparent calc(1.5 * var(--u)) calc(3 * var(--u)), rgb(0 0 0 / 0.14) calc(3 * var(--u)) calc(4.5 * var(--u)), transparent calc(4.5 * var(--u)) calc(6 * var(--u))),
     linear-gradient(90deg, var(--gold-deep), #e2a54f);
 }
 .cap > :nth-child(5) {
   background:
-    radial-gradient(circle, transparent 0 7px, var(--gold-deep) 7.5px 8.5px, transparent 9px),
+    radial-gradient(circle, transparent 0 calc(7 * var(--u)), var(--gold-deep) calc(7.5 * var(--u)) calc(8.5 * var(--u)), transparent calc(9 * var(--u))),
     linear-gradient(135deg, #fff6dc, var(--gold) 45%, var(--gold-deep));
 }
 .cap .glint { animation-delay: -0.5s; }
@@ -502,8 +509,8 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 
 /* one sweep per half swing, while the bottle passes the front */
 @keyframes glint {
-  0%, 36%   { transform: translateX(-40px) rotate(18deg); }
-  64%, 100% { transform: translateX(90px) rotate(18deg); }
+  0%, 36%   { transform: translateX(calc(-40 * var(--u))) rotate(18deg); }
+  64%, 100% { transform: translateX(calc(90 * var(--u))) rotate(18deg); }
 }`,
   },
 
