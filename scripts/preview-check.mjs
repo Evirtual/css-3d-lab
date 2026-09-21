@@ -1,3 +1,12 @@
+/**
+ * Does editing a model leave its live frame alone? On /models/cube/ (served from source by Vite,
+ * no build needed) it pauses the animations at 1137 ms, then asserts that the frame's document,
+ * the cube's box, the scene's zoom and the animation clocks are unchanged after: a whitespace-only
+ * CSS edit, a colour edit, "Reset to original", and opening the Image dialog (whose live view must
+ * keep the same document). Exits non-zero on the first difference or any page error.
+ *
+ *   node scripts/preview-check.mjs
+ */
 import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
