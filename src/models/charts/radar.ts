@@ -474,7 +474,14 @@ export const snippet: Snippet = {
   position: absolute;
   top: calc(var(--y) * var(--u)); /* JS writes plain numbers in the chart's own units */
   left: calc(var(--x) * var(--u));
+  /* written on the plate, so in the plate's own light ink; a long name ("Support") runs past
+     its edge and a standing name rises over it, so a halo of the plate's colour keeps the part
+     that is off the plate readable on a light stage too */
   color: ${TEXT};
+  text-shadow:
+    0 0 calc(1.5 * var(--u)) ${SURFACE},
+    0 0 calc(1.5 * var(--u)) ${SURFACE},
+    0 0 calc(3 * var(--u)) ${SURFACE};
   font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   /* --ax: 1 reads rightwards from the anchor, -1 leftwards, 0 is centred on it */
@@ -573,7 +580,9 @@ export const snippet: Snippet = {
   border: 0;
   border-radius: 999px;
   background: rgb(140 150 220 / 0.2);
-  color: ${MUTED};
+  /* the pills are see-through, so their words are on the stage: the stage's ink, softened when
+     off. A colour of their own would vanish on one of the two stages */
+  color: color-mix(in srgb, currentColor 75%, transparent);
   font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
 }
@@ -591,7 +600,7 @@ export const snippet: Snippet = {
 .toggles button[aria-pressed='true'] {
   background: color-mix(in srgb, var(--c) 22%, transparent);
   box-shadow: inset 0 0 0 0.3vmin color-mix(in srgb, var(--c) 60%, transparent);
-  color: ${TEXT};
+  color: inherit;
 }
 
 .toggles button[aria-pressed='true']::before {
