@@ -284,6 +284,7 @@ ${lines(7, (i) => `<i style="--i:${i}"></i>`)}
       'Nine of them, rotated <code>i × 20deg</code> around Y, form the meridians. 9 × 20° = 180° is enough because each ring is visible on both sides.',
       'One more ring laid flat with <code>rotateX(90deg)</code> is the equator.',
       'A static <code>rotateZ</code> before the animated <code>rotateY</code> gives the tilted-axis look.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the globe is the same share of a gallery card, the editor and a recording canvas. The sphere is 200 of those units across, and the camera sits 800 back — close enough that the near side is magnified, which is what the base unit has to leave room for.',
     ],
     html: `<div class="scene">
   <div class="globe">
@@ -292,13 +293,16 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the globe is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.24vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .globe {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: calc(200 * var(--u));
+  height: calc(200 * var(--u));
   transform-style: preserve-3d;
   animation: globe-spin 14s linear infinite;
 }
@@ -312,9 +316,9 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
   inset: 0;
   border-radius: 50%;
   box-shadow:
-    inset 0 0 0 1.5px var(--c),
-    inset 0 0 2px 1.5px color-mix(in srgb, var(--c) 40%, transparent),
-    0 0 2px color-mix(in srgb, var(--c) 50%, transparent);
+    inset 0 0 0 calc(1.5 * var(--u)) var(--c),
+    inset 0 0 calc(2 * var(--u)) calc(1.5 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent),
+    0 0 calc(2 * var(--u)) color-mix(in srgb, var(--c) 50%, transparent);
 }
 
 .globe i { transform: rotateY(calc(var(--i) * 20deg)); }   /* meridians */
