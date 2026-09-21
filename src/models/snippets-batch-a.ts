@@ -654,7 +654,7 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
       'Lay the six faces out flat as the cross-shaped net. Each face sits <b>next to</b> the edge it shares with its parent and uses that edge as <code>transform-origin</code>.',
       'Folding is then one <code>rotateX(±90deg)</code> or <code>rotateY(±90deg)</code> per face. The angle lives in <code>--fx</code> / <code>--fy</code>, and one shared keyframe rule reads it, so every wall folds its own way.',
       'The lid is a <b>child</b> of the north wall, not of the base. Its hinge rides along as the wall stands up, and its 90° adds to the wall\'s: nested transforms compound.',
-      'The lid has its own, wider keyframes: it opens first and closes last, so it never folds through a wall. Both timelines are mirror-symmetric, so the loop is seamless.',
+      'The loop starts, and holds for a moment, lying open flat: the net itself is the first frame, so a paused card shows the whole cross, not a small closed cube. The walls fold up, the lid shuts last and opens first on its own, wider keyframes, so it never folds through a wall. Both timelines are mirror-symmetric, so the loop is seamless.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the net is the same share of a gallery card, the editor and a recording canvas. It is sized for its widest moment, lying open flat, not for the closed cube.',
     ],
     html: `<div class="scene">
@@ -677,7 +677,7 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
 /* static camera looking down at the floor */
 .net {
   transform-style: preserve-3d;
-  transform: translateY(calc(20 * var(--u))) rotateX(58deg);
+  transform: translateY(calc(18 * var(--u))) rotateX(50deg);
 }
 
 /* the bottom face only turns, so every side gets seen */
@@ -720,16 +720,17 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
   to { transform: rotateZ(360deg); }
 }
 
-/* walls: closed, wait for the lid, open, rest flat, close again */
+/* The loop starts lying open flat, the net itself: that is the first frame, so it is what a
+   paused card shows. walls: flat, fold up, stay closed while the lid shuts and opens, unfold */
 @keyframes fold {
-  0%, 22%, 78%, 100% { transform: rotateX(var(--fx, 0deg)) rotateY(var(--fy, 0deg)); }
-  44%, 56%           { transform: rotateX(0deg) rotateY(0deg); }
+  0%, 6%, 94%, 100% { transform: rotateX(0deg) rotateY(0deg); }
+  28%, 72%          { transform: rotateX(var(--fx, 0deg)) rotateY(var(--fy, 0deg)); }
 }
 
-/* lid: first to open, last to close */
+/* lid: last to close, first to open, so it never folds through a wall */
 @keyframes lid {
-  0%, 4%, 96%, 100% { transform: rotateX(var(--fx, 0deg)) rotateY(var(--fy, 0deg)); }
-  26%, 74%          { transform: rotateX(0deg) rotateY(0deg); }
+  0%, 24%, 76%, 100% { transform: rotateX(0deg) rotateY(0deg); }
+  46%, 54%           { transform: rotateX(var(--fx, 0deg)) rotateY(var(--fy, 0deg)); }
 }`,
   },
 
