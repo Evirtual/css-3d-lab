@@ -331,14 +331,22 @@ async function measureImage(file, scr) {
   }, [file.b64, file.type, scr.bg, scr.png]);
 }
 
-/** Decodes a video frame by frame: the model's box and the change from the frame before. */
-async function measureVideo(file, bg) {
-  return dlg(async ([src, bg, ink]) => {
+/**
+ * Decodes a video frame by frame: the model's box and the change from the frame before.
+ *
+ * Measured at the file's own size, never shrunk: the box's edges are found by ink, and a model's
+ * edge can be a hairline on a backdrop of nearly its own colour (dice's top face is white on the
+ * light stage, outlined by a line about a pixel wide). Shrunk below the canvas's size, that line
+ * blurs under INK and the edge is found a few percent inside where it is — on the file and not the
+ * screen, which is measured at full size. `first` measures frame 0 only.
+ */
+async function measureVideo(file, bg, { first: firstOnly = false } = {}) {
+  return dlg(async ([src, bg, ink, firstOnly]) => {
     const v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.src = src;
     await new Promise((ok, no) => { v.onloadeddata = ok; v.onerror = () => no(new Error('the video would not open')); });
-    const W = Math.min(320, v.videoWidth), H = Math.round(W * v.videoHeight / v.videoWidth);
+    const W = v.videoWidth, H = v.videoHeight;
     const c = new OffscreenCanvas(W, H), x = c.getContext('2d', { willReadFrequently: true });
-    const n = Math.max(1, Math.round(v.duration * 30));
+    const n = firstOnly ? 1 : Math.max(1, Math.round(v.duration * 30));
     const frames = []; let prev = null, first = null, backdrop = bg;
     for (let i = 0; i < n; i++) {
       v.currentTime = Math.min(v.duration - 0.001, (i + 0.5) / 30);
@@ -354,7 +362,7 @@ async function measureVideo(file, bg) {
     }
     let wrap = 0; for (let k = 0; k < first.data.length; k += 4) wrap += Math.abs(first.data[k] - prev.data[k]) + Math.abs(first.data[k+1] - prev.data[k+1]) + Math.abs(first.data[k+2] - prev.data[k+2]);
     return { frames, backdrop, wrap: wrap / (first.data.length / 4) / 3, n };
-  }, [file.src, bg, INK]);
+  }, [file.src, bg, INK, firstOnly]);
 }
 
 /** Frame-to-frame steps of the box: centre and size, as shares of the frame. */
@@ -525,7 +533,9 @@ async function checkImages(id) {
 async function checkVideos(id) {
   const { animations } = await openDialog(id, 'video');
   const env = await dlg(async () => {
-    const { motionSeconds } = await import('/src/record.ts');
+    const { motionSeconds, h264Codec } = await import('/src/record.ts');
+    // the codec the app itself asks for at each 4K shape, and whether this browser has it
+    const own = async (width, height) => { const codec = h264Codec(width, height); return codec ? `${codec} ${(await ask(codec, width, height)) ? 'yes' : 'no'}` : 'no level holds it'; };
     const stage = document.querySelector('.maker .stage');
     const ask = async (codec, width, height, alpha = 'discard') => { try { return (await VideoEncoder.isConfigSupported({ codec, width, height, bitrate: 8e6, framerate: 30, alpha })).supported; } catch { return false; } };
     return {
@@ -533,10 +543,11 @@ async function checkVideos(id) {
       loopChip: !document.querySelector('.maker [data-pick="motion"][data-value="loop"]')?.disabled,
       clearChip: !document.querySelector('.maker [data-pick="movie"][data-value="webm-clear"]')?.disabled,
       vp9alpha: await ask('vp09.00.10.08', 480, 854, 'keep'),
-      h264: { '2160x3840 @4.0': await ask('avc1.4d0028', 2160, 3840), '2160x2160 @4.0': await ask('avc1.4d0028', 2160, 2160), '3840x2160 @4.0': await ask('avc1.4d0028', 3840, 2160), '2160x3840 @5.1': await ask('avc1.640033', 2160, 3840), '1080x1920 @4.0': await ask('avc1.4d0028', 1080, 1920) },
+      h264: { '2160x3840': await own(2160, 3840), '2160x2160': await own(2160, 2160), '3840x2160': await own(3840, 2160), '1080x1920': await own(1080, 1920) },
+      fourK: !document.querySelector('.maker [data-pick="quality"][data-value="2160"]')?.hasAttribute('data-off'),
     };
   });
-  say(`  video tab: ${animations} animations; own loop ${env.loop}s (${env.loopChip ? 'offered' : 'not offered'}); WebM clear chip ${env.clearChip ? 'enabled' : 'disabled'}; VP9+alpha encodable here: ${env.vp9alpha}; H.264 encodable: ${Object.entries(env.h264).map(([k, v]) => `${k} ${v ? "yes" : "no"}`).join(", ")}`);
+  say(`  video tab: ${animations} animations; own loop ${env.loop}s (${env.loopChip ? 'offered' : 'not offered'}); WebM clear chip ${env.clearChip ? 'enabled' : 'disabled'}; VP9+alpha encodable here: ${env.vp9alpha}; H.264 the app asks for, and encodable here: ${Object.entries(env.h264).map(([k, v]) => `${k} ${v}`).join(', ')}; 4K chip ${env.fourK ? 'offered' : 'not offered'}`);
   const row = { id, kind: 'video', env, shapes: {} };
   results.push(row);
 
@@ -553,16 +564,21 @@ async function checkVideos(id) {
     if (only.has('dims') || only.has('picture')) {
       for (const q of qualities) {
         await pick('motion', 'live');
+        // a quality this browser cannot encode is shown but not offered: nothing to make, and not a fault
+        if (await dlg((v) => document.querySelector(`.maker [data-pick="quality"][data-value="${v}"]`)?.hasAttribute("data-off"), q)) {
+          untestable.push(`${id}: ${q}p video — the dialog says this browser cannot encode it and does not offer it`);
+          continue;
+        }
         await pick('quality', q);
         const file = await make({ live: true });
         if (file.error) {
-          const why = q === 2160 && !Object.values(env.h264).slice(0, 3).some(Boolean) ? ' (this browser has no H.264 encoder for 4K at level 4.0, the level the app asks for)' : '';
+          const why = q === 2160 ? ` (the app asks for ${Object.entries(env.h264).slice(0, 3).map(([k, v]) => `${k}: ${v}`).join(', ')})` : '';
           miss(id, 'dims', `video ${shape} ${q}p`, `the dialog offers it and it fails: "${file.error}"${why}`, 'app');
           entry.takes[q] = { error: file.error, caption: file.caption };
           continue;
         }
         const said = captionSize(file.caption);
-        const vid = await measureVideo(file, scr.bg);
+        const vid = await measureVideo(file, scr.bg, { first: true });
         const f0 = vid.frames[0]?.box;
         const gap = boxGap(f0, scr.box);
         entry.takes[q] = { caption: file.caption, width: file.width, height: file.height, duration: file.duration, box0: f0 };
