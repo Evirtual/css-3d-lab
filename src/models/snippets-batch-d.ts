@@ -1201,7 +1201,7 @@ render();`,
     how: [
       'All four flaps are the <b>same</b> top-left quadrant, just turned around the loader\'s centre in 90° steps with <code>rotateZ(calc(var(--i) * 90deg))</code> — one keyframe animation drives all four.',
       'The flap is hinged on the corner that touches the centre: <code>transform-origin: calc(100% + 2 * var(--u)) calc(100% + 2 * var(--u))</code>, just outside its own corner — <code>--u</code> is the one base unit every length here is a multiple of.',
-      'A <b>negative</b> <code>animation-delay</code> (<code>calc(var(--i) * 0.3s - 2.4s)</code>) starts each flap already part-way through the cycle instead of waiting its turn, which is what makes the four look like they are chasing each other.',
+      'A <b>negative</b> <code>animation-delay</code> (<code>calc(var(--i) * 0.3s - 1.65s)</code>) starts each flap already part-way through the cycle instead of waiting its turn, which is what makes the four look like they are chasing each other. The 1.65s is picked so that at the very first frame all four are lying in their rest window (25–75%), so a paused card shows the whole square, not two flaps mid-chase.',
       'Both ends of the keyframe are <code>opacity: 0</code>, so the fold-in and fold-out happen off-screen — the loop has no visible seam.',
       'Laying the whole thing flat with <code>rotateX(44deg) rotateZ(45deg)</code> turns a normally flat spinner into flaps that visibly stand up off a floor. The <code>rotateZ</code> already makes the plate √2 as wide as it is deep, so the tilt stays well off a true isometric 58° — otherwise the spinner would read as a wide, flat smear.',
     ],
@@ -1264,8 +1264,9 @@ render();`,
   inset: calc(2 * var(--u));
   border-radius: calc(5 * var(--u));
   transform-origin: calc(100% + 2 * var(--u)) calc(100% + 2 * var(--u));
-  /* a negative delay starts each flap part-way through: no waiting, and the four run in a chase */
-  animation: cubeloader-fold 2.4s ease-in-out calc(var(--i) * 0.3s - 2.4s) infinite;
+  /* a negative delay starts each flap part-way through: no waiting, and the four run in a chase.
+     At the first frame flap 0 is 69% through and flap 3 31%: all four resting, the square whole */
+  animation: cubeloader-fold 2.4s ease-in-out calc(var(--i) * 0.3s - 1.65s) infinite;
   background: color-mix(in srgb, var(--c) 45%, transparent);
   border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 75%, transparent);
   box-shadow: inset 0 0 calc(24 * var(--u)) color-mix(in srgb, var(--c) 30%, transparent);
