@@ -22,8 +22,9 @@
  * 2. THE WORDS ARE THE MODEL'S OWN. The title and description are read from the model's gallery
  *    entry in src/models (loaded through Vite, as generate-pages loads them), never from the built
  *    page. og:title must be the page's <title> and start with "<title> in <pure CSS | CSS +
- *    JavaScript>"; og:description must be the page's meta description and start with the model's
- *    description; og:image:alt and twitter:image:alt must start with "<title>:"; og:url is the
+ *    JavaScript>"; og:description must be the page's meta description and be the model's
+ *    description, whole or cut cleanly (at a sentence end, or at a clause boundary with "…": see
+ *    descriptionCut); og:image:alt and twitter:image:alt must start with "<title>:"; og:url is the
  *    model's own address. The headline drawn IN the image is read from the DOM of the page the
  *    image is shot from (/embed/<id>/?og=1, after generate-media's fitText): its text must be the
  *    title, every line must fit its column (fitText shrinks it to 24px and no further, so a line
@@ -141,6 +142,33 @@ function metaOf(html) {
   out['<title>'] = title ? unesc(title[1]) : null;
   return out;
 }
+/**
+ * Whether a share description is the model's own: null when it is, or why not. Search results
+ * show about 160 characters, so the generator may cut a long description (the page body keeps all
+ * of it; check-seo proves that). Allowed:
+ *  - the full description, with or without the generator's own words after it;
+ *  - a cut at a sentence end: a prefix of it ending in . ! or ?, where its next sentence begins;
+ *  - a cut at a clause boundary, marked "…": a prefix that ends at (or just before) a comma,
+ *    semicolon, colon or a spaced dash, then "…".
+ * Anything else is not: other words, a cut in the middle of a word or a clause, an empty one.
+ */
+function descriptionCut(og, full) {
+  if (!og || !og.trim()) return 'it is empty';
+  if (og.startsWith(full)) return null;
+  if (/[.!?]$/.test(og)) {
+    if (!full.startsWith(og)) return 'its words are not the model\'s';
+    return /^\s/.test(full.slice(og.length)) ? null : 'it stops inside a sentence';
+  }
+  if (og.endsWith('…')) {
+    const kept = og.slice(0, -1).trimEnd();
+    if (!kept || !full.startsWith(kept)) return 'its words are not the model\'s';
+    if (/[,;:]$/.test(kept) || /\s[-–—]$/.test(kept) || /[–—]$/.test(kept)) return null;
+    const rest = full.slice(kept.length);
+    return /^\s*[,;:–—]/.test(rest) || /^\s+-\s/.test(rest) ? null : 'it is cut in the middle of a word or a clause';
+  }
+  return 'its words are not the model\'s, or it is cut without a sentence end or "…"';
+}
+
 function fileAndTags(d, why, facts) {
   const file = join(DIST, 'media', `${d.id}.jpg`);
   if (!existsSync(file)) why.push(`no image: ${file} does not exist`);
@@ -171,7 +199,8 @@ function fileAndTags(d, why, facts) {
   const head = `${d.title} in ${kind(d)}`;
   if (!m['og:title']?.startsWith(head)) why.push(`og:title does not start with the model's title "${head}": "${m['og:title'] ?? 'missing'}"`);
   if (m['og:title'] !== m['<title>']) why.push(`og:title is not the page's <title>: "${m['og:title']}" / "${m['<title>']}"`);
-  if (!m['og:description']?.startsWith(d.description)) why.push(`og:description does not start with the model's description: "${(m['og:description'] ?? 'missing').slice(0, 90)}…"`);
+  const cut = descriptionCut(m['og:description'], d.description);
+  if (cut) why.push(`og:description is not the model's description or a clean cut of it (${cut}): "${(m['og:description'] ?? 'missing').slice(0, 90)}"`);
   if (m['og:description'] !== m.description) why.push('og:description is not the page\'s meta description');
   for (const tag of ['og:image:alt', 'twitter:image:alt']) if (!m[tag]?.startsWith(`${d.title}:`)) why.push(`${tag} does not start with "${d.title}:": "${m[tag] ?? 'missing'}"`);
   if (m['og:url'] !== `${site.url}/models/${d.id}/`) why.push(`og:url is ${m['og:url'] ?? 'missing'}, not ${site.url}/models/${d.id}/`);
