@@ -1312,30 +1312,47 @@ for (let i = 0; i < COUNT; i++) {
       'Only the pairs whose value actually changed are flipped.',
     ],
     html: `<div class="scene">
-  <div class="clock"><span></span><em>:</em><span></span><em>:</em><span></span></div>
+  <div class="clock">
+    <div class="row"><span></span><em>:</em><span></span></div>
+    <div class="row"><span></span></div>
+  </div>
 </div>`,
     css: `.scene {
-  perspective: 700px;
+  /* one base unit: every length below is a multiple of it, so the clock is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.33vmin;
+  perspective: calc(700 * var(--u));
 }
 
+/* Hours and minutes on one line, seconds under them. Three pairs side by side are four times
+   wider than they are tall: sized to the 92vmin width limit, the whole clock would stand 22vmin
+   high, well under the 40vmin floor. Two lines give it the height the band asks for without
+   making the cards a shape no flip clock has. */
 .clock {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font: 800 3.5rem ui-monospace, monospace;
+  display: grid;
+  justify-items: center;
+  gap: calc(12 * var(--u));
+  font: 800 calc(56 * var(--u)) ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   transform: rotateY(-14deg) rotateX(6deg);
   transform-style: preserve-3d;
 }
 
+.clock .row {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  transform-style: preserve-3d;
+}
+
 .clock span {
   min-width: 2.2ch;
-  padding: 10px 14px;
-  border-radius: 12px;
+  padding: calc(10 * var(--u)) calc(14 * var(--u));
+  border-radius: calc(12 * var(--u));
   text-align: center;
   color: #fff;
   background: linear-gradient(#2a2f52 49%, #0c0e1d 49% 52%, #1d2140 52%);
-  box-shadow: 0 14px 22px -12px #000;
+  box-shadow: 0 calc(14 * var(--u)) calc(22 * var(--u)) calc(-12 * var(--u)) #000;
 }
 
 .clock em { color: #ffb547; font-style: normal; }
