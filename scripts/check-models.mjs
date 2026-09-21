@@ -27,7 +27,6 @@ import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
 
 const BAND = 70; // the model box, with no controls
-const WITH_CONTROLS = 56; // the model box when there is a control zone under it
 const FLOOR = 40; // nothing may be smaller than this
 const WIDEST = 92; // per cent of the canvas width
 const CORNER = 14; // the site's badge and menu live in the top corners
@@ -278,7 +277,7 @@ for (const id of ids) {
   if (!seen) broke.push('nothing drawn');
   else {
     const full = seen.coversW >= 0.95 && seen.coversH >= 0.95;
-    // the band is what everything drawn must fit, model and control zone together; WITH_CONTROLS
+    // the band is what everything drawn must fit, model and control zone together; the 50vmin model
     // is the model box inside it, which is why a model with a row is smaller
     const tallest = BAND;
     if (full) {
