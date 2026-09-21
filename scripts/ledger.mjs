@@ -23,10 +23,19 @@
  * git replay is reused while HEAD is the same, the vite load while the model files are.
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources } from './model-sources.mjs';
+// Imported with this module's own query, so the watcher re-importing ledger.mjs?v=<version> gets
+// model-sources.mjs at that version too, not the copy it loaded at start.
+const { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources } = await import(`./model-sources.mjs${new URL(import.meta.url).search}`);
+
+/** The build's own code: a hash of these files as they are on disk right now. */
+const CODE_FILES = ['scripts/ledger.mjs', 'scripts/model-sources.mjs'];
+export const codeVersion = () => createHash('sha1').update(CODE_FILES.map((f) => { try { return norm(readFileSync(join(ROOT, f), 'utf8')); } catch { return `(missing ${f})`; } }).join('\0')).digest('hex').slice(0, 10);
+/** The version this copy of the module was loaded from. A build compares it with the disk. */
+export const LOADED_CODE = codeVersion();
 
 const OUT = join(ROOT, 'docs', 'ledger.json');
 const CHECKS = ['models', 'stages', 'motion'];
@@ -532,7 +541,7 @@ const ledger = {
   generatedAt, head,
   groups,
   tags: [...new Set(demos.flatMap((d) => d.tags ?? []))].sort(),
-  build: { by, reason, ms: null, reusedModelLoad, reusedGitReplay },
+  build: { by, reason, ms: null, reusedModelLoad, reusedGitReplay, code: (() => { const onDisk = codeVersion(); return { loaded: LOADED_CODE, onDisk, stale: onDisk !== LOADED_CODE, files: CODE_FILES }; })() },
   running,
   readiness,
   sources: {

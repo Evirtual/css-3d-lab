@@ -19,14 +19,35 @@
  * that a rebuild follows the lead's record promptly, and a queue-only change reuses everything
  * cached, so it costs about a tenth of a second.
  *
+ * The build's own code (scripts/ledger.mjs and scripts/model-sources.mjs) is watched too. When it
+ * changes on disk, the next build re-imports ledger.mjs as ledger.mjs?v=<hash of both files>
+ * (which imports model-sources.mjs at the same version) and drops the cache the old code filled,
+ * so no rebuild ever runs on code older than the disk. The version each build ran on is recorded.
+ * This file itself is not reloaded: a change to ledger-watch.mjs still needs a restart.
+ *
  * It writes docs/ledger-watch.json every 30 s and after every build: its pid, when it started,
  * its last heartbeat and its last build. On a clean stop it records that it stopped. The page reads
  * it to tell a quiet project (heartbeat fresh, nothing changed) from a watcher that died.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { buildLedger, writeAtomic } from './ledger.mjs';
 import { ROOT } from './model-sources.mjs';
+
+/* ---------- the build code, reloaded whenever it changes on disk ---------- */
+let lib = await import('./ledger.mjs');
+let codeLoadedAt = new Date().toISOString();
+let codeOnDisk = lib.LOADED_CODE;
+const writeAtomic = (...a) => lib.writeAtomic(...a);
+/** Load the build code again if the disk has moved on. Returns the old version when it did. */
+async function freshCode() {
+  codeOnDisk = lib.codeVersion();
+  if (codeOnDisk === lib.LOADED_CODE) return null;
+  const was = lib.LOADED_CODE;
+  lib = await import(`./ledger.mjs?v=${codeOnDisk}`);
+  codeLoadedAt = new Date().toISOString();
+  for (const k of Object.keys(cache)) delete cache[k]; // filled by the old code; its shapes may differ
+  return was;
+}
 
 const TICK = 3000;
 const BEAT = 30000;
@@ -67,9 +88,10 @@ function look() {
     queue: stamp(join(ROOT, 'docs', 'ledger-queue.json')),
     docs: `${jsonStamps(join(ROOT, 'docs'), '.md')}|README.md=${stamp(join(ROOT, 'README.md'))}`,
     models: MODEL_DIRS.flatMap((d) => statTree(d, [])).join('|'),
+    code: ['ledger.mjs', 'model-sources.mjs'].map((f) => stamp(join(ROOT, 'scripts', f))).join('|'),
   };
 }
-const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', docs: 'docs', queue: 'queue', models: 'model files' };
+const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', docs: 'docs', code: 'build code', queue: 'queue', models: 'model files' };
 
 /* ---------- heartbeat ---------- */
 const startedAt = new Date().toISOString();
@@ -82,6 +104,7 @@ function beat() {
       note: 'Written by scripts/ledger-watch.mjs. heartbeatAt is refreshed every 30 s while it runs; stoppedAt is set only on a clean stop.',
       pid: process.pid, startedAt, heartbeatAt: at, beatEverySeconds: BEAT / 1000, tickEverySeconds: TICK / 1000,
       stoppedAt: stopped, lastBuild,
+      code: { loaded: lib.LOADED_CODE, loadedAt: codeLoadedAt, onDisk: codeOnDisk, files: ['scripts/ledger.mjs', 'scripts/model-sources.mjs'], note: 'versions are a hash of those files; loaded differs from onDisk only until the next build reloads it' },
     }, null, 1));
   } catch (e) { console.error(`ledger-watch: could not write the heartbeat: ${e.message}`); }
 }
@@ -97,14 +120,17 @@ async function build(why) {
   if (building) { again = again ? `${again}, ${why}` : why; return; }
   building = true;
   try {
-    const r = await buildLedger({ by: 'npm run ledger:watch', reason: why, cache, sourcesKey: seen.models, quiet: true });
+    let was = null;
+    try { was = await freshCode(); } catch (e) { console.log(`${clock()} could not load the new build code (${e.message.split('\n')[0]}); building with ${lib.LOADED_CODE}`); }
+    if (was) console.log(`${clock()} build code changed on disk: reloaded ${was} → ${lib.LOADED_CODE}`);
+    const r = await lib.buildLedger({ by: 'npm run ledger:watch', reason: why, cache, sourcesKey: seen.models, quiet: true });
     const c = r.counts;
     const reused = [r.reusedGitReplay && 'git', r.reusedModelLoad && 'models'].filter(Boolean);
     const run = Object.entries(r.running).filter(([, p]) => p).map(([k, p]) => ` · ${k} running ${p.done}/${p.total ?? '?'}${p.alive === false ? ' (process gone)' : ''}`).join('');
-    lastBuild = { at: new Date().toISOString(), reason: why, ms: r.ms, ok: true, head: r.head };
-    console.log(`${clock()} rebuilt (${why}) in ${(r.ms / 1000).toFixed(1)} s${reused.length ? `, reused ${reused.join('+')}` : ''}: ${c.converted}/${c.models} converted, ${c.checked} checked, ${c.approved} approved${run}${r.notes.length ? ` · ${r.notes.length} note(s)` : ''}`);
+    lastBuild = { at: new Date().toISOString(), reason: why, ms: r.ms, ok: true, head: r.head, codeVersion: lib.LOADED_CODE, balanced: r.balanced };
+    console.log(`${clock()} rebuilt (${why}) in ${(r.ms / 1000).toFixed(1)} s${reused.length ? `, reused ${reused.join('+')}` : ''}: ${c.converted}/${c.models} converted, ${c.checked} checked, ${c.approved} approved${run}${r.notes.length ? ` · ${r.notes.length} note(s)` : ''}${r.balanced === false ? ' · DOES NOT BALANCE' : ''} [code ${lib.LOADED_CODE}]`);
   } catch (e) {
-    lastBuild = { at: new Date().toISOString(), reason: why, ok: false, error: e.message.split('\n')[0] };
+    lastBuild = { at: new Date().toISOString(), reason: why, ok: false, error: e.message.split('\n')[0], codeVersion: lib.LOADED_CODE };
     console.log(`${clock()} build FAILED (${why}): ${lastBuild.error}`);
   } finally {
     building = false;
