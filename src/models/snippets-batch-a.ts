@@ -286,10 +286,14 @@ ${lines(24, (i) => `    <i style="--i:${i}"></i>`)}
   transform: rotateY(calc(var(--i) * 15deg)) translateX(calc(56 * var(--u)));
 }
 
-/* spins on two axes; both end 360deg after they start, so the loop is seamless */
+/* Every ring stands in a plane through the axis, so looked at straight down the axis they are
+   all edge-on at once and the torus draws nothing. So it never tumbles through that view: it is
+   held 50deg off it (rotateX), spins on its own axis (the inner rotateY) and swings round the
+   vertical (the outer rotateY), which keeps the axis at least 40deg from the line of sight.
+   Both spins end 360deg after they start, so the loop is seamless. */
 @keyframes tumble {
-  from { transform: rotateZ(24deg) rotateX(-60deg) rotateY(0deg); }
-  to   { transform: rotateZ(24deg) rotateX(300deg) rotateY(360deg); }
+  from { transform: rotateZ(16deg) rotateY(0deg) rotateX(-50deg) rotateY(0deg); }
+  to   { transform: rotateZ(16deg) rotateY(360deg) rotateX(-50deg) rotateY(360deg); }
 }`,
   },
 
