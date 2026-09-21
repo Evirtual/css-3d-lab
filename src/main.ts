@@ -37,6 +37,10 @@ const scssSources = import.meta.glob<string>('./styles/models/_*.scss', {
 });
 const scssFor = (id: string): string => scssSources[`./styles/models/_${id}.scss`] ?? '';
 
+// Data strings shown as plain text (a technique like 'static <button>' must not become a real button).
+const escapeText = (s: string): string =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 const $ = <T extends HTMLElement>(sel: string): T => document.querySelector<T>(sel)!;
 
 /* ---------- state ---------- */
@@ -395,7 +399,7 @@ function openViewer(id: string): void {
         <h3>How it works</h3>
         <ol class="steps">${snip.how.map((s) => `<li>${s}</li>`).join('')}</ol>
         <h3>Key ingredients</h3>
-        <ul class="ingredients">${demo.technique.map((t) => `<li><code>${t}</code></li>`).join('')}</ul>
+        <ul class="ingredients">${demo.technique.map((t) => `<li><code>${escapeText(t)}</code></li>`).join('')}</ul>
       </section>
       <section class="code">
         <div class="codebox">

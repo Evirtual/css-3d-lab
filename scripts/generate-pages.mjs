@@ -104,7 +104,7 @@ function shell({ path, depth, title, description, jsonLd, body, script, image, i
     <meta name="theme-color" content="#07080f" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f3f4fc" media="(prefers-color-scheme: light)" />
     <meta name="apple-mobile-web-app-title" content="CSS 3D Lab" />
-    <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+    <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>
   </head>
   <body class="page">
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
