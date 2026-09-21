@@ -288,17 +288,18 @@ ${CUBE_FACES}
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the button is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.53vmin;
+  --u: 0.28vmin;
   perspective: calc(600 * var(--u));
 }
 
-/* static hit target (its bottom padding covers where the cap travels to) */
+/* static hit target (its bottom padding covers where the cap travels to). It is lifted because
+   the edge and the drop shadow hang below the cap: lifted, what is drawn is centred */
 .push {
   padding: 0 0 calc(32 * var(--u));
   border: 0;
   background: none;
   cursor: pointer;
-  transform: rotateX(30deg);
+  transform: translateY(calc(-36 * var(--u))) rotateX(30deg);
 }
 
 /* the visible cap */
