@@ -17,11 +17,23 @@
  *             smooth motion. A model with no loop is filmed live for two seconds, untouched.
  *   formats   PNG and JPEG have the stage's backdrop, PNG clear has none, WebM clear is asked for
  *
- *   node scripts/check-exports.mjs                     the sample of converted models
+ *   node scripts/check-exports.mjs                     the sample of converted models, every setting
  *   node scripts/check-exports.mjs cube dice           just these
+ *   node scripts/check-exports.mjs --defaults cube     the dialog's default settings only
  *   node scripts/check-exports.mjs --quick             800 px and 480p only, drift at 1:1 only
  *   node scripts/check-exports.mjs --only dims,drift   a subset of the checks
  *   node scripts/check-exports.mjs --json out.json     also write every number measured
+ *
+ * Two jobs, two runs. With no flag every setting is made, every shape × size × quality, the slider
+ * and every format: about 11 minutes a model, a proof of the pipeline, run on the SAMPLE below.
+ * --defaults makes exactly the settings the per-model verdict counts (scripts/export-defaults.mjs,
+ * which scripts/capture-check.mjs reads too): the image at 1:1 (its canvas, and a 1600 px PNG for
+ * dims, picture and detail), an 800 px PNG for the format check, the video at 9:16 (a 1080p live
+ * take for dims and picture; the model's own loop at 480p for drift and loop frame 0), and nothing
+ * else. Each of those rows is measured by the same code, at the same settings, as the row of the
+ * same name in the full run. It is the per-model proof, run over all 135 models through
+ * `npm run capture -- exports --defaults <ids>`. --defaults with --quick is refused (they ask for
+ * different settings); SIZES is ignored under it.
  *
  * The export service: if something already answers on 127.0.0.1:8787 (`npm run export`) it is
  * used, and the report says so; otherwise one is started in this process.
@@ -44,6 +56,7 @@ import { join } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
 import { exportServer } from '../server/dev.mjs';
+import { DEFAULTS } from './export-defaults.mjs';
 
 const SAMPLE = ['candles', 'dice', 'paycard', 'cube', 'browser', 'coverflow', 'switch', 'starfield'];
 const IMAGE_SHAPES = ['1:1', '4:3', '3:2', '16:9', '9:16', 'auto'];
@@ -65,13 +78,20 @@ const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
 const quick = flag('--quick');
+const defaultsOnly = flag('--defaults');
+if (defaultsOnly && quick) { console.error('--defaults and --quick ask for different settings; give one.'); process.exit(2); }
 const jsonOut = opt('--json');
 const only = new Set((opt('--only') ?? 'dims,picture,slider,drift,formats').split(','));
 const ids = args.filter((a, i) => !a.startsWith('--') && !['--json', '--only'].includes(args[i - 1]));
 const models = ids.length ? ids : SAMPLE;
-const sizes = quick ? [800] : SIZES;
-const qualities = quick ? [480, 2160] : QUALITIES;
-const driftShapes = quick ? ['1:1'] : VIDEO_SHAPES;
+const D = DEFAULTS;
+const imageShapes = defaultsOnly ? [D.image.shape] : IMAGE_SHAPES;
+const sizes = defaultsOnly ? [D.image.size] : quick ? [800] : SIZES;
+const videoShapes = defaultsOnly ? [D.video.shape] : VIDEO_SHAPES;
+const qualities = defaultsOnly ? [D.video.quality] : quick ? [480, 2160] : QUALITIES;
+const driftShapes = defaultsOnly ? [D.drift.shape] : quick ? ['1:1'] : VIDEO_SHAPES;
+const sliderShapes = defaultsOnly ? [] : quick ? ['1:1'] : ['1:1', '9:16', '16:9'];
+const formatPictures = defaultsOnly ? D.formats.image : ['png', 'png-clear', 'jpeg'];
 
 /* ---------------- services ---------------- */
 async function serviceAnswers() {
@@ -85,6 +105,7 @@ const external = await serviceAnswers();
 if (!external) service = await exportServer(8787);
 if (!(await serviceAnswers())) { console.error('The export service does not answer on 127.0.0.1:8787.'); process.exit(2); }
 console.log(`export service: ${external ? 'already running on 127.0.0.1:8787 (used as is)' : 'started in this process'}`);
+console.log(`settings: ${defaultsOnly ? `the defaults only (image ${D.image.shape} at ${D.image.size} px ${D.image.picture}, format ${formatPictures.join('/')} at ${D.formats.size} px; video ${D.video.shape} at ${D.video.quality}p, drift ${driftShapes.join('/')} at ${D.drift.quality}p)` : quick ? 'quick (800 px, 480p and 2160p, drift at 1:1)' : `every shape, size (${sizes.join(', ')} px) and quality (${qualities.join(', ')}p), the slider and every format`}; checks: ${[...only].filter((k) => !(defaultsOnly && k === 'slider')).join(', ')}`);
 
 // A cache of its own, so two runs side by side (or another agent's dev server) do not fight over
 // node_modules/.vite while its dependencies are being optimised.
@@ -428,9 +449,9 @@ async function checkImages(id) {
   results.push(row);
   const doDims = only.has('dims') || only.has('picture');
 
-  for (const shape of doDims ? IMAGE_SHAPES : ['1:1']) {
+  for (const shape of doDims ? imageShapes : [D.image.shape]) {
     await pick('imageRatio', shape);
-    await pick('picture', 'png');
+    await pick('picture', D.image.picture);
     await settle();
     await freeze();
     const scr = await screen();
@@ -464,7 +485,7 @@ async function checkImages(id) {
   }
 
   if (only.has('slider')) {
-    for (const shape of quick ? ['1:1'] : ['1:1', '9:16', '16:9']) {
+    for (const shape of sliderShapes) {
       await pick('imageRatio', shape);
       await pick('size', 800);
       await pick('picture', 'png');
@@ -512,14 +533,14 @@ async function checkImages(id) {
   }
 
   if (only.has('formats')) {
-    await pick('imageRatio', '1:1');
-    await pick('size', 800);
+    await pick('imageRatio', D.image.shape);
+    await pick('size', D.formats.size);
     await pick('picture', 'png');
     await settle();
     await freeze();
     const scr = await screen();
     row.formats = {};
-    for (const picture of ['png', 'png-clear', 'jpeg']) {
+    for (const picture of formatPictures) {
       await pick('picture', picture);
       const file = await make();
       if (file.error) { miss(id, 'formats', picture, `no file: ${file.error}`, 'app'); continue; }
@@ -564,7 +585,7 @@ async function checkVideos(id) {
   const row = { id, kind: 'video', env, shapes: {} };
   results.push(row);
 
-  for (const shape of VIDEO_SHAPES) {
+  for (const shape of videoShapes) {
     await pick('ratio', shape);
     await settle();
     await freeze();
@@ -605,7 +626,7 @@ async function checkVideos(id) {
     }
 
     if (only.has('drift') && driftShapes.includes(shape)) {
-      await pick('quality', 480);
+      await pick('quality', D.drift.quality);
       const live = !env.loopChip;
       await pick('motion', live ? 'live' : 'loop');
       await freeze();
@@ -644,7 +665,7 @@ async function checkVideos(id) {
     }
   }
 
-  if (only.has('formats')) {
+  if (only.has('formats') && !defaultsOnly) {
     // WebM clear: offered only when this browser can encode a see-through film
     row.webmClear = { chip: env.clearChip, encodable: env.vp9alpha };
     if (env.clearChip !== env.vp9alpha) miss(id, 'formats', 'webm-clear', `chip ${env.clearChip ? 'enabled' : 'disabled'} but VP9 with alpha is ${env.vp9alpha ? '' : 'not '}encodable`, 'app');
@@ -664,7 +685,7 @@ for (const id of models) {
 say(`\n${mismatches.length} mismatch${mismatches.length === 1 ? '' : 'es'} in ${((Date.now() - started) / 60000).toFixed(1)} min:`);
 for (const m of mismatches) say(`  ${m.model.padEnd(10)} ${m.check.padEnd(8)} ${m.what}: ${m.detail}  [${m.fault}]`);
 if (untestable.length) { say('\nnot testable here:'); for (const u of [...new Set(untestable)]) say(`  ${u}`); }
-if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ T, INK, TOL, models, results, mismatches, untestable }, null, 2));
+if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ T, INK, TOL, mode: defaultsOnly ? 'defaults' : quick ? 'quick' : 'full', models, results, mismatches, untestable }, null, 2));
 
 await browser.close();
 await vite.close();
