@@ -1048,7 +1048,7 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   min-width: 8vmin;
   padding: 0 3vmin;
   border: 0;
-  border-radius: calc(999 * var(--u));
+  border-radius: 999px;
   background: rgb(140 150 220 / 0.2);
   color: ${MUTED};
   font: 600 4vmin system-ui, sans-serif;
