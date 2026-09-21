@@ -1374,8 +1374,8 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
 
 .map {
   position: relative;
-  width: 210px;
-  height: 180px;
+  width: calc(210 * var(--u));
+  height: calc(180 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -1384,28 +1384,28 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
   --water: #262a55;
   --road: rgb(255 181 71 / 0.6);
   position: absolute;
-  left: 10px;
-  top: 34px;
-  width: 190px;
-  height: 150px;
-  border: 1px solid rgb(46 230 214 / 0.45);
-  border-radius: 14px;
+  left: calc(10 * var(--u));
+  top: calc(18 * var(--u));
+  width: calc(190 * var(--u));
+  height: calc(150 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(46 230 214 / 0.45);
+  border-radius: calc(14 * var(--u));
   background:
-    linear-gradient(28deg, transparent calc(50% - 1.5px), var(--road) 0 calc(50% + 1.5px), transparent 0),
-    linear-gradient(90deg, transparent 63%, var(--road) 0 calc(63% + 3px), transparent 0),
+    linear-gradient(28deg, transparent calc(50% - calc(1.5 * var(--u))), var(--road) 0 calc(50% + calc(1.5 * var(--u))), transparent 0),
+    linear-gradient(90deg, transparent 63%, var(--road) 0 calc(63% + calc(3 * var(--u))), transparent 0),
     radial-gradient(circle at 115% 125%, transparent 56%, var(--water) 0 59%, transparent 0),
     radial-gradient(ellipse 30% 25% at 26% 32%, var(--land) 98%, transparent),
     radial-gradient(ellipse 26% 22% at 66% 68%, var(--land) 98%, transparent),
     radial-gradient(ellipse 15% 13% at 82% 24%, var(--land) 98%, transparent),
     radial-gradient(ellipse 12% 10% at 26% 80%, var(--land) 98%, transparent),
-    linear-gradient(90deg, rgb(236 238 251 / 0.07) 1px, transparent 1px) 0 0 / 19px 19px,
-    linear-gradient(rgb(236 238 251 / 0.07) 1px, transparent 1px) 0 0 / 19px 19px,
+    linear-gradient(90deg, rgb(236 238 251 / 0.07) calc(1 * var(--u)), transparent calc(1 * var(--u))) 0 0 / calc(19 * var(--u)) calc(19 * var(--u)),
+    linear-gradient(rgb(236 238 251 / 0.07) calc(1 * var(--u)), transparent calc(1 * var(--u))) 0 0 / calc(19 * var(--u)) calc(19 * var(--u)),
     var(--water);
   transform-style: preserve-3d;
   transform: rotateX(54deg) rotateZ(-14deg);
 }
 
-/* the anchor: a point on the map, 1px above it */
+/* the anchor: a point on the map, one unit above it */
 .plane i {
   position: absolute;
   left: var(--x);
@@ -1413,7 +1413,7 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
   width: 0;
   height: 0;
   transform-style: preserve-3d;
-  transform: translateZ(1px);
+  transform: translateZ(calc(1 * var(--u)));
 }
 
 .plane i::before,
@@ -1427,11 +1427,11 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
 
 /* pulse ring, flat on the ground */
 .plane i::before {
-  top: -16px;
-  left: -16px;
-  width: 32px;
-  height: 32px;
-  border: 2px solid var(--c);
+  top: calc(-16 * var(--u));
+  left: calc(-16 * var(--u));
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
+  border: calc(2 * var(--u)) solid var(--c);
   box-sizing: border-box;
   opacity: 0;
   animation-name: ring;
@@ -1440,10 +1440,10 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
 
 /* contact shadow */
 .plane i::after {
-  top: -4px;
-  left: -7px;
-  width: 14px;
-  height: 8px;
+  top: calc(-4 * var(--u));
+  left: calc(-7 * var(--u));
+  width: calc(14 * var(--u));
+  height: calc(8 * var(--u));
   background: rgb(0 0 0 / 0.45);
   animation-name: shadow;
   animation-timing-function: ease-in-out;
@@ -1453,9 +1453,9 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
 .plane b {
   position: absolute;
   bottom: 0;
-  left: -13px;
-  width: 26px;
-  height: 32px;
+  left: calc(-13 * var(--u));
+  width: calc(26 * var(--u));
+  height: calc(32 * var(--u));
   transform-origin: 50% 100%;
   transform: rotateZ(14deg) rotateX(-54deg); /* the plane, undone */
   animation: bounce 2.4s ease-in-out infinite;
@@ -1466,8 +1466,8 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
 .plane b::before {
   content: '';
   position: absolute;
-  width: 26px;
-  height: 26px;
+  width: calc(26 * var(--u));
+  height: calc(26 * var(--u));
   border-radius: 50% 50% 50% 0;
   background: radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--c) 40%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 60%, #000));
   transform: rotate(-45deg);
@@ -1476,17 +1476,17 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
 .plane b::after {
   content: '';
   position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 10px;
-  height: 10px;
+  top: calc(8 * var(--u));
+  left: calc(8 * var(--u));
+  width: calc(10 * var(--u));
+  height: calc(10 * var(--u));
   border-radius: 50%;
   background: #fff;
 }
 
 @keyframes bounce {
   0%, 36%, 100% { transform: rotateZ(14deg) rotateX(-54deg) translateY(0) scale(1, 1); }
-  14%           { transform: rotateZ(14deg) rotateX(-54deg) translateY(-16px) scale(0.94, 1.06); }
+  14%           { transform: rotateZ(14deg) rotateX(-54deg) translateY(calc(-16 * var(--u))) scale(0.94, 1.06); }
   26%           { transform: rotateZ(14deg) rotateX(-54deg) translateY(0) scale(1.14, 0.86); }
 }
 
