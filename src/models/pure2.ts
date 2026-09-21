@@ -29,10 +29,10 @@ export const pureDemos2: Demo[] = [
   {
     id: 'coin',
     title: 'Spinning coin',
-    description: 'Two faces plus a stack of thin discs between them to fake a solid edge.',
+    description: 'Two faces and a band of 24 slats round the edge between them, so it is solid even edge-on.',
     category: 'css',
     tags: ['loop', 'shape'],
-    technique: ['stacked translateZ layers', 'backface-visibility', 'rotateY spin'],
+    technique: ['a rim of rotateZ + translateY slats', 'backface-visibility', 'rotateY spin'],
     html: `<div class="d-coin"><b>$</b>${rep(7, (i) => `<i style="--i:${i}"></i>`)}<b>★</b></div>`,
   },
   {

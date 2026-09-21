@@ -222,13 +222,13 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
       'Every length is a multiple of one base unit, <code>--u</code>, so the coin is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
       'Front and back are two discs pushed apart with <code>translateZ(±5)</code>; the back one is pre-flipped with <code>rotateY(180deg)</code>.',
       '<code>backface-visibility: hidden</code> stops you seeing the front face through the back.',
-      'A flat disc has no edge, so seven plain discs are stacked between the faces. Edge-on, they merge into a solid rim.',
+      'A flat disc has no edge, and seen exactly edge-on it draws nothing at all, so a stack of discs between the faces vanishes with them. The rim is a real band instead: 24 slats, each <code>rotateZ(i × 15deg) translateY(-74.5) rotateX(90deg)</code>, stood on the circle\'s edge and facing outwards. Edge-on, the slats facing you are a solid, reeded edge.',
       'Spin the parent. That is all.',
     ],
     html: `<div class="scene">
   <div class="coin">
     <b>$</b>
-${lines(7, (i) => `<i style="--i:${i}"></i>`)}
+${lines(24, (i) => `<i style="--i:${i}"></i>`)}
     <b>★</b>
   </div>
 </div>`,
@@ -247,20 +247,23 @@ ${lines(7, (i) => `<i style="--i:${i}"></i>`)}
   animation: coin-spin 4s linear infinite;
 }
 
-.coin b,
+/* the rim: 24 slats round the edge, each 20 long (just over the 19.6 a 24th of the circle
+   needs, so there are no gaps) and 10 deep, the distance between the faces */
 .coin i {
   position: absolute;
-  inset: 0;
-  border-radius: 50%;
-}
-
-/* the rim: 7 discs spread from -4.2 to +4.2 */
-.coin i {
-  background: #a8741a;
-  transform: translateZ(calc((var(--i) - 3) * 1.4 * var(--u)));
+  top: 50%;
+  left: 50%;
+  width: calc(20 * var(--u));
+  height: calc(10 * var(--u));
+  margin: calc(-5 * var(--u)) 0 0 calc(-10 * var(--u));
+  background: repeating-linear-gradient(90deg, #b8801f 0 calc(2 * var(--u)), #8a5a0c calc(2 * var(--u)) calc(3 * var(--u)));
+  transform: rotateZ(calc(var(--i) * 15deg)) translateY(calc(-74.5 * var(--u))) rotateX(90deg);
 }
 
 .coin b {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
   display: grid;
   place-items: center;
   border: calc(6 * var(--u)) solid #e2a93b;
