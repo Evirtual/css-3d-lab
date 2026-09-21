@@ -164,7 +164,7 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:
       'JS only turns the pointer into <code>--rx</code> / <code>--rz</code>; a transition eases the block there, fast while the pointer moves and slow on the way back.',
       'Every length in the block is a multiple of one base unit, <code>--u</code>, tied to the canvas: the ground is 172 units square and one em of height is 17 of them, so the city is the same share of a gallery card, the editor and a recording canvas. The whole canvas stays the pointer’s field and the block stands in the middle of it. There is no hint line: the badge in the corner of the stage already says to move the pointer.',
     ],
-    html: `<div class="city">
+    html: `<div class="city" tabindex="0" role="img" aria-label="Isometric city block that turns toward the pointer">
   <div class="view">
     <div class="world">
 ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H[i]};--c:${CITY_C[i % CITY_C.length]}"></i>`, '      ')}
@@ -262,7 +262,11 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   background-position: 0 0, calc(2 * var(--u)) 0, 0 calc(2 * var(--u));
   transform-origin: left;
   transform: rotateY(90deg);
-}`,
+}
+
+/* the keyboard: Tab to it and it leans as it would for a pointer near the top right, even with
+   the pointer resting on the canvas (!important beats the pose the script writes inline) */
+.city:focus-visible .world { --rx: -4deg !important; --rz: -10deg !important; }`,
     js: pointerJs(
       '.city',
       '.world',
@@ -279,7 +283,7 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
       'JS maps the pointer to <code>--rx</code> / <code>--ry</code> of a few degrees. Everything on the walls (window, poster, door, rug, lamp) is a flat child of its wall, drawn with gradients.',
       'The room is <code>inset: 0</code> and its walls are percentages of the canvas, so it fills the canvas edge to edge whatever its shape. Its depth and details are multiples of one base unit, <code>--u</code>, tied to the canvas. The hint is the standard caption, in plain <code>vmin</code>, where the control zone sits in every model.',
     ],
-    html: `<div class="room">
+    html: `<div class="room" tabindex="0" role="img" aria-label="A room seen from inside: the view turns with the pointer">
   <div class="box">
     <div class="wall back"><i class="window"></i><i class="picture"></i></div>
     <div class="wall left"><i class="poster"></i></div>
@@ -486,7 +490,11 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
 
 .is-touched .caption {
   opacity: 0;
-}`,
+}
+
+/* the keyboard: Tab to it and it leans as it would for a pointer near the top right, even with
+   the pointer resting on the canvas (!important beats the pose the script writes inline) */
+.room:focus-visible .box { --rx: -3deg !important; --ry: 5deg !important; }`,
     js: pointerJs(
       '.room',
       '.box',
@@ -1176,7 +1184,7 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
       'Pause the spin <b>and</b> the points together, and they stay in step. <code>touch-action: none</code> plus pointer capture makes the drag work with a finger.',
       'Every length is a multiple of one base unit, <code>--u</code>, and JS writes a point\'s place as <b>plain numbers</b> that CSS multiplies by it, so the plot is the same share of a card, the editor and a recording canvas. The unit is set for the worst pose a drag can reach, a corner pointing at you, not for the pose at rest.',
     ],
-    html: `<div class="plot">
+    html: `<div class="plot" tabindex="0" role="img" aria-label="3D scatter plot of three clusters. Drag it, or use the arrow keys, to turn it">
   <div class="view">
     <div class="tilt">
       <div class="spin">
@@ -1307,7 +1315,12 @@ ${CUBE_FACES}
 @keyframes face {
   from { rotate: y 0deg; }
   to   { rotate: y -360deg; }
-}`,
+}
+
+/* the plot covers the canvas, so a ring round it would be off the canvas: focus brings up the
+   box edges instead */
+.plot:focus-visible { outline: none; }
+.plot:focus-visible .cube u { border-color: color-mix(in srgb, currentColor 70%, transparent); }`,
     js: `const plot = document.querySelector('.plot');
 const cube = plot.querySelector('.cube');
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
@@ -1353,6 +1366,16 @@ const up = () => {
   last = null;
   plot.classList.remove('is-drag');
 };
+// the keyboard: each arrow key turns it 10 degrees
+plot.addEventListener('keydown', (e) => {
+  const step = { ArrowLeft: [0, -10], ArrowRight: [0, 10], ArrowUp: [8, 0], ArrowDown: [-8, 0] }[e.key];
+  if (!step) return;
+  e.preventDefault();
+  rx = clamp(rx + step[0], -80, 80);
+  ry += step[1];
+  plot.style.setProperty('--rx', rx + 'deg');
+  plot.style.setProperty('--ry', ry + 'deg');
+});
 plot.addEventListener('pointerup', up);
 plot.addEventListener('pointercancel', up);`,
   },

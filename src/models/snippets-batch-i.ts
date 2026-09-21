@@ -242,7 +242,7 @@ export const snippetsI: Record<string, Snippet> = {
       'One custom property sets every transition\'s duration: 0.14s while the pointer drives (it tracks tightly), 0.7s after it leaves, so everything eases home together.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the wall is the same share of a gallery card, the editor and a recording canvas. JS writes only angles and a 0-to-1 lift, never a length, so nothing it sets escapes the scale.',
     ],
-    html: `<div class="scene">
+    html: `<div class="scene" tabindex="0" role="img" aria-label="Wall of photos that turns toward the pointer, the nearest photo lifting off it">
   <div class="wall">
     <div class="board">
       <div class="cell"><i></i></div>
@@ -381,7 +381,13 @@ export const snippetsI: Record<string, Snippet> = {
     linear-gradient(170deg, transparent 30%, rgb(46 230 214 / 0.7) 38%, transparent 52%),
     linear-gradient(160deg, transparent 44%, rgb(139 108 255 / 0.8) 54%, transparent 66%),
     linear-gradient(180deg, #06142a 0 80%, #0c2a2a 80%);
-}`,
+}
+
+/* the keyboard: Tab to it and it leans as it would for a pointer near the top right, even with
+   the pointer resting on the canvas (!important beats the pose the script writes inline) */
+.scene:focus-visible .wall { --rx: 4deg !important; --ry: 6deg !important; }
+.scene:focus-visible .cell { --lift: 0 !important; }
+.scene:focus-visible .cell:nth-child(3) { --lift: 1 !important; }`,
     js: `const scene = document.querySelector('.scene');
 const wall = document.querySelector('.wall');
 const cells = [...wall.querySelectorAll('.cell')];

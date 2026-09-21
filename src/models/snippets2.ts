@@ -1117,7 +1117,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a tile is 46 units square and its plate rises 46, so the floor is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
-  <div class="floor">
+  <div class="floor" tabindex="0" role="img" aria-label="Floor of tiles; each rises as the pointer passes over it">
 ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   </div>
 </div>`,
@@ -1167,6 +1167,13 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   transform: translateZ(calc(46 * var(--u)));
   /* instant on the way up */
   transition-duration: 0.08s;
+}
+
+/* the keyboard: one stop for the floor, and the middle plate rises as it does under the pointer */
+.floor:focus-visible i:nth-child(13)::before {
+  background: #2ee6d6;
+  transform: translateZ(calc(46 * var(--u)));
+  transition-duration: 0.08s;
 }`,
   },
 
@@ -1178,7 +1185,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
       '<code>pointer-events: none</code> on the card lets the pointer fall through to the zones. More zones = smoother tilt; the JS version is smoother still.',
       'The zones fill the whole canvas, so the pointer steers the card from anywhere on it. The card itself is sized in one base unit, <code>--u</code>, tied to the canvas, so it is the same share of a gallery card, the editor and a recording canvas.',
     ],
-    html: `<div class="zones">
+    html: `<div class="zones" tabindex="0" role="img" aria-label="Card that tilts toward the zone the pointer is in">
   <i></i><i></i><i></i>
   <i></i><i></i><i></i>
   <i></i><i></i><i></i>
@@ -1225,7 +1232,11 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
 .zones i:nth-child(6):hover ~ .card { transform: rotateY(22deg); }
 .zones i:nth-child(7):hover ~ .card { transform: rotateX(-22deg) rotateY(-22deg); }
 .zones i:nth-child(8):hover ~ .card { transform: rotateX(-22deg); }
-.zones i:nth-child(9):hover ~ .card { transform: rotateX(-22deg) rotateY(22deg); }`,
+.zones i:nth-child(9):hover ~ .card { transform: rotateX(-22deg) rotateY(22deg); }
+
+/* the keyboard: one stop for the whole, and the card tilts as it does for the top right zone, even
+   with the pointer resting in another zone */
+.zones:focus-visible .card { transform: rotateX(22deg) rotateY(22deg) !important; }`,
   },
 
   rollbutton: {
@@ -1625,7 +1636,7 @@ document.querySelector('button').addEventListener('click', () => {
       'The band has to hold the throw, not just the deck: the card in flight is the widest this model ever gets. It shrinks as it goes, so it can travel 60% of a card to the right and still end up inside, and the scene is padded on the right by the amount it carries the card, which puts the deck <i>and</i> its flight path in the middle rather than the shut deck on its own.',
     ],
     html: `<div class="scene">
-  <div class="stack">
+  <div class="stack" role="button" tabindex="0" aria-label="Next card">
     <i style="--hue:255">One</i>
     <i style="--hue:290">Two</i>
     <i style="--hue:325">Three</i>
@@ -1701,7 +1712,7 @@ function layout() {
   order.forEach((card, p) => card.style.setProperty('--p', p));
 }
 
-stack.addEventListener('click', () => {
+function deal() {
   if (busy) return;
   busy = true;
 
@@ -1719,6 +1730,14 @@ stack.addEventListener('click', () => {
     top.classList.remove('is-parked');
     busy = false;
   });
+}
+
+stack.addEventListener('click', deal);
+// it is a button to the keyboard too: Enter or Space deals
+stack.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  deal();
 });
 
 layout();`,
@@ -1732,7 +1751,7 @@ layout();`,
       'Layers are oversized (<code>inset: -20%</code>) so their edges never show while tilting. That also means a shape placed at 90% of a layer sits past the edge of the canvas, so the trees are placed by where they land on it: the tree layer is drawn about 1.47 times the canvas width, and its trees stand at 23–31% and 66.5–74.5% of it.',
       'The view is <code>inset: 0</code> and the layers are sized in percentages, so the scene fills the canvas edge to edge. Depths, the perspective and the moon are multiples of one base unit, <code>--u</code>, tied to the canvas, so the parallax is the same on a gallery card and on a full screen.',
     ],
-    html: `<div class="view">
+    html: `<div class="view" tabindex="0" role="img" aria-label="Layers in depth that turn toward the pointer">
   <div class="world">
     <i></i><i></i><i></i><i></i>
   </div>
@@ -1800,7 +1819,11 @@ layout();`,
   background: #0d0820;
   clip-path: polygon(0 100%, 0 78%, 23% 78%, 27% 60%, 31% 78%, 66.5% 80%, 70.5% 58%, 74.5% 80%, 100% 80%, 100% 100%);
   transform: translateZ(calc(70 * var(--u))) scale(0.9);
-}`,
+}
+
+/* the keyboard: Tab to it and it leans as it would for a pointer near the top right, even with
+   the pointer resting on the canvas (!important beats the pose the script writes inline) */
+.view:focus-visible .world { --rx: -5deg !important; --ry: 8deg !important; }`,
     js: `const view = document.querySelector('.view');
 const world = document.querySelector('.world');
 
@@ -2035,7 +2058,7 @@ for (let row = 0; row < N; row++) {
       'At rest, twenty-four pieces wait round the words, written into the HTML with their place and tilt in <code>--x</code>, <code>--y</code>, <code>--r</code>, so a paused card shows confetti and not just a caption. A click adds <code>.popped</code>: they flick outward, shrink and fade as the burst takes over, and a timer takes the class off again. Their resting rule jumps <code>transform</code> back at once but fades <code>opacity</code> in slowly, so they reappear in place instead of flying back.',
       'The whole canvas is the click target (<code>inset: 0</code>), but the burst always starts from the words in the middle, so it stays inside the frame wherever you click. JS writes the vector as plain numbers and the keyframe multiplies them by one base unit, <code>--u</code>, tied to the canvas, so the burst is the same share of a gallery card and a full screen.',
     ],
-    html: `<div class="party">
+    html: `<div class="party" role="button" tabindex="0" aria-label="Throw confetti">
   <span class="waiting" aria-hidden="true">
     <b style="--x:310;--y:-28;--r:0deg;--c:#ff4d9d"></b>
     <b style="--x:299;--y:71;--r:47deg;--c:#8b6cff"></b>
@@ -2136,13 +2159,19 @@ for (let row = 0; row < N; row++) {
       translate3d(calc(var(--x) * var(--u)), calc((var(--y) + 200) * var(--u)), calc(var(--z) * var(--u)))
       rotate3d(1, 1, 0.4, var(--spin));
   }
+}
+
+/* the party covers the canvas, so a ring round it would be off the canvas: focus lights the words */
+.party:focus-visible {
+  outline: none;
+  color: #2ee6d6;
 }`,
     js: `const party = document.querySelector('.party');
 const rand = (min, max) => min + Math.random() * (max - min);
 
 let settle;
 
-party.addEventListener('pointerdown', () => {
+function burst() {
   // the pieces waiting round the words go with the burst, and come back once it has fallen
   party.classList.add('popped');
   clearTimeout(settle);
@@ -2167,6 +2196,14 @@ party.addEventListener('pointerdown', () => {
       party.append(p);
     }
   }
+}
+
+party.addEventListener('pointerdown', burst);
+// it is a button to the keyboard too: Enter or Space throws it
+party.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  burst();
 });`,
   },
 
@@ -2238,7 +2275,14 @@ party.addEventListener('pointerdown', () => {
   border: calc(1 * var(--u)) solid rgb(255 181 71 / 0.85);
 }
 
-${CUBE_FACES}`,
+${CUBE_FACES}
+
+/* the scroller covers the canvas, so a ring round it would be off the canvas: focus lights the
+   cube instead, and the arrow keys and Page Up / Down scroll it as usual */
+.scroller:focus-visible .cube > * {
+  background: rgb(255 181 71 / 0.5);
+  border-color: #fff;
+}`,
     js: `const box = document.querySelector('.scroller');
 
 function onScroll() {
@@ -2260,7 +2304,7 @@ onScroll();`,
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the 7 × 5 tiles are 42 units square, so the grid is the same share of a gallery card, the editor and a recording canvas. The distance JS writes is a plain number of tiles, never a length.',
     ],
     html: `<div class="scene">
-  <div class="tiles"></div>
+  <div class="tiles" role="button" tabindex="0" aria-label="Flip the tiles in a ripple"></div>
 </div>`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the grid is the same share of a
@@ -2311,9 +2355,7 @@ const COLS = 7, ROWS = 5;
 for (let i = 0; i < COLS * ROWS; i++) grid.append(document.createElement('i'));
 const tiles = [...grid.children];
 
-grid.addEventListener('click', (e) => {
-  const index = tiles.indexOf(e.target);
-  if (index < 0) return;
+function ripple(index) {
   const r0 = Math.floor(index / COLS), c0 = index % COLS;
 
   // 1) delays first…
@@ -2324,6 +2366,17 @@ grid.addEventListener('click', (e) => {
 
   // 2) …then the change that triggers the transitions
   grid.toggleAttribute('data-flipped');
+}
+
+grid.addEventListener('click', (e) => {
+  const index = tiles.indexOf(e.target);
+  if (index >= 0) ripple(index);
+});
+// the keyboard: Enter or Space ripples out from the middle tile
+grid.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  ripple(Math.floor(tiles.length / 2));
 });`,
   },
 };

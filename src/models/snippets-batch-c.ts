@@ -653,7 +653,7 @@ setInterval(function () {
       'JS reports one thing — the pointer position over the stage — and writes it into four custom properties (<code>--sx</code>, <code>--sy</code>, <code>--ry</code>, <code>--rx</code>); every animated value in the CSS just reads one of them. The shifts are plain numbers, not lengths: CSS multiplies them by <code>--u</code>, the one base unit every length here is a multiple of, so the card is the same share of a gallery card, the editor and a recording canvas.',
       'While the pointer is over the card the transition is fast, 0.12s with <code>ease-out</code> (<code>.is-live</code>); once it leaves, the slower springy transition takes over for the way back to rest.',
     ],
-    html: `<div class="scene">
+    html: `<div class="scene" tabindex="0" role="img" aria-label="STEREO in red and cyan layers that shift apart with the pointer">
   <div class="anaglyph">
     <div class="word">
       <span>STEREO</span>
@@ -729,7 +729,11 @@ setInterval(function () {
 .anaglyph.is-live span {
   transition-duration: 0.12s;
   transition-timing-function: ease-out;
-}`,
+}
+
+/* the keyboard: Tab to it and it leans as it would for a pointer near the top right, even with
+   the pointer resting on the canvas (!important beats the pose the script writes inline) */
+.scene:focus-visible .anaglyph { --rx: -4deg !important; --ry: 12deg !important; --sx: -4 !important; --sy: 1 !important; }`,
     js: `var stage = document.querySelector('.scene');
 var card = document.querySelector('.anaglyph');
 

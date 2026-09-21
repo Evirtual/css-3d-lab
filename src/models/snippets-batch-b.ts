@@ -218,7 +218,7 @@ export const snippetsB: Record<string, Snippet> = {
       'A gentle idle sway sits on the <b>wrapper</b>, the tilt on the card inside, so the two never fight over <code>transform</code>.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the card, its type and its lift are the same share of a gallery card, the editor and a recording canvas.',
     ],
-    html: `<div class="scene">
+    html: `<div class="scene" tabindex="0" role="img" aria-label="Payment card that tilts toward the pointer">
   <div class="paycard">
     <div class="card">
       <i class="shadow"></i>
@@ -368,7 +368,11 @@ export const snippetsB: Record<string, Snippet> = {
 @keyframes idle {
   from { transform: rotateX(7deg) rotateY(-12deg); }
   to   { transform: rotateX(3deg) rotateY(12deg); }
-}`,
+}
+
+/* the keyboard: Tab to it and it leans as it would for a pointer near the top right, even with
+   the pointer resting on the canvas (!important beats the pose the script writes inline) */
+.scene:focus-visible .card { --rx: 8deg !important; --ry: 12deg !important; --gx: 14 !important; --gy: -10 !important; }`,
     js: `const scene = document.querySelector('.scene');
 const card = document.querySelector('.card');
 const clamp = (v) => Math.min(0.5, Math.max(-0.5, v));

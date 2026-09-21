@@ -1066,7 +1066,7 @@ ${CUBE_FACES}`,
       'A long transition eases the card back to rest; while the pointer is driving it is shortened so it tracks tightly.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, and JS only ever writes angles and percentages, never lengths. So the card, its type and how far its layers float are the same share of a gallery card, the editor and a recording canvas.',
     ],
-    html: `<div class="scene">
+    html: `<div class="scene" tabindex="0" role="img" aria-label="Card that tilts toward the pointer, with a moving glare">
   <div class="tilt">
     <span class="chip"></span>
     <b>Move your pointer</b>
@@ -1135,7 +1135,12 @@ ${CUBE_FACES}`,
   border-radius: calc(7 * var(--u));
   background: linear-gradient(135deg, #ffe08a, #d89b1d);
   transform: translateZ(calc(54 * var(--u)));
-}`,
+}
+
+/* the keyboard: Tab to it and it leans as it would for a pointer near the top right, even with
+   the pointer resting on the canvas (!important beats the pose the script writes inline) */
+.scene:focus-visible .tilt { --rx: 8deg !important; --ry: 12deg !important; --mx: 80% !important; --my: 20% !important; }
+.scene:focus-visible .tilt::after { opacity: 1; }`,
     js: `const scene = document.querySelector('.scene');
 const card = document.querySelector('.tilt');
 const MAX = 20; // degrees
@@ -1167,7 +1172,7 @@ scene.addEventListener('pointerleave', () => {
       'On release, the last velocity keeps being applied and multiplied by 0.95 each frame — cheap inertia.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the cube is the same share of a gallery card, the editor and a recording canvas. It is sized for the worst angle a drag can reach — corner-on, where it spans its body diagonal, √3 × its side — not for the rest pose.',
     ],
-    html: `<div class="scene">
+    html: `<div class="scene" tabindex="0" role="img" aria-label="Wireframe cube. Drag it, or use the arrow keys, to turn it">
   <div class="cube">
     <div></div><div></div><div></div>
     <div></div><div></div><div></div>
@@ -1206,7 +1211,11 @@ scene.addEventListener('pointerleave', () => {
   border: calc(1 * var(--u)) solid rgb(255 181 71 / 0.85);
 }
 
-${CUBE_FACES}`,
+${CUBE_FACES}
+
+/* the scene covers the canvas, so a ring round it would be off the canvas: focus lights the cube */
+.scene:focus-visible { outline: none; }
+.scene:focus-visible .cube > * { border-color: #fff; }`,
     js: `const scene = document.querySelector('.scene');
 const cube = document.querySelector('.cube');
 
@@ -1251,6 +1260,16 @@ function release() {
   dragging = false;
   raf = requestAnimationFrame(coast);
 }
+// the keyboard: each arrow key turns it 10 degrees
+scene.addEventListener('keydown', (e) => {
+  const step = { ArrowLeft: [0, -10], ArrowRight: [0, 10], ArrowUp: [10, 0], ArrowDown: [-10, 0] }[e.key];
+  if (!step) return;
+  e.preventDefault();
+  cancelAnimationFrame(raf);
+  rx += step[0];
+  ry += step[1];
+  apply();
+});
 scene.addEventListener('pointerup', release);
 scene.addEventListener('pointercancel', release);`,
   },
@@ -1644,7 +1663,7 @@ update();`,
       'JS treats the pointer as a light: it writes the <b>opposite</b> direction into <code>--dx</code> / <code>--dy</code>, and the shadow swings away from it. It writes plain numbers, never lengths, so the CSS stays in charge of the scale.',
       'Without JS the defaults still give a perfectly good static extrusion — a nice progressive enhancement.',
     ],
-    html: `<div class="scene">
+    html: `<div class="scene" tabindex="0" role="img" aria-label="LIGHT SHADOW, a headline whose long shadow falls away from the pointer">
   <h1 class="lit">LIGHT<br>SHADOW</h1>
 </div>`,
     css: `.scene {
@@ -1680,7 +1699,11 @@ update();`,
     calc(var(--dx) * 9 * var(--u))  calc(var(--dy) * 9 * var(--u))  0 #805a24,
     calc(var(--dx) * 10 * var(--u)) calc(var(--dy) * 10 * var(--u)) 0 #735120,
     calc(var(--dx) * 22 * var(--u)) calc(var(--dy) * 22 * var(--u)) calc(20 * var(--u)) rgb(0 0 0 / 0.5);
-}`,
+}
+
+/* the keyboard: Tab to it and the shadow falls as it would for a pointer near the top right, even
+   with the pointer resting on the canvas (!important beats the direction the script writes inline) */
+.scene:focus-visible .lit { --dx: -0.8 !important; --dy: 0.4 !important; }`,
     js: `const scene = document.querySelector('.scene');
 const text = document.querySelector('.lit');
 
