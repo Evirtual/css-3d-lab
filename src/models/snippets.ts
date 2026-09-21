@@ -1073,6 +1073,7 @@ scene.addEventListener('pointerleave', () => {
       'JS tracks a drag with Pointer Events (mouse, touch and pen in one API) and updates those two angles.',
       '<code>setPointerCapture</code> keeps the drag alive when the pointer leaves the element; <code>touch-action: none</code> stops the page scrolling instead.',
       'On release, the last velocity keeps being applied and multiplied by 0.95 each frame — cheap inertia.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the cube is the same share of a gallery card, the editor and a recording canvas. It is sized for the worst angle a drag can reach — corner-on, where it spans its body diagonal, √3 × its side — not for the rest pose.',
     ],
     html: `<div class="scene">
   <div class="cube">
@@ -1085,7 +1086,11 @@ scene.addEventListener('pointerleave', () => {
   place-items: center;
   width: 100vw;
   height: 100vh;
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the cube is the same share of a
+     card, the editor, a full screen and a recording canvas. Sized for the worst drag: turned
+     corner-on, the cube spans its body diagonal, √3 × 140 units */
+  --u: 0.26vmin;
+  perspective: calc(800 * var(--u));
   cursor: grab;
   touch-action: none;   /* let JS have the drag on touch screens */
   user-select: none;
@@ -1094,7 +1099,7 @@ scene.addEventListener('pointerleave', () => {
 .scene:active { cursor: grabbing; }
 
 .cube {
-  --s: 140px;
+  --s: calc(140 * var(--u));
   position: relative;
   width: var(--s);
   height: var(--s);
@@ -1106,7 +1111,7 @@ scene.addEventListener('pointerleave', () => {
   position: absolute;
   inset: 0;
   background: rgb(255 181 71 / 0.3);
-  border: 1px solid rgb(255 181 71 / 0.85);
+  border: calc(1 * var(--u)) solid rgb(255 181 71 / 0.85);
 }
 
 ${CUBE_FACES}`,
