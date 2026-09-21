@@ -33,7 +33,10 @@ ${key('3D', true)}
 </div>`,
     css: `.scene {
   perspective: 800px;
-  transform-style: preserve-3d;
+  /* flat, not preserve-3d: the back of the tilted plate lies behind z = 0, and any box around the
+     scene that shares its 3D space (a page wrapper with preserve-3d) would sit in front of the
+     keys there and take their pointer. Flat, the deck is drawn into the scene's own plane, on top. */
+  transform-style: flat;
   /* the plate is tilted, so parts of it lie behind z = 0: only the keys may take the pointer */
   pointer-events: none;
 }
