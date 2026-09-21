@@ -1,3 +1,16 @@
+/**
+ * The render service for development: recordings, snapshots and prints are drawn here when the
+ * site runs under `npm run dev` (src/capture-client.ts falls back to this address when
+ * VITE_CAPTURE_URL is not set).
+ *
+ *   npm run export        (node server/dev.mjs) listens on http://127.0.0.1:8787/capture
+ *
+ * POST /capture with a scene from src/capture-scene.ts; the frames come back as newline-delimited
+ * JSON, one PNG each, drawn by server/render.mjs in a fresh Chromium per request. Only pages on
+ * localhost / 127.0.0.1 may call it. exportServer(port) is also imported by the scripts that need
+ * a service of their own (compare-capture, diag-record, diag-video, check-exports, verify).
+ * Production runs the same render.mjs in the Cloudflare Worker in worker/.
+ */
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
 import { chromium } from 'playwright';
