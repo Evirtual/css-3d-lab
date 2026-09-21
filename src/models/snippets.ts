@@ -483,7 +483,7 @@ ${CUBE_FACES}
     ],
     html: `<div class="scene">
   <div class="chart">
-    <!-- --hn = full height in px, as a plain number -->
+    <!-- --hn = full height in units of --u, as a plain number -->
     <div class="bar" style="--hn:70;  --hue:262; --delay:0s"><i></i><i></i><i></i></div>
     <div class="bar" style="--hn:110; --hue:285; --delay:-0.35s"><i></i><i></i><i></i></div>
     <div class="bar" style="--hn:50;  --hue:320; --delay:-0.7s"><i></i><i></i><i></i></div>
@@ -492,7 +492,10 @@ ${CUBE_FACES}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 900px;
+  /* one base unit: every length below is a multiple of it, so the chart is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.38vmin;
+  perspective: calc(900 * var(--u));
 }
 
 .chart {
