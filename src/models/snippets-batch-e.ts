@@ -980,41 +980,52 @@ for (let n = 0; n < 40; n++) {
 
   pie: {
     how: [
-      'One disc: a <code>conic-gradient</code> with hard stops at the running totals (40%, 65%, 85%). Repeat it in twelve layers, each <code>translateZ(var(--i) * 1.5px)</code> higher.',
+      'One disc: a <code>conic-gradient</code> with hard stops at the running totals (40%, 65%, 85%). Repeat it in twelve layers, each <code>translateZ(var(--i) * 1.5 units)</code> higher.',
       'Tilt the stack. The rims of the lower layers peek out under the top one and together read as a solid side wall. A dark overlay whose alpha grows as <code>--i</code> shrinks shades that wall.',
       'The hole is a <code>radial-gradient</code> <code>mask</code> on each <b>layer</b>. A mask on the spinning parent would flatten all twelve layers into one picture.',
       'Spin a wrapper with <code>rotateZ</code> inside the tilt, so every slice passes the front in turn.',
+      'The donut is written in one base unit, <code>--u</code>, so it is the same share of a gallery card, the editor and a recording canvas. The legend under it is in plain <code>vmin</code>: it sits in the same control zone, at the same size, as every other model\'s.',
     ],
-    html: `<div class="scene">
-  <div class="donut">
+    html: `<div class="band">
+  <div class="view">
     <div class="tilt">
       <div class="spin">
 ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
       </div>
     </div>
-    <ul class="legend">
-      <li style="--c:${VIOLET}">Design 40%</li>
-      <li style="--c:${TEAL}">Build 25%</li>
-      <li style="--c:${PINK}">Test 20%</li>
-      <li style="--c:${AMBER}">Ship 15%</li>
+  </div>
+  <div class="controls">
+    <p class="caption">Sprint time by stage, %</p>
+    <ul class="row legend">
+      <li style="--c:${VIOLET}">Design 40</li>
+      <li style="--c:${TEAL}">Build 25</li>
+      <li style="--c:${PINK}">Test 20</li>
+      <li style="--c:${AMBER}">Ship 15</li>
     </ul>
   </div>
 </div>`,
-    css: `.scene {
-  perspective: 800px;
-}
-
-.donut {
+    css: `/* the model box and the legend stand in one stack, so the legend is the same distance under
+   the donut in every model that has a control zone */
+.band {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 4vmin;
+}
+
+/* the model box: one base unit, and every length of the donut is a multiple of it */
+.view {
+  --u: 0.44vmin;
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .tilt {
   position: relative;
-  width: 136px;
-  height: 136px;
-  margin: -16px 0 -30px; /* the tilted disc is much flatter than its box */
+  width: calc(136 * var(--u));
+  height: calc(136 * var(--u));
+  margin: calc(-60 * var(--u)) 0; /* the tilted disc is much flatter than its box */
   transform-style: preserve-3d;
   transform: rotateX(60deg);
 }
@@ -1036,39 +1047,56 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
     conic-gradient(${VIOLET} 0 40%, ${TEAL} 0 65%, ${PINK} 0 85%, ${AMBER} 0);
   /* the hole: on each layer, never on a parent */
   mask: radial-gradient(closest-side, transparent 49.5%, #000 50%);
-  transform: translateZ(calc(var(--i) * 1.5px));
+  transform: translateZ(calc(var(--i) * 1.5 * var(--u)));
 }
 
 /* top layer: a sheen and thin white slice edges. The edges fade in and out over a hair
-   instead of hard stops: a hard 1px wedge on the tilted disc steps and reads as a dashed line. */
+   instead of hard stops: a hard hairline wedge on the tilted disc steps and reads as a dashed line. */
 .spin i:last-child {
   background:
     radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.35), transparent 55%),
     conic-gradient(#fff 0 0.1%, ${VIOLET} 0.6% 39.2%, #fff 39.7% 40.1%, ${TEAL} 40.6% 64.2%, #fff 64.7% 65.1%, ${PINK} 65.6% 84.2%, #fff 84.7% 85.1%, ${AMBER} 85.6% 99.2%, #fff 99.7%);
 }
 
-.legend {
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the donut's own unit. Here it holds the legend. */
+.controls {
   display: grid;
-  grid-template-columns: auto auto;
-  gap: 3px 16px;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
+}
+
+.controls .caption {
+  margin: 0;
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  opacity: 0.7;
+}
+
+.controls .row {
+  display: flex;
+  gap: 2.5vmin;
   margin: 0;
   padding: 0;
-  color: #949bc0;
-  font: 600 11px system-ui;
   list-style: none;
 }
 
+/* a legend entry reports, it is not pressed: the row's height and text, no pill */
 .legend li {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 1.2vmin;
+  height: 8vmin;
+  font: 600 4vmin system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .legend li::before {
   content: '';
-  width: 9px;
-  height: 9px;
-  border-radius: 3px;
+  width: 2.8vmin;
+  height: 2.8vmin;
+  border-radius: 0.8vmin;
   background: var(--c);
 }
 
