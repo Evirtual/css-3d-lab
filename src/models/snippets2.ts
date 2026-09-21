@@ -1514,30 +1514,36 @@ view.addEventListener('pointerleave', () => {
       <i style="--hue:10">Repeat</i>
     </div>
   </div>
-  <nav>
-    <button type="button" data-dir="-1" aria-label="Previous">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-    </button>
-    <button type="button" data-dir="1" aria-label="Next">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-    </button>
-  </nav>
+  <div class="controls">
+    <nav class="row">
+      <button type="button" data-dir="-1" aria-label="Previous">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button type="button" data-dir="1" aria-label="Next">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </nav>
+  </div>
 </div>`,
     css: `.slider {
+  /* one base unit: every length in the box below is a multiple of it, so the slideshow is the
+     same share of a gallery card, the editor, a full screen and a recording canvas. The control
+     row under it is in plain vmin, because it is the same object in every model. */
+  --u: 0.25vmin;
   display: grid;
   justify-items: center;
-  gap: 50px;
+  gap: 4vmin;
 }
 
 .scene {
-  perspective: 800px;
+  perspective: calc(800 * var(--u));
 }
 
 .box {
-  --w: 280px;
+  --w: calc(280 * var(--u));
   position: relative;
   width: var(--w);
-  height: 170px;
+  height: calc(170 * var(--u));
   transform-style: preserve-3d;
   transform: translateZ(calc(var(--w) / -2)) rotateY(calc(var(--step, 0) * -90deg));
   transition: transform 0.7s cubic-bezier(0.3, 1.25, 0.5, 1);
@@ -1548,9 +1554,9 @@ view.addEventListener('pointerleave', () => {
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: calc(8 * var(--u));
   color: #fff;
-  font: 900 2rem system-ui;
+  font: 900 calc(32 * var(--u)) system-ui;
   background: linear-gradient(135deg, hsl(var(--hue) 85% 62%), hsl(var(--hue) 75% 38%));
   backface-visibility: hidden;
   transform-style: preserve-3d;
@@ -1560,9 +1566,9 @@ view.addEventListener('pointerleave', () => {
 .box i::before {
   content: '';
   position: absolute;
-  inset: 6px;
+  inset: calc(6 * var(--u));
   background: hsl(var(--hue) 75% 34%);
-  transform: translateZ(-6px);
+  transform: translateZ(calc(-6 * var(--u)));
 }
 
 .box i:nth-child(1) { transform: rotateY(0deg)   translateZ(calc(var(--w) / 2)); }
@@ -1570,25 +1576,39 @@ view.addEventListener('pointerleave', () => {
 .box i:nth-child(3) { transform: rotateY(180deg) translateZ(calc(var(--w) / 2)); }
 .box i:nth-child(4) { transform: rotateY(270deg) translateZ(calc(var(--w) / 2)); }
 
-nav { display: flex; gap: 8px; }
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the box's own unit */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
+}
 
-nav button {
-  width: 44px;
-  height: 36px;
-  border: 1px solid #5a6188;
-  border-radius: 8px;
+.controls .row {
+  display: flex;
+  gap: 2vmin;
+}
+
+.controls button {
   display: grid;
   place-items: center;
-  padding: 0;
+  box-sizing: border-box;
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
+  border: 0.3vmin solid #5a6188;
+  border-radius: 999px;
   background: #161a2e;
   color: #fff;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
 }
 
 /* SVG arrows, not text like ‹ ›: a glyph sits on the font's baseline, so it never centres */
-nav svg {
-  width: 18px;
-  height: 18px;
+.controls svg {
+  width: 4.5vmin;
+  height: 4.5vmin;
 }`,
     js: `const box = document.querySelector('.box');
 let step = 0;   // never wraps, so the box keeps turning the same way
