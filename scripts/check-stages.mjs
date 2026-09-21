@@ -73,6 +73,12 @@ const LOOK = `() => {
   const held = doc.querySelector('#c3d-held');
   const css = doc.querySelector('#c3d-code')?.textContent ?? '';
   const was = held?.textContent ?? '';
+  // For two frames after its canvas changes size the frame turns transitions off, so the model
+  // lands on its new size instead of gliding there (src/models/snippet-utils.ts, RESIZE_SNAP). A
+  // reading taken in those two frames would force :hover and see no turn, only its two ends: it is
+  // lifted for the sweep and put back after.
+  const resizing = doc.documentElement.hasAttribute('data-c3d-resizing');
+  if (resizing) { doc.documentElement.removeAttribute('data-c3d-resizing'); doc.documentElement.getBoundingClientRect(); }
   const animations = doc.getAnimations();
   const saved = animations.map(a => ({ a, t: a.currentTime, state: a.playState }));
   let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity, controls = false;
@@ -109,6 +115,7 @@ const LOOK = `() => {
     const before = new Set(animations);
     for (const a of doc.getAnimations()) if (!before.has(a) && a.constructor.name === 'CSSTransition') a.cancel();
     for (const { a, t: time, state } of saved) { a.currentTime = time; if (state === 'running') a.play(); }
+    if (resizing) doc.documentElement.setAttribute('data-c3d-resizing', '');
   }
   if (!Number.isFinite(l)) return null;
   const mx = win.innerWidth / 2, my = win.innerHeight / 2;
