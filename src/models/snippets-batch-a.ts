@@ -8,7 +8,8 @@ export const snippetsA: Record<string, Snippet> = {
   prism: {
     how: [
       'The six side panels are a carousel with no gaps: each gets <code>rotateY(i × 60deg)</code>, then <code>translateZ</code> by the <b>apothem</b>, the distance from the centre to the middle of a side.',
-      'Apothem = <code>(side / 2) / tan(180° / 6)</code>. For 60px panels that is 51.96px. Any less and the panels cross; any more and the corners open.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the prism is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'Apothem = <code>(side / 2) / tan(180° / 6)</code>. For 60-wide panels that is 51.96. Any less and the panels cross; any more and the corners open.',
       'A cap is a <code>2 × side</code> by <code>2 × apothem</code> box cut to a hexagon with <code>clip-path</code>. <code>clip-path</code> would flatten a 3D container, but the caps have no 3D children, so it is safe here.',
       '<code>rotateX(90deg)</code> lays a cap flat; <code>translateZ(height / 2)</code> then lifts it along its new normal to the top (and <code>-90deg</code> for the bottom).',
     ],
@@ -20,13 +21,16 @@ ${lines(6, (i) => `    <i style="--i:${i}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the prism is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.33vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .prism {
-  --w: 60px;    /* one side of the hexagon = one panel */
-  --h: 110px;
-  --r: 51.96px; /* apothem = (w / 2) / tan(180deg / 6) */
+  --w: calc(60 * var(--u));    /* one side of the hexagon = one panel */
+  --h: calc(110 * var(--u));
+  --r: calc(51.96 * var(--u)); /* apothem = (w / 2) / tan(180deg / 6) */
   position: relative;
   width: var(--w);
   height: var(--h);
@@ -38,8 +42,8 @@ ${lines(6, (i) => `    <i style="--i:${i}"></i>`)}
   position: absolute;
   inset: 0;
   background: rgb(139 108 255 / 0.24);
-  border: 1px solid rgb(139 108 255 / 0.75);
-  box-shadow: inset 0 0 24px rgb(139 108 255 / 0.3);
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.75);
+  box-shadow: inset 0 0 calc(24 * var(--u)) rgb(139 108 255 / 0.3);
   /* turn to face outward, THEN step out along that direction */
   transform: rotateY(calc(var(--i) * 60deg)) translateZ(var(--r));
 }
@@ -47,7 +51,7 @@ ${lines(6, (i) => `    <i style="--i:${i}"></i>`)}
 .prism i:nth-child(even) {
   background: rgb(46 230 214 / 0.2);
   border-color: rgb(46 230 214 / 0.75);
-  box-shadow: inset 0 0 24px rgb(46 230 214 / 0.3);
+  box-shadow: inset 0 0 calc(24 * var(--u)) rgb(46 230 214 / 0.3);
 }
 
 /* caps: a regular hexagon's corner radius equals its side, so the box is 2w by 2r */
