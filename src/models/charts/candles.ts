@@ -301,8 +301,11 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   perspective: calc(800 * var(--u));
   /* the price labels sit off the right edge and the floor and the dates hang below the chart,
      further on the near (right) side: the room below is what keeps the last date clear of the
-     caption under the model box. The tooltip never rises above the scale, so little is needed on top */
-  padding: calc(8 * var(--u)) calc(88 * var(--u)) calc(57 * var(--u)) calc(50 * var(--u));
+     caption under the model box. The tooltip never rises above the scale, so little is needed on top.
+     Only the difference between the sides moves the chart (19 units left); the sides together are
+     kept small enough that the box, 270 units, is narrower than a square canvas: a box wider than
+     the canvas does not centre, it hangs off the right, 7vmin off the middle on 1:1 and 9:16 */
+  padding: calc(8 * var(--u)) calc(64 * var(--u)) calc(57 * var(--u)) calc(26 * var(--u));
   /* the turn brings the right end nearer, so it draws larger: moved left by this much, the
      chart, its labels and its floor together sit in the middle */
   translate: calc(-11 * var(--u)) 0;
