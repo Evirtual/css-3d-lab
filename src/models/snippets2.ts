@@ -734,6 +734,8 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
       'The lid has the same footprint and lies flat on the base when closed. <code>transform-origin: top</code> puts the hinge on the back edge.',
       'A single element has one look from both sides, so the lid is two pseudo-elements: shell on the front, screen pre-flipped with <code>rotateY(180deg)</code>, both <code>backface-visibility: hidden</code>.',
       'Open past vertical (104°) and the screen side turns toward the camera.',
+      'The loop <b>starts open</b> and closes, then opens again. A paused card holds the first frame, and an open laptop is the pose that reads as a laptop; shut, it is a slab low in the frame.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the base is 220 × 145 units, so the laptop is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="laptop">
