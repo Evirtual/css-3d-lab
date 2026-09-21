@@ -180,7 +180,7 @@ ${CUBE_FACES}
 
   text: {
     how: [
-      'There is no real depth here — it is many hard-edged <code>text-shadow</code>s, each offset 1px further.',
+      'There is no real depth here — it is many hard-edged <code>text-shadow</code>s, each offset one unit further.',
       'Darken each layer slightly and the stack reads as a solid side wall.',
       'Finish with one blurred shadow for the drop shadow on the "ground".',
       'In Sass a <code>@function</code> with a <code>@for</code> loop writes the list for you (see the Sass source tab).',
