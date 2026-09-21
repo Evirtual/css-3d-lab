@@ -750,7 +750,7 @@ ${Array.from({ length: n }, (_, d) =>
       'Both are shared keyframes staggered with <code>animation-delay</code> from <code>--i</code> (block 0…7) and <code>--c</code> (column 0…3), so eight blocks need only one "arrive" and one "leave" animation.',
       'The invisible resets are timed to happen while something else hides them: a block snaps back up while its column is gone, and the column snaps back while both its blocks are scaled to 0 — so the loop never shows a jump.',
       'Every keyframe keeps the same function list (<code>translateZ … scale3d</code>), and <code>scale3d(0, 0, 0)</code> rather than <code>scale(0)</code>, because a 2D scale would leave a block\'s height standing as a line.',
-      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a block is 34 units, and it drops in from 56 above its place, so the stack is the same share of a gallery card, the editor and a recording canvas.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a block is 34 units, and it drops in from 20 above its place, low enough that a drop onto the top layer stays inside the canvas, so the stack is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="stack" role="img" aria-label="Loading">
@@ -766,7 +766,7 @@ ${Array.from(
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the stack is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.59vmin;
+  --u: 0.44vmin;
   perspective: calc(800 * var(--u));
 }
 
@@ -780,7 +780,7 @@ ${Array.from(
   grid-template-columns: repeat(2, calc(38 * var(--u)));
   grid-auto-rows: calc(38 * var(--u));
   transform-style: preserve-3d;
-  transform: translateY(calc(21 * var(--u))) rotateX(58deg) rotateZ(45deg);
+  transform: translateY(calc(24 * var(--u))) rotateX(58deg) rotateZ(45deg);
 }
 
 /* the floor plate with the four landing places */
@@ -848,11 +848,11 @@ ${Array.from(
 
 @keyframes stack-arrive {
   0% {
-    transform: translateZ(calc(var(--z) + 56 * var(--u))) scale3d(0, 0, 0);
+    transform: translateZ(calc(var(--z) + 20 * var(--u))) scale3d(0, 0, 0);
     animation-timing-function: ease-out;
   }
   3% {
-    transform: translateZ(calc(var(--z) + 56 * var(--u))) scale3d(1, 1, 1);
+    transform: translateZ(calc(var(--z) + 20 * var(--u))) scale3d(1, 1, 1);
     animation-timing-function: ease-in; /* gravity */
   }
   10% {
@@ -868,7 +868,7 @@ ${Array.from(
   }
   /* its column is gone by now: reset out of sight */
   76.6%, 100% {
-    transform: translateZ(calc(var(--z) + 56 * var(--u))) scale3d(0, 0, 0);
+    transform: translateZ(calc(var(--z) + 20 * var(--u))) scale3d(0, 0, 0);
   }
 }
 
@@ -878,7 +878,7 @@ ${Array.from(
     animation-timing-function: ease-in;
   }
   7%, 31.25% {
-    transform: translateZ(calc(72 * var(--u))) rotateZ(90deg) scale3d(0, 0, 0);
+    transform: translateZ(calc(56 * var(--u))) rotateZ(90deg) scale3d(0, 0, 0);
   }
   /* both its blocks have reset by now: come back, still empty */
   31.35%, 100% {
