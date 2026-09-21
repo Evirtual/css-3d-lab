@@ -531,5 +531,178 @@
     "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
     "notes": "Hexagonal glass prism centred at about 41 x 48vmin; paused on a clear three-quarter view.",
     "motionFlagsResolved": []
+  },
+  {
+    "model": "octa",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Glass octahedron centred at about 47-60 x 59vmin; paused on a clear tilted pose, edges crisp on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "cone",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Striped glass cone centred at about 46 x 57vmin; complete on the paused frame and on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "stairs",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Spiral staircase round a pole, centred at about 53 x 55vmin; the steps read clearly on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "cubegrid",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Field of cubes on a travelling wave, about 85 x 55vmin; the wave moves it a few vmin up and down but it stays centred and clear of the corners.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "net",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "The rest pose, which a paused card shows, is the folded cube at only about 19 x 25vmin, a speck in the middle of the card and far under the 40vmin floor; it only reaches size while unfolding (up to 82 x 68 over the loop), which is why the size check passes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "shapeshift",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Hexagonal prism over a '6 sides' caption and a Sides slider pill in the control zone, stack about 43 x 63vmin and centred; the slider reads on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "tetra",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "At rest and through most of the turn the tetrahedron's solid body sits about 8vmin above the canvas middle (paused 57 x 50vmin, offset -8), so the card has a visibly larger gap below it than above; the limit is 4vmin, and it only passes because the union of every pose over the turn is centred.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "hourglass",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Hourglass centred at about 39 x 60vmin, paused upright with the sand in the top bulb; it flips cleanly on the large canvas. Its motion run broke (screenshot timeout), which this review cannot clear.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "crystal",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Crystal cluster on a base, centred at about 59 x 59vmin; complete and crisp on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "lattice",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Breathing wireframe lattice, about 39-41 x 46vmin and centred; just above the floor, and it reads on both themes.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "planet",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Ringed planet with a moon, about 66-77 x 37-40vmin by solid ink with the faint orbit adding height; centred and clear of the corners, paused with the moon placed.",
+    "motionFlagsResolved": [
+      {
+        "flag": "loop: flicker at 16",
+        "reason": "Frame 16 is the moon passing below the planet across the ring; the neighbouring frames show the same orbit continuing, so it is the moon moving, not a flicker."
+      }
+    ]
+  },
+  {
+    "model": "headphones",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Headphones centred at about 50 x 55vmin; paused on a clean three-quarter pose and the glowing cup reads on both themes.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover div.headphones: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
+        "reason": "The hover target is a wrapper sized to the headphones' turning footprint so the pointer stays on it while they swing; it is invisible and inside the canvas."
+      }
+    ]
+  },
+  {
+    "model": "perfume",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Perfume bottle centred at about 33 x 59vmin; 'LUMEN' label is readable on a card.",
+    "motionFlagsResolved": []
+  },
+  {
+    "model": "businesscard",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Business card, about 69 x 50vmin, paused on its PRISM back and flipping to the front on hover; centred and readable on both themes.",
+    "motionFlagsResolved": [
+      {
+        "flag": "hover div.bizcard: pop 7→8",
+        "reason": "Frames 7 to 8 are the card flipping through edge-on to its front face, where the most pixels change at once; the strip shows a continuous flip, not a jump."
+      },
+      {
+        "flag": "focus div.bizcard: pop 7→8",
+        "reason": "Focus runs the same flip as hover, so this is the same edge-on moment of a continuous turn."
+      },
+      {
+        "flag": "hover div.bizcard: its hit area is mostly over empty canvas (61 of 81 reachable points draw nothing)",
+        "reason": "The hover target is sized to the card's whole flip so the pointer does not drop off it when the card goes edge-on and flip it back; it is invisible and inside the canvas."
+      }
+    ]
+  },
+  {
+    "model": "camera",
+    "kind": "visual",
+    "reviewer": "visual-review agent",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T20:15:01+07:00",
+    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
+    "notes": "Retro camera centred at about 68 x 59vmin; 'OBSCURA' readable and paused on a finished three-quarter pose.",
+    "motionFlagsResolved": []
   }
 ]
