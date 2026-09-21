@@ -212,11 +212,12 @@ setInterval(function () {
 
   shadowtext: {
     how: [
-      'The same word is stacked 21 times, each copy one step further down the Z axis via <code>translateZ(calc(var(--i) * -1.2px))</code>. Seen at an angle the copies merge into a solid extrusion.',
+      'The same word is stacked 21 times, each copy one step further down the Z axis via <code>translateZ(calc(var(--i) * -1.2 * var(--u)))</code>, where <code>--u</code> is the one base unit every length here is a multiple of. Seen at an angle the copies merge into a solid extrusion.',
       '<code>rotateX(54deg) rotateZ(-32deg)</code> lays the whole stack on an isometric-looking floor: tip it back, then turn it on the floor.',
       'Each copy gets slightly darker as <code>--i</code> grows (<code>hsl(... calc(46% - var(--i) * 1.3%))</code>) — a cheap ambient shadow down the "sides" with no lighting math.',
       'The front copy carries a gradient clipped to the text with <code>background-clip: text</code>; the last, deepest copy is blurred into a floor shadow instead.',
       '<code>alternate</code> + <code>ease-in-out</code> makes the sway loop seamless: the way back is the mirror image of the way there.',
+      'The floor shadow hangs below the word, so the whole stack is lifted by half of it. What is drawn is then centred on the model box, which the word on its own would not be.',
     ],
     html: `<div class="scene">
   <div class="depth">
@@ -244,15 +245,18 @@ setInterval(function () {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the word is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.45vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .depth {
   position: relative;
   transform-style: preserve-3d;
-  transform: rotateX(54deg) rotateZ(-32deg);
+  transform: translateY(calc(-11 * var(--u))) rotateX(54deg) rotateZ(-32deg);
   animation: sway 7s ease-in-out infinite alternate;
-  font-size: 50px;
+  font-size: calc(50 * var(--u));
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -263,8 +267,8 @@ setInterval(function () {
 .depth span {
   position: absolute;
   inset: 0;
-  /* 1.2px per step: at this tilt that is about one screen pixel, so no gaps show */
-  transform: translateZ(calc(var(--i) * -1.2px));
+  /* 1.2 units per step: at this tilt that is about one screen pixel on a card, so no gaps show */
+  transform: translateZ(calc(var(--i) * -1.2 * var(--u)));
   color: hsl(252 62% calc(46% - var(--i) * 1.3%));
 }
 
@@ -281,13 +285,15 @@ setInterval(function () {
 /* the last copy is the soft shadow on the floor: static, so the blur costs nothing per frame */
 .depth span:last-child {
   color: rgb(0 0 0 / 0.55);
-  text-shadow: 0 0 10px rgb(0 0 0 / 0.6);
-  transform: translateZ(-25px) translate(-5px, 7px);
+  text-shadow: 0 0 calc(10 * var(--u)) rgb(0 0 0 / 0.6);
+  transform: translateZ(calc(-25 * var(--u))) translate(calc(-5 * var(--u)), calc(7 * var(--u)));
 }
 
+/* the 11-unit lift is the floor shadow's half: the word plus its shadow is what has to sit in
+   the middle of the box, and the shadow only ever hangs below */
 @keyframes sway {
-  from { transform: rotateX(56deg) rotateZ(-40deg); }
-  to   { transform: rotateX(48deg) rotateZ(-22deg); }
+  from { transform: translateY(calc(-11 * var(--u))) rotateX(56deg) rotateZ(-40deg); }
+  to   { transform: translateY(calc(-11 * var(--u))) rotateX(48deg) rotateZ(-22deg); }
 }`,
   },
 
@@ -1201,20 +1207,24 @@ stage.addEventListener('pointercancel', leave);`,
       '<code>translate3d(...)</code> plus two <code>rotate</code>s built from the same <code>--mx</code>/<code>--my</code> shift the button toward the pointer and lean it the way it is being pulled, all in one <code>transform</code>.',
       'The label inside the button sits at a deeper <code>translateZ</code> than the button’s own lift — same tilt, more travel — so it visibly slides apart from its cap: parallax from one shared tilt.',
       'While the pointer is inside the field (<code>.is-live</code>) the transition is quick and linear so it tracks directly; on release a long <code>cubic-bezier</code> with overshoot takes over, reading as a spring pulling the button home.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the field, the button, its lift and how far it travels — so the whole thing is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
     ],
     html: `<div class="magnet">
   <i class="glow"></i>
   <button type="button" class="btn"><span>Pull me</span></button>
 </div>`,
     css: `.magnet {
+  /* one base unit: every length below is a multiple of it, so the field is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.38vmin;
   position: relative;
   display: grid;
   place-items: center;
-  width: 220px;
-  height: 160px;
-  border: 1px dashed #262b4a;
-  border-radius: 18px;
-  perspective: 800px;
+  width: calc(220 * var(--u));
+  height: calc(160 * var(--u));
+  border: calc(1 * var(--u)) dashed #262b4a;
+  border-radius: calc(18 * var(--u));
+  perspective: calc(800 * var(--u));
   transform-style: preserve-3d;
   touch-action: none; /* let a finger drag inside the field instead of scrolling the page */
 }
@@ -1222,37 +1232,41 @@ stage.addEventListener('pointercancel', leave);`,
 /* the glow lies on the floor of the field, behind the button, and runs further than it */
 .glow {
   position: absolute;
-  top: calc(50% - 60px);
-  left: calc(50% - 60px);
-  width: 120px;
-  height: 120px;
+  top: calc(50% - 60 * var(--u));
+  left: calc(50% - 60 * var(--u));
+  width: calc(120 * var(--u));
+  height: calc(120 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, rgb(46 230 214 / 0.55), transparent 68%);
   opacity: 0;
   pointer-events: none;
-  transform: translate3d(calc(var(--mx, 0) * 70px), calc(var(--my, 0) * 44px), 0);
+  /* 50 and 20, not 70 and 44: the glow's box is 120 across, so at full deflection the old travel
+     swung it 20 units past the field on each side and 24 above and below. These two numbers are
+     60 less than half the field, so the glow reaches the edge of the field and stops there, and
+     the band holds the field rather than the glow */
+  transform: translate3d(calc(var(--mx, 0) * 50 * var(--u)), calc(var(--my, 0) * 20 * var(--u)), 0);
   transition: transform 0.7s cubic-bezier(0.3, 1.6, 0.5, 1), opacity 0.4s;
 }
 
-/* the button shifts toward the pointer and leans the way it is pulled; it floats 34px above
+/* the button shifts toward the pointer and leans the way it is pulled; it floats 34 units above
    the field so its far, tipped-back edge still stays in front of the field's own plane */
 .btn {
   position: relative;
-  width: 138px;
-  height: 50px;
+  width: calc(138 * var(--u));
+  height: calc(50 * var(--u));
   padding: 0;
-  border: 1px solid #a996ff;
-  border-radius: 14px;
+  border: calc(1 * var(--u)) solid #a996ff;
+  border-radius: calc(14 * var(--u));
   background: linear-gradient(140deg, #8b6cff, #bf5ed3);
-  box-shadow: 0 16px 26px -14px rgb(139 108 255 / 0.9);
+  box-shadow: 0 calc(16 * var(--u)) calc(26 * var(--u)) calc(-14 * var(--u)) rgb(139 108 255 / 0.9);
   color: #fff;
   font: inherit;
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   font-weight: 800;
   cursor: pointer;
   transform-style: preserve-3d;
   transform:
-    translate3d(calc(var(--mx, 0) * 24px), calc(var(--my, 0) * 16px), 34px)
+    translate3d(calc(var(--mx, 0) * 24 * var(--u)), calc(var(--my, 0) * 16 * var(--u)), calc(34 * var(--u)))
     rotateY(calc(var(--mx, 0) * 20deg))
     rotateX(calc(var(--my, 0) * -18deg));
   /* the way home: slow, with a big overshoot = a spring */
@@ -1260,8 +1274,8 @@ stage.addEventListener('pointercancel', leave);`,
 }
 
 .btn:focus-visible {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 4px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(4 * var(--u));
 }
 
 /* the label floats above the button's face; same tilt, more depth = it slides further than
@@ -1269,13 +1283,13 @@ stage.addEventListener('pointercancel', leave);`,
 .btn span {
   display: block;
   pointer-events: none;
-  text-shadow: 0 6px 10px rgb(0 0 0 / 0.35);
-  transform: translateZ(30px);
+  text-shadow: 0 calc(6 * var(--u)) calc(10 * var(--u)) rgb(0 0 0 / 0.35);
+  transform: translateZ(calc(30 * var(--u)));
   transition: transform 0.2s;
 }
 
 .btn:active span {
-  transform: translateZ(8px); /* pressed flat */
+  transform: translateZ(calc(8 * var(--u))); /* pressed flat */
 }
 
 /* while the pointer is inside, follow it closely; the springy transitions above are the release */
