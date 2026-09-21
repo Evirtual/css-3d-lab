@@ -298,7 +298,7 @@ export const demosB: Demo[] = [
       'A UI mockup cut into depth layers: window, sidebar, cards and a floating button each sit at their own translateZ. Hover or focus pulls them further apart.',
     category: 'css',
     tags: ['hover', 'loop', 'product', 'mockup', 'ui', 'isometric'],
-    technique: ['rotateX + rotateZ isometric tilt', 'translateZ(calc(var(--z) * 1px))', 'one multiplier changes on :hover', 'static hit area, bobbing child'],
+    technique: ['rotateX + rotateZ isometric tilt', 'translateZ(calc(var(--z) * var(--k) * var(--u)))', 'one multiplier changes on :hover', 'static hit area, bobbing child'],
     html: `<div class="d-browser" tabindex="0" role="group" aria-label="Layered browser window, hover or focus to separate the layers">
       <div class="d-browser__win">
         <i class="d-browser__shadow"></i>
