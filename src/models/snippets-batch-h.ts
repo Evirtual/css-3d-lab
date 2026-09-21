@@ -18,9 +18,10 @@ export const snippetsH: Record<string, Snippet> = {
   keycaps: {
     how: [
       'The keys stand on a <b>plate lying on the floor</b>: <code>rotateX(54deg) rotateZ(-30deg)</code> turns it and lays it back, and <code>preserve-3d</code> lets everything on it rise up along its Z axis.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the plate, the keys, the slope of their sides — so the deck is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
       'A keycap is a truncated pyramid. Each sloped side is a <code>clip-path</code> trapezoid standing on an edge of the key, hinged there (<code>transform-origin: 50% 100%</code>) and tipped up by <code>atan(height / inset)</code> ≈ 65°, so its top edge lands exactly on the top face. Its length is <code>√(height² + inset²)</code>.',
-      'The other three sides are the same trapezoid turned around the key’s centre: <code>translateY(-22px) rotate(90deg) translateY(22px)</code> moves the pivot to the middle, rotates, and moves it back.',
-      'The <code>&lt;button&gt;</code> is the hit target and never moves; only the <code>.cap</code> inside it (with <code>pointer-events: none</code>) sinks with <code>translateZ(-7px)</code>. An empty <code>::after</code> lid where the top sits at rest makes the top clickable too.',
+      'The other three sides are the same trapezoid turned around the key’s centre: <code>translateY(-22 units) rotate(90deg) translateY(22 units)</code> moves the pivot to the middle, rotates, and moves it back.',
+      'The <code>&lt;button&gt;</code> is the hit target and never moves; only the <code>.cap</code> inside it (with <code>pointer-events: none</code>) sinks with <code>translateZ(-7 units)</code>. An empty <code>::after</code> lid where the top sits at rest makes the top clickable too.',
       'The glow is two layers that only fade with <code>opacity</code>: a teal pool on the plate and a wash over the legend. <code>:focus-visible</code> presses the key as well, so it works from the keyboard.',
     ],
     html: `<div class="scene">
@@ -32,7 +33,10 @@ ${key('3D', true)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the deck is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.54vmin;
+  perspective: calc(800 * var(--u));
   /* flat, not preserve-3d: the back of the tilted plate lies behind z = 0, and any box around the
      scene that shares its 3D space (a page wrapper with preserve-3d) would sit in front of the
      keys there and take their pointer. Flat, the deck is drawn into the scene's own plane, on top. */
@@ -41,17 +45,20 @@ ${key('3D', true)}
   pointer-events: none;
 }
 
-/* a small keyboard plate lying on the floor, turned a little */
+/* a small keyboard plate lying on the floor, turned a little. Two by two, not one row of four:
+   a row laid back this far is three and a half times wider than it is tall, so at the 92vmin
+   width limit the deck stands on the 40vmin floor with nothing to spare */
 .deck {
   position: relative;
-  display: flex;
-  gap: 7px;
-  padding: 9px;
-  border-radius: 9px;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: calc(7 * var(--u));
+  padding: calc(9 * var(--u));
+  border-radius: calc(9 * var(--u));
   background:
     linear-gradient(160deg, rgb(255 255 255 / 0.07), transparent 60%),
     color-mix(in srgb, #8b6cff 12%, #141830);
-  box-shadow: inset 0 0 0 1px rgb(140 150 220 / 0.34);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) rgb(140 150 220 / 0.34);
   transform-style: preserve-3d;
   transform: rotateX(54deg) rotateZ(-30deg); /* read right to left: turn it, then lay it back */
 }
@@ -66,18 +73,18 @@ ${key('3D', true)}
 
 .deck::before {
   top: 100%;
-  right: 8px;
-  left: 8px;
-  height: 12px;
+  right: calc(8 * var(--u));
+  left: calc(8 * var(--u));
+  height: calc(12 * var(--u));
   transform-origin: 50% 0;
   transform: rotateX(-90deg);
 }
 
 .deck::after {
-  top: 8px;
+  top: calc(8 * var(--u));
   right: 100%;
-  bottom: 8px;
-  width: 12px;
+  bottom: calc(8 * var(--u));
+  width: calc(12 * var(--u));
   background: color-mix(in srgb, #8b6cff 18%, #0b0d1a);
   transform-origin: 100% 50%;
   transform: rotateY(90deg);
@@ -88,14 +95,14 @@ ${key('3D', true)}
   --c: color-mix(in srgb, #8b6cff 38%, #141830);
   --ink: #eceefb;
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: calc(44 * var(--u));
+  height: calc(44 * var(--u));
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: calc(6 * var(--u));
   background: none;
   color: var(--ink);
-  font: 800 16px/1 system-ui, sans-serif;
+  font: 800 calc(16 * var(--u))/1 system-ui, sans-serif;
   cursor: pointer;
   pointer-events: auto;
   transform-style: preserve-3d;
@@ -110,13 +117,13 @@ ${key('3D', true)}
 .key::after {
   content: '';
   position: absolute;
-  inset: 6px;
-  transform: translateZ(13px);
+  inset: calc(6 * var(--u));
+  transform: translateZ(calc(13 * var(--u)));
 }
 
 .key:focus-visible {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 3px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(3 * var(--u));
 }
 
 /* the cap: four sloped sides and a top, moved as one */
@@ -132,55 +139,55 @@ ${key('3D', true)}
 .cap::before {
   content: '';
   position: absolute;
-  inset: 7px;
+  inset: calc(7 * var(--u));
   background: color-mix(in srgb, var(--c), #000 30%);
-  transform: translateZ(12px);
+  transform: translateZ(calc(12 * var(--u)));
 }
 
-/* one sloped side: 13px high, 6px inset, so it is √(13² + 6²) = 14.32px long,
+/* one sloped side: 13 units high, 6 units inset, so it is √(13² + 6²) = 14.32 units long,
    stands on the key's front edge and tips up by atan(13 / 6) = 65.2deg */
 .cap i {
   position: absolute;
-  top: 29.68px; /* 44px - 14.32px: its bottom edge is the key's front edge */
+  top: calc(29.68 * var(--u)); /* 44 - 14.32: its bottom edge is the key's front edge */
   left: 0;
-  width: 44px;
-  height: 14.32px;
-  clip-path: polygon(0 100%, 100% 100%, calc(100% - 6px) 0, 6px 0);
+  width: calc(44 * var(--u));
+  height: calc(14.32 * var(--u));
+  clip-path: polygon(0 100%, 100% 100%, calc(100% - 6 * var(--u)) 0, calc(6 * var(--u)) 0);
   transform-origin: 50% 100%;
 }
 
-/* the same side turned around the key's centre (22px above the hinge); shaded per side */
+/* the same side turned around the key's centre (22 units above the hinge); shaded per side */
 .cap i:nth-child(1) {
   background: linear-gradient(color-mix(in srgb, var(--c), #000 20%), color-mix(in srgb, var(--c), #000 26%));
-  transform: translateY(-22px) rotate(0deg) translateY(22px) rotateX(-65.2deg);
+  transform: translateY(calc(-22 * var(--u))) rotate(0deg) translateY(calc(22 * var(--u))) rotateX(-65.2deg);
 }
 
 .cap i:nth-child(2) {
   background: linear-gradient(color-mix(in srgb, var(--c), #000 36%), color-mix(in srgb, var(--c), #000 42%));
-  transform: translateY(-22px) rotate(90deg) translateY(22px) rotateX(-65.2deg);
+  transform: translateY(calc(-22 * var(--u))) rotate(90deg) translateY(calc(22 * var(--u))) rotateX(-65.2deg);
 }
 
 .cap i:nth-child(3) {
   background: linear-gradient(color-mix(in srgb, var(--c), #000 2%), color-mix(in srgb, var(--c), #000 8%));
-  transform: translateY(-22px) rotate(180deg) translateY(22px) rotateX(-65.2deg);
+  transform: translateY(calc(-22 * var(--u))) rotate(180deg) translateY(calc(22 * var(--u))) rotateX(-65.2deg);
 }
 
 .cap i:nth-child(4) {
   background: linear-gradient(color-mix(in srgb, var(--c), #000 8%), color-mix(in srgb, var(--c), #000 14%));
-  transform: translateY(-22px) rotate(270deg) translateY(22px) rotateX(-65.2deg);
+  transform: translateY(calc(-22 * var(--u))) rotate(270deg) translateY(calc(22 * var(--u))) rotateX(-65.2deg);
 }
 
 /* the top: slightly dished, with the legend */
 .cap b {
   position: absolute;
-  inset: 6px;
+  inset: calc(6 * var(--u));
   display: grid;
   place-items: center;
-  border-radius: 4px;
+  border-radius: calc(4 * var(--u));
   background: radial-gradient(ellipse 80% 70% at 50% 45%, color-mix(in srgb, var(--c), #fff 10%), var(--c) 75%);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c), #fff 18%);
-  text-shadow: 0 1px 0 color-mix(in srgb, var(--c), #000 40%);
-  transform: translateZ(13px);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c), #fff 18%);
+  text-shadow: 0 calc(1 * var(--u)) 0 color-mix(in srgb, var(--c), #000 40%);
+  transform: translateZ(calc(13 * var(--u)));
 }
 
 /* the lit legend: a teal wash, faded in */
@@ -197,18 +204,18 @@ ${key('3D', true)}
 /* light spilling onto the plate around a pressed key */
 .glow {
   position: absolute;
-  inset: -9px;
-  border-radius: 14px;
+  inset: calc(-9 * var(--u));
+  border-radius: calc(14 * var(--u));
   background: radial-gradient(closest-side, rgb(46 230 214 / 0.75), rgb(46 230 214 / 0.25) 70%, transparent);
   opacity: 0;
   pointer-events: none;
-  transform: translateZ(0.5px);
+  transform: translateZ(calc(0.5 * var(--u)));
   transition: opacity 0.2s;
 }
 
 /* pressed: the cap sinks into the plate, the lights come on */
 .key:is(:hover, :focus-visible) .cap {
-  transform: translateZ(-7px);
+  transform: translateZ(calc(-7 * var(--u)));
 }
 
 .key:is(:hover, :focus-visible) .cap b::after,
@@ -217,7 +224,7 @@ ${key('3D', true)}
 }
 
 .key:active .cap {
-  transform: translateZ(-10px);
+  transform: translateZ(calc(-10 * var(--u)));
 }`,
   },
 
