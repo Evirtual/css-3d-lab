@@ -257,7 +257,10 @@ ${key('3D', true)}
   --u: 0.32vmin;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  width: calc(340 * var(--u));
+  /* narrower than a square canvas (280 units is 90vmin): a box wider than the canvas does not
+     centre, it hangs off the right-hand side, and on a 1:1 or 9:16 canvas the stepper sat 4vmin
+     off the middle */
+  width: calc(280 * var(--u));
   height: calc(260 * var(--u));
   padding: calc(10 * var(--u)) calc(14 * var(--u)) calc(14 * var(--u));
   box-sizing: border-box;
