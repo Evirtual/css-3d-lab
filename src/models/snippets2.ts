@@ -578,6 +578,7 @@ ${starShadows(40, 900, 2024)};
     how: [
       'Wrap every letter in a <code>&lt;span&gt;</code> with <code>display: inline-block</code> — transforms are ignored on plain inline boxes.',
       'All letters share one keyframe animation: lift toward the camera while flipping 360°.',
+      'A letter has two sides, like a card: its own text with <code>backface-visibility: hidden</code> is the front, and a <code>::after</code> with <code>content: attr(data-c)</code>, turned <code>rotateY(180deg)</code> and hidden from behind too, is the back. Halfway through the flip you read the back, the right way round, never a mirrored letter.',
       '<code>animation-delay: calc(var(--i) * 0.12s)</code> offsets each letter, and the offsets read as a travelling wave.',
       'Put the real word in <code>aria-label</code> and hide the spans from screen readers, or it is read letter by letter.',
       '<code>--i</code> carries on across the line break, so the wave rolls off the end of one line and into the start of the next.',
@@ -586,10 +587,10 @@ ${starShadows(40, 900, 2024)};
     html: `<div class="scene">
   <h1 class="wave" aria-label="WAVE 3D">
     <span class="line">
-${[...'WAVE'].map((c, i) => `      <span style="--i:${i}" aria-hidden="true">${c}</span>`).join('\n')}
+${[...'WAVE'].map((c, i) => `      <span style="--i:${i}" data-c="${c}" aria-hidden="true">${c}</span>`).join('\n')}
     </span>
     <span class="line">
-${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" aria-hidden="true">${c}</span>`).join('\n')}
+${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" data-c="${c}" aria-hidden="true">${c}</span>`).join('\n')}
     </span>
   </h1>
 </div>`,
@@ -618,11 +619,25 @@ ${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" aria-hidden="true">$
   transform-style: preserve-3d;
 }
 
+/* each letter is a card with the letter on both sides: the span's own text is the front and
+   hides once it turns away, and ::after is the same letter turned round to face the back, so a
+   letter mid-flip never shows mirrored */
 .wave .line span {
+  position: relative;
   display: inline-block;
   color: hsl(calc(255 + var(--i) * 18) 90% 70%);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
   animation: wave 2.8s ease-in-out infinite;
   animation-delay: calc(var(--i) * 0.12s);
+}
+
+.wave .line span::after {
+  content: attr(data-c);
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
 }
 
 @keyframes wave {
