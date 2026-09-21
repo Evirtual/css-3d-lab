@@ -1601,7 +1601,7 @@ controls.addEventListener('click', (e) => {
   browser: {
     how: [
       'The window is tilted like an isometric drawing: <code>rotateX(55deg) rotateZ(-38deg)</code>. Its layers are flat siblings inside it, each lifted along the window’s own Z axis.',
-      'Each layer declares its depth once in the markup (<code>style="--z:40"</code>) and shares a single rule: <code>translateZ(calc(var(--z) * var(--k) * 1px))</code>.',
+      'Each layer declares its depth once in the markup (<code>style="--z:40"</code>) and shares a single rule: <code>translateZ(calc(var(--z) * var(--k) * var(--u)))</code>, where <code>--u</code> is the one base unit every length here is a multiple of, so the window is the same share of a gallery card, the editor and a recording canvas.',
       'Hover changes only the multiplier <code>--k</code> on the wrapper (0.45 → 1). Every layer’s transform changes with it and its own <code>transition</code> animates it; a delay of <code>--z × 2ms</code> lets the top layers rise last.',
       'The bob sits on the window, the hover on a static wrapper, and the window has <code>pointer-events: none</code>, so the bobbing never slides out from under the pointer.',
     ],
@@ -1619,7 +1619,10 @@ controls.addEventListener('click', (e) => {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the window is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.40vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* static hit area: it only changes the multiplier --k */
@@ -1627,10 +1630,10 @@ controls.addEventListener('click', (e) => {
   --k: 0.45;
   display: grid;
   place-items: center;
-  width: 210px;
-  height: 184px;
-  border-radius: 16px;
-  outline-offset: -4px;
+  width: calc(210 * var(--u));
+  height: calc(184 * var(--u));
+  border-radius: calc(16 * var(--u));
+  outline-offset: calc(-4 * var(--u));
   cursor: pointer;
   transform-style: preserve-3d;
 }
@@ -1643,28 +1646,28 @@ controls.addEventListener('click', (e) => {
 /* 152 × 112, tilted and bobbing */
 .win {
   position: relative;
-  width: 152px;
-  height: 112px;
+  width: calc(152 * var(--u));
+  height: calc(112 * var(--u));
   pointer-events: none;
   transform-style: preserve-3d;
   animation: bob 3.2s ease-in-out infinite alternate;
 }
 
-/* every depth layer: one transform from --z × --k, staggered by depth */
+/* every depth layer: one transform from --z × --k, in base units, staggered by depth */
 .win > [style] {
   position: absolute;
   box-sizing: border-box;
-  transform: translateZ(calc(var(--z) * var(--k) * 1px));
+  transform: translateZ(calc(var(--z) * var(--k) * var(--u)));
   transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1);
   transition-delay: calc(var(--z) * 2ms);
 }
 
 .shadow {
   position: absolute;
-  inset: 4px -6px -8px 4px;
-  border-radius: 14px;
+  inset: calc(4 * var(--u)) calc(-6 * var(--u)) calc(-8 * var(--u)) calc(4 * var(--u));
+  border-radius: calc(14 * var(--u));
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
-  transform: translateZ(calc(var(--k) * -24px)); /* sinks as the layers rise */
+  transform: translateZ(calc(var(--k) * -24 * var(--u))); /* sinks as the layers rise */
   transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
@@ -1676,78 +1679,84 @@ controls.addEventListener('click', (e) => {
   flex-wrap: wrap;
   align-items: center;
   align-content: flex-start;
-  gap: 3px;
-  padding: 5px 6px;
-  border: 1px solid rgb(140 150 220 / 0.34);
-  border-radius: 10px;
+  gap: calc(3 * var(--u));
+  padding: calc(5 * var(--u)) calc(6 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(140 150 220 / 0.34);
+  border-radius: calc(10 * var(--u));
   background:
-    linear-gradient(#2a2d44 0 16px, transparent 16px),
+    linear-gradient(#2a2d44 0 calc(16 * var(--u)), transparent calc(16 * var(--u))),
     #222249;
 }
 
-.frame span { width: 6px; height: 6px; border-radius: 50%; background: #ff4d9d; }
+.frame span {
+  width: calc(6 * var(--u));
+  height: calc(6 * var(--u));
+  border-radius: 50%;
+  background: #ff4d9d;
+}
+
 .frame span:nth-child(2) { background: #ffb547; }
 .frame span:nth-child(3) { background: #2ee6d6; }
 
 .frame em {
-  width: 62px;
-  height: 7px;
-  margin-left: 14px;
-  border-radius: 4px;
+  width: calc(62 * var(--u));
+  height: calc(7 * var(--u));
+  margin-left: calc(14 * var(--u));
+  border-radius: calc(4 * var(--u));
   background: rgb(236 238 251 / 0.16);
 }
 
 .side {
-  top: 23px;
-  left: 7px;
+  top: calc(23 * var(--u));
+  left: calc(7 * var(--u));
   display: grid;
   align-content: start;
-  gap: 6px;
-  width: 30px;
-  height: 82px;
-  padding: 6px 5px;
-  border: 1px solid rgb(139 108 255 / 0.45);
-  border-radius: 6px;
+  gap: calc(6 * var(--u));
+  width: calc(30 * var(--u));
+  height: calc(82 * var(--u));
+  padding: calc(6 * var(--u)) calc(5 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.45);
+  border-radius: calc(6 * var(--u));
   background: #2e2a5e;
 }
 
-.side i { height: 4px; border-radius: 2px; background: rgb(236 238 251 / 0.3); }
+.side i { height: calc(4 * var(--u)); border-radius: calc(2 * var(--u)); background: rgb(236 238 251 / 0.3); }
 .side i:first-child { background: #8b6cff; }
 .side i:nth-child(3) { width: 70%; }
 
 .card {
-  border: 1px solid rgb(255 255 255 / 0.35);
-  border-radius: 6px;
+  border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.35);
+  border-radius: calc(6 * var(--u));
 }
 
 /* hero banner with two lines of "text" */
 .hero {
-  top: 23px;
-  left: 44px;
-  width: 101px;
-  height: 32px;
+  top: calc(23 * var(--u));
+  left: calc(44 * var(--u));
+  width: calc(101 * var(--u));
+  height: calc(32 * var(--u));
   background:
-    linear-gradient(rgb(255 255 255 / 0.9) 0 0) 8px 9px / 42% 4px no-repeat,
-    linear-gradient(rgb(255 255 255 / 0.55) 0 0) 8px 17px / 28% 3px no-repeat,
+    linear-gradient(rgb(255 255 255 / 0.9) 0 0) calc(8 * var(--u)) calc(9 * var(--u)) / 42% calc(4 * var(--u)) no-repeat,
+    linear-gradient(rgb(255 255 255 / 0.55) 0 0) calc(8 * var(--u)) calc(17 * var(--u)) / 28% calc(3 * var(--u)) no-repeat,
     linear-gradient(120deg, #8b6cff, #ff4d9d);
 }
 
 .a,
 .b {
-  top: 62px;
-  width: 47px;
-  height: 43px;
+  top: calc(62 * var(--u));
+  width: calc(47 * var(--u));
+  height: calc(43 * var(--u));
 }
 
 /* mini bar chart */
 .a {
-  left: 44px;
-  padding: 7px 0 5px;
+  left: calc(44 * var(--u));
+  padding: calc(7 * var(--u)) 0 calc(5 * var(--u));
   background:
-    linear-gradient(0deg, #2ee6d6 0 45%, transparent 45%) 7px 100% / 5px 100% no-repeat,
-    linear-gradient(0deg, #2ee6d6 0 70%, transparent 70%) 15px 100% / 5px 100% no-repeat,
-    linear-gradient(0deg, #2ee6d6 0 55%, transparent 55%) 23px 100% / 5px 100% no-repeat,
-    linear-gradient(0deg, #2ee6d6 0 85%, transparent 85%) 31px 100% / 5px 100% no-repeat,
+    linear-gradient(0deg, #2ee6d6 0 45%, transparent 45%) calc(7 * var(--u)) 100% / calc(5 * var(--u)) 100% no-repeat,
+    linear-gradient(0deg, #2ee6d6 0 70%, transparent 70%) calc(15 * var(--u)) 100% / calc(5 * var(--u)) 100% no-repeat,
+    linear-gradient(0deg, #2ee6d6 0 55%, transparent 55%) calc(23 * var(--u)) 100% / calc(5 * var(--u)) 100% no-repeat,
+    linear-gradient(0deg, #2ee6d6 0 85%, transparent 85%) calc(31 * var(--u)) 100% / calc(5 * var(--u)) 100% no-repeat,
     #193d4e;
   background-origin: content-box;
 }
@@ -1755,25 +1764,25 @@ controls.addEventListener('click', (e) => {
 /* donut: a conic square rounded off by two radial layers in the card colour */
 .b {
   --paper: #3e3434;
-  right: 7px;
+  right: calc(7 * var(--u));
   background:
-    radial-gradient(circle, var(--paper) 0 6px, transparent 6.5px 11px, var(--paper) 11.5px),
-    conic-gradient(#ffb547 0 70%, #785b3a 0) 50% 50% / 24px 24px no-repeat,
+    radial-gradient(circle, var(--paper) 0 calc(6 * var(--u)), transparent calc(6.5 * var(--u)) calc(11 * var(--u)), var(--paper) calc(11.5 * var(--u))),
+    conic-gradient(#ffb547 0 70%, #785b3a 0) 50% 50% / calc(24 * var(--u)) calc(24 * var(--u)) no-repeat,
     var(--paper);
 }
 
 /* the floating button; rotate(38deg) undoes the window's rotateZ so "+" stays a plus */
 .win > .fab {
-  right: 12px;
-  bottom: 12px;
+  right: calc(12 * var(--u));
+  bottom: calc(12 * var(--u));
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
   border-radius: 50%;
   background: linear-gradient(135deg, #ff4d9d, #8b6cff);
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
-  transform: translateZ(calc(var(--z) * var(--k) * 1px)) rotate(38deg);
+  box-shadow: 0 calc(2 * var(--u)) calc(6 * var(--u)) rgb(0 0 0 / 0.35);
+  transform: translateZ(calc(var(--z) * var(--k) * var(--u))) rotate(38deg);
 }
 
 /* the "+" is two bars in one grid cell: exactly centred, unlike a text glyph */
@@ -1781,9 +1790,9 @@ controls.addEventListener('click', (e) => {
 .win > .fab::after {
   content: '';
   grid-area: 1 / 1;
-  width: 10px;
-  height: 2px;
-  border-radius: 1px;
+  width: calc(10 * var(--u));
+  height: calc(2 * var(--u));
+  border-radius: calc(1 * var(--u));
   background: #fff;
 }
 
@@ -1791,10 +1800,12 @@ controls.addEventListener('click', (e) => {
   rotate: 90deg;
 }
 
-/* translateY first: the bob is straight up and down on screen */
+/* translateY first: the bob is straight up and down on screen. The window is lifted 16 units off
+   its layout box: the shadow is cast below it and the tilt throws the drawing downward, so the
+   window has to sit that much higher for the whole thing to be centred. */
 @keyframes bob {
-  from { transform: translateY(8px) rotateX(55deg) rotateZ(-38deg); }
-  to   { transform: translateY(0) rotateX(55deg) rotateZ(-38deg); }
+  from { transform: translateY(calc(-8 * var(--u))) rotateX(55deg) rotateZ(-38deg); }
+  to   { transform: translateY(calc(-16 * var(--u))) rotateX(55deg) rotateZ(-38deg); }
 }`,
   },
 };
