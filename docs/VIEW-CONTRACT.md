@@ -33,9 +33,19 @@ One band, the same height in every model, centred in the canvas.
 | Model box, with no controls | 70vmin |
 
 So a model with a row of buttons under it is automatically a little smaller than one without, and
-both take up the same area. The model box is square: everything the model draws fits inside it,
-in every state. A wide model is 70vmin across and shorter; it is never larger than the box in
-either direction.
+both take up the same area.
+
+**Height is what is held; width is free.** The box is not a square and a model does not have to be
+one. What everything the model draws must satisfy, in every state, is:
+
+| | |
+| --- | --- |
+| At most, tall | the model box above: 70vmin, or 56vmin with controls |
+| At least, tall | 40vmin, so nothing reads as a speck in the middle |
+| At most, wide | 92% of the canvas width, so nothing touches the sides |
+
+A wide, short model is wide. A tall model is tall. They are the same height as each other, which
+is what makes them read as equally prominent, and they are all centred.
 
 The band is centred, which puts the model box slightly above the middle of the canvas when there
 is a control zone under it, and exactly in the middle when there is not.
@@ -89,3 +99,10 @@ scrolled:
 
 `npm run check-models` opens every model, drives it through those states and reports the ones that
 break the contract. It judges models; it does not adjust them.
+
+## What goes with this
+
+Every model still carries a second implementation from before the snippet became the only thing
+the site renders: its gallery markup and about 16,700 lines of per-model Sass. Nothing draws them
+any more, only the metadata around them is read. They are deleted as part of this pass, so there
+is one version of each model and no way for the two to drift.
