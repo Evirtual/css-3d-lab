@@ -1137,6 +1137,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
       'It is visually hidden (not <code>display: none</code>, which would remove it from the tab order).',
       'The rocker is the next sibling: <code>input:checked + .rocker</code> tips it from <code>rotateX(-22deg)</code> to <code>rotateX(22deg)</code>.',
       'Wrapping everything in a <code>&lt;label&gt;</code> makes the whole switch clickable with zero JavaScript.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the rocker, its bezel rings, the gap and the LED — so the switch is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
     ],
     html: `<label class="switch">
   <input type="checkbox">
@@ -1144,10 +1145,13 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   <em></em>
 </label>`,
     css: `.switch {
+  /* one base unit: every length below is a multiple of it, so the switch is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
   display: grid;
   justify-items: center;
-  gap: 22px;
-  perspective: 320px;
+  gap: calc(22 * var(--u));
+  perspective: calc(320 * var(--u));
   cursor: pointer;
 }
 
@@ -1163,15 +1167,15 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
 .rocker {
   display: grid;
   grid-template-rows: 1fr 1fr;
-  width: 90px;
-  height: 146px;
-  border-radius: 14px;
+  width: calc(90 * var(--u));
+  height: calc(146 * var(--u));
+  border-radius: calc(14 * var(--u));
   background: linear-gradient(#2b3050, #161a30);
-  border: 1px solid #4a5280;
+  border: calc(1 * var(--u)) solid #4a5280;
   color: #8d95b3;
-  font: 700 1.6rem system-ui;
+  font: 700 calc(25.6 * var(--u)) system-ui;
   text-align: center;
-  box-shadow: 0 0 0 9px #05060c, 0 0 0 10px #4a5280;
+  box-shadow: 0 0 0 calc(9 * var(--u)) #05060c, 0 0 0 calc(10 * var(--u)) #4a5280;
   transform: rotateX(-22deg);                       /* OFF */
   transition: transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
@@ -1184,14 +1188,14 @@ input:checked + .rocker {
 }
 
 input:focus-visible + .rocker {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 14px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(14 * var(--u));
 }
 
 /* status LED */
 .switch em {
-  width: 14px;
-  height: 14px;
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
   border-radius: 50%;
   background: #3a3f5c;
   transition: 0.2s;
@@ -1199,7 +1203,7 @@ input:focus-visible + .rocker {
 
 input:checked ~ em {
   background: #2ee6d6;
-  box-shadow: 0 0 14px #2ee6d6;
+  box-shadow: 0 0 calc(14 * var(--u)) #2ee6d6;
 }`,
   },
 
