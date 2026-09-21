@@ -1958,6 +1958,7 @@ onScroll();`,
       'On click, JS works out each tile’s distance from the clicked one, writes it to <code>--d</code>, <b>then</b> toggles the attribute.',
       'Order matters: the delays must be in place before the change that triggers the transition.',
       'The grid has <code>pointer-events: none</code> and the tiles <code>auto</code>. Both lie on the same 3D plane, and coplanar surfaces have no stable front-to-back order — without this the browser hit-tests the invisible grid in patches, and the cursor and clicks fail there.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the 7 × 5 tiles are 42 units square, so the grid is the same share of a gallery card, the editor and a recording canvas. The distance JS writes is a plain number of tiles, never a length.',
     ],
     html: `<div class="scene">
   <div class="tiles"></div>
