@@ -163,7 +163,7 @@ export const interactiveDemos: Demo[] = [
   {
     id: 'playground',
     title: 'Perspective playground',
-    description: 'Sliders feed perspective and rotation straight into CSS, with the resulting declaration shown live.',
+    description: 'Sliders feed perspective and rotation straight into CSS, with the current values shown live.',
     category: 'js',
     tags: ['controls'],
     technique: ['perspective', 'rotateX / rotateY', 'range inputs → custom properties'],

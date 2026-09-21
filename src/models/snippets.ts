@@ -1312,7 +1312,7 @@ layout();`,
 
   playground: {
     how: [
-      '<code>perspective</code> is the distance from your eye to the z=0 plane. Low values (≈150px) distort wildly; high values (≈1200px) look almost flat.',
+      '<code>perspective</code> is the distance from your eye to the z=0 plane. Against this 120-unit box, the slider’s low end (150 units) distorts wildly and its high end (1200) looks almost flat.',
       'It belongs on the <b>parent</b> of the thing you rotate.',
       'The sliders just write three custom properties; the box’s transform reads them.',
       'The perspective slider writes a plain number, not a length: the model multiplies it by its own base unit, so 400 here is 400 next to a 120-unit box — the same picture at any canvas size.',
