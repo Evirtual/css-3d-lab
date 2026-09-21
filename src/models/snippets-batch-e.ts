@@ -714,6 +714,9 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--z:${ISLAND
   width: calc(200 * var(--u));
   height: calc(190 * var(--u));
   transform-style: preserve-3d;
+  /* the land sits in the top of this box and the glow below it: moved down, the solid land is
+     centred and the faint glow hangs under it */
+  translate: 0 calc(17 * var(--u));
 }
 
 .shadow {
