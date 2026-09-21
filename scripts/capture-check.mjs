@@ -201,17 +201,13 @@ function expectedTotal() {
     const src = workingSources();
     const demoIds = [...src].filter(([, m]) => m.parts.some((p) => p.kind === 'demo' || (p.whole && p.file.includes('/charts/')))).map(([id]) => id);
     const converted = demoIds.filter((id) => src.get(id)?.snippet?.css.includes('--u:'));
-    if (check === 'models') return { total: demoIds.length, totalIsEstimate: true, totalFrom: 'every model with a gallery entry in src/models, as check-models runs with no ids' };
+    if (check === 'models' || check === 'stages') return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
     if (check === 'motion') return args.includes('--all')
       ? { total: demoIds.length, totalIsEstimate: true, totalFrom: 'every model (--all)' }
       : { total: converted.length, totalIsEstimate: true, totalFrom: 'the converted models (snippet CSS with --u:), as check-motion runs with no ids' };
     if (check === 'exports') {
       const list = /const SAMPLE = \[([^\]]*)\]/.exec(readFileSync(join(ROOT, 'scripts', CHECKS.exports), 'utf8'));
       if (list) return { total: (list[1].match(/'[^']+'/g) ?? []).length, totalIsEstimate: true, totalFrom: 'check-exports\' own SAMPLE list, as it runs with no ids' };
-    }
-    if (check === 'stages') {
-      const list = /const CONVERTED = \[([^\]]*)\]/.exec(readFileSync(join(ROOT, 'scripts', CHECKS.stages), 'utf8'));
-      if (list) return { total: (list[1].match(/'[^']+'/g) ?? []).length, totalIsEstimate: true, totalFrom: 'check-stages\' own CONVERTED list, as it runs with no ids' };
     }
   } catch {}
   return { total: null, totalIsEstimate: true, totalFrom: 'unknown' };

@@ -3,7 +3,7 @@
  * scripts/check-models.mjs) but "is it the same model everywhere". A model is measured in vmin of
  * its own canvas on every surface the site shows it on, and the numbers have to agree.
  *
- *   node scripts/check-stages.mjs             every converted model
+ *   node scripts/check-stages.mjs             every model in the gallery (src/models/index.ts)
  *   node scripts/check-stages.mjs dice tiles  just these
  *   node scripts/check-stages.mjs --json      the raw numbers as JSON on stdout
  *   node scripts/check-stages.mjs --tol 1.5   how much disagreement is allowed, in vmin
@@ -26,11 +26,16 @@
  * Transitions are measured too — before an action, at the first frame the model is measurable
  * again, and after it has settled — because a number that is right at both ends can still jump.
  *
- * Half of these models answer the pointer, so the pointer is part of the measurement: before a
- * settled reading it is parked in the same corner of the canvas on every surface, so a model that
- * tilts, glows or opens under it does so the same way everywhere and the surfaces stay comparable.
- * The reading taken straight after an action leaves the pointer alone, so what it catches is the
- * action's doing and not the tool's.
+ * Many of these models answer the pointer — a card tilts towards it, a chart opens a tooltip under
+ * it — and that is the model working, not a layout. So every reading is of the model AT REST: the
+ * pointer is parked off the model (outside its canvas, on the page's own chrome, and checked with
+ * elementFromPoint to be on no frame at all), the model's own document is checked to have nothing
+ * under :hover, and any transition the pointer started is let finish before the settled reading.
+ * The pointer is also moved off straight after every click the check makes, before the next
+ * surface has mounted, so the reading taken at the first measurable frame after an action is at
+ * rest too and catches the action's doing, not the pointer's. A reading that could not be taken at
+ * rest is marked "pointed" and is only ever compared with another pointed one; this check does not
+ * set out to measure the pointed pose (a model's hover and drag extents are check-models' business).
  */
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -111,8 +116,6 @@ const LOOK = `() => {
 }`;
 const lookFn = new Function('return ' + LOOK)();
 
-/** The models this pass is about: the ones already written to the contract. */
-const CONVERTED = ['candles', 'dice', 'turntable', 'cubenav', 'explode', 'sphere', 'cubegrid', 'tilt', 'paycard', 'door', 'ripple', 'wavegrid', 'tiles'];
 const SHAPES = ['1:1', '4:3', '3:2', '16:9', '9:16'];
 const STAGES = ['card', 'viewer', 'page', 'edit-live', 'edit-reset', 'edit-saved', 'large', 'fullscreen', ...SHAPES];
 
@@ -121,7 +124,6 @@ const asJson = args.includes('--json');
 const tolArg = args.indexOf('--tol');
 const TOL = tolArg >= 0 ? Number(args[tolArg + 1]) : 2; // vmin: "the same within a couple of vmin"
 const wanted = args.filter((a, i) => !a.startsWith('-') && !(tolArg >= 0 && i === tolArg + 1));
-const ids = wanted.length ? wanted : CONVERTED;
 
 const say = (line) => { if (!asJson) console.log(line); };
 const n1 = (v) => (v >= 0 ? ' ' : '') + v.toFixed(1);
@@ -134,6 +136,8 @@ await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
+// every model the gallery shows, as check-models runs with no ids
+const ids = wanted.length ? wanted : demos.map((d) => d.id);
 
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -141,47 +145,84 @@ const page = await context.newPage();
 page.on('pageerror', (e) => say(`  page error: ${e.message}`));
 
 /**
- * Measures the model inside the one frame under `selector`. Returns null, never a guess, when
- * there is no frame there or it never says it is ready.
+ * Puts the pointer on no part of any model: on the page's own chrome, off every frame. Tried in
+ * order: the viewport's corners and edges, then (for full screen, where the stage IS the screen)
+ * the centre of any control laid over it, and only when none of those is off a frame, just
+ * outside the viewport. One move, straight there: a move in steps would cross whatever lies
+ * between. Returns where it went, with what elementFromPoint found there.
  */
-async function look(selector, { timeout = 20_000, settle = false, park = true } = {}) {
+async function parkOff() {
+  for (let tries = 0; tries < 3; tries++) {
+    const spot = await page.evaluate(() => {
+      const W = window.innerWidth, H = window.innerHeight;
+      // no frame (the model's canvas), and not on a card or a stage, whose own :hover styles could
+      // move the frame the model is measured in
+      const off = (x, y) => {
+        const el = document.elementFromPoint(x, y);
+        return el && el.tagName !== 'IFRAME' && !el.closest('iframe, .card, .stage') ? el : null;
+      };
+      const name = (el) => el.tagName.toLowerCase() + (el.id ? `#${el.id}` : '') +
+        (typeof el.className === 'string' && el.className.trim() ? `.${el.className.trim().split(/\s+/)[0]}` : '');
+      const spots = [[4, 4], [W - 4, 4], [4, H - 4], [W - 4, H - 4], [W / 2, 4], [W / 2, H - 4], [4, H / 2], [W - 4, H / 2]];
+      for (const c of document.querySelectorAll('button, [role="button"]')) {
+        const r = c.getBoundingClientRect();
+        if (r.width >= 4 && r.height >= 4) spots.push([r.left + r.width / 2, r.top + r.height / 2]);
+      }
+      for (const [x, y] of spots) {
+        const el = off(x, y);
+        if (el) return { x, y, on: name(el) };
+      }
+      return null;
+    }).catch(() => null);
+    const to = spot ?? { x: -2, y: -2, on: 'outside the viewport' };
+    await page.mouse.move(to.x, to.y).catch(() => {});
+    // checked after the move as well as before it: a dialog sliding in can put a frame there
+    const still = spot
+      ? await page.evaluate(([x, y]) => {
+          const el = document.elementFromPoint(x, y);
+          return Boolean(el && el.tagName !== 'IFRAME' && !el.closest('iframe, .card, .stage'));
+        }, [to.x, to.y]).catch(() => false)
+      : true; // off the viewport, elementFromPoint has nothing to find, which is the point
+    if (still) return to;
+    await page.waitForTimeout(150);
+  }
+  return null;
+}
+
+/**
+ * A click on one of the site's own controls, and the pointer straight off the page: what the click
+ * does (a dialog, full screen) lands after it, and a spot that is chrome now can be the model's
+ * canvas then — full screen puts the frame under every point of the screen. Outside the viewport
+ * nothing can arrive under the pointer. The caller parks it properly once the surface is up.
+ */
+async function press(locator) {
+  await locator.click();
+  await page.mouse.move(-2, -2).catch(() => {});
+}
+
+/**
+ * Measures the model inside the one frame under `selector`, AT REST: the pointer off it, nothing
+ * in its document under :hover, and (for a settled reading) every transition landed. Returns
+ * null, never a guess, when there is no frame there or it never says it is ready.
+ */
+async function look(selector, { timeout = 20_000, settle = false } = {}) {
   const handle = await page.waitForSelector(`${selector} iframe[data-ready="true"]`, { timeout, state: 'attached' }).catch(() => null);
   if (!handle) return null;
   const frame = await handle.contentFrame().catch(() => null);
   if (!frame) return null;
-  // The pointer is parked in the same corner of the canvas on every stage. Half of these models
-  // answer the pointer, so it has to be somewhere; what must not differ between two stages is
-  // WHERE, in the model's own canvas. (Off the canvas is not available: full screen is the
-  // canvas.) A model's hover and drag extents are check-models' business, not this tool's.
-  // Two moves, not one: a mouse already sitting on the spot sends nothing, and a model that
-  // answers the pointer would then be measured at rest on one stage and pointed at on the next.
-  let box = await handle.boundingBox().catch(() => null);
-  let parked = !park;
-  for (let tries = 0; park && box && tries < 3 && !parked; tries++) {
-    // A tenth of the way in from the top left: the same PLACE in the model's own canvas on every
-    // surface, and clear of the middle, where most of these models are drawn.
-    const x = box.x + box.width * 0.1;
-    const y = box.y + box.height * 0.1;
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2).catch(() => {});
-    // a model that has only just mounted may not have its pointer listener on yet, and a move
-    // that lands too early leaves it at rest while every other surface has it pointed at
-    await page.waitForTimeout(150);
-    await page.mouse.move(x, y, { steps: 3 }).catch(() => {});
-    // ...and the pointer has to be ON the model: a card still sliding into place, or a bar of the
-    // site's own chrome, can leave it on the page instead, and then one surface is measured at
-    // rest and the next one pointed at. Checked rather than assumed, and said so when it fails.
-    parked = await page
-      .evaluate(([x, y]) => document.elementFromPoint(x, y)?.tagName === 'IFRAME', [x, y])
-      .catch(() => false);
-    if (!parked) {
-      await page.waitForTimeout(300);
-      box = await handle.boundingBox().catch(() => box);
-    }
+  const box = await handle.boundingBox().catch(() => null);
+  // The pointer is off the model, and the model's own document agrees: a frame the pointer is on
+  // has at least its <html> under :hover, and a frame it has left has nothing.
+  let parkedOn = null, hovered = true;
+  for (let tries = 0; tries < 3 && hovered; tries++) {
+    if (tries) await page.waitForTimeout(200);
+    parkedOn = (await parkOff())?.on ?? null;
+    hovered = await frame.evaluate(() => document.querySelector(':hover') !== null).catch(() => true);
   }
-  // A model that is still gliding into place is measured mid-glide, which is a moment, not a
-  // layout. Settled measurements wait for its transitions to land first.
+  // A pointer that was on the model has started it back to rest, and a model still gliding into
+  // place is measured mid-glide: a moment, not a layout. Settled readings let every transition land.
   if (settle) {
-    await page.waitForTimeout(200); // let the pointer's own transitions start before waiting on them
+    await page.waitForTimeout(200); // let a leave's transitions start before waiting on them
     await frame.evaluate(() => Promise.race([
       Promise.allSettled(document.getAnimations().filter((a) => a.constructor.name === 'CSSTransition').map((a) => a.finished)),
       new Promise((done) => setTimeout(done, 2500)),
@@ -190,18 +231,20 @@ async function look(selector, { timeout = 20_000, settle = false, park = true } 
   const seen = await frame.evaluate(lookFn).catch(() => null);
   if (!seen) return null;
   // the canvas the model was given, on the page's own scale: proof the frame really fills the stage
-  return { ...seen, frameW: box?.width ?? null, frameH: box?.height ?? null, parked };
+  return { ...seen, frameW: box?.width ?? null, frameH: box?.height ?? null, pose: hovered ? 'pointed' : 'rest', parkedOn };
 }
 
 /**
  * An action, then the model as soon as it can be measured, and again once it has settled. The
- * first is what the eye would catch; the second is the layout the stage ends up with.
+ * first is what the eye would catch; the second is the layout the stage ends up with. The pointer
+ * is off the model before the action and straight after each of its clicks (see press), so both
+ * are readings of the action's doing, and of the model at rest.
  */
 async function move(label, selector, act, settle = 700) {
+  await parkOff();
   await act();
-  // Nothing touches the pointer for this one: the question is whether the ACTION moved the model,
-  // and parking the pointer first would answer a different question on a model that follows it.
-  const first = await look(selector, { park: false });
+  await parkOff();
+  const first = await look(selector);
   await page.waitForTimeout(settle);
   const after = await look(selector, { settle: true });
   return { label, first, after };
@@ -247,15 +290,17 @@ for (const id of ids) {
   /* ---------- the gallery card, and the dialog it opens ---------- */
   await context.clearCookies();
   await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
+  await parkOff(); // the pointer stays where the last page left it, which may be where this one draws a model
   await page.evaluate(() => { try { localStorage.clear(); } catch {} });
   await page.reload({ waitUntil: 'domcontentloaded' });
+  await parkOff();
   const demo = demos.find((d) => d.id === id);
   if (!demo) { row.notes.push('no such model'); say('  no such model'); continue; }
   await revealCard(id, demo.title);
   row.stages.card = await look(CARD(id), { settle: true });
 
   const open = await move('card → viewer', VIEWER, async () => {
-    await page.locator(`[data-open="${id}"]`).click();
+    await press(page.locator(`[data-open="${id}"]`));
   });
   row.stages.viewer = open.after ?? open.first;
   row.moves.push({ ...open, before: row.stages.card });
@@ -267,6 +312,7 @@ for (const id of ids) {
 
   /* ---------- the model's own page ---------- */
   await page.goto(`${base}/models/${id}/`, { waitUntil: 'domcontentloaded' });
+  await parkOff(); // the pointer stays where the last page left it, which may be where this one draws a model
   await page.waitForTimeout(400);
   row.stages.page = await look(PAGE, { settle: true });
 
@@ -289,7 +335,7 @@ for (const id of ids) {
   row.moves.push({ ...live, before: row.stages.page });
 
   const reset = await move('editing → reset', PAGE, async () => {
-    await page.locator('[data-reset]').click();
+    await press(page.locator('[data-reset]'));
     await page.waitForTimeout(450);
   });
   row.stages['edit-reset'] = reset.after ?? reset.first;
@@ -298,20 +344,20 @@ for (const id of ids) {
   /* ---------- the export dialog, at every shape ---------- */
   const image = page.locator('[data-make="image"]').first();
   const toMaker = await move('page → export dialog', MAKER, async () => {
-    await image.click();
+    await press(image);
   });
   row.moves.push({ ...toMaker, before: row.stages['edit-reset'] });
   let last = toMaker.after ?? toMaker.first;
   for (const shape of SHAPES) {
     const step = await move(`export ${shape}`, MAKER, async () => {
-      await page.locator(`[data-pick="imageRatio"][data-value="${shape}"]`).click();
+      await press(page.locator(`[data-pick="imageRatio"][data-value="${shape}"]`));
     }, 600);
     row.stages[shape] = step.after ?? step.first;
     row.moves.push({ ...step, before: last });
     last = row.stages[shape];
   }
   const back = await move('export dialog → page', PAGE, async () => {
-    await page.locator('.maker [data-close]').click();
+    await press(page.locator('.maker [data-close]'));
     await page.waitForTimeout(400);
   });
   row.moves.push({ ...back, before: last });
@@ -323,6 +369,7 @@ for (const id of ids) {
     [`c3d-edit:${id}`, `${pageCss}\n/* c3d qa: this comment changes nothing drawn */`],
   );
   await page.goto(`${base}/models/${id}/`, { waitUntil: 'domcontentloaded' });
+  await parkOff(); // the pointer stays where the last page left it, which may be where this one draws a model
   await page.waitForTimeout(600);
   const edited = await page.evaluate(() => !document.querySelector('[data-edited]')?.hasAttribute('hidden'));
   row.stages['edit-saved'] = await look(PAGE, { settle: true });
@@ -332,11 +379,12 @@ for (const id of ids) {
   /* ---------- a large viewport, and full screen ---------- */
   await page.setViewportSize({ width: 1600, height: 1000 });
   await page.goto(`${base}/models/${id}/`, { waitUntil: 'domcontentloaded' });
+  await parkOff(); // the pointer stays where the last page left it, which may be where this one draws a model
   await page.waitForTimeout(500);
   row.stages.large = await look(PAGE, { settle: true });
 
   const fs = await move('page → full screen', PAGE, async () => {
-    await page.locator('[data-fullscreen]').first().click();
+    await press(page.locator('[data-fullscreen]').first());
     await page.waitForTimeout(500);
   }, 600);
   const isFull = await page.evaluate(() => Boolean(document.fullscreenElement));
@@ -358,9 +406,9 @@ for (const id of ids) {
   }
 
   for (const stage of STAGES) if (!(stage in row.stages)) row.stages[stage] = null;
-  const adrift = STAGES.filter((s) => row.stages[s] && row.stages[s].parked === false);
-  if (adrift.length) row.notes.push(`the pointer could not be put on the model on: ${adrift.join(', ')} — a model that answers the pointer is at rest there and pointed at everywhere else, so those lines are not comparable`);
-  say(STAGES.map((s) => `  ${s.padEnd(11)} ${show(row.stages[s])}${row.stages[s] ? `   canvas ${Math.round(row.stages[s].canvasW)}×${Math.round(row.stages[s].canvasH)}` : ''}`).join('\n'));
+  const pointed = STAGES.filter((s) => row.stages[s]?.pose === 'pointed');
+  if (pointed.length) row.notes.push(`the model still had something under the pointer on: ${pointed.join(', ')} after the pointer was parked off it — those lines are of the pointed pose and are compared only with each other`);
+  say(STAGES.map((s) => `  ${s.padEnd(11)} ${show(row.stages[s])}${row.stages[s] ? `   canvas ${Math.round(row.stages[s].canvasW)}×${Math.round(row.stages[s].canvasH)}${row.stages[s].pose === 'pointed' ? '   POINTED' : ''}   pointer on ${row.stages[s].parkedOn ?? '?'}` : ''}`).join('\n'));
   for (const note of row.notes) say(`  note: ${note}`);
 }
 
@@ -376,9 +424,13 @@ if (asJson) {
   }
   const gap = (a, b) => Math.max(Math.abs(a.width - b.width), Math.abs(a.height - b.height), Math.abs(a.offX - b.offX), Math.abs(a.offY - b.offY));
   console.log('\nAll numbers are vmin of the canvas the model is in: width × height @ offset from the middle.\n');
-  console.log(['model'.padEnd(11), ...STAGES.map((s) => s.padEnd(26))].join(''));
+  // a pose is only ever compared with the same pose: at rest with at rest (every reading this check
+  // sets out to take), pointed with pointed
+  const alike = (a, b) => a.pose === b.pose;
+  const ID = Math.max(11, ...results.map((row) => row.id.length + 1)); // capture-check splits the table on whitespace
+  console.log(['model'.padEnd(ID), ...STAGES.map((s) => s.padEnd(26))].join(''));
   for (const row of results) {
-    console.log([row.id.padEnd(11), ...STAGES.map((s) => show(row.stages[s]).padEnd(26))].join(''));
+    console.log([row.id.padEnd(ID), ...STAGES.map((s) => show(row.stages[s]).padEnd(26))].join(''));
   }
 
   let bad = 0;
@@ -391,11 +443,16 @@ if (asJson) {
       const seen = row.stages[s];
       if (s === 'page') continue;
       if (!seen) { off.push(`${s}: not measured`); continue; }
+      if (!alike(ref, seen)) continue; // said once, in the note on pointed lines
       const d = gap(ref, seen);
       if (d > TOL) off.push(`${s}: ${show(seen)} against ${show(ref)} — ${d.toFixed(1)}vmin apart`);
     }
     for (const m of row.moves) {
       if (!m.before || !m.first) continue;
+      if (!alike(m.before, m.first) || (m.after && !alike(m.first, m.after))) {
+        off.push(`"${m.label}" not compared: the pointer was on the model for part of it (${[m.before, m.first, m.after].filter(Boolean).map((x) => x.pose).join(' → ')})`);
+        continue;
+      }
       const j = gap(m.before, m.first);
       const settled = m.after ? gap(m.first, m.after) : 0;
       if (j > TOL) off.push(`jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.toFixed(1)}vmin)`);
@@ -412,7 +469,7 @@ if (asJson) {
   for (const row of results) {
     let worst = null;
     for (const m of row.moves) {
-      if (!m.before || !m.first) continue;
+      if (!m.before || !m.first || !alike(m.before, m.first) || (m.after && !alike(m.first, m.after))) continue;
       const d = gap(m.before, m.first);
       const s = m.after ? gap(m.first, m.after) : 0;
       if (!worst || Math.max(d, s) > Math.max(worst.d, worst.s)) worst = { label: m.label, d, s, m };
