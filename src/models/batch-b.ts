@@ -35,7 +35,7 @@ export const demosB: Demo[] = [
       'The card leans toward your pointer and a glare follows it. JS writes four custom properties; CSS does the tilt, the glare and the return to rest.',
     category: 'js',
     tags: ['pointer', 'product', 'card', 'glare'],
-    technique: ['pointer → --rx / --ry / --gx / --gy', 'glare = oversized gradient moved with translate', 'chip and text lifted with translateZ', 'slow transition at rest, fast while live'],
+    technique: ['pointer → --rx / --ry / --gx / --gy', 'glare = gradient whose centre follows the pointer', 'chip and text lifted with translateZ', 'slow transition at rest, fast while live'],
     html: `<div class="d-paycard">
       <div class="d-paycard__card">
         <i class="d-paycard__shadow"></i>

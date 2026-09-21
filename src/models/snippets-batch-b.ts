@@ -211,11 +211,12 @@ export const snippetsB: Record<string, Snippet> = {
 
   paycard: {
     how: [
-      'JS turns the pointer position into four numbers and writes them as custom properties: <code>--rx</code> / <code>--ry</code> for the tilt, <code>--gx</code> / <code>--gy</code> for the glare. CSS does everything else.',
+      'JS turns where the pointer is on the canvas into four numbers and writes them as custom properties: <code>--rx</code> / <code>--ry</code> for the tilt, <code>--gx</code> / <code>--gy</code> for the glare. CSS does everything else.',
       'The glare is one radial gradient on a layer the size of the card, and the pointer only moves <b>where its circle is centred</b>. <code>--gx</code> / <code>--gy</code> are registered with <code>@property</code> as numbers, so they interpolate: the glide back to rest is a transition on two numbers, and the layer never grows past the card.',
-      '<code>overflow: hidden</code> would flatten the 3D card, so only the flat face clips (the glare lives inside it). The chip and the text are siblings lifted with <code>translateZ(14px)</code>, so they parallax.',
-      'One transition, two speeds: fast while the pointer is over the card (<code>.is-live</code>), slow and springy when it leaves, which is the glide back to rest.',
+      '<code>overflow: hidden</code> would flatten the 3D card, so only the flat face clips (the glare lives inside it). The chip and the text are siblings lifted 14 units with <code>translateZ</code>, so they parallax.',
+      'One transition, two speeds: fast while the pointer is on the canvas (<code>.is-live</code>), slow and springy when it leaves, which is the glide back to rest.',
       'A gentle idle sway sits on the <b>wrapper</b>, the tilt on the card inside, so the two never fight over <code>transform</code>.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the card, its type and its lift are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="paycard">
