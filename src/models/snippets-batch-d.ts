@@ -1412,7 +1412,7 @@ render();`,
   gap: calc(8 * var(--u));
   height: calc(120 * var(--u));
   transform-style: preserve-3d;
-  transform: translateY(calc(6 * var(--u))) rotateX(-20deg) rotateY(-30deg);
+  transform: translateY(calc(-11 * var(--u))) rotateX(-20deg) rotateY(-30deg);
 }
 
 /* glass floor: a strip centred on the bottom edge, laid flat */
