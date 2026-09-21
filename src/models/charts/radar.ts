@@ -98,7 +98,7 @@ export const demo: Demo = {
   tags: ['controls', 'hover', 'data', 'chart', 'json', 'svg'],
   technique: [
     'JSON → points (cos / sin × value) → <polygon>',
-    'series layers at translateZ 10 / 22px',
+    'series layers at translateZ 10 / 22 units',
     'axis names stand up: the plate’s rotation undone',
     'one tooltip that glides: --tx / --ty + transform transition',
   ],
