@@ -100,6 +100,32 @@ scrolled:
 `npm run check-models` opens every model, drives it through those states and reports the ones that
 break the contract. It judges models; it does not adjust them.
 
+## The rest of the rules, decided up front
+
+These are the things that would otherwise be found one model at a time.
+
+- **The corners belong to the site.** The stage lays its own badge over the top left and its
+  preview menu over the top right. A model keeps the top corners clear: nothing it draws, in any
+  state, comes within 14vmin of the top two corners. The band leaves room for this already; a wide
+  model has to check it.
+- **A paused model must look finished.** The site can pause every animation, and a model parked
+  offscreen is paused too. The pose a model holds at the start of its animation is the pose it is
+  judged on, so it cannot be mid-blur, mid-fade or halfway through a turn.
+- **Controls are usable by a finger.** 8vmin is about 22px on a card and about 30px in the viewer.
+  A control that is smaller than 24px anywhere a visitor can tap it is too small, so the height is
+  a floor, not a target.
+- **A caption may not move anything.** The control zone is a fixed height whether it holds one
+  line, a row of buttons, or both, and a caption whose text changes as the model is used must not
+  reflow the model above it.
+- **A full-canvas model may still have controls.** The zone sits in the same place, over the
+  model, at the same size. Being full-canvas changes what is behind the controls, not where they
+  are.
+- **Printing follows the same band.** The print sheet measures the model and fits it itself today;
+  that goes, and a printed model is laid out by the contract like every other state.
+- **No model paints the backdrop.** The stage's colour, its dots and its theme are the site's. A
+  model's text colour is inherited, so it reads on a light stage and a dark one, and a see-through
+  export has nothing of the model's own behind it.
+
 ## What goes with this
 
 Every model still carries a second implementation from before the snippet became the only thing
