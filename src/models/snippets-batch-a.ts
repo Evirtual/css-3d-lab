@@ -651,6 +651,7 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
       'Folding is then one <code>rotateX(±90deg)</code> or <code>rotateY(±90deg)</code> per face. The angle lives in <code>--fx</code> / <code>--fy</code>, and one shared keyframe rule reads it, so every wall folds its own way.',
       'The lid is a <b>child</b> of the north wall, not of the base. Its hinge rides along as the wall stands up, and its 90° adds to the wall\'s: nested transforms compound.',
       'The lid has its own, wider keyframes: it opens first and closes last, so it never folds through a wall. Both timelines are mirror-symmetric, so the loop is seamless.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the net is the same share of a gallery card, the editor and a recording canvas. It is sized for its widest moment, lying open flat, not for the closed cube.',
     ],
     html: `<div class="scene">
   <div class="net">
@@ -663,21 +664,24 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the net is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.3vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* static camera looking down at the floor */
 .net {
   transform-style: preserve-3d;
-  transform: translateY(20px) rotateX(58deg);
+  transform: translateY(calc(20 * var(--u))) rotateX(58deg);
 }
 
 /* the bottom face only turns, so every side gets seen */
 .base {
   --c: 139 108 255;
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: calc(60 * var(--u));
+  height: calc(60 * var(--u));
   transform-style: preserve-3d;
   animation: turn 24s linear infinite;
 }
@@ -686,13 +690,13 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
 .base i {
   background: rgb(var(--c) / 0.28);
   /* inset shadows instead of a border: no layout offset, so hinges sit exactly on the edges */
-  box-shadow: inset 0 0 0 1px rgb(var(--c) / 0.75), inset 0 0 24px rgb(var(--c) / 0.3);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) rgb(var(--c) / 0.75), inset 0 0 calc(24 * var(--u)) rgb(var(--c) / 0.3);
 }
 
 .base i {
   position: absolute;
-  width: 60px;
-  height: 60px;
+  width: calc(60 * var(--u));
+  height: calc(60 * var(--u));
   transform-style: preserve-3d; /* the north wall carries the lid */
   animation: fold 8s ease-in-out infinite;
 }
