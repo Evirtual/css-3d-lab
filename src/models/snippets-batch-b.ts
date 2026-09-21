@@ -200,7 +200,7 @@ export const snippetsB: Record<string, Snippet> = {
   paycard: {
     how: [
       'JS turns the pointer position into four numbers and writes them as custom properties: <code>--rx</code> / <code>--ry</code> for the tilt, <code>--gx</code> / <code>--gy</code> for the glare. CSS does everything else.',
-      'The glare is a radial gradient on a layer <b>twice</b> the size of the card, moved with <code>translate</code>. Moving a transform is cheap; moving <code>background-position</code> would repaint.',
+      'The glare is one radial gradient on a layer the size of the card, and the pointer only moves <b>where its circle is centred</b>. <code>--gx</code> / <code>--gy</code> are registered with <code>@property</code> as numbers, so they interpolate: the glide back to rest is a transition on two numbers, and the layer never grows past the card.',
       '<code>overflow: hidden</code> would flatten the 3D card, so only the flat face clips (the glare lives inside it). The chip and the text are siblings lifted with <code>translateZ(14px)</code>, so they parallax.',
       'One transition, two speeds: fast while the pointer is over the card (<code>.is-live</code>), slow and springy when it leaves, which is the glide back to rest.',
       'A gentle idle sway sits on the <b>wrapper</b>, the tilt on the card inside, so the two never fight over <code>transform</code>.',
@@ -1287,28 +1287,35 @@ setInterval(tick, 1000);`,
       <i class="shadow"></i>
     </div>
   </div>
-  <div class="bar">
-    <button type="button" data-c="#8b6cff" style="--sw:#8b6cff" aria-label="Violet" aria-pressed="true"></button>
-    <button type="button" data-c="#2ee6d6" style="--sw:#2ee6d6" aria-label="Teal" aria-pressed="false"></button>
-    <button type="button" data-c="#ff4d9d" style="--sw:#ff4d9d" aria-label="Pink" aria-pressed="false"></button>
-    <output>drag to rotate</output>
+  <div class="controls">
+    <output class="caption">drag to rotate</output>
+    <div class="row">
+      <button type="button" data-c="#8b6cff" style="--sw:#8b6cff" aria-label="Violet" aria-pressed="true"></button>
+      <button type="button" data-c="#2ee6d6" style="--sw:#2ee6d6" aria-label="Teal" aria-pressed="false"></button>
+      <button type="button" data-c="#ff4d9d" style="--sw:#ff4d9d" aria-label="Pink" aria-pressed="false"></button>
+    </div>
   </div>
 </div>`,
     css: `.viewer {
+  /* one base unit: every length below is a multiple of it, so the speaker is the same share of
+     a card, the editor, a full screen and a recording canvas. The control row under it is in
+     plain vmin, because it is the same object in every model. */
+  --u: 0.22vmin;
   --c: #8b6cff;
   display: grid;
-  grid-template-rows: 1fr auto;
-  width: 340px;
-  height: 280px;
+  justify-items: center;
+  gap: 4vmin;
   font-family: system-ui, sans-serif;
 }
 
 .view {
   display: grid;
   place-items: center;
-  border-radius: 14px;
-  outline-offset: -4px;
-  perspective: 1200px; /* a camera well back, so the verticals stay upright */
+  /* the round shadow hangs below the box: the room for it keeps the speaker centred */
+  padding-bottom: calc(26 * var(--u));
+  border-radius: calc(14 * var(--u));
+  outline-offset: calc(-4 * var(--u));
+  perspective: calc(1200 * var(--u)); /* a camera well back, so the verticals stay upright */
   cursor: grab;
   user-select: none;
   touch-action: pan-y; /* sideways drags are ours, vertical ones scroll the page */
@@ -1318,11 +1325,11 @@ setInterval(tick, 1000);`,
   cursor: grabbing;
 }
 
-/* 86 wide, 124 tall, 72 deep. No transition: JS sets a new angle every frame */
+/* 86 units wide, 124 tall, 72 deep. No transition: JS sets a new angle every frame */
 .product {
   position: relative;
-  width: 86px;
-  height: 124px;
+  width: calc(86 * var(--u));
+  height: calc(124 * var(--u));
   pointer-events: none;
   transform-style: preserve-3d;
   transform: rotateX(-14deg) rotateY(var(--ry, -32deg));
@@ -1331,13 +1338,13 @@ setInterval(tick, 1000);`,
 .f {
   position: absolute;
   box-sizing: border-box;
-  border: 1px solid color-mix(in srgb, var(--c) 55%, #fff);
-  /* a transparent pixel outside the border: the turned face's hard outer edge stays invisible,
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 55%, #fff);
+  /* a transparent line outside the border: the turned face's hard outer edge stays invisible,
      so the light edge line is smoothed instead of stair-stepping */
-  outline: 1px solid transparent;
+  outline: calc(1 * var(--u)) solid transparent;
   /* woven fabric: a fine dot grid over a light falloff */
   background:
-    radial-gradient(rgb(0 0 0 / 0.22) 0.7px, transparent 1.2px) 0 0 / 4px 4px,
+    radial-gradient(rgb(0 0 0 / 0.22) calc(0.7 * var(--u)), transparent calc(1.2 * var(--u))) 0 0 / calc(4 * var(--u)) calc(4 * var(--u)),
     linear-gradient(color-mix(in srgb, var(--c) 85%, #fff), color-mix(in srgb, var(--c) 70%, #0b0d18));
 }
 
@@ -1350,67 +1357,67 @@ setInterval(tick, 1000);`,
   display: grid;
   place-items: center;
   align-content: space-evenly;
-  transform: translateZ(36px); /* depth / 2 */
+  transform: translateZ(calc(36 * var(--u))); /* depth / 2 */
 }
 
 .back {
   background:
-    radial-gradient(circle at 50% 72%, #05060c 0 9px, color-mix(in srgb, var(--c) 40%, #05060c) 10px 12px, transparent 12.5px),
+    radial-gradient(circle at 50% 72%, #05060c 0 calc(9 * var(--u)), color-mix(in srgb, var(--c) 40%, #05060c) calc(10 * var(--u)) calc(12 * var(--u)), transparent calc(12.5 * var(--u))),
     linear-gradient(color-mix(in srgb, var(--c) 55%, #0b0d18), color-mix(in srgb, var(--c) 35%, #0b0d18));
-  transform: rotateY(180deg) translateZ(36px);
+  transform: rotateY(180deg) translateZ(calc(36 * var(--u)));
 }
 
 /* depth-wide, centred on the box */
 .left,
 .right {
   top: 0;
-  left: 7px;
-  width: 72px;
-  height: 124px;
+  left: calc(7 * var(--u));
+  width: calc(72 * var(--u));
+  height: calc(124 * var(--u));
   background:
-    radial-gradient(rgb(0 0 0 / 0.22) 0.7px, transparent 1.2px) 0 0 / 4px 4px,
+    radial-gradient(rgb(0 0 0 / 0.22) calc(0.7 * var(--u)), transparent calc(1.2 * var(--u))) 0 0 / calc(4 * var(--u)) calc(4 * var(--u)),
     linear-gradient(color-mix(in srgb, var(--c) 65%, #0b0d18), color-mix(in srgb, var(--c) 45%, #0b0d18));
 }
 
-/* the sides are squeezed hard on a small screen: a 2px highlight inside both upright edges
-   survives it where a 1px line breaks up */
+/* the sides are squeezed hard on a small canvas: a two-unit highlight inside both upright edges
+   survives it where a one-unit line breaks up */
 .left,
 .right {
   box-shadow:
-    inset 2px 0 0 color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #fff) 70%, transparent),
-    inset -2px 0 0 color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #fff) 70%, transparent);
+    inset calc(2 * var(--u)) 0 0 color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #fff) 70%, transparent),
+    inset calc(-2 * var(--u)) 0 0 color-mix(in srgb, color-mix(in srgb, var(--c) 55%, #fff) 70%, transparent);
 }
 
-.left { transform: rotateY(-90deg) translateZ(43px); }  /* width / 2 */
-.right { transform: rotateY(90deg) translateZ(43px); }
+.left { transform: rotateY(-90deg) translateZ(calc(43 * var(--u))); }  /* width / 2 */
+.right { transform: rotateY(90deg) translateZ(calc(43 * var(--u))); }
 
 .top,
 .bottom {
-  top: 26px;
+  top: calc(26 * var(--u));
   left: 0;
-  width: 86px;
-  height: 72px;
+  width: calc(86 * var(--u));
+  height: calc(72 * var(--u));
 }
 
 /* lighter, with three buttons */
 .top {
   background:
-    radial-gradient(circle at 30% 50%, rgb(255 255 255 / 0.8) 0 3px, transparent 3.5px),
-    radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.8) 0 3px, transparent 3.5px),
-    radial-gradient(circle at 70% 50%, rgb(255 255 255 / 0.8) 0 3px, transparent 3.5px),
+    radial-gradient(circle at 30% 50%, rgb(255 255 255 / 0.8) 0 calc(3 * var(--u)), transparent calc(3.5 * var(--u))),
+    radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.8) 0 calc(3 * var(--u)), transparent calc(3.5 * var(--u))),
+    radial-gradient(circle at 70% 50%, rgb(255 255 255 / 0.8) 0 calc(3 * var(--u)), transparent calc(3.5 * var(--u))),
     color-mix(in srgb, var(--c) 70%, #fff);
-  transform: rotateX(90deg) translateZ(62px); /* height / 2 */
+  transform: rotateX(90deg) translateZ(calc(62 * var(--u))); /* height / 2 */
 }
 
 .bottom {
   background: color-mix(in srgb, var(--c) 30%, #05060c);
-  transform: rotateX(-90deg) translateZ(62px);
+  transform: rotateX(-90deg) translateZ(calc(62 * var(--u)));
 }
 
 /* tweeter and woofer */
 .front b {
-  width: 24px;
-  height: 24px;
+  width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
   border-radius: 50%;
   background:
     radial-gradient(circle at 40% 35%, rgb(255 255 255 / 0.5), transparent 30%),
@@ -1418,8 +1425,8 @@ setInterval(tick, 1000);`,
 }
 
 .front b + b {
-  width: 58px;
-  height: 58px;
+  width: calc(58 * var(--u));
+  height: calc(58 * var(--u));
   background:
     radial-gradient(circle at 40% 35%, rgb(255 255 255 / 0.3), transparent 30%),
     radial-gradient(circle, #d4d7ea 0 12%, #1a1c2b 15% 50%, #2b2e44 52% 60%, #1a1c2b 62% 72%, #05060c 76% 86%, color-mix(in srgb, var(--c) 40%, #fff) 90%);
@@ -1428,49 +1435,56 @@ setInterval(tick, 1000);`,
 /* round, so the rotation does not matter; laid flat just under the bottom */
 .shadow {
   position: absolute;
-  top: calc(50% - 80px);
-  left: calc(50% - 80px);
-  width: 160px;
-  height: 160px;
+  top: calc(50% - 80 * var(--u));
+  left: calc(50% - 80 * var(--u));
+  width: calc(160 * var(--u));
+  height: calc(160 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.18) 60%, transparent);
-  transform: rotateX(90deg) translateZ(-64px);
+  transform: rotateX(90deg) translateZ(calc(-64 * var(--u)));
 }
 
-.bar {
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the speaker's own unit */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
+}
+
+.controls .caption {
+  color: #949bc0;
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  opacity: 0.7;
+}
+
+.controls .row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding-top: 6px;
-  font-size: 13px;
+  gap: 2vmin;
 }
 
-.bar button {
-  width: 22px;
-  height: 22px;
+.controls button {
   box-sizing: border-box;
+  width: 8vmin;
+  height: 8vmin;
+  min-width: 8vmin;
   padding: 0;
-  border: 2px solid #141830;
-  border-radius: 50%;
+  border: 0.6vmin solid #141830;
+  border-radius: 999px;
   background: var(--sw);
-  box-shadow: 0 0 0 1px rgb(140 150 220 / 0.34);
+  box-shadow: 0 0 0 0.3vmin rgb(140 150 220 / 0.34);
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
 }
 
-.bar button[aria-pressed='true'] {
-  box-shadow: 0 0 0 2px #eceefb;
-}
-
-.bar output {
-  width: 12ch;
-  color: #949bc0;
-  white-space: nowrap;
+.controls button[aria-pressed='true'] {
+  box-shadow: 0 0 0 0.6vmin #eceefb;
 }`,
     js: `const viewer = document.querySelector('.viewer');
 const view = viewer.querySelector('.view');
 const product = viewer.querySelector('.product');
-const bar = viewer.querySelector('.bar');
+const controls = viewer.querySelector('.controls');
 const out = viewer.querySelector('output');
 let ry = -32, v = 0, last = 0, raf = 0, dragging = false;
 
@@ -1521,11 +1535,11 @@ view.addEventListener('keydown', (e) => {
   raf = requestAnimationFrame(glide);
 });
 
-bar.addEventListener('click', (e) => {
+controls.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-c]');
   if (!btn) return;
   viewer.style.setProperty('--c', btn.dataset.c);
-  bar.querySelectorAll('[data-c]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+  controls.querySelectorAll('[data-c]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
 });`,
   },
 
