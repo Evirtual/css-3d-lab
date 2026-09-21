@@ -218,16 +218,27 @@ export const snippetsB: Record<string, Snippet> = {
     </div>
   </div>
 </div>`,
-    css: `/* the scene is also the pointer area around the card */
+    css: `/* the bright spot's centre, as two plain numbers. Registering them makes them interpolate,
+   so the glare glides back to rest on a transition like any length would */
+@property --gx { syntax: '<number>'; inherits: true; initial-value: -14; }
+@property --gy { syntax: '<number>'; inherits: true; initial-value: -16; }
+
+/* the scene is the whole canvas, so the pointer is tracked everywhere and the card is centred */
 .scene {
-  padding: 70px 90px;
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the card is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.4vmin;
+  display: grid;
+  place-items: center;
+  width: 100vw;
+  height: 100vh;
+  perspective: calc(800 * var(--u));
   touch-action: none;
 }
 
 .paycard {
-  width: 196px;
-  height: 124px;
+  width: calc(196 * var(--u));
+  height: calc(124 * var(--u));
   transform-style: preserve-3d;
   animation: idle 6s ease-in-out infinite alternate;
 }
@@ -240,7 +251,11 @@ export const snippetsB: Record<string, Snippet> = {
   font-family: system-ui, sans-serif;
   transform-style: preserve-3d;
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  /* the tilt and the glare's centre glide together, so one duration drives both */
+  transition:
+    transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+    --gx 0.6s ease-out,
+    --gy 0.6s ease-out;
 }
 
 .card.is-live {
@@ -251,15 +266,15 @@ export const snippetsB: Record<string, Snippet> = {
 /* embossed details float above the surface */
 .card > span {
   position: absolute;
-  transform: translateZ(14px);
+  transform: translateZ(calc(14 * var(--u)));
   pointer-events: none;
 }
 
 .shadow {
   position: absolute;
-  inset: 6px -4px -14px;
+  inset: calc(6 * var(--u)) calc(-4 * var(--u)) calc(-14 * var(--u));
   background: radial-gradient(ellipse at center, rgb(0 0 0 / 0.55), transparent 68%);
-  transform: translateZ(-40px);
+  transform: translateZ(calc(-40 * var(--u)));
 }
 
 /* only this flat layer clips; clipping the card itself would flatten it */
@@ -267,33 +282,29 @@ export const snippetsB: Record<string, Snippet> = {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.28);
-  border-radius: 14px;
+  border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.28);
+  border-radius: calc(14 * var(--u));
   background:
     radial-gradient(circle at 0% 100%, rgb(46 230 214 / 0.7), transparent 55%),
     radial-gradient(circle at 100% 0%, rgb(255 77 157 / 0.85), transparent 60%),
     linear-gradient(135deg, #8b6cff, #453880);
 }
 
-/* twice the card: ±25% of itself walks the bright spot edge to edge */
+/* exactly the card: only the circle's centre walks, from one edge to the other */
 .glare {
   position: absolute;
-  inset: -50%;
-  background: radial-gradient(circle at center, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.12) 28%, transparent 48%);
-  transform: translate(calc(var(--gx, -14) * 1%), calc(var(--gy, -16) * 1%));
-  transition: transform 0.6s ease-out;
-}
-
-.card.is-live .glare {
-  transition-duration: 0.12s;
+  inset: 0;
+  background: radial-gradient(
+    circle at calc(50% + var(--gx) * 2%) calc(50% + var(--gy) * 2%),
+    rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.12) 56%, transparent 96%);
 }
 
 .chip {
-  top: 34px;
-  left: 18px;
-  width: 32px;
-  height: 24px;
-  border-radius: 5px;
+  top: calc(34 * var(--u));
+  left: calc(18 * var(--u));
+  width: calc(32 * var(--u));
+  height: calc(24 * var(--u));
+  border-radius: calc(5 * var(--u));
   background:
     linear-gradient(90deg, transparent 31%, rgb(0 0 0 / 0.35) 31% 34%, transparent 34% 66%, rgb(0 0 0 / 0.35) 66% 69%, transparent 69%),
     linear-gradient(transparent 46%, rgb(0 0 0 / 0.35) 46% 54%, transparent 54%),
@@ -301,19 +312,19 @@ export const snippetsB: Record<string, Snippet> = {
 }
 
 .brand {
-  top: 14px;
-  right: 16px;
-  width: 40px;
-  height: 24px;
+  top: calc(14 * var(--u));
+  right: calc(16 * var(--u));
+  width: calc(40 * var(--u));
+  height: calc(24 * var(--u));
 }
 
 .brand i {
   position: absolute;
   top: 0;
   box-sizing: border-box;
-  width: 24px;
-  height: 24px;
-  border: 4px solid #fff;
+  width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
+  border: calc(4 * var(--u)) solid #fff;
   border-radius: 50%;
 }
 
@@ -321,25 +332,25 @@ export const snippetsB: Record<string, Snippet> = {
 .brand i:last-child { right: 0; border-color: #2ee6d6; }
 
 .num {
-  left: 18px;
-  bottom: 36px;
-  font: 600 13px/1 ui-monospace, Consolas, monospace;
-  letter-spacing: 1.5px;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 0.45);
+  left: calc(18 * var(--u));
+  bottom: calc(36 * var(--u));
+  font: 600 calc(13 * var(--u))/1 ui-monospace, Consolas, monospace;
+  letter-spacing: calc(1.5 * var(--u));
+  text-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) rgb(0 0 0 / 0.45);
   white-space: nowrap;
 }
 
 .name,
 .exp {
-  bottom: 15px;
-  font-size: 9px;
+  bottom: calc(15 * var(--u));
+  font-size: calc(9 * var(--u));
   font-weight: 700;
-  letter-spacing: 1.2px;
+  letter-spacing: calc(1.2 * var(--u));
   opacity: 0.85;
 }
 
-.name { left: 18px; }
-.exp { right: 18px; }
+.name { left: calc(18 * var(--u)); }
+.exp { right: calc(18 * var(--u)); }
 
 @keyframes idle {
   from { transform: rotateX(7deg) rotateY(-12deg); }
