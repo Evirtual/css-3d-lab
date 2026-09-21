@@ -735,51 +735,57 @@ ${Array.from(
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the stack is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.59vmin;
+  perspective: calc(800 * var(--u));
 }
 
-/* the floor is the stack's own plane, turned isometric; "up" is translateZ */
+/* the floor is the stack's own plane, turned isometric; "up" is translateZ.
+   The blocks and the columns all fly upwards and nothing ever goes below the plate, so the
+   drawing sits well above its own layout box. translateY pushes the plate back down by that
+   much, which centres what is actually drawn rather than what is laid out. */
 .stack {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(2, 38px);
-  grid-auto-rows: 38px;
+  grid-template-columns: repeat(2, calc(38 * var(--u)));
+  grid-auto-rows: calc(38 * var(--u));
   transform-style: preserve-3d;
-  transform: rotateX(58deg) rotateZ(45deg);
+  transform: translateY(calc(21 * var(--u))) rotateX(58deg) rotateZ(45deg);
 }
 
 /* the floor plate with the four landing places */
 .stack::before {
   content: '';
   position: absolute;
-  inset: -8px;
-  border: 1px dashed rgb(140 150 220 / 0.34);
-  border-radius: 10px;
+  inset: calc(-8 * var(--u));
+  border: calc(1 * var(--u)) dashed rgb(140 150 220 / 0.34);
+  border-radius: calc(10 * var(--u));
   background:
-    linear-gradient(90deg, transparent calc(50% - 1px), rgb(140 150 220 / 0.16) 0 calc(50% + 1px), transparent 0),
-    linear-gradient(0deg, transparent calc(50% - 1px), rgb(140 150 220 / 0.16) 0 calc(50% + 1px), transparent 0),
+    linear-gradient(90deg, transparent calc(50% - 1 * var(--u)), rgb(140 150 220 / 0.16) 0 calc(50% + 1 * var(--u)), transparent 0),
+    linear-gradient(0deg, transparent calc(50% - 1 * var(--u)), rgb(140 150 220 / 0.16) 0 calc(50% + 1 * var(--u)), transparent 0),
     rgb(139 108 255 / 0.1);
-  transform: translateZ(-1px);
+  transform: translateZ(calc(-1 * var(--u)));
 }
 
 /* a column: lifts away once the cube is complete, one after the other */
 .col {
   position: relative;
-  margin: 2px;
+  margin: calc(2 * var(--u));
   transform-style: preserve-3d;
-  transform-origin: 50% 50% 34px; /* the middle of the two-block column */
+  transform-origin: 50% 50% calc(34 * var(--u)); /* the middle of the two-block column */
   animation: stack-leave 5s linear infinite;
   animation-delay: calc(var(--c) * 0.275s - 1.6s);
 }
 
 /* a block: pops up in the air, falls, bounces, sits; bottom layer first */
 .block {
-  --z: calc(var(--l) * 34px); /* resting height */
+  --z: calc(var(--l) * 34 * var(--u)); /* resting height */
   --color: #8b6cff;
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform-origin: 50% 50% 17px;
+  transform-origin: 50% 50% calc(17 * var(--u));
   animation: stack-arrive 5s linear infinite;
   /* minus one loop: every block is already mid-cycle on load */
   animation-delay: calc(var(--i) * 0.275s - 5s);
@@ -791,12 +797,12 @@ ${Array.from(
 .block i {
   position: absolute;
   inset: 0;
-  border-radius: 2px;
+  border-radius: calc(2 * var(--u));
 }
 
 .block i:nth-child(1) { /* top */
   background: color-mix(in srgb, var(--color) 55%, #fff);
-  transform: translateZ(34px);
+  transform: translateZ(calc(34 * var(--u)));
 }
 
 .block i:nth-child(2) { /* +x side, stood up on its right edge */
@@ -813,11 +819,11 @@ ${Array.from(
 
 @keyframes stack-arrive {
   0% {
-    transform: translateZ(calc(var(--z) + 56px)) scale3d(0, 0, 0);
+    transform: translateZ(calc(var(--z) + 56 * var(--u))) scale3d(0, 0, 0);
     animation-timing-function: ease-out;
   }
   3% {
-    transform: translateZ(calc(var(--z) + 56px)) scale3d(1, 1, 1);
+    transform: translateZ(calc(var(--z) + 56 * var(--u))) scale3d(1, 1, 1);
     animation-timing-function: ease-in; /* gravity */
   }
   10% {
@@ -825,7 +831,7 @@ ${Array.from(
     animation-timing-function: ease-out;
   }
   12.5% {
-    transform: translateZ(calc(var(--z) + 5px)) scale3d(1, 1, 1);
+    transform: translateZ(calc(var(--z) + 5 * var(--u))) scale3d(1, 1, 1);
     animation-timing-function: ease-in;
   }
   15%, 76.5% {
@@ -833,7 +839,7 @@ ${Array.from(
   }
   /* its column is gone by now: reset out of sight */
   76.6%, 100% {
-    transform: translateZ(calc(var(--z) + 56px)) scale3d(0, 0, 0);
+    transform: translateZ(calc(var(--z) + 56 * var(--u))) scale3d(0, 0, 0);
   }
 }
 
@@ -843,7 +849,7 @@ ${Array.from(
     animation-timing-function: ease-in;
   }
   7%, 31.25% {
-    transform: translateZ(72px) rotateZ(90deg) scale3d(0, 0, 0);
+    transform: translateZ(calc(72 * var(--u))) rotateZ(90deg) scale3d(0, 0, 0);
   }
   /* both its blocks have reset by now: come back, still empty */
   31.35%, 100% {
