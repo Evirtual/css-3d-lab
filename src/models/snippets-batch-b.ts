@@ -557,8 +557,9 @@ scene.addEventListener('pointercancel', leave);`,
 
   can: {
     how: [
-      'Twenty strips are the sides of a regular 20-gon: strip <i>i</i> gets <code>rotateY(i × 18°) translateZ(r)</code>, with <code>r = (width / 2) / tan(180° / 20)</code> ≈ 34.7px for 11px strips.',
-      'Every strip carries the <b>whole</b> label (<code>background-size</code> = one lap, 220px) and shifts it left by its own index: <code>background-position: i × −11px</code>. Neighbours line up, so the artwork wraps without a seam.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the can is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'Twenty strips are the sides of a regular 20-gon: strip <i>i</i> gets <code>rotateY(i × 18°) translateZ(r)</code>, with <code>r = (width / 2) / tan(180° / 20)</code> ≈ 34.7 units for 11-unit strips.',
+      'Every strip carries the <b>whole</b> label (<code>background-size</code> = one lap, 220 units) and shifts it left by its own index: <code>background-position: i × −11</code> units. Neighbours line up, so the artwork wraps without a seam.',
       'The light must not turn with the can. Each strip has a dark overlay that fades in and out over one lap; a negative <code>animation-delay</code> of <code>i × −(8s / 20)</code> starts strip <i>i</i> already at its place on the way round.',
       'Top and bottom are discs centred <b>on</b> the edge and laid flat with <code>rotateX(±90deg)</code>. The white streak is outside the spinning element, so it stays where the lamp is.',
     ],
@@ -575,7 +576,10 @@ scene.addEventListener('pointercancel', leave);`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the can is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.42vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .can {
@@ -586,8 +590,8 @@ scene.addEventListener('pointercancel', leave);`,
 
 .spin {
   position: relative;
-  width: 70px;
-  height: 118px;
+  width: calc(70 * var(--u));
+  height: calc(118 * var(--u));
   transform-style: preserve-3d;
   animation: spin 8s linear infinite;
 }
@@ -595,23 +599,23 @@ scene.addEventListener('pointercancel', leave);`,
 .spin > i {
   position: absolute;
   top: 0;
-  /* 0.75px wider than its 11px slice on each side, so no seams show. The can is tilted, so the
-     seams run at a slant: with less overlap they show as rows of dark dots. */
-  left: calc(50% - 6.25px);
-  width: 12.5px;
+  /* 0.75 units wider than its 11-unit slice on each side, so no seams show. The can is tilted, so
+     the seams run at a slant: with less overlap they show as rows of dark dots. */
+  left: calc(50% - 6.25 * var(--u));
+  width: calc(12.5 * var(--u));
   height: 100%;
   backface-visibility: hidden;
-  /* the whole label on every strip, one lap (220px) long */
+  /* the whole label on every strip, one lap (220 units) long */
   background-image:
     linear-gradient(#e6e9f5 0 3%, #9aa1bd 5%, transparent 5% 95%, #9aa1bd 95%, #e6e9f5 97%),
-    radial-gradient(circle at 55px 50%, #ff4d9d 0 8px, #fff 8.5px 15px, transparent 15.5px),
-    radial-gradient(circle at 165px 50%, #2ee6d6 0 8px, #fff 8.5px 15px, transparent 15.5px),
+    radial-gradient(circle at calc(55 * var(--u)) 50%, #ff4d9d 0 calc(8 * var(--u)), #fff calc(8.5 * var(--u)) calc(15 * var(--u)), transparent calc(15.5 * var(--u))),
+    radial-gradient(circle at calc(165 * var(--u)) 50%, #2ee6d6 0 calc(8 * var(--u)), #fff calc(8.5 * var(--u)) calc(15 * var(--u)), transparent calc(15.5 * var(--u))),
     linear-gradient(100deg, transparent 0 18%, rgb(255 255 255 / 0.28) 18% 24%, transparent 24% 68%, rgb(255 255 255 / 0.28) 68% 74%, transparent 74%),
     linear-gradient(90deg, #8b6cff, #ff4d9d 50%, #8b6cff); /* same colour at both ends: no seam */
-  background-size: 220px 100%;
+  background-size: calc(220 * var(--u)) 100%;
   /* strip i shows slice i */
-  background-position: calc(var(--i) * -11px + 0.75px) 0;
-  transform: rotateY(calc(var(--i) * 18deg)) translateZ(34.7px);
+  background-position: calc(var(--i) * -11 * var(--u) + 0.75 * var(--u)) 0;
+  transform: rotateY(calc(var(--i) * 18deg)) translateZ(calc(34.7 * var(--u)));
 }
 
 /* fixed lighting: each strip darkens and brightens once per lap, started i/20 of the way round */
@@ -628,22 +632,22 @@ scene.addEventListener('pointercancel', leave);`,
 .bottom {
   position: absolute;
   left: 0;
-  width: 70px;
-  height: 70px;
+  width: calc(70 * var(--u));
+  height: calc(70 * var(--u));
   border-radius: 50%;
 }
 
 /* centred on the top edge, then laid flat */
 .top {
-  top: -35px;
+  top: calc(-35 * var(--u));
   background:
-    radial-gradient(ellipse 9px 13px at 50% 68%, #3a3f5c 0 95%, transparent 100%),
+    radial-gradient(ellipse calc(9 * var(--u)) calc(13 * var(--u)) at 50% 68%, #3a3f5c 0 95%, transparent 100%),
     radial-gradient(circle, #cfd3e6 0 52%, #8f96b3 54% 60%, #eef0fa 62% 86%, #a3a9c4 88%);
   transform: rotateX(90deg);
 }
 
 .bottom {
-  top: calc(100% - 35px);
+  top: calc(100% - 35 * var(--u));
   background: radial-gradient(circle, #6d7391 0 50%, #a3a9c4 52%);
   transform: rotateX(-90deg);
 }
@@ -652,12 +656,12 @@ scene.addEventListener('pointercancel', leave);`,
 .streak {
   position: absolute;
   top: 9%;
-  left: calc(50% - 19px);
-  width: 8px;
+  left: calc(50% - 19 * var(--u));
+  width: calc(8 * var(--u));
   height: 82%;
-  border-radius: 4px;
+  border-radius: calc(4 * var(--u));
   background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
-  transform: translateZ(35.7px);
+  transform: translateZ(calc(35.7 * var(--u)));
   pointer-events: none;
 }
 
