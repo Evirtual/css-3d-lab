@@ -1677,7 +1677,7 @@ layout();`,
       'Every layer has its own <code>translateZ</code>: moon far away (−300 units), mountains, hills, trees in front (+70 units).',
       'Pushing a layer back makes it look smaller, so far layers get a compensating <code>scale()</code> to keep filling the frame: (perspective + depth) / perspective, so 1.6 for the moon at 300 units behind a 500-unit perspective.',
       'JS only rotates the <b>world</b> container a few degrees with the pointer. Real perspective then shifts near layers more than far ones — that is parallax, with no per-layer maths.',
-      'Layers are oversized (<code>inset: -20%</code>) so their edges never show while tilting.',
+      'Layers are oversized (<code>inset: -20%</code>) so their edges never show while tilting. That also means a shape placed at 90% of a layer sits past the edge of the canvas, so the trees are placed by where they land on it: the tree layer is drawn about 1.47 times the canvas width, and its trees stand at 23–31% and 66.5–74.5% of it.',
       'The view is <code>inset: 0</code> and the layers are sized in percentages, so the scene fills the canvas edge to edge. Depths, the perspective and the moon are multiples of one base unit, <code>--u</code>, tied to the canvas, so the parallax is the same on a gallery card and on a full screen.',
     ],
     html: `<div class="view">
@@ -1740,10 +1740,13 @@ layout();`,
   transform: translateZ(calc(-40 * var(--u))) scale(1.08);
 }
 
-/* foreground trees */
+/* foreground trees. The layer is oversized (-20% all round) and stands nearer, so it is drawn
+   about 1.47 times wider than the canvas: a point at p% of it lands at 50 + 1.47 × (p − 50)% of
+   the canvas. The two trees stand at 23–31% and 66.5–74.5% of it, which puts them well inside
+   the canvas at every tilt instead of cut in half by its edges. */
 .world i:nth-child(4) {
   background: #0d0820;
-  clip-path: polygon(0 100%, 0 78%, 6% 78%, 10% 60%, 14% 78%, 80% 80%, 85% 58%, 90% 80%, 100% 80%, 100% 100%);
+  clip-path: polygon(0 100%, 0 78%, 23% 78%, 27% 60%, 31% 78%, 66.5% 80%, 70.5% 58%, 74.5% 80%, 100% 80%, 100% 100%);
   transform: translateZ(calc(70 * var(--u))) scale(0.9);
 }`,
     js: `const view = document.querySelector('.view');
