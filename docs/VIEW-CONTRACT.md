@@ -132,3 +132,83 @@ Every model still carries a second implementation from before the snippet became
 the site renders: its gallery markup and about 16,700 lines of per-model Sass. Nothing draws them
 any more, only the metadata around them is read. They are deleted as part of this pass, so there
 is one version of each model and no way for the two to drift.
+
+## Ground rules for writing a model
+
+Be as inventive as you like with what the model IS. These rules are only about how it sits in the
+canvas, and they are what keep 135 unrelated ideas looking like one library.
+
+**1. One base unit, and every length is a multiple of it.** Put it on the model's root and tie it
+to the canvas. Never write a bare pixel length anywhere else.
+
+```css
+.scene {
+  --u: 0.3vmin;              /* the whole model scales with this one number */
+  perspective: calc(800 * var(--u));
+}
+.thing {
+  width: calc(180 * var(--u));
+  height: calc(100 * var(--u));
+  border-radius: calc(8 * var(--u));
+  font: 700 calc(12 * var(--u)) / 1.2 system-ui, sans-serif;
+}
+```
+
+Design in whatever numbers you like — 180 and 100 above are just the proportions you drew — then
+set `--u` so the model lands in the band. Nothing else has to change afterwards.
+
+**2. Land in the band.** 70vmin tall with no controls, 56vmin with them, never under 40vmin, never
+over 92% of the canvas wide, centred within 4vmin. Check, do not guess:
+`npm run check-models <id>`.
+
+**3. Hold the whole model still.** The band is for everything the model draws at any moment: the
+far end of its animation, its hover state, its open state, the widest a drag or a scroll takes it.
+A model that only fits at rest is not finished.
+
+**4. Keep the top corners clear.** The site's badge sits over the top left and its preview menu
+over the top right. Stay 14vmin from both.
+
+**5. Controls are the same object in every model.** Copy this block unchanged into any model that
+has a caption or a row of controls, and change only what is inside the row:
+
+```css
+.controls {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 32 * var(--u) / 0.3 * 0.3);  /* 32vmin below the middle */
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: calc(2 * var(--u) / 0.3 * 0.3);
+  text-align: center;
+}
+.controls .caption { font: 500 4.5vmin/1.2 system-ui, sans-serif; opacity: 0.7; }
+.controls .row { display: flex; gap: 2vmin; }
+.controls button,
+.controls label {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
+  border: 0;
+  border-radius: 999px;
+  font: 600 4vmin system-ui, sans-serif;
+  cursor: pointer;
+}
+```
+
+The row is flat: no perspective, no 3D transform, no shadow belonging to the scene. It is chrome,
+and it should read as chrome.
+
+**6. A model that is itself a control has no row.** A switch, a 3D button, a rating, a radial
+menu: the control IS the model, it fills the 70vmin box, and it is centred like anything else.
+
+**7. A model that fills the canvas says so itself.** `inset: 0` on the scene and percentages
+inside it. Do not mark it from outside, and do not give it a band.
+
+**8. Nothing of the site belongs to the model.** No backdrop, no dots, no theme colours. Inherit
+the text colour. The stage paints behind you.
+
+**9. Start on a good pose.** The site can pause every animation, so the first frame of the loop is
+what a paused card shows. It cannot be mid-turn or mid-fade.
+
+**10. Scroll and drag belong to the canvas.** It is the model's body. Hide the native scrollbar.
