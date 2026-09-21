@@ -481,6 +481,7 @@ ${CUBE_FACES}
       'Do <b>not</b> animate <code>height</code> — that runs layout on every frame. The bar’s box stays full size; the walls are squashed with <code>scaleY</code> from <code>transform-origin: bottom</code>.',
       'The lid is a fixed square laid flat with <code>rotateX(90deg)</code>; it slides down with <code>translateY</code> by exactly the height the walls lost, so it stays sitting on top.',
       'Shade the three faces differently (light top, mid front, dark side) — that fake lighting does most of the work.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the chart is the same share of a gallery card, the editor and a recording canvas. A bar’s full height is a plain number in the markup (<code>--hn</code>) that CSS multiplies by <code>--u</code>, and every bar shrinks to the same 14 units: its scale is <code>14 / --hn</code>.',
     ],
     html: `<div class="scene">
   <div class="chart">
