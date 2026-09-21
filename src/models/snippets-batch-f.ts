@@ -614,6 +614,7 @@ ${SPOTS.map((s) => `      <i style="--x:${s.x}; --z:${s.z}"></i>`).join('\n')}
       'A shaded disc through the centre always <b>faces you</b>: it undoes every turn above it, innermost first. It hides exactly what is behind the planet and nothing in front of it, just like a real ball would.',
       'The rings lie flat in the equator plane and cut through that disc. The browser splits intersecting planes and sorts the pieces, so the far half of each ring slips behind the planet and the near half passes in front.',
       'The moon rides a slightly inclined orbit circle; two nested counter-turns (one on the orbit\'s beat, one on the spin\'s) keep it facing you.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the planet, its rings and its moon are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="planet">
@@ -630,11 +631,14 @@ ${lines(11, (i) => `<i style="--k:${i - 5}"></i>`, '      ')}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the planet is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.46vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .planet {
-  --R: 40px;
+  --R: calc(40 * var(--u));
   position: relative;
   width: 0;
   height: 0;
@@ -684,15 +688,15 @@ ${lines(11, (i) => `<i style="--k:${i - 5}"></i>`, '      ')}
   transform: rotateX(90deg);
 }
 
-.body b:nth-of-type(1) { inset: -52px;   border: 7px solid rgb(139 108 255 / 0.38); }
-.body b:nth-of-type(2) { inset: -62px;   border: 8px solid rgb(197 186 253 / 0.85); }
-.body b:nth-of-type(3) { inset: -72.8px; border: 2px solid rgb(139 108 255 / 0.85); }
+.body b:nth-of-type(1) { inset: calc(-52 * var(--u));   border: calc(7 * var(--u)) solid rgb(139 108 255 / 0.38); }
+.body b:nth-of-type(2) { inset: calc(-62 * var(--u));   border: calc(8 * var(--u)) solid rgb(197 186 253 / 0.85); }
+.body b:nth-of-type(3) { inset: calc(-72.8 * var(--u)); border: calc(2 * var(--u)) solid rgb(139 108 255 / 0.85); }
 
 /* the moon's orbit: a faint dashed circle, inclined 8deg, turning on its own axis */
 .orbit {
   position: absolute;
-  inset: -92px;
-  border: 1px dashed rgb(46 230 214 / 0.4);
+  inset: calc(-92 * var(--u));
+  border: calc(1 * var(--u)) dashed rgb(46 230 214 / 0.4);
   border-radius: 50%;
   transform-style: preserve-3d;
   animation: orbit 7s linear infinite;
@@ -701,10 +705,10 @@ ${lines(11, (i) => `<i style="--k:${i - 5}"></i>`, '      ')}
 /* undo the orbit's turn ... */
 .arm {
   position: absolute;
-  top: -7px;
-  left: calc(50% - 7px);
-  width: 14px;
-  height: 14px;
+  top: calc(-7 * var(--u));
+  left: calc(50% - 7 * var(--u));
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
   transform-style: preserve-3d;
   animation: unorbit 7s linear infinite;
 }
