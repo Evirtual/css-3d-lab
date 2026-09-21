@@ -29,6 +29,7 @@ export const snippets2: Record<string, Snippet> = {
       "Like a cube face: <code>rotateY(n × 90deg) translateZ(base / 2)</code> puts it on one side of the floor.",
       "Then <code>rotateX</code> with <code>transform-origin: bottom</code> leans it inward. The angle that makes all four tips meet is <code>asin((base / 2) / slant)</code>: 30° when base and slant height are equal.",
       "The faces are <b>see-through</b> (colours with transparency), so the far faces and the glowing core inside show through. The core spins back against the pyramid (<code>rotateY(-360deg)</code> on the same timing), so it always faces you and stays round.",
+      "Every length is a multiple of one base unit, <code>--u</code>, so the pyramid is the same share of a gallery card, the editor and a recording canvas. The base is 140 of those units.",
     ],
     html: `<div class="scene">
   <div class="pyramid">
@@ -38,11 +39,14 @@ export const snippets2: Record<string, Snippet> = {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the pyramid is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.36vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .pyramid {
-  --base: 140px;
+  --base: calc(140 * var(--u));
   position: relative;
   width: var(--base);
   height: var(--base);        /* slant height = base → lean is exactly 30deg */
@@ -79,29 +83,29 @@ export const snippets2: Record<string, Snippet> = {
   height: var(--base);
   background: rgb(139 108 255 / 0.3);
   box-shadow:
-    inset 0 0 0 1.5px rgb(46 230 214 / 0.7),
-    inset 0 0 6px rgb(46 230 214 / 0.7),
-    0 0 34px rgb(139 108 255 / 0.6);
+    inset 0 0 0 calc(1.5 * var(--u)) rgb(46 230 214 / 0.7),
+    inset 0 0 calc(6 * var(--u)) rgb(46 230 214 / 0.7),
+    0 0 calc(34 * var(--u)) rgb(139 108 255 / 0.6);
   transform: translateY(50%) rotateX(90deg);
 }
 
-/* the core: a third of the way up (the pyramid stands base × cos 30deg ≈ 121px tall). It turns
-   back against the spin, so it always faces you and stays round. */
+/* the core: a third of the way up (the pyramid stands base × cos 30deg ≈ 121 units tall). It
+   turns back against the spin, so it always faces you and stays round. */
 .pyramid u {
   position: absolute;
-  top: 101px;
+  top: calc(101 * var(--u));
   left: 50%;
-  width: 36px;
-  height: 36px;
-  margin: -18px 0 0 -18px;
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
+  margin: calc(-18 * var(--u)) 0 0 calc(-18 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, #fff 0 18%, #ffb547 42%, transparent 72%);
   animation: face-you 12s linear infinite, pulse 2.4s ease-in-out infinite alternate;
 }
 
 @keyframes pyramid-spin {
-  from { transform: translateY(-20px) rotateX(-16deg) rotateY(0deg); }
-  to   { transform: translateY(-20px) rotateX(-16deg) rotateY(360deg); }
+  from { transform: translateY(calc(-20 * var(--u))) rotateX(-16deg) rotateY(0deg); }
+  to   { transform: translateY(calc(-20 * var(--u))) rotateX(-16deg) rotateY(360deg); }
 }
 
 @keyframes face-you {
