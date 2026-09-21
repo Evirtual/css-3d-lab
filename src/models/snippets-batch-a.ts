@@ -93,7 +93,7 @@ ${lines(8, (i) => `    <i style="--i:${i % 4}; --s:${i < 4 ? 1 : -1}"></i>`)}
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the solid is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.33vmin;
+  --u: 0.41vmin;
   perspective: calc(800 * var(--u));
 }
 
