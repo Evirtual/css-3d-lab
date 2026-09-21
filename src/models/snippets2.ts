@@ -1588,10 +1588,12 @@ document.querySelector('button').addEventListener('click', () => {
     how: [
       'Each card stores its position in the deck in <code>--p</code> (0 = top).',
       'CSS derives everything from it: offset, depth, opacity and even <code>z-index</code> via <code>calc()</code>.',
-      'On click, JS adds <code>.is-leaving</code> to the top card (it flies off), waits for the transition, then moves that card to the end of the order and rewrites <code>--p</code> for all.',
+      'On click, JS adds <code>.is-leaving</code> to the top card (it flies off, shrinking to nothing), waits for its <code>transitionend</code>, then moves that card to the end of the order and rewrites <code>--p</code> for all. Waiting for the event rather than a timer keeps the order in step with what is on screen, even when the transition is slowed or paused.',
+      'It shrinks away with <code>scale(0)</code> rather than fading out. A card whose <code>opacity</code> is being animated is drawn after the cards around it, whatever their depth, so a thrown card that fades looks as if it passes behind, and through, the card that was under it.',
+      'The card that left must not glide back to the bottom of the deck either: from where it was thrown, that path runs straight through the cards still in the deck. So it is <b>parked</b> first (<code>.is-parked</code>: no transition, still at <code>scale(0)</code>), jumps to the back unseen, and only then, with the class taken off after a reflow, grows back in there.',
       'The other cards glide forward purely because their <code>--p</code> changed.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the deck is the same share of a gallery card, the editor and a recording canvas.',
-      'The band has to hold the throw, not just the deck: the card in flight is the widest this model ever gets. So the throw is short, and the scene is padded on the right by the amount it carries the card, which puts the deck <i>and</i> its flight path in the middle rather than the shut deck on its own.',
+      'The band has to hold the throw, not just the deck: the card in flight is the widest this model ever gets. It shrinks as it goes, so it can travel 60% of a card to the right and still end up inside, and the scene is padded on the right by the amount it carries the card, which puts the deck <i>and</i> its flight path in the middle rather than the shut deck on its own.',
     ],
     html: `<div class="scene">
   <div class="stack">
@@ -1635,16 +1637,32 @@ document.querySelector('button').addEventListener('click', () => {
   background: linear-gradient(135deg, hsl(var(--hue) 85% 64%), hsl(calc(var(--hue) + 40) 80% 46%));
   box-shadow: 0 calc(12 * var(--u)) calc(22 * var(--u)) calc(-12 * var(--u)) #000;
   opacity: calc(1 - var(--p) * 0.18);
-  transform: translateY(calc(var(--p) * -14 * var(--u))) translateZ(calc(var(--p) * -44 * var(--u)));
+  /* the same list of functions in every state, so each one is interpolated on its own */
+  transform:
+    translateX(0) translateY(calc(var(--p) * -14 * var(--u))) translateZ(calc(var(--p) * -44 * var(--u)))
+    rotateY(0deg) rotateZ(0deg) scale(1);
   transition: transform 0.38s cubic-bezier(0.3, 1.2, 0.5, 1), opacity 0.38s;
 }
 
-/* A quarter of a card to the right, tilted and turned away as it goes. It is a short throw on
-   purpose: the band is centred on everything drawn, so a card that sails off the right drags the
-   whole picture left with it, and the deck at rest ends up nowhere near the middle. */
+/* 60% of a card to the right, tilted and turned away, shrinking to nothing as it goes. The band
+   is centred on everything drawn, so a card that sailed off the right at full size would drag
+   the whole picture left with it; shrinking keeps the flight small as well as the deck. */
 .stack i.is-leaving {
-  opacity: 0;
-  transform: translateX(25%) translateZ(calc(60 * var(--u))) rotateY(-35deg) rotateZ(12deg);
+  /* it shrinks away instead of fading: a card whose opacity is animating is drawn after the
+     cards around it whatever their depth, so a fading card seems to pass behind the next one */
+  transform:
+    translateX(60%) translateY(0) translateZ(calc(60 * var(--u)))
+    rotateY(-35deg) rotateZ(12deg) scale(0);
+  transition-timing-function: ease-in-out;
+}
+
+/* back from the throw: it jumps to the back of the deck while it cannot be seen, instead of
+   gliding back there through the cards in front of it, and grows in from there */
+.stack i.is-parked {
+  transform:
+    translateX(0) translateY(calc(var(--p) * -14 * var(--u))) translateZ(calc(var(--p) * -44 * var(--u)))
+    rotateY(0deg) rotateZ(0deg) scale(0);
+  transition: none;
 }`,
     js: `const stack = document.querySelector('.stack');
 let order = [...stack.querySelectorAll('i')];
@@ -1661,12 +1679,17 @@ stack.addEventListener('click', () => {
   const top = order[0];
   top.classList.add('is-leaving');
 
-  setTimeout(() => {
+  top.addEventListener('transitionend', function landed(e) {
+    if (e.propertyName !== 'transform') return;
+    top.removeEventListener('transitionend', landed);
     order = [...order.slice(1), top];   // top card goes to the back
+    top.classList.add('is-parked');     // unseen, and with no transition, so it jumps there
     top.classList.remove('is-leaving');
     layout();
+    void top.offsetWidth;               // let it land at the back before it fades in
+    top.classList.remove('is-parked');
     busy = false;
-  }, 380);                              // same as the CSS transition
+  });
 });
 
 layout();`,
