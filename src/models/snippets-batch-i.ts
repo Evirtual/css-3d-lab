@@ -611,14 +611,17 @@ ${Array.from({ length: n }, (_, d) =>
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the atom is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.31vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* the whole atom turns slowly; everything flat inside turns back by the same amount */
 .atom {
   position: relative;
-  width: 152px;
-  height: 152px;
+  width: calc(152 * var(--u));
+  height: calc(152 * var(--u));
   transform-style: preserve-3d;
   animation: atom-turn 16s linear infinite;
 }
@@ -626,7 +629,7 @@ ${Array.from({ length: n }, (_, d) =>
 /* the core */
 .atom b {
   position: absolute;
-  inset: calc(50% - 20px);
+  inset: calc(50% - 20 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 40% 36%, #fff 0 7%, #c5b6ff 20%, #8b6cff 46%, #463680 70%, transparent 72%);
   animation: atom-face 16s linear infinite;
@@ -636,7 +639,7 @@ ${Array.from({ length: n }, (_, d) =>
 .atom b::before {
   content: '';
   position: absolute;
-  inset: -16px;
+  inset: calc(-16 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(139 108 255 / 0.45), transparent);
   animation: atom-breathe 1.6s ease-in-out infinite alternate;
@@ -656,7 +659,7 @@ ${Array.from({ length: n }, (_, d) =>
   content: '';
   position: absolute;
   inset: 0;
-  border: 1px dashed color-mix(in srgb, var(--c) 45%, transparent);
+  border: calc(1 * var(--u)) dashed color-mix(in srgb, var(--c) 45%, transparent);
   border-radius: 50%;
 }
 
@@ -664,10 +667,10 @@ ${Array.from({ length: n }, (_, d) =>
    (same animation, a little later). One whole lap is subtracted so every delay is negative. */
 .orbit i {
   position: absolute;
-  top: calc(50% - 6px);
-  left: calc(50% - 6px);
-  width: 12px;
-  height: 12px;
+  top: calc(50% - 6 * var(--u));
+  left: calc(50% - 6 * var(--u));
+  width: calc(12 * var(--u));
+  height: calc(12 * var(--u));
   transform-style: preserve-3d;
   animation: dot-orbit var(--dur) linear infinite var(--dir);
   animation-delay: calc(var(--lag) * var(--dur) * 0.017 - var(--p) * var(--dur) - var(--dur));
@@ -702,8 +705,8 @@ ${Array.from({ length: n }, (_, d) =>
 
 /* read right to left: undo the orbit's tilt, cancel the lap, step out, go round */
 @keyframes dot-orbit {
-  from { transform: rotateZ(0deg) translateX(76px) rotateZ(0deg) rotateX(-72deg) rotateZ(calc(var(--phi) * -1)); }
-  to   { transform: rotateZ(360deg) translateX(76px) rotateZ(-360deg) rotateX(-72deg) rotateZ(calc(var(--phi) * -1)); }
+  from { transform: rotateZ(0deg) translateX(calc(76 * var(--u))) rotateZ(0deg) rotateX(-72deg) rotateZ(calc(var(--phi) * -1)); }
+  to   { transform: rotateZ(360deg) translateX(calc(76 * var(--u))) rotateZ(-360deg) rotateX(-72deg) rotateZ(calc(var(--phi) * -1)); }
 }
 
 @keyframes atom-breathe {
