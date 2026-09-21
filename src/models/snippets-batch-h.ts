@@ -925,6 +925,7 @@ ${CUBE_FACES}
       'Turning a cube <i>n</i> quarter turns forward brings face <i>n</i> to the front, upright, so every quarter turn swaps the word.',
       'One keyframe list: hold, turn, hold, turn… four turns make 360°, which looks exactly like 0°, so the loop has no seam. The easing is set per keyframe and only matters on the turns.',
       '<code>animation-delay: calc(var(--i) * 0.13s)</code> starts each cube a moment after the one before it, and the turn runs along the word like a wave.',
+      'The word stands two by two, CU over BE, in a two-column grid: four cubes in one row are four and a half times wider than tall, too flat to fill the frame. Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the word is the same share of a gallery card, the editor and a recording canvas.',
       '<code>backface-visibility: hidden</code> keeps letters from showing mirrored through the cube, and a square plate behind each rounded face hides the gaps at the corners.',
     ],
     html: `<div class="scene">
@@ -936,18 +937,24 @@ ${CUBE_FACES}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the word is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.5vmin;
+  perspective: calc(800 * var(--u));
 }
 
+/* two by two, CU over BE: four cubes in a row draw four and a half times wider than they are
+   tall, so at the 92vmin width limit the word stands well under the 40vmin floor */
 .word {
-  display: flex;
-  gap: 9px;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: calc(18 * var(--u)) calc(9 * var(--u)); /* more between the rows: seen from above, a row shows its top */
   transform-style: preserve-3d;
   transform: rotateX(-16deg) rotateY(-18deg); /* a fixed view from above and to the right */
 }
 
 .cube {
-  --s: 44px;
+  --s: calc(44 * var(--u));
   position: relative;
   width: var(--s);
   height: var(--s);
@@ -960,7 +967,7 @@ ${CUBE_FACES}
 .cube b {
   position: absolute;
   inset: 0;
-  border-radius: 8px;
+  border-radius: calc(8 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -969,18 +976,18 @@ ${CUBE_FACES}
   --c: #8b6cff;
   display: grid;
   place-items: center;
-  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1px line
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1-unit line
      breaks up, the shade survives */
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--c), #fff 35%),
-    inset 0 0 8px color-mix(in srgb, color-mix(in srgb, var(--c), #fff 35%) 35%, transparent);
+    inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c), #fff 35%),
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, color-mix(in srgb, var(--c), #fff 35%) 35%, transparent);
   background:
     linear-gradient(150deg, rgb(255 255 255 / 0.3), transparent 45%),
     linear-gradient(color-mix(in srgb, var(--c), #fff 8%), color-mix(in srgb, var(--c), #000 22%));
   color: #fff;
-  font: 900 26px/1 system-ui, sans-serif;
+  font: 900 calc(26 * var(--u))/1 system-ui, sans-serif;
   font-style: normal;
-  text-shadow: 0 2px 0 color-mix(in srgb, var(--c), #000 45%);
+  text-shadow: 0 calc(2 * var(--u)) 0 color-mix(in srgb, var(--c), #000 45%);
   backface-visibility: hidden; /* never a mirrored letter */
 }
 
@@ -997,8 +1004,8 @@ ${CUBE_FACES}
 /* the two ends */
 .cube b {
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #8b6cff, #fff 10%),
-    inset 0 0 8px color-mix(in srgb, color-mix(in srgb, #8b6cff, #fff 10%) 35%, transparent);
+    inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, #8b6cff, #fff 10%),
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, color-mix(in srgb, #8b6cff, #fff 10%) 35%, transparent);
   background: linear-gradient(color-mix(in srgb, #8b6cff, #000 30%), color-mix(in srgb, #8b6cff, #000 50%));
 }
 
@@ -1010,11 +1017,11 @@ ${CUBE_FACES}
 .cube b::before {
   content: '';
   position: absolute;
-  /* 1px short of the edge: full size, it would touch the next face and show there as a dotted
+  /* 1 unit short of the edge: full size, it would touch the next face and show there as a dotted
      seam; much smaller leaves a channel along each edge you can see into */
-  inset: 1px;
+  inset: calc(1 * var(--u));
   background: color-mix(in srgb, #8b6cff, #000 50%);
-  transform: translateZ(-5px);
+  transform: translateZ(calc(-5 * var(--u)));
 }
 
 .cube i:nth-child(even)::before {
