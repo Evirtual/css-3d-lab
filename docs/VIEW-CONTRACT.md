@@ -148,6 +148,11 @@ to the edge, so its numbers are a floor.
 `node scripts/check-stages.mjs` measures the same model on every surface — card, viewer, page,
 the editor's live, reset and saved states, a large page, full screen, and the export dialog's
 canvas at every shape — and reports any whose width, height or offset in vmin disagree.
+A full-canvas model has no fixed size to compare, so it is judged on filling the canvas at every
+moment, and on showing the same scene: at 12 instants of its animation, what is in view is
+compared thing by thing on one mapping for the whole scene. Each axis is measured in shares of the
+canvas, or in vmin from the scene's vanishing point. A scene that mixes the two (flakes falling in
+vmin from the top past trees placed in percentages) is a different scene on another shape.
 
 ## The rest of the rules, decided up front
 
