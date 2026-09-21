@@ -4,6 +4,7 @@
 // Demos that differ beyond the threshold are listed, and a sheet of [screen | capture | diff]
 // strips for them is written to qa/capture-diff.png so the difference can be looked at.
 //
+//   npm run compare [-- id ...]                      (same as below)
 //   node scripts/compare-capture.mjs [id ...]        (needs no build: runs on the source)
 //   CAPTURE_MEAN=8 CAPTURE_PART=0.04 …               (looser thresholds)
 //   CAPTURE_T=2500 … / CAPTURE_T=none …               (the moment the animations are held at / not held)
@@ -15,6 +16,7 @@
 // comes out wrong — a missing face, a shifted glow, a lost letter — is far above both.
 //
 // The export service is started here, on the loopback address, so the run needs nothing else.
+// It always binds 127.0.0.1:8787, so stop a running `npm run export` first.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createServer as createVite } from 'vite';
