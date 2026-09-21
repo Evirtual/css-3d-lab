@@ -73,10 +73,11 @@ export const snippetsJ: Record<string, Snippet> = {
   windmill: {
     how: [
       'Everything hangs from <b>one point</b>, the middle of the grass block’s top. The outer box tilts the camera down with <code>rotateX(-20deg)</code>; a child spins the whole model with <code>rotateY</code>, so you see it from every side.',
-      'The tower is a <b>frustum</b>: four trapezoids (<code>clip-path</code>), each standing on its bottom edge. <code>rotateY(side) translateZ(24px)</code> puts it on its side of the base; <code>rotateX(5.59deg)</code> then leans it in by <code>atan((24 − 15) / 92)</code>, exactly enough to bring its top edge in to the narrower top.',
-      'A leaning side is longer than the tower is high: it is the hypotenuse, √(92² + 9²) = 92.44px. The cap is the same trick with triangles, leaning so far in that the tips meet.',
+      'The tower is a <b>frustum</b>: four trapezoids (<code>clip-path</code>), each standing on its bottom edge. <code>rotateY(side)</code> and a <code>translateZ</code> of 24 units put it on its side of the base; <code>rotateX(5.59deg)</code> then leans it in by <code>atan((24 − 15) / 92)</code>, exactly enough to bring its top edge in to the narrower top.',
+      'A leaning side is longer than the tower is high: it is the hypotenuse, √(92² + 9²) = 92.44 units. The cap is the same trick with triangles, leaning so far in that the tips meet.',
       'The sails are four identical blades drawn pointing up from the hub (<code>transform-origin</code> = the hub) and turned by 90° steps. Their parent loops <code>rotate(0 → -360deg)</code>. It needs <code>preserve-3d</code> too: a flat, zero-size group gets sorted as one plane and hides behind the tower.',
       'Light is baked in: every side has a dark overlay of its own strength (<code>--d</code>), so the model looks lit from the front-left as it turns. <code>backface-visibility: hidden</code> skips the sides facing away.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the grass block is 150 units square and the tower 92 high, so the windmill is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="windmill">
@@ -85,8 +86,8 @@ export const snippetsJ: Record<string, Snippet> = {
 ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
         <i class="top"></i>
       </div>
-      <div class="tree" style="--x:-50px;--z:-44px;--k:1"><i></i><i></i></div>
-      <div class="tree" style="--x:52px;--z:34px;--k:0.8"><i></i><i></i></div>
+      <div class="tree" style="--x:-50;--z:-44;--k:1"><i></i><i></i></div>
+      <div class="tree" style="--x:52;--z:34;--k:0.8"><i></i><i></i></div>
       <div class="tower">
 ${lines(4, (i) => `<i${i === 0 ? ' class="front"' : ''} style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
       </div>
@@ -100,7 +101,12 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the windmill is the same share of
+     a gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.25vmin;
+  display: grid;
+  place-items: center;
+  perspective: calc(800 * var(--u));
 }
 
 .windmill {
@@ -110,8 +116,8 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
   --roof: color-mix(in srgb, ${PINK} 70%, #4a1024);
   --wood: #5b3b25;
   position: relative;
-  width: 210px;
-  height: 200px;
+  width: calc(210 * var(--u));
+  height: calc(200 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(-20deg); /* the camera looks down a little */
 }
@@ -120,7 +126,7 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
 .spin {
   position: absolute;
   left: 50%;
-  top: 164px;
+  top: calc(164 * var(--u));
   transform-style: preserve-3d;
   animation: turn 28s linear infinite;
 }
@@ -137,39 +143,39 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
 /* grass block: four earth sides hanging from the top edge, and the top laid flat */
 .hill i {
   position: absolute;
-  left: -75px;
+  left: calc(-75 * var(--u));
   top: 0;
-  width: 150px;
-  height: 24px;
+  width: calc(150 * var(--u));
+  height: calc(24 * var(--u));
   background:
     linear-gradient(rgb(0 0 0 / var(--d)), rgb(0 0 0 / var(--d))),   /* baked-in shade */
-    linear-gradient(var(--grass) 0 5px, transparent 7px),
+    linear-gradient(var(--grass) 0 calc(5 * var(--u)), transparent calc(7 * var(--u))),
     linear-gradient(var(--earth), color-mix(in srgb, var(--earth) 65%, #000));
   backface-visibility: hidden;
-  transform: rotateY(calc(var(--n) * 90deg)) translateZ(75px);
+  transform: rotateY(calc(var(--n) * 90deg)) translateZ(calc(75 * var(--u)));
 }
 
 .hill .top {
-  top: -75px;
-  height: 150px;
+  top: calc(-75 * var(--u));
+  height: calc(150 * var(--u));
   background:
-    radial-gradient(circle at 60% 30%, #ffe0a8 0 1.5px, transparent 2px) 0 0 / 34px 30px,
-    linear-gradient(#c9a066, #c9a066) 50% 100% / 12px 50% no-repeat,   /* the path to the door */
+    radial-gradient(circle at 60% 30%, #ffe0a8 0 calc(1.5 * var(--u)), transparent calc(2 * var(--u))) 0 0 / calc(34 * var(--u)) calc(30 * var(--u)),
+    linear-gradient(#c9a066, #c9a066) 50% 100% / calc(12 * var(--u)) 50% no-repeat,   /* the path to the door */
     radial-gradient(closest-side, color-mix(in srgb, var(--grass) 70%, #fff), var(--grass) 70%, color-mix(in srgb, var(--grass) 80%, #000));
   transform: rotateX(90deg);
 }
 
-/* a tree: two crossed planes, each cut to a tree outline */
+/* a tree: two crossed planes, each cut to a tree outline; --x and --z are plain numbers, in units */
 .tree {
-  transform: translate3d(var(--x), 0, var(--z)) scale(var(--k));
+  transform: translate3d(calc(var(--x) * var(--u)), 0, calc(var(--z) * var(--u))) scale(var(--k));
 }
 
 .tree i {
   position: absolute;
-  left: -13px;
-  top: -44px;
-  width: 26px;
-  height: 44px;
+  left: calc(-13 * var(--u));
+  top: calc(-44 * var(--u));
+  width: calc(26 * var(--u));
+  height: calc(44 * var(--u));
   background: linear-gradient(color-mix(in srgb, var(--grass) 80%, #fff), color-mix(in srgb, var(--grass) 70%, #000) 80%, var(--wood) 80%);
   clip-path: polygon(50% 0, 70% 32%, 60% 32%, 88% 64%, 74% 64%, 100% 80%, 58% 80%, 58% 100%, 42% 100%, 42% 80%, 0 80%, 26% 64%, 12% 64%, 40% 32%, 30% 32%);
 }
@@ -178,54 +184,54 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
   transform: rotateY(90deg);
 }
 
-/* Tower sides: trapezoids 48px wide at the base, 30px at the top. Each stands on its bottom
-   edge (the origin), steps out 24px and leans in by atan(9 / 92) = ${TOWER_LEAN}deg. */
+/* Tower sides: trapezoids 48 units wide at the base, 30 at the top. Each stands on its bottom
+   edge (the origin), steps out 24 units and leans in by atan(9 / 92) = ${TOWER_LEAN}deg. */
 .tower i {
   position: absolute;
-  left: -24px;
-  top: -${TOWER_SIDE}px;
-  width: 48px;
-  height: ${TOWER_SIDE}px; /* the slanted length: √(92² + 9²) */
+  left: calc(-24 * var(--u));
+  top: calc(-${TOWER_SIDE} * var(--u));
+  width: calc(48 * var(--u));
+  height: calc(${TOWER_SIDE} * var(--u)); /* the slanted length: √(92² + 9²) */
   clip-path: polygon(18.75% 0, 81.25% 0, 100% 100%, 0 100%);
   transform-origin: 50% 100%;
-  transform: rotateY(calc(var(--n) * 90deg)) translateZ(24px) rotateX(${TOWER_LEAN}deg);
+  transform: rotateY(calc(var(--n) * 90deg)) translateZ(calc(24 * var(--u))) rotateX(${TOWER_LEAN}deg);
   backface-visibility: hidden;
   background:
     linear-gradient(rgb(0 0 0 / var(--d)), rgb(0 0 0 / var(--d))),
-    linear-gradient(var(--wood) 0 6px, transparent 6px),
-    radial-gradient(circle at 50% 38%, ${AMBER} 0 3.5px, var(--wood) 4px 5.5px, transparent 6px),
+    linear-gradient(var(--wood) 0 calc(6 * var(--u)), transparent calc(6 * var(--u))),
+    radial-gradient(circle at 50% 38%, ${AMBER} 0 calc(3.5 * var(--u)), var(--wood) calc(4 * var(--u)) calc(5.5 * var(--u)), transparent calc(6 * var(--u))),
     var(--plaster);
 }
 
 .tower .front {
   background:
-    linear-gradient(var(--wood) 0 6px, transparent 6px),
-    radial-gradient(circle at 50% 38%, ${AMBER} 0 3.5px, var(--wood) 4px 5.5px, transparent 6px),
-    radial-gradient(circle at 50% calc(100% - 16px), var(--wood) 0 7.5px, transparent 8px),
-    linear-gradient(var(--wood), var(--wood)) 50% 100% / 15px 16px no-repeat,
+    linear-gradient(var(--wood) 0 calc(6 * var(--u)), transparent calc(6 * var(--u))),
+    radial-gradient(circle at 50% 38%, ${AMBER} 0 calc(3.5 * var(--u)), var(--wood) calc(4 * var(--u)) calc(5.5 * var(--u)), transparent calc(6 * var(--u))),
+    radial-gradient(circle at 50% calc(100% - calc(16 * var(--u))), var(--wood) 0 calc(7.5 * var(--u)), transparent calc(8 * var(--u))),
+    linear-gradient(var(--wood), var(--wood)) 50% 100% / calc(15 * var(--u)) calc(16 * var(--u)) no-repeat,
     var(--plaster);
 }
 
-/* the cap: the same trick with triangles, standing on the tower's top (y = -92px) */
+/* the cap: the same trick with triangles, standing on the tower's top (y = -92 units) */
 .cap i {
   position: absolute;
-  left: -21px;
-  top: -${r2(92 + CAP_SIDE)}px;
-  width: 42px;
-  height: ${CAP_SIDE}px;
+  left: calc(-21 * var(--u));
+  top: calc(-${r2(92 + CAP_SIDE)} * var(--u));
+  width: calc(42 * var(--u));
+  height: calc(${CAP_SIDE} * var(--u));
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
   transform-origin: 50% 100%;
-  transform: rotateY(calc(var(--n) * 90deg)) translateZ(21px) rotateX(${CAP_LEAN}deg);
+  transform: rotateY(calc(var(--n) * 90deg)) translateZ(calc(21 * var(--u))) rotateX(${CAP_LEAN}deg);
   backface-visibility: hidden;
   background:
     linear-gradient(rgb(0 0 0 / var(--d)), rgb(0 0 0 / var(--d))),
-    repeating-linear-gradient(transparent 0 5px, rgb(0 0 0 / 0.22) 5px 6px),
+    repeating-linear-gradient(transparent 0 calc(5 * var(--u)), rgb(0 0 0 / 0.22) calc(5 * var(--u)) calc(6 * var(--u))),
     linear-gradient(color-mix(in srgb, var(--roof) 75%, #fff), var(--roof));
 }
 
 /* the hub: above the tower, in front of the cap */
 .rotor {
-  transform: translate3d(0, -100px, 27px);
+  transform: translate3d(0, calc(-100 * var(--u)), calc(27 * var(--u)));
 }
 
 .sails {
@@ -237,28 +243,28 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
 /* one blade pointing up from the hub: stock on the left edge, lattice and cloth beside it */
 .sails b {
   position: absolute;
-  left: -2px;
-  bottom: 5px;
-  width: 24px;
-  height: 70px;
-  transform-origin: 2px calc(100% + 5px); /* the hub */
+  left: calc(-2 * var(--u));
+  bottom: calc(5 * var(--u));
+  width: calc(24 * var(--u));
+  height: calc(70 * var(--u));
+  transform-origin: calc(2 * var(--u)) calc(100% + calc(5 * var(--u))); /* the hub */
   transform: rotate(calc(var(--n) * 90deg));
   background:
-    linear-gradient(90deg, var(--wood) 0 4px, transparent 4px),
-    linear-gradient(90deg, transparent calc(100% - 2px), var(--wood) 0) 0 0 / 100% 80% no-repeat,
-    repeating-linear-gradient(transparent 0 7px, var(--wood) 7px 8.5px) 0 0 / 100% 80% no-repeat,
-    linear-gradient(#fff6e9, #efd5ab) 4px 0 / calc(100% - 4px) 80% no-repeat;
+    linear-gradient(90deg, var(--wood) 0 calc(4 * var(--u)), transparent calc(4 * var(--u))),
+    linear-gradient(90deg, transparent calc(100% - calc(2 * var(--u))), var(--wood) 0) 0 0 / 100% 80% no-repeat,
+    repeating-linear-gradient(transparent 0 calc(7 * var(--u)), var(--wood) calc(7 * var(--u)) calc(8.5 * var(--u))) 0 0 / 100% 80% no-repeat,
+    linear-gradient(#fff6e9, #efd5ab) calc(4 * var(--u)) 0 / calc(100% - calc(4 * var(--u))) 80% no-repeat;
 }
 
 .sails u {
   position: absolute;
-  left: -6px;
-  top: -6px;
-  width: 12px;
-  height: 12px;
+  left: calc(-6 * var(--u));
+  top: calc(-6 * var(--u));
+  width: calc(12 * var(--u));
+  height: calc(12 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #c8b5a8, var(--wood) 70%);
-  transform: translateZ(1px);
+  transform: translateZ(calc(1 * var(--u)));
 }
 
 @keyframes turn {
