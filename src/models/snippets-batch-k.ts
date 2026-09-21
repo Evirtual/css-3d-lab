@@ -587,10 +587,11 @@ world.addEventListener('focusout', reset);`,
   chartpanel: {
     how: [
       'The chart is ordinary SVG. JS maps each value in the JSON to a point (x along the width, y by where the value sits between the lowest and highest), then joins them into one path: <code>M x y L x y …</code>. The same path, closed down to the bottom, is the shaded area.',
-      'The 3D is only on containers: the panel is tilted with <code>rotateX / rotateY / rotateZ</code>, and the area, the line and the dots sit at <code>translateZ</code> 8, 16 and 22px, so they float over the glass at different depths.',
+      'The 3D is only on containers: the panel is tilted with <code>rotateX / rotateY / rotateZ</code>, and the area, the line and the dots sit at <code>translateZ</code> 8, 16 and 22 units, so they float over the glass at different depths.',
       'Hovering the still wrapper sets the panel to <code>rotateX(0) rotateY(0) rotateZ(0)</code>: it lies flat, and the values fade in, so you can read it. The wrapper never moves, so the hover never flickers.',
       'The neon glow is the same path drawn again, wide and faint, underneath: cheaper than a blur <code>filter</code> and sharp at any zoom.',
       'Because the tilt is on the container, the same CSS works around a chart from any library that draws SVG or canvas.',
+      'Every length is a multiple of one base unit, <code>--u</code>, and the SVG viewBox is the panel\'s size in those units, so one SVG unit is one <code>--u</code>. JS writes each dot\'s place as <b>plain numbers</b> that CSS multiplies by the unit; a px string from JS would stay put while the panel scaled, and the dots would slide off the line on a big screen.',
     ],
     html: `<div class="panel3d" tabindex="0" aria-label="Monthly revenue">
   <div class="panel">
@@ -602,13 +603,16 @@ world.addEventListener('focusout', reset);`,
   </div>
 </div>`,
     css: `.panel3d {
+  /* one base unit: every length of the panel is a multiple of it, so it is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.4vmin;
   position: relative;
-  width: 200px;
-  height: 110px;
-  margin: 40px;
+  width: calc(200 * var(--u));
+  height: calc(110 * var(--u));
+  margin: calc(40 * var(--u));
   outline: none;
   transform-style: preserve-3d;
-  perspective: 800px;
+  perspective: calc(800 * var(--u));
   font-family: system-ui, sans-serif;
 }
 
@@ -631,12 +635,12 @@ world.addEventListener('focusout', reset);`,
 .glass {
   position: absolute;
   inset: 0;
-  border: 1px solid rgb(139 108 255 / 0.5);
-  border-radius: 12px;
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.5);
+  border-radius: calc(12 * var(--u));
   background:
-    repeating-linear-gradient(transparent 0 21px, rgb(236 238 251 / 0.1) 21px 22px) 0 12px / 100% calc(100% - 24px) no-repeat,
+    repeating-linear-gradient(transparent 0 calc(21 * var(--u)), rgb(236 238 251 / 0.1) calc(21 * var(--u)) calc(22 * var(--u))) 0 calc(12 * var(--u)) / 100% calc(100% - calc(24 * var(--u))) no-repeat,
     linear-gradient(150deg, #2a2560, ${SURFACE});
-  box-shadow: 0 18px 36px -14px rgb(0 0 0 / 0.55);
+  box-shadow: 0 calc(18 * var(--u)) calc(36 * var(--u)) calc(-14 * var(--u)) rgb(0 0 0 / 0.55);
 }
 
 .panel svg {
@@ -648,7 +652,7 @@ world.addEventListener('focusout', reset);`,
 }
 
 .area {
-  transform: translateZ(8px);
+  transform: translateZ(calc(8 * var(--u)));
 }
 
 .area path {
@@ -656,7 +660,7 @@ world.addEventListener('focusout', reset);`,
 }
 
 .line {
-  transform: translateZ(16px);
+  transform: translateZ(calc(16 * var(--u)));
 }
 
 .line path {
@@ -676,31 +680,32 @@ world.addEventListener('focusout', reset);`,
 .dots {
   position: absolute;
   inset: 0;
-  transform: translateZ(22px);
+  transform: translateZ(calc(22 * var(--u)));
 }
 
 .dots i {
   position: absolute;
-  top: var(--y);
-  left: var(--x);
-  width: 7px;
-  height: 7px;
-  margin: -3.5px 0 0 -3.5px;
+  /* --x, --y: plain numbers in the panel's own units, from JS */
+  top: calc(var(--y) * var(--u));
+  left: calc(var(--x) * var(--u));
+  width: calc(7 * var(--u));
+  height: calc(7 * var(--u));
+  margin: calc(-3.5 * var(--u)) 0 0 calc(-3.5 * var(--u));
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 0 2px ${TEAL}, 0 0 10px ${TEAL};
+  box-shadow: 0 0 0 calc(2 * var(--u)) ${TEAL}, 0 0 calc(10 * var(--u)) ${TEAL};
 }
 
 /* values: hidden while tilted (except the latest), shown when the panel lies flat */
 .dots span {
   position: absolute;
-  bottom: 9px;
+  bottom: calc(9 * var(--u));
   left: 50%;
-  padding: 1px 3px;
-  border-radius: 4px;
+  padding: calc(1 * var(--u)) calc(3 * var(--u));
+  border-radius: calc(4 * var(--u));
   background: rgb(20 24 48 / 0.85);
   color: ${TEXT};
-  font: 700 8px/10px system-ui, sans-serif;
+  font: 700 calc(10 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   opacity: 0;
   translate: -50% 0;
@@ -715,12 +720,12 @@ world.addEventListener('focusout', reset);`,
 
 .title {
   position: absolute;
-  top: 9px;
-  left: 12px;
+  top: calc(9 * var(--u));
+  left: calc(12 * var(--u));
   color: ${TEXT};
-  font: 800 10px/12px system-ui, sans-serif;
+  font: 800 calc(10 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
   letter-spacing: 0.04em;
-  transform: translateZ(10px);
+  transform: translateZ(calc(10 * var(--u)));
 }
 
 .title small {
@@ -730,13 +735,13 @@ world.addEventListener('focusout', reset);`,
     js: `// The data, as an API would send it back
 const TREND = ${compactRows(json(TREND)).replace(/\[\s+("Jan"[^\]]+?)\s+\]/, (_, inner: string) => `[${inner.replace(/\s+/g, ' ')}]`)};
 
-// The panel is 200 × 110px and the SVG viewBox is the same, so one SVG unit is one pixel
+// The panel is 200 × 110 units of --u and the SVG viewBox is the same, so one SVG unit is one --u
 const W = 200, H = 110, PAD = 12;
 const lo = Math.min(...TREND.values);
 const hi = Math.max(...TREND.values);
 
 // JSON → points: x evenly along the width, y by where the value sits between lo and hi
-// (14px of headroom at the top for the title)
+// (14 units of headroom at the top for the title)
 const points = TREND.values.map((v, i) => [
   PAD + (i * (W - 2 * PAD)) / (TREND.values.length - 1),
   H - PAD - ((v - lo) / (hi - lo)) * (H - 2 * PAD - 14),
@@ -752,7 +757,7 @@ document.querySelector('.area path').setAttribute('d', area);
 const dots = document.querySelector('.dots');
 points.forEach(([x, y], i) => {
   const dot = document.createElement('i');
-  dot.style.cssText = \`--x:\${x}px; --y:\${y}px\`;
+  dot.style.cssText = \`--x:\${x.toFixed(1)}; --y:\${y.toFixed(1)}\`; // plain numbers: CSS multiplies them by --u
   const label = document.createElement('span');
   label.textContent = TREND.values[i];
   dot.append(label);
