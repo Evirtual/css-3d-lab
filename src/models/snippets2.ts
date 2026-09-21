@@ -409,7 +409,7 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
     css: `.loader {
   /* one base unit: every length below is a multiple of it, so the loader is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.55vmin;
+  --u: 0.46vmin;
   width: calc(90 * var(--u));
   height: calc(90 * var(--u));
   border-radius: calc(12 * var(--u));
