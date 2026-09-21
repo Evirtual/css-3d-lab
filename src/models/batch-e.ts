@@ -218,10 +218,10 @@ export const demosE: Demo[] = [
     id: 'scatter',
     title: '3D scatter plot',
     description:
-      'Points placed with translate3d inside a wireframe box that spins by CSS. Dragging pauses the spin and adds a manual rotation; every point counter-rotates so it stays a round sphere.',
+      'Points placed with the translate property inside a wireframe box that spins by CSS. Dragging anywhere on the canvas pauses the spin and adds a manual rotation; every point counter-rotates so it stays a round sphere.',
     category: 'js',
     tags: ['pointer', 'drag', 'chart', 'data', 'generated', 'loop', 'billboard'],
-    technique: ['translate3d(x, y, z) per point', 'nested rotations: tilt › spin › drag', 'animation-play-state while dragging', 'billboard: static inverse + animated rotate property'],
+    technique: ['translate: x y z per point', 'nested rotations: tilt › spin › drag', 'animation-play-state while dragging', 'billboard: static inverse + animated rotate property'],
     fill: true,
     html: `<div class="d-scatter">
       <div class="d-scatter__tilt"><div class="d-scatter__spin"><div class="d-scatter__box">${rep(6, () => '<u></u>')}<s></s><s></s><s></s><b class="is-label" style="--x:84px;--y:70px;--z:-70px">x</b><b class="is-label" style="--x:-70px;--y:-84px;--z:-70px">y</b><b class="is-label" style="--x:-70px;--y:70px;--z:84px">z</b></div></div></div>
