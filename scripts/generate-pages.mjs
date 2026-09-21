@@ -238,7 +238,8 @@ function demoPage(d, index) {
         url: `${site.url}/${path}`,
         inLanguage: 'en',
         isAccessibleForFree: true,
-        license: 'https://opensource.org/licenses/MIT',
+        // the page holds both: the snippet is MIT, the prose and the site PolyForm Noncommercial
+        license: `${site.repo}/blob/main/LICENSE`,
         proficiencyLevel: 'Beginner',
         keywords: ['CSS 3D', d.title, group, ...d.tags, ...d.technique].join(', '),
         author: { '@type': 'Person', name: site.author },
@@ -273,7 +274,7 @@ function demoPage(d, index) {
             <li><b>${lineCount(snip.html)}</b> lines of HTML</li>
             <li>${snip.js ? `<b>${lineCount(snip.js)}</b> lines of JS` : '<b>No</b> JavaScript'}</li>
             <li>No dependencies</li>
-            <li>MIT licensed</li>
+            <li>Snippet under MIT</li>
           </ul>
         </div>
         <div class="page-tools" data-tools>
@@ -424,7 +425,7 @@ function groupPage(g) {
             <li><b>${members.filter((d) => d.category === 'css').length}</b> pure CSS</li>
             <li><b>${members.filter((d) => d.category === 'js').length}</b> CSS + JS</li>
             <li>No dependencies</li>
-            <li>MIT licensed</li>
+            <li>Snippets under MIT</li>
           </ul>
         </div>
       </header>
