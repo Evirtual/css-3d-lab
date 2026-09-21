@@ -997,6 +997,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
       'The trail effect is two transition speeds. The base rule has a slow 1.4s transition — that one applies when the hover <b>ends</b>.',
       'The <code>:hover</code> rule overrides <code>transition-duration</code> to 0.08s — that one applies when the hover <b>starts</b>.',
       'Result: tiles pop up instantly and sink back slowly.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: a tile is 46 units square and its plate rises 46, so the floor is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="floor">
