@@ -1386,6 +1386,7 @@ render();`,
       'The lid rides <code>translateY</code> down by exactly the height the walls lost (<code>var(--h) * (1 - level)</code>), so it always stays glued to the top of the shrinking walls instead of floating.',
       'All three faces\' keyframes share the exact same percentage stops and easing — that shared timing is what keeps the lid and both walls moving as one solid box instead of drifting apart.',
       'Each bar gets its own hue, delay and duration so neighbours never bounce in sync, which is what sells it as a real audio meter instead of one shape copy-pasted seven times.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the meter is the same share of a gallery card, the editor and a recording canvas. A bar’s full height is a plain number in the markup (<code>--hn</code>), which CSS multiplies by <code>--u</code>: one number per bar, and the unit still decides the size.',
     ],
     html: `<div class="scene">
   <div class="equalizer" role="img" aria-label="Equalizer animation">
