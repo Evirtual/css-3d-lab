@@ -1676,5 +1676,50 @@
     "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
     "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
     "finding": "technique: the layer chip said translateZ 0 / 8 / 16 / 22 units; the code now floats them at 5 / 10 / 14"
+  },
+  {
+    "model": "shapeshift",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T01:06:43+07:00",
+    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+  },
+  {
+    "model": "playground",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T01:06:43+07:00",
+    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+  },
+  {
+    "model": "heatmap",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T01:06:43+07:00",
+    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+  },
+  {
+    "model": "stepper",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T01:06:43+07:00",
+    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+  },
+  {
+    "model": "stackbars",
+    "kind": "text",
+    "reviewer": "text-review agent, second pass",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-22T01:06:43+07:00",
+    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
   }
 ]
