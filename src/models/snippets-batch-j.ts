@@ -26,6 +26,7 @@ const side = (n: number, sides: number): string => {
 /**
  * The declarations for one side of an n-sided frustum (a cone when top = 0), worked out here so
  * the CSS carries plain numbers: size, where it stands, how far it leans in, and its clip shape.
+ * Lengths come out in the model's base unit, as calc(N * var(--u)).
  */
 const frustum = (n: number, bottom: number, top: number, h: number, y: number, closed = true): string => {
   const tan = Math.tan(Math.PI / n);
@@ -35,14 +36,14 @@ const frustum = (n: number, bottom: number, top: number, h: number, y: number, c
   const inset = r2(((w - wTop) / (2 * w)) * 100);
   const clip = top === 0 ? 'polygon(50% 0, 100% 100%, 0 100%)' : `polygon(${inset}% 0, ${r2(100 - inset)}% 0, 100% 100%, 0 100%)`;
   return `  position: absolute;
-  left: ${r2(-w / 2)}px;
-  top: ${r2(y - len)}px;
-  width: ${r2(w)}px;
-  height: ${r2(len)}px;
+  left: calc(${r2(-w / 2)} * var(--u));
+  top: calc(${r2(y - len)} * var(--u));
+  width: calc(${r2(w)} * var(--u));
+  height: calc(${r2(len)} * var(--u));
   clip-path: ${clip};
   transform-origin: 50% 100%;
   /* turn to its side, step out to the bottom radius, lean in by atan((bottom - top) / height) */
-  transform: rotateY(var(--a)) translateZ(${bottom}px) rotateX(${deg(Math.atan((bottom - top) / h))}deg);${closed ? '\n  backface-visibility: hidden;' : ''}`;
+  transform: rotateY(var(--a)) translateZ(calc(${bottom} * var(--u))) rotateX(${deg(Math.atan((bottom - top) / h))}deg);${closed ? '\n  backface-visibility: hidden;' : ''}`;
 };
 
 // windmill numbers: tower half-widths 24 → 15 over 92px, cap 21 wide and 30 high
@@ -595,6 +596,7 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
       'The sea is a flat disc that clips its own wave lines. Each wave layer slides by exactly <b>one pattern period</b> and jumps back, so the loop is seamless. A lit wedge on the water turns with the beams: on a floor laid flat, <code>rotate(-a)</code> turns the same way as <code>rotateY(a)</code> above it.',
       'The browser sorts 3D planes by cutting them along each other’s infinite planes, and those cuts can show as shards. So the scene is <b>three layers with the same camera</b> painted in order (sea, rock, tower), which is always right with the camera above, and closed solids hide their back faces.',
       'Twice a turn a beam points at you; the halo at the lamp flares then, on a loop half as long as the sweep.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, and the frustum numbers are worked out in it: the rock is 80 units across and the tower stands 84 high on it, so the lighthouse is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="lighthouse">
@@ -625,12 +627,20 @@ ${lines(6, (i) => `<i style="${side(i, 6)}"></i>`, '        ')}
     </div></div>
   </div>
 </div>`,
-    css: `/* the root is flat (three layers painted in order), so it holds the perspective itself */
+    css: `.scene {
+  /* one base unit: every length below is a multiple of it, so the lighthouse is the same share
+     of a gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.33vmin;
+  display: grid;
+  place-items: center;
+}
+
+/* the root is flat (three layers painted in order), so it holds the perspective itself */
 .lighthouse {
   position: relative;
-  width: 220px;
-  height: 200px;
-  perspective: 800px;
+  width: calc(220 * var(--u));
+  height: calc(200 * var(--u));
+  perspective: calc(800 * var(--u));
 }
 
 .lighthouse * {
@@ -657,21 +667,21 @@ ${lines(6, (i) => `<i style="${side(i, 6)}"></i>`, '        ')}
 
 .model {
   left: 50%;
-  top: 150px;
+  top: calc(150 * var(--u));
 }
 
 /* the sea: a flat disc; it may clip, nothing in it is 3D */
 .sea {
   position: absolute;
-  left: -110px;
-  top: -110px;
-  width: 220px;
-  height: 220px;
+  left: calc(-110 * var(--u));
+  top: calc(-110 * var(--u));
+  width: calc(220 * var(--u));
+  height: calc(220 * var(--u));
   overflow: hidden;
-  border: 1.5px solid rgb(46 230 214 / 0.4);
+  border: calc(1.5 * var(--u)) solid rgb(46 230 214 / 0.4);
   border-radius: 50%;
   background:
-    radial-gradient(circle, transparent 0 44px, rgb(255 255 255 / 0.5) 45px 47px, transparent 50px 54px, rgb(255 255 255 / 0.16) 55px 56px, transparent 58px),
+    radial-gradient(circle, transparent 0 calc(44 * var(--u)), rgb(255 255 255 / 0.5) calc(45 * var(--u)) calc(47 * var(--u)), transparent calc(50 * var(--u)) calc(54 * var(--u)), rgb(255 255 255 / 0.16) calc(55 * var(--u)) calc(56 * var(--u)), transparent calc(58 * var(--u))),
     radial-gradient(circle, #3f3b94, #1e1c4a 72%);
   transform: rotateX(90deg);
 }
@@ -679,16 +689,16 @@ ${lines(6, (i) => `<i style="${side(i, 6)}"></i>`, '        ')}
 /* wave lines broken into dashes by a mask; they slide by exactly one period */
 .sea i {
   position: absolute;
-  inset: -20px 0 0;
-  background: repeating-linear-gradient(transparent 0 16px, rgb(46 230 214 / 0.55) 16px 17.5px, transparent 17.5px 20px);
-  mask: repeating-linear-gradient(90deg, #000 0 22px, transparent 22px 36px);
+  inset: calc(-20 * var(--u)) 0 0;
+  background: repeating-linear-gradient(transparent 0 calc(16 * var(--u)), rgb(46 230 214 / 0.55) calc(16 * var(--u)) calc(17.5 * var(--u)), transparent calc(17.5 * var(--u)) calc(20 * var(--u)));
+  mask: repeating-linear-gradient(90deg, #000 0 calc(22 * var(--u)), transparent calc(22 * var(--u)) calc(36 * var(--u)));
   animation: waves 2.6s linear infinite;
 }
 
 .sea i + i {
-  inset: -28px 0 0;
-  background: repeating-linear-gradient(transparent 0 9px, rgb(160 140 255 / 0.6) 9px 10px, transparent 10px 28px);
-  mask: repeating-linear-gradient(90deg, transparent 0 14px, #000 14px 30px, transparent 30px 46px);
+  inset: calc(-28 * var(--u)) 0 0;
+  background: repeating-linear-gradient(transparent 0 calc(9 * var(--u)), rgb(160 140 255 / 0.6) calc(9 * var(--u)) calc(10 * var(--u)), transparent calc(10 * var(--u)) calc(28 * var(--u)));
+  mask: repeating-linear-gradient(90deg, transparent 0 calc(14 * var(--u)), #000 calc(14 * var(--u)) calc(30 * var(--u)), transparent calc(30 * var(--u)) calc(46 * var(--u)));
   animation: waves-2 4.2s linear infinite;
 }
 
@@ -701,58 +711,58 @@ ${lines(6, (i) => `<i style="${side(i, 6)}"></i>`, '        ')}
   animation: pool 8s linear infinite;
 }
 
-/* rock: 8 sides, radius 40 → 31 over 18px */
+/* rock: 8 sides, radius 40 → 31 over 18 units */
 .rock i {
 ${frustum(8, 40, 31, 18, 0)}
   background:
     linear-gradient(rgb(6 8 26 / var(--d)), rgb(6 8 26 / var(--d))),
-    radial-gradient(circle at 30% 30%, rgb(255 255 255 / 0.12) 0 3px, transparent 3.5px) 0 0 / 13px 11px,
+    radial-gradient(circle at 30% 30%, rgb(255 255 255 / 0.12) 0 calc(3 * var(--u)), transparent calc(3.5 * var(--u))) 0 0 / calc(13 * var(--u)) calc(11 * var(--u)),
     linear-gradient(#636885, #393c4f 80%, #114949);
 }
 
 /* the rock's flat top, an octagon */
 .rock b {
   position: absolute;
-  left: -31px;
-  top: -49px;
-  width: 62px;
-  height: 62px;
+  left: calc(-31 * var(--u));
+  top: calc(-49 * var(--u));
+  width: calc(62 * var(--u));
+  height: calc(62 * var(--u));
   clip-path: polygon(29.3% 0, 70.7% 0, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0 70.7%, 0 29.3%);
   background: radial-gradient(circle at 40% 40%, #82869d, #636885 70%);
   transform: rotateX(90deg);
 }
 
-/* tower: 10 sides, radius 16 → 11 over 84px, standing on the rock (y = -18px) */
+/* tower: 10 sides, radius 16 → 11 over 84 units, standing on the rock (y = -18) */
 .tower i {
 ${frustum(10, 16, 11, 84, -18)}
   background:
     linear-gradient(rgb(6 8 26 / var(--d)), rgb(6 8 26 / var(--d))),
-    repeating-linear-gradient(#e04285 0 14px, #f3efe7 14px 28px);
+    repeating-linear-gradient(#e04285 0 calc(14 * var(--u)), #f3efe7 calc(14 * var(--u)) calc(28 * var(--u)));
 }
 
 /* the front side: a door and a lit window */
 .tower i:first-child {
   background:
-    linear-gradient(#2a1c28, #2a1c28) 50% 100% / 6px 11px no-repeat,
-    linear-gradient(${AMBER}, ${AMBER}) 50% 45% / 4px 6px no-repeat,
-    repeating-linear-gradient(#e04285 0 14px, #f3efe7 14px 28px);
+    linear-gradient(#2a1c28, #2a1c28) 50% 100% / calc(6 * var(--u)) calc(11 * var(--u)) no-repeat,
+    linear-gradient(${AMBER}, ${AMBER}) 50% 45% / calc(4 * var(--u)) calc(6 * var(--u)) no-repeat,
+    repeating-linear-gradient(#e04285 0 calc(14 * var(--u)), #f3efe7 calc(14 * var(--u)) calc(28 * var(--u)));
 }
 
 .gallery,
 .rail {
   position: absolute;
-  left: -18px;
-  top: -120px;
-  width: 36px;
-  height: 36px;
+  left: calc(-18 * var(--u));
+  top: calc(-120 * var(--u));
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, #3a3e58 70%, #23263a);
   transform: rotateX(90deg);
 }
 
 .rail {
-  top: -126px;
-  border: 1.5px solid #a3a8c8;
+  top: calc(-126 * var(--u));
+  border: calc(1.5 * var(--u)) solid #a3a8c8;
   background: none;
 }
 
@@ -760,20 +770,20 @@ ${frustum(10, 16, 11, 84, -18)}
 .room i {
 ${frustum(6, 8, 8, 14, -102, false)}
   background:
-    linear-gradient(90deg, #2b2e44 0 1px, transparent 1px calc(100% - 1px), #2b2e44 0),
+    linear-gradient(90deg, #2b2e44 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(100% - calc(1 * var(--u))), #2b2e44 0),
     rgb(255 181 71 / 0.4);
 }
 
 /* a flat halo at the lamp, level with the beams */
 .room b {
   position: absolute;
-  left: -16px;
-  top: -16px;
-  width: 32px;
-  height: 32px;
+  left: calc(-16 * var(--u));
+  top: calc(-16 * var(--u));
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, #fff 0 18%, #ffd08a 30%, rgb(255 181 71 / 0.45) 55%, transparent);
-  transform: translateY(-109px) rotateX(90deg);
+  transform: translateY(calc(-109 * var(--u))) rotateX(90deg);
   animation: flash 4s ease-in-out infinite;
 }
 
@@ -787,10 +797,10 @@ ${frustum(6, 11, 0, 12, -116)}
 
 .roof b {
   position: absolute;
-  left: -3px;
-  top: -132px;
-  width: 6px;
-  height: 6px;
+  left: calc(-3 * var(--u));
+  top: calc(-132 * var(--u));
+  width: calc(6 * var(--u));
+  height: calc(6 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff, #8a8fb0);
 }
@@ -798,20 +808,20 @@ ${frustum(6, 11, 0, 12, -116)}
 /* two beams, each two tapering planes crossed at ±14deg around the beam's axis */
 .beam {
   position: absolute;
-  top: -109px;
+  top: calc(-109 * var(--u));
   transform-style: preserve-3d;
   animation: sweep 8s linear infinite;
 }
 
 .beam i {
   position: absolute;
-  left: 4px;
-  top: -17px;
-  width: 104px;
-  height: 34px;
+  left: calc(4 * var(--u));
+  top: calc(-17 * var(--u));
+  width: calc(104 * var(--u));
+  height: calc(34 * var(--u));
   clip-path: polygon(0 42%, 100% 0, 100% 100%, 0 58%);
   background: linear-gradient(90deg, #ffe2b0, rgb(255 181 71 / 0.45) 30%, transparent 97%);
-  transform-origin: -4px 50%; /* the lamp */
+  transform-origin: calc(-4 * var(--u)) 50%; /* the lamp */
   transform: rotateX(76deg);
 }
 
@@ -829,17 +839,17 @@ ${frustum(6, 11, 0, 12, -116)}
 }
 
 @keyframes waves {
-  to { transform: translateY(20px); }
+  to { transform: translateY(calc(20 * var(--u))); }
 }
 
 @keyframes waves-2 {
-  to { transform: translateY(28px); }
+  to { transform: translateY(calc(28 * var(--u))); }
 }
 
 /* half a sweep: a beam faces you at about 114deg and 294deg of the turn */
 @keyframes flash {
-  0%, 45%, 82%, 100% { transform: translateY(-109px) rotateX(90deg) scale(1); opacity: 0.7; }
-  63.3% { transform: translateY(-109px) rotateX(90deg) scale(2.2); opacity: 1; }
+  0%, 45%, 82%, 100% { transform: translateY(calc(-109 * var(--u))) rotateX(90deg) scale(1); opacity: 0.7; }
+  63.3% { transform: translateY(calc(-109 * var(--u))) rotateX(90deg) scale(2.2); opacity: 1; }
 }`,
   },
 
