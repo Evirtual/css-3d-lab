@@ -1,5 +1,14 @@
 # Audit of the 27 unpushed commits
 
+> **Historical snapshot. Do not read it as the current state.** It audits local `main` at
+> `db7b098` (2026-09-20 22:09) against `origin/main` at `b1d49c2`, before the view-contract
+> rewrite, and was committed in 8cb1405 (2026-09-21) — the same commit that deleted
+> `src/render3d.ts`: recordings and snapshots are now drawn by the render service
+> (`server/render.mjs`, `worker/`). The placement machinery went after it (1599c5d), and the
+> models are being rewritten to [VIEW-CONTRACT.md](VIEW-CONTRACT.md). Its numbers, file list and
+> line counts describe `db7b098` only. For the current state see the README, `docs/ledger.html` and
+> [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md).
+
 Compared freshly fetched `origin/main` (`b1d49c2`) with local `main` (`db7b098`).
 The remote has no commits missing locally; local main is 27 commits ahead.
 This is a history and scope audit, not a certification that every new feature works.
