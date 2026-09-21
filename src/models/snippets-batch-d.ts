@@ -758,26 +758,28 @@ root.addEventListener('keydown', key);`,
       <i></i>
     </div>
   </div>
-  <output class="caption" aria-live="polite">01 · Dawn</output>
-  <div class="bar">
-    <button type="button" data-dir="-1" aria-label="Previous"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
-    <span class="dots">
-      <button type="button" data-go="0" aria-label="Go to Dawn"></button>
-      <button type="button" data-go="1" aria-label="Go to Reef"></button>
-      <button type="button" data-go="2" aria-label="Go to Dusk"></button>
-      <button type="button" data-go="3" aria-label="Go to Night"></button>
-    </span>
-    <button type="button" data-dir="1" aria-label="Next"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+  <div class="controls">
+    <output class="caption" aria-live="polite">01 · Dawn</output>
+    <div class="row">
+      <button type="button" data-dir="-1" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <span class="dots">
+        <button type="button" data-go="0" aria-label="Go to Dawn"></button>
+        <button type="button" data-go="1" aria-label="Go to Reef"></button>
+        <button type="button" data-go="2" aria-label="Go to Dusk"></button>
+        <button type="button" data-go="3" aria-label="Go to Night"></button>
+      </span>
+      <button type="button" data-dir="1" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
   </div>
 </div>`,
     css: `.cubenav {
+  /* one base unit: every length in the cube below is a multiple of it, so the carousel is the
+     same share of a card, the editor, a full screen and a recording canvas. The control zone
+     under it is in plain vmin, because it is the same object in every model. */
+  --u: 0.25vmin;
   display: grid;
-  grid-template-rows: 1fr auto auto;
   justify-items: center;
-  gap: 8px;
-  width: 320px;
-  height: 280px;
-  padding: 10px 14px 12px;
+  gap: 4vmin;
   font-family: system-ui, sans-serif;
 }
 
@@ -785,24 +787,25 @@ root.addEventListener('keydown', key);`,
   position: relative;
   display: grid;
   place-items: center;
-  width: 100%;
-  perspective: 700px;
+  /* the floor shadow hangs below the cube: the room for it keeps the cube centred */
+  padding-bottom: calc(22 * var(--u));
+  perspective: calc(700 * var(--u));
 }
 
 /* a soft shadow on the floor, drawn before the cube so it is always underneath */
 .view::before {
   content: '';
   position: absolute;
-  bottom: calc(50% - 76px);
-  left: calc(50% - 64px);
-  width: 128px;
-  height: 20px;
+  bottom: 0;
+  left: calc(50% - 64 * var(--u));
+  width: calc(128 * var(--u));
+  height: calc(20 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
 }
 
 .cube {
-  --s: 116px;
+  --s: calc(116 * var(--u));
   position: relative;
   width: var(--s);
   height: var(--s);
@@ -828,13 +831,13 @@ root.addEventListener('keydown', key);`,
   inset: 0;
   display: grid;
   align-content: end;
-  padding: 10px 11px;
-  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1px line
+  padding: calc(10 * var(--u)) calc(11 * var(--u));
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a one-unit line
      breaks up, the shade survives */
   --edge: hsl(var(--hue) 90% 85% / 0.55);
   --edge-soft: hsl(var(--hue) 90% 85% / 0.16);
-  box-shadow: inset 0 0 0 1px var(--edge), inset 0 0 8px var(--edge-soft);
-  border-radius: 10px;
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) var(--edge), inset 0 0 calc(8 * var(--u)) var(--edge-soft);
+  border-radius: calc(10 * var(--u));
   background:
     linear-gradient(155deg, rgb(255 255 255 / 0.22), transparent 38%),
     linear-gradient(transparent 52%, rgb(0 0 0 / 0.42)),
@@ -843,11 +846,11 @@ root.addEventListener('keydown', key);`,
     radial-gradient(circle at 70% 34%, hsl(calc(var(--hue) + 20) 100% 93%) 0 10%, hsl(calc(var(--hue) + 20) 100% 85% / 0.35) 11% 17%, transparent 18%),
     linear-gradient(hsl(var(--hue) 80% 72%), hsl(calc(var(--hue) + 35) 70% 46%));
   color: #fff;
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   font-style: normal;
   font-weight: 800;
   line-height: 1.1;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  text-shadow: 0 calc(1 * var(--u)) calc(3 * var(--u)) rgb(0 0 0 / 0.4);
   backface-visibility: hidden;
   transform-style: preserve-3d;
 }
@@ -856,15 +859,15 @@ root.addEventListener('keydown', key);`,
 .cube i::before {
   content: '';
   position: absolute;
-  /* 1px short of the edge: full size, it would touch the next face and show there as a dotted
-     seam; much smaller leaves a channel along each edge you can see into */
-  inset: 1px;
+  /* one unit short of the edge: full size, it would touch the next face and show there as a
+     dotted seam; much smaller leaves a channel along each edge you can see into */
+  inset: calc(1 * var(--u));
   background: hsl(var(--hue) 45% 18%);
-  transform: translateZ(-6px);
+  transform: translateZ(calc(-6 * var(--u)));
 }
 
 .cube i small {
-  font-size: 10px;
+  font-size: calc(10 * var(--u));
   font-weight: 600;
   opacity: 0.85;
 }
@@ -879,60 +882,73 @@ root.addEventListener('keydown', key);`,
     #221f45;
 }
 
-.caption {
-  color: #949bc0;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the cube's own unit */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-/* one pill: previous, dots, next */
-.bar {
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.controls .row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px;
-  border: 1px solid rgb(140 150 220 / 0.34);
-  border-radius: 999px;
-  background: rgb(7 8 15 / 0.7);
+  gap: 2vmin;
 }
 
-.bar > button {
+.controls button {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  height: 8vmin;
+  min-width: 8vmin;
   padding: 0;
   border: 0;
-  border-radius: 50%;
+  border-radius: 999px;
   background: linear-gradient(135deg, #8b6cff, #ff4d9d);
   color: #fff;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+}
+
+.controls svg {
+  width: 4.5vmin;
+  height: 4.5vmin;
 }
 
 .dots {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2vmin;
 }
 
+/* a dot is a small mark on a finger-sized button, not a small button */
 .dots button {
-  width: 8px;
-  height: 8px;
-  padding: 0;
-  border: 0;
+  background: none;
+}
+
+.dots button::before {
+  content: '';
+  width: 2vmin;
+  height: 2vmin;
   border-radius: 999px;
-  background: rgb(140 150 220 / 0.34);
-  cursor: pointer;
+  background: rgb(140 150 220 / 0.6);
+  transition: width 0.3s, background 0.3s;
 }
 
 /* the current one is a longer pill */
-.dots button[aria-current='true'] {
-  width: 18px;
+.dots button[aria-current='true']::before {
+  width: 4.5vmin;
   background: #2ee6d6;
 }`,
     js: `const cube = document.querySelector('.cube');
-const bar = document.querySelector('.bar');
+const row = document.querySelector('.controls .row');
 const out = document.querySelector('output');
 const dots = [...document.querySelectorAll('[data-go]')];
 const slides = ['Dawn', 'Reef', 'Dusk', 'Night'];
@@ -947,7 +963,7 @@ function render() {
   dots.forEach((d, i) => d.setAttribute('aria-current', String(i === current)));
 }
 
-bar.addEventListener('click', (e) => {
+row.addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if (!btn) return;
   if (btn.dataset.dir) {
