@@ -590,7 +590,7 @@ scene.addEventListener('pointercancel', leave);`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the can is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.42vmin;
+  --u: 0.45vmin;
   perspective: calc(800 * var(--u));
 }
 
