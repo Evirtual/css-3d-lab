@@ -9,11 +9,21 @@
  *   node scripts/check-motion.mjs --size 1280x800 on a full screen instead of a card
  *   node scripts/check-motion.mjs --frames 48     frames per loop (at least 24)
  *
+ * ONE CLOCK FOR THE WHOLE PAGE. Time in the page is the check's, not the wall's: Playwright's
+ * page.clock is installed before the page loads (a fresh browser context per model, so no clock
+ * history carries over), left to run until the model is ready, then paused. From then on the page
+ * only moves when the check advances it, 16ms at a time: setTimeout, setInterval,
+ * requestAnimationFrame, Date and performance.now run on that clock, and after every 16ms every
+ * CSS animation and transition is paused where the same page time puts it (one that started in
+ * between counts from then). One that reaches its end is finished for real, so transitionend and
+ * animationend fire and a script that waits on them goes on. Script and CSS move together, the
+ * way a slow-motion screen recording shows them, however long a frame takes to photograph.
+ *
  * For each model it takes:
- *  - THE LOOP: every CSS animation paused and stepped together through one period of the longest
- *    of them (twice the duration for an alternating one), at least 24 frames, more when a short
- *    animation would otherwise move too far between frames. A model with no CSS animation moves in
- *    script, which cannot be paused, so it is photographed in real time instead and says so.
+ *  - THE LOOP: one period of the longest endless CSS animation (twice the duration for an
+ *    alternating one), at least 24 frames, more when a short animation would otherwise move too
+ *    far between frames. A model with no endless CSS animation moves in script or not at all: it
+ *    is filmed for 24 frames 100ms of page time apart instead, and says so.
  *  - EVERY INTERACTION, one at a time, in the same pass. The loop is held on its first frame.
  *    Hover and focus targets are read from the model's own CSS (what stands in front of :hover or
  *    :focus-visible), controls from the DOM. Each hover target gets a real pointer on a point
@@ -22,8 +32,11 @@
  *    and let go when the model styles :active), every toggle switched on and off, every radio
  *    chosen, sliders set to min, middle and max, selects run through, focus targets focused by
  *    keyboard and blurred; a model that follows the pointer or is dragged gets a lap round the
- *    canvas, and a scroll model a wheel down and back. Whatever each action starts is filmed:
- *    CSS transitions paused and stepped from start to end, anything else in real time.
+ *    canvas, and a scroll model a wheel down and back. Whatever each action starts is filmed: in
+ *    12 steps across the CSS transitions it starts, then on, step by step, for as long as anything
+ *    it set off (a transition a script starts later, on a timer or on transitionend) still moves;
+ *    when it starts no CSS transition, 8 frames 70ms of page time apart. The loop's endless CSS
+ *    animations stay held on its first frame throughout; script time keeps running.
  *
  * Two ways to find a glitch:
  *  - AUTOMATIC. The frame is cut into small cells. A cell that is colour A, then a clearly
@@ -31,7 +44,7 @@
  *    and not a passing edge, is FLICKER (two surfaces z-fighting, or depth order flipping and
  *    flipping back). A frame-to-frame change far above the model's own average, and far above the
  *    frames either side of it, is a POP (a jump, or one surface passing through another; only in
- *    stepped frames, real-time ones are too far apart to tell). For interactions it also says when
+ *    frames stepped across a loop or a transition: ones 70-100ms apart are too far apart to tell). For interactions it also says when
  *    the pointer can never land on a part (something else is drawn over it), when a pointer on
  *    it does not hover it, when a part's hit area is mostly over empty canvas, and when an action
  *    changes nothing on screen. All of it is a hint for a human to look at, not a verdict.
@@ -236,42 +249,69 @@ function timingOf() {
   for (const a of document.getAnimations()) {
     const t = a.effect?.getComputedTiming?.();
     if (!t || typeof t.duration !== 'number' || !(t.duration > 0)) continue;
+    // one that runs once and stops is not the loop: the page clock plays it out where it falls
+    if (t.iterations !== Infinity) continue;
     const period = t.duration * (/alternate/.test(t.direction) ? 2 : 1);
     out.count++;
     out.loop = Math.max(out.loop, period);
     out.fastest = Math.min(out.fastest, period);
     out.lead = Math.max(out.lead, t.delay ?? 0);
-    // one that runs once and stops is still in its end state a loop later: it does not break the seam
-    if (t.iterations === Infinity) out.periods.push(period);
+    out.periods.push(period);
   }
   return out;
 }
 
-/** Every animation paused at time `t` of the page's clock. */
-function pauseAt(_, t) {
-  for (const a of document.getAnimations()) { a.pause(); a.currentTime = t; }
-}
-
-/** Remembers the animations there are now, so the ones an action starts can be told apart. */
-function know() { window.c3dKnown = new Set(document.getAnimations()); }
-
-/** The transitions (and animations) started since know(), paused, and how long they all take. */
-function started() {
-  const fresh = document.getAnimations().filter((a) => !(window.c3dKnown ?? new Set()).has(a));
-  let length = 0;
-  for (const a of fresh) {
-    a.pause();
-    const t = a.effect?.getComputedTiming?.();
-    const whole = typeof t?.activeDuration === 'number' && isFinite(t.activeDuration) ? t.activeDuration : typeof t?.duration === 'number' ? t.duration : 0;
-    length = Math.max(length, (t?.delay ?? 0) + whole);
+/**
+ * Page time `V` (ms since the page clock was paused) applied to every CSS animation and
+ * transition: each is paused where V puts it, counted from when it started (the first time it is
+ * seen here, never more than one 16ms step late). Once the loop is held, its endless animations
+ * stay on its first frame. One that has reached its end is finished for real, so its animationend
+ * or transitionend fires. `mark` is the page time an action was taken at: what started since is
+ * fresh, and `length` is how long after the mark the last fresh one ends.
+ */
+function sync(_, { V, mark, adopt = null }) {
+  const birth = (window.c3dBirth ??= new Map());
+  const held = window.c3dHold ?? new Map();
+  const out = { ended: 0, running: 0, fresh: 0, length: 0 };
+  for (const a of document.getAnimations()) {
+    // adopt: the first call, on the clock just paused, takes each as far on as it already is
+    // (and `adopt` ms more, how far ahead the clock was paused)
+    if (!birth.has(a)) birth.set(a, adopt !== null ? V - (a.currentTime ?? 0) - adopt : V);
+    if (held.has(a)) { a.pause(); a.currentTime = held.get(a); continue; }
+    const b = birth.get(a), tm = a.effect?.getComputedTiming?.() ?? {};
+    const end = typeof tm.endTime === 'number' && isFinite(tm.endTime) ? tm.endTime : Infinity;
+    if (b >= mark) {
+      out.fresh++;
+      out.length = Math.max(out.length, b - mark + (isFinite(end) ? end : (tm.delay ?? 0) + (typeof tm.duration === 'number' ? tm.duration : 0)));
+    }
+    if (V - b >= end) {
+      if (a.playState !== 'finished') { try { a.finish(); out.ended++; } catch {} }
+    } else {
+      a.pause();
+      a.currentTime = V - b;
+      if (isFinite(end)) out.running++;
+    }
   }
-  window.c3dFresh = fresh;
-  window.c3dLength = length;
-  return { count: fresh.length, length };
+  return out;
 }
 
-/** Those transitions set to `phase` (0..1) of their length. */
-function phaseAt(_, phase) { for (const a of window.c3dFresh ?? []) a.currentTime = window.c3dLength * phase; }
+/**
+ * The loop starts at page time V: every endless animation counted `start` into its run (a whole
+ * loop past the longest delay, so all are in their steady state), anything else left where it is.
+ * The endless ones are remembered: they are what is held after the loop.
+ */
+function startLoop(_, { V, start }) {
+  const birth = (window.c3dBirth ??= new Map());
+  window.c3dLoop = [];
+  for (const a of document.getAnimations()) {
+    const endless = a.effect?.getComputedTiming?.().iterations === Infinity;
+    birth.set(a, V - (endless ? start : a.currentTime ?? 0));
+    if (endless) window.c3dLoop.push(a);
+  }
+}
+
+/** Holds the loop's endless animations on its first frame from now on. */
+function holdLoop(_, start) { window.c3dHold = new Map((window.c3dLoop ?? []).map((a) => [a, start])); }
 
 /** :hover forced on everything the way check-models.mjs forces it (on), or taken off again. */
 function holdHover(_, on) {
@@ -428,12 +468,35 @@ const ids = wanted.length ? wanted : demos.map((d) => d.id).filter((id) => all |
 
 mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: VW, height: VH }, deviceScaleFactor: 1 });
-page.on('pageerror', (e) => console.log('  page error:', e.message));
+let page; // a new one for every model, in a context of its own: see film()
 const sheet = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
 const inFrame = (fn, arg) => page.frameLocator('iframe').locator('body').evaluate(fn, arg);
 const BG = [16, 17, 26];
 const suffix = VW === 360 && VH === 300 ? '' : `@${VW}x${VH}`;
+
+/**
+ * Page time, moved by the check alone (see ONE CLOCK at the top), 16ms at a time. `V` is the
+ * page time since the clock was paused, `mark` the page time the action being filmed was taken.
+ */
+const CHUNK = 16;
+let V = 0, mark = 0;
+async function tick(ms) {
+  let s = null, left = ms;
+  do {
+    const d = Math.min(CHUNK, left);
+    if (d > 0) await page.clock.runFor(d);
+    V += d;
+    left -= d;
+    s = await inFrame(sync, { V, mark });
+    // something finished: give its animationend or transitionend a real moment to reach the
+    // script, then pick up what the script started in answer, at this same page time
+    if (s.ended) {
+      await page.waitForTimeout(30);
+      s = await inFrame(sync, { V, mark });
+    }
+  } while (left > 0);
+  return s;
+}
 
 /** One frame: the PNG for the strip and its cells for the judging. */
 async function shoot(clip) {
@@ -450,12 +513,32 @@ function inkAt(grid, x, y) {
 
 async function film(id) {
   const demo = demos.find((d) => d.id === id);
+  // a context of its own: a page clock of its own, installed before anything in the page runs
+  page = await browser.newPage({ viewport: { width: VW, height: VH }, deviceScaleFactor: 1 });
+  page.on('pageerror', (e) => console.log('  page error:', e.message));
+  await page.clock.install();
+  try {
+    return await filmOn(id, demo);
+  } finally {
+    await page.context().close();
+  }
+}
+
+async function filmOn(id, demo) {
   await page.goto(`${base}/embed/${id}/`, { waitUntil: 'domcontentloaded' });
   const there = await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(() => false);
   if (!there) return { id, broke: 'never appeared' };
   await page.addStyleTag({ content: BARE });
   await page.mouse.move(1, 1);
   await page.waitForTimeout(300);
+  // from here on the page moves only when tick() moves it. The clock cannot be paused in its own
+  // past, so it is paused AHEAD ms on from now, and the CSS already running is taken as that much
+  // further on too, to stay level with it
+  const AHEAD = 50;
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + AHEAD);
+  V = 0;
+  mark = 0;
+  await inFrame(sync, { V, mark, adopt: AHEAD });
   const clip = await page.locator('iframe').first().boundingBox();
   if (!clip) return { id, broke: 'no frame' };
   const runs = [];
@@ -471,23 +554,27 @@ async function film(id) {
     // the last frame leads back into the first only when every endless animation fits the loop a
     // whole number of times; otherwise the seam is a jump the picture really has, not a glitch
     loop.cyclic = timing.periods.every((p) => Math.abs(timing.loop / p - Math.round(timing.loop / p)) < 0.01);
-    loop.what = `${n} frames over ${(timing.loop / 1000).toFixed(2)}s, stepped${loop.cyclic ? '' : ' (not a whole loop of every animation, so the seam is not judged)'}`;
+    loop.what = `${n} frames over ${(timing.loop / 1000).toFixed(2)}s, stepped on the page clock${loop.cyclic ? '' : ' (not a whole loop of every animation, so the seam is not judged)'}`;
+    const V0 = V;
+    await inFrame(startLoop, { V, start });
     for (let i = 0; i < n; i++) {
-      const t = start + (timing.loop * i) / n;
-      await inFrame(pauseAt, t);
+      await tick(V0 + Math.round((timing.loop * i) / n) - V);
       loop.frames.push(await shoot(clip));
-      loop.labels.push(`${((t - start) / 1000).toFixed(2)}s`);
+      loop.labels.push(`${((V - V0) / 1000).toFixed(2)}s`);
     }
-    // everything after this is filmed with the loop held still on its first frame
-    await inFrame(pauseAt, start);
+    // everything after this is filmed with the loop's CSS held still on its first frame; script
+    // time goes on
+    await inFrame(holdLoop, start);
+    await tick(0);
   } else {
-    loop.what = `${PER_LOOP} frames in real time (it moves in script, or not at all)`;
+    loop.what = `${PER_LOOP} frames 100ms of page time apart (no endless CSS animation: it moves in script, or not at all)`;
     loop.cyclic = false;
-    const t0 = Date.now();
+    loop.coarse = true;
+    const V0 = V;
     for (let i = 0; i < PER_LOOP; i++) {
+      if (i) await tick(100);
       loop.frames.push(await shoot(clip));
-      loop.labels.push(`${((Date.now() - t0) / 1000).toFixed(2)}s`);
-      await page.waitForTimeout(60);
+      loop.labels.push(`${((V - V0) / 1000).toFixed(2)}s`);
     }
   }
   runs.push(loop);
@@ -500,33 +587,36 @@ async function film(id) {
   const toFrame = (x, y) => page.mouse.move(clip.x + x, clip.y + y, { steps: 3 });
 
   /**
-   * Films what `act` sets off. CSS transitions are paused and stepped through; when it starts
-   * none (the change is made by script, or there is none), frames are taken in real time. Says so
-   * when the picture after is the picture before.
+   * Films what `act` sets off, on the page clock: across the CSS transitions it starts in STEPS
+   * steps, and on while anything it set off still moves; or, when it starts none (the change is
+   * made by script, or there is none), 8 frames 70ms apart. Says so when the picture after is the
+   * picture before.
    */
   const through = async (name, act, quietOk = false) => {
     const before = await shoot(clip);
-    await inFrame(know);
+    mark = V;
     await act();
-    await page.waitForTimeout(40);
-    const s = await inFrame(started);
+    // what the action started starts now: getAnimations() in sync() applies the style change
+    const s = await tick(0);
     const run = { name, cyclic: false, frames: [before], labels: ['before'], response: true };
-    if (s.count && s.length > 0) {
-      run.what = `${s.count} transitions over ${(s.length / 1000).toFixed(2)}s, stepped`;
-      for (let i = 0; i <= STEPS; i++) {
-        await inFrame(phaseAt, i / STEPS);
-        run.frames.push(await shoot(clip));
-        run.labels.push(`${Math.round((100 * i) / STEPS)}%`);
-      }
-      await inFrame(phaseAt, 1);
-    } else {
-      run.what = 'no CSS transition started; real time';
-      for (let i = 0; i < 8; i++) {
-        await page.waitForTimeout(70);
-        run.frames.push(await shoot(clip));
-        run.labels.push(`${70 * (i + 1)}ms`);
-      }
+    const stepped = s.fresh > 0 && s.length > 0;
+    // across the transitions it started in STEPS steps; then on, a step at a time, for as long as
+    // anything is still moving (what a script started later, on a timer or on transitionend)
+    const dt = stepped ? Math.max(1, Math.round(s.length / STEPS)) : 70;
+    const least = stepped ? STEPS : 8;
+    run.what = stepped ? `${s.fresh} transitions over ${(s.length / 1000).toFixed(2)}s, stepped on the page clock` : 'no CSS transition started; 70ms of page time apart';
+    run.coarse = !stepped;
+    run.frames.push(await shoot(clip));
+    run.labels.push('0ms');
+    let i = 1;
+    for (; ; i++) {
+      const now = await tick(dt);
+      run.frames.push(await shoot(clip));
+      run.labels.push(`${V - mark}ms`);
+      if (i >= least && !now.running) break;
+      if (i >= least * 3) { run.what += ', still moving when the film stopped'; break; }
     }
+    if (i > least) run.what += `, and ${i - least} steps more while what it set off still moved`;
     const moved = change(before.grid, run.frames.at(-1).grid);
     const most = Math.max(...run.frames.map((f) => change(before.grid, f.grid)));
     run.changed = +moved.toFixed(2);
@@ -556,13 +646,13 @@ async function film(id) {
 
   if (ways.includes('move') || ways.includes('drag')) {
     // it follows the pointer in script: a slow lap round the canvas, photographed as it goes
-    const run = { name: ways.includes('drag') ? 'drag lap' : 'pointer lap', cyclic: false, frames: [], labels: [], what: 'pointer round the canvas, real time' };
+    const run = { name: ways.includes('drag') ? 'drag lap' : 'pointer lap', cyclic: false, frames: [], labels: [], what: 'pointer round the canvas, 90ms of page time apart', coarse: true };
     await page.mouse.move(cx, cy, { steps: 3 });
     if (ways.includes('drag')) await page.mouse.down();
     for (let i = 0; i <= 16; i++) {
       const a = (i / 16) * Math.PI * 2;
       await page.mouse.move(cx + Math.cos(a) * box.width * 0.4, cy + Math.sin(a) * box.height * 0.4, { steps: 3 });
-      await page.waitForTimeout(90);
+      await tick(90);
       run.frames.push(await shoot(clip));
       run.labels.push(`${Math.round((360 * i) / 16)}°`);
     }
@@ -570,15 +660,15 @@ async function film(id) {
     runs.push(run);
     still(run);
     await away();
-    await page.waitForTimeout(500);
+    await tick(500);
   }
 
   if (ways.includes('scroll')) {
-    const run = { name: 'scroll', cyclic: false, frames: [], labels: [], what: 'wheel down then up, real time' };
+    const run = { name: 'scroll', cyclic: false, frames: [], labels: [], what: 'wheel down then up, 90ms of page time apart', coarse: true };
     await page.mouse.move(cx, cy);
     for (let i = 0; i < 16; i++) {
       await page.mouse.wheel(0, i < 8 ? 120 : -120);
-      await page.waitForTimeout(90);
+      await tick(90);
       run.frames.push(await shoot(clip));
       run.labels.push(i < 8 ? `down ${i + 1}` : `up ${i - 7}`);
     }
@@ -590,19 +680,19 @@ async function film(id) {
   // every hoverable part in turn, with a real pointer on a point that lands on it
   if (parts.hover.length) {
     await away();
-    await page.waitForTimeout(150);
+    await tick(150);
     if (parts.hover.length > 1) {
       // and one pass straight across the model, as a visitor's pointer would go
-      const run = { name: 'across', cyclic: false, frames: [], labels: [], what: 'pointer left to right through the middle, real time' };
+      const run = { name: 'across', cyclic: false, frames: [], labels: [], what: 'pointer left to right through the middle, 80ms of page time apart', coarse: true };
       for (let i = 0; i <= 16; i++) {
         await page.mouse.move(box.x + (box.width * (i + 0.5)) / 17, cy, { steps: 2 });
-        await page.waitForTimeout(80);
+        await tick(80);
         run.frames.push(await shoot(clip));
         run.labels.push(`${Math.round((100 * i) / 16)}%`);
       }
       runs.push(run);
       await away();
-      await page.waitForTimeout(800);
+      await tick(800);
     }
     for (const part of parts.hover) {
       const at = aim(part, 'hover');
@@ -680,9 +770,9 @@ async function film(id) {
   notes.splice(0, notes.length, ...notes.filter((n) => !said.has(n.run + n.text) && said.add(n.run + n.text)));
   const judged = runs.map((r) => {
     const j = { name: r.name, what: r.what, changed: r.changed, ...judge(r.frames.map((f) => f.grid), r.cyclic, !r.response) };
-    // frames taken in real time are as far apart as the camera is slow, so a quick transition
-    // between two of them is a jump in the picture and not in the model: no pops from those
-    if (/real time/.test(r.what)) j.pops = [];
+    // frames 70-100ms of page time apart are too far apart for a quick transition between two
+    // of them to be anything but a jump in the picture, not in the model: no pops from those
+    if (r.coarse) j.pops = [];
     return j;
   });
   const files = await strips(id, runs, judged, notes);
