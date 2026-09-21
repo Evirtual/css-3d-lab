@@ -18,6 +18,7 @@ import { initVideoMaker, trackDownloads, videoButton } from './video';
 import type { PrintSetup } from './models/snippet-utils';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
+import { initCardStages } from './card-stage';
 import { interactionHtml } from './models/interaction';
 import { demos, type GroupedDemo } from './models';
 import { GROUPS, GROUP_ORDER, type Group } from './models/groups';
@@ -103,7 +104,7 @@ for (const [i, demo] of demos.entries()) {
   card.dataset.cat = demo.category;
   card.style.setProperty('--n', String(i));
   card.innerHTML = `
-    <div class="stage"></div>
+    <div class="stage" inert></div>
     ${interactionHtml(demo)}
     ${cardMenuHtml(demo.id)}
     <div class="card__body">
@@ -125,6 +126,7 @@ for (const [i, demo] of demos.entries()) {
   grid.append(card);
 }
 initCardLook(); // each card's own preview options
+initCardStages(); // their stages out of the Tab order, played with by the pointer
 fitStages(grid); // each demo scales with its card
 
 /* ---------- filters ---------- */

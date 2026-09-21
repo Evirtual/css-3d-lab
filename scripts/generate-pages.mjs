@@ -177,11 +177,12 @@ const crumbs = (items) => ({
 });
 
 // A gallery-style card. The text and the links are static HTML; the empty .stage is filled with
-// the live demo by lazy-mount.ts when the card comes near the viewport.
+// the live demo by lazy-mount.ts when the card comes near the viewport. It is inert, out of the
+// Tab order, and let go while a mouse is over the card (src/card-stage.ts).
 function demoCard(d, up, i) {
   return `<li>
           <article class="card is-offscreen" data-cat="${d.category}" data-mount="${d.id}" style="--n:${Math.min(i, 8)}">
-            <div class="stage" aria-hidden="true"></div>
+            <div class="stage" inert></div>
             ${interactionHtml(d)}
             <button type="button" class="card__menu" data-card-menu="${d.id}" aria-label="Preview options" aria-expanded="false" title="Preview options">${icon('more')}</button>
             <div class="card__body">

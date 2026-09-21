@@ -1,6 +1,7 @@
 import './styles/main.scss';
 import { initAnalytics, track } from './analytics';
 import { initCardLook } from './card-look';
+import { initCardStages } from './card-stage';
 import { initChrome } from './chrome';
 import { fitStages } from './fit';
 import { demos } from './models';
@@ -30,6 +31,7 @@ initAnalytics();
 lazyMountCards();
 fitStages(); // every demo on the page scales with its stage
 initCardLook();
+initCardStages(); // cards' stages out of the Tab order, played with by the pointer
 trackDownloads(track);
 // print goes through the same preview dialog; the page's model fills this in below
 let printOpenModel: ((stage: HTMLElement, setup: PrintSetup) => void) | null = null;
