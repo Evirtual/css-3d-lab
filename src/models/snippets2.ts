@@ -1316,13 +1316,13 @@ input:checked ~ em {
       'On <code>:hover</code> / <code>:focus</code> of the menu they rotate to 0°.',
       '<code>transition-delay: calc(var(--i) * 80ms)</code> opens them one after another.',
       'The non-hover rule uses the <b>reversed</b> delay, so closing runs bottom-up. <code>perspective</code> on the list gives the swing its depth.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The menu keeps room under its button for the open list, so it is centred open as well as closed.',
     ],
     html: `<div class="menu" tabindex="0">
   <span>Menu ▾</span>
   <ul>
     <li style="--i:0">Profile</li>
     <li style="--i:1">Projects</li>
-      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The menu keeps room under its button for the open list, so it is centred open as well as closed.',
     <li style="--i:2">Settings</li>
     <li style="--i:3">Sign out</li>
   </ul>
