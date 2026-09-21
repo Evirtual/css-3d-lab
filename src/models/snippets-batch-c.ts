@@ -1085,9 +1085,10 @@ stage.addEventListener('pointercancel', leave);`,
     how: [
       'A real checkbox holds the open/closed state and takes the keyboard; the button visitors see is its <code>&lt;label&gt;</code>, which is why only the plus icon inside needs to rotate on <code>:checked</code>, not the whole button.',
       'Every item starts tucked directly behind the button (<code>scale(0.4)</code>, pulled back in Z, flipped with <code>rotateX(-100deg)</code>). <code>:checked</code> swaps in a transform list with the <b>same functions</b> but different numbers, so the browser animates each one independently.',
-      '<code>rotate(a) translateX(r) rotate(-a)</code> walks a point out along a straight spoke at angle <code>a</code> while the trailing <code>rotate(-a)</code> cancels the turn, so every icon stays upright as it travels its own arc.',
+      '<code>rotate(a) translateX(r) rotate(-a)</code> walks a point out along a straight spoke at angle <code>a</code> while the trailing <code>rotate(-a)</code> cancels the turn, so every icon stays upright as it travels its own arc. The five spokes are 72° apart, a full ring round the button.',
       '<code>--i</code> staggers the opening so the items fan out one after another; on close the delay is reversed (<code>(4 - var(--i))</code>) so the <b>last</b> item to open is the <b>first</b> to leave.',
       'Closed items get <code>visibility: hidden</code> and <code>pointer-events: none</code> so Tab and clicks skip them until the menu is actually open.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The button sits in the middle and the items open into a full ring round it, so the menu is centred closed and open alike, and opening never moves the button.',
     ],
     html: `<div class="scene">
   <div class="radial">
@@ -1102,13 +1103,16 @@ stage.addEventListener('pointercancel', leave);`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the menu is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .radial {
   position: relative;
-  width: 212px;
-  height: 134px;
+  width: calc(200 * var(--u));
+  height: calc(200 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(16deg); /* lean the whole menu back a little so the depth can be seen */
 }
@@ -1118,60 +1122,59 @@ stage.addEventListener('pointercancel', leave);`,
   position: absolute;
   bottom: 0;
   left: 50%;
-  width: 1px;
-  height: 1px;
+  width: calc(1 * var(--u));
+  height: calc(1 * var(--u));
   margin: 0;
   opacity: 0;
   pointer-events: none;
 }
 
-/* the button is the label: it is the hit target and stays put, only the plus inside turns */
+/* the button is the label: it is the hit target and stays put in the middle, only the plus
+   inside turns */
 .fab {
   position: absolute;
-  bottom: 0;
-  left: calc(50% - 24px);
+  top: calc(50% - 24 * var(--u));
+  left: calc(50% - 24 * var(--u));
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: calc(48 * var(--u));
+  height: calc(48 * var(--u));
   border-radius: 50%;
   background: linear-gradient(140deg, #8b6cff, #ff4d9d);
-  box-shadow: 0 10px 22px -8px rgb(139 108 255 / 0.8);
+  box-shadow: 0 calc(10 * var(--u)) calc(22 * var(--u)) calc(-8 * var(--u)) rgb(139 108 255 / 0.8);
   color: #fff;
   cursor: pointer;
-  transform: translateZ(1px); /* just in front of the items' resting place */
+  transform: translateZ(calc(1 * var(--u))); /* just in front of the items' resting place */
 }
 
 .fab svg {
-  width: 22px;
-  height: 22px;
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
   pointer-events: none;
   transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
 }
 
 .radial > input:focus-visible ~ .fab {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 3px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(3 * var(--u));
 }
 
 .radial > input:checked ~ .fab svg {
   transform: rotate(135deg);
 }
 
-/* a faint ring that shows the arc the items travel to */
+/* a faint ring that shows the circle the items travel to, all the way round the button */
 .ring {
   position: absolute;
-  bottom: 24px;
-  left: calc(50% - 80px);
-  width: 160px;
-  height: 80px; /* the upper half of a circle around the button */
-  border: 1px dashed rgb(139 108 255 / 0.55);
-  border-bottom: 0;
-  border-radius: 80px 80px 0 0;
+  top: calc(50% - 80 * var(--u));
+  left: calc(50% - 80 * var(--u));
+  width: calc(160 * var(--u));
+  height: calc(160 * var(--u));
+  border: calc(1 * var(--u)) dashed rgb(139 108 255 / 0.55);
+  border-radius: 50%;
   opacity: 0;
   pointer-events: none;
   transform: scale(0.3);
-  transform-origin: 50% 100%;
   transition: transform 0.5s cubic-bezier(0.3, 1.3, 0.5, 1), opacity 0.3s;
 }
 
@@ -1183,16 +1186,16 @@ stage.addEventListener('pointercancel', leave);`,
 /* every item starts hidden behind the button, centre on centre; its place on the arc is
    turn-to-angle, walk out, turn back (so the icon stays upright) */
 .item {
-  --a: calc(-160deg + var(--i) * 35deg);
+  --a: calc(-90deg + var(--i) * 72deg); /* five spokes, 72deg apart, the first straight up */
   position: absolute;
-  bottom: 6px;
-  left: calc(50% - 18px);
+  top: calc(50% - 18 * var(--u));
+  left: calc(50% - 18 * var(--u));
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--c) 80%, transparent);
+  border: calc(1 * var(--u)) solid color-mix(in srgb, var(--c) 80%, transparent);
   border-radius: 50%;
   background: color-mix(in srgb, var(--c) 30%, #0b0d18);
   color: #eceefb;
@@ -1200,7 +1203,7 @@ stage.addEventListener('pointercancel', leave);`,
   opacity: 0;
   visibility: hidden; /* closed items must not be reachable by Tab */
   pointer-events: none;
-  transform: rotate(var(--a)) translateX(0) rotate(calc(var(--a) * -1)) translateZ(-30px) rotateX(-100deg) scale(0.4);
+  transform: rotate(var(--a)) translateX(0) rotate(calc(var(--a) * -1)) translateZ(calc(-30 * var(--u))) rotateX(-100deg) scale(0.4);
   /* closing: the last item leaves first */
   transition:
     transform 0.35s ease-in calc((4 - var(--i)) * 35ms),
@@ -1209,8 +1212,8 @@ stage.addEventListener('pointercancel', leave);`,
 }
 
 .item svg {
-  width: 17px;
-  height: 17px;
+  width: calc(17 * var(--u));
+  height: calc(17 * var(--u));
 }
 
 .item:hover,
@@ -1222,7 +1225,7 @@ stage.addEventListener('pointercancel', leave);`,
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: rotate(var(--a)) translateX(80px) rotate(calc(var(--a) * -1)) translateZ(26px) rotateX(0deg) scale(1);
+  transform: rotate(var(--a)) translateX(calc(80 * var(--u))) rotate(calc(var(--a) * -1)) translateZ(calc(26 * var(--u))) rotateX(0deg) scale(1);
   /* opening: staggered by index, with a little overshoot */
   transition:
     transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) calc(var(--i) * 45ms),
