@@ -40,7 +40,7 @@
     "date": "2026-09-21"
   },
   "models/paycard/": {
-    "hash": "0e8253df339cb40c",
+    "hash": "c9f33cc9756dafa3",
     "date": "2026-09-21"
   },
   "models/solar/": {
@@ -68,7 +68,7 @@
     "date": "2026-09-21"
   },
   "models/dice/": {
-    "hash": "f3eea555d5e7a2b0",
+    "hash": "5ecdf8a9b176bdf3",
     "date": "2026-09-21"
   },
   "models/wordcube/": {
@@ -76,7 +76,7 @@
     "date": "2026-09-21"
   },
   "models/turntable/": {
-    "hash": "36e3e5576644d9b9",
+    "hash": "69b72f8d9269b010",
     "date": "2026-09-21"
   },
   "models/neonbars/": {
@@ -152,7 +152,7 @@
     "date": "2026-09-21"
   },
   "models/cubenav/": {
-    "hash": "7b632da815ab714b",
+    "hash": "4ec65136b7e8ae6e",
     "date": "2026-09-21"
   },
   "models/chartpanel/": {
@@ -188,7 +188,7 @@
     "date": "2026-09-21"
   },
   "models/explode/": {
-    "hash": "e744b3d99f79fae9",
+    "hash": "8eb338fa3c521a07",
     "date": "2026-09-21"
   },
   "models/radio/": {
@@ -200,7 +200,7 @@
     "date": "2026-09-21"
   },
   "models/sphere/": {
-    "hash": "f5c80069511bf2d8",
+    "hash": "5db7c768577026f9",
     "date": "2026-09-21"
   },
   "models/scrollspin/": {
@@ -224,7 +224,7 @@
     "date": "2026-09-21"
   },
   "models/cubegrid/": {
-    "hash": "2411d9ade5887402",
+    "hash": "802b8a9992318428",
     "date": "2026-09-21"
   },
   "models/net/": {
@@ -328,7 +328,7 @@
     "date": "2026-09-21"
   },
   "models/tilt/": {
-    "hash": "d1637a1bd3e9d5f4",
+    "hash": "a69b7c8cbeab1ad4",
     "date": "2026-09-21"
   },
   "models/check/": {
@@ -420,11 +420,11 @@
     "date": "2026-09-21"
   },
   "models/wavegrid/": {
-    "hash": "581b10d0fabb800a",
+    "hash": "f0cfc95f1bf0e911",
     "date": "2026-09-21"
   },
   "models/ripple/": {
-    "hash": "5f21bac52f14ee97",
+    "hash": "dc9dbd370e456450",
     "date": "2026-09-21"
   },
   "models/cubeloader/": {
@@ -460,7 +460,7 @@
     "date": "2026-09-21"
   },
   "models/door/": {
-    "hash": "a3a7f9b061a90c20",
+    "hash": "0b3d78840219820c",
     "date": "2026-09-21"
   },
   "models/laptop/": {
@@ -552,7 +552,7 @@
     "date": "2026-09-21"
   },
   "models/candles/": {
-    "hash": "e817fe21965ee104",
+    "hash": "828208cf75a8b076",
     "date": "2026-09-21"
   },
   "models/waterfall/": {

@@ -152,7 +152,9 @@ for (const id of ids) {
   if (!seen) broke.push('nothing drawn');
   else {
     const full = seen.coversW >= 0.95 && seen.coversH >= 0.95;
-    const tallest = seen.controls ? WITH_CONTROLS : BAND;
+    // the band is what everything drawn must fit, model and control zone together; WITH_CONTROLS
+    // is the model box inside it, which is why a model with a row is smaller
+    const tallest = BAND;
     if (full) {
       // a full-canvas model is judged only on actually filling the canvas
       if (seen.coversW < 0.98 || seen.coversH < 0.98) broke.push(`claims the canvas but leaves a gap`);

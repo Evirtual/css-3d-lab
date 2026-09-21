@@ -296,7 +296,7 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 /* the floor: a neon grid laid flat under the candles */
 .floor {
   position: absolute;
-  left: -calc(10 * var(--u));
+  left: calc(-10 * var(--u));
   top: calc(85 * var(--u));
   width: calc(200 * var(--u));
   height: calc(30 * var(--u));
@@ -316,15 +316,15 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 .wall {
   --line: rgb(236 238 251 / 0.24);
   position: absolute;
-  top: -calc(8 * var(--u));
-  left: -calc(10 * var(--u));
+  top: calc(-8 * var(--u));
+  left: calc(-10 * var(--u));
   width: calc(200 * var(--u));
   height: calc(116 * var(--u));
   background:
     linear-gradient(var(--line), var(--line)) 0 calc(8 * var(--u)) / 100% calc(1 * var(--u)) no-repeat,
     linear-gradient(var(--line), var(--line)) 0 calc(58 * var(--u)) / 100% calc(1 * var(--u)) no-repeat,
     linear-gradient(var(--line), var(--line)) 0 calc(107 * var(--u)) / 100% calc(1 * var(--u)) no-repeat;
-  transform: translateZ(-calc(15 * var(--u)));
+  transform: translateZ(calc(-15 * var(--u)));
 }
 
 .wall span {
@@ -403,10 +403,10 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 /* the wick: low → high, and a second line crossed at 90° so it has depth */
 .wick {
   width: calc(2 * var(--u));
-  margin-left: -calc(1 * var(--u));
+  margin-left: calc(-1 * var(--u));
   background: var(--tone);
   box-shadow: 0 0 calc(6 * var(--u)) color-mix(in srgb, var(--tone) 70%, transparent);
-  transform: translateY(calc(var(--lo) * -calc(100 * var(--u)))) scaleY(calc(var(--hi) - var(--lo)));
+  transform: translateY(calc(var(--lo) * calc(-100 * var(--u)))) scaleY(calc(var(--hi) - var(--lo)));
 }
 
 .wick::before {
@@ -421,18 +421,18 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
   /* a fine edge: under calc(1 * var(--u)) shows as a hairline on sharp screens */
   --edge: calc(0.6 * var(--u)) solid color-mix(in srgb, color-mix(in srgb, var(--tone) 80%, #fff) 75%, transparent);
   width: calc(9 * var(--u));
-  margin-left: -calc(4.5 * var(--u));
+  margin-left: calc(-4.5 * var(--u));
   border: var(--edge);
   background: color-mix(in srgb, var(--tone) 58%, transparent);
   box-shadow:
     inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--tone) 30%, transparent),
     0 0 calc(10 * var(--u)) color-mix(in srgb, var(--tone) 22%, transparent);
-  transform: translateY(calc(var(--b) * -calc(100 * var(--u)))) scaleY(var(--bh)) translateZ(calc(4.5 * var(--u)));
+  transform: translateY(calc(var(--b) * calc(-100 * var(--u)))) scaleY(var(--bh)) translateZ(calc(4.5 * var(--u)));
 }
 
 /* right side, darker: hinged on the front's right edge, turned back */
 .body::before {
-  top: -calc(0.6 * var(--u));
+  top: calc(-0.6 * var(--u));
   left: 100%;
   width: calc(9 * var(--u));
   height: calc(100% + calc(1.2 * var(--u)));
@@ -444,8 +444,8 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 
 /* the lid: hinged on the front's top edge, laid flat; scaleY only carries it up */
 .body::after {
-  top: -calc(0.6 * var(--u));
-  left: -calc(0.6 * var(--u));
+  top: calc(-0.6 * var(--u));
+  left: calc(-0.6 * var(--u));
   width: calc(9 * var(--u));
   height: calc(9 * var(--u));
   border: var(--edge);
@@ -463,13 +463,13 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
   left: 50%;
   width: calc(9 * var(--u));
   height: 100%;
-  margin-left: -calc(4.5 * var(--u));
+  margin-left: calc(-4.5 * var(--u));
   background: color-mix(in srgb, var(--tone) 50%, transparent);
   box-shadow: 0 0 calc(20 * var(--u)) color-mix(in srgb, var(--tone) 60%, transparent);
   opacity: 0;
   pointer-events: none;
   transform-origin: bottom center;
-  transform: translateY(calc(var(--b) * -calc(100 * var(--u)))) scaleY(var(--bh)) translateZ(calc(4.7 * var(--u)));
+  transform: translateY(calc(var(--b) * calc(-100 * var(--u)))) scaleY(var(--bh)) translateZ(calc(4.7 * var(--u)));
   transition:
     transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i) * 30ms),
     opacity 0.25s;
@@ -492,7 +492,7 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
   border-radius: calc(6 * var(--u));
   background: ${SURFACE};
   box-shadow:
-    calc(3 * var(--u)) -calc(3 * var(--u)) 0 color-mix(in srgb, var(--tone) 55%, #05060c),
+    calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--tone) 55%, #05060c),
     0 0 calc(14 * var(--u)) color-mix(in srgb, var(--tone) 40%, transparent);
   color: ${TEXT};
   font: 700 calc(9 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
