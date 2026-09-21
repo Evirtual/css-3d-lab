@@ -7,6 +7,9 @@
  *
  *   node scripts/diag-video.mjs cube          60 frames of one model
  *   node scripts/diag-video.mjs cube 90       a longer run
+ *
+ * Runs on the source through Vite (no build) and starts its own export service on
+ * 127.0.0.1:8787, so stop a running `npm run export` first.
  */
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
