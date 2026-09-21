@@ -296,6 +296,8 @@ ${lines(24, (i) => `    <i style="--i:${i}"></i>`)}
       'Hinge them on the bottom edge and lean them back by <code>atan(r / h)</code>. That is exactly the angle at which every tip lands on the axis, <code>h</code> above the base.',
       'The triangle element must be as tall as the <b>slant</b>, <code>√(h² + r²)</code>, not <code>h</code>, because leaning shortens it.',
       'One element cannot run two transform animations, so the rocking lives on a wrapper and the spin on its child.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the cone is the same share of a gallery card, the editor and a recording canvas. The numbers above are those units.',
+      'The cone is centred on what it <b>draws</b>, not on its layout box: the base is a circle lying flat at the bottom, so tipping it back swings half that circle below the base while the tip only comes down. The rock carries a <code>translateY</code> that answers it, the same in both poses.',
     ],
     html: `<div class="scene">
   <div class="cone">
@@ -306,7 +308,10 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the cone is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.42vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* wrapper: rocks back and forth */
@@ -318,8 +323,8 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
 /* child: spins */
 .cone-body {
   position: relative;
-  width: 19.89px; /* triangle base = 2 × 50px × tan(180deg / 16) */
-  height: 110px;  /* cone height */
+  width: calc(19.89 * var(--u)); /* triangle base = 2 × 50 × tan(180deg / 16) */
+  height: calc(110 * var(--u));  /* cone height */
   transform-style: preserve-3d;
   animation: spin 10s linear infinite;
 }
@@ -331,36 +336,39 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 120.83px; /* slant = √(110² + 50²) */
+  height: calc(120.83 * var(--u)); /* slant = √(110² + 50²) */
   transform-origin: 50% 100%;
   /* stand on the base circle, then lean in by atan(50 / 110) */
-  transform: rotateY(calc(var(--i) * 22.5deg)) translateZ(50px) rotateX(24.44deg);
+  transform: rotateY(calc(var(--i) * 22.5deg)) translateZ(calc(50 * var(--u))) rotateX(24.44deg);
   clip-path: polygon(50% 0, 0 100%, 100% 100%);
-  /* the edge lines fade in over 1.5px instead of starting hard: a hard 1px line on a long,
+  /* the edge lines fade in over 1.5 units instead of starting hard: a hard line on a long,
      thin, slanted triangle is sampled unevenly and breaks into dashes */
   background:
-    linear-gradient(to top left, transparent calc(50% - 2.5px), var(--edge) calc(50% - 1px) 50%, transparent 50%) left / 50% 100% no-repeat,
-    linear-gradient(to top right, transparent calc(50% - 2.5px), var(--edge) calc(50% - 1px) 50%, transparent 50%) right / 50% 100% no-repeat,
+    linear-gradient(to top left, transparent calc(50% - 2.5 * var(--u)), var(--edge) calc(50% - 1 * var(--u)) 50%, transparent 50%) left / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 2.5 * var(--u)), var(--edge) calc(50% - 1 * var(--u)) 50%, transparent 50%) right / 50% 100% no-repeat,
     linear-gradient(to top, hsl(var(--hue) 90% 68% / 0.45), hsl(var(--hue) 90% 68% / 0.14));
 }
 
-/* base disc through the triangles' corners: 2 × 50px / cos(180deg / 16) */
+/* base disc through the triangles' corners: 2 × 50 / cos(180deg / 16) */
 .cone-body b {
   position: absolute;
-  left: calc(50% - 50.98px);
-  top: calc(100% - 50.98px);
-  width: 101.96px;
-  height: 101.96px;
+  left: calc(50% - 50.98 * var(--u));
+  top: calc(100% - 50.98 * var(--u));
+  width: calc(101.96 * var(--u));
+  height: calc(101.96 * var(--u));
   border-radius: 50%;
   background: rgb(46 230 214 / 0.26);
-  border: 1px solid rgb(46 230 214 / 0.75);
-  box-shadow: inset 0 0 24px rgb(46 230 214 / 0.3);
+  border: calc(1 * var(--u)) solid rgb(46 230 214 / 0.75);
+  box-shadow: inset 0 0 calc(24 * var(--u)) rgb(46 230 214 / 0.3);
   transform: rotateX(90deg);
 }
 
+/* The cone is centred on what it draws, not on its layout box: the base disc is a circle lying
+   flat at the bottom, so tipping it back swings half the disc BELOW the base, while the tip only
+   comes down. The lift answers that, and it is the same in both poses so the rock stays a rock. */
 @keyframes rock {
-  from { transform: rotateX(-30deg) rotateZ(-6deg); }
-  to   { transform: rotateX(24deg) rotateZ(6deg); }
+  from { transform: translateY(calc(-12 * var(--u))) rotateX(-30deg) rotateZ(-6deg); }
+  to   { transform: translateY(calc(-12 * var(--u))) rotateX(24deg) rotateZ(6deg); }
 }
 
 @keyframes spin {
