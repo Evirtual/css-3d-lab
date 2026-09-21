@@ -17,11 +17,12 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '      ')}
 export const snippetsG: Record<string, Snippet> = {
   headphones: {
     how: [
-      'The band is twelve flat strips. Each one starts at the arc centre, turns to its angle with <code>rotateZ</code>, moves out by the radius with <code>translateY(-58px)</code> and folds flat with <code>rotateX(90deg)</code>: together they are the top surface of an arch. Two masked rings close its sides.',
+      'The band is twelve flat strips. Each one starts at the arc centre, turns to its angle with <code>rotateZ</code>, moves out by the radius with <code>translateY(-58 units)</code> and folds flat with <code>rotateX(90deg)</code>: together they are the top surface of an arch. Two masked rings close its sides.',
       'A cup is a short cylinder built the easy way, standing up like a can (strips at <code>rotateY(i × 30deg) translateZ(r)</code>, a disc on each end), then laid on its side with <code>rotateZ(±90deg)</code> so the top disc faces outward.',
       'Light is computed, not painted by hand: each strip darkens itself with <code>cos()</code> / <code>sin()</code> of its own angle, so the strips facing up are the brightest.',
       'The turn cannot simply be switched off on hover: removing an animation snaps back. Instead two <code>@property</code> values animate: the lap angle <code>--spin</code> and a weight <code>--k</code>. The transform uses <code>--spin × --k</code>, and hover eases <code>--k</code> to 0, which glides from wherever the lap is to the front pose.',
       'The hovered element is a static wrapper and everything that moves has <code>pointer-events: none</code>, so the hover never flickers.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the headset is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="headphones" tabindex="0">
@@ -50,7 +51,10 @@ ${cup('r')}
 }
 
 .scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the headset is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* the static hit area */
@@ -66,9 +70,9 @@ ${cup('r')}
   --glow: #2ee6d6;
   display: grid;
   place-items: center;
-  width: 216px;
-  height: 184px;
-  border-radius: 16px;
+  width: calc(216 * var(--u));
+  height: calc(184 * var(--u));
+  border-radius: calc(16 * var(--u));
   cursor: pointer;
   transform-style: preserve-3d;
 }
@@ -93,116 +97,116 @@ ${cup('r')}
 
 .shadow {
   position: absolute;
-  left: -80px;
-  top: 34px;
-  width: 160px;
-  height: 80px;
+  left: calc(-80 * var(--u));
+  top: calc(34 * var(--u));
+  width: calc(160 * var(--u));
+  height: calc(80 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
   transform: rotateX(90deg);
 }
 
-/* --- the band: 12 strips over 200deg, radius 58px --- */
+/* --- the band: 12 strips over 200deg, radius 58 units --- */
 .band {
   position: absolute;
-  top: -22px;
+  top: calc(-22 * var(--u));
   transform-style: preserve-3d;
 }
 
 .band i {
   --a: calc(-100deg + (var(--i) + 0.5) * 16.667deg);
   position: absolute;
-  left: -8.8px;
-  top: -11px;
-  width: 17.6px; /* one side of the polygon, a hair wider: no seams */
-  height: 22px;  /* the band's width, front to back */
+  left: calc(-8.8 * var(--u));
+  top: calc(-11 * var(--u));
+  width: calc(17.6 * var(--u)); /* one side of the polygon, a hair wider: no seams */
+  height: calc(22 * var(--u));  /* the band's width, front to back */
   background:
     linear-gradient(rgb(0 0 0 / calc(0.5 - 0.46 * cos(var(--a)))) 0 0), /* shade: none on top */
-    repeating-linear-gradient(90deg, var(--stitch) 0 2px, transparent 2px 4px) 0 3px / 100% 1px no-repeat,
-    repeating-linear-gradient(90deg, var(--stitch) 0 2px, transparent 2px 4px) 0 18px / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, var(--stitch) 0 calc(2 * var(--u)), transparent calc(2 * var(--u)) calc(4 * var(--u))) 0 calc(3 * var(--u)) / 100% calc(1 * var(--u)) no-repeat,
+    repeating-linear-gradient(90deg, var(--stitch) 0 calc(2 * var(--u)), transparent calc(2 * var(--u)) calc(4 * var(--u))) 0 calc(18 * var(--u)) / 100% calc(1 * var(--u)) no-repeat,
     linear-gradient(var(--leather), var(--leather-hi) 45%, var(--leather));
-  transform: rotateZ(var(--a)) translateY(-58px) rotateX(90deg);
+  transform: rotateZ(var(--a)) translateY(calc(-58 * var(--u))) rotateX(90deg);
 }
 
 /* the band's side walls: a ring, masked to the same 200deg */
 .side {
   position: absolute;
-  left: -58px;
-  top: -58px;
-  width: 116px;
-  height: 116px;
-  background: radial-gradient(closest-side, transparent calc(100% - 6px), var(--leather) calc(100% - 5.5px), color-mix(in srgb, var(--leather) 70%, #000) 100%, transparent 100%);
+  left: calc(-58 * var(--u));
+  top: calc(-58 * var(--u));
+  width: calc(116 * var(--u));
+  height: calc(116 * var(--u));
+  background: radial-gradient(closest-side, transparent calc(100% - 6 * var(--u)), var(--leather) calc(100% - 5.5 * var(--u)), color-mix(in srgb, var(--leather) 70%, #000) 100%, transparent 100%);
   mask: conic-gradient(from -100deg, #000 0 200deg, transparent 0);
-  transform: translateZ(11px);
+  transform: translateZ(calc(11 * var(--u)));
 }
 
 .side + .side {
-  transform: translateZ(-11px);
+  transform: translateZ(calc(-11 * var(--u)));
 }
 
 /* --- metal: sliders (two crossed planes) and yokes (half rings) --- */
 .slider {
   position: absolute;
-  top: -18px;
-  left: -5px;
-  width: 10px;
-  height: 20px;
+  top: calc(-18 * var(--u));
+  left: calc(-5 * var(--u));
+  width: calc(10 * var(--u));
+  height: calc(20 * var(--u));
   background: linear-gradient(90deg, var(--metal-dark), var(--metal) 45%, #eef0fa 55%, var(--metal-dark));
 }
 
-.slider-l { transform: translateX(-55px) rotateY(90deg); }
-.slider-r { transform: translateX(55px) rotateY(90deg); }
-.slider-lf { left: -1.5px; width: 3px; transform: translateX(-55px); }
-.slider-rf { left: -1.5px; width: 3px; transform: translateX(55px); }
+.slider-l { transform: translateX(calc(-55 * var(--u))) rotateY(90deg); }
+.slider-r { transform: translateX(calc(55 * var(--u))) rotateY(90deg); }
+.slider-lf { left: calc(-1.5 * var(--u)); width: calc(3 * var(--u)); transform: translateX(calc(-55 * var(--u))); }
+.slider-rf { left: calc(-1.5 * var(--u)); width: calc(3 * var(--u)); transform: translateX(calc(55 * var(--u))); }
 
 .yoke {
   position: absolute;
-  left: -35px;
+  left: calc(-35 * var(--u));
   top: 0;
-  width: 70px;
-  height: 70px;
-  background: radial-gradient(closest-side, transparent calc(100% - 4px), var(--metal) calc(100% - 3.5px), var(--metal-dark) 100%, transparent 100%);
+  width: calc(70 * var(--u));
+  height: calc(70 * var(--u));
+  background: radial-gradient(closest-side, transparent calc(100% - 4 * var(--u)), var(--metal) calc(100% - 3.5 * var(--u)), var(--metal-dark) 100%, transparent 100%);
   mask: conic-gradient(from -90deg, #000 0 180deg, transparent 0);
 }
 
-.yoke-l { transform: translateX(-55px) rotateY(90deg); }
-.yoke-r { transform: translateX(55px) rotateY(90deg); }
+.yoke-l { transform: translateX(calc(-55 * var(--u))) rotateY(90deg); }
+.yoke-r { transform: translateX(calc(55 * var(--u))) rotateY(90deg); }
 
 /* --- cups: built standing (axis Y), then laid down; top disc = outside --- */
 .cup {
   --dir: 1; /* which way "up" went: flips the light */
   position: absolute;
-  top: 35px;
+  top: calc(35 * var(--u));
   transform-style: preserve-3d;
-  transform: translateX(55px) rotateZ(90deg);
+  transform: translateX(calc(55 * var(--u))) rotateZ(90deg);
 }
 
 .cup-l {
   --dir: -1;
-  transform: translateX(-55px) rotateZ(-90deg);
+  transform: translateX(calc(-55 * var(--u))) rotateZ(-90deg);
 }
 
-/* 12 strips, radius 31px, 26px thick: 17px shell, a seam, 9px cushion */
+/* 12 strips, radius 31 units, 26 units thick: 17 units shell, a seam, 9 units cushion */
 .cup i {
   position: absolute;
-  left: -8.6px;
-  top: -13px;
-  width: 17.2px;
-  height: 26px;
+  left: calc(-8.6 * var(--u));
+  top: calc(-13 * var(--u));
+  width: calc(17.2 * var(--u));
+  height: calc(26 * var(--u));
   backface-visibility: hidden;
   background:
     linear-gradient(rgb(0 0 0 / calc(0.3 + 0.28 * var(--dir) * sin(var(--i) * 30deg))) 0 0),
-    linear-gradient(var(--shell-hi) 0 2px, var(--shell) 4px 15px, var(--shell-hi) 16.5px, transparent 16.5px),
-    linear-gradient(transparent 17px, #2a2c3c 18px, var(--pad) 21px, #0b0c12);
-  transform: rotateY(calc(var(--i) * 30deg)) translateZ(31px);
+    linear-gradient(var(--shell-hi) 0 calc(2 * var(--u)), var(--shell) calc(4 * var(--u)) calc(15 * var(--u)), var(--shell-hi) calc(16.5 * var(--u)), transparent calc(16.5 * var(--u))),
+    linear-gradient(transparent calc(17 * var(--u)), #2a2c3c calc(18 * var(--u)), var(--pad) calc(21 * var(--u)), #0b0c12);
+  transform: rotateY(calc(var(--i) * 30deg)) translateZ(calc(31 * var(--u)));
 }
 
 /* the seam light: its own layer, so hover only changes opacity */
 .cup i::after {
   content: '';
   position: absolute;
-  inset: 16px 0 auto;
-  height: 1.5px;
+  inset: calc(16 * var(--u)) 0 auto;
+  height: calc(1.5 * var(--u));
   background: var(--glow);
   opacity: 0.25;
   transition: opacity 0.5s;
@@ -211,36 +215,36 @@ ${cup('r')}
 .outer,
 .cushion {
   position: absolute;
-  left: -31.5px;
-  top: -31.5px;
-  width: 63px;
-  height: 63px;
+  left: calc(-31.5 * var(--u));
+  top: calc(-31.5 * var(--u));
+  width: calc(63 * var(--u));
+  height: calc(63 * var(--u));
   border-radius: 50%;
   backface-visibility: hidden;
 }
 
 .outer {
   background:
-    radial-gradient(circle, var(--metal) 0 2.5px, transparent 3px),
-    radial-gradient(circle, transparent 0 7px, var(--metal) 7.5px 8.5px, transparent 9px),
+    radial-gradient(circle, var(--metal) 0 calc(2.5 * var(--u)), transparent calc(3 * var(--u))),
+    radial-gradient(circle, transparent 0 calc(7 * var(--u)), var(--metal) calc(7.5 * var(--u)) calc(8.5 * var(--u)), transparent calc(9 * var(--u))),
     radial-gradient(circle, transparent 0 83%, var(--metal-dark) 85%, #eef0fa 90%, var(--metal) 94%, var(--metal-dark)),
     radial-gradient(circle at 35% 30%, var(--shell-hi), var(--shell) 60%, color-mix(in srgb, var(--shell) 60%, #000));
-  transform: rotateX(90deg) translateZ(13px);
+  transform: rotateX(90deg) translateZ(calc(13 * var(--u)));
 }
 
 .outer em {
   position: absolute;
-  inset: 9px;
-  border: 2px solid var(--glow);
+  inset: calc(9 * var(--u));
+  border: calc(2 * var(--u)) solid var(--glow);
   border-radius: 50%;
-  box-shadow: 0 0 8px var(--glow), inset 0 0 8px var(--glow);
+  box-shadow: 0 0 calc(8 * var(--u)) var(--glow), inset 0 0 calc(8 * var(--u)) var(--glow);
   opacity: 0.2;
   transition: opacity 0.5s;
 }
 
 .cushion {
   background: radial-gradient(circle, #06070b 0 52%, #2a2c3c 60%, var(--pad) 72%, #2a2c3c 86%, #0b0c12);
-  transform: rotateX(-90deg) translateZ(13px);
+  transform: rotateX(-90deg) translateZ(calc(13 * var(--u)));
 }
 
 .headphones:hover .outer em,
