@@ -14,6 +14,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { REGISTRY } from './checks-registry.mjs';
 
 export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, cache = null }) {
   const mtime = (p) => { try { return statSync(join(ROOT, p)).mtimeMs; } catch { return 0; } };
@@ -65,6 +66,13 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     [/^The verify gate holds/, () => N('npm run verify runs every check in browsers: slow')],
     [/^Every model is converted/, () => counts.notConverted === 0 && counts.converted === n ? T(`${counts.converted} of ${n} converted`) : F(`${counts.converted} of ${n} converted, ${counts.notConverted} not`)],
     [/^Every model is approved/, () => counts.approved === n ? T(`${n} of ${n} approved`) : F(`${counts.approved} of ${n} approved`)],
+    [/^The check results behind the ledger are published with the code/, () => `${KEYS.index()}|${mtime('.gitignore')}`, () => {
+      // the files named by the registry, so a check added there is asked for here too
+      const ignored = (read('.gitignore') ?? '').split(/\r?\n/).some((l) => l.trim() === '/docs/checks/');
+      const tracked = new Set(git('ls-files', 'docs/checks').trim().split('\n').filter(Boolean));
+      const missing = REGISTRY.map((c) => `docs/checks/${c.key}.json`).filter((f) => !tracked.has(f));
+      return !ignored && !missing.length ? T(`/docs/checks/ is not ignored, and all ${REGISTRY.length} registry checks' files are committed`) : F(`/docs/checks/ in .gitignore: ${ignored ? 'yes' : 'no'}; not committed: ${missing.length ? missing.map((f) => f.slice(12)).join(', ') : 'none'} (of ${REGISTRY.length} in scripts/checks-registry.mjs)`);
+    }],
     [/^The ledger was built on the commit being pushed/, () => (H.startsWith(head) ? T(`built at ${head}, which is HEAD as this ledger was written (the watcher rebuilds when main moves)`) : F(`built at ${head}, HEAD is ${H.slice(0, 7) || 'unreadable'}`))],
     [/^No contract result is stale or failing/, () => { const c = counts.checks.models ?? {}; const keys = Object.keys(c); return keys.length === 1 && c.pass === n ? T(`"pass":${n}`) : F(JSON.stringify(c)); }],
     [/^check-stages has judged every model/, () => { const ok = models.filter((m) => m.checks.stages?.status === 'pass' && !m.checks.stages.stale).length; return ok === n ? T(`from the recorded results: ${n} of ${n} pass on the current code`) : F(`from the recorded results: ${ok} of ${n} have a fresh pass (the proof itself, a full capture run, is not run here)`); }],
