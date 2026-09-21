@@ -295,14 +295,15 @@ ${CUBE_FACES}
   perspective: calc(600 * var(--u));
 }
 
-/* static hit target (its bottom padding covers where the cap travels to). It is lifted because
-   the edge and the drop shadow hang below the cap: lifted, what is drawn is centred */
+/* static hit target (its bottom padding covers where the cap travels to). It is lifted a little
+   because the edge hangs below the cap: lifted, the solid button is centred. The drop shadow is
+   kept tight so it adds little to what is drawn beyond what the eye sees */
 .push {
   padding: 0 0 calc(32 * var(--u));
   border: 0;
   background: none;
   cursor: pointer;
-  transform: translateY(calc(-36 * var(--u))) rotateX(30deg);
+  transform: translateY(calc(-10 * var(--u))) rotateX(30deg);
 }
 
 /* the visible cap */
@@ -321,7 +322,7 @@ ${CUBE_FACES}
     0 calc(20 * var(--u)) 0 #8f2a58, 0 calc(24 * var(--u)) 0 #8f2a58,
     0 calc(28 * var(--u)) 0 #8f2a58, 0 calc(32 * var(--u)) 0 #8f2a58,
     0 calc(36 * var(--u)) 0 #8f2a58, 0 calc(40 * var(--u)) 0 #8f2a58,
-    0 calc(64 * var(--u)) calc(76 * var(--u)) rgb(0 0 0 / 0.55);
+    0 calc(48 * var(--u)) calc(24 * var(--u)) rgb(0 0 0 / 0.5);
   transition: transform 0.08s, box-shadow 0.08s;
 }
 
@@ -329,7 +330,7 @@ ${CUBE_FACES}
   transform: translateY(calc(32 * var(--u)));
   box-shadow:
     0 calc(4 * var(--u)) 0 #8f2a58, 0 calc(8 * var(--u)) 0 #8f2a58,
-    0 calc(22 * var(--u)) calc(34 * var(--u)) rgb(0 0 0 / 0.55);
+    0 calc(16 * var(--u)) calc(14 * var(--u)) rgb(0 0 0 / 0.5);
 }`,
   },
 
