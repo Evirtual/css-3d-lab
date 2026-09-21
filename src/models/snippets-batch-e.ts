@@ -1111,27 +1111,32 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
       'Points are placed with the <code>translate</code> property (<code>translate: x y z</code>) inside the wireframe cube, so each one keeps its position whatever else it does.',
       'To stay a round sphere a point undoes all three rotations. The two Y turns share an axis, so their order does not matter: the animated one goes on the separate <code>rotate</code> property (<code>0 → -360deg</code>, same timing as the spin), the variable ones stay in a static <code>transform</code>. No custom property ever has to be read inside keyframes.',
       'Pause the spin <b>and</b> the points together, and they stay in step. <code>touch-action: none</code> plus pointer capture makes the drag work with a finger.',
+      'Every length is a multiple of one base unit, <code>--u</code>, and JS writes a point\'s place as <b>plain numbers</b> that CSS multiplies by it, so the plot is the same share of a card, the editor and a recording canvas. The unit is set for the worst pose a drag can reach, a corner pointing at you, not for the pose at rest.',
     ],
     html: `<div class="plot">
-  <div class="tilt">
-    <div class="spin">
-      <div class="cube">
-        <u></u><u></u><u></u><u></u><u></u><u></u>
-        <s></s><s></s><s></s>
-        <b class="label" style="--x:84px;--y:70px;--z:-70px">x</b>
-        <b class="label" style="--x:-70px;--y:-84px;--z:-70px">y</b>
-        <b class="label" style="--x:-70px;--y:70px;--z:84px">z</b>
+  <div class="view">
+    <div class="tilt">
+      <div class="spin">
+        <div class="cube">
+          <u></u><u></u><u></u><u></u><u></u><u></u>
+          <s></s><s></s><s></s>
+          <b class="label" style="--x:84;--y:70;--z:-70">x</b>
+          <b class="label" style="--x:-70;--y:-84;--z:-70">y</b>
+          <b class="label" style="--x:-70;--y:70;--z:84">z</b>
+        </div>
       </div>
     </div>
   </div>
-  <small class="hint">drag to rotate</small>
 </div>`,
-    css: `.plot {
+    css: `/* the whole canvas is the drag surface; the plot itself is centred in it. No caption: the
+   site's badge already says "Drag". */
+.plot {
+  /* one base unit: every length in the plot is a multiple of it */
+  --u: 0.25vmin;
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
-  perspective: 700px;
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -1141,13 +1146,20 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
   cursor: grabbing;
 }
 
+/* the model box */
+.view {
+  display: grid;
+  place-items: center;
+  height: 70vmin;
+  perspective: calc(700 * var(--u));
+}
+
 .tilt {
   position: relative;
-  width: 140px;
-  height: 140px;
-  margin-top: -14px; /* room for the hint */
+  width: calc(140 * var(--u));
+  height: calc(140 * var(--u));
   transform-style: preserve-3d;
-  transform: scale3d(0.92, 0.92, 0.92) rotateX(var(--rx, -18deg));
+  transform: rotateX(var(--rx, -18deg));
 }
 
 .spin {
@@ -1158,7 +1170,7 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
 }
 
 .cube {
-  --s: 140px;
+  --s: calc(140 * var(--u));
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
@@ -1169,10 +1181,12 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
 .cube u {
   position: absolute;
   inset: 0;
-  border: 1px solid rgb(236 238 251 / 0.22);
+  /* in the text colour, so the frame reads on a light stage and a dark one */
+  --line: color-mix(in srgb, currentColor 7%, transparent);
+  border: calc(1.5 * var(--u)) solid color-mix(in srgb, currentColor 24%, transparent);
   background:
-    linear-gradient(90deg, rgb(236 238 251 / 0.07) 1px, transparent 1px) 0 0 / 35px 35px,
-    linear-gradient(rgb(236 238 251 / 0.07) 1px, transparent 1px) 0 0 / 35px 35px;
+    linear-gradient(90deg, var(--line) calc(1.5 * var(--u)), transparent calc(1.5 * var(--u))) 0 0 / calc(35 * var(--u)) calc(35 * var(--u)),
+    linear-gradient(var(--line) calc(1.5 * var(--u)), transparent calc(1.5 * var(--u))) 0 0 / calc(35 * var(--u)) calc(35 * var(--u));
 }
 
 ${CUBE_FACES}
@@ -1182,25 +1196,26 @@ ${CUBE_FACES}
   position: absolute;
   left: 0;
   top: 100%;
-  width: 148px;
-  height: 2px;
-  background: rgb(236 238 251 / 0.55);
+  width: calc(148 * var(--u));
+  height: calc(2.5 * var(--u));
+  background: color-mix(in srgb, currentColor 55%, transparent);
   transform-origin: 0 50%;
-  transform: translateZ(-70px);                       /* x */
+  transform: translateZ(calc(-70 * var(--u)));                       /* x */
 }
-.cube s:nth-of-type(2) { transform: translateZ(-70px) rotateZ(-90deg); } /* y */
-.cube s:nth-of-type(3) { transform: translateZ(-70px) rotateY(-90deg); } /* z */
+.cube s:nth-of-type(2) { transform: translateZ(calc(-70 * var(--u))) rotateZ(-90deg); } /* y */
+.cube s:nth-of-type(3) { transform: translateZ(calc(-70 * var(--u))) rotateY(-90deg); } /* z */
 
 .cube b {
   position: absolute;
-  top: calc(50% - 5px);
-  left: calc(50% - 5px);
-  width: 10px;
-  height: 10px;
+  top: calc(50% - calc(7 * var(--u)));
+  left: calc(50% - calc(7 * var(--u)));
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff 0 8%, var(--c) 50%, color-mix(in srgb, var(--c) 45%, #000));
-  box-shadow: 0 0 8px var(--c);
-  translate: var(--x) var(--y) var(--z);
+  box-shadow: 0 0 calc(8 * var(--u)) var(--c);
+  /* --x, --y, --z are plain numbers in the plot's own units */
+  translate: calc(var(--x) * var(--u)) calc(var(--y) * var(--u)) calc(var(--z) * var(--u));
   /* undo the cube's turn and the tilt (static)... */
   transform: rotateY(calc(var(--ry, 0deg) * -1)) rotateX(calc(var(--rx, -18deg) * -1));
   /* ...and the spin (animated, on its own property) */
@@ -1212,26 +1227,14 @@ ${CUBE_FACES}
   place-items: center;
   background: none;
   box-shadow: none;
-  color: #949bc0;
-  font: 700 12px/1 monospace;
+  color: inherit;
+  opacity: 0.65;
+  font: 700 calc(17 * var(--u))/1 monospace;
 }
 
 .is-drag .spin,
 .is-drag .cube b {
   animation-play-state: paused;
-}
-
-.hint {
-  position: absolute;
-  inset: auto 0 10px;
-  color: #949bc0;
-  font: 12px system-ui;
-  text-align: center;
-  transition: opacity 0.4s;
-}
-
-.is-touched .hint {
-  opacity: 0;
 }
 
 @keyframes spin {
@@ -1257,9 +1260,10 @@ const blob = (c, spread) => clamp(c + (Math.random() + Math.random() + Math.rand
 for (let n = 0; n < 42; n++) {
   const [cx, cy, cz, spread, colour] = clusters[n % 3];
   const p = document.createElement('b');
-  p.style.setProperty('--x', blob(cx, spread).toFixed(0) + 'px');
-  p.style.setProperty('--y', blob(cy, spread).toFixed(0) + 'px');
-  p.style.setProperty('--z', blob(cz, spread).toFixed(0) + 'px');
+  // plain numbers: CSS multiplies them by the plot's unit, --u
+  p.style.setProperty('--x', blob(cx, spread).toFixed(0));
+  p.style.setProperty('--y', blob(cy, spread).toFixed(0));
+  p.style.setProperty('--z', blob(cz, spread).toFixed(0));
   p.style.setProperty('--c', colour);
   cube.append(p);
 }
@@ -1270,7 +1274,7 @@ let last = null;
 plot.addEventListener('pointerdown', (e) => {
   last = { x: e.clientX, y: e.clientY };
   plot.setPointerCapture(e.pointerId);
-  plot.classList.add('is-drag', 'is-touched');
+  plot.classList.add('is-drag');
 });
 
 plot.addEventListener('pointermove', (e) => {
