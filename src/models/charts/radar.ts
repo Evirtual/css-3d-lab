@@ -296,44 +296,60 @@ const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
 export const snippet: Snippet = {
   how: [
     'The chart is ordinary SVG. Axis <code>i</code> points at angle <code>i × 360° ÷ n</code>, so a score becomes the point <code>(cos a, sin a) × radius × value ÷ max</code>. Join a series’ points and you have its <code>&lt;polygon&gt;</code>; the same maths at fixed fractions draws the rings of the web.',
-    'The 3D is only on containers: the plate lies back with <code>rotateX(50deg) rotateZ(-12deg)</code>, and each series is its own layer at <code>translateZ</code> 10 and 22px, so the two see-through shapes float over the web at different heights instead of blending into one plane.',
+    'The 3D is only on containers: the plate lies back with <code>rotateX(50deg) rotateZ(-12deg)</code>, and each series is its own layer at <code>translateZ</code> 10 and 22 units, so the two see-through shapes float over the web at different heights instead of blending into one plane.',
     'The axis names would be squashed by the tilt, so each one stands up: <code>rotateZ(12deg) rotateX(-50deg)</code> is the plate’s rotation in reverse order, which cancels it and leaves the text facing you.',
     'Hovering the still wrapper sets every rotation to 0: the plate lies flat and the layers sink onto the web so the points meet the rings. The wrapper never moves, so the hover never flickers, and the pointer’s angle from its centre says which axis you point at.',
     'There is <b>one</b> tooltip for the chart. JS writes the axis’ place into <code>--tx / --ty</code> and changes its text; a <code>transform</code> transition makes it glide from axis to axis instead of labels blinking in and out. From hidden it is placed with the transition off, so it does not fly in.',
     'The series buttons are real <code>&lt;button aria-pressed&gt;</code>; switching one only toggles a class that fades its layer with <code>opacity</code>. The series you point at (its button, or the leader on the axis the tooltip shows) fades in a fuller, glowing copy of its polygon. The glow is the polygon drawn again, wide and faint, underneath: no blur <code>filter</code>.',
+    "Every length is a multiple of one base unit, <code>--u</code>, and the SVGs' viewBox is the plate in those units. JS writes every place (the layers' heights, the axis names, the tooltip) as <b>plain numbers</b> in the chart's own units, which CSS multiplies by it. A length written in px from JS would stay the same size while the chart scaled around it, and the names and the tooltip would drift off the web. The caption and the series buttons are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.",
   ],
   html: `<div class="radar">
   <div class="view">
-    <div class="chart3d" tabindex="0" role="img" aria-label="Radar chart">
-      <div class="plate">
-        <div class="base"></div>
-        <svg class="web" viewBox="0 0 208 164" aria-hidden="true"><path class="rings" /><path class="spokes" /></svg>
-        <div class="axes"></div>
-        <b class="tip" aria-hidden="true"><em></em></b>
+    <div class="scene">
+      <div class="chart3d" tabindex="0" role="img" aria-label="Radar chart">
+        <div class="plate">
+          <div class="base"></div>
+          <svg class="web" viewBox="0 0 208 164" aria-hidden="true"><path class="rings" /><path class="spokes" /></svg>
+          <div class="axes"></div>
+          <b class="tip" aria-hidden="true"><em></em></b>
+        </div>
       </div>
     </div>
   </div>
-  <output></output>
-  <div class="toggles"></div>
+  <div class="controls">
+    <output class="caption"></output>
+    <div class="row toggles"></div>
+  </div>
 </div>`,
   css: `.radar {
+  /* one base unit: every length in the chart is a multiple of it, so it is the same share of a
+     card, the editor, a full screen and a recording canvas. The control zone under it is in
+     plain vmin, because it is the same object in every model. */
+  --u: 0.27vmin;
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 4vmin; /* the band's gap between the model and the control zone */
   font-family: system-ui, sans-serif;
 }
 
+/* the model box: the same height in every model that has controls */
 .view {
-  perspective: 800px;
-  padding: 16px 30px 10px;
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+}
+
+.scene {
+  perspective: calc(800 * var(--u));
+  padding: calc(16 * var(--u)) calc(30 * var(--u)) calc(10 * var(--u));
   pointer-events: none; /* the plate lies back, partly behind this box: only the wrapper takes the pointer */
 }
 
 /* the still wrapper: it takes the hover and never moves, so the hover never flickers */
 .chart3d {
   position: relative;
-  width: 208px;
-  height: 164px;
+  width: calc(208 * var(--u));
+  height: calc(164 * var(--u));
   outline: none;
   transform-style: preserve-3d;
   pointer-events: auto;
@@ -358,10 +374,10 @@ export const snippet: Snippet = {
 .base {
   position: absolute;
   inset: 0;
-  border: 1px solid rgb(139 108 255 / 0.5);
-  border-radius: 14px;
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.5);
+  border-radius: calc(14 * var(--u));
   background: linear-gradient(150deg, #2a2560, ${SURFACE});
-  box-shadow: 0 18px 36px -14px rgb(0 0 0 / 0.55);
+  box-shadow: 0 calc(18 * var(--u)) calc(36 * var(--u)) calc(-14 * var(--u)) rgb(0 0 0 / 0.55);
 }
 
 .plate svg {
@@ -373,7 +389,7 @@ export const snippet: Snippet = {
 }
 
 .web {
-  transform: translateZ(1px);
+  transform: translateZ(calc(1 * var(--u)));
 }
 
 .rings {
@@ -388,9 +404,9 @@ export const snippet: Snippet = {
   stroke-width: 1;
 }
 
-/* one SVG layer per series, floating at its own height (--z); --c is its colour */
+/* one SVG layer per series, floating at its own height (--z, in units); --c is its colour */
 .series {
-  transform: translateZ(var(--z));
+  transform: translateZ(calc(var(--z) * var(--u)));
   transition:
     transform 0.7s ${EASE},
     opacity 0.35s;
@@ -400,10 +416,10 @@ export const snippet: Snippet = {
 .chart3d:hover .series,
 .chart3d:focus-visible .series,
 .chart3d.is-flat .series {
-  transform: translateZ(calc(var(--z) / 8));
+  transform: translateZ(calc(var(--z) * var(--u) / 8));
 }
 
-/* see-through glass with a bright 1px edge */
+/* see-through glass with a bright one-unit edge */
 .series polygon {
   fill: color-mix(in srgb, var(--c) 46%, transparent);
   stroke: color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
@@ -456,24 +472,25 @@ export const snippet: Snippet = {
 
 .axes span {
   position: absolute;
-  top: var(--y);
-  left: var(--x);
+  top: calc(var(--y) * var(--u)); /* JS writes plain numbers in the chart's own units */
+  left: calc(var(--x) * var(--u));
   color: ${TEXT};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   /* --ax: 1 reads rightwards from the anchor, -1 leftwards, 0 is centred on it */
   translate: calc((var(--ax) - 1) * 50%) -50%;
-  transform: translateZ(6px) rotateZ(12deg) rotateX(-50deg);
+  transform: translateZ(calc(6 * var(--u))) rotateZ(12deg) rotateX(-50deg);
   transition: transform 0.7s ${EASE};
 }
 
 .chart3d:hover .axes span,
 .chart3d:focus-visible .axes span,
 .chart3d.is-flat .axes span {
-  transform: translateZ(2px) rotateZ(0deg) rotateX(0deg);
+  transform: translateZ(calc(2 * var(--u))) rotateZ(0deg) rotateX(0deg);
 }
 
-/* ONE tooltip for the chart: JS sets its place (--tx, --ty), its text and its colour (--c, the
+/* ONE tooltip for the chart: JS sets its place (--tx, --ty, plain numbers in the chart's own
+   units that CSS multiplies by --u), its text and its colour (--c, the
    axis' leader); the transform transition makes it glide from axis to axis. Its thickness is
    a hard shadow below it, not a 3D box. */
 .tip {
@@ -481,21 +498,21 @@ export const snippet: Snippet = {
   position: absolute;
   top: 0;
   left: 0;
-  padding: 3px 7px;
-  border: 1px solid var(--c);
-  border-radius: 6px;
+  padding: calc(3 * var(--u)) calc(7 * var(--u));
+  border: calc(1 * var(--u)) solid var(--c);
+  border-radius: calc(6 * var(--u));
   background: ${SURFACE};
   box-shadow:
-    0 3px 0 color-mix(in srgb, var(--c) 55%, #05060c),
-    0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+    0 calc(3 * var(--u)) 0 color-mix(in srgb, var(--c) 55%, #05060c),
+    0 0 calc(14 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent);
   color: ${TEXT};
-  font: 700 9px/11px system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   text-align: center;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(var(--tx, 0px), var(--ty, 0px)) translate(-50%, -50%) translateZ(8px);
+  transform: translate(calc(var(--tx, 0) * var(--u)), calc(var(--ty, 0) * var(--u))) translate(-50%, -50%) translateZ(calc(8 * var(--u)));
   transition:
     transform 0.35s ${EASE},
     opacity 0.2s;
@@ -508,13 +525,13 @@ export const snippet: Snippet = {
 .tip em {
   display: block;
   color: ${MUTED};
-  font-size: 8px;
+  font-size: calc(10 * var(--u));
   font-style: normal;
-  line-height: 10px;
+  line-height: calc(12 * var(--u));
 }
 
 .tip span {
-  margin: 0 3px;
+  margin: 0 calc(3 * var(--u));
   color: color-mix(in srgb, var(--c) 75%, ${TEXT});
 }
 
@@ -523,26 +540,41 @@ export const snippet: Snippet = {
   display: none;
 }
 
-output {
-  color: ${MUTED};
-  font-size: 12px;
+/* the control zone: the same object, at the same size, in every model that has one — so it is
+   written in plain vmin and not in the chart's own unit. The caption is on its own line above
+   the row, and its line box never changes height, so a new summary cannot move the chart. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-.toggles {
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.controls .row {
   display: flex;
-  gap: 6px;
+  gap: 2vmin;
 }
 
-.toggles button {
+/* the series buttons: real toggles, each with its colour as a dot */
+.controls button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border: 1px solid rgb(140 150 220 / 0.34);
+  gap: 1.5vmin;
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
+  border: 0;
   border-radius: 999px;
-  background: transparent;
+  background: rgb(140 150 220 / 0.2);
   color: ${MUTED};
-  font: 700 12px system-ui, sans-serif;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
 }
 
@@ -550,15 +582,15 @@ output {
 .toggles button::before {
   content: '';
   box-sizing: border-box;
-  width: 8px;
-  height: 8px;
-  border: 2px solid var(--c);
+  width: 2.6vmin;
+  height: 2.6vmin;
+  border: 0.6vmin solid var(--c);
   border-radius: 50%;
 }
 
 .toggles button[aria-pressed='true'] {
-  border-color: var(--c);
-  background: color-mix(in srgb, var(--c) 18%, transparent);
+  background: color-mix(in srgb, var(--c) 22%, transparent);
+  box-shadow: inset 0 0 0 0.3vmin color-mix(in srgb, var(--c) 60%, transparent);
   color: ${TEXT};
 }
 
@@ -569,7 +601,7 @@ output {
 const RADAR = ${json};
 
 const COLORS = ['${TEAL}', '${PINK}']; // one per series
-const W = 208, H = 164, CX = W / 2, CY = H / 2; // the plate; the SVG viewBox is the same, so 1 unit = 1px
+const W = 208, H = 164, CX = W / 2, CY = H / 2; // the plate in the chart's own units; the SVG viewBox is the same
 const R = 56; // the web's outer ring
 const n = RADAR.axes.length;
 const score = (v) => \`\${v}/\${RADAR.max}\`; // the way a dashboard writes it: 8/10
@@ -605,7 +637,7 @@ const layers = RADAR.series.map((s, k) => {
   const pts = s.values.map((v, i) => at(i, (R * v) / RADAR.max));
   const poly = pts.map((p) => fix(p).replace(' ', ',')).join(' ');
   const svg = svgEl('svg', { class: 'series', viewBox: \`0 0 \${W} \${H}\`, 'aria-hidden': 'true' });
-  svg.style.cssText = \`--c:\${COLORS[k]}; --z:\${10 + k * 12}px\`; // each series 12px above the last
+  svg.style.cssText = \`--c:\${COLORS[k]}; --z:\${10 + k * 12}\`; // each series 12 units above the last (a plain number: CSS multiplies it by --u)
   svg.append(
     svgEl('polygon', { class: 'glow', points: poly }),
     svgEl('polygon', { class: 'lit', points: poly }),
@@ -616,14 +648,14 @@ const layers = RADAR.series.map((s, k) => {
   return svg;
 });
 
-// The axis names, just outside the web: the side ones start 14px out and read outwards
-// (--ax: 1 or -1), the top and bottom ones sit 18px out, centred (--ax: 0).
+// The axis names, just outside the web: the side ones start 14 units out and read outwards
+// (--ax: 1 or -1), the top and bottom ones sit 18 units out, centred (--ax: 0).
 // Text from the data always goes in with textContent, never as HTML: an API is not trusted markup.
 RADAR.axes.forEach((a, i) => {
   const [x, y] = at(i, R + (side(i) ? 14 : 18));
   const label = document.createElement('span');
   label.textContent = a;
-  label.style.cssText = \`--x:\${x}px; --y:\${y}px; --ax:\${side(i)}\`;
+  label.style.cssText = \`--x:\${x}; --y:\${y}; --ax:\${side(i)}\`; // plain numbers: CSS multiplies them by --u
   axes.append(label);
 });
 
@@ -668,11 +700,11 @@ function leader(i, on) {
 const out = document.querySelector('.radar output');
 function summary(on) {
   const list = RADAR.series.filter((_, k) => on[k]);
-  if (list.length === 0) return 'Nothing shown · press a name to bring it back';
+  if (list.length === 0) return 'Nothing shown · press a name'; // short: the caption is one line
   if (list.length === 1) {
     const { name, values } = list[0];
     const hi = Math.max(...values), lo = Math.min(...values);
-    return \`\${name} · best \${RADAR.axes[values.indexOf(hi)]} \${score(hi)}, lowest \${RADAR.axes[values.indexOf(lo)]} \${score(lo)}\`;
+    return \`\${name} · best \${RADAR.axes[values.indexOf(hi)]} \${hi} · worst \${RADAR.axes[values.indexOf(lo)]} \${lo}\`;
   }
   const [a, b] = list;
   const wins = a.values.filter((v, i) => v > b.values[i]).length;
@@ -702,8 +734,8 @@ function place(i, refresh = false) {
   // from hidden it appears in place, not flying in from where it was last
   if (!wasOn) tip.style.transition = 'none';
   const [x, y] = at(i, R + (side(i) ? 26 : 14)); // over the axis' name
-  tip.style.setProperty('--tx', \`\${x}px\`);
-  tip.style.setProperty('--ty', \`\${y}px\`);
+  tip.style.setProperty('--tx', x); // plain numbers: CSS multiplies them by --u
+  tip.style.setProperty('--ty', y);
   lead = leader(i, shown());
   tip.style.setProperty('--c', lead < 0 ? '${VIOLET}' : COLORS[lead]);
   relight();
