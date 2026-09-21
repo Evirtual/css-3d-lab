@@ -11,7 +11,10 @@
     "icons": "node scripts/generate-icons.mjs",
     "dev": "npm run generate && vite",
     "build": "npm run generate && tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "place": "node scripts/measure-placement.mjs",
+    "check-placement": "node scripts/check-placement.mjs",
+    "export": "node server/dev.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",

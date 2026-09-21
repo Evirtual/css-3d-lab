@@ -8,14 +8,20 @@
 //   CAPTURE_MEAN=8 CAPTURE_PART=0.04 …               (looser thresholds)
 //   CAPTURE_T=2500 … / CAPTURE_T=none …               (the moment the animations are held at / not held)
 //
-// The capture is the compositor's rendering; the screenshot is the browser's. They will never be
+// Both pictures come from a browser, but not the same one: the screenshot is this page, the
+// capture is the export service drawing the scene that was sent to it. They will never be
 // identical to the pixel (anti-aliasing, text hinting), so what is measured is the mean luminance
 // difference over a downscaled picture and the share of pixels that differ clearly. A model that
 // comes out wrong — a missing face, a shifted glow, a lost letter — is far above both.
+//
+// The export service is started here, on the loopback address, so the run needs nothing else.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
+import { exportServer } from '../server/dev.mjs';
+
+const service = await exportServer(8787);
 
 const only = process.argv.slice(2);
 const MEAN = Number(process.env.CAPTURE_MEAN || 6); // 0–255, over the whole picture
@@ -27,7 +33,6 @@ await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
 
-// SwiftShader so that WebGL — the compositor's route — is there in a headless browser
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const W = 420;
 const H = 340;
@@ -143,6 +148,7 @@ for (const demo of list) {
 process.stdout.write('\n');
 await browser.close();
 await vite.close();
+service.close();
 
 // the sheet of strips, for looking at what differed
 if (strips.length) {

@@ -1,6 +1,6 @@
+import { Preview } from './preview';
 import site from '../site.config.json';
 import { printDoc, standaloneDoc, type PrintLook, type PrintSetup } from './models/snippet-utils';
-import sizes from './models/sizes.json';
 
 /**
  * One demo's editable snippet. Edits are kept in localStorage per demo, so they survive a reload
@@ -60,25 +60,16 @@ export class LiveEdit {
 
   /** A print-ready A4 page of the CURRENT code (edited or not), which opens the print dialog. */
   printDoc(look?: PrintLook, held = false, clock: number | null = null, setup?: PrintSetup): string {
-    const size = (sizes as Record<string, { size: number }>)[this.id]?.size ?? 1;
-    return printDoc(this.title, { how: [], ...this.current }, size, `${site.url.replace('https://', '')}/models/${this.id}/`, look, held, clock, setup);
+    return printDoc(this.title, { how: [], ...this.current }, 1, `${site.url.replace('https://', '')}/models/${this.id}/`, look, held, clock, setup);
   }
 
-  /**
-   * A frame running the current code, for showing an edited version live on a stage.
-   *
-   * It is same-origin on purpose: a frame the page cannot read is a frame the page cannot
-   * photograph either, and an edited model would go into every picture, video and print as an
-   * empty box, framed as if the model filled the whole stage. The code inside is the visitor's own
-   * typing, kept in their own browser and never shared — and the print sheet has always run it
-   * this way.
-   */
-  frame(stage: 'dark' | 'light'): HTMLIFrameElement {
-    const frame = document.createElement('iframe');
-    frame.className = 'live-frame';
-    frame.title = `${this.title} — your edited version`;
-    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
-    frame.srcdoc = standaloneDoc(this.title, { how: [], ...this.current }, stage, (sizes as Record<string, { size: number }>)[this.id]?.size ?? 1);
-    return frame;
+  private preview?: Preview;
+
+  mount(stage: HTMLElement, theme: 'dark' | 'light'): void {
+    this.preview ??= new Preview(this.id, this.title, this.original, this.current, theme);
+    if (this.preview.frame.parentElement !== stage) stage.replaceChildren(this.preview.frame);
+    this.preview.update(this.current, theme);
   }
+
+  close(): void { this.preview?.close(); this.preview = undefined; }
 }

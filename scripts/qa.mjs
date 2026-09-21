@@ -3,6 +3,9 @@
 //  - does it fit a card's stage (340 × 260) or does something get clipped;
 //  - does the interaction its badge promises (hover, move, drag, click, scroll) change anything.
 //   node scripts/qa.mjs [id ...]
+//
+// Every model runs in a frame of its own (src/preview.ts), so the looking is done inside that
+// frame; the clicking and hovering is done on the page, where a visitor's pointer is.
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
@@ -10,6 +13,7 @@ import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
 
 const DIST = resolve('dist');
+const placements = JSON.parse(readFileSync('src/models/placements.json', 'utf8'));
 const only = process.argv.slice(2);
 const vite = await createVite({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
@@ -40,12 +44,21 @@ async function check(demo) {
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await page.goto(`${base}/embed/${demo.id}/`);
   await page.addStyleTag({ content: '.embed__credit{display:none!important}' });
+  await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).catch(() => {});
   await page.waitForTimeout(700);
+  // the model itself lives in the frame; everything measured below is measured in there
+  const inner = page.frames().find((fr) => fr !== page.mainFrame());
+  if (!inner) {
+    problems.push(`${demo.id}: the model never appeared`);
+    await page.close();
+    return;
+  }
 
-  // 1. fit: anything visible drawn outside the stage? (fill demos are laid out to the stage)
-  const spill = await page.evaluate(([w, h]) => {
+  // 1. fit: anything visible drawn outside the frame? (models drawn to the edges are meant to)
+  const spill = await inner.evaluate(() => {
+    const w = innerWidth, h = innerHeight;
     let out = 0;
-    for (const el of document.querySelectorAll('.scene *')) {
+    for (const el of document.querySelectorAll('#c3d-scene *')) {
       const cs = getComputedStyle(el);
       if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) === 0) continue;
       const r = el.getBoundingClientRect();
@@ -70,13 +83,13 @@ async function check(demo) {
       out = Math.max(out, -r.left, -r.top, r.right - w, r.bottom - h);
     }
     return Math.round(out);
-  }, [W, H]);
-  // fill demos are scenes laid out to the stage; reaching past its edge (a floor, a tunnel) is the design
-  if (spill > 6 && !demo.fill) problems.push(`${demo.id}: something sticks out of the card stage by ${spill}px`);
+  });
+  // a model measured as drawn to its edges (a floor, a tunnel) is meant to reach past them
+  if (spill > 6 && !placements[demo.id]?.bleed) problems.push(`${demo.id}: something sticks out of the card stage by ${spill}px`);
 
   // 2. interaction: freeze time-based motion, play, and see whether the picture changes
   if (how !== 'none') {
-    const freeze = () => page.evaluate(() => document.getAnimations().forEach((a) => a.id !== 'qa' && a.effect?.getComputedTiming().iterations === Infinity && a.pause()));
+    const freeze = () => inner.evaluate(() => document.getAnimations().forEach((a) => a.effect?.getComputedTiming().iterations === Infinity && a.pause()));
     await freeze();
     await page.mouse.move(2, 2);
     await page.waitForTimeout(500);
@@ -101,16 +114,16 @@ async function check(demo) {
       await page.mouse.down();
       await page.mouse.move(cx + 90, cy + 10, { steps: 8 });
       await page.mouse.up();
-    } else if (how === 'click' && (await page.$('.scene input[type=range]'))) {
+    } else if (how === 'click' && (await inner.$('#c3d-scene input[type=range]'))) {
       // a slider: move it with the keyboard, the way a label click cannot
-      await page.focus('.scene input[type=range]');
+      await (await inner.$('#c3d-scene input[type=range]')).focus();
       for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
       await snap();
     } else if (how === 'click') {
       // the LAST control: the first is often the one already selected
       // visible controls first; bare radios / checkboxes only when there is nothing else
-      let targets = await page.$$('.scene button:not([disabled]), .scene label');
-      if (!targets.length) targets = await page.$$('.scene input[type=radio]:not(:checked), .scene input[type=checkbox]');
+      let targets = await inner.$$('#c3d-scene button:not([disabled]), #c3d-scene label');
+      if (!targets.length) targets = await inner.$$('#c3d-scene input[type=radio]:not(:checked), #c3d-scene input[type=checkbox]');
       if (targets.length) await targets[targets.length - 1].click({ force: true });
       else await page.mouse.click(cx, cy);
       await snap();
@@ -135,7 +148,7 @@ await Promise.all(
       try {
         await check(d);
       } catch (err) {
-        problems.push(`${d.id}: QA itself failed: ${err.message.split('\n')[0]}`);
+        problems.push(`${d.id}: QA itself failed: ${(err.stack ?? err.message).split('\n').slice(0, 3).join(' | ')}`);
       }
       process.stdout.write('.');
     }

@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "ESNext", "moduleResolution": "Bundler",
+    "strict": true, "skipLibCheck": true, "noEmit": true,
+    "allowJs": true, "checkJs": false,
+    "types": ["./worker-configuration.d.ts"]
+  },
+  "include": ["src", "../server/render.mjs", "worker-configuration.d.ts"]
+}

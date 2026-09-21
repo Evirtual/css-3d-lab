@@ -25,7 +25,7 @@ import { snippets } from './models/snippets';
 import { CATEGORY_LABEL, type Category, type Demo } from './models/types';
 import { highlight, type Lang } from './highlight';
 import { hydrateIcons, icon } from './icons';
-import { sizeScene } from './models/size';
+import { mountModel } from './preview';
 
 const REPO = 'https://github.com/Evirtual/css-3d-lab';
 
@@ -72,20 +72,7 @@ const count = (f: Filters): number => demos.filter((d) => matches(d, f)).length;
 
 /* ---------- mounting demos ---------- */
 
-let uid = 0;
-
-function mount(demo: Demo, stage: HTMLElement): () => void {
-  const scene = document.createElement('div');
-  scene.className = `scene${demo.fill ? ' scene--fill' : ''}`;
-  sizeScene(scene, demo.id);
-  scene.innerHTML = demo.html.replaceAll('{{uid}}', String(++uid));
-  stage.replaceChildren(scene);
-  const cleanup = demo.init?.(scene, stage);
-  return () => {
-    cleanup?.();
-    stage.replaceChildren();
-  };
-}
+const mount = (demo: Demo, stage: HTMLElement): (() => void) => mountModel(stage, demo.id, demo.title);
 
 /* ---------- grid ---------- */
 
@@ -448,21 +435,12 @@ function openViewer(id: string): void {
   const lines = viewerBody.querySelector<HTMLElement>('.codebox__lines')!;
   let current = panes[1];
 
-  /* the stage shows the site's own demo, or the visitor's edited snippet */
-  let showingEdit = false;
   const refreshStage = () => {
-    if (live.edited) {
-      unmountViewer?.();
-      unmountViewer = undefined;
-      stageEl.replaceChildren(live.frame(stageTheme()));
-      showingEdit = true;
-    } else if (showingEdit || !stageEl.firstElementChild) {
-      unmountViewer = mount(demo, stageEl);
-      showingEdit = false;
-    }
+    live.mount(stageEl, stageTheme());
+    unmountViewer = () => live.close();
     editedBar.hidden = !live.edited;
   };
-  restage = () => showingEdit && refreshStage(); // an edited frame has the stage theme baked in
+  restage = refreshStage;
   let timer = 0;
   const refreshSoon = () => {
     window.clearTimeout(timer);

@@ -1,7 +1,7 @@
 import './styles/main.scss';
 import { demos } from './models';
 import { fitStages } from './fit';
-import { sizeScene } from './models/size';
+import { mountModel } from './preview';
 
 /**
  * /embed/<id>/ — just the demo, filling the frame. Used two ways:
@@ -13,14 +13,7 @@ import { sizeScene } from './models/size';
 const stage = document.querySelector<HTMLElement>('[data-demo]');
 const demo = stage && demos.find((d) => d.id === stage.dataset.demo);
 
-if (stage && demo) {
-  const scene = document.createElement('div');
-  scene.className = `scene${demo.fill ? ' scene--fill' : ''}`;
-  sizeScene(scene, demo.id);
-  scene.innerHTML = demo.html.replaceAll('{{uid}}', 'embed');
-  stage.replaceChildren(scene);
-  demo.init?.(scene, stage);
-}
+if (stage && demo) mountModel(stage, demo.id, demo.title);
 
 const params = new URLSearchParams(location.search);
 if (params.has('og')) document.documentElement.dataset.og = '';

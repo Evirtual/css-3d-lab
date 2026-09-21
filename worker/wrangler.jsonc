@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "css-3d-lab-capture",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "browser": { "binding": "BROWSER" },
+  "vars": { "ALLOWED_ORIGINS": "https://css3dlab.edgarasneverdauskas.com,https://evirtual.github.io" },
+  "ratelimits": [{ "name": "EXPORT_LIMIT", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } }],
+  "limits": { "cpu_ms": 30000 },
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 }
+}

@@ -13,25 +13,7 @@ export interface Snippet {
  * content with the frame, like every stage does (`size` is the demo's own size factor): the frame
  * does it itself, because zooming an iframe from outside behaves differently between browsers.
  */
-export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light', size = 1): string {
-  const fit = stage
-    ? `<style>body > * { zoom: var(--fit, 1); }</style>
-<script>
-(function () {
-  function fit() {
-    // the site's own scale for this model — but never so big that the snippet's scene (which may
-    // carry padding of its own, a pointer area) outgrows the frame: then it cannot be centred
-    var f = Math.max(0.85, Math.min(6, innerWidth / 340, innerHeight / 280)) * ${size};
-    var scene = document.body && document.body.firstElementChild;
-    if (scene && scene.offsetWidth && scene.offsetHeight) f = Math.min(f, (innerWidth - 4) / scene.offsetWidth, (innerHeight - 4) / scene.offsetHeight);
-    document.documentElement.style.setProperty('--fit', f.toFixed(3));
-  }
-  if (document.body) fit();
-  addEventListener('DOMContentLoaded', fit);
-  addEventListener('resize', fit);
-})();
-</script>`
-    : '';
+export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light'): string {
   const background = stage ? 'transparent' : '#0b0d18';
   const color = stage === 'light' ? '#14172b' : '#eceefb';
   return `<!doctype html>
@@ -52,13 +34,13 @@ body {
   font-family: system-ui, sans-serif;
 }
 
-${s.css}
 </style>
-${fit}
+<style id="c3d-code">${s.css}</style>
+${stage ? `<style>html,body{width:100%;height:100%;min-height:0}body{display:block;position:relative}#c3d-scene{position:absolute;inset:0;display:grid;place-items:center;transform-style:preserve-3d;translate:0px 0px}:root[data-paused] *, :root[data-paused] *::before, :root[data-paused] *::after{animation-play-state:paused!important}</style><style id="c3d-held"></style>` : ''}
 </head>
 <body>
 
-${s.html}
+${stage ? `<div id="c3d-scene">${s.html}</div>` : s.html}
 ${s.js ? `\n<script>\n${s.js}\n</script>\n` : ''}
 </body>
 </html>`;

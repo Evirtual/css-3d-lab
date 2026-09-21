@@ -1,8 +1,3 @@
-import { groupsM } from './batch-m';
-import { groupsN } from './batch-n';
-import { groupsO } from './batch-o';
-import { groupsP } from './batch-p';
-import { groupsQ } from './batch-q';
 
 /**
  * What a demo is FOR. Categories (Pure CSS / CSS + JS) say how it is built; groups say where
@@ -35,9 +30,13 @@ const MEMBERS: Record<Group, string[]> = {
   data: ['bars', 'clock', 'playground', 'pie', 'scatter', 'gauge', 'timeline', 'neonbars', 'heatmap', 'chartpanel', 'stackbars', 'funnel', 'candles', 'waterfall', 'treemap', 'radar', 'activity'],
 };
 
-// Demos added in batches list their own group, so a new batch never edits this file.
-for (const extra of [groupsM, groupsN, groupsO, groupsP, groupsQ]) {
-  for (const [group, ids] of Object.entries(extra)) MEMBERS[group as Group].push(...ids);
+/**
+ * Demos added in batches list their own group, so a new batch never edits this file: each batch
+ * exports a `groups` map and it is merged in here.
+ */
+const EXTRA: Partial<Record<Group, string[]>>[] = [];
+for (const extra of EXTRA) {
+  for (const [group, ids] of Object.entries(extra)) MEMBERS[group as Group].push(...(ids ?? []));
 }
 
 const GROUP_OF = new Map<string, Group>();

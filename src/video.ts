@@ -1,3 +1,4 @@
+import { forkPreview, syncPreview, type Preview } from './preview';
 import { icon } from './icons';
 import {
   ASPECT_OF,
@@ -179,6 +180,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   let copied: HTMLElement | null = null;
   /** The stage's own backdrop, remembered before it moved (the frame paints it now). */
   let look: Paint | null = null;
+  let copiedPreview: Preview | undefined;
   let closing = false;
   /** Which opening this is: a close that was still fading out must not shut the next one. */
   let opened = 0;
@@ -243,8 +245,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     // An edited model runs in a frame of its own, and a frame reloads the instant it is moved in
     // the page — so the visitor's copy stays where it is and the dialog gets one of its own,
     // running the same edited code. Everything else is simply borrowed and given back.
-    if (stage.querySelector('iframe')) {
+    if (stage.querySelector('iframe') && !(typeof frame.moveBefore === 'function')) {
       const copy = panel.cloneNode(true) as HTMLElement;
+      const originalFrame = stage.querySelector('iframe')!;
+      copiedPreview = forkPreview(originalFrame);
+      if (copiedPreview) copy.querySelector('iframe')!.replaceWith(copiedPreview.frame);
       frame.append(copy);
       copied = copy;
       const inner = copy.classList.contains('stage') ? copy : copy.querySelector<HTMLElement>('.stage');
@@ -273,13 +278,16 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       hold: keep,
     };
     home.parent.insertBefore(keep, panel);
-    frame.append(panel);
+    if (typeof frame.moveBefore === 'function') frame.moveBefore(panel, null);
+    else frame.append(panel);
     dress(panel, stage);
   };
 
   const unmount = (): void => {
     // the dialog's own copy of an edited model is the dialog's to throw away
     if (copied) {
+      copiedPreview?.close();
+      copiedPreview = undefined;
       copied.remove();
       copied = null;
       return;
@@ -289,7 +297,10 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     home.inner.setAttribute('style', home.innerStyle);
     delete home.inner.dataset.inMaker;
     // its place may be gone (the view it came from has closed): then there is nowhere to go back to
-    if (home.hold.isConnected) home.parent.insertBefore(home.node, home.hold);
+    if (home.hold.isConnected) {
+      if (home.parent instanceof Element && typeof home.parent.moveBefore === 'function') home.parent.moveBefore(home.node, home.hold);
+      else home.parent.insertBefore(home.node, home.hold);
+    }
     home.hold.remove();
     home = null;
   };
@@ -314,8 +325,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     const zoom = (chosen().fill / 0.65).toFixed(3);
     stage.style.setProperty('--zoom', zoom);
     // an edited model lays itself out inside its own frame, which knows nothing of our variables
-    const framed = stage.querySelector<HTMLIFrameElement>('iframe');
-    if (framed) framed.style.zoom = zoom;
+    syncPreview(stage);
     stage.toggleAttribute('data-clear', clear());
   };
 
@@ -663,6 +673,12 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
               mine.progress = Math.min(1, seconds / MAX_SECONDS);
               working(`Recording ${seconds.toFixed(1)}s of ${MAX_SECONDS}`);
               pill?.style.setProperty('--done', String(mine.progress));
+            },
+            // the take is drawn once the recording has stopped, which is the part that takes time
+            onProgress: (done) => {
+              mine.progress = done;
+              working(`Drawing ${Math.round(done * 100)}%`);
+              pill?.style.setProperty('--done', String(done));
             },
           })
         : await recordModel({

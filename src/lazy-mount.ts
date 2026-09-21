@@ -1,27 +1,11 @@
 import { demos } from './models';
-import type { Demo } from './models/types';
-import { sizeScene } from './models/size';
+import { mountModel } from './preview';
 
 /**
  * Live previews for statically generated cards (`<article class="card" data-mount="<id>">`).
  * Same two-ring rule as the gallery: a demo is MOUNTED within 600px of the viewport, and only
  * RUNS while actually on screen (the rest sit paused via .is-offscreen).
  */
-let uid = 0;
-
-function mount(demo: Demo, stage: HTMLElement): () => void {
-  const scene = document.createElement('div');
-  scene.className = `scene${demo.fill ? ' scene--fill' : ''}`;
-  sizeScene(scene, demo.id);
-  scene.innerHTML = demo.html.replaceAll('{{uid}}', `m${++uid}`);
-  stage.replaceChildren(scene);
-  const cleanup = demo.init?.(scene, stage);
-  return () => {
-    cleanup?.();
-    stage.replaceChildren();
-  };
-}
-
 export function lazyMountCards(): void {
   const cards = [...document.querySelectorAll<HTMLElement>('.card[data-mount]')];
   if (!cards.length) return;
@@ -34,7 +18,7 @@ export function lazyMountCards(): void {
         if (e.isIntersecting && !mounted.has(card)) {
           const demo = demos.find((d) => d.id === card.dataset.mount);
           const stage = card.querySelector<HTMLElement>('.stage');
-          if (demo && stage) mounted.set(card, mount(demo, stage));
+          if (demo && stage) mounted.set(card, mountModel(stage, demo.id, demo.title));
         } else if (!e.isIntersecting) {
           mounted.get(card)?.();
           mounted.delete(card);

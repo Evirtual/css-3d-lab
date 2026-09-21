@@ -19,7 +19,6 @@ import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 import { printModel } from './print';
 import { initThanks, showThanks } from './thanks';
 import { markHolds } from './hold-hover';
-import { sizeScene } from './models/size';
 
 /**
  * Enhances the static demo and group pages. Everything a search engine needs is already in the
@@ -58,33 +57,11 @@ if (stage && demo && box) {
   const live = new LiveEdit(demo.id, demo.title, { html: textOf('html'), css: textOf('css'), ...(body('js') ? { js: textOf('js') } : {}) });
   printOpenModel = (from, setup) => printModel(live, from, setup);
 
-  /* ----- the stage shows the site's own demo, or the visitor's edited snippet ----- */
-  let unmount: (() => void) | undefined;
-  // Not "is the stage empty?": it starts with a <noscript> fallback inside it.
-  let showing: 'nothing' | 'original' | 'edit' = 'nothing';
-  const mountOriginal = () => {
-    const scene = document.createElement('div');
-    scene.className = `scene${demo.fill ? ' scene--fill' : ''}`;
-    sizeScene(scene, demo.id);
-    scene.innerHTML = demo.html.replaceAll('{{uid}}', 'page');
-    stage.replaceChildren(scene);
-    const cleanup = demo.init?.(scene, stage);
-    unmount = () => cleanup?.();
-    showing = 'original';
-  };
   const refreshStage = () => {
-    if (live.edited) {
-      unmount?.();
-      unmount = undefined;
-      stage.replaceChildren(live.frame(stageTheme()));
-      showing = 'edit';
-    } else if (showing !== 'original') {
-      mountOriginal();
-    }
+    live.mount(stage, stageTheme());
     if (editedBar) editedBar.hidden = !live.edited;
   };
-  // an edited frame has the stage theme baked in
-  document.addEventListener(STAGE_THEME_EVENT, () => showing === 'edit' && refreshStage());
+  document.addEventListener(STAGE_THEME_EVENT, refreshStage);
   let timer = 0;
   const refreshSoon = () => {
     window.clearTimeout(timer);
