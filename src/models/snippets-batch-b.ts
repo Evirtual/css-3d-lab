@@ -397,6 +397,7 @@ scene.addEventListener('pointercancel', leave);`,
 
   package: {
     how: [
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the box, its label and the card inside are the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
       'An open-top box: four walls around the centre and a base laid flat with <code>rotateX(-90deg)</code>, pushed down by half the wall height.',
       'The lid stands <b>above</b> the back wall and is hinged on its bottom edge with <code>transform-origin: 50% 100%</code>. <code>rotateX(-90deg)</code> lays it over the opening; <code>rotateX(24deg)</code> swings it open past vertical.',
       'Two transitions, swapped delays: opening, the lid goes first and the card rises 0.3s later; closing, the card drops first and the lid waits 0.3s. Each state carries the delay for the move <i>into</i> it.',
@@ -416,7 +417,10 @@ scene.addEventListener('pointercancel', leave);`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the box is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.3vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* the static hit area */
@@ -425,10 +429,10 @@ scene.addEventListener('pointercancel', leave);`,
   --card-dark: #2e2a5e;
   display: grid;
   place-items: center;
-  width: 200px;
-  height: 186px;
-  border-radius: 16px;
-  outline-offset: -4px;
+  width: calc(200 * var(--u));
+  height: calc(186 * var(--u));
+  border-radius: calc(16 * var(--u));
+  outline-offset: calc(-4 * var(--u));
   cursor: pointer;
   transform-style: preserve-3d;
 }
@@ -436,8 +440,8 @@ scene.addEventListener('pointercancel', leave);`,
 /* 88 wide, 88 deep, 60 tall */
 .box {
   position: relative;
-  width: 88px;
-  height: 60px;
+  width: calc(88 * var(--u));
+  height: calc(60 * var(--u));
   pointer-events: none;
   transform-style: preserve-3d;
   animation: sway 5s ease-in-out infinite alternate;
@@ -446,9 +450,11 @@ scene.addEventListener('pointercancel', leave);`,
 .wall {
   position: absolute;
   inset: 0;
-  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1px line
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a one-unit line
      breaks up, the shade survives */
-  box-shadow: inset 0 0 0 1px #a893fe, inset 0 0 8px rgb(168 147 254 / 0.18);
+  box-shadow:
+    inset 0 0 0 calc(1 * var(--u)) #a893fe,
+    inset 0 0 calc(8 * var(--u)) rgb(168 147 254 / 0.18);
   /* a ribbon down the middle */
   background:
     linear-gradient(90deg, transparent 42%, #ff4d9d 42% 58%, transparent 58%),
@@ -458,14 +464,14 @@ scene.addEventListener('pointercancel', leave);`,
 .front {
   display: grid;
   place-items: end start;
-  padding: 6px 7px;
+  padding: calc(6 * var(--u)) calc(7 * var(--u));
   backface-visibility: hidden; /* from behind you look INTO the box */
-  transform: translateZ(44px);
+  transform: translateZ(calc(44 * var(--u)));
 }
 
-.back { transform: rotateY(180deg) translateZ(44px); }
-.left { transform: rotateY(-90deg) translateZ(44px); }
-.right { transform: rotateY(90deg) translateZ(44px); }
+.back { transform: rotateY(180deg) translateZ(calc(44 * var(--u))); }
+.left { transform: rotateY(-90deg) translateZ(calc(44 * var(--u))); }
+.right { transform: rotateY(90deg) translateZ(calc(44 * var(--u))); }
 
 .left,
 .right {
@@ -474,84 +480,90 @@ scene.addEventListener('pointercancel', leave);`,
 
 .front em {
   color: #fff;
-  font: normal 800 7px system-ui;
-  letter-spacing: 1px;
+  font: normal 800 calc(9 * var(--u)) system-ui;
+  letter-spacing: calc(1 * var(--u));
 }
 
 /* an 88 × 88 square centred on the box, laid flat at the bottom edge */
 .base {
   position: absolute;
-  top: calc(50% - 44px);
+  top: calc(50% - 44 * var(--u));
   left: 0;
-  width: 88px;
-  height: 88px;
+  width: calc(88 * var(--u));
+  height: calc(88 * var(--u));
   background: #1c1938;
-  transform: rotateX(-90deg) translateZ(30px);
+  transform: rotateX(-90deg) translateZ(calc(30 * var(--u)));
 }
 
 /* stands above the back wall, hinged on its bottom edge = the top-back edge of the box */
 .lid {
   position: absolute;
-  top: -88px;
+  top: calc(-88 * var(--u));
   left: 0;
   box-sizing: border-box;
-  width: 88px;
-  height: 88px;
-  box-shadow: inset 0 0 0 1px #a48cff, inset 0 0 8px rgb(164 140 255 / 0.18); /* like the walls */
+  width: calc(88 * var(--u));
+  height: calc(88 * var(--u));
+  /* like the walls */
+  box-shadow:
+    inset 0 0 0 calc(1 * var(--u)) #a48cff,
+    inset 0 0 calc(8 * var(--u)) rgb(164 140 255 / 0.18);
   background:
     linear-gradient(90deg, transparent 42%, #ff4d9d 42% 58%, transparent 58%),
     linear-gradient(#6e65a4, var(--card));
   transform-origin: 50% 100%;
-  transform: translateZ(-44px) rotateX(-90deg);
+  transform: translateZ(calc(-44 * var(--u))) rotateX(-90deg);
   transition: transform 0.55s ease-in-out 0.3s; /* closing: wait for the card */
 }
 
 .card {
   position: absolute;
-  top: 5px;
-  left: calc(50% - 31px);
+  top: calc(5 * var(--u));
+  left: calc(50% - 31 * var(--u));
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 5px;
+  gap: calc(5 * var(--u));
   box-sizing: border-box;
-  width: 62px;
-  height: 52px;
-  border: 1px solid rgb(255 255 255 / 0.5);
-  border-radius: 8px;
+  width: calc(62 * var(--u));
+  height: calc(52 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.5);
+  border-radius: calc(8 * var(--u));
   background: linear-gradient(140deg, #2ee6d6, #8b6cff 60%, #ff4d9d);
-  box-shadow: inset 0 0 14px rgb(255 255 255 / 0.25);
+  box-shadow: inset 0 0 calc(14 * var(--u)) rgb(255 255 255 / 0.25);
   color: #fff;
-  font: 900 9px system-ui;
-  letter-spacing: 1.5px;
+  font: 900 calc(10 * var(--u)) system-ui;
+  letter-spacing: calc(1.5 * var(--u));
   transition: transform 0.5s ease-in-out;
 }
 
 /* the "product": a little gem */
 .card b {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
+  border-radius: calc(4 * var(--u));
   background: linear-gradient(135deg, #fff, rgb(255 255 255 / 0.35));
   transform: rotate(45deg);
 }
 
 .package:hover .lid,
 .package:focus-visible .lid {
-  transform: translateZ(-44px) rotateX(24deg); /* past vertical, leaning back */
+  /* past vertical, leaning back */
+  transform: translateZ(calc(-44 * var(--u))) rotateX(24deg);
   transition: transform 0.7s cubic-bezier(0.3, 1.35, 0.5, 1);
 }
 
 /* opening: the card waits until the lid is out of the way */
 .package:hover .card,
 .package:focus-visible .card {
-  transform: translateY(-64px);
+  transform: translateY(calc(-64 * var(--u)));
   transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1) 0.3s;
 }
 
+/* the box sits 30 units below its layout box: the open lid and the risen card stand well above
+   it, and this is what keeps the whole thing centred */
 @keyframes sway {
-  from { transform: translateY(40px) rotateX(-24deg) rotateY(-38deg); }
-  to   { transform: translateY(40px) rotateX(-24deg) rotateY(-22deg); }
+  from { transform: translateY(calc(30 * var(--u))) rotateX(-24deg) rotateY(-38deg); }
+  to   { transform: translateY(calc(30 * var(--u))) rotateX(-24deg) rotateY(-22deg); }
 }`,
   },
 
