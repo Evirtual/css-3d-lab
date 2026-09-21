@@ -76,6 +76,7 @@ ${CUBE_FACES}
       '<code>backface-visibility: hidden</code> hides whichever face is pointing away from you.',
       'On <code>:hover</code> / <code>:focus</code> rotate the <b>inner</b> wrapper, not the hovered element — otherwise the hit area rotates away and flickers.',
       '<code>tabindex="0"</code> makes it work on touch and keyboard too.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the card is the same share of a gallery card, the editor, a full screen and a recording canvas. Mid-turn the near half is magnified by the perspective, so the card is sized for the turn, not for the rest pose.',
     ],
     html: `<div class="flip" tabindex="0">
   <div class="flip-inner">
@@ -84,9 +85,12 @@ ${CUBE_FACES}
   </div>
 </div>`,
     css: `.flip {
-  width: 240px;
-  height: 160px;
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the card is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
+  width: calc(240 * var(--u));
+  height: calc(160 * var(--u));
+  perspective: calc(800 * var(--u));
   cursor: pointer;
 }
 
@@ -108,8 +112,8 @@ ${CUBE_FACES}
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 16px;
-  font: 700 1.5rem system-ui;
+  border-radius: calc(16 * var(--u));
+  font: 700 calc(24 * var(--u)) system-ui;
   color: #fff;
   background: linear-gradient(135deg, #8b6cff, #ff4d9d);
   backface-visibility: hidden;
