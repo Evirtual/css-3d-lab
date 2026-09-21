@@ -101,7 +101,11 @@ node scripts/check-motion.mjs <id> # no flicker or pop through its animation and
 10. Keyboard: hover-only models get `tabindex="0"` and the same effect on `:focus-visible` /
     `:focus-within`. Real `<button>`/`<input>` for controls.
 11. Honour reduced motion only by not being aggressive; the site has its own pause switch that
-    sets `animation-play-state: paused` on everything in a stage.
+    sets `animation-play-state: paused` on everything in a stage. It pauses CSS only, so JS that
+    moves the model on a timer or a `requestAnimationFrame` loop reads the frame's
+    `<html data-paused>` on every step and also honours `prefers-reduced-motion` (the clock
+    snippet shows how; docs/VIEW-CONTRACT.md, "A paused model stops its script too").
+    `npm run check-access` proves it, with names and keyboard reach.
 12. **A negative length is `calc(-N * var(--u))`, never `-calc(...)`.** `-calc(...)` is invalid
     CSS, so the whole declaration is dropped: the candlestick chart lost the `translateY` that
     lifted its wicks off the floor, and the dice's corner plate sat flush with the faces.

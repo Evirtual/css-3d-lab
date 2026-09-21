@@ -167,6 +167,23 @@ These are the things that would otherwise be found one model at a time.
 - **A paused model must look finished.** The site can pause every animation, and a model parked
   offscreen is paused too. The pose a model holds at the start of its animation is the pose it is
   judged on, so it cannot be mid-blur, mid-fade or halfway through a turn.
+- **A paused model stops its script too.** The site tells a frame it is paused with one signal:
+  `data-paused` on the frame's own `<html>` (`src/preview.ts` sets it while the Pause switch is
+  on, which it is from the start when the visitor's system asks for reduced motion, while the stage
+  is frozen, and while a card is parked offscreen, and takes it off again). CSS animations stop by
+  themselves: the frame pauses every one while the attribute is there. A script that moves the model
+  on its own, on a timer or a `requestAnimationFrame` loop, reads the same attribute on every step
+  (`document.documentElement.hasAttribute('data-paused')`), does nothing while it is set and carries
+  on when it goes. A copied snippet has no site round it, so such a script also honours
+  `matchMedia('(prefers-reduced-motion: reduce)')`: it stops, or, where the motion is the point (a
+  clock), it changes without animating. What the visitor does (a click, a drag) still answers while
+  paused. `npm run check-access` proves it for every model: paused, with reduced motion emulated,
+  the picture must not change over 4 seconds, and un-paused, a model that moved must move again.
+- **Every control has a name, and the keyboard reaches it.** A button with only an icon gets an
+  `aria-label`; a hover-only part gets `tabindex="0"`, a name (`role="img"` with an `aria-label`
+  when it is a picture) and the same effect on `:focus-visible`; a hidden input is hidden visually
+  (opacity, clip), never with `display: none`, so Tab still reaches it through its label. Focus
+  must show. `npm run check-access` checks all of it.
 - **Controls are usable by a finger.** 8vmin is about 22px on a card and about 30px in the viewer.
   A control that is smaller than 24px anywhere a visitor can tap it is too small, so the height is
   a floor, not a target.
