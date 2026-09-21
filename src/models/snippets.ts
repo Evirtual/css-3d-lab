@@ -129,8 +129,9 @@ ${CUBE_FACES}
     how: [
       'Every panel sits in the same spot, then gets <code>rotateY(n × 360° / count)</code> followed by <code>translateZ(radius)</code>.',
       'Order matters: rotate first, <i>then</i> translate — so each panel moves outward along its own rotated axis.',
-      'Radius for a closed ring: <code>(width / 2) / tan(180° / count)</code>. For 8 panels of 80px that is ≈ 97px; add a little for gaps.',
+      'Radius for a closed ring: <code>(width / 2) / tan(180° / count)</code>. For 8 panels 80 units wide that is ≈ 97 units; add a little for gaps.',
       'Spin the ring, and tilt a wrapper so you look slightly down on it.',
+      'Those units are one base unit, <code>--u</code>, tied to the canvas: the panel, the radius and the perspective are all multiples of it, so the ring is the same share of a gallery card, the editor and a recording canvas. Only the radius decides the width, so it is what the band is sized against.',
     ],
     html: `<div class="scene">
   <div class="ring">
@@ -141,15 +142,18 @@ ${CUBE_FACES}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 900px;
+  /* one base unit: every length below is a multiple of it, so the ring is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
+  perspective: calc(900 * var(--u));
 }
 
 .ring {
   --count: 8;
-  --radius: 115px;
+  --radius: calc(115 * var(--u));
   position: relative;
-  width: 80px;
-  height: 110px;
+  width: calc(80 * var(--u));
+  height: calc(110 * var(--u));
   transform-style: preserve-3d;
   animation: ring-spin 14s linear infinite;
 }
@@ -159,8 +163,8 @@ ${CUBE_FACES}
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 10px;
-  font: 800 1.4rem system-ui;
+  border-radius: calc(10 * var(--u));
+  font: 800 calc(22 * var(--u)) system-ui;
   color: #fff;
   background: hsl(calc(250 + var(--i) * 18) 80% 60% / 0.85);
   transform:
