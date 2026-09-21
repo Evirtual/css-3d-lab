@@ -14,19 +14,27 @@
  *    of them (twice the duration for an alternating one), at least 24 frames, more when a short
  *    animation would otherwise move too far between frames. A model with no CSS animation moves in
  *    script, which cannot be paused, so it is photographed in real time instead and says so.
- *  - THE INTERACTION: a real pointer over the middle (and, for a model that follows the pointer,
- *    a sweep round the canvas); where the pointer lands on nothing, :hover is forced the way
- *    check-models.mjs forces it. The transitions that starts are paused and stepped in, then the
- *    hover is taken away and the way back is stepped too. A model with controls has its first
- *    control clicked and that transition stepped.
+ *  - EVERY INTERACTION, one at a time, in the same pass. The loop is held on its first frame.
+ *    Hover and focus targets are read from the model's own CSS (what stands in front of :hover or
+ *    :focus-visible), controls from the DOM. Each hover target gets a real pointer on a point
+ *    that elementFromPoint says lands on that very element; then the pointer leaves. A pass
+ *    straight across the model follows. Every button is pressed and pressed again (and held down
+ *    and let go when the model styles :active), every toggle switched on and off, every radio
+ *    chosen, sliders set to min, middle and max, selects run through, focus targets focused by
+ *    keyboard and blurred; a model that follows the pointer or is dragged gets a lap round the
+ *    canvas, and a scroll model a wheel down and back. Whatever each action starts is filmed:
+ *    CSS transitions paused and stepped from start to end, anything else in real time.
  *
  * Two ways to find a glitch:
  *  - AUTOMATIC. The frame is cut into small cells. A cell that is colour A, then a clearly
  *    different colour B, then A again in the next frame, over a patch big enough to be a surface
  *    and not a passing edge, is FLICKER (two surfaces z-fighting, or depth order flipping and
  *    flipping back). A frame-to-frame change far above the model's own average, and far above the
- *    frames either side of it, is a POP (a jump, or one surface passing through another). Both are
- *    hints for a human to look at, not verdicts: a fast legitimate move can trip them too.
+ *    frames either side of it, is a POP (a jump, or one surface passing through another; only in
+ *    stepped frames, real-time ones are too far apart to tell). For interactions it also says when
+ *    the pointer can never land on a part (something else is drawn over it), when a pointer on
+ *    it does not hover it, when a part's hit area is mostly over empty canvas, and when an action
+ *    changes nothing on screen. All of it is a hint for a human to look at, not a verdict.
  *  - VISUAL. One strip per model in .media-tmp/motion/<id>.jpg: every frame in order, numbered,
  *    the flagged ones outlined red (flicker) or amber (pop), so the whole animation can be read
  *    at once by eye or by an agent. report.json beside them holds the numbers.
@@ -59,7 +67,7 @@ const CELL = Math.max(4, Math.round(Math.min(VW, VH) / 75));
 const NEAR = 8; // cells: a colour seen this close in the frame before or after has moved there, not flipped
 const FLIP = 70; // a colour change this big (largest channel difference, 0-255) is a different surface
 const SAME = 18; // and back within this much is the same surface again
-const PATCH = 6; // cells in one connected patch before a flip counts as a surface and not an edge
+const PATCH = 4; // cells in one connected patch, after the edges are pared off, before a flip counts as a surface
 const POP = 2.6; // a change this many times the model's average ...
 const LONELY = 1.8; // ... and this many times the frames either side of it, is a pop
 const QUIET = 1.5; // a change under this (mean channel difference) is too small to call a pop
@@ -181,7 +189,7 @@ function biggestPatch(marked, cols, rows) {
  * Flicker and pops in one run of frames. `cyclic` when the last frame leads back into the first
  * (a loop), not for a transition. Returns per-frame flags and the change curve.
  */
-function judge(frames, cyclic) {
+function judge(frames, cyclic, fromFirst = true) {
   const n = frames.length;
   const at = (i) => frames[cyclic ? (i + n) % n : i];
   const diffs = [];
@@ -194,11 +202,20 @@ function judge(frames, cyclic) {
       const o = k * 3;
       if (far(a, c, o) <= SAME && far(a, b, o) >= FLIP && far(c, b, o) >= FLIP && !nearby(b, o, k, a) && !nearby(b, o, k, c)) marked[k] = 1;
     }
-    const patch = biggestPatch(marked, b.cols, b.rows);
+    // pare a cell off every side: an edge that moved a cell is a strip one or two cells wide and
+    // goes; a surface that flipped is an area and keeps its middle
+    const core = new Uint8Array(marked.length);
+    for (let k = 0; k < marked.length; k++) {
+      const x = k % b.cols;
+      core[k] = marked[k] && x > 0 && x < b.cols - 1 && marked[k - 1] && marked[k + 1] && marked[k - b.cols] && marked[k + b.cols] ? 1 : 0;
+    }
+    const patch = biggestPatch(core, b.cols, b.rows);
     if (patch >= PATCH) flicker.push({ frame: i, cells: patch });
   }
   const mean = diffs.reduce((s, d) => s + d, 0) / (diffs.length || 1);
-  for (let i = 0; i < diffs.length; i++) {
+  // the first step after an action is the new state's own start: a colour or a class that is
+  // not transitioned changes there at once, by design, so that step is not judged as a pop
+  for (let i = fromFirst ? 0 : 1; i < diffs.length; i++) {
     const before = cyclic ? diffs[(i - 1 + diffs.length) % diffs.length] : diffs[i - 1];
     const after = cyclic ? diffs[(i + 1) % diffs.length] : diffs[i + 1];
     const beside = Math.max(before ?? 0, after ?? 0);
@@ -215,7 +232,7 @@ function judge(frames, cyclic) {
  * takes for nothing to move too far between two of them.
  */
 function timingOf() {
-  const out = { count: 0, loop: 0, fastest: Infinity, lead: 0 };
+  const out = { count: 0, loop: 0, fastest: Infinity, lead: 0, periods: [] };
   for (const a of document.getAnimations()) {
     const t = a.effect?.getComputedTiming?.();
     if (!t || typeof t.duration !== 'number' || !(t.duration > 0)) continue;
@@ -224,6 +241,8 @@ function timingOf() {
     out.loop = Math.max(out.loop, period);
     out.fastest = Math.min(out.fastest, period);
     out.lead = Math.max(out.lead, t.delay ?? 0);
+    // one that runs once and stops is still in its end state a loop later: it does not break the seam
+    if (t.iterations === Infinity) out.periods.push(period);
   }
   return out;
 }
@@ -283,12 +302,19 @@ function partsOf() {
       for (const [kind, re] of [['hover', /:hover/], ['focus', /:focus(-visible|-within)?/]]) {
         const at = s.search(re);
         if (at < 0) continue;
-        const head = s.slice(0, at).trim();
+        // .key:is(:hover, :focus-visible) names .key
+        const head = s.slice(0, at).trim().replace(/:(is|where)\($/, '');
         if (head && !/[\s>+~(]$/.test(head)) heads[kind].add(head);
       }
     }
   }
   const all = (window.c3dParts = []);
+  // what a real press lands on, which is not always what elementFromPoint says: the browser's
+  // hit test for events and the one it answers elementFromPoint with can disagree on 3D layers
+  if (!window.c3dDown) {
+    window.c3dDown = null;
+    document.addEventListener('pointerdown', (e) => { window.c3dDown = e.target; }, true);
+  }
   const describe = (el) => {
     if (!el) return 'nothing';
     const cls = [...el.classList].filter((c) => !c.startsWith('c3d')).slice(0, 2).map((c) => '.' + c).join('');
@@ -308,7 +334,8 @@ function partsOf() {
           if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) continue;
           tried++;
           const at = document.elementFromPoint(x, y);
-          if (at && (at === el || el.contains(at) || (el.control && at === el.control))) hits.push([x, y]);
+          // a hidden input is reached through anything inside its label
+          if (at && (at === el || el.contains(at) || (el.control && at === el.control) || [...(el.labels ?? [])].some((l) => l.contains(at)))) hits.push([x, y]);
         }
     hits.sort((a, b) => Math.hypot(a[0] - middle[0], a[1] - middle[1]) - Math.hypot(b[0] - middle[0], b[1] - middle[1]));
     const onMiddle = middle[0] >= 0 && middle[1] >= 0 && middle[0] < innerWidth && middle[1] < innerHeight ? document.elementFromPoint(...middle) : null;
@@ -350,8 +377,11 @@ function partsOf() {
       : input?.matches?.('input[type="radio"]') ? 'radio'
       : el.matches('input[type="text"], input[type="number"], textarea') ? 'text' : 'button';
     if (kind === 'text') continue;
-    // a hidden input is reached through its label, so the label is what the pointer must land on
-    const target = !shows(el) && el.labels?.length ? [...el.labels].find(shows) : el;
+    // a hidden input (not displayed, see-through, or clipped to nothing: the usual custom-control
+    // trick) is reached through its label, so the label is what the pointer must land on
+    const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+    const unseen = !shows(el) || (el.matches('input') && (+cs.opacity < 0.05 || cs.clip !== 'auto' || (r.width <= 2 && r.height <= 2)));
+    const target = unseen && el.labels?.length ? [...el.labels].find(shows) ?? el : el;
     if (target !== el && controls.some((c) => all[c.i] === target)) continue;
     controls.push(add(target, kind, { input: all.push(input ?? target) - 1, min: +(el.min || 0), max: +(el.max || 100), options: el.options?.length ?? 0 }));
   }
@@ -361,9 +391,20 @@ function partsOf() {
 /** Whether part `i` is hovered, focused (visibly) or checked right now. */
 function stateOf(_, i) {
   const el = window.c3dParts[i];
-  return { hovered: el.matches(':hover'), focused: el.matches(':focus'), visible: el.matches(':focus-visible'), checked: !!el.checked };
+  const current = el.getAttribute('aria-pressed') === 'true' || el.getAttribute('aria-selected') === 'true' || el.hasAttribute('aria-current') || ['active', 'is-active', 'on', 'is-on', 'selected', 'is-selected', 'current'].some((c) => el.classList.contains(c));
+  return { hovered: el.matches(':hover'), focused: el.matches(':focus'), visible: el.matches(':focus-visible'), checked: !!el.checked, current,
+    // a lone aria-pressed button toggles; one of a row of them is a choice, like a radio
+    toggles: el.hasAttribute('aria-pressed') && (el.parentElement?.querySelectorAll(':scope > [aria-pressed]').length ?? 0) < 2 };
 }
 function clickPart(_, i) { window.c3dParts[i].click(); }
+/** What the last real press landed on, as a name, and whether that is part i (or inside it). */
+function pressedOn(_, i) {
+  const el = window.c3dParts[i], at = window.c3dDown;
+  if (!at) return { ok: false, name: 'nothing (no press arrived)' };
+  const ok = at === el || el.contains(at) || (el.control && at === el.control) || [...(el.labels ?? [])].some((l) => l.contains(at));
+  const cls = [...at.classList].slice(0, 2).map((c) => '.' + c).join('');
+  return { ok, name: at.tagName.toLowerCase() + cls };
+}
 function focusPart(_, i) { window.c3dParts[i].focus({ focusVisible: true }); }
 function blurAll() { document.activeElement?.blur?.(); }
 function setValue(_, [i, value]) {
@@ -427,7 +468,10 @@ async function film(id) {
     const n = Math.min(MOST, Math.max(PER_LOOP, Math.ceil((PER_LOOP * timing.loop) / timing.fastest / 2) * 2));
     // start on a whole loop past the longest delay, so every animation is in its steady state
     const start = Math.ceil((timing.lead + 1) / timing.loop) * timing.loop;
-    loop.what = `${n} frames over ${(timing.loop / 1000).toFixed(2)}s, stepped`;
+    // the last frame leads back into the first only when every endless animation fits the loop a
+    // whole number of times; otherwise the seam is a jump the picture really has, not a glitch
+    loop.cyclic = timing.periods.every((p) => Math.abs(timing.loop / p - Math.round(timing.loop / p)) < 0.01);
+    loop.what = `${n} frames over ${(timing.loop / 1000).toFixed(2)}s, stepped${loop.cyclic ? '' : ' (not a whole loop of every animation, so the seam is not judged)'}`;
     for (let i = 0; i < n; i++) {
       const t = start + (timing.loop * i) / n;
       await inFrame(pauseAt, t);
@@ -460,13 +504,13 @@ async function film(id) {
    * none (the change is made by script, or there is none), frames are taken in real time. Says so
    * when the picture after is the picture before.
    */
-  const through = async (name, act) => {
+  const through = async (name, act, quietOk = false) => {
     const before = await shoot(clip);
     await inFrame(know);
     await act();
     await page.waitForTimeout(40);
     const s = await inFrame(started);
-    const run = { name, cyclic: false, frames: [before], labels: ['before'] };
+    const run = { name, cyclic: false, frames: [before], labels: ['before'], response: true };
     if (s.count && s.length > 0) {
       run.what = `${s.count} transitions over ${(s.length / 1000).toFixed(2)}s, stepped`;
       for (let i = 0; i <= STEPS; i++) {
@@ -486,11 +530,15 @@ async function film(id) {
     const moved = change(before.grid, run.frames.at(-1).grid);
     const most = Math.max(...run.frames.map((f) => change(before.grid, f.grid)));
     run.changed = +moved.toFixed(2);
-    if (most < 0.12) notes.push({ run: name, text: 'changes nothing on screen' });
+    if (most < 0.12 && !quietOk) notes.push({ run: name, text: 'changes nothing on screen' });
     runs.push(run);
     return run;
   };
 
+  /** A pointer lap, a drag or a scroll that leaves every frame as it was does nothing on screen. */
+  const still = (run) => {
+    if (Math.max(...run.frames.map((f) => change(run.frames[0].grid, f.grid))) < 0.12) notes.push({ run: run.name, text: 'changes nothing on screen' });
+  };
   const rest = await shoot(clip);
   const parts = await inFrame(partsOf);
   /** Reachability findings for one part; returns the point to put the pointer on, or null. */
@@ -520,6 +568,7 @@ async function film(id) {
     }
     if (ways.includes('drag')) await page.mouse.up();
     runs.push(run);
+    still(run);
     await away();
     await page.waitForTimeout(500);
   }
@@ -534,6 +583,7 @@ async function film(id) {
       run.labels.push(i < 8 ? `down ${i + 1}` : `up ${i - 7}`);
     }
     runs.push(run);
+    still(run);
     await away();
   }
 
@@ -568,13 +618,21 @@ async function film(id) {
   }
 
   // every control in turn, clicked where the pointer lands on it, and back again
-  const click = async (part, name) => {
+  // quietOk: choosing what is already chosen, or pressing a plain button a second time, may
+  // rightly change nothing
+  const click = async (part, name, quietOk = false) => {
     const at = aim(part, 'click');
-    return through(name, async () => {
+    const run = await through(name, async () => {
       if (at) await page.mouse.click(clip.x + at[0], clip.y + at[1]);
       else await inFrame(clickPart, part.i);
-    });
+    }, quietOk);
+    if (at) {
+      const got = await inFrame(pressedOn, part.i);
+      if (!got.ok) notes.push({ run: name, text: `the press at ${at.map(Math.round).join(',')} landed on ${got.name}, not on it, although elementFromPoint says that point is it` });
+    }
+    return run;
   };
+  const pressable = /:active/.test(snippets[id]?.css ?? '');
   for (const part of parts.controls) {
     if (part.kind === 'slider') {
       aim(part, 'slide');
@@ -589,11 +647,19 @@ async function film(id) {
       if (flipped === (await inFrame(stateOf, part.input)).checked) notes.push({ run: `toggle ${part.name}`, text: 'clicking twice did not switch it back and forth' });
       void on;
     } else if (part.kind === 'radio') {
-      await click(part, `choose ${part.name}`);
+      await click(part, `choose ${part.name}`, (await inFrame(stateOf, part.input)).checked);
       if (!(await inFrame(stateOf, part.input)).checked) notes.push({ run: `choose ${part.name}`, text: 'clicking it did not choose it' });
     } else {
-      await click(part, `press ${part.name}`);
-      await click(part, `press ${part.name} again`);
+      const was = await inFrame(stateOf, part.input);
+      await click(part, `press ${part.name}`, was.current || pressable);
+      await click(part, `press ${part.name} again`, !was.toggles);
+      // a model that styles :active is filmed with the button held down, then let go
+      const at = part.hits[0];
+      if (pressable && at) {
+        await page.mouse.move(clip.x + at[0], clip.y + at[1]);
+        await through(`hold ${part.name} down`, () => page.mouse.down());
+        await through(`let go of ${part.name}`, () => page.mouse.up());
+      }
     }
     await away();
   }
@@ -601,14 +667,24 @@ async function film(id) {
 
   // keyboard focus, where the model styles :focus or :focus-visible
   for (const part of parts.focus) {
-    await through(`focus ${part.name}`, () => inFrame(focusPart, part.i));
+    // a key press first, so the browser treats the focus as keyboard focus (:focus-visible)
+    await through(`focus ${part.name}`, async () => { await page.keyboard.press('Shift'); await inFrame(focusPart, part.i); });
     const state = await inFrame(stateOf, part.i);
     if (!state.focused) notes.push({ run: `focus ${part.name}`, text: 'could not be focused' });
     else if (!state.visible) notes.push({ run: `focus ${part.name}`, text: 'focused, but the browser did not treat it as :focus-visible (a limit of this check)' });
     await through(`blur ${part.name}`, () => inFrame(blurAll));
   }
 
-  const judged = runs.map((r) => ({ name: r.name, what: r.what, changed: r.changed, ...judge(r.frames.map((f) => f.grid), r.cyclic) }));
+  // the same finding from a second click on the same part is said once
+  const said = new Set();
+  notes.splice(0, notes.length, ...notes.filter((n) => !said.has(n.run + n.text) && said.add(n.run + n.text)));
+  const judged = runs.map((r) => {
+    const j = { name: r.name, what: r.what, changed: r.changed, ...judge(r.frames.map((f) => f.grid), r.cyclic, !r.response) };
+    // frames taken in real time are as far apart as the camera is slow, so a quick transition
+    // between two of them is a jump in the picture and not in the model: no pops from those
+    if (/real time/.test(r.what)) j.pops = [];
+    return j;
+  });
   const files = await strips(id, runs, judged, notes);
   return { id, parts: { hover: parts.hover.length, controls: parts.controls.length, focus: parts.focus.length }, notes, runs: judged, files };
 }
