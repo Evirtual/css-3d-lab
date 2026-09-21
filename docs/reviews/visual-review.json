@@ -123,54 +123,38 @@
   {
     "model": "wordcube",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:07:40+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "The lead-in 'We make' is hard-coded color #eceefb (snippets-batch-c.ts, .wordcube), so on a light stage it is near-invisible white on white; the contract says a band model inherits the text colour. Layout and dark theme are fine.",
+    "reviewer": "re-review agent 2",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T17:30:00Z",
+    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
+    "notes": "The earlier light-stage problem is fixed: \"We make\" now takes the stage's ink and reads dark on light and white on dark. Word prism under the lead-in, about 86 x 60vmin, centred (4vmin up, inside the rule); paused on \"design\", big and legible at every size. Filmed at 60ms steps: each quarter roll (design to code to motion to brands) is continuous, the neighbouring face shows as the prism stands on its edge, and the band holds it. On a paused card the resting face is square-on, so the prism reads as a pill until it turns; that is the model.",
     "motionFlagsResolved": [
       {
         "flag": "loop: pop 5→6,11→12,17→18,23→0",
-        "reason": "Filmed the turn at 40-50ms steps: each quarter roll is continuous, the face in front changes as the prism rolls and the seam frame equals the start (360deg = 0deg), so the step is a fast roll between two 24-frame samples, not a jump. (ruled at 1d88b26)"
+        "reason": "Filmed again at 60ms steps: each quarter roll is continuous, the face in front changes as the prism rolls, and 360deg equals 0deg at the seam, so the flagged step is a fast roll falling between two 24-frame samples, not a jump (confirmed by eye at b1761a3)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at b1761a3b683f0b779416a4ac439af14142efdadf (re-review agent 2): 1 of 1 current flag(s) confirmed false alarms."
   },
   {
     "model": "turntable",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:07:40+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Speaker with drag hint and colour swatches in the control zone; the stack is centred at about 61vmin, the swatches are finger-sized, and the paused pose is square-on and finished.",
+    "reviewedAt": "2026-09-21T17:30:00Z",
+    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
+    "notes": "Speaker over a \"drag to rotate\" caption and three colour swatches, stack about 48 x 60vmin, centred; the speaker itself about 27vmin, on the small side of its box, but reads. Dragging turns it (caption shows 16°, 79°) and it coasts to a stop; the swatches recolour every face. The swatches are 8vmin circles in the control zone. Since e1a1c76 an unselected swatch answers hover with a thin ink ring (probed: about 17% of its pixels change on Teal and Pink, on both stages), and the selected one keeps its thicker ring. Reads on both stages.",
     "motionFlagsResolved": [
       {
         "flag": "hover button#1 \"Violet\": changes nothing on screen",
-        "reason": "Violet is the selected swatch: its ring is the selected state. Filmed and probed: no change on hover. (ruled at 1d88b26)"
+        "reason": "Violet is the selected swatch: its thick ring is the selected state, and it does not change on hover (probed: 0 pixels), while the unselected swatches now show a thin ink ring (confirmed by eye at b1761a3)"
       },
       {
         "flag": "leave button#1 \"Violet\": changes nothing on screen",
-        "reason": "Violet is the selected swatch: its ring is the selected state. Filmed and probed: no change on hover. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "hover button#2 \"Teal\": changes nothing on screen",
-        "reason": "NOT the selected-pill cause: every swatch sets background: var(--sw) in a later rule of equal weight, so no swatch, selected or not, shows the hover tint; only the cursor changes. Reported, not changed here. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "leave button#2 \"Teal\": changes nothing on screen",
-        "reason": "NOT the selected-pill cause: every swatch sets background: var(--sw) in a later rule of equal weight, so no swatch, selected or not, shows the hover tint; only the cursor changes. Reported, not changed here. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "hover button#3 \"Pink\": changes nothing on screen",
-        "reason": "NOT the selected-pill cause: every swatch sets background: var(--sw) in a later rule of equal weight, so no swatch, selected or not, shows the hover tint; only the cursor changes. Reported, not changed here. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "leave button#3 \"Pink\": changes nothing on screen",
-        "reason": "NOT the selected-pill cause: every swatch sets background: var(--sw) in a later rule of equal weight, so no swatch, selected or not, shows the hover tint; only the cursor changes. Reported, not changed here. (ruled at 1d88b26)"
+        "reason": "Violet is the selected swatch: its thick ring is the selected state, and it does not change on hover (probed: 0 pixels), while the unselected swatches now show a thin ink ring (confirmed by eye at b1761a3)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): Violet ruled selected; Teal and Pink swatches give no hover feedback at all (swatch background overrides the tint) - reported, not fixed."
+    "motion": "Motion flags looked at by eye at e1a1c7626fa1539e6516e04768be420a5275a9d1 (re-review agent 2): Violet hover/leave confirmed a false alarm (selected swatch). The Teal and Pink hover/leave flags were real on the code check-motion ran on and are fixed in e1a1c76 (the swatches now show a thin ink ring on hover); they are left open here, not ruled false alarms, and clear when check-motion runs again on the current code."
   },
   {
     "model": "neonbars",
@@ -393,12 +377,13 @@
   {
     "model": "crawl",
     "kind": "visual",
-    "reviewer": "re-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T22:30:00+07:00",
-    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
-    "notes": "Full-canvas crawl whose first frame now has the EPISODE 3D title and the opening paragraph in view, legible on a card and crisp full screen; the second copy follows half a loop later so it is never empty. It paints its own space, so it is the same on both stages. (A light strip at the right of the light-stage captures is the embed page's 15px gutter outside the frame, not the model.)",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T17:30:00Z",
+    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
+    "notes": "Full-canvas opening crawl whose first frame has the EPISODE 3D title and the opening paragraph in view, running off the bottom as a crawl does; since the fixed-width column, the line breaks are the same on the card, the editor and full screen. The second copy follows half a loop later, so it is never empty. It paints its own space, so it is the same on both stages. (The light strip at the right of the light-stage captures is the embed page's gutter outside the frame, and the Opening crawl link over the text on a card is the embed chrome, not the model.)",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at b1761a3."
   },
   {
     "model": "cubenav",
@@ -644,12 +629,13 @@
   {
     "model": "net",
     "kind": "visual",
-    "reviewer": "re-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T22:30:00+07:00",
-    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
-    "notes": "The paused card is now full-sized (55 x 46vmin, centred), but it is the net seen dead face-on: a flat plus sign of translucent squares with no depth cue, so a paused card reads as a 2D icon, not a cube net lying open (the mid-loop frames, where the open net lies tilted in perspective, show what it should look like). And for about a third of the loop the folded cube is still only about 19 x 25vmin in the middle of the card. On the light stage the orange and teal faces are very pale. A tilted first frame, the net seen lying on a floor, would make the rest pose read as 3D.",
-    "motionFlagsResolved": []
+    "reviewer": "re-review agent 2",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T17:30:00Z",
+    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
+    "notes": "The earlier problem is fixed. The paused card now shows the net lying open on a floor seen at an angle, near squares larger than far ones, about 55 x 46vmin and centred, so it reads as a 3D net, not a flat plus sign. The camera moves in as it folds, so the shut cube is about 35vmin, as big as the net, and it turns a full circle before opening again; the loop is seamless. The orange and teal faces stay pale on the light stage but read. The description and how steps match what is drawn.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at b1761a3."
   },
   {
     "model": "shapeshift",
@@ -675,12 +661,13 @@
   {
     "model": "hourglass",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:15:01+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Hourglass centred at about 39 x 60vmin, paused upright with the sand in the top bulb; it flips cleanly on the large canvas. Its motion run broke (screenshot timeout), which this review cannot clear.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T17:30:00Z",
+    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
+    "notes": "Hourglass centred at about 41 x 60vmin, paused upright with the sand in the top bulb. Since the sand lost its clip-paths it renders in time: filmed at 300ms steps, the top cone shrinks toward the neck while the pile grows below, the dashed stream runs, and the half turn lands with the full pile on top, seamless. Some of the faceted glass strips show as flat pale quads where they meet the plates when side-on; that is the faceting, not a glitch. Reads on both stages. check-motion now passes.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at b1761a3."
   },
   {
     "model": "crystal",
@@ -1024,12 +1011,13 @@
   {
     "model": "stepper",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:19:22+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Number cube over a 'Quantity 3' caption and minus/plus pills, stack 36 x 63vmin and centred; the pills are finger-sized.",
-    "motionFlagsResolved": []
+    "reviewer": "re-review agent 2",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T17:30:00Z",
+    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
+    "notes": "Number cube over a \"Quantity 3\" readout and minus/plus buttons, stack about 37 x 65vmin, centred; the stepper is itself the control, so it has no shared row, which the how text says. The cube rolls a face per press (3 to 2 and back) and the buttons are finger-sized gradient circles. The problem is the readout on the light stage: the snippet hard-codes .bar output { color: #949bc0 }, which on #f3f4fc is about 2.5:1 for 3.8vmin text, so \"Quantity 3\" is faint lavender on light (it reads on dark). The same fix the text models got applies: take the stage's ink (inherit) and soften it with opacity if wanted.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at b1761a3."
   },
   {
     "model": "rating",
@@ -1044,18 +1032,18 @@
   {
     "model": "toggle",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:19:22+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "On a light stage the 'Dark mode' label is near-invisible white on white (only 'OFF' shows), so its text does not inherit the stage colour as the contract asks; layout and dark theme are fine (46 x 60vmin, centred). Its motion run broke, which this review cannot clear.",
+    "reviewer": "re-review agent 2",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T17:30:00Z",
+    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
+    "notes": "The earlier light-stage problem is fixed: \"Dark mode\" and OFF/ON are now the stage's ink and read on both stages. The toggle is itself the control (no row): a sun cube on a track over its label, about 48 x 61vmin, centred. Clicking rolls the cube along the track to a moon face, the track fills with the brand gradient and the word turns to ON; clicking again rolls it back (filmed at 120ms steps, a clean roll both ways).",
     "motionFlagsResolved": [
       {
         "flag": "click label.toggle \"Dark modeOffOn\": its hit area is mostly over empty canvas (52 of 81 reachable points draw nothing)",
-        "reason": "Hit map: the label box round the track and its words, the whole control; clicking beside the track or on the words switching it is expected. Fine. (ruled at 1d88b26)"
+        "reason": "The hit area is the label round the track and its words, the whole control; a click on the words or beside the track switching it is expected (confirmed by eye at b1761a3)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at b1761a3b683f0b779416a4ac439af14142efdadf (re-review agent 2): 1 of 1 current flag(s) confirmed false alarms."
   },
   {
     "model": "flip",
@@ -1121,58 +1109,58 @@
   {
     "model": "flipgrid",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:19:22+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "On a light stage the tiles turn pale pastel while their numbers stay white, so '03', '04' and '06' are nearly invisible and the rest weak; on dark it is fine (79 x 48vmin, centred).",
+    "reviewer": "re-review agent 2",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T17:30:00Z",
+    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
+    "notes": "The earlier light-stage problem is fixed: the tile numbers (01 to 06) are now the stage's ink and read on the pale light-stage tiles, and white on dark. Grid of six tiles, about 79 x 49vmin, centred; at rest it is a flat grid seen square-on, which is what it is. Hovering a tile flips it to its back word (spin, zoom, tilt), set in a colour that reads on its own back; the back words are small but legible.",
     "motionFlagsResolved": [
       {
         "flag": "leave div.tile#2: pop 2→3",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
       },
       {
         "flag": "hover div.tile#3: pop 3→4",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
       },
       {
         "flag": "leave div.tile#4: pop 2→3",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
       },
       {
         "flag": "hover div.tile#5: pop 3→4",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
       },
       {
         "flag": "leave div.tile#6: pop 2→3",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "blur div.tile#2: pop 2→3",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "focus div.tile#3: pop 3→4",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "blur div.tile#4: pop 2→3",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "focus div.tile#5: pop 3→4",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
-      },
-      {
-        "flag": "blur div.tile#6: pop 2→3",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
       },
       {
         "flag": "blur div.tile#1: pop 1→2",
-        "reason": "Filmed at 20-50ms steps: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back. (ruled at 1d88b26)"
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
+      },
+      {
+        "flag": "blur div.tile#2: pop 2→3",
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
+      },
+      {
+        "flag": "focus div.tile#3: pop 3→4",
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
+      },
+      {
+        "flag": "blur div.tile#4: pop 2→3",
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
+      },
+      {
+        "flag": "focus div.tile#5: pop 3→4",
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
+      },
+      {
+        "flag": "blur div.tile#6: pop 2→3",
+        "reason": "Filmed again at 50ms steps on the light stage: a smooth flip there and back; the large step is the moment the tile turns edge-on and its other face comes round, a whole face changing colour. Leaving and blurring run the same transition back (confirmed by eye at b1761a3)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 11 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at b1761a3b683f0b779416a4ac439af14142efdadf (re-review agent 2): 11 of 11 current flag(s) confirmed false alarms."
   },
   {
     "model": "accordion",
@@ -1488,12 +1476,13 @@
   {
     "model": "rocket",
     "kind": "visual",
-    "reviewer": "re-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T22:30:00+07:00",
-    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
-    "notes": "It does not read as the same size class as its neighbours. Side by side with laptop, ferris, lighthouse, sign, bars and phone on paused cards, the rocket (about 35 x 49vmin at rest, the rocket body itself about 44vmin) is visibly the smallest object: a slim rocket and gantry in a lot of empty dark, with the pad ellipse doing much of the width. And for roughly 40% of the loop only the empty pad and gantry, about 30vmin tall, are on screen while the rocket is a speck. It is a clear improvement on 27 x 39, centred and reading on both stages, but the climb headroom still eats the band: the rocket needs to be larger in the frame (send the climb more into depth than upward, or let the rocket start bigger and shrink sooner).",
-    "motionFlagsResolved": []
+    "reviewer": "re-review agent 2",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T17:30:00Z",
+    "commit": "b1761a3b683f0b779416a4ac439af14142efdadf",
+    "notes": "The earlier problem is fixed. At rest the rocket fills the frame on its pad, about 62vmin tall with gantry and pad, centred, the same size class as its neighbours. Filmed at 400ms steps over the 10s loop: ignition and smoke, lift-off, the climb goes into depth so the rocket shrinks up into the sky rather than leaving the top, a speck by about a quarter of the loop and hidden briefly at the far end, then it comes back down and lands; start and end are the same frame. Roughly 2s of the loop show only the pad and gantry with a small or absent rocket, which is the launch itself. Reads on both stages.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at b1761a3."
   },
   {
     "model": "lighthouse",
