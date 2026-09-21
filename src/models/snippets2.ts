@@ -1400,7 +1400,7 @@ input:checked ~ em {
   position: absolute;
   inset: calc(8 * var(--u));
   background: #d3d6ea;
-  transform: translateZ(-calc(8 * var(--u)));
+  transform: translateZ(calc(-8 * var(--u)));
 }
 
 ${CUBE_FACES}
