@@ -852,19 +852,23 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   </div>
 </div>`,
     css: `.scene {
-  --s: 110px;
+  /* one base unit: every length below is a multiple of it, so the cube is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.23vmin;
+  --s: calc(110 * var(--u));
   --d: calc(var(--s) / 2);     /* distance of each face from the centre */
   display: grid;
   place-items: center;
-  width: 300px;
-  height: 300px;
-  perspective: 800px;
+  /* a hit area wider than the cube, so the pointer does not fall off it between the faces */
+  width: calc(300 * var(--u));
+  height: calc(300 * var(--u));
+  perspective: calc(800 * var(--u));
   cursor: pointer;
 }
 
 .scene:hover,
 .scene:focus {
-  --d: 115px;
+  --d: calc(115 * var(--u));
 }
 
 .cube {
@@ -878,9 +882,9 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
 .cube > * {
   position: absolute;
   inset: 0;
-  border-radius: 6px;
+  border-radius: calc(6 * var(--u));
   background: rgb(255 77 157 / 0.35);
-  border: 1px solid rgb(255 77 157 / 0.85);
+  border: calc(1 * var(--u)) solid rgb(255 77 157 / 0.85);
   transition: transform 0.6s cubic-bezier(0.3, 1.5, 0.5, 1);
 }
 
@@ -1783,13 +1787,16 @@ onScroll();`,
   <div class="tiles"></div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the grid is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.25vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(7, 42px);
-  gap: 5px;
+  grid-template-columns: repeat(7, calc(42 * var(--u)));
+  gap: calc(5 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(30deg);
   /* the grid is on the same 3D plane as its tiles; coplanar surfaces have no stable order, so
@@ -1799,7 +1806,7 @@ onScroll();`,
 
 .tiles i {
   position: relative;
-  height: 42px;
+  height: calc(42 * var(--u));
   pointer-events: auto;
   cursor: pointer;
   transform-style: preserve-3d;
@@ -1812,7 +1819,7 @@ onScroll();`,
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 7px;
+  border-radius: calc(7 * var(--u));
   backface-visibility: hidden;
 }
 
