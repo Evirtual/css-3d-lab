@@ -13,7 +13,7 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, sta
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { chromium } from 'playwright';
-import { settle, VIEWPORT } from './og-shot.mjs';
+import { settle, shotContext } from './og-shot.mjs';
 
 const argv = process.argv.slice(2);
 const distAt = argv.indexOf('--dist');
@@ -48,7 +48,7 @@ const failures = [];
 // How a shot is taken (the page, the size, the moment the model is stopped at) is in og-shot.mjs,
 // shared with scripts/check-media.mjs, which renders it again to prove each file is current.
 async function shoot(demo, file = demo.id) {
-  const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, colorScheme: 'dark' });
+  const ctx = await shotContext(browser);
   try {
     const page = await ctx.newPage();
     await settle(page, base, demo);

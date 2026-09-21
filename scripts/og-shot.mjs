@@ -34,6 +34,21 @@ const STEADY = { every: 250, max: 4000 }; // how often, and how long at most, to
 export const ogUrl = (base, id) => `${base}/embed/${id}/?og=1&zoom=2`;
 
 /**
+ * A new browser context for a shot. Math.random is made the same sequence on every load (in the
+ * page and in the model's frame), so a model that places things at random (the scatter plot's
+ * points, the snow) draws the same picture for generate-media as for check-media, and the file can
+ * be compared with a fresh render. What the model draws is still one of its own random layouts.
+ */
+export async function shotContext(browser) {
+  const ctx = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1, colorScheme: 'dark' });
+  await ctx.addInitScript(() => {
+    let s = 0x9e3779b9;
+    Math.random = () => { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  });
+  return ctx;
+}
+
+/**
  * Runs in the page before each shot: the headline shrinks, a pixel at a time, until every line
  * fits its column. The build machine may not have the site's font, and a wider fallback would
  * otherwise run a line off the edge ("no WebGL requir…").
@@ -68,10 +83,31 @@ async function freeze(body, moment) {
   // Then each is written into its element's own style and taken away. A paused animation can still
   // be drawn by the compositor at the time it had when it was paused, not the time it was set to
   // (the cone's spin a few degrees off, differently each run), and nothing makes it draw again.
-  // A pseudo-element's animation cannot be written into a style, so it stays, paused.
+  // A pseudo-element has no style of its own to write into, so what its animation sets there is
+  // read from its computed style and written as a rule for that one element (the synthwave grid's
+  // moving floor is a ::before).
+  const rules = [];
+  const win = doc.defaultView;
+  win.c3dOgN ??= 0; // marks stay unique across both stops
   for (const a of doc.getAnimations()) {
-    if (a.effect?.pseudoElement || !a.effect?.target) continue;
-    try { a.commitStyles(); a.cancel(); } catch {}
+    const el = a.effect?.target;
+    if (!el) continue;
+    const pseudo = a.effect.pseudoElement;
+    if (!pseudo) { try { a.commitStyles(); a.cancel(); } catch {} continue; }
+    try {
+      const props = new Set(a.effect.getKeyframes().flatMap((k) => Object.keys(k)).filter((p) => !['offset', 'computedOffset', 'easing', 'composite'].includes(p)));
+      const cs = getComputedStyle(el, pseudo);
+      const kebab = (p) => p.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+      const mark = el.getAttribute('data-og-still') ?? String(win.c3dOgN++);
+      el.setAttribute('data-og-still', mark);
+      rules.push(`[data-og-still="${mark}"]${pseudo} { ${[...props].map((p) => `${kebab(p)}: ${cs.getPropertyValue(kebab(p))} !important;`).join(' ')} }`);
+      a.cancel();
+    } catch {}
+  }
+  if (rules.length) {
+    const style = doc.createElement('style');
+    style.textContent = rules.join('\n');
+    doc.head.append(style);
   }
   // what was stopped, so a checker can tell these from animations a script starts afterwards
   body.ownerDocument.defaultView.c3dOgFrozen = new Set(doc.getAnimations());
