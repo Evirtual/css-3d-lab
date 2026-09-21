@@ -931,7 +931,8 @@ scene.addEventListener('pointercancel', leave);`,
       'Build it the way a real medal hangs: two ribbon <b>straps</b> meet in a folded <b>tab</b>, and the medal has its own ring (the <b>bail</b>) whose top loop sits just behind the tab. Ribbon and medal read as one object.',
       'The whole piece sways from the neck: <code>transform-origin: 50% 0</code> on a wrapper and a small <code>rotateZ</code> swing, <code>alternate</code>.',
       'The medal twists on its ring between <code>rotateY(-50deg)</code> and <code>rotateY(50deg)</code>, never edge-on, while the bail stays flat: as a child of the medal it runs the <b>opposite</b> twist, which cancels it, so it never swings through the ribbon.',
-      'The edge is five discs 1.2px apart behind the face, so a turned medal shows a band of metal. The shine runs on the same 5s cycle as the twist, so each sweep is centred on the moment the face looks at you.',
+      'The edge is five discs 1.2 units apart behind the face, so a turned medal shows a band of metal. The shine runs on the same 5s cycle as the twist, so each sweep is centred on the moment the face looks at you.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the medal is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="badge">
@@ -947,15 +948,18 @@ scene.addEventListener('pointercancel', leave);`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the medal is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.31vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .badge {
   --gold: #ffd28f;
   --gold-deep: #aa7519;
   position: relative;
-  width: 120px;
-  height: 196px;
+  width: calc(120 * var(--u));
+  height: calc(196 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -972,52 +976,52 @@ scene.addEventListener('pointercancel', leave);`,
 .strap {
   position: absolute;
   top: 0;
-  left: calc(50% - 12px);
-  width: 24px;
-  height: 92px;
+  left: calc(50% - 12 * var(--u));
+  width: calc(24 * var(--u));
+  height: calc(92 * var(--u));
   background:
     linear-gradient(90deg, rgb(0 0 0 / 0.28), transparent 30% 70%, rgb(0 0 0 / 0.28)),
     linear-gradient(90deg, #8b6cff 0 30%, #fff 30% 36%, #ff4d9d 36% 64%, #fff 64% 70%, #8b6cff 70%);
   transform-origin: 50% 100%;
-  transform: translateX(-7px) translateZ(-3px) rotate(-20deg);
+  transform: translateX(calc(-7 * var(--u))) translateZ(calc(-3 * var(--u))) rotate(-20deg);
 }
 
 .strap + .strap {
-  transform: translateX(7px) translateZ(-2px) rotate(20deg);
+  transform: translateX(calc(7 * var(--u))) translateZ(calc(-2 * var(--u))) rotate(20deg);
 }
 
 /* the folded end of the ribbon, in front of the bail so the bail looks looped through it */
 .tab {
   position: absolute;
-  top: 80px;
-  left: calc(50% - 19px);
-  width: 38px;
-  height: 14px;
-  border-radius: 3px;
+  top: calc(80 * var(--u));
+  left: calc(50% - 19 * var(--u));
+  width: calc(38 * var(--u));
+  height: calc(14 * var(--u));
+  border-radius: calc(3 * var(--u));
   background:
     linear-gradient(rgb(255 255 255 / 0.25), transparent 40%, rgb(0 0 0 / 0.3)),
     linear-gradient(90deg, #8b6cff, #ff4d9d 50%, #8b6cff);
-  box-shadow: 0 2px 4px rgb(0 0 0 / 0.35);
-  transform: translateZ(2px);
+  box-shadow: 0 calc(2 * var(--u)) calc(4 * var(--u)) rgb(0 0 0 / 0.35);
+  transform: translateZ(calc(2 * var(--u)));
 }
 
 .medal {
   position: absolute;
-  top: 100px;
-  left: calc(50% - 48px);
-  width: 96px;
-  height: 96px;
+  top: calc(100 * var(--u));
+  left: calc(50% - 48 * var(--u));
+  width: calc(96 * var(--u));
+  height: calc(96 * var(--u));
   transform-style: preserve-3d;
   animation: twist 5s ease-in-out infinite alternate;
 }
 
-/* the edge: five discs 1.2px apart */
+/* the edge: five discs 1.2 units apart */
 .medal u {
   position: absolute;
-  inset: 0.5px;
+  inset: calc(0.5 * var(--u));
   border-radius: 50%;
   background: linear-gradient(90deg, var(--gold-deep), var(--gold) 50%, var(--gold-deep));
-  transform: translateZ(calc((var(--i) - 2) * 1.2px));
+  transform: translateZ(calc((var(--i) - 2) * 1.2 * var(--u)));
 }
 
 /* the bail hangs flat from the tab while the medal turns on it: as the medal's child it runs
@@ -1025,14 +1029,14 @@ scene.addEventListener('pointercancel', leave);`,
    it through the tab and show a hard cut) */
 .bail {
   position: absolute;
-  top: -16px;
-  left: calc(50% - 9px);
-  width: 18px;
-  height: 20px;
+  top: calc(-16 * var(--u));
+  left: calc(50% - 9 * var(--u));
+  width: calc(18 * var(--u));
+  height: calc(20 * var(--u));
   box-sizing: border-box;
-  border: 3px solid var(--gold);
+  border: calc(3 * var(--u)) solid var(--gold);
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1px var(--gold-deep), 0 0 0 1px var(--gold-deep);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) var(--gold-deep), 0 0 0 calc(1 * var(--u)) var(--gold-deep);
   animation: untwist 5s ease-in-out infinite alternate;
 }
 
@@ -1042,32 +1046,32 @@ scene.addEventListener('pointercancel', leave);`,
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 2px;
+  gap: calc(2 * var(--u));
   overflow: hidden; /* fine: the face itself is flat */
   border-radius: 50%;
   background:
     radial-gradient(circle at 32% 26%, rgb(255 255 255 / 0.55), transparent 42%),
     conic-gradient(from 20deg, var(--gold), var(--gold-deep), var(--gold), #c89445, var(--gold));
   box-shadow:
-    inset 0 0 0 4px #ffe3b8,
-    inset 0 0 0 6px var(--gold-deep),
-    inset 0 0 0 12px rgb(170 117 25 / 0.25);
+    inset 0 0 0 calc(4 * var(--u)) #ffe3b8,
+    inset 0 0 0 calc(6 * var(--u)) var(--gold-deep),
+    inset 0 0 0 calc(12 * var(--u)) rgb(170 117 25 / 0.25);
   color: #5a3a10;
   font-family: system-ui, sans-serif;
-  transform: translateZ(3px);
+  transform: translateZ(calc(3 * var(--u)));
 }
 
 .face b {
-  width: 40px;
-  height: 40px;
+  width: calc(40 * var(--u));
+  height: calc(40 * var(--u));
   clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
   background: linear-gradient(160deg, #fff8de, var(--gold) 45%, var(--gold-deep));
 }
 
 .face small {
-  font-size: 8px;
+  font-size: calc(8 * var(--u));
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: calc(2 * var(--u));
 }
 
 /* one sweep per twist, centred on the moment the face looks straight at you */
