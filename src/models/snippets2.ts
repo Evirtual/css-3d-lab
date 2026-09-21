@@ -20,7 +20,10 @@ function starShadows(count: number, size: number, seed: number): string {
     .join(',\n');
 }
 
-const RING_TEXT = 'CSS 3D LAB • NO WEBGL • ';
+// Thirteen characters, not the twenty-four this once had: the ring is as wide as the band allows,
+// so the fewer characters share it out, the bigger each one is. At twenty-four they were 11vmin
+// tall — a smudge on a gallery card.
+const RING_TEXT = 'CSS 3D LAB • ';
 
 export const snippets2: Record<string, Snippet> = {
   pyramid: {
@@ -569,6 +572,9 @@ ${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" aria-hidden="true">$
       'Each gets <code>rotateY(i × 360° / count) translateZ(radius)</code> — the carousel formula again.',
       '<code>backface-visibility: hidden</code> hides the far side, where letters would otherwise show mirrored.',
       'A monospace font keeps the spacing even. Pick the radius so that <code>2πr ≈ count × character width</code>.',
+      'Every length is a multiple of one base unit, <code>--u</code>: the radius is 56 of them, a character cell 26 × 44, so the ring is the same share of a gallery card, the editor and a recording canvas.',
+      'The ring is as wide as it is allowed to be, so the number of characters decides how big each one is. Thirteen of them stand 25vmin tall and read on a gallery card; the twenty-four this started with did not.',
+      'Only the near half is drawn — the far half is turned away and hidden — so the letters you see sit in the lower half of the circle. <code>translateY</code> lifts the ring by part of that, which puts what is actually drawn back in the middle of the box.',
     ],
     html: `<div class="scene">
   <div class="ring" style="--n:${RING_TEXT.length}" aria-label="${RING_TEXT.trim()}">
@@ -576,15 +582,20 @@ ${[...RING_TEXT].map((c, i) => `    <span style="--i:${i}" aria-hidden="true">${
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the ring is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.74vmin;
+  perspective: calc(800 * var(--u));
 }
 
+/* 56 units of radius against a 26-unit character cell: 2πr is a little more than the thirteen
+   characters need, so the band of text closes without the letters touching */
 .ring {
-  --r: 125px;
+  --r: calc(56 * var(--u));
   position: relative;
-  width: 26px;
-  height: 44px;
-  font: 800 2.1rem ui-monospace, monospace;
+  width: calc(26 * var(--u));
+  height: calc(44 * var(--u));
+  font: 800 calc(34 * var(--u)) ui-monospace, monospace;
   transform-style: preserve-3d;
   animation: ring-spin 12s linear infinite;
 }
@@ -598,9 +609,11 @@ ${[...RING_TEXT].map((c, i) => `    <span style="--i:${i}" aria-hidden="true">${
   transform: rotateY(calc(var(--i) * 360deg / var(--n))) translateZ(var(--r));
 }
 
+/* The tilt is what gives a ring any height at all, and it also sends the near half — the only
+   half that is drawn — below the middle. The 5-unit lift puts most of that back. */
 @keyframes ring-spin {
-  from { transform: rotateX(-12deg) rotateY(0deg); }
-  to   { transform: rotateX(-12deg) rotateY(-360deg); }
+  from { transform: translateY(calc(-5 * var(--u))) rotateX(-12deg) rotateY(0deg); }
+  to   { transform: translateY(calc(-5 * var(--u))) rotateX(-12deg) rotateY(-360deg); }
 }`,
   },
 
