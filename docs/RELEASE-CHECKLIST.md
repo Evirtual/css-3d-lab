@@ -26,6 +26,7 @@ written by `npm run ledger`.
 - [ ] The verify gate holds over all 135 models — `npm run verify` ends with `GATE HOLDS: every model held every check.` and exits 0
 - [ ] Every model is converted to the base unit --u in vmin — `npm run ledger` prints `135 converted` and `node -p "require('./docs/ledger.json').counts.notConverted"` prints `0`
 - [ ] Every model is approved in the ledger — `node -p "require('./docs/ledger.json').counts.approved"` prints `135`
+- [ ] The check results behind the ledger are published with the code, so anyone who clones the repo can rebuild it — `/docs/checks/` is no longer in .gitignore and `git ls-files docs/checks` lists models.json, stages.json, motion.json and exports.json, committed after the final full runs (docs/ledger.json itself stays ignored: it is rebuilt from these by `npm run ledger`)
 - [ ] The ledger was built on the commit being pushed — `node -p "require('./docs/ledger.json').head"` prints the same short hash as `git rev-parse --short HEAD`
 - [ ] No contract result is stale or failing — `node -p "JSON.stringify(require('./docs/ledger.json').counts.checks.models)"` prints only `"pass":135`
 - [ ] check-stages has judged every model and found them the same everywhere — `npm run capture -- stages` ends with `135/135 models are the same everywhere`
