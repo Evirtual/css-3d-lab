@@ -672,82 +672,135 @@ ${CUBE_FACES}
 
   radio: {
     how: [
-      'Real <code>&lt;input type="radio"&gt;</code> elements hold the state — the browser handles clicks and arrow keys.',
-      'The cube comes <b>after</b> the inputs in the markup, so <code>input:checked ~ .view .cube</code> can reach it. The same rule names the face in the caption.',
-      'The radios sit <b>under</b> the cube on the screen even so: the picker is a grid, and grid placement decides where a child lands, not where it is written. DOM order is the sibling combinator’s; visual order is the band’s.',
+      'Real <code>&lt;input type="radio"&gt;</code> elements hold the state — the browser handles clicks and arrow keys. They are hidden visually, not with <code>display: none</code>, so they still take focus and a screen reader still finds them. Keep the <code>aria-label</code>s: they give each radio its face’s full name.',
+      'What you click is a <code>&lt;label for&gt;</code> in the control zone: clicking a label checks its radio. The labels are styled by the shared control block, copied unchanged, so each one looks and measures like every other model’s buttons. The letters are the cube-puzzle names for the faces: <b>F</b>ront, <b>R</b>ight, <b>B</b>ack, <b>L</b>eft, <b>U</b>p, <b>D</b>own.',
+      'The cube and the zone both come <b>after</b> the radios in the markup, so one checked radio can reach all three things it changes: <code>input:checked ~ .view .cube</code> turns the cube, <code>input:checked ~ .controls label</code> lights its label with the selected pill, and the same rule names the face in the caption.',
       'Each radio maps to the rotation that brings its face to the front; a <code>transition</code> animates between them.',
-      '<code>appearance: none</code> lets you restyle the radios as buttons. Keep the <code>aria-label</code>s.',
+      'The keyboard ring cannot be drawn on a radio nobody can see, so it is passed along the same way: <code>input:focus-visible ~ .controls label</code> rings the label of the radio that has focus.',
       'The cube is written in one base unit, <code>--u</code>, so it is the same share of a gallery card, the editor and a recording canvas. The control zone under it is in plain <code>vmin</code>, because it is the same object at the same size in every model that has one.',
     ],
-    html: `<div class="picker">
-  <input type="radio" name="face" aria-label="Front" checked>
-  <input type="radio" name="face" aria-label="Right">
-  <input type="radio" name="face" aria-label="Back">
-  <input type="radio" name="face" aria-label="Left">
-  <input type="radio" name="face" aria-label="Top">
-  <input type="radio" name="face" aria-label="Bottom">
-
-  <output class="caption"><span>Front</span><span>Right</span><span>Back</span><span>Left</span><span>Top</span><span>Bottom</span></output>
+    html: `<div class="band">
+  <input type="radio" name="face" id="face-f" aria-label="Front" checked>
+  <input type="radio" name="face" id="face-r" aria-label="Right">
+  <input type="radio" name="face" id="face-b" aria-label="Back">
+  <input type="radio" name="face" id="face-l" aria-label="Left">
+  <input type="radio" name="face" id="face-u" aria-label="Up">
+  <input type="radio" name="face" id="face-d" aria-label="Down">
 
   <div class="view">
     <div class="cube">
       <div>Front</div><div>Right</div><div>Back</div>
-      <div>Left</div><div>Top</div><div>Bottom</div>
+      <div>Left</div><div>Up</div><div>Down</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <output class="caption"><span>Front</span><span>Right</span><span>Back</span><span>Left</span><span>Up</span><span>Down</span></output>
+    <div class="row">
+      <label for="face-f" title="Front">F</label>
+      <label for="face-r" title="Right">R</label>
+      <label for="face-b" title="Back">B</label>
+      <label for="face-l" title="Left">L</label>
+      <label for="face-u" title="Up">U</label>
+      <label for="face-d" title="Down">D</label>
     </div>
   </div>
 </div>`,
-    css: `.picker {
+    css: `/* The model box and the zone stand in one stack, so the zone is the same distance below the
+   model in every model and the pair is centred as the band says. */
+.band {
   /* one base unit: every length in the cube is a multiple of it, so the cube is the same share
      of a card, the editor, a full screen and a recording canvas. The zone under it is in plain
      vmin, because it is the same object in every model. */
   --u: 0.22vmin;
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(6, auto);
-  justify-content: center;
   justify-items: center;
-  gap: 2vmin;
+  gap: 4vmin;
   font-family: system-ui, sans-serif;
 }
 
-/* the model box: the same height in every model that has controls. It is written second-to-last
-   in the markup and first on the screen — the grid rows are what the eye reads. */
+/* the model box: the same height in every model that has controls */
 .view {
-  grid-row: 1;
-  grid-column: 1 / -1;
   display: grid;
   place-items: center;
   height: 50vmin;
-  margin-bottom: 2vmin;   /* 2vmin of gap + this = the band's 4vmin under the model box */
   perspective: calc(800 * var(--u));
 }
 
-/* the caption: one line, always the same height, so naming a new face cannot move the cube */
-.caption {
-  grid-row: 2;
-  grid-column: 1 / -1;
+/* the radios: out of sight and out of the grid, but still focusable and still read out */
+.band > input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the control zone: the same object, at the same size, in every model that has one */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
+}
+
+.controls .caption {
   font: 500 4.5vmin/1.2 system-ui, sans-serif;
   opacity: 0.7;
 }
 
-.caption span { display: none; }
+.controls .row {
+  display: flex;
+  gap: 2vmin;
+}
 
-.picker input {
-  grid-row: 3;
-  box-sizing: border-box;
-  appearance: none;
-  width: 8vmin;
+.controls button,
+.controls label {
   height: 8vmin;
-  margin: 0;
-  border: 0.6vmin solid #5a6188;
+  min-width: 8vmin;
+  padding: 0 3vmin;
+  border: 0;
   border-radius: 999px;
+  /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
+     strength: no colour of the model's, which would vanish on one of the two stages */
+  background: rgb(140 150 220 / 0.2);
+  color: inherit;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background-color 0.35s;
 }
 
-.picker input:checked {
-  background: #2ee6d6;
-  border-color: #2ee6d6;
-  box-shadow: 0 0 2.5vmin #2ee6d6;
+.controls button:hover,
+.controls label:hover {
+  background-color: rgb(140 150 220 / 0.34);
 }
+
+.controls :focus-visible {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
+
+/* the selected pill: the brand gradient, deep enough that white text on it passes */
+.controls [aria-pressed='true'] {
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
+  color: #fff;
+}
+
+/* a label is not a button: it is inline, and content-box, so the block's min-width would be
+   added to its padding and a one-letter pill would come out 14vmin wide. These two make it
+   measure like a button: 8vmin, and its letter in the middle. */
+.controls label {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+}
+
+/* the caption: one line, always the same height, so naming a new face cannot move the cube */
+.caption span { display: none; }
 
 .cube {
   --s: calc(120 * var(--u));
@@ -769,12 +822,34 @@ input:nth-of-type(5):checked ~ .view .cube { transform: var(--view) rotateX(-90d
 input:nth-of-type(6):checked ~ .view .cube { transform: var(--view) rotateX(90deg); }
 
 /* and the same rule again, to show the face's name */
-input:nth-of-type(1):checked ~ .caption span:nth-child(1),
-input:nth-of-type(2):checked ~ .caption span:nth-child(2),
-input:nth-of-type(3):checked ~ .caption span:nth-child(3),
-input:nth-of-type(4):checked ~ .caption span:nth-child(4),
-input:nth-of-type(5):checked ~ .caption span:nth-child(5),
-input:nth-of-type(6):checked ~ .caption span:nth-child(6) { display: inline; }
+input:nth-of-type(1):checked ~ .controls .caption span:nth-child(1),
+input:nth-of-type(2):checked ~ .controls .caption span:nth-child(2),
+input:nth-of-type(3):checked ~ .controls .caption span:nth-child(3),
+input:nth-of-type(4):checked ~ .controls .caption span:nth-child(4),
+input:nth-of-type(5):checked ~ .controls .caption span:nth-child(5),
+input:nth-of-type(6):checked ~ .controls .caption span:nth-child(6) { display: inline; }
+
+/* and again, to light the checked radio's label: the block's selected pill */
+input:nth-of-type(1):checked ~ .controls label:nth-of-type(1),
+input:nth-of-type(2):checked ~ .controls label:nth-of-type(2),
+input:nth-of-type(3):checked ~ .controls label:nth-of-type(3),
+input:nth-of-type(4):checked ~ .controls label:nth-of-type(4),
+input:nth-of-type(5):checked ~ .controls label:nth-of-type(5),
+input:nth-of-type(6):checked ~ .controls label:nth-of-type(6) {
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
+  color: #fff;
+}
+
+/* and once more for the keyboard: the block's focus ring, on the label of the focused radio */
+input:nth-of-type(1):focus-visible ~ .controls label:nth-of-type(1),
+input:nth-of-type(2):focus-visible ~ .controls label:nth-of-type(2),
+input:nth-of-type(3):focus-visible ~ .controls label:nth-of-type(3),
+input:nth-of-type(4):focus-visible ~ .controls label:nth-of-type(4),
+input:nth-of-type(5):focus-visible ~ .controls label:nth-of-type(5),
+input:nth-of-type(6):focus-visible ~ .controls label:nth-of-type(6) {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
 
 .cube > * {
   position: absolute;

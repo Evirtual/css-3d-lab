@@ -108,7 +108,7 @@ export const pureDemos: Demo[] = [
     description: 'Interactive with no JavaScript: checked radios steer the cube through sibling selectors.',
     category: 'css',
     tags: ['form-hack', 'controls'],
-    technique: [':checked ~ sibling selector', 'transition on transform', 'appearance: none'],
+    technique: [':checked ~ sibling selector', 'transition on transform', '<label for> as the button'],
     fill: true,
     html: `<div class="d-radio">
       ${['Front', 'Right', 'Back', 'Left', 'Top', 'Bottom']
