@@ -158,10 +158,10 @@ export const snippetsD: Record<string, Snippet> = {
     <div class="tile" tabindex="0" style="--c:#ff4d9d">
       <div class="tile-inner"><b>02</b><span>flip</span></div>
     </div>
-    <div class="tile" tabindex="0" style="--c:#2ee6d6">
+    <div class="tile" tabindex="0" style="--c:#2ee6d6;--on:#10131f">
       <div class="tile-inner"><b>03</b><span>spin</span></div>
     </div>
-    <div class="tile" tabindex="0" style="--c:#ffb547">
+    <div class="tile" tabindex="0" style="--c:#ffb547;--on:#10131f">
       <div class="tile-inner"><b>04</b><span>lift</span></div>
     </div>
     <div class="tile" tabindex="0" style="--c:#8b6cff">
@@ -222,8 +222,8 @@ export const snippetsD: Record<string, Snippet> = {
 }
 
 /* front */
+/* the front is see-through, so its number is really on the stage: it takes the stage's ink */
 .tile-inner b {
-  color: #eceefb;
   font-size: calc(20 * var(--u));
   font-weight: 900;
   background: color-mix(in srgb, var(--c) 26%, transparent);
@@ -234,7 +234,9 @@ export const snippetsD: Record<string, Snippet> = {
 /* back: pre-turned with the same rotation the tile will make, so it lands the right way up */
 .tile-inner span {
   background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 45%, #000));
-  color: #fff;
+  /* the back is solid, so its word is set for its own colour: white on violet and pink, dark
+     on teal and amber, where white would not read */
+  color: var(--on, #fff);
   font-size: calc(12 * var(--u));
   font-weight: 800;
   letter-spacing: 0.04em;
