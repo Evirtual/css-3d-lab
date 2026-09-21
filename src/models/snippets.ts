@@ -1538,6 +1538,8 @@ for (let i = 0; i < COUNT; i++) {
       'The flip itself is a CSS keyframe: <code>rotateX(-90deg)</code> → <code>0</code>.',
       'To replay a CSS animation on the same element: remove the class, force a reflow (<code>void el.offsetWidth</code>), add the class back.',
       'Only the pairs whose value actually changed are flipped.',
+      'Hours and minutes share one line and the seconds sit under them. Three pairs in a row are four times wider than they are tall, so at the width the canvas allows the clock would come out too short to read; two lines give it the height.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the digits and their cards are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="clock">
