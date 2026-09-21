@@ -802,10 +802,11 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--z:${ISLAND
 
   road: {
     how: [
-      'The road is one long plane (1400px) folded flat with <code>transform-origin: bottom; rotateX(90deg)</code>. Put <code>perspective-origin</code> on the horizon line, and the far end vanishes exactly there.',
-      'Nothing really moves forward. The centre line is one period (100px) taller than the road and slides down by exactly that period, then jumps back: the jump is invisible because the pattern looks identical.',
-      'Posts stand up with <code>rotateX(-90deg)</code> around their foot and all run the same trip along the road, spread out by negative delays. Speed matches the dashes: 1400px in 7s = 100px in 0.5s.',
+      'The road is one long plane (1400 units) folded flat with <code>transform-origin: bottom; rotateX(90deg)</code>. Put <code>perspective-origin</code> on the horizon line, and the far end vanishes exactly there.',
+      'Nothing really moves forward. The centre line is one period (100 units) taller than the road and slides down by exactly that period, then jumps back: the jump is invisible because the pattern looks identical.',
+      'Posts stand up with <code>rotateX(-90deg)</code> around their foot and all run the same trip along the road, spread out by negative delays. Speed matches the dashes: 1400 units in 7s = 100 in 0.5s.',
       'A <code>mask</code> on the road would flatten its 3D posts. Instead a flat band of haze sits on top of the horizon and hides where things appear. The ground lines are a <code>repeating-conic-gradient</code> from the vanishing point.',
+      'The scene is <code>inset: 0</code> and laid out in percentages, so it fills the canvas edge to edge whatever its shape. Its lengths are multiples of one base unit, <code>--u</code>, tied to the canvas, so the road reads the same on a gallery card and on a full screen.',
     ],
     html: `<div class="drive">
   <div class="sun"></div>
@@ -817,23 +818,26 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   <div class="haze"></div>
 </div>`,
     css: `.drive {
+  /* one base unit, tied to the canvas; the scene itself fills the canvas edge to edge, its
+     layout in percentages of it and its lengths in units */
+  --u: 0.33vmin;
   position: fixed;
   inset: 0;
   overflow: hidden;
-  perspective: 300px;
+  perspective: calc(300 * var(--u));
   perspective-origin: 50% 44%; /* the horizon */
   background: linear-gradient(#07051a, #3a2580 24%, #8c2a6c 44%);
 }
 
 .sun {
   position: absolute;
-  top: calc(44% - 78px);
-  left: calc(50% - 60px);
-  width: 120px;
-  height: 120px;
+  top: calc(44% - calc(78 * var(--u)));
+  left: calc(50% - calc(60 * var(--u)));
+  width: calc(120 * var(--u));
+  height: calc(120 * var(--u));
   border-radius: 50%;
   background: linear-gradient(${AMBER} 20%, ${PINK} 75%);
-  box-shadow: 0 0 40px rgb(255 77 157 / 0.6);
+  box-shadow: 0 0 calc(40 * var(--u)) rgb(255 77 157 / 0.6);
   mask: linear-gradient(#000 30%, transparent 0 33%, #000 0 41%, transparent 0 45%, #000 0 52%, transparent 0 57%, #000 0);
 }
 
@@ -851,32 +855,32 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   left: 29%;
   right: 29%;
   bottom: 0;
-  height: 1400px;
-  background: linear-gradient(90deg, ${PINK} 0 3px, #1c1438 3px calc(100% - 3px), ${PINK} calc(100% - 3px));
+  height: calc(1400 * var(--u));
+  background: linear-gradient(90deg, ${PINK} 0 calc(3 * var(--u)), #1c1438 calc(3 * var(--u)) calc(100% - calc(3 * var(--u))), ${PINK} calc(100% - calc(3 * var(--u))));
   transform-style: preserve-3d;
   transform-origin: bottom;
-  /* the near end starts 120px in front of the screen (well below the 300px perspective) */
-  transform: translateZ(120px) rotateX(90deg);
+  /* the near end starts 120 units in front of the screen (well below the 300-unit perspective) */
+  transform: translateZ(calc(120 * var(--u))) rotateX(90deg);
 }
 
 .dashes {
   position: absolute;
-  top: -100px; /* one period taller than the road */
+  top: calc(-100 * var(--u)); /* one period taller than the road */
   bottom: 0;
-  left: calc(50% - 3px);
-  width: 6px;
-  background: repeating-linear-gradient(${AMBER} 0 50px, transparent 50px 100px);
+  left: calc(50% - calc(3 * var(--u)));
+  width: calc(6 * var(--u));
+  background: repeating-linear-gradient(${AMBER} 0 calc(50 * var(--u)), transparent calc(50 * var(--u)) calc(100 * var(--u)));
   animation: dash 0.5s linear infinite;
 }
 
 .road i {
   position: absolute;
   bottom: 0;
-  width: 5px;
-  height: 46px;
-  border-radius: 3px;
+  width: calc(5 * var(--u));
+  height: calc(46 * var(--u));
+  border-radius: calc(3 * var(--u));
   background: linear-gradient(${TEAL}, rgb(46 230 214 / 0.15));
-  box-shadow: 0 0 8px rgb(46 230 214 / 0.7);
+  box-shadow: 0 0 calc(8 * var(--u)) rgb(46 230 214 / 0.7);
   transform-origin: bottom;
   animation: post 7s linear infinite;
   animation-delay: calc(var(--i) * -7s / 6);
@@ -885,20 +889,20 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
 .road i::before {
   content: '';
   position: absolute;
-  top: -4px;
-  left: -3px;
-  width: 11px;
-  height: 11px;
+  top: calc(-4 * var(--u));
+  left: calc(-3 * var(--u));
+  width: calc(11 * var(--u));
+  height: calc(11 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, #fff 0 25%, ${TEAL} 60%);
 }
 
 .road .left {
-  left: -22px;
+  left: calc(-22 * var(--u));
 }
 
 .road .right {
-  right: -22px;
+  right: calc(-22 * var(--u));
   animation-delay: calc(var(--i) * -7s / 6 - 7s / 12); /* half a step later */
 }
 
@@ -909,14 +913,14 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   background: linear-gradient(transparent, #8c2a6c 30% 50%, transparent);
 }
 
-/* translateZ(1px): paint just above the road surface */
+/* one unit of translateZ: paint just above the road surface */
 @keyframes dash {
-  from { transform: translateZ(1px) translateY(0); }
-  to   { transform: translateZ(1px) translateY(100px); }
+  from { transform: translateZ(calc(1 * var(--u))) translateY(0); }
+  to   { transform: translateZ(calc(1 * var(--u))) translateY(calc(100 * var(--u))); }
 }
 
 @keyframes post {
-  from { opacity: 0; transform: translateY(-1400px) rotateX(-90deg); }
+  from { opacity: 0; transform: translateY(calc(-1400 * var(--u))) rotateX(-90deg); }
   12%  { opacity: 1; }
   to   { opacity: 1; transform: translateY(0) rotateX(-90deg); }
 }`,
