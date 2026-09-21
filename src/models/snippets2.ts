@@ -679,17 +679,22 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 900px;
+  /* one base unit: every length below is a multiple of it, so the laptop is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.27vmin;
+  perspective: calc(900 * var(--u));
 }
 
 .laptop {
   position: relative;
-  width: 220px;
-  height: 145px;
-  border-radius: 10px;
+  width: calc(220 * var(--u));
+  height: calc(145 * var(--u));
+  border-radius: calc(10 * var(--u));
   background: linear-gradient(#c9cede, #9aa1b8);
   transform-style: preserve-3d;
-  transform: translateY(40px) rotateX(64deg) rotateZ(28deg);
+  /* the lid stands up out of the top of the base, so the base sits below the middle and the
+     laptop plus its open lid is what ends up centred, not the shut base on its own */
+  transform: translateY(calc(62 * var(--u))) rotateX(64deg) rotateZ(28deg);
 }
 
 .lid {
@@ -705,27 +710,29 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 10px;
+  border-radius: calc(10 * var(--u));
   backface-visibility: hidden;
 }
 
 /* outer shell */
 .lid::before {
   background: linear-gradient(#b9bfd2, #8e95ad);
-  transform: translateZ(1px);
+  transform: translateZ(calc(1 * var(--u)));
 }
 
 /* screen — the other side */
 .lid::after {
-  border: 7px solid #14161f;
+  border: calc(7 * var(--u)) solid #14161f;
   background: linear-gradient(135deg, #8b6cff, #2ee6d6);
-  box-shadow: 0 0 30px #8b6cff;
+  box-shadow: 0 0 calc(30 * var(--u)) #8b6cff;
   transform: rotateY(180deg);
 }
 
+/* open first: a paused card holds the pose at 0%, and an open laptop is the one that reads as a
+   laptop and as the trick this model is about. Shut, it is a slab low in the frame. */
 @keyframes open {
-  0%, 12%   { transform: rotateX(0deg); }
-  85%, 100% { transform: rotateX(104deg); }
+  0%, 12%   { transform: rotateX(104deg); }
+  85%, 100% { transform: rotateX(0deg); }
 }`,
   },
 
