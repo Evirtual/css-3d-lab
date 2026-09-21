@@ -382,8 +382,9 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
   stairs: {
     how: [
       'Every tread is the same flat slab: a rectangle laid down with <code>rotateX(90deg)</code>.',
-      'The trick is <code>transform-origin: -5px 50%</code>, a point 5px to the left of the slab, which is where the pole\'s axis is. Every rotation now pivots around the pole.',
-      'One index does the rest: <code>rotateY(i × 30deg)</code> turns the tread around the pole, <code>translateY(i × -8px)</code> lifts it one step. Turn + lift = spiral.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the staircase is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units — the strips even carry theirs as plain numbers in <code>--x</code>, <code>--y</code> and <code>--l</code>, and the CSS multiplies each by <code>--u</code>.',
+      'The trick is <code>transform-origin: calc(-5 * var(--u)) 50%</code>, a point five units to the left of the slab, which is where the pole\'s axis is. Every rotation now pivots around the pole.',
+      'One index does the rest: <code>rotateY(i × 30deg)</code> turns the tread around the pole, <code>translateY(calc(i × -8 × var(--u)))</code> lifts it one step. Turn + lift = spiral.',
       'The sides are ten thin strips round the tread\'s edge, each folded straight down by one step: the two long sides, both ends, and three short facets on each rounded corner, so the side follows the curve. The pole is two crossed planes, which read as a round post from any angle.',
     ],
     html: `<div class="scene">
@@ -394,13 +395,16 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the staircase is the same share of
+     a card, the editor, a full screen and a recording canvas */
+  --u: 0.41vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .stairs {
   position: relative;
-  width: 130px;
-  height: 136px;
+  width: calc(130 * var(--u));
+  height: calc(136 * var(--u));
   transform-style: preserve-3d;
   animation: spin 16s linear infinite;
 }
@@ -408,21 +412,23 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
 .stairs i {
   --hue: calc(253 - var(--i) * 6); /* violet at the bottom, teal at the top */
   position: absolute;
-  left: calc(50% + 5px); /* start just outside the pole */
-  top: 98px;
-  width: 58px;
-  height: 28px;
+  left: calc(50% + 5 * var(--u)); /* start just outside the pole */
+  top: calc(98 * var(--u));
+  width: calc(58 * var(--u));
+  height: calc(28 * var(--u));
   /* an inner line plus a soft shade instead of a hard border: treads near eye level are seen
-     almost edge-on, where a 1px line breaks up; the shade survives */
-  box-shadow: inset 0 0 0 1px hsl(var(--hue) 90% 82%), inset 0 0 8px hsl(var(--hue) 90% 82% / 0.25);
-  border-radius: 0 6px 6px 0;
+     almost edge-on, where a hairline breaks up; the shade survives */
+  box-shadow:
+    inset 0 0 0 calc(1 * var(--u)) hsl(var(--hue) 90% 82%),
+    inset 0 0 calc(8 * var(--u)) hsl(var(--hue) 90% 82% / 0.25);
+  border-radius: 0 calc(6 * var(--u)) calc(6 * var(--u)) 0;
   background: hsl(var(--hue) 85% 64% / 0.62);
-  transform-origin: -5px 50%; /* on the pole's axis */
+  transform-origin: calc(-5 * var(--u)) 50%; /* on the pole's axis */
   transform-style: preserve-3d;
   transform:
-    translateY(calc(var(--i) * -8px))   /* one step up ... */
-    rotateY(calc(var(--i) * 30deg))     /* ... and 30deg further round */
-    rotateX(90deg);                     /* lie flat */
+    translateY(calc(var(--i) * -8 * var(--u)))  /* one step up ... */
+    rotateY(calc(var(--i) * 30deg))             /* ... and 30deg further round */
+    rotateX(90deg);                             /* lie flat */
 }
 
 /* The sides go all the way round the tread: both long edges, the outer end and the two rounded
@@ -430,12 +436,12 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
    point on the edge (--x, --y), turns to run along it (--a), then folds straight down one step. */
 .stairs s {
   position: absolute;
-  left: calc(var(--x) * 1px);
-  top: calc(var(--y) * 1px);
-  width: calc(var(--l) * 1px + 0.5px); /* a hair longer, so neighbours overlap: no seams */
-  height: 8px;
+  left: calc(var(--x) * var(--u));
+  top: calc(var(--y) * var(--u));
+  width: calc((var(--l) + 0.5) * var(--u)); /* a hair longer, so neighbours overlap: no seams */
+  height: calc(8 * var(--u));
   background: hsl(var(--hue) 45% 30% / 0.82); /* less see-through than the top */
-  box-shadow: 0 0 6px hsl(var(--hue) 85% 64% / 0.35); /* a soft glow */
+  box-shadow: 0 0 calc(6 * var(--u)) hsl(var(--hue) 85% 64% / 0.35); /* a soft glow */
   transform-origin: 0 0;
   transform: rotate(calc(var(--a) * 1deg)) rotateX(-90deg);
 }
@@ -454,11 +460,11 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
 /* pole: two crossed planes */
 .stairs b {
   position: absolute;
-  left: calc(50% - 4px);
+  left: calc(50% - 4 * var(--u));
   top: 0;
-  width: 8px;
+  width: calc(8 * var(--u));
   height: 100%;
-  border-radius: 4px;
+  border-radius: calc(4 * var(--u));
   background: linear-gradient(90deg, #3a3f63, #eceefb, #3a3f63);
   opacity: 0.85;
 }
