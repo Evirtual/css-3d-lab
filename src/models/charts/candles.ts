@@ -295,6 +295,9 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   /* the price labels sit off the right edge and the floor and the dates hang below the chart:
      the room for them is what keeps the chart itself centred in the model box */
   padding: calc(25 * var(--u)) calc(88 * var(--u)) calc(40 * var(--u)) calc(50 * var(--u));
+  /* the eye places the chart by its candles and floor, not by the price labels beside them:
+     moved right by this much, the candles sit near the middle and the labels hang off to the right */
+  translate: calc(8 * var(--u)) 0;
   pointer-events: none; /* the chart is turned: only the candles' columns take the pointer */
 }
 
@@ -329,7 +332,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
    at both ends (a label sticking out of a 3D-placed box gets its top half cut), so its lines
    are calc(1 * var(--u)) gradients at calc(8 * var(--u)), calc(58 * var(--u)) and calc(107 * var(--u)) */
 .wall {
-  --line: rgb(236 238 251 / 0.24);
+  --line: color-mix(in srgb, currentColor 24%, transparent); /* the stage's ink: reads on dark and light */
   position: absolute;
   top: calc(-8 * var(--u));
   left: calc(-10 * var(--u));
@@ -347,8 +350,8 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   bottom: calc(calc(8 * var(--u)) + var(--t) * calc(100 * var(--u)));
   left: 100%;
   padding-left: calc(6 * var(--u));
-  color: ${MUTED};
-  font: 700 calc(9 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
+  color: color-mix(in srgb, currentColor 65%, transparent);
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   transform: translateY(50%);
 }
@@ -358,8 +361,8 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   position: absolute;
   top: calc(100% + calc(6 * var(--u)));
   left: 0;
-  color: ${MUTED};
-  font: 700 calc(9 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
+  color: color-mix(in srgb, currentColor 65%, transparent);
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   transform: translateZ(calc(15 * var(--u)));
 }
 
@@ -507,17 +510,17 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   position: absolute;
   top: 0;
   left: 0;
-  padding: calc(3 * var(--u)) calc(7 * var(--u));
+  padding: calc(4 * var(--u)) calc(8 * var(--u));
   border: calc(1 * var(--u)) solid var(--tone);
   border-radius: calc(6 * var(--u));
   background: ${SURFACE};
   box-shadow:
     calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--tone) 55%, #05060c),
     0 0 calc(14 * var(--u)) color-mix(in srgb, var(--tone) 40%, transparent);
-  color: ${TEXT};
-  font: 700 calc(9 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
+  color: ${TEXT}; /* on its own dark card, so it reads on a light stage too */
+  font: 700 calc(12 * var(--u))/calc(15 * var(--u)) system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  white-space: pre; /* three short lines: the date, then open and high, then low and close */
   opacity: 0;
   pointer-events: none;
   transform: translate(calc(var(--tx, 0) * var(--u)), calc((var(--ty, 0) - 12) * var(--u))) translate(calc(var(--f, 0) * -100%), -100%) translateZ(calc(40 * var(--u)));
@@ -586,6 +589,8 @@ const usd = (v) => '$' + v.toLocaleString('en-US');
 const usdK = (v) => '$' + (v / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'k';
 const pct = (v) => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(1) + '%';
 const tipText = (d) => \`\${d.date} · O \${usd(d.open)} H \${usd(d.high)} L \${usd(d.low)} C \${usd(d.close)}\`;
+// the tooltip shows the same words on three short lines, so they can be big enough to read on a card
+const tipLines = (d) => \`\${d.date}\\nO \${usd(d.open)}  H \${usd(d.high)}\\nL \${usd(d.low)}  C \${usd(d.close)}\`;
 
 // Build the chart once: the floor, the scale, two date labels, a column per day holding a wick
 // and a body, and ONE tooltip. Only empty markup goes in as HTML.
@@ -668,7 +673,7 @@ function place(i) {
   const x = i - view.offset;
   const wasOn = tip.classList.contains('is-on');
   if (!wasOn) tip.style.transition = 'none'; // from hidden: appear in place, don't fly in
-  tip.textContent = tipText(d);
+  tip.textContent = tipLines(d);
   tip.style.setProperty('--tx', String(((x + 0.5) * W) / view.n)); // the candle's middle, in the chart's own units
   tip.style.setProperty('--ty', String((1 - view.f(d.high)) * H)); // its high, in the chart's own units
   tip.style.setProperty('--f', x / (view.n - 1)); // 0 first … 1 last: how far it hangs left
