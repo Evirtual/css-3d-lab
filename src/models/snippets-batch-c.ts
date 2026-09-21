@@ -331,7 +331,7 @@ setInterval(function () {
   display: grid;
   justify-items: center;
   gap: calc(9 * var(--u));
-  color: #eceefb;
+  /* no colour of its own: the lead-in is written on the stage, so it takes the stage's ink */
   font-size: calc(21 * var(--u));
   font-weight: 800;
   white-space: nowrap;
@@ -363,7 +363,9 @@ setInterval(function () {
   box-shadow:
     inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c) 80%, transparent),
     inset 0 0 calc(18 * var(--u)) color-mix(in srgb, var(--c) 32%, transparent);
-  color: var(--c);
+  /* the face is see-through, so the word is really on the stage: its colour leans towards the
+     stage's ink, lighter on a dark stage and darker on a light one, so it reads on both */
+  color: color-mix(in srgb, var(--c) 55%, currentColor);
   backface-visibility: hidden;
   transform: rotateX(calc(var(--i) * -90deg)) translateZ(calc(18 * var(--u)));
 }
