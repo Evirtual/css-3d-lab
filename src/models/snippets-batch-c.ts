@@ -1215,8 +1215,8 @@ stage.addEventListener('pointercancel', leave);`,
     how: [
       'JS only ever reports one thing: the pointer’s position inside the field, remapped to two numbers <code>--mx</code> / <code>--my</code> from -1 to 1. Every visible motion is CSS reading those two custom properties.',
       '<code>translate3d(...)</code> plus two <code>rotate</code>s built from the same <code>--mx</code>/<code>--my</code> shift the button toward the pointer and lean it the way it is being pulled, all in one <code>transform</code>.',
-      'The label inside the button sits at a deeper <code>translateZ</code> than the button’s own lift — same tilt, more travel — so it visibly slides apart from its cap: parallax from one shared tilt.',
-      'While the pointer is inside the field (<code>.is-live</code>) the transition is quick and linear so it tracks directly; on release a long <code>cubic-bezier</code> with overshoot takes over, reading as a spring pulling the button home.',
+      'The label is lifted another 30 units off the button’s face with <code>translateZ</code>. It shares the tilt but stands further from the pivot, so it travels further and visibly slides apart from its cap: parallax from one shared tilt.',
+      'While the pointer is inside the field (<code>.is-live</code>) the transition is a quick 0.14s <code>ease-out</code> so it tracks closely; on release a long <code>cubic-bezier</code> with overshoot takes over, reading as a spring pulling the button home.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the field, the button, its lift and how far it travels — so the whole thing is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
     ],
     html: `<div class="magnet">
