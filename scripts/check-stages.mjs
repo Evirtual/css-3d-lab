@@ -21,7 +21,9 @@
  *
  * Every surface gives the model a different canvas, so nothing here compares pixels: everything is
  * in vmin of the canvas the model is in, which is the unit the contract is written in. A model that
- * holds the contract has the same width, height and offset on every line.
+ * holds the contract has the same width, height and offset on every line. A full-canvas scene is
+ * the exception: it follows the canvas's shape by design, so it is judged on filling the canvas and
+ * showing the same content instead (see FULL-CANVAS SCENES below).
  *
  * Transitions are measured too — before an action, at the first frame the model is measurable
  * again, and after it has settled — because a number that is right at both ends can still jump.
@@ -84,6 +86,28 @@ const LOOK = `() => {
   const animations = doc.getAnimations();
   const saved = animations.map(a => ({ a, t: a.currentTime, state: a.playState }));
   let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity, controls = false;
+  // For a full-canvas scene, a box in vmin is the wrong ruler: it fills whatever shape it is given,
+  // and a tipped plane's box runs off to thousands of vmin while the plane's clip shows a screenful.
+  // So what is IN VIEW is kept as well, per element and per moment of the loop at rest (steps 0-11):
+  // each drawn element's box cut to the canvas and to every ancestor that clips, in two rulers, as
+  // a share of the canvas and in vmin from its middle. A scene laid out in percentages agrees in
+  // the first, one laid out in the canvas's unit agrees in the second (with more or less at the
+  // sides on a wider or narrower shape); a scene that shows a different part agrees in neither.
+  const W = win.innerWidth, H = win.innerHeight;
+  const index = new Map([...scene.querySelectorAll('*')].map((el, i) => [el, i]));
+  const view = [];
+  const cover = { minW: Infinity, minH: Infinity, l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
+  const clipOf = (el) => {
+    let cl = 0, ct = 0, cr = W, cb = H;
+    for (let p = el.parentElement; p && p !== doc.body; p = p.parentElement) {
+      const ps = win.getComputedStyle(p);
+      if (ps.overflowX !== 'visible' || ps.overflowY !== 'visible') {
+        const q = p.getBoundingClientRect();
+        cl = Math.max(cl, q.left); ct = Math.max(ct, q.top); cr = Math.min(cr, q.right); cb = Math.min(cb, q.bottom);
+      }
+    }
+    return [cl, ct, cr, cb];
+  };
   try {
     for (let step = 0; step < 24; step++) {
       if (step === 12 && held) held.textContent = css.replace(/:hover/g, ':not(.c3d-never)');
@@ -92,6 +116,7 @@ const LOOK = `() => {
         a.pause();
         a.currentTime = typeof timing?.duration === 'number' ? (timing.delay ?? 0) + timing.duration * (step % 12) / 11 : 0;
       }
+      let sl = Infinity, st = Infinity, sr = -Infinity, sb = -Infinity;
       for (const el of scene.querySelectorAll('*')) {
         const cs = win.getComputedStyle(el);
         if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) continue;
@@ -116,6 +141,17 @@ const LOOK = `() => {
         if (!box || box.right - box.left < 1 || box.bottom - box.top < 1) continue;
         if (el.closest(CONTROL)) controls = true;
         l = Math.min(l, box.left); t = Math.min(t, box.top); r = Math.max(r, box.right); b = Math.max(b, box.bottom);
+        if (step >= 12) continue;
+        const [cl, ct, cr, cb] = clipOf(el);
+        const x0 = Math.max(box.left, cl), y0 = Math.max(box.top, ct), x1 = Math.min(box.right, cr), y1 = Math.min(box.bottom, cb);
+        if (x1 - x0 < 1 || y1 - y0 < 1) continue; // drawn, but not in view
+        sl = Math.min(sl, x0); st = Math.min(st, y0); sr = Math.max(sr, x1); sb = Math.max(sb, y1);
+        view.push([step, index.get(el) ?? -1, x0, y0, x1, y1]);
+      }
+      if (step < 12) {
+        cover.minW = Math.min(cover.minW, Number.isFinite(sl) ? (sr - sl) / W : 0);
+        cover.minH = Math.min(cover.minH, Number.isFinite(st) ? (sb - st) / H : 0);
+        if (Number.isFinite(sl)) { cover.l = Math.min(cover.l, sl); cover.t = Math.min(cover.t, st); cover.r = Math.max(cover.r, sr); cover.b = Math.max(cover.b, sb); }
       }
     }
   } finally {
@@ -132,15 +168,24 @@ const LOOK = `() => {
     if (resizing) doc.documentElement.setAttribute('data-c3d-resizing', '');
   }
   if (!Number.isFinite(l)) return null;
-  const mx = win.innerWidth / 2, my = win.innerHeight / 2;
+  const mx = W / 2, my = H / 2;
+  const coversW = Number.isFinite(cover.l) ? (cover.r - cover.l) / W : 0, coversH = Number.isFinite(cover.t) ? (cover.b - cover.t) / H : 0;
+  const full = coversW >= 0.95 && coversH >= 0.95;
   return {
     width: (r - l) / unit,
     height: (b - t) / unit,
     offX: ((l + r) / 2 - mx) / unit,
     offY: ((t + b) / 2 - my) / unit,
-    canvasW: win.innerWidth,
-    canvasH: win.innerHeight,
+    canvasW: W,
+    canvasH: H,
     controls,
+    // what is in view, for the full-canvas judgement (kept only when it covers the canvas)
+    cover: { w: coversW, h: coversH, minW: cover.minW, minH: cover.minH },
+    view: full ? view.map(([s, i, x0, y0, x1, y1]) => [s, i,
+      // a share of the canvas, in thousandths
+      Math.round(x0 / W * 1000), Math.round(y0 / H * 1000), Math.round(x1 / W * 1000), Math.round(y1 / H * 1000),
+      // vmin from the canvas middle, in tenths
+      Math.round((x0 - mx) / unit * 10), Math.round((y0 - my) / unit * 10), Math.round((x1 - mx) / unit * 10), Math.round((y1 - my) / unit * 10)]) : null,
   };
 }`;
 const lookFn = new Function('return ' + LOOK)();
@@ -158,6 +203,84 @@ const say = (line) => { if (!asJson) console.log(line); };
 const n1 = (v) => (v >= 0 ? ' ' : '') + v.toFixed(1);
 const show = (s) => (s ? `${s.width.toFixed(1)}×${s.height.toFixed(1)} @${n1(s.offX)},${n1(s.offY)}` : '—');
 
+/*
+ * FULL-CANVAS SCENES (VIEW-CONTRACT.md, "Full-canvas models": inset: 0, sized in percentages).
+ * Their footprint is the canvas, so it follows the canvas's shape, and their boxes are no ruler: a
+ * plane tipped towards the camera measures thousands of vmin while its clip shows one screenful.
+ * A model whose own page covers the canvas (95% both ways, check-models' test, on what is in view)
+ * is judged on what the contract asks of it instead, on every surface and across every transition:
+ *   - it fills the canvas: 98% both ways at every moment of the loop, so no gap on any shape;
+ *   - the same content is in view: every drawn thing in view, at each of 12 moments of the loop, is
+ *     in the same place, across and down, in either ruler a scene can be laid out in — as a share
+ *     of the canvas (percentages), or in vmin from the canvas's start, middle or end (the canvas's
+ *     unit, where a wider canvas shows more at the sides). A thing that is in the same place in no
+ *     ruler, or is in view on one canvas and missing from the area both canvases show, is placed
+ *     differently; more than FULL_SHARE of what is in view placed differently is a different view.
+ * Random scenes (the snow, the confetti) are made the same on every surface by seeding
+ * Math.random in every frame, so the flakes are the same flakes wherever the model is.
+ */
+const FULL = 0.95; // covers this much both ways: a full-canvas scene
+const FILLS = 0.98; // and must cover this much, both ways, at every moment
+const PLACE = 3; // % of the canvas a thing may move and still be in the same place (percentage ruler)
+const FULL_SHARE = 0.1; // at most this share of what is in view may be placed differently
+const isFull = (s) => Boolean(s?.view);
+const halfOf = (s) => { const u = Math.min(s.canvasW, s.canvasH) / 100; return [s.canvasW / 2 / u, s.canvasH / 2 / u]; };
+function sameView(a, b) {
+  const key = (v) => `${v[0]}:${v[1]}`;
+  const A = new Map(a.view.map((v) => [key(v), v])), B = new Map(b.view.map((v) => [key(v), v]));
+  const [hwA, hhA] = halfOf(a), [hwB, hhB] = halfOf(b);
+  const hw = Math.min(hwA, hwB), hh = Math.min(hhA, hhB);
+  // a thing's box in vmin, cut to the area both canvases show; null when none of it is there
+  const common = (v) => {
+    const x0 = Math.max(v[6] / 10, -hw), y0 = Math.max(v[7] / 10, -hh), x1 = Math.min(v[8] / 10, hw), y1 = Math.min(v[9] / 10, hh);
+    return x1 - x0 >= 1 && y1 - y0 >= 1 ? [x0, y0, x1, y1] : null;
+  };
+  // One axis of a thing is in the same place when one of its edges or its middle is: as a share of
+  // the canvas (left: 30%), or in vmin from the canvas's start, middle or end on that axis (a flake
+  // falling from the top, a panel centred, a floor on the bottom). A scene may mix them, a flake
+  // placed in percentages across and falling in vmin down, so each axis is judged on its own.
+  const axis = (x, y, lo, hiA, hiB) => {
+    const f = (v) => [v[lo], v[lo + 2], (v[lo] + v[lo + 2]) / 2];
+    const fx = f(x), fy = f(y);
+    if (fx.some((v, i) => Math.abs(v - fy[i]) / 10 <= PLACE)) return true;
+    const mx = [x[lo + 4], x[lo + 6], (x[lo + 4] + x[lo + 6]) / 2].map((v) => v / 10);
+    const my = [y[lo + 4], y[lo + 6], (y[lo + 4] + y[lo + 6]) / 2].map((v) => v / 10);
+    for (const from of [-1, 0, 1]) { // the canvas's start, middle and end on this axis
+      if (mx.some((v, i) => Math.abs((v - from * hiA) - (my[i] - from * hiB)) <= TOL)) return true;
+    }
+    return false;
+  };
+  let total = 0, differ = 0;
+  for (const k of new Set([...A.keys(), ...B.keys()])) {
+    const x = A.get(k), y = B.get(k);
+    total++;
+    if (x && y) {
+      if (!axis(x, y, 2, hwA, hwB) || !axis(x, y, 3, hhA, hhB)) differ++;
+    } else if (common(x ?? y)) differ++; // in view on one, and missing where the other shows the same area
+  }
+  return { share: total ? differ / total : 0, differ, total };
+}
+const pct = (v) => `${(v * 100).toFixed(0)}%`;
+const fills = (s) => `${pct(s.cover.minW)} × ${pct(s.cover.minH)}`;
+/**
+ * How far apart two readings are, and whether that is too far: in vmin for a model in the band,
+ * and for a full-canvas scene (when `full`) as the share of what is in view that is placed
+ * differently, with a gap on either canvas said first.
+ */
+function apart(a, b, full) {
+  if (!full) {
+    const d = Math.max(Math.abs(a.width - b.width), Math.abs(a.height - b.height), Math.abs(a.offX - b.offX), Math.abs(a.offY - b.offY));
+    return { d, bad: d > TOL, size: `${d.toFixed(1)}vmin` };
+  }
+  for (const s of [a, b]) {
+    if (!isFull(s)) return { d: Infinity, bad: true, size: `does not fill the canvas (covers ${pct(s.cover.w)} × ${pct(s.cover.h)})` };
+    if (s.cover.minW < FILLS || s.cover.minH < FILLS) return { d: Infinity, bad: true, size: `leaves a gap: fills ${fills(s)} of the canvas at its emptiest moment` };
+  }
+  const v = sameView(a, b);
+  return { d: v.share * 100, bad: v.share > FULL_SHARE, size: `${v.differ} of ${v.total} things in view placed differently (${pct(v.share)})` };
+}
+const showFull = (s) => (isFull(s) ? `fills ${fills(s)}` : show(s));
+
 // No watcher and no HMR: a model file saved while this is running would otherwise reload the page
 // under the measurement, and half a run would be of one version of the model and half of another.
 const vite = await createVite({ logLevel: 'error', server: { host: '127.0.0.1', port: 0, watch: null, hmr: false } });
@@ -170,6 +293,17 @@ const ids = wanted.length ? wanted : demos.map((d) => d.id);
 
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+// every frame draws the same random numbers, from the same seed: a scene that scatters its parts
+// with Math.random (the snow, the confetti) is then the same scene on every surface
+await context.addInitScript(() => {
+  let seed = 0x2f6b4a1d;
+  Math.random = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+});
 const page = await context.newPage();
 page.on('pageerror', (e) => say(`  page error: ${e.message}`));
 
@@ -437,7 +571,7 @@ for (const id of ids) {
   for (const stage of STAGES) if (!(stage in row.stages)) row.stages[stage] = null;
   const pointed = STAGES.filter((s) => row.stages[s]?.pose === 'pointed');
   if (pointed.length) row.notes.push(`the model still had something under the pointer on: ${pointed.join(', ')} after the pointer was parked off it — those lines are of the pointed pose and are compared only with each other`);
-  say(STAGES.map((s) => `  ${s.padEnd(11)} ${show(row.stages[s])}${row.stages[s] ? `   canvas ${Math.round(row.stages[s].canvasW)}×${Math.round(row.stages[s].canvasH)}${row.stages[s].pose === 'pointed' ? '   POINTED' : ''}   pointer on ${row.stages[s].parkedOn ?? '?'}` : ''}`).join('\n'));
+  say(STAGES.map((s) => `  ${s.padEnd(11)} ${showFull(row.stages[s])}${row.stages[s] ? `   canvas ${Math.round(row.stages[s].canvasW)}×${Math.round(row.stages[s].canvasH)}${row.stages[s].pose === 'pointed' ? '   POINTED' : ''}   pointer on ${row.stages[s].parkedOn ?? '?'}` : ''}`).join('\n'));
   for (const note of row.notes) say(`  note: ${note}`);
 }
 
@@ -445,27 +579,31 @@ for (const id of ids) {
 const after = siteStamp();
 const moved = after.files !== before.files || after.latest !== before.latest;
 if (asJson) {
-  console.log(JSON.stringify({ steady: !moved, results }, null, 2));
+  // what was in view is thousands of numbers per reading: it did its job in the comparison
+  console.log(JSON.stringify({ steady: !moved, results }, (key, value) => (key === 'view' ? undefined : value), 2));
 } else {
   if (moved) {
     console.log(`\nWARNING: src changed while this ran (last saved ${new Date(after.latest).toLocaleTimeString()}).`);
     console.log('The models measured first and the ones measured last may not be the same site. Run it again on a quiet tree.');
   }
-  const gap = (a, b) => Math.max(Math.abs(a.width - b.width), Math.abs(a.height - b.height), Math.abs(a.offX - b.offX), Math.abs(a.offY - b.offY));
-  console.log('\nAll numbers are vmin of the canvas the model is in: width × height @ offset from the middle.\n');
+  console.log('\nAll numbers are vmin of the canvas the model is in: width × height @ offset from the middle.');
+  console.log('A full-canvas scene says instead how much of the canvas it fills at its emptiest moment.\n');
   // a pose is only ever compared with the same pose: at rest with at rest (every reading this check
   // sets out to take), pointed with pointed
   const alike = (a, b) => a.pose === b.pose;
   const ID = Math.max(11, ...results.map((row) => row.id.length + 1)); // capture-check splits the table on whitespace
   console.log(['model'.padEnd(ID), ...STAGES.map((s) => s.padEnd(26))].join(''));
   for (const row of results) {
-    console.log([row.id.padEnd(ID), ...STAGES.map((s) => show(row.stages[s]).padEnd(26))].join(''));
+    console.log([row.id.padEnd(ID), ...STAGES.map((s) => showFull(row.stages[s]).padEnd(26))].join(''));
   }
 
   let bad = 0;
   console.log('\nDisagreements (against the model\'s own page):');
   for (const row of results) {
     const ref = row.stages.page;
+    // judged as a full-canvas scene when its own page shows it covering the canvas
+    const full = isFull(ref);
+    row.full = full;
     const off = [];
     if (!ref) off.push('the model page could not be measured');
     else for (const s of STAGES) {
@@ -473,8 +611,8 @@ if (asJson) {
       if (s === 'page') continue;
       if (!seen) { off.push(`${s}: not measured`); continue; }
       if (!alike(ref, seen)) continue; // said once, in the note on pointed lines
-      const d = gap(ref, seen);
-      if (d > TOL) off.push(`${s}: ${show(seen)} against ${show(ref)} — ${d.toFixed(1)}vmin apart`);
+      const d = apart(ref, seen, full);
+      if (d.bad) off.push(full ? `${s}: ${d.size}, against the page` : `${s}: ${show(seen)} against ${show(ref)} — ${d.size} apart`);
     }
     for (const m of row.moves) {
       if (!m.before || !m.first) continue;
@@ -482,10 +620,10 @@ if (asJson) {
         off.push(`"${m.label}" not compared: the pointer was on the model for part of it (${[m.before, m.first, m.after].filter(Boolean).map((x) => x.pose).join(' → ')})`);
         continue;
       }
-      const j = gap(m.before, m.first);
-      const settled = m.after ? gap(m.first, m.after) : 0;
-      if (j > TOL) off.push(`jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.toFixed(1)}vmin)`);
-      else if (settled > TOL) off.push(`settles after "${m.label}": ${show(m.first)} → ${show(m.after)} (${settled.toFixed(1)}vmin)`);
+      const j = apart(m.before, m.first, full);
+      const settled = m.after ? apart(m.first, m.after, full) : null;
+      if (j.bad) off.push(full ? `jump on "${m.label}": ${j.size}` : `jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.size})`);
+      else if (settled?.bad) off.push(full ? `settles after "${m.label}": ${settled.size}` : `settles after "${m.label}": ${show(m.first)} → ${show(m.after)} (${settled.size})`);
     }
     for (const note of row.notes) off.push(note);
     if (off.length) { bad++; console.log(`  ${row.id}\n${off.map((o) => `    ${o}`).join('\n')}`); }
@@ -499,18 +637,18 @@ if (asJson) {
     let worst = null;
     for (const m of row.moves) {
       if (!m.before || !m.first || !alike(m.before, m.first) || (m.after && !alike(m.first, m.after))) continue;
-      const d = gap(m.before, m.first);
-      const s = m.after ? gap(m.first, m.after) : 0;
+      const d = apart(m.before, m.first, row.full).d;
+      const s = m.after ? apart(m.first, m.after, row.full).d : 0;
       if (!worst || Math.max(d, s) > Math.max(worst.d, worst.s)) worst = { label: m.label, d, s, m };
     }
     console.log(
       worst
-        ? `  ${row.id.padEnd(11)} ${worst.d.toFixed(1)}vmin on "${worst.label}"${worst.s > 0.05 ? `, and ${worst.s.toFixed(1)}vmin more before it settled` : ''}`
+        ? `  ${row.id.padEnd(11)} ${Number.isFinite(worst.d) ? `${worst.d.toFixed(1)}${row.full ? '% of what is in view moved' : 'vmin'}` : 'a gap'} on "${worst.label}"${worst.s > 0.05 ? `, and ${Number.isFinite(worst.s) ? `${worst.s.toFixed(1)}${row.full ? '%' : 'vmin'} more` : 'a gap'} before it settled` : ''}`
         : `  ${row.id.padEnd(11)} no transition could be measured`,
     );
   }
 
-  console.log(`\n${results.length - bad}/${results.length} models are the same everywhere, within ${TOL}vmin.`);
+  console.log(`\n${results.length - bad}/${results.length} models are the same everywhere, within ${TOL}vmin (a full-canvas scene: filling the canvas, with no more than ${pct(FULL_SHARE)} of what is in view placed differently).`);
 }
 
 await browser.close();
