@@ -404,18 +404,22 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
     ],
     html: `<div class="loader"></div>`,
     css: `.loader {
-  width: 90px;
-  height: 90px;
-  border-radius: 12px;
+  /* one base unit: every length below is a multiple of it, so the loader is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.55vmin;
+  width: calc(90 * var(--u));
+  height: calc(90 * var(--u));
+  border-radius: calc(12 * var(--u));
   background: linear-gradient(135deg, #2ee6d6, #8b6cff);
-  box-shadow: 0 0 30px rgb(139 108 255 / 0.6);
+  box-shadow: 0 0 calc(30 * var(--u)) rgb(139 108 255 / 0.6);
   animation: flip 1.8s ease-in-out infinite;
 }
 
+/* the perspective() function scales with the loader too, so the flip keeps its depth */
 @keyframes flip {
-  0%   { transform: perspective(260px) rotateX(0deg)    rotateY(0deg); }
-  50%  { transform: perspective(260px) rotateX(-180deg) rotateY(0deg); }
-  100% { transform: perspective(260px) rotateX(-180deg) rotateY(-180deg); }
+  0%   { transform: perspective(calc(260 * var(--u))) rotateX(0deg)    rotateY(0deg); }
+  50%  { transform: perspective(calc(260 * var(--u))) rotateX(-180deg) rotateY(0deg); }
+  100% { transform: perspective(calc(260 * var(--u))) rotateX(-180deg) rotateY(-180deg); }
 }`,
   },
 
