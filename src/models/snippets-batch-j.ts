@@ -827,11 +827,12 @@ ${frustum(6, 11, 0, 12, -116)}
     how: [
       'The scale runs 240°: value 0 sits at <code>-120deg</code>, 100 at <code>+120deg</code>. So the needle is <code>rotate(calc(-120deg + var(--value) * 2.4deg))</code>, and JS only ever writes <code>--value</code>.',
       'The swing is a CSS <code>transition</code>. Its <code>cubic-bezier(0.3, 1.6, 0.45, 1)</code> goes above 1, so the needle shoots past the mark and settles back, like a real one.',
-      'Depth comes from stacking: six copies of the disc step back 2.5px each, getting darker, and read as a solid rim when tilted. The needle is four clip-path layers 1.3px apart; the ticks are real bars lifted off the face, and a glass sheen floats 12px in front.',
+      'Depth comes from stacking: six copies of the disc step back 2.5 units each, getting darker, and read as a solid rim when tilted. The needle is four clip-path layers 1.3 units apart; the ticks are real bars lifted off the face, and a glass sheen floats 12 units in front.',
+      'Every length of the dial is a multiple of one base unit, <code>--u</code>, so it is the same share of a gallery card, the editor and a recording canvas. The caption and the buttons under it are in plain <code>vmin</code>: the control zone is the same object, at the same size, in every model.',
       'The minor ticks are one <code>repeating-conic-gradient</code>, cut down by two masks intersected (<code>mask-composite: intersect</code>): a ring, and the 240° of the scale.',
     ],
     html: `<div class="gauge">
-  <div class="scene">
+  <div class="view">
     <div class="dial" style="--value:${LEVELS[0][1]}">
       <i></i><i></i><i></i><i></i><i></i><i></i>
       <div class="face">
@@ -844,15 +845,22 @@ ${lines(6, (i) => `<em style="--a:${-120 + i * 48}deg">${i * 20}</em>`, '       
       <div class="glass"></div>
     </div>
   </div>
-  <output>${LEVELS[0][0]} · ${LEVELS[0][1]} km/h</output>
-  <div class="seg">
-${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-pressed="${i === 0}">${LEVELS[i][0]}</button>`, '    ')}
+  <div class="controls">
+    <output class="caption">${LEVELS[0][0]} · ${LEVELS[0][1]} km/h</output>
+    <div class="row">
+${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-pressed="${i === 0}">${LEVELS[i][0]}</button>`, '      ')}
+    </div>
   </div>
 </div>`,
-    css: `.gauge {
+    css: `/* the model box and the control zone stand in one stack, so the zone is the same distance
+   under the dial in every model */
+.gauge {
+  /* one base unit: every length of the dial is a multiple of it. The control zone is in plain
+     vmin, because it is the same object in every model. */
+  --u: 0.3vmin;
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 4vmin;
   font-family: system-ui, sans-serif;
 }
 
@@ -860,15 +868,18 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   box-sizing: border-box;
 }
 
-.scene {
-  perspective: 800px;
-  margin-bottom: 14px;
+/* the model box */
+.view {
+  display: grid;
+  place-items: center;
+  height: 50vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .dial {
   position: relative;
-  width: 150px;
-  height: 150px;
+  width: calc(150 * var(--u));
+  height: calc(150 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(32deg) rotateY(-14deg);
   animation: sway 10s ease-in-out infinite alternate;
@@ -880,7 +891,7 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   inset: 0;
   border-radius: 50%;
   background: color-mix(in srgb, #4e4290, #05060c calc(var(--n) * 9%));
-  transform: translateZ(calc(var(--n) * -2.5px));
+  transform: translateZ(calc(var(--n) * -2.5 * var(--u)));
 }
 
 .dial > i:nth-child(1) { --n: 1; }
@@ -893,10 +904,10 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
 .face {
   position: absolute;
   inset: 0;
-  border: 6px solid #b0a6ee;
+  border: calc(6 * var(--u)) solid #b0a6ee;
   border-radius: 50%;
   background: radial-gradient(circle at 50% 35%, #2e2b5e, ${SURFACE} 75%);
-  box-shadow: inset 0 0 18px rgb(0 0 0 / 0.4);
+  box-shadow: inset 0 0 calc(18 * var(--u)) rgb(0 0 0 / 0.4);
   transform-style: preserve-3d;
 }
 
@@ -904,21 +915,21 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
 .face::before {
   content: '';
   position: absolute;
-  inset: 3px;
+  inset: calc(3 * var(--u));
   border-radius: 50%;
   background: conic-gradient(from -120deg, ${TEAL}, ${AMBER} 150deg, ${PINK} 210deg 240deg, transparent 0);
-  mask: radial-gradient(closest-side, transparent calc(100% - 5px), #000 calc(100% - 4.5px));
+  mask: radial-gradient(closest-side, transparent calc(100% - calc(5 * var(--u))), #000 calc(100% - calc(4.5 * var(--u))));
 }
 
 /* minor ticks every 4.8deg, masked to a ring AND to the 240deg of the scale */
 .face::after {
   content: '';
   position: absolute;
-  inset: 12px;
+  inset: calc(12 * var(--u));
   border-radius: 50%;
   background: repeating-conic-gradient(from -120.5deg, rgb(236 238 251 / 0.55) 0 1deg, transparent 1deg 4.8deg);
   mask:
-    radial-gradient(closest-side, transparent calc(100% - 5px), #000 calc(100% - 4.5px)),
+    radial-gradient(closest-side, transparent calc(100% - calc(5 * var(--u))), #000 calc(100% - calc(4.5 * var(--u)))),
     conic-gradient(from -121deg, #000 0 242deg, transparent 0);
   mask-composite: intersect;
 }
@@ -926,37 +937,37 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
 /* major ticks: real bars, lifted off the face */
 .face b {
   position: absolute;
-  left: calc(50% - 1.5px);
-  top: calc(50% - 5px);
-  width: 3px;
-  height: 10px;
-  border-radius: 1px;
+  left: calc(50% - calc(1.5 * var(--u)));
+  top: calc(50% - calc(5 * var(--u)));
+  width: calc(3 * var(--u));
+  height: calc(10 * var(--u));
+  border-radius: calc(1 * var(--u));
   background: ${TEXT};
-  transform: translateZ(2px) rotate(var(--a)) translateY(-50px);
+  transform: translateZ(calc(2 * var(--u))) rotate(var(--a)) translateY(calc(-50 * var(--u)));
 }
 
 /* numbers: out along the angle, then turned back upright */
 .face em {
   position: absolute;
-  left: calc(50% - 12px);
-  top: calc(50% - 6px);
-  width: 24px;
+  left: calc(50% - calc(14 * var(--u)));
+  top: calc(50% - calc(7 * var(--u)));
+  width: calc(28 * var(--u));
   color: ${MUTED};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   font-style: normal;
   text-align: center;
-  transform: translateZ(1px) rotate(var(--a)) translateY(-33px) rotate(calc(var(--a) * -1));
+  transform: translateZ(calc(1 * var(--u))) rotate(var(--a)) translateY(calc(-33 * var(--u))) rotate(calc(var(--a) * -1));
 }
 
 .face small {
   position: absolute;
-  inset: auto 0 20px;
+  inset: auto 0 calc(20 * var(--u));
   color: ${MUTED};
-  font: 800 8px system-ui, sans-serif;
+  font: 800 calc(9 * var(--u)) system-ui, sans-serif;
   letter-spacing: 0.12em;
   text-align: center;
   text-transform: uppercase;
-  transform: translateZ(1px);
+  transform: translateZ(calc(1 * var(--u)));
 }
 
 /* JS writes --value; this turns it into an angle, the transition does the swing */
@@ -975,32 +986,32 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   animation: quiver 1.7s ease-in-out infinite alternate;
 }
 
-/* the needle: four layers of one shape, 1.3px apart, lightest on top */
+/* the needle: four layers of one shape, calc(1.3 * var(--u)) apart, lightest on top */
 .quiver i {
   position: absolute;
-  left: -4px;
-  top: -58px;
-  width: 8px;
-  height: 72px;
+  left: calc(-4 * var(--u));
+  top: calc(-58 * var(--u));
+  width: calc(8 * var(--u));
+  height: calc(72 * var(--u));
   clip-path: polygon(50% 0, 76% 80%, 62% 100%, 38% 100%, 24% 80%);
   background: #852852;
-  transform: translateZ(3.3px);
+  transform: translateZ(calc(3.3 * var(--u)));
 }
 
-.quiver i:nth-child(2) { background: #ad346b; transform: translateZ(4.6px); }
-.quiver i:nth-child(3) { background: #d64184; transform: translateZ(5.9px); }
-.quiver i:nth-child(4) { background: linear-gradient(90deg, #ff9dc9 50%, ${PINK} 50%); transform: translateZ(7.2px); }
+.quiver i:nth-child(2) { background: #ad346b; transform: translateZ(calc(4.6 * var(--u))); }
+.quiver i:nth-child(3) { background: #d64184; transform: translateZ(calc(5.9 * var(--u))); }
+.quiver i:nth-child(4) { background: linear-gradient(90deg, #ff9dc9 50%, ${PINK} 50%); transform: translateZ(calc(7.2 * var(--u))); }
 
 .hub {
   position: absolute;
-  left: calc(50% - 11px);
-  top: calc(50% - 11px);
-  width: 22px;
-  height: 22px;
+  left: calc(50% - calc(11 * var(--u)));
+  top: calc(50% - calc(11 * var(--u)));
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff 0 8%, #b9bed8 32%, #474c6b 78%);
-  box-shadow: 0 0 0 2px ${PINK};
-  transform: translateZ(9px);
+  box-shadow: 0 0 0 calc(2 * var(--u)) ${PINK};
+  transform: translateZ(calc(9 * var(--u)));
 }
 
 .glass {
@@ -1009,33 +1020,43 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   border-radius: 50%;
   background: linear-gradient(150deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.04) 44%, transparent 45%);
   pointer-events: none;
-  transform: translateZ(12px);
+  transform: translateZ(calc(12 * var(--u)));
 }
 
-output {
-  color: ${MUTED};
-  font-size: 14px;
+/* the control zone: the same object, at the same size, in every model that has one. The
+   caption's line box never changes height, so a new reading cannot move the dial. */
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 2vmin;
+  text-align: center;
 }
 
-.seg {
+.controls .caption {
+  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.controls .row {
   display: flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgb(140 150 220 / 0.34);
-  border-radius: 999px;
+  gap: 2vmin;
 }
 
-.seg button {
-  padding: 6px 18px;
+.controls button {
+  height: 8vmin;
+  min-width: 8vmin;
+  padding: 0 3vmin;
   border: 0;
-  border-radius: 999px;
-  background: transparent;
+  border-radius: calc(999 * var(--u));
+  background: rgb(140 150 220 / 0.2);
   color: ${MUTED};
-  font: 700 14px system-ui, sans-serif;
+  font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background 0.35s, color 0.35s;
 }
 
-.seg button[aria-pressed='true'] {
+.controls button[aria-pressed='true'] {
   background: linear-gradient(135deg, ${VIOLET}, ${PINK});
   color: #fff;
 }
@@ -1050,8 +1071,8 @@ output {
   to   { transform: rotate(1deg); }
 }`,
     js: `const dial = document.querySelector('.dial');
-const out = document.querySelector('output');
-const buttons = document.querySelectorAll('.seg button');
+const out = document.querySelector('.controls output');
+const buttons = document.querySelectorAll('.controls button');
 
 buttons.forEach((btn) => {
   btn.addEventListener('click', () => {
