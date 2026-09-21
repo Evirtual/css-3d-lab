@@ -24,9 +24,10 @@ export const snippetsI: Record<string, Snippet> = {
     how: [
       'The card\'s left edge is its spine. The cover is a two-faced panel (front art, inside pattern, each with <code>backface-visibility: hidden</code>) with <code>transform-origin: 0 50%</code>, so <code>rotateY(var(--open))</code> swings it round the spine.',
       'The hover target is the static wrapper; the card inside is <code>pointer-events: none</code>. Hovering only changes three custom properties: the cover angle, the viewing angle and <code>--x0</code>. Every part transitions with the same easing, so they stay in step.',
-      'The heart is a <b>floating layer</b>, like in a real pop-up book: each half rides on its own page (the left half is a child of the cover, so it turns with it) and floats 16px in front of it with <code>translateZ</code>.',
-      'Two planes each 16px in front of their page meet on a line <code>16px × cot(half the opening angle)</code> from the spine: 14px when the card is half open, 2px when it is flat. That is <code>--x0</code>, and it is why the halves always join into one heart.',
-      'The left half is turned round with <code>rotateY(180deg)</code> to face the right half, which mirrors it, so its <code>clip-path</code> is the mirror image of the right half\'s.',
+      'The heart is a <b>floating layer</b>, like in a real pop-up book: each half rides on its own page (the left half is a child of the cover, so it turns with it) and floats 16 units in front of it with <code>translateZ</code>.',
+      'Two planes each 16 units in front of their page meet on a line <code>16 units × cot(half the opening angle)</code> from the spine: 14 units when the card is half open, 2 units when it is flat. That is <code>--x0</code>, and it is why the halves always join into one heart.',
+      'The left half is turned round with <code>rotateY(180deg)</code> to face the right half, which mirrors it, so its shape is the mirror image of the right half\'s. Each half is cut out by a <code>mask</code>, an SVG path stretched over its box, not by <code>clip-path: path()</code>: a path is in pixels, and would stay the same size while the card scaled round it.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the card is the same share of a gallery card, the editor and a recording canvas. It is sized for the card fully open, the pop-up standing.',
     ],
     html: `<div class="scene">
   <div class="greeting" tabindex="0">
@@ -43,19 +44,22 @@ export const snippetsI: Record<string, Snippet> = {
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the card is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.38vmin;
+  perspective: calc(800 * var(--u));
 }
 
 /* the static hit target: hovering it only changes numbers */
 .greeting {
   --open: -96deg;  /* cover angle: half open */
   --view: 40deg;   /* how far round we look at the card */
-  --x0: 14px;      /* where the two heart halves meet (see below) */
+  --x0: calc(14 * var(--u));      /* where the two heart halves meet (see below) */
   --pop: 0;        /* the heart: hidden while the card is closed */
   display: grid;
   place-items: center;
-  width: 210px;
-  height: 180px;
+  width: calc(210 * var(--u));
+  height: calc(180 * var(--u));
   outline: none;
   cursor: pointer;
   transform-style: preserve-3d;
@@ -65,29 +69,29 @@ export const snippetsI: Record<string, Snippet> = {
 .greeting:focus-visible {
   --open: -166deg; /* almost flat, so it still stands */
   --view: 24deg;   /* the card turns to face you as it opens */
-  --x0: 2px;
+  --x0: calc(2 * var(--u));
   --pop: 1;
 }
 
 /* the card's left edge is the spine: move it to the middle, look from above and the left */
 .card {
   position: relative;
-  width: 92px;
-  height: 124px;
+  width: calc(92 * var(--u));
+  height: calc(124 * var(--u));
   pointer-events: none;
   transform-style: preserve-3d;
   transform-origin: 0 50%;
-  transform: translateX(46px) rotateX(-18deg) rotateY(var(--view));
+  transform: translateX(calc(46 * var(--u))) rotateX(-18deg) rotateY(var(--view));
   transition: transform 0.9s cubic-bezier(0.3, 1.15, 0.45, 1);
 }
 
 /* a soft shadow lying on the table */
 .shadow {
   position: absolute;
-  top: 84px;
-  left: -101px;
-  width: 202px;
-  height: 80px;
+  top: calc(84 * var(--u));
+  left: calc(-101 * var(--u));
+  width: calc(202 * var(--u));
+  height: calc(80 * var(--u));
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
   transform: rotateX(90deg);
 }
@@ -98,31 +102,31 @@ export const snippetsI: Record<string, Snippet> = {
   inset: 0;
   display: grid;
   align-content: start;
-  gap: 6px;
-  padding: 68px 10px 0 16px;
-  border-radius: 0 6px 6px 0;
+  gap: calc(6 * var(--u));
+  padding: calc(68 * var(--u)) calc(10 * var(--u)) 0 calc(16 * var(--u));
+  border-radius: 0 calc(6 * var(--u)) calc(6 * var(--u)) 0;
   background:
-    radial-gradient(circle at 78% 16%, #ffb547 0 2.5px, transparent 3.5px),
-    radial-gradient(circle at 60% 9%, #2ee6d6 0 2px, transparent 3px),
-    radial-gradient(circle at 88% 30%, #ff4d9d 0 2px, transparent 3px),
+    radial-gradient(circle at 78% 16%, #ffb547 0 calc(2.5 * var(--u)), transparent calc(3.5 * var(--u))),
+    radial-gradient(circle at 60% 9%, #2ee6d6 0 calc(2 * var(--u)), transparent calc(3 * var(--u))),
+    radial-gradient(circle at 88% 30%, #ff4d9d 0 calc(2 * var(--u)), transparent calc(3 * var(--u))),
     linear-gradient(90deg, #e4ddcf, #fbf7ef 18%);
   color: #5a44b8;
   backface-visibility: hidden;
 }
 
-.page b { font-size: 17px; font-weight: 800; line-height: 0.95; }
-.page span { height: 3px; border-radius: 2px; background: rgb(20 20 40 / 0.16); }
+.page b { font-size: calc(17 * var(--u)); font-weight: 800; line-height: 0.95; }
+.page span { height: calc(3 * var(--u)); border-radius: calc(2 * var(--u)); background: rgb(20 20 40 / 0.16); }
 .page span:nth-of-type(2) { width: 70%; }
-.page small { color: #6b6478; font-size: 7px; font-style: italic; }
+.page small { color: #6b6478; font-size: calc(7 * var(--u)); font-style: italic; }
 
 /* the heart's shadow on the page, stronger once it has popped up */
 .page::before {
   content: '';
   position: absolute;
-  top: 18px;
-  left: 8px;
-  width: 40px;
-  height: 46px;
+  top: calc(18 * var(--u));
+  left: calc(8 * var(--u));
+  width: calc(40 * var(--u));
+  height: calc(46 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(40 10 50 / 0.4), transparent);
   opacity: 0.4;
@@ -142,20 +146,23 @@ export const snippetsI: Record<string, Snippet> = {
 .greeting:is(:hover, :focus-visible) .page::before { opacity: 1; }
 .greeting:is(:hover, :focus-visible) .page::after { opacity: 0.12; }
 
-/* The pop-up is a floating layer: each half stays parallel to its own page, 16px in front of it.
-   Two such planes meet 16px × cot(half the opening angle) from the spine: that is --x0. */
+/* The pop-up is a floating layer: each half stays parallel to its own page, 16 units in front of it.
+   Two such planes meet 16 units × cot(half the opening angle) from the spine: that is --x0. */
 .pop {
   position: absolute;
-  top: 12px;
+  top: calc(12 * var(--u));
   left: 0;
-  width: 28px;
-  height: 48px;
+  width: calc(28 * var(--u));
+  height: calc(48 * var(--u));
   background:
-    radial-gradient(circle at 50% 22%, rgb(255 255 255 / 0.75) 0 2.5px, transparent 6px),
+    radial-gradient(circle at 50% 22%, rgb(255 255 255 / 0.75) 0 calc(2.5 * var(--u)), transparent calc(6 * var(--u))),
     linear-gradient(170deg, #ff4d9d, #ff817a);
-  /* the right half of a heart: its middle line is the left edge */
-  clip-path: path('M0 9 C 3 3 7 0 12 0 C 21 0 28 6 28 16 C 28 28 16 38 0 48 Z');
-  transform: translate3d(var(--x0), 0, 16px);
+  /* the right half of a heart: its middle line is the left edge. A mask, not clip-path: path(),
+     because path() is in pixels and would not scale with --u; the SVG's viewBox is the box, 28 × 48,
+     stretched to whatever size the box is */
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 48'%3E%3Cpath d='M0 9 C 3 3 7 0 12 0 C 21 0 28 6 28 16 C 28 28 16 38 0 48 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 48'%3E%3Cpath d='M0 9 C 3 3 7 0 12 0 C 21 0 28 6 28 16 C 28 28 16 38 0 48 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  transform: translate3d(var(--x0), 0, calc(16 * var(--u)));
   opacity: var(--pop); /* fades in as it rises; behind the closed cover it is never meant to show */
   transition: transform 0.9s cubic-bezier(0.3, 1.15, 0.45, 1), opacity 0.35s;
 }
@@ -163,8 +170,9 @@ export const snippetsI: Record<string, Snippet> = {
 /* the left half rides on the cover's inside, turned round to face the right half
    (turning it round mirrors it, so its middle line is drawn on its right edge) */
 .pop-left {
-  clip-path: path('M28 9 C 25 3 21 0 16 0 C 7 0 0 6 0 16 C 0 28 12 38 28 48 Z');
-  transform: translate3d(var(--x0), 0, -16px) rotateY(180deg);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 48'%3E%3Cpath d='M28 9 C 25 3 21 0 16 0 C 7 0 0 6 0 16 C 0 28 12 38 28 48 Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 48'%3E%3Cpath d='M28 9 C 25 3 21 0 16 0 C 7 0 0 6 0 16 C 0 28 12 38 28 48 Z'/%3E%3C/svg%3E");
+  transform: translate3d(var(--x0), 0, calc(-16 * var(--u))) rotateY(180deg);
 }
 
 /* the front cover: two faces back to back, hinged on the spine */
@@ -173,7 +181,7 @@ export const snippetsI: Record<string, Snippet> = {
   inset: 0;
   transform-style: preserve-3d;
   transform-origin: 0 50%;
-  transform: translateZ(2px) rotateY(var(--open));
+  transform: translateZ(calc(2 * var(--u))) rotateY(var(--open));
   transition: transform 0.9s cubic-bezier(0.3, 1.15, 0.45, 1);
 }
 
@@ -182,25 +190,25 @@ export const snippetsI: Record<string, Snippet> = {
   position: absolute;
   inset: 0;
   display: grid;
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 calc(6 * var(--u)) calc(6 * var(--u)) 0;
   backface-visibility: hidden;
 }
 
 .front {
   place-items: center;
   background:
-    radial-gradient(circle at 22% 18%, rgb(255 255 255 / 0.75) 0 2px, transparent 3px),
-    radial-gradient(circle at 76% 26%, #ffb547 0 3px, transparent 4px),
-    radial-gradient(circle at 30% 80%, #2ee6d6 0 2.5px, transparent 3.5px),
+    radial-gradient(circle at 22% 18%, rgb(255 255 255 / 0.75) 0 calc(2 * var(--u)), transparent calc(3 * var(--u))),
+    radial-gradient(circle at 76% 26%, #ffb547 0 calc(3 * var(--u)), transparent calc(4 * var(--u))),
+    radial-gradient(circle at 30% 80%, #2ee6d6 0 calc(2.5 * var(--u)), transparent calc(3.5 * var(--u))),
     linear-gradient(150deg, #8b6cff, #ff4d9d);
 }
 
 .front b {
-  padding: 10px 12px;
-  border: 2px solid rgb(255 255 255 / 0.85);
+  padding: calc(10 * var(--u)) calc(12 * var(--u));
+  border: calc(2 * var(--u)) solid rgb(255 255 255 / 0.85);
   border-radius: 50%;
   color: #fff;
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   line-height: 1;
   text-align: center;
 }
@@ -208,13 +216,13 @@ export const snippetsI: Record<string, Snippet> = {
 /* the inside of the cover, seen once it swings past 90° */
 .inside {
   place-items: end center;
-  padding-bottom: 14px;
-  border-radius: 6px 0 0 6px;
+  padding-bottom: calc(14 * var(--u));
+  border-radius: calc(6 * var(--u)) 0 0 calc(6 * var(--u));
   background:
-    repeating-linear-gradient(135deg, rgb(139 108 255 / 0.12) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(135deg, rgb(139 108 255 / 0.12) 0 calc(6 * var(--u)), transparent calc(6 * var(--u)) calc(12 * var(--u))),
     linear-gradient(270deg, #e4ddcf, #fbf7ef 18%);
   color: #5a44b8;
-  font-size: 7px;
+  font-size: calc(7 * var(--u));
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
