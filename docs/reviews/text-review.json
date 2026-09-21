@@ -1213,11 +1213,12 @@
   {
     "model": "snow",
     "kind": "text",
-    "reviewer": "text-review agent, second pass",
+    "reviewer": "visual re-review agent 3 (the visual reviewer, independent of the ca4fc84 fix)",
     "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+    "reviewedAt": "2026-09-21T18:27:17Z",
+    "reviewedAtBasis": "time the review was recorded",
+    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+    "notes": "Read against the snippet at ca4fc84 (src/models/snippets-batch-e.ts) and the demo entry (src/models/batch-e.ts). Description: JS makes forty flakes once, each with random depth, speed (--t) and drift, one CSS animation (fall) does the falling and perspective makes near flakes big and fast: all true. How: the per-flake properties (--x, --z, --s, --o, --drift, --t, --d) and that JS does nothing after; the fall from -53cqh to 185cqh at the flake's own translateZ, the night a size container (container-type: size) so cqh/cqw are shares of the canvas; drift as --drift x 0.33cqw, \"a plain number which CSS counts in shares of the canvas width\"; depth and size as plain numbers times --u; negative delays so it is snowing on the first frame; trees at translateZ -240/-140/-20 units in the same preserve-3d world hiding far flakes; the night inset: 0 in percentages. The claim that a flake placed in shares stays at the same share on every canvas shape was confirmed by eye and measure (seeded, 1:1 vs 16:9 vs 9:16, offsets under 0.5% of the canvas). Technique chips and tags (generated, loop, particles, scene, weather) fit. No change needed."
   },
   {
     "model": "map",
