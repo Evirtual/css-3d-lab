@@ -42,7 +42,14 @@
  *  - AUTOMATIC. The frame is cut into small cells. A cell that is colour A, then a clearly
  *    different colour B, then A again in the next frame, over a patch big enough to be a surface
  *    and not a passing edge, is FLICKER (two surfaces z-fighting, or depth order flipping and
- *    flipping back). A frame-to-frame change far above the model's own average, and far above the
+ *    flipping back). Three frames 70-170ms apart cannot tell that from a small part moving fast
+ *    across a surface between them (orbiting dots in front of a core look exactly like it), so a
+ *    candidate is only flagged once the same stretch, filmed again at most 16ms of page time
+ *    apart, still flips: comes in one step with its colour nowhere near the step before, and goes
+ *    in one step with its colour nowhere near the step after. The loop's endless CSS animations
+ *    are turned back to re-film it; everything else (script, pointer, the transitions an action
+ *    starts) is filmed in between as it goes, for this test only. A candidate that turns out to be
+ *    motion is reported as dismissed, not dropped. A frame-to-frame change far above the model's own average, and far above the
  *    frames either side of it, is a POP (a jump, or one surface passing through another; only in
  *    frames stepped across a loop or a transition: ones 70-100ms apart are too far apart to tell). For interactions it also says when
  *    the pointer can never land on a part (something else is drawn over it), when a pointer on
@@ -84,6 +91,7 @@ const PATCH = 4; // cells in one connected patch, after the edges are pared off,
 const POP = 2.6; // a change this many times the model's average ...
 const LONELY = 1.8; // ... and this many times the frames either side of it, is a pop
 const QUIET = 1.5; // a change under this (mean channel difference) is too small to call a pop
+const FINE = 16; // ms of page time: a candidate flicker is filmed again at steps this fine before it is flagged
 
 const BARE = `html, body, .embed, .stage { background: none !important; border: 0 !important; }
 .stage::before, .stage::after { display: none !important; }
@@ -199,6 +207,46 @@ function biggestPatch(marked, cols, rows) {
 }
 
 /**
+ * Pares a cell off every side of the marked cells: an edge that moved a cell is a strip one or two
+ * cells wide and goes; a surface that flipped is an area and keeps its middle.
+ */
+function pare(marked, cols) {
+  const core = new Uint8Array(marked.length);
+  for (let k = 0; k < marked.length; k++) {
+    const x = k % cols;
+    core[k] = marked[k] && x > 0 && x < cols - 1 && marked[k - 1] && marked[k + 1] && marked[k - cols] && marked[k + cols] ? 1 : 0;
+  }
+  return core;
+}
+
+/**
+ * Whether a candidate flicker holds up when filmed finely. Three frames 100-170ms apart cannot
+ * tell a flip from fast motion: a small part that crosses a surface between two of them (a dot
+ * orbiting in front of a core) shows up out of nowhere and is gone again, exactly like a surface
+ * flipping. `seq` is the same stretch filmed again, from the frame before the candidate to the
+ * frame after it, at most FINE ms apart. There a part that moves shows each cell's new colour close
+ * by in the step before, and its old colour close by in the step after; a surface that flips
+ * (z-fighting, depth order popping, a keyframe that jumps) turns up in one step with its colour
+ * nowhere near in the step before, and goes in one step with its colour nowhere near in the step
+ * after. The candidate's cells that come and go like that must still make a patch of PATCH cells
+ * after paring, as in judge().
+ */
+function confirmFlicker(seq, marked) {
+  const first = seq[0], last = seq.at(-1);
+  const flips = new Uint8Array(marked.length);
+  for (let k = 0; k < marked.length; k++) {
+    if (!marked[k]) continue;
+    const o = k * 3;
+    let into = -1, outOf = -1;
+    for (let s = 0; s + 1 < seq.length; s++) if (into < 0 && far(seq[s + 1], first, o) >= FLIP) into = s;
+    for (let s = seq.length - 1; s > 0; s--) if (outOf < 0 && far(seq[s - 1], last, o) >= FLIP) outOf = s - 1;
+    if (into < 0 || outOf < 0) continue;
+    if (!nearby(seq[into + 1], o, k, seq[into]) && !nearby(seq[outOf], o, k, seq[outOf + 1])) flips[k] = 1;
+  }
+  return biggestPatch(pare(flips, first.cols), first.cols, first.rows) >= PATCH;
+}
+
+/**
  * Flicker and pops in one run of frames. `cyclic` when the last frame leads back into the first
  * (a loop), not for a transition. Returns per-frame flags and the change curve.
  */
@@ -215,15 +263,8 @@ function judge(frames, cyclic, fromFirst = true) {
       const o = k * 3;
       if (far(a, c, o) <= SAME && far(a, b, o) >= FLIP && far(c, b, o) >= FLIP && !nearby(b, o, k, a) && !nearby(b, o, k, c)) marked[k] = 1;
     }
-    // pare a cell off every side: an edge that moved a cell is a strip one or two cells wide and
-    // goes; a surface that flipped is an area and keeps its middle
-    const core = new Uint8Array(marked.length);
-    for (let k = 0; k < marked.length; k++) {
-      const x = k % b.cols;
-      core[k] = marked[k] && x > 0 && x < b.cols - 1 && marked[k - 1] && marked[k + 1] && marked[k - b.cols] && marked[k + b.cols] ? 1 : 0;
-    }
-    const patch = biggestPatch(core, b.cols, b.rows);
-    if (patch >= PATCH) flicker.push({ frame: i, cells: patch });
+    const patch = biggestPatch(pare(marked, b.cols), b.cols, b.rows);
+    if (patch >= PATCH) flicker.push({ frame: i, cells: patch, marked });
   }
   const mean = diffs.reduce((s, d) => s + d, 0) / (diffs.length || 1);
   // the first step after an action is the new state's own start: a colour or a class that is
@@ -308,6 +349,12 @@ function startLoop(_, { V, start }) {
     birth.set(a, V - (endless ? start : a.currentTime ?? 0));
     if (endless) window.c3dLoop.push(a);
   }
+}
+
+/** Turns the loop's endless animations to `at` ms into the loop (at page time V; see startLoop). */
+function seekLoop(_, { V, start, at }) {
+  const birth = window.c3dBirth;
+  for (const a of window.c3dLoop ?? []) birth.set(a, V - start - at);
 }
 
 /** Holds the loop's endless animations on its first frame from now on. */
@@ -554,6 +601,25 @@ async function filmOn(id, demo) {
   if (!clip) return { id, broke: 'no frame' };
   const runs = [];
   const notes = []; // interaction findings that are not about frames: { run, text }
+  /**
+   * tick(ms) for a run that cannot be turned back (script, pointer, a transition an action
+   * started), filming the moments in between at most FINE ms apart as it goes: they are kept, as
+   * run.between[i] between frames i and i + 1, only to confirm a candidate flicker (see
+   * confirmFlicker), and the strip does not show them.
+   */
+  const tickFine = async (run, ms) => {
+    const pieces = Math.max(1, Math.ceil(ms / FINE));
+    const between = [];
+    let s = null, done = 0;
+    for (let p = 1; p <= pieces; p++) {
+      const to = Math.round((ms * p) / pieces);
+      s = await tick(to - done);
+      done = to;
+      if (p < pieces) between.push((await shoot(clip)).grid);
+    }
+    if (run.frames.length) (run.between ??= [])[run.frames.length - 1] = between;
+    return s;
+  };
 
   // THE LOOP
   const timing = await inFrame(timingOf);
@@ -573,6 +639,21 @@ async function filmOn(id, demo) {
       loop.frames.push(await shoot(clip));
       loop.labels.push(`${((V - V0) / 1000).toFixed(2)}s`);
     }
+    // a candidate flicker is filmed again FINE ms at a time from the frame before it to the frame
+    // after (see confirmFlicker): the loop's endless animations are turned back to those moments,
+    // which their own time allows; script time is not turned back
+    loop.fine = new Map();
+    const at = (i) => Math.round((timing.loop * i) / n);
+    for (const { frame: i } of judge(loop.frames.map((f) => f.grid), loop.cyclic).flicker) {
+      const from = at(i - 1), to = at(i + 1), steps = Math.max(2, Math.ceil((to - from) / FINE));
+      const seq = [];
+      for (let s = 0; s <= steps; s++) {
+        await inFrame(seekLoop, { V, start, at: from + Math.round(((to - from) * s) / steps) });
+        await tick(0);
+        seq.push((await shoot(clip)).grid);
+      }
+      loop.fine.set(i, seq);
+    }
     // everything after this is filmed with the loop's CSS held still on its first frame; script
     // time goes on
     await inFrame(holdLoop, start);
@@ -583,7 +664,7 @@ async function filmOn(id, demo) {
     loop.coarse = true;
     const V0 = V;
     for (let i = 0; i < PER_LOOP; i++) {
-      if (i) await tick(100);
+      if (i) await tickFine(loop, 100);
       loop.frames.push(await shoot(clip));
       loop.labels.push(`${((V - V0) / 1000).toFixed(2)}s`);
     }
@@ -621,7 +702,7 @@ async function filmOn(id, demo) {
     run.labels.push('0ms');
     let i = 1;
     for (; ; i++) {
-      const now = await tick(dt);
+      const now = await tickFine(run, dt);
       run.frames.push(await shoot(clip));
       run.labels.push(`${V - mark}ms`);
       if (i >= least && !now.running) break;
@@ -663,7 +744,7 @@ async function filmOn(id, demo) {
     for (let i = 0; i <= 16; i++) {
       const a = (i / 16) * Math.PI * 2;
       await page.mouse.move(cx + Math.cos(a) * box.width * 0.4, cy + Math.sin(a) * box.height * 0.4, { steps: 3 });
-      await tick(90);
+      await tickFine(run, 90);
       run.frames.push(await shoot(clip));
       run.labels.push(`${Math.round((360 * i) / 16)}°`);
     }
@@ -679,7 +760,7 @@ async function filmOn(id, demo) {
     await page.mouse.move(cx, cy);
     for (let i = 0; i < 16; i++) {
       await page.mouse.wheel(0, i < 8 ? 120 : -120);
-      await tick(90);
+      await tickFine(run, 90);
       run.frames.push(await shoot(clip));
       run.labels.push(i < 8 ? `down ${i + 1}` : `up ${i - 7}`);
     }
@@ -697,7 +778,7 @@ async function filmOn(id, demo) {
       const run = { name: 'across', cyclic: false, frames: [], labels: [], what: 'pointer left to right through the middle, 80ms of page time apart', coarse: true };
       for (let i = 0; i <= 16; i++) {
         await page.mouse.move(box.x + (box.width * (i + 0.5)) / 17, cy, { steps: 2 });
-        await tick(80);
+        await tickFine(run, 80);
         run.frames.push(await shoot(clip));
         run.labels.push(`${Math.round((100 * i) / 16)}%`);
       }
@@ -781,6 +862,17 @@ async function filmOn(id, demo) {
   notes.splice(0, notes.length, ...notes.filter((n) => !said.has(n.run + n.text) && said.add(n.run + n.text)));
   const judged = runs.map((r) => {
     const j = { name: r.name, what: r.what, changed: r.changed, ...judge(r.frames.map((f) => f.grid), r.cyclic, !r.response) };
+    // a candidate flicker is flagged only when the same stretch, filmed FINE ms at a time, flips
+    // too (confirmFlicker); the ones that turn out to be motion are kept apart as `dismissed`
+    const g = (i) => r.frames[r.cyclic ? (i + r.frames.length) % r.frames.length : i].grid;
+    const seqAt = (i) => r.fine?.get(i) ?? [g(i - 1), ...(r.between?.[i - 1] ?? []), g(i), ...(r.between?.[i] ?? []), g(i + 1)];
+    j.dismissed = [];
+    j.flicker = j.flicker.filter(({ frame, cells, marked }) => {
+      const seq = seqAt(frame);
+      if (confirmFlicker(seq, marked)) return true;
+      j.dismissed.push({ frame, cells, steps: seq.length - 1 });
+      return false;
+    }).map(({ frame, cells }) => ({ frame, cells }));
     // frames 70-100ms of page time apart are too far apart for a quick transition between two
     // of them to be anything but a jump in the picture, not in the model: no pops from those
     if (r.coarse) j.pops = [];
@@ -800,6 +892,7 @@ async function strips(id, runs, judged, notes) {
     const flags = [
       judged[r].flicker.length ? `flicker at ${judged[r].flicker.map((f) => `${f.frame} (${f.cells} cells)`).join(', ')}` : '',
       judged[r].pops.length ? `pop ${judged[r].pops.map((p) => `${p.from}→${p.to} (${p.change} vs mean ${p.mean})`).join(', ')}` : '',
+      judged[r].dismissed.length ? `not flicker, only fast motion when filmed ${FINE}ms at a time: ${judged[r].dismissed.map((f) => f.frame).join(', ')}` : '',
       ...notes.filter((n) => n.run === run.name).map((n) => n.text),
     ].filter(Boolean).join('; ');
     const tiles = run.frames.map((f, i) => `<figure class="${bad.get(i) ?? ''}"><img src="data:image/png;base64,${f.png.toString('base64')}"><figcaption>${i} · ${run.labels[i]}</figcaption></figure>`).join('');
@@ -850,7 +943,8 @@ for (const id of ids) {
     ...result.notes.map((n) => `${n.run}: ${n.text}`),
   ];
   const { hover, controls, focus } = result.parts;
-  console.log(`${found.length ? 'LOOK AT' : 'smooth '} ${id.padEnd(16)} ${hover} hover, ${controls} controls, ${focus} focus; ${result.files.length} strip(s)`);
+  const dismissed = result.runs.reduce((sum, r) => sum + r.dismissed.length, 0);
+  console.log(`${found.length ? 'LOOK AT' : 'smooth '} ${id.padEnd(16)} ${hover} hover, ${controls} controls, ${focus} focus; ${result.files.length} strip(s)${dismissed ? `; ${dismissed} flicker candidate(s) dismissed as motion on a ${FINE}ms re-film` : ''}`);
   for (const f of found) console.log(`          ${f}`);
 }
 writeFileSync(join(OUT, `report${suffix}.json`), JSON.stringify(report, null, 1));
