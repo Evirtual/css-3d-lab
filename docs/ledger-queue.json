@@ -1,0 +1,5 @@
+{
+ "comment": "Kept by hand by the LEAD session, and only by it. This is the lead's record of running agents and queued batches, not a measured fact: scripts/ledger.mjs never reads or checks it, and docs/ledger.html shows it apart from the measured ledger. Each item: { name, brief, models: [ids], status: \"running\" | \"queued\" | \"done\", started: ISO date or null }. Bump updatedAt whenever you edit.",
+ "updatedAt": null,
+ "items": []
+}

@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>View-contract ledger</title>
+<style>
+:root {
+  --bg: #f7f7f5; --panel: #ffffff; --ink: #1d1d1b; --muted: #66665f; --line: #deddd6;
+  --accent: #2f5fd0;
+  --none-bg: #ecebe6; --none-ink: #55544e;
+  --conv-bg: #fdf0d2; --conv-ink: #7a5300;
+  --chk-bg: #dbe8ff; --chk-ink: #1f4aa8;
+  --ok-bg: #d8f1df; --ok-ink: #17642f;
+  --bad-bg: #fbdcdc; --bad-ink: #9a1c1c;
+  --warn-bg: #fff3c4; --warn-ink: #6d5400;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151514; --panel: #1f1f1d; --ink: #ecebe6; --muted: #a3a29b; --line: #34332f;
+    --accent: #8fb0ff;
+    --none-bg: #2c2c29; --none-ink: #bdbcb5;
+    --conv-bg: #3d3014; --conv-ink: #f1c96b;
+    --chk-bg: #1b2d52; --chk-ink: #a9c4ff;
+    --ok-bg: #173a22; --ok-ink: #8fe0a6;
+    --bad-bg: #4a1f1f; --bad-ink: #ffb0b0;
+    --warn-bg: #3f3510; --warn-ink: #f3d774;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151514; --panel: #1f1f1d; --ink: #ecebe6; --muted: #a3a29b; --line: #34332f;
+  --accent: #8fb0ff;
+  --none-bg: #2c2c29; --none-ink: #bdbcb5;
+  --conv-bg: #3d3014; --conv-ink: #f1c96b;
+  --chk-bg: #1b2d52; --chk-ink: #a9c4ff;
+  --ok-bg: #173a22; --ok-ink: #8fe0a6;
+  --bad-bg: #4a1f1f; --bad-ink: #ffb0b0;
+  --warn-bg: #3f3510; --warn-ink: #f3d774;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 17px; margin: 0 0 8px; }
+h3 { font-size: 14px; margin: 16px 0 6px; }
+p { margin: 4px 0; }
+a { color: var(--accent); }
+code, .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 13px; }
+.muted { color: var(--muted); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-top: 16px; }
+.top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+button, input { font: inherit; color: inherit; }
+.theme { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 2px 10px; cursor: pointer; }
+.notice { background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 8px 12px; margin-top: 8px; }
+.notice.bad { background: var(--bad-bg); color: var(--bad-ink); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stat b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
+.bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 14px; background: var(--none-bg); }
+.bar span { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; font-size: 13px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+
+.chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.s-none { background: var(--none-bg); color: var(--none-ink); }
+.s-conv { background: var(--conv-bg); color: var(--conv-ink); }
+.s-chk { background: var(--chk-bg); color: var(--chk-ink); }
+.s-ok { background: var(--ok-bg); color: var(--ok-ink); }
+.s-bad { background: var(--bad-bg); color: var(--bad-ink); }
+.s-warn { background: var(--warn-bg); color: var(--warn-ink); }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.filters button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 3px 12px; cursor: pointer; }
+.filters button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.filters input { border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 4px 10px; min-width: 200px; flex: 1 1 200px; max-width: 320px; }
+.showing { font-size: 13px; }
+.linkish { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+tbody tr.row { cursor: pointer; }
+tbody tr.row:hover { background: var(--bg); }
+tbody tr.row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+tr.detail td { background: var(--bg); padding: 12px 16px 16px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.commits { list-style: none; padding: 0; margin: 0; }
+.commits li { padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.tag { display: inline-block; font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-left: 4px; color: var(--muted); }
+.tag.strong { border-color: var(--accent); color: var(--accent); }
+.checkgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.check { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--panel); }
+ul.missing { margin: 4px 0; padding-left: 20px; }
+
+.queue-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+.lead { border: 2px dashed var(--line); }
+.qitem { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 8px; }
+.loadbox { margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <h1>View-contract ledger</h1>
+      <p class="muted" id="meta">Loading ledger.json…</p>
+    </div>
+    <button class="theme" id="theme" type="button">Theme: auto</button>
+  </div>
+  <div id="notices"></div>
+
+  <section class="panel" aria-labelledby="sum-h">
+    <h2 id="sum-h">Where the rewrite stands</h2>
+    <div class="stats" id="stats"></div>
+    <div class="bar" id="bar" role="img"></div>
+    <div class="legend" id="legend"></div>
+    <p class="muted" style="margin-top:10px;font-size:13px" id="rules"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="tbl-h">
+    <h2 id="tbl-h">All models</h2>
+    <div class="filters" id="filters"></div>
+    <p class="showing muted" id="showing"></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Model</th><th>Status</th><th>Contract check</th><th>Stages</th><th>Motion</th><th>Last commit</th><th class="num">Commits</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel lead" aria-labelledby="q-h">
+    <div class="queue-head">
+      <h2 id="q-h">Running and queued work: the lead's record</h2>
+      <span class="chip s-warn">Kept by hand, not measured</span>
+    </div>
+    <p class="muted">From <code>ledger-queue.json</code>, which the lead session edits. Nothing here is checked against git or the checks; the table above is.</p>
+    <div id="queue"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const STATUS = [
+    { key: 'not converted', cls: 's-none', color: 'var(--none-ink)' },
+    { key: 'converted', cls: 's-conv', color: 'var(--conv-ink)' },
+    { key: 'checked', cls: 's-chk', color: 'var(--chk-ink)' },
+    { key: 'approved', cls: 's-ok', color: 'var(--ok-ink)' },
+  ];
+  const chipFor = (s) => `<span class="chip ${STATUS.find((x) => x.key === s)?.cls ?? 's-none'}">${esc(s)}</span>`;
+
+  const ago = (iso) => {
+    if (!iso) return 'unknown';
+    const s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (!Number.isFinite(s)) return 'unknown';
+    if (s < 0) return 'in the future (clock skew?)';
+    if (s < 90) return `${Math.round(s)} s ago`;
+    if (s < 5400) return `${Math.round(s / 60)} min ago`;
+    if (s < 129600) return `${Math.round(s / 3600)} h ago`;
+    return `${Math.round(s / 86400)} days ago`;
+  };
+  const when = (iso) => iso ? `${new Date(iso).toLocaleString()} (${ago(iso)})` : 'unknown';
+
+  /* ---------- theme (per viewer, a convenience only) ---------- */
+  const modes = ['auto', 'light', 'dark'];
+  let mode = 'auto';
+  try { mode = localStorage.getItem('ledger-theme') || 'auto'; } catch {}
+  const applyTheme = () => {
+    if (mode === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', mode);
+    $('theme').textContent = `Theme: ${mode}`;
+  };
+  $('theme').addEventListener('click', () => {
+    mode = modes[(modes.indexOf(mode) + 1) % modes.length];
+    try { localStorage.setItem('ledger-theme', mode); } catch {}
+    applyTheme();
+  });
+  applyTheme();
+
+  /* ---------- checks ---------- */
+  const CHECK_NAMES = { models: 'Contract check (check-models)', stages: 'Same on every surface (check-stages)', motion: 'Motion flags (check-motion)' };
+  const checkChip = (r) => {
+    if (!r || r.status === 'never') return '<span class="chip s-none">never run</span>';
+    const cls = r.status === 'pass' ? (r.stale ? 's-warn' : 's-ok') : r.status === 'flagged' ? 's-warn' : 's-bad';
+    const label = { pass: 'pass', fail: 'fail', flagged: 'flagged', broke: 'broke' }[r.status] ?? r.status;
+    return `<span class="chip ${cls}" title="${esc(r.ranAt ? 'ran ' + when(r.ranAt) : '')}">${esc(label)}${r.stale ? ' · stale' : ''}</span>`;
+  };
+
+  /* ---------- state ---------- */
+  let L = null, Q = null, qError = null;
+  let filter = 'all', query = '';
+  const open = new Set();
+  try { filter = sessionStorage.getItem('ledger-filter') || 'all'; } catch {}
+
+  function render() {
+    if (!L) return;
+    const c = L.counts, n = c.models;
+    $('meta').innerHTML = `Generated ${esc(when(L.generatedAt))} at HEAD <code>${esc(L.head)}</code>. Regenerate with <code>npm run ledger</code>; commits and check runs since then are not in it.`;
+
+    const notices = [];
+    const hours = (Date.now() - new Date(L.generatedAt).getTime()) / 3.6e6;
+    if (hours > 6) notices.push(`This ledger is ${ago(L.generatedAt)} old. Run <code>npm run ledger</code> before trusting it.`);
+    for (const [name, src] of Object.entries(L.sources.checks)) if (/never been captured/.test(src)) notices.push(`<b>${esc(CHECK_NAMES[name] ?? name)}</b> has no result file: its column says “never run” for every model because no run was captured, not because models failed. Capture one with <code>npm run capture -- ${esc(name)}</code>.`);
+    for (const note of L.notes ?? []) notices.push(esc(note));
+    $('notices').innerHTML = notices.map((t) => `<div class="notice">${t}</div>`).join('');
+
+    const staleContract = L.models.filter((m) => m.checks.models?.status === 'pass' && m.checks.models.stale).length;
+    const stats = [
+      ['Converted', c.converted, `of ${n} · ${c.convertedInHead} of them committed`],
+      ['Checked', c.checked, `of ${n} · converted and a fresh contract pass${staleContract ? ` · ${staleContract} more passed on old source` : ''}`],
+      ['Approved', c.approved, `of ${n} · needs review and text-review commits too`],
+      ['Not converted', c.notConverted, `of ${n}`],
+    ];
+    $('stats').innerHTML = stats.map(([k, v, sub]) => `<div class="stat"><span class="muted">${k}</span><b>${v}</b><span class="muted" style="font-size:13px">${sub}</span></div>`).join('');
+    $('bar').innerHTML = STATUS.map((s) => `<span style="width:${(100 * c.byStatus[s.key]) / n}%;background:${s.color}" title="${s.key}: ${c.byStatus[s.key]}"></span>`).join('');
+    $('bar').setAttribute('aria-label', STATUS.map((s) => `${s.key} ${c.byStatus[s.key]}`).join(', '));
+    $('legend').innerHTML = STATUS.map((s) => `<span><i style="background:${s.color}"></i>${s.key}: ${c.byStatus[s.key]}</span>`).join('');
+    $('rules').innerHTML = `Converted: ${esc(L.sources.converted)}. Checked: converted and the latest <code>check-models</code> result is a pass on the source as it is now. Approved: checked, plus ${esc(L.sources.review)}, plus ${esc(L.sources.textReview)}. Review commits found: ${c.reviewCommits} models; text-review commits: ${c.textReviewCommits} models.`;
+
+    // filters
+    const counts = Object.fromEntries(STATUS.map((s) => [s.key, c.byStatus[s.key]]));
+    $('filters').innerHTML = [['all', n], ...STATUS.map((s) => [s.key, counts[s.key]])]
+      .map(([k, v]) => `<button type="button" data-f="${esc(k)}" aria-pressed="${filter === k}">${esc(k)} (${v})</button>`).join('')
+      + `<input id="q" type="search" placeholder="Search id or title" value="${esc(query)}" aria-label="Search models">`;
+    $('filters').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+      filter = b.dataset.f;
+      try { sessionStorage.setItem('ledger-filter', filter); } catch {}
+      render();
+    }));
+    const q = $('q');
+    q.addEventListener('input', () => { query = q.value; renderRows(); });
+    renderRows();
+    renderQueue();
+  }
+
+  function renderRows() {
+    const needle = query.trim().toLowerCase();
+    const shown = L.models.filter((m) => (filter === 'all' || m.status === filter) && (!needle || m.id.toLowerCase().includes(needle) || (m.title ?? '').toLowerCase().includes(needle)));
+    const hidden = L.models.length - shown.length;
+    const why = [filter !== 'all' ? `status “${filter}”` : '', needle ? `search “${query.trim()}”` : ''].filter(Boolean).join(' and ');
+    $('showing').innerHTML = hidden
+      ? `Showing ${shown.length} of ${L.models.length}; ${hidden} hidden by ${esc(why)}. <button type="button" class="linkish" id="clear">Show all ${L.models.length}</button>`
+      : `Showing all ${L.models.length}. Click a row for its commits and check results.`;
+    $('clear')?.addEventListener('click', () => { filter = 'all'; query = ''; try { sessionStorage.setItem('ledger-filter', 'all'); } catch {} render(); });
+
+    $('rows').innerHTML = shown.map((m) => {
+      const last = m.commits.find((x) => x.matchedBy.includes('diff')) ?? m.commits[0];
+      const row = `<tr class="row" tabindex="0" data-id="${esc(m.id)}" aria-expanded="${open.has(m.id)}">
+        <td><b>${esc(m.title)}</b><br><code class="muted">${esc(m.id)}</code></td>
+        <td>${chipFor(m.status)}${m.converted && m.convertedInHead === false ? '<br><span class="chip s-warn" title="the working tree has --u: but HEAD does not">not committed</span>' : ''}</td>
+        <td>${checkChip(m.checks.models)}</td><td>${checkChip(m.checks.stages)}</td><td>${checkChip(m.checks.motion)}</td>
+        <td class="num">${last ? `${esc(last.date.slice(0, 10))}<br><code class="muted">${esc(last.hash)}</code>` : '<span class="muted">none found</span>'}</td>
+        <td class="num">${m.commits.length}</td></tr>`;
+      return row + (open.has(m.id) ? `<tr class="detail"><td colspan="7">${detail(m)}</td></tr>` : '');
+    }).join('') || `<tr><td colspan="7" class="muted">No model matches.</td></tr>`;
+    $('rows').querySelectorAll('tr.row').forEach((tr) => {
+      const toggle = () => { const id = tr.dataset.id; open.has(id) ? open.delete(id) : open.add(id); renderRows(); document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`)?.focus(); };
+      tr.addEventListener('click', toggle);
+      tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    });
+  }
+
+  function detail(m) {
+    const parts = [];
+    parts.push(m.approved ? '<p><b>Approved.</b> All four conditions hold.</p>'
+      : `<p><b>Not approved.</b> Missing:</p><ul class="missing">${m.missing.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`);
+    parts.push(`<p class="muted">Snippet: ${m.snippet ? `<code>${esc(m.snippet.file)}:${esc(m.snippet.line)}</code>${m.snippet.foundBy !== 'grep' ? ` (${esc(m.snippet.foundBy)})` : ''}` : 'not found'}
+      · converted in working tree: <b>${m.converted ? 'yes' : 'no'}</b>, in HEAD: <b>${m.convertedInHead == null ? 'unknown' : m.convertedInHead ? 'yes' : 'no'}</b>
+      · converting commit: ${m.convertingCommit ? `<code>${esc(m.convertingCommit)}</code>` : m.converted ? '<b>none found</b> (no committed diff adds --u: to this snippet)' : '—'}
+      · source fingerprint <code>${esc(m.fingerprint)}</code></p>`);
+    for (const n of m.notes) parts.push(`<div class="notice">${esc(n)}</div>`);
+
+    parts.push('<h3>Checks: last known result</h3><div class="checkgrid">' + Object.entries(m.checks).map(([name, r]) => {
+      if (r.status === 'never') return `<div class="check"><b>${esc(CHECK_NAMES[name] ?? name)}</b><br>${checkChip(r)}<p class="muted">No captured run has reported this model.</p></div>`;
+      return `<div class="check"><b>${esc(CHECK_NAMES[name] ?? name)}</b><br>${checkChip(r)} <span class="muted">${esc(r.summary)}</span>
+        <p class="muted" style="font-size:13px">Ran ${esc(when(r.ranAt))} ${r.commit ? `at <code>${esc(r.commit)}</code>` : '(HEAD not recorded)'}${r.args?.length ? `, args <code>${esc(r.args.join(' '))}</code>` : ''}</p>
+        ${r.stale ? `<div class="notice">Stale: ${esc(r.staleWhy.join('; '))}.</div>` : ''}
+        ${r.detail?.length ? `<ul class="missing" style="font-size:13px">${r.detail.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}</div>`;
+    }).join('') + '</div>');
+
+    const byDiff = m.commits.filter((c) => c.matchedBy.includes('diff')).length;
+    parts.push(`<h3>Commits (${m.commits.length}: ${byDiff} by diff, ${m.commits.length - byDiff} by subject only)</h3>
+      <p class="muted" style="font-size:13px">“diff” means the commit changed this model's own entries. A subject-only match names the id or title and may be about another model with a similar name.</p>`);
+    parts.push(m.commits.length ? `<ul class="commits">${m.commits.map((c) => `<li><code>${esc(c.hash)}</code> <span class="muted num">${esc(c.date.slice(0, 16).replace('T', ' '))}</span> ${esc(c.subject)}
+      ${c.matchedBy.map((x) => `<span class="tag ${x === 'diff' ? 'strong' : ''}">${esc(x)}</span>`).join('')}
+      ${c.hash === m.convertingCommit ? '<span class="tag strong">converting</span>' : ''}
+      ${c.review ? '<span class="tag strong">review</span>' : ''}${c.textReview ? '<span class="tag strong">text review</span>' : ''}
+      ${c.modelsTouched > 5 ? `<span class="tag">broad: touches ${c.modelsTouched} models</span>` : ''}</li>`).join('')}</ul>` : '<p class="muted">No commit found.</p>');
+    return parts.join('');
+  }
+
+  function renderQueue() {
+    const box = $('queue');
+    if (qError) { box.innerHTML = `<div class="notice">The lead's record could not be read: ${esc(qError)}</div>`; return; }
+    if (!Q) { box.innerHTML = '<p class="muted">Loading…</p>'; return; }
+    const items = Array.isArray(Q.items) ? Q.items : [];
+    const known = new Set((L?.models ?? []).map((m) => m.id));
+    const head = `<p class="muted">Last edited by the lead: ${Q.updatedAt ? esc(when(Q.updatedAt)) : '<b>never stamped</b> (updatedAt is empty)'}.</p>`;
+    if (!items.length) { box.innerHTML = head + '<p>No items. The lead has not recorded any running or queued work.</p>'; return; }
+    const groups = ['running', 'queued', 'done'];
+    const other = items.filter((i) => !groups.includes(i.status));
+    box.innerHTML = head + groups.map((g) => {
+      const list = items.filter((i) => i.status === g);
+      return `<h3>${g[0].toUpperCase() + g.slice(1)} (${list.length})</h3>` + (list.length ? list.map(item(known)).join('') : '<p class="muted">None.</p>');
+    }).join('') + (other.length ? `<h3>Unrecognised status (${other.length})</h3>${other.map(item(known)).join('')}` : '');
+  }
+  const item = (known) => (i) => {
+    const models = Array.isArray(i.models) ? i.models : [];
+    const unknown = models.filter((id) => !known.has(id));
+    const ledger = models.filter((id) => known.has(id)).map((id) => L.models.find((m) => m.id === id));
+    const done = ledger.filter((m) => m.converted).length;
+    return `<div class="qitem"><b>${esc(i.name)}</b> <span class="chip ${i.status === 'running' ? 's-chk' : i.status === 'done' ? 's-ok' : 's-none'}">${esc(i.status)}</span>
+      <span class="muted">${i.started ? `started ${esc(when(i.started))}` : 'no start time recorded'}</span>
+      <p>${esc(i.brief)}</p>
+      <p class="muted" style="font-size:13px">${models.length} model(s): ${models.map((id) => `<code>${esc(id)}</code>`).join(', ') || 'none listed'}.
+      Measured, not claimed: ${done} of ${ledger.length} are converted in the working tree now.${unknown.length ? ` <b>Not models:</b> ${unknown.map(esc).join(', ')}.` : ''}</p></div>`;
+  };
+
+  /* ---------- loading ---------- */
+  async function getJson(name) {
+    const r = await fetch(`${name}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
+    const type = r.headers.get('content-type') || '';
+    const text = await r.text();
+    try { return JSON.parse(text); } catch { throw new Error(`${name} is not JSON${/html/.test(type) ? ' (the server sent a page instead, so the file is probably missing)' : ''}`); }
+  }
+  function loadFallback(err) {
+    $('meta').textContent = 'The ledger could not be loaded.';
+    $('notices').innerHTML = `<div class="notice bad">Could not read <code>ledger.json</code>: ${esc(err.message)}.
+      Opened straight from disk, a browser will not let the page read files beside it. Serve the folder
+      (for example <code>npm run dev</code>, then open <code>/docs/ledger.html</code>), run <code>npm run ledger</code> if the file does not exist,
+      or pick the two files here.</div>
+      <div class="loadbox"><label>ledger.json and ledger-queue.json: <input type="file" id="pick" accept=".json,application/json" multiple></label></div>`;
+    $('pick').addEventListener('change', async (e) => {
+      for (const f of e.target.files) {
+        try {
+          const data = JSON.parse(await f.text());
+          if (Array.isArray(data.models)) L = data; else if ('items' in data) { Q = data; qError = null; }
+        } catch (x) { alert(`${f.name}: ${x.message}`); }
+      }
+      if (L) { if (!Q) qError = 'ledger-queue.json was not picked'; render(); }
+    });
+  }
+  Promise.allSettled([getJson('ledger.json'), getJson('ledger-queue.json')]).then(([l, q]) => {
+    if (q.status === 'fulfilled') Q = q.value; else qError = q.reason.message;
+    if (l.status === 'fulfilled') { L = l.value; render(); } else loadFallback(l.reason);
+  });
+})();
+</script>
+</body>
+</html>

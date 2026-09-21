@@ -13,7 +13,9 @@
     "build": "npm run generate && tsc && vite build",
     "preview": "vite preview",
     "export": "node server/dev.mjs",
-    "check-models": "node scripts/check-models.mjs"
+    "check-models": "node scripts/check-models.mjs",
+    "ledger": "node scripts/ledger.mjs",
+    "capture": "node scripts/capture-check.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",
