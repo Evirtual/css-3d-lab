@@ -359,7 +359,6 @@ section[aria-labelledby="tbl-h"] { container-type: inline-size; container-name: 
 @container models (max-width: 1000px) {
   .fbar__controls { flex: 1 1 100%; }
   .tabs { flex: 1 1 auto; min-width: 0; }
-  .tab { flex: 1 1 0; min-width: 0; white-space: normal; line-height: 1.2; }
 }
 @media (max-width: 600px) {
   .fbar { padding: 12px 12px 10px; }
@@ -367,9 +366,7 @@ section[aria-labelledby="tbl-h"] { container-type: inline-size; container-name: 
   .fbar__controls { display: contents; }
   .search { flex: 1 1 0; min-width: 0; }
   .tabs { flex: 1 1 100%; order: 3; min-width: 0; }
-  /* five statuses, not the gallery's three: the longer names break onto two lines rather than hide */
-  .tab { flex: 1; padding: 6px 3px; white-space: normal; line-height: 1.2; font-size: 12px; }
-  .tab b { display: block; margin: 2px 0 0; }
+  .tab { padding: 6px 10px; font-size: 12.5px; }
   .tagbtn { padding: 0 12px; }
   .tagbtn .btn__label { display: none; }
 }
@@ -480,6 +477,111 @@ table.mini code { font-size: 12px; }
   th, td { padding: 8px 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .flash > td { animation: none; } .progress .track span { transition: none; } }
+
+/* ---------- the status tabs: short labels that never break, a count badge, sideways scroll when tight ---------- */
+.tabs { gap: 2px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs.can-next { mask: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
+.tabs.can-prev { mask: linear-gradient(90deg, transparent, #000 36px); }
+.tabs.can-prev.can-next { mask: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); }
+.tab { flex: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tab b { margin: 0; display: inline-grid; place-items: center; min-width: 20px; height: 18px; padding: 0 6px; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 11px; opacity: 1; color: var(--muted); }
+.tab[aria-pressed="true"] b { border-color: rgb(255 255 255 / 0.45); color: #fff; }
+/* the group chips: room at both ends, so the first and last chip are never under the fade */
+.groups, .chips { padding: 3px 8px; }
+
+/* ---------- status marks: one small mark per check, the words in the tooltip and for screen readers ---------- */
+.mk { --c: var(--muted); display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font: 800 11px/1 var(--font); color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); border: 1.5px solid color-mix(in srgb, var(--c) 70%, transparent); cursor: default; flex: none; }
+.mk--pass { --c: var(--st-chk); background: var(--st-chk); color: var(--bg); border-color: transparent; }
+.mk--cleared { --c: var(--st-chk); }
+.mk--stale { --c: var(--st-warn); border-style: dashed; }
+.mk--flag { --c: var(--st-warn); background: var(--st-warn); color: var(--bg); border-color: transparent; }
+.mk--fail { --c: var(--st-bad); background: var(--st-bad); color: #fff; border-color: transparent; }
+.mk--never { --c: var(--muted); background: none; border-style: dashed; color: var(--muted); }
+.mk--conv { --c: var(--st-conv); }
+.mk.is-running { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 35%, transparent); animation: mkpulse 1.4s ease-in-out infinite; }
+@keyframes mkpulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-2) 10%, transparent); } }
+.mk--letter { font-size: 10.5px; }
+.marks-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.marks-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.marks-legend .mk { width: 18px; height: 18px; font-size: 10px; }
+.tbltools { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin: 4px 0 8px; }
+.tbltools__acts { display: flex; gap: 8px; }
+.tbltools__acts .btn { padding: 4px 12px; font-size: 12.5px; }
+
+/* ---------- the model table: one line per model, sticky header, sticky model column, sections per group ---------- */
+.table-wrap { overflow: visible; margin: 0; }
+#tbl { table-layout: auto; border-collapse: separate; border-spacing: 0; }
+#tbl th, #tbl td { padding: 7px 6px; vertical-align: middle; }
+#tbl thead th { position: sticky; top: var(--stick-head, 0px); z-index: 3; background: var(--surface-solid); box-shadow: inset 0 -1px 0 var(--border); }
+#tbl th.c, #tbl td.c { width: 1%; text-align: center; white-space: nowrap; }
+#tbl td.model, #tbl th.model { position: sticky; left: 0; z-index: 1; background: var(--surface-solid); width: 100%; max-width: 0; }
+#tbl thead th.model { z-index: 4; }
+#tbl tr.row:hover > td.model { background: color-mix(in srgb, var(--accent) 7%, var(--surface-solid)); }
+#tbl tr.row[aria-expanded="true"] > td.model { background: color-mix(in srgb, var(--accent) 9%, var(--surface-solid)); }
+#tbl td.st, #tbl th.st, #tbl td.last, #tbl th.last, #tbl td.ncom, #tbl th.ncom, #tbl td.rvw, #tbl th.rvw { width: 1%; white-space: nowrap; }
+.mt { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
+.mt b { overflow: hidden; text-overflow: ellipsis; min-width: 0; font-weight: 700; }
+.mt code { flex: none; font-size: 11.5px; color: var(--muted); background: none; border: 0; padding: 0; }
+.gchip { flex: none; align-self: center; padding: 0 7px; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 10.5px; font-weight: 700; color: var(--accent); letter-spacing: 0.02em; }
+.colh { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+.colh:hover { color: var(--text); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.colh .chip { margin-left: 2px; }
+/* check headers stand on end, so a check's column is only as wide as its mark and ten of them fit */
+#tbl thead th.c { vertical-align: bottom; padding-top: 6px; padding-bottom: 6px; }
+#tbl thead th.c .colh { writing-mode: vertical-rl; rotate: 180deg; padding: 4px 2px; }
+#tbl thead th.c .help { margin: 4px 0 0; }
+#tbl thead th.c br { display: none; }
+/* a check running now: a small pulsing count under its name, the rest in the tooltip */
+.hrun { display: block; margin: 4px auto 0; min-width: 22px; padding: 1px 4px; border-radius: 999px; background: var(--st-chk); color: var(--bg); font-size: 10px; font-weight: 800; letter-spacing: 0; text-align: center; animation: mkpulse 1.4s ease-in-out infinite; }
+.hrun.is-gone { background: var(--st-bad); color: #fff; animation: none; }
+@media (prefers-reduced-motion: reduce) { .hrun { animation: none; } }
+#tbl td.c { padding-left: 4px; padding-right: 4px; }
+.last small { display: block; }
+.rvw .rv { gap: 4px; flex-wrap: nowrap; }
+/* a thin section row per group, sticky under the header while its rows scroll past */
+#tbl tr.grow > th { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px)); z-index: 2; padding: 0; background: color-mix(in srgb, var(--accent) 8%, var(--surface-solid)); border-bottom: 1px solid var(--border-strong); text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); white-space: normal; }
+.grow__in { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 6px 8px; }
+.grow__btn { display: inline-flex; align-items: center; gap: 8px; padding: 2px 6px 2px 2px; border: 0; border-radius: 8px; background: none; color: var(--text); font: 700 13px/1.3 var(--font); cursor: pointer; white-space: nowrap; }
+.grow__btn:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.grow__btn svg { width: 16px; height: 16px; transition: rotate 0.2s; }
+.grow__btn[aria-expanded="false"] svg { rotate: -90deg; }
+.grow__btn .n { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.grow__bar { display: flex; flex: 0 1 140px; min-width: 70px; height: 8px; gap: 1px; border-radius: 999px; overflow: hidden; background: var(--track); }
+.grow__bar i { display: block; height: 100%; }
+.grow__meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.grow__probs { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.grow__probs .chip { text-transform: none; letter-spacing: 0; font-size: 11px; }
+@media (prefers-reduced-motion: reduce) { .mk.is-running { animation: none; } .grow__btn svg { transition: none; } }
+/* narrower models panel: the last-commit columns give way first (each row's detail lists its commits) */
+@container models (max-width: 960px) { #tbl .last, #tbl .ncom { display: none; } }
+/* phones and narrow windows: each model is a card, its checks a wrap of labelled marks */
+@media (max-width: 760px) {
+  #tbl, #tbl tbody { display: block; }
+  #tbl thead { display: none; }
+  #tbl tr.row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+  #tbl tr.row > td { display: block; padding: 0; border: 0; width: auto; max-width: none; position: static; background: none; }
+  #tbl tr.row > td.model { flex: 1 1 100%; }
+  #tbl tr.row > td.c, #tbl tr.row > td.rvw { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px 2px 4px; border: 1px solid var(--border); border-radius: 999px; }
+  #tbl tr.row > td.c::before, #tbl tr.row > td.rvw::before { content: attr(data-label); order: 2; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+  #tbl tr.row > td.last, #tbl tr.row > td.ncom { display: none; }
+  #tbl tr.grow, #tbl tr.grow > th { display: block; }
+  #tbl tr.grow > th { top: var(--stick-head, 0px); }
+  #tbl tr.detail, #tbl tr.detail > td, #tbl tr.more, #tbl tr.more > td, #tbl tr.empty, #tbl tr.empty > td { display: block; }
+}
+
+/* ---------- a bar per check: done, older code, failing, not run, of every model (or page) ---------- */
+.ckbars { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.ckbars h3 { margin: 0 0 4px; }
+.ckbars h3 + .bd { margin-bottom: 10px; }
+.ckname { padding: 0; border: 0; background: none; color: var(--text); font: 650 13px/1.3 var(--font); text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.ckname:hover { color: var(--accent-2); text-decoration: underline; }
+.ckbars .bd li { grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 7ch; }
+.ckbars .bd__n { white-space: nowrap; }
+.ckbars .bdbar.is-running { background-image: repeating-linear-gradient(135deg, color-mix(in srgb, var(--accent-2) 22%, transparent) 0 6px, transparent 6px 12px); background-size: 17px 17px; animation: ckrun 1s linear infinite; }
+@keyframes ckrun { to { background-position: 17px 0; } }
+@media (prefers-reduced-motion: reduce) { .ckbars .bdbar.is-running { animation: none; } }
+.defs dt:target, .defs dt.is-lit { color: var(--accent-2); }
 </style>
 </head>
 <body>
@@ -513,6 +615,7 @@ table.mini code { font-size: 12px; }
     <div id="flow-bd"></div>
     <div class="bar" id="bar" role="img"></div>
     <div class="legend" id="legend"></div>
+    <div class="ckbars" id="checkbars"></div>
   </section>
 
   <div class="split">
@@ -544,9 +647,13 @@ table.mini code { font-size: 12px; }
       </div>
     </div>
     <p class="showing" id="showing"></p>
+    <div class="tbltools">
+      <div class="marks-legend" id="marklegend" aria-label="What the marks mean"></div>
+      <div class="tbltools__acts" id="grp-acts"><button type="button" class="btn" id="expand-all">Expand all</button><button type="button" class="btn" id="collapse-all">Collapse all</button></div>
+    </div>
     <div class="table-wrap" id="tablewrap">
-      <table>
-        <thead><tr id="thead"><th>Model</th><th>Status</th><th>Contract check</th><th>Stages</th><th>Motion</th><th>Export</th><th>Reviews</th><th>Last commit</th><th class="num">Commits</th></tr></thead>
+      <table id="tbl">
+        <thead><tr id="thead"><th class="model">Model</th><th class="st">Status</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
@@ -606,12 +713,13 @@ table.mini code { font-size: 12px; }
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const STATUS = [
     // short names for the same exclusive buckets as the summary: never read as running totals
-    { key: 'not converted', short: 'not converted', cls: 's-none', color: 'var(--st-none)' },
-    { key: 'converted', short: 'converted, not yet checked', cls: 's-conv', color: 'var(--st-conv)' },
-    { key: 'checked', short: 'checked, awaiting approval', cls: 's-chk', color: 'var(--st-chk)' },
-    { key: 'approved', short: 'approved', cls: 's-ok', color: 'var(--st-ok)' },
+    { key: 'not converted', short: 'Not converted', long: 'not converted', cls: 's-none', color: 'var(--st-none)' },
+    { key: 'converted', short: 'To check', long: 'converted, not yet checked', cls: 's-conv', color: 'var(--st-conv)' },
+    { key: 'checked', short: 'Awaiting approval', long: 'checked, awaiting approval', cls: 's-chk', color: 'var(--st-chk)' },
+    { key: 'approved', short: 'Approved', long: 'approved', cls: 's-ok', color: 'var(--st-ok)' },
   ];
-  const chipFor = (s) => { const x = STATUS.find((y) => y.key === s); return `<span class="chip ${x?.cls ?? 's-none'}">${esc(x?.short ?? s)}</span>`; };
+  /** The overall status as one compact pill; the bucket's full name is in the tooltip. */
+  const chipFor = (s) => { const x = STATUS.find((y) => y.key === s); return `<span class="chip ${x?.cls ?? 's-none'}" data-tip data-tiptext="${esc(x ? `Status: ${x.long}` : s)}">${esc(x?.short ?? s)}</span>`; };
 
   /** Seconds since an ISO time, or null. */
   const age = (iso) => { const t = iso ? Date.parse(iso) : NaN; return Number.isFinite(t) ? (Date.now() - t) / 1000 : null; };
@@ -647,8 +755,25 @@ table.mini code { font-size: 12px; }
   applyTheme();
 
   /* ---------- checks ---------- */
-  const CHECK_NAMES = { models: 'Contract check (check-models)', stages: 'Same on every surface (check-stages)', motion: 'Motion flags (check-motion)', exports: 'Export at default settings (check-exports)' };
-  const COLS = [['models', 'Contract check'], ['stages', 'Stages'], ['motion', 'Motion'], ['exports', 'Export']];
+  /* The checks come from the ledger (ledger.json checkList, written from scripts/checks-registry.mjs):
+     a check registered there gets its bar, its column, its part in "checked" and its definition here
+     without this page changing. A ledger built before the registry falls back to the four it had. */
+  const OLD_CHECKS = [
+    { key: 'models', scope: 'model', name: 'contract', short: 'Contract', title: 'Contract check (check-models)' },
+    { key: 'stages', scope: 'model', name: 'stages', short: 'Stages', title: 'Same on every surface (check-stages)' },
+    { key: 'motion', scope: 'model', name: 'motion', short: 'Motion', title: 'Motion flags (check-motion)' },
+    { key: 'exports', scope: 'model', name: 'exports', short: 'Export', title: 'Export at default settings (check-exports)' },
+  ];
+  let CHECK_LIST = OLD_CHECKS, CHECK_NAMES = {}, COLS = [], GATE_NAME = {};
+  function syncChecks(list) {
+    CHECK_LIST = Array.isArray(list) && list.length ? list : OLD_CHECKS;
+    CHECK_NAMES = Object.fromEntries(CHECK_LIST.map((c) => [c.key, c.title]));
+    COLS = CHECK_LIST.filter((c) => c.scope === 'model').map((c) => [c.key, c.short]);
+    GATE_NAME = Object.fromEntries(CHECK_LIST.map((c) => [c.key, c.name]));
+  }
+  syncChecks(null);
+  /** How many table columns there are, for a row that spans them all. */
+  const colCount = () => 5 + COLS.length;
   const checkChip = (r) => {
     if (!r || r.status === 'never') return '<span class="chip s-warn">never run</span>';
     if (r.status === 'untested') return '<span class="chip s-warn" title="the run did not include the default settings">not at defaults</span>';
@@ -658,6 +783,50 @@ table.mini code { font-size: 12px; }
     const label = cleared ? 'flags cleared' : r.status === 'flagged' && r.openFlags != null ? `${r.openFlags} open flag${r.openFlags === 1 ? '' : 's'}` : { pass: 'pass', fail: 'fail', flagged: 'flagged', broke: 'broke', error: 'could not run' }[r.status] ?? r.status;
     return `<span class="chip ${cls}" title="${esc(r.ranAt ? 'ran ' + new Date(r.ranAt).toLocaleString() : '')}">${esc(label)}${r.stale ? ' · stale' : ''}</span>`;
   };
+
+  /* ---------- the compact marks: each has its words in the tooltip and in its accessible name ---------- */
+  const MARKS = {
+    pass: ['✓', 'pass'], cleared: ['✓', 'flags cleared'], stale: ['~', 'passed on older code'], flag: ['!', 'open flags'],
+    fail: ['✗', 'failed'], never: ['–', 'never run'],
+  };
+  /** What a check result reads as: its mark kind and its words. */
+  function markKind(r) {
+    if (!r || r.status === 'never') return ['never', 'never run'];
+    if (r.status === 'untested') return ['never', 'not run at the default settings'];
+    if (r.status === 'pass') return r.stale ? ['stale', 'passed on older code'] : ['pass', 'pass'];
+    if (r.status === 'flagged' && r.openFlags === 0) return r.stale ? ['stale', 'flags cleared on older code'] : ['cleared', 'flags cleared'];
+    if (r.status === 'flagged') return ['flag', `${r.openFlags ?? '?'} open flag${r.openFlags === 1 ? '' : 's'}${r.stale ? ' (older code)' : ''}`];
+    return ['fail', `${{ fail: 'failed', broke: 'broke', error: 'could not run' }[r.status] ?? r.status}${r.stale ? ' (older code)' : ''}`];
+  }
+  const markHtml = (kind, label, tipText, glyph, extra = '') => `<span class="mk mk--${kind}${extra}" role="img" aria-label="${esc(label)}" data-tip data-tiptext="${esc(tipText)}">${glyph}</span>`;
+  /** One check's mark for one model. The run in progress, if it is on this model now, pulses. */
+  function checkMark(key, m) {
+    const r = m.checks[key];
+    const [kind, word] = markKind(r);
+    const title = CHECK_NAMES[key] ?? key;
+    const run = L.running?.[key];
+    const now = run && run.alive !== false && run.last === m.id;
+    const when = r && r.status !== 'never' ? ` Ran ${r.ranAt ? new Date(r.ranAt).toLocaleString() : 'at an unknown time'}${r.commit ? ` at ${r.commit}` : ''}.` : ' No captured run has reported this model.';
+    const text = `${title}: ${word}.${r?.summary ? ` ${r.summary}.` : ''}${when}${r?.stale ? ` Stale: ${r.staleWhy.join('; ')}.` : ''}${now ? ' Running on this model now.' : ''}`;
+    return markHtml(kind, `${title}: ${word}${now ? ', running now' : ''}`, text, MARKS[kind][0], now ? ' is-running' : '');
+  }
+  /** A review as a mark: V or T, coloured by its latest fresh verdict. */
+  function reviewMark(m, kind) {
+    const list = (m.reviews ?? []).filter((r) => r.kind === kind);
+    const L1 = kind === 'visual' ? 'V' : 'T';
+    if (!list.length) return markHtml('never', `${kind} review: none`, `${kind} review: none recorded.`, L1, ' mk--letter');
+    const fresh = list.find((r) => !r.stale);
+    if (!fresh) return markHtml('stale', `${kind} review: stale`, `${kind} review: stale. ${list[0].staleWhy}.`, L1, ' mk--letter');
+    const v = fresh.verdict ?? 'marked';
+    const cls = v === 'problem' ? 'fail' : v === 'fixed' ? 'conv' : 'pass';
+    const who = fresh.source === 'log' ? `${fresh.reviewer}, ${String(fresh.reviewedAt).slice(0, 10)}` : `commit ${fresh.commit}: ${fresh.subject}`;
+    return markHtml(cls, `${kind} review: ${v}`, `${kind} review: ${v}. ${who}.`, L1, ' mk--letter');
+  }
+  function renderMarkLegend() {
+    const items = [['pass', 'pass'], ['cleared', 'flags cleared'], ['stale', 'passed on older code'], ['flag', 'open flags'], ['fail', 'failed'], ['never', 'never run']];
+    $('marklegend').innerHTML = items.map(([k, w]) => `<span><span class="mk mk--${k}" aria-hidden="true">${MARKS[k][0]}</span>${esc(w)}</span>`).join('')
+      + `<span><span class="mk mk--pass is-running" aria-hidden="true">✓</span>running on it now</span><span><span class="mk mk--pass mk--letter" aria-hidden="true">V</span><span class="mk mk--pass mk--letter" aria-hidden="true">T</span>visual and text review</span>`;
+  }
 
   /* ---------- state ---------- */
   let L = null, Q = null, W = null, qError = null, wMissing = false;
@@ -685,7 +854,6 @@ table.mini code { font-size: 12px; }
   const SHORT = { 'not converted': 'no --u in vmin yet', converted: 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
   /* the breakdown under the arrow: one row per check (or per missing item), totals in one column */
   const KIND = [['stale-pass', 'passed on older code', 'var(--warm)'], ['failed', 'failed', 'var(--hot)'], ['never', 'never run', 'var(--never)']];
-  const GATE_NAME = { models: 'contract', stages: 'stages', motion: 'motion', exports: 'exports' };
   const REASON_COLOR = { 'no-visual': 'var(--accent)', 'no-text': 'var(--accent-2)', 'stale-review': 'var(--warm)', problem: 'var(--hot)', unexplained: 'var(--hot)' };
   /** A rounded bar of segments with a hairline between them; a segment shows its count when there is room. */
   const segBar = (segs, total) => {
@@ -806,7 +974,9 @@ table.mini code { font-size: 12px; }
   document.body.appendChild(tip);
   let tipFor = null, tipPinned = false;
   function showTip(btn, pin = false) {
-    const text = document.getElementById(btn.getAttribute('aria-describedby'));
+    // a mark carries its words in data-tiptext (and in its aria-label); a help icon in a hidden span it is described by
+    const plainText = btn.dataset.tiptext;
+    const text = plainText != null ? { innerHTML: esc(plainText) } : document.getElementById(btn.getAttribute('aria-describedby'));
     if (!text) return;
     if (tipFor && tipFor !== btn) tipFor.setAttribute('aria-expanded', 'false');
     tipFor = btn; tipPinned = pin;
@@ -868,6 +1038,7 @@ table.mini code { font-size: 12px; }
 
   function render() {
     if (!L) return;
+    syncChecks(L.checkList);
     const c = L.counts, n = c.models;
     const by = L.build?.by ? ` by <code>${esc(L.build.by)}</code>${L.build.reason ? ` (${esc(L.build.reason)})` : ''}` : '';
     $('meta').innerHTML = `Built ${when(L.generatedAt)}${by} at HEAD <code>${esc(L.head)}</code>. Every status below is read from git, the model files and the captured checks.`;
@@ -893,13 +1064,15 @@ table.mini code { font-size: 12px; }
         ${gone ? `<br>Its process (pid ${esc(p.pid)}) is gone. The results it wrote are kept; the rest of the run never reported.` : ''}
         <div class="track" aria-hidden="true"><span style="width:${pct}%"></span></div></div>`;
     }).join('');
-    const theadHtml = `<th>Model</th><th>Status</th>${COLS.map(([k, label]) => {
+    // short headers: each names its check in the tooltip and opens its definition
+    const theadHtml = `<th class="model" scope="col">Model</th><th class="st" scope="col">Status</th>${COLS.map(([k, label]) => {
       const p = L.running?.[k];
       const note = NOTES.find((n) => n.col === k); // why the column reads as it does, even after the note is dismissed
-      return `<th>${label}${note ? helpIcon(`col-${k}`, `About the ${label} column`, note.html) : ''}${p ?` <span class="chip ${p.alive === false ? 's-bad' : 's-chk'}">${p.alive === false ? 'stopped' : 'running'} ${esc(p.done)}/${p.total ?? '?'}</span>` : ''}</th>`;
-    }).join('')}<th>Reviews</th><th>Last commit</th><th class="num">Commits</th>`;
+      const title = CHECK_NAMES[k] ?? k;
+      return `<th class="c" scope="col"><button type="button" class="colh" data-def="${esc(k)}" data-tip data-tiptext="${esc(`${title}. Click for its definition.`)}" aria-label="${esc(`${title}: open its definition`)}">${esc(label)}</button>${note ? helpIcon(`col-${k}`, `About the ${label} column`, note.html) : ''}${p ? `<span class="hrun${p.alive === false ? ' is-gone' : ''}" role="img" aria-label="${esc(`${title} ${p.alive === false ? 'stopped without finishing' : 'is running'}: ${p.done} of ${p.total ?? '?'}`)}" data-tip data-tiptext="${esc(`${title} ${p.alive === false ? 'stopped without finishing' : 'is running'}: ${p.done} of ${p.total ?? '?'} done. Its bar above has the details.`)}">${esc(p.done)}</span>` : ''}</th>`;
+    }).join('')}<th class="rvw c" scope="col"><span data-tip data-tiptext="Reviews: V is the visual review, T the text review">Reviews</span></th><th class="last" scope="col">Last commit</th><th class="num ncom" scope="col">Commits</th>`;
     // rewritten only when it changes, so an open tooltip is not pulled out from under the reader
-    if ($('thead').dataset.html !== theadHtml) { $('thead').dataset.html = theadHtml; $('thead').innerHTML = theadHtml; }
+    if ($('thead').dataset.html !== theadHtml) { $('thead').dataset.html = theadHtml; $('thead').innerHTML = theadHtml; stickyOffsets(); }
 
     // one set of exclusive buckets, used by the cards, the bar, the legend and the status chips alike
     const buckets = c.buckets ?? STATUS.map((s) => ({ key: s.key, label: s.key, count: c.byStatus[s.key] }));
@@ -916,6 +1089,8 @@ table.mini code { font-size: 12px; }
     $('bar').setAttribute('aria-label', buckets.map((b) => `${b.label} ${b.count}`).join(', '));
     $('legend').innerHTML = buckets.map((b) => { const s = STATUS.find((x) => x.key === b.key); return `<span><i style="background:${s?.color}"></i>${esc(b.label)}: ${b.count}</span>`; }).join('');
     renderRules();
+    renderCheckBars();
+    renderMarkLegend();
 
     // a group or tag chosen earlier that no longer exists would hide everything without saying why
     if (group !== 'all' && !(L.groups ?? []).some((g) => g.key === group)) group = 'all';
@@ -934,8 +1109,11 @@ table.mini code { font-size: 12px; }
   const XICON = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
   function renderFilterChips() {
     const n = L.models.length;
-    $('f-status').innerHTML = [['all', 'All'], ...STATUS.map((s) => [s.key, s.short])]
-      .map(([k, label]) => `<button type="button" class="tab" data-f="${esc(k)}" aria-pressed="${filter === k}">${esc(label)} <b>${countWith({ filter: k })}</b></button>`).join('');
+    // short labels that never break; the bucket's full name and definition are in the tooltip
+    const meansOf = (k) => (lastBuckets.find((b) => b.key === k) ?? (L.counts.buckets ?? []).find((b) => b.key === k))?.means;
+    $('f-status').innerHTML = [['all', 'All', 'every model, whatever its status'], ...STATUS.map((s) => [s.key, s.short, `${s.long}: ${meansOf(s.key) ?? ''}`])]
+      .map(([k, label, def]) => { const n = countWith({ filter: k }); return `<button type="button" class="tab" data-f="${esc(k)}" aria-pressed="${filter === k}" aria-label="${esc(`${label}, ${n}`)}" data-tip data-tiptext="${esc(def)}">${esc(label)} <b aria-hidden="true">${n}</b></button>`; }).join('');
+    tabsFade();
     const hidden = n - countWith({});
     const groups = [{ key: 'all', label: 'All groups' }, ...(L.groups ?? [])];
     $('f-group').innerHTML = (hidden ? `<button type="button" class="group group--clear" data-clear title="Clear every filter and the search">${XICON} Clear <b>${hidden} hidden</b></button>` : '')
@@ -1005,6 +1183,23 @@ table.mini code { font-size: 12px; }
     return { update, reveal };
   }
   const groupsScroll = scrollRow($('groups-row'));
+  /** The status tabs scroll sideways inside themselves when the bar is tight; a fade marks the side with more. */
+  function tabsFade() {
+    const t = $('f-status');
+    t.classList.toggle('can-prev', t.scrollLeft > 2);
+    t.classList.toggle('can-next', t.scrollLeft + t.clientWidth < t.scrollWidth - 2);
+  }
+  $('f-status').addEventListener('scroll', tabsFade, { passive: true });
+  if ('ResizeObserver' in window) new ResizeObserver(tabsFade).observe($('f-status'));
+  /* the sticky header sits under the sticky filter bar, and the group rows under the header */
+  function stickyOffsets() {
+    const bar = $('filters').offsetHeight, head = $('thead').offsetHeight;
+    const root = document.documentElement.style;
+    root.setProperty("--stick-head", `${Math.round(bar)}px`);
+    root.setProperty('--head-h', `${Math.round(head)}px`);
+  }
+  if ('ResizeObserver' in window) { const ro = new ResizeObserver(stickyOffsets); ro.observe($('filters')); ro.observe($('thead')); }
+  addEventListener('resize', stickyOffsets);
   const tagsScroll = scrollRow($('tags-row'));
   $('filters').addEventListener('click', onFilterClick);
   $('q').addEventListener('input', () => { if (!L) return; query = $('q').value; limit = PAGE; saveView(); renderFilterChips(); renderRows(); });
@@ -1013,6 +1208,83 @@ table.mini code { font-size: 12px; }
   });
 
   let moreObserver = null;
+
+  /* ---------- group sections: folded or open, remembered per viewer ---------- */
+  const FLAT_BELOW = 12; // a filter that leaves this many models or fewer shows them as one flat list
+  const CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  let groupState = {};
+  try { groupState = JSON.parse(localStorage.getItem('ledger-groups') || '{}') || {}; } catch {}
+  let foldView = { key: '', fold: {} }; // folds made while a filter is on: forgotten when the filter changes
+  const filteringNow = () => filter !== 'all' || group !== 'all' || tags.size > 0 || query.trim() !== '';
+  const saveGroups = () => { try { localStorage.setItem('ledger-groups', JSON.stringify(groupState)); } catch {} };
+  /** Whether any check of a model fails, flags or is running on it now: what a folded group must still show. */
+  const problemsOf = (m) => COLS.map(([k]) => k).filter((k) => ['fail', 'flag'].includes(markKind(m.checks[k])[0]));
+  const runningOn = (m) => COLS.map(([k]) => k).filter((k) => { const r = L.running?.[k]; return r && r.alive !== false && r.last === m.id; });
+  function groupSections(list) {
+    const order = (L.groups ?? []).map((g) => g.key);
+    const by = new Map();
+    for (const m of list) { const k = m.group ?? '(none)'; if (!by.has(k)) by.set(k, []); by.get(k).push(m); }
+    const keys = [...by.keys()].sort((a, b) => (order.indexOf(a) + 1 || 999) - (order.indexOf(b) + 1 || 999));
+    return keys.map((k) => ({ key: k, label: (L.groups ?? []).find((g) => g.key === k)?.label ?? k, models: by.get(k), all: L.models.filter((m) => (m.group ?? '(none)') === k) }));
+  }
+  /** Open unless the viewer folded it; by default a group with a problem or a run on it opens, a fully approved one folds. */
+  function groupOpen(g) {
+    if (g.key in groupState) return groupState[g.key];
+    const trouble = g.all.some((m) => problemsOf(m).length || runningOn(m).length);
+    if (trouble) return true;
+    return !g.all.every((m) => m.approved);
+  }
+  function groupRow(g, opened) {
+    const n = g.all.length;
+    const count = (st) => g.all.filter((m) => m.status === st).length;
+    const ap = count('approved'), ch = count('checked'), cv = count('converted'), nc = count('not converted');
+    const seg = (x, c, w) => x ? `<i style="flex-grow:${x};background:${c}" title="${esc(`${x} ${w}`)}"></i>` : '';
+    // the problems inside, per check: shown on the row whether it is open or folded
+    const probs = COLS.map(([k, label]) => {
+      const bad = g.all.filter((m) => problemsOf(m).includes(k)).length;
+      return bad ? `<span class="chip s-bad" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]}: ${bad} model${bad === 1 ? '' : 's'} in this group failing or flagged`)}">✗ ${esc(label)} ${bad}</span>` : '';
+    }).join('') + COLS.map(([k, label]) => {
+      const on = g.all.filter((m) => runningOn(m).includes(k)).length;
+      return on ? `<span class="chip s-chk" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]} is running on a model in this group now`)}">running ${esc(label)}</span>` : '';
+    }).join('');
+    const shownNote = g.models.length !== n ? `, ${g.models.length} match` : '';
+    return `<tr class="grow"><th colspan="${colCount()}" scope="rowgroup"><div class="grow__in">
+      <button type="button" class="grow__btn" data-grp="${esc(g.key)}" aria-expanded="${opened}">${CHEVRON}${esc(g.label)} <span class="n">· ${n}${shownNote}</span></button>
+      <span class="grow__bar" role="img" aria-label="${esc(`${ap} approved, ${ch} awaiting approval, ${cv} to check${nc ? `, ${nc} not converted` : ''}, of ${n}`)}">${seg(ap, 'var(--accent)', 'approved')}${seg(ch, 'var(--st-chk)', 'awaiting approval')}${seg(cv, 'var(--warm)', 'to check')}${seg(nc, 'var(--never)', 'not converted')}</span>
+      <span class="grow__meta">${ap} approved · ${ch} awaiting · ${cv} to check${nc ? ` · ${nc} not converted` : ''}</span>
+      ${probs ? `<span class="grow__probs">${probs}</span>` : ''}</div></th></tr>`;
+  }
+  function modelRow(m, flat) {
+    const last = m.commits.find((x) => x.matchedBy.includes('diff')) ?? m.commits[0];
+    const glabel = m.groupLabel ?? m.group ?? '';
+    const short = glabel.split(/\s*[&,]\s*|\s+/)[0];
+    return `<tr class="row${flash.has(m.id) ? ' flash' : ''}" tabindex="0" data-id="${esc(m.id)}" aria-expanded="${open.has(m.id)}">
+        <td class="model"><div class="mt"><b data-tip data-tiptext="${esc(`${m.title} (${m.id}), group: ${glabel || 'none'}`)}">${esc(m.title)}</b><code>${esc(m.id)}</code>${flat && glabel ? `<span class="gchip" data-tip data-tiptext="${esc(`Group: ${glabel}`)}" aria-label="${esc(`group: ${glabel}`)}">${esc(short)}</span>` : ''}</div></td>
+        <td class="st">${chipFor(m.status)}${m.converted && m.convertedInHead === false ? ' <span class="chip s-warn" data-tip data-tiptext="the working tree has --u: but HEAD does not">not committed</span>' : ''}</td>
+        ${COLS.map(([k, label]) => `<td class="c" data-label="${esc(label)}">${checkMark(k, m)}</td>`).join('')}
+        <td class="rvw c" data-label="Reviews"><span class="rv">${reviewMark(m, 'visual')}${reviewMark(m, 'text')}</span></td>
+        <td class="num last">${last ? `<span data-tip data-tiptext="${esc(`${last.hash}: ${last.subject}`)}">${esc(last.date.slice(0, 10))}</span>` : '<span class="muted">none found</span>'}</td>
+        <td class="num ncom">${m.commits.length}</td></tr>`;
+  }
+  $('rows').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-grp]');
+    if (!b) return;
+    e.stopPropagation();
+    const k = b.dataset.grp;
+    const opening = b.getAttribute('aria-expanded') !== 'true';
+    if (filteringNow()) foldView.fold[k] = !opening; else { groupState[k] = opening; saveGroups(); }
+    renderRows();
+    $('rows').querySelector(`[data-grp="${CSS.escape(k)}"]`)?.focus({ preventScroll: true });
+  });
+  const setAll = (v) => {
+    for (const g of L?.groups ?? []) { if (filteringNow()) foldView.fold[g.key] = !v; else groupState[g.key] = v; }
+    if (!filteringNow()) saveGroups();
+    renderRows();
+  };
+  $('expand-all').addEventListener('click', () => setAll(true));
+  $('collapse-all').addEventListener('click', () => setAll(false));
+  $('showing').addEventListener('click', (e) => { if (e.target.closest('[data-expand-all]')) setAll(true); });
+
   function renderRows() {
     const f = view();
     const matching = L.models.filter((m) => passes(m, f));
@@ -1021,30 +1293,47 @@ table.mini code { font-size: 12px; }
     const onScreen = Math.min(limit, matching.length);
     const glabel = (L.groups ?? []).find((g) => g.key === group)?.label ?? group;
     const why = [filter !== 'all' ? `status “${filter}”` : '', group !== 'all' ? `group “${glabel}”` : '', ...[...tags].map((t) => `#${t}`), query.trim() ? `search “${query.trim()}”` : ''].filter(Boolean).join(', ');
-    const screen = onScreen < matching.length ? ` ${onScreen} on screen; the rest load as you scroll.` : '';
+    const screen = '';
     $('showing').innerHTML = hidden
       ? `${matching.length} of ${total} match; ${hidden} hidden by ${esc(why)}.${screen} <button type="button" class="linkish" id="clear">Show all ${total}</button>`
-      : `All ${total} match.${screen} Click a row for its commits, checks and reviews.`;
+      : `All ${total} match.${screen}`;
     $('clear')?.addEventListener('click', () => { filter = 'all'; group = 'all'; tags.clear(); query = ''; limit = PAGE; saveView(); render(); });
 
-    const shown = matching.slice(0, limit);
-    $('rows').innerHTML = shown.map((m) => {
-      const last = m.commits.find((x) => x.matchedBy.includes('diff')) ?? m.commits[0];
-      const row = `<tr class="row${flash.has(m.id) ? ' flash' : ''}" tabindex="0" data-id="${esc(m.id)}" aria-expanded="${open.has(m.id)}">
-        <td class="model">${m.groupLabel || m.group ? `<span class="grp">${esc(m.groupLabel ?? m.group)}</span>` : ''}<b>${esc(m.title)}</b><br><code class="muted">${esc(m.id)}</code></td>
-        <td>${chipFor(m.status)}${m.converted && m.convertedInHead === false ? '<br><span class="chip s-warn" title="the working tree has --u: but HEAD does not">not committed</span>' : ''}</td>
-        ${COLS.map(([k]) => `<td>${checkChip(m.checks[k])}</td>`).join('')}
-        <td><span class="rv">${reviewChip(m, 'visual')}${reviewChip(m, 'text')}</span></td>
-        <td class="num">${last ? `${esc(last.date.slice(0, 10))}<br><code class="muted">${esc(last.hash)}</code>` : '<span class="muted">none found</span>'}</td>
-        <td class="num">${m.commits.length}</td></tr>`;
-      return row + (open.has(m.id) ? `<tr class="detail"><td colspan="9">${detail(m)}</td></tr>` : '');
-    }).join('') || `<tr><td colspan="9" class="muted">No model matches.${hidden ? ' Every model is hidden by the filters above.' : ''}</td></tr>`;
-    const rest = matching.length - shown.length;
-    if (rest > 0) $('rows').insertAdjacentHTML('beforeend', `<tr class="more"><td colspan="9"><button type="button" class="btn" id="more">Show ${Math.min(PAGE, rest)} more <small>${rest} not on screen yet</small></button></td></tr>`);
+    // Sections per group, in the ledger's group order. A filter that leaves only a few models drops
+    // them for a flat list with a group mark on each row. A folded group renders no rows, and the
+    // lazy loading counts only rows that are drawn.
+    const filtering = filter !== 'all' || group !== 'all' || tags.size > 0 || query.trim() !== '';
+    const flat = filtering && matching.length <= FLAT_BELOW;
+    const sections = flat ? [{ key: null, models: matching }] : groupSections(matching);
+    // with a filter or a search, every group with matches opens (the viewer may still fold one, for this view only)
+    const viewKey = JSON.stringify([filter, group, [...tags], query.trim()]);
+    if (viewKey !== foldView.key) foldView = { key: viewKey, fold: {} };
+    const isOpen = (g) => !g.key ? true : filtering ? !foldView.fold[g.key] : groupOpen(g);
+    let budget = limit, html = '', drawn = 0, cut = 0, folded = 0, foldedGroups = 0;
+    for (const g of sections) {
+      const opened = isOpen(g);
+      if (!opened) { folded += g.models.length; foldedGroups++; }
+      if (g.key && budget <= 0) { cut += g.models.length; continue; }
+      if (g.key) html += groupRow(g, opened);
+      if (!opened) continue;
+      for (const m of g.models) {
+        if (budget <= 0) { cut++; continue; }
+        budget--; drawn++;
+        html += modelRow(m, flat) + (open.has(m.id) ? `<tr class="detail"><td colspan="${colCount()}">${detail(m)}</td></tr>` : '');
+      }
+    }
+    $('rows').innerHTML = html || `<tr class="empty"><td colspan="${colCount()}" class="muted">No model matches.${hidden ? ' Every model is hidden by the filters above.' : ''}</td></tr>`;
+    // say what the folding hides, with one click to see it
+    if (folded) $('showing').insertAdjacentHTML('beforeend', ` <span>${folded} of them in ${foldedGroups} folded group${foldedGroups === 1 ? '' : 's'}, not drawn.</span> <button type="button" class="linkish" data-expand-all>Expand all</button>`);
+    if (cut) $('showing').insertAdjacentHTML('beforeend', ` <span>${drawn} rows drawn; ${cut} more load as you scroll.</span>`);
+    $('showing').insertAdjacentHTML('beforeend', ' <span>Click a row for its commits, checks and reviews.</span>');
+    $('grp-acts').hidden = flat;
+    const rest = cut;
+    if (rest > 0) $('rows').insertAdjacentHTML('beforeend', `<tr class="more"><td colspan="${colCount()}"><button type="button" class="btn" id="more">Show ${Math.min(PAGE, rest)} more <small>${rest} not on screen yet</small></button></td></tr>`);
     $('rows').querySelectorAll('tr.row').forEach((tr) => {
       const toggle = () => { const id = tr.dataset.id; open.has(id) ? open.delete(id) : open.add(id); saveView(); renderRows(); document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true }); };
       tr.addEventListener('click', toggle);
-      tr.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+      tr.addEventListener('keydown', (e) => { if (e.target === tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggle(); } });
     });
     // more rows as the end of the list comes near; the button does the same for keyboards
     moreObserver?.disconnect();
@@ -1142,6 +1431,45 @@ table.mini code { font-size: 12px; }
       }).join('')}</ul>`;
     }).join('');
   }
+  /* ---------- a bar per check, from the registry: every model (or page), none left out ---------- */
+  const CK_SEGS = [['pass', 'pass', 'var(--st-chk)'], ['stale', 'passed on older code', 'var(--warm)'], ['fail', 'failing', 'var(--hot)'], ['never', 'not run', 'var(--never)']];
+  function checkBarsOf(list) {
+    return `<ul class="bd">${list.map((c) => {
+      const t = c.tally ?? { pass: 0, stale: 0, fail: 0, never: c.total ?? 0 };
+      const total = c.total ?? 0;
+      const segs = CK_SEGS.map(([k, label, col]) => ({ label, n: t[k] ?? 0, c: col }));
+      const run = c.running;
+      const ran = total - (t.never ?? 0);
+      const unit = c.unit === 'pages' ? 'pages' : 'models';
+      const status = !c.captured && !run ? `not run yet (0 of ${total} ${unit})` : `${t.pass} of ${total} ${unit} pass${c.listed ? ` · ${c.listed} of them with listed findings (waived or the model's own text, not failed)` : ''}${c.lastRun?.finishedAt ? ` · last run ${new Date(c.lastRun.finishedAt).toLocaleString()}${c.lastRun.commit ? ` at ${c.lastRun.commit}` : ''}` : ''}`;
+      const runChip = run ? `<span class="chip ${run.alive === false ? 's-bad' : 's-chk'}">${run.alive === false ? 'stopped' : 'running'} ${esc(run.done)} of ${run.total ?? '?'}</span>` : '';
+      const pills = segs.filter((x) => x.n).map((x) => `<span class="bdpill"><i style="background:${x.c}"></i>${esc(x.label)} <b>${x.n}</b></span>`).join('');
+      const bar = segBar(segs, total).replace('class="bdbar"', `class="bdbar${run && run.alive !== false ? ' is-running' : ''}"`);
+      return `<li><button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
+        <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}</span>${pills}</span></li>`;
+    }).join('')}</ul>`;
+  }
+  function renderCheckBars() {
+    const models = CHECK_LIST.filter((c) => c.scope === 'model');
+    const site = CHECK_LIST.filter((c) => c.scope === 'site');
+    const n = L.models.length;
+    // a ledger from before the registry has no tallies: say so rather than draw empty bars as if nothing ran
+    if (!L.checkList) { $('checkbars').innerHTML = '<p class="muted">This ledger was built before it listed its checks; the bars appear on the next build.</p>'; return; }
+    $('checkbars').innerHTML = `<h3>Checks, per model <span class="muted" style="text-transform:none;letter-spacing:0">· of ${n} models, in gate order; a model is checked when it passes every one on its current code</span></h3>${checkBarsOf(models)}`
+      + (site.length ? `<h3>Site <span class="muted" style="text-transform:none;letter-spacing:0">· counted in pages, not a gate on any model</span></h3>${checkBarsOf(site)}` : '');
+  }
+  /** Opens the definitions at one check's entry. */
+  function openDef(key) {
+    const d = $('rules-dialog');
+    if (!d.open) { if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', ''); }
+    const dt = document.getElementById(`def-${key}`);
+    document.querySelectorAll('.defs dt.is-lit').forEach((x) => x.classList.remove('is-lit'));
+    if (dt) { dt.classList.add('is-lit'); dt.scrollIntoView({ block: 'start' }); dt.setAttribute('tabindex', '-1'); dt.focus({ preventScroll: true }); }
+    defFrom = document.querySelector(`[data-def="${CSS.escape(key)}"]`);
+  }
+  let defFrom = null;
+  document.addEventListener('click', (e) => { const b = e.target.closest?.('[data-def]'); if (b && L) { e.stopPropagation(); defFrom = b; openDef(b.dataset.def); defFrom = b; } });
+
   /* ---------- "How these are counted": every fact the summary's numbers are defined by ---------- */
   function renderRules() {
     const c = L.counts, s = L.sources;
@@ -1164,7 +1492,8 @@ table.mini code { font-size: 12px; }
       </dl>
       <h3>The checks, in gate order</h3>
       <p class="muted" style="font-size:14px">${esc(s.gates ?? '')}.</p>
-      <dl class="defs">${gates.map((g, i) => `<dt>${i + 1}. ${esc(g.label)}</dt>${dd(`${esc(g.rule)}. From ${esc(g.source)}.`)}`).join('')}</dl>
+      <dl class="defs">${gates.map((g, i) => `<dt id="def-${esc(g.key)}">${i + 1}. ${esc(g.label)} <span class="muted" style="font-weight:500">(column “${esc(CHECK_LIST.find((c) => c.key === g.key)?.short ?? g.key)}”)</span></dt>${dd(`${esc(g.rule)}. From ${esc(g.source)}.`)}`).join('')}</dl>
+      ${CHECK_LIST.some((c) => c.scope === 'site') ? `<h3>Site checks</h3><p class="muted" style="font-size:14px">Counted in pages, shown in the Site block; they do not gate any model.</p><dl class="defs">${CHECK_LIST.filter((c) => c.scope === 'site').map((c) => `<dt id="def-${esc(c.key)}">${esc(c.title)}</dt>${dd(`${esc(c.rule)}. ${c.captured ? `${c.total} pages` : `Not run yet; ${c.total ?? 'an unknown number of'} pages to judge`}.`)}`).join('')}</dl>` : ''}
       <h3>Reviews</h3>
       <dl class="defs">
         <dt>Visual review</dt>${dd(esc(s.review))}
