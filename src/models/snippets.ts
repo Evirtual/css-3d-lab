@@ -499,18 +499,20 @@ ${CUBE_FACES}
 }
 
 .chart {
-  --w: 30px;
+  --w: calc(30 * var(--u));
   display: flex;
   align-items: flex-end;
-  gap: 18px;
-  height: 150px;
+  gap: calc(18 * var(--u));
+  height: calc(150 * var(--u));
   transform-style: preserve-3d;
-  transform: rotateX(-22deg) rotateY(-32deg);
+  /* the chart is seen from above, so what it draws hangs below its layout box: the lift puts
+     the drawing, not the box, in the middle */
+  transform: translate(calc(-5 * var(--u)), calc(-20 * var(--u))) rotateX(-22deg) rotateY(-32deg);
 }
 
 .bar {
-  --h: calc(var(--hn) * 1px);     /* full height */
-  --k: calc(14 / var(--hn));      /* scale of the shortest state: 14px */
+  --h: calc(var(--hn) * var(--u)); /* full height */
+  --k: calc(14 / var(--hn));      /* scale of the shortest state: 14 units */
   position: relative;
   width: var(--w);
   height: var(--h);               /* the box itself never changes size */
@@ -560,7 +562,7 @@ ${CUBE_FACES}
 }
 
 @keyframes grow-lid {
-  from { transform: translateY(calc(var(--h) - 14px)) rotateX(90deg) translateZ(calc(var(--w) / 2)); }
+  from { transform: translateY(calc(var(--h) - calc(14 * var(--u)))) rotateX(90deg) translateZ(calc(var(--w) / 2)); }
 }`,
   },
 
