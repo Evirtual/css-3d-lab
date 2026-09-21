@@ -430,40 +430,43 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
 
   tunnel: {
     how: [
-      'Ten identical frames, stacked in the centre, all running the same animation: <code>translateZ(-1400px)</code> → <code>translateZ(320px)</code>.',
-      'Perspective is 320px. A frame at z = 200px is already magnified 2.7× and off-screen, so stop there and fade out. Never animate all the way to z = perspective: the scale there is infinite and the browser stalls rasterising it.',
+      'Ten identical frames, stacked in the centre, all running the same animation: from 1400 units behind the screen (<code>translateZ</code> −1400) to 200 units in front of it.',
+      'Perspective is 320 units. A frame at z = 200 is already magnified 2.7× and off-screen, so stop there and fade out. Never animate all the way to z = perspective: the scale there is infinite and the browser stalls rasterising it.',
       'A negative <code>animation-delay</code> of <code>i × (duration / count)</code> spreads them evenly along the tunnel.',
       'Fading in from 0 opacity hides the moment a frame pops into existence far away.',
+      'The tunnel is <code>inset: 0</code>, so it fills the canvas edge to edge. Its lengths are multiples of one base unit, <code>--u</code>, tied to the canvas, so a frame is the same share of a gallery card and of a full screen.',
     ],
     html: `<div class="tunnel">
 ${lines(10, (i) => `<i style="--i:${i}"></i>`, '  ')}
 </div>`,
     css: `.tunnel {
+  /* one base unit, tied to the canvas; the tunnel itself fills the canvas edge to edge */
+  --u: 0.33vmin;
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
-  perspective: 320px;
+  perspective: calc(320 * var(--u));
   background: radial-gradient(circle, #1b0f3a, #05030d 70%);
 }
 
 .tunnel i {
   position: absolute;
-  width: 260px;
-  height: 260px;
-  border: 3px solid hsl(calc(260 + var(--i) * 14) 90% 65%);
-  border-radius: 18px;
-  box-shadow: 0 0 18px hsl(calc(260 + var(--i) * 14) 90% 65% / 0.7);
+  width: calc(260 * var(--u));
+  height: calc(260 * var(--u));
+  border: calc(3 * var(--u)) solid hsl(calc(260 + var(--i) * 14) 90% 65%);
+  border-radius: calc(18 * var(--u));
+  box-shadow: 0 0 calc(18 * var(--u)) hsl(calc(260 + var(--i) * 14) 90% 65% / 0.7);
   animation: fly 4s linear infinite;
   animation-delay: calc(var(--i) * -0.4s);   /* 4s / 10 frames */
 }
 
-/* stop well before z = perspective (320px): the scale there is infinite */
+/* stop well before z = perspective (320 units): the scale there is infinite */
 @keyframes fly {
-  from     { opacity: 0; transform: translateZ(-1400px) rotateZ(0deg); }
+  from     { opacity: 0; transform: translateZ(calc(-1400 * var(--u))) rotateZ(0deg); }
   25%, 85% { opacity: 1; }
-  to       { opacity: 0; transform: translateZ(200px) rotateZ(90deg); }
+  to       { opacity: 0; transform: translateZ(calc(200 * var(--u))) rotateZ(90deg); }
 }`,
   },
 
