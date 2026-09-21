@@ -499,11 +499,13 @@ ${CUBE_FACES}
     html: `<div class="scene">
   <div class="chart">
     <!-- --hn = full height in units of --u, as a plain number -->
-    <div class="bar" style="--hn:70;  --hue:262; --delay:0s"><i></i><i></i><i></i></div>
-    <div class="bar" style="--hn:110; --hue:285; --delay:-0.35s"><i></i><i></i><i></i></div>
-    <div class="bar" style="--hn:50;  --hue:320; --delay:-0.7s"><i></i><i></i><i></i></div>
-    <div class="bar" style="--hn:140; --hue:175; --delay:-1.05s"><i></i><i></i><i></i></div>
-    <div class="bar" style="--hn:90;  --hue:40;  --delay:-1.4s"><i></i><i></i><i></i></div>
+    <!-- --delay staggers the bars 0.35s apart, all 0.75s in: the first frame, which a paused
+         card shows, is the chart grown, not five stubs -->
+    <div class="bar" style="--hn:70;  --hue:262; --delay:-0.75s"><i></i><i></i><i></i></div>
+    <div class="bar" style="--hn:110; --hue:285; --delay:-1.1s"><i></i><i></i><i></i></div>
+    <div class="bar" style="--hn:50;  --hue:320; --delay:-1.45s"><i></i><i></i><i></i></div>
+    <div class="bar" style="--hn:140; --hue:175; --delay:-1.8s"><i></i><i></i><i></i></div>
+    <div class="bar" style="--hn:90;  --hue:40;  --delay:-2.15s"><i></i><i></i><i></i></div>
   </div>
 </div>`,
     css: `.scene {
