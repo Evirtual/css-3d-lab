@@ -24,7 +24,10 @@
  *    of its mismatches is about them, "fail" when one is, "error" when a tab could not be run, and
  *    "untested" when the run's arguments left the defaults out (--quick, SIZES, --only). Everything
  *    else it printed (other shapes, sizes, qualities, the slider) is kept apart as `matrix`: the
- *    settings matrix, which is run on a sample and is not part of the per-model verdict.
+ *    settings matrix, which is run on a sample and is not part of the per-model verdict. The
+ *    defaults are listed once, in scripts/export-defaults.mjs, for this and for check-exports
+ *    --defaults, which makes exactly them: `npm run capture -- exports --defaults <ids>` is the
+ *    per-model run, and its entries say `matrix.defaultsOnly`.
  *
  * Each model's entry is replaced only when this run reported it, so a run over two models keeps
  * the last known result of the other 133. Every entry carries the moment its line was printed, the
@@ -45,6 +48,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fingerprints, ROOT, workingSources } from './model-sources.mjs';
+import { DEFAULTS, DEFAULTS_TEXT, isDefault } from './export-defaults.mjs';
 
 const CHECKS = { models: 'check-models.mjs', stages: 'check-stages.mjs', motion: 'check-motion.mjs', exports: 'check-exports.mjs' };
 const [check, ...rest] = process.argv.slice(2);
@@ -114,20 +118,23 @@ const parsers = {
 };
 const known = new Set(Object.keys(printsBefore));
 
-/** The export dialog's defaults (src/video.ts fresh()), and which of the check's mismatch labels are about them. */
-const EXPORT_DEFAULTS = { image: '1:1 at 1600 px, PNG', video: '9:16 at 1080p, MP4, a loop', fill: '70%' };
-const isDefault = (x) => x.check === 'run'
-  || (x.check === 'dims' && ['image 1:1 canvas', 'image 1:1 1600', 'video 9:16 1080p'].includes(x.what))
-  || (x.check === 'picture' && ['image 1:1 1600', 'video 9:16 1080p', 'video 9:16 loop frame 0'].includes(x.what))
-  || (x.check === 'detail' && x.what === 'image 1:1 1600')
-  || (x.check === 'drift' && x.what === '9:16')
-  || (x.check === 'formats' && x.what === 'png');
-/** Whether this run's arguments made the default settings at all (check-exports' own rules for --quick, SIZES and --only). */
+/**
+ * The export dialog's defaults and which of the check's mismatch labels are about them, from
+ * scripts/export-defaults.mjs: the list check-exports --defaults makes, so the two cannot drift apart.
+ */
+const EXPORT_DEFAULTS = DEFAULTS_TEXT;
+const defaultsOnly = args.includes('--defaults');
+/**
+ * Whether this run's arguments made the default settings at all (check-exports' own rules for
+ * --defaults, --quick, SIZES and --only). --defaults makes them and nothing else; --quick does not
+ * make them (and check-exports refuses it with --defaults); an --only that leaves a check out
+ * leaves that check's defaults out, with or without --defaults.
+ */
 function exportsCovered() {
   const why = [];
   if (args.includes('--quick')) why.push('--quick makes 800 px and 480p/2160p only');
   const sizes = (process.env.SIZES || '800,1600,3200').split(',').map(Number);
-  if (!sizes.includes(1600)) why.push(`SIZES=${process.env.SIZES} leaves out 1600 px`);
+  if (!defaultsOnly && !sizes.includes(DEFAULTS.image.size)) why.push(`SIZES=${process.env.SIZES} leaves out ${DEFAULTS.image.size} px`);
   const at = args.indexOf('--only');
   if (at >= 0) { const only = new Set(String(args[at + 1]).split(',')); for (const k of ['dims', 'picture', 'drift', 'formats']) if (!only.has(k)) why.push(`--only leaves out ${k}`); }
   return { covered: why.length === 0, why };
@@ -153,7 +160,9 @@ function finalizeExport(id) {
       : r.status === 'fail' ? `${def.length} mismatch(es) at the default settings`
       : `the default picture and video match the canvas (${EXPORT_DEFAULTS.image}; ${EXPORT_DEFAULTS.video})`;
     r.detail = def.map((x) => `${x.check} ${x.what}: ${x.detail}${x.fault ? ` [${x.fault}]` : ''}`);
-    r.extra = { defaults: EXPORT_DEFAULTS, matrix: { note: 'every setting this run made, not only the defaults; the full matrix is run on a sample of models', args, sizes: process.env.SIZES || null, mismatches: r.mismatches.filter((x) => !isDefault(x)) } };
+    r.extra = { defaults: EXPORT_DEFAULTS, matrix: defaultsOnly
+      ? { defaultsOnly: true, note: 'this run was --defaults: it made the default settings and nothing else, so it says nothing about the rest of the settings matrix', args, sizes: null, mismatches: r.mismatches.filter((x) => !isDefault(x)) }
+      : { note: 'every setting this run made, not only the defaults; the full matrix is run on a sample of models', args, sizes: process.env.SIZES || null, mismatches: r.mismatches.filter((x) => !isDefault(x)) } };
   }
 }
 
