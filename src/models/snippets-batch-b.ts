@@ -799,7 +799,8 @@ scene.addEventListener('pointercancel', leave);`,
   logo3d: {
     how: [
       'The mark is one <code>clip-path: polygon(evenodd, …)</code>. The path runs round the hexagon, jumps in and traces the triangle; with <code>evenodd</code> the area enclosed twice becomes a hole.',
-      'Fourteen copies of that shape are stacked 2px apart with <code>translateZ(calc((var(--i) - 6.5) * 2px))</code>. Seen at an angle their edges overlap into a solid side, and the hole gets inner walls for free.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the mark is the same share of a gallery card, the editor and a recording canvas.',
+      'Fourteen copies of that shape are stacked two units apart with <code>translateZ(calc((var(--i) - 6.5) * 2 * var(--u)))</code>. Seen at an angle their edges overlap into a solid side, and the hole gets inner walls for free.',
       'Each layer lays a dark gradient over the colour, with an alpha that shrinks as <code>--i</code> grows: <code>rgb(6 7 20 / calc(0.6 - var(--i) * 0.033))</code>. The side fades from bright to dark like a lit extrusion.',
       'The front layer is the face. Its shine is a pseudo-element moved with <code>translateX</code> only; the layer’s <code>clip-path</code> clips it to the logo, so it never spills out.',
     ],
@@ -811,13 +812,16 @@ scene.addEventListener('pointercancel', leave);`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the mark is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.48vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .logo {
   position: relative;
-  width: 116px;
-  height: 116px;
+  width: calc(116 * var(--u));
+  height: calc(116 * var(--u));
   transform-style: preserve-3d;
   animation: sway 6s ease-in-out infinite alternate;
 }
@@ -826,10 +830,10 @@ scene.addEventListener('pointercancel', leave);`,
 .logo::before {
   content: '';
   position: absolute;
-  inset: -26px;
+  inset: calc(-26 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(139 108 255 / 0.38), transparent);
-  transform: translateZ(-60px);
+  transform: translateZ(calc(-60 * var(--u)));
 }
 
 .logo > i {
@@ -844,8 +848,8 @@ scene.addEventListener('pointercancel', leave);`,
   background:
     linear-gradient(rgb(6 7 20 / var(--shade)), rgb(6 7 20 / var(--shade))),
     linear-gradient(135deg, #8b6cff, #ff4d9d);
-  /* 14 layers, 2px apart, centred on the middle */
-  transform: translateZ(calc((var(--i) - 6.5) * 2px));
+  /* 14 layers, 2 units apart, centred on the middle */
+  transform: translateZ(calc((var(--i) - 6.5) * 2 * var(--u)));
 }
 
 /* the front layer is the face */
