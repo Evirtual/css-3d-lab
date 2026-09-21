@@ -621,7 +621,7 @@ ${Array.from({ length: n }, (_, d) =>
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the atom is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.31vmin;
+  --u: 0.39vmin;
   perspective: calc(800 * var(--u));
 }
 
