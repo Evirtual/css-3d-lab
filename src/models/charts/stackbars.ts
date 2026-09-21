@@ -499,21 +499,50 @@ export const snippet: Snippet = {
   gap: 2vmin;
 }
 
-/* the legend is the switches: one real button per product */
-.controls button {
-  display: inline-flex;
-  align-items: center;
-  gap: 1.5vmin;
+.controls button,
+.controls label {
   height: 8vmin;
   min-width: 8vmin;
   padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--c) 22%, transparent);
-  box-shadow: inset 0 0 0 0.3vmin color-mix(in srgb, var(--c) 60%, transparent);
+  /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
+     strength: no colour of the model's, which would vanish on one of the two stages */
+  background: rgb(140 150 220 / 0.2);
   color: inherit;
   font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
+  transition: background-color 0.35s;
+}
+
+.controls button:hover,
+.controls label:hover {
+  background-color: rgb(140 150 220 / 0.34);
+}
+
+.controls :focus-visible {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
+
+/* the selected pill: the brand gradient, deep enough that white text on it passes */
+.controls [aria-pressed='true'] {
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
+  color: #fff;
+}
+
+/* the legend is the switches: one real button per product, in the product's colour when on.
+   Its word stays the stage's ink, on a tint light enough to keep it readable on both stages */
+.controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5vmin;
+}
+
+.legend button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--c) 22%, transparent);
+  box-shadow: inset 0 0 0 0.3vmin color-mix(in srgb, var(--c) 60%, transparent);
+  color: inherit;
 }
 
 /* the swatch: filled when on, a hollow ring when off */
@@ -526,9 +555,8 @@ export const snippet: Snippet = {
   box-shadow: inset 0 0 0 0.5vmin var(--c);
 }
 
+/* off: the block's plain pill, a little faded */
 .legend button[aria-pressed='false'] {
-  background: rgb(140 150 220 / 0.12);
-  box-shadow: inset 0 0 0 0.3vmin rgb(140 150 220 / 0.3);
   opacity: 0.75;
 }
 

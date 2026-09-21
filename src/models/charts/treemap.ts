@@ -390,21 +390,35 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
   gap: 2vmin;
 }
 
-.controls button {
+.controls button,
+.controls label {
   height: 8vmin;
   min-width: 8vmin;
   padding: 0 3vmin;
   border: 0;
   border-radius: 999px;
+  /* see-through, so the pill sits on the stage, and its word is the stage's own ink at full
+     strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
-  color: ${MUTED};
+  color: inherit;
   font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
-  transition: background 0.35s, color 0.35s;
+  transition: background-color 0.35s;
 }
 
-.controls button[aria-pressed='true'] {
-  background: linear-gradient(135deg, ${VIOLET}, ${PINK});
+.controls button:hover,
+.controls label:hover {
+  background-color: rgb(140 150 220 / 0.34);
+}
+
+.controls :focus-visible {
+  outline: 0.6vmin solid #6a45f5;
+  outline-offset: 0.6vmin;
+}
+
+/* the selected pill: the brand gradient, deep enough that white text on it passes */
+.controls [aria-pressed='true'] {
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
   color: #fff;
 }`,
   js: `// The data, as an API would send it back. cap: market cap in $B; change: % move per period.
