@@ -785,17 +785,30 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
       'The "light" is simply the frame’s background, revealed as the leaf swings away.',
       '<code>tabindex="0"</code> plus <code>:focus</code> makes it work by tap and by keyboard.',
     ],
-    html: `<div class="door" tabindex="0">
-  <div class="leaf"><i></i></div>
+    html: `<div class="scene">
+  <div class="door" tabindex="0">
+    <div class="leaf"><i></i></div>
+  </div>
 </div>`,
-    css: `.door {
+    css: `.scene {
+  /* one base unit: every length below is a multiple of it, so the door is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.21vmin;
+  display: grid;
+  place-items: center;
+  /* the leaf swings out to the left, so the frame sits right of the middle and the door plus
+     its swing is what ends up centred, not the shut frame on its own */
+  padding-left: calc(72 * var(--u));
+}
+
+.door {
   position: relative;
-  width: 150px;
-  height: 250px;
-  border: 8px solid #3a2a1c;
+  width: calc(150 * var(--u));
+  height: calc(250 * var(--u));
+  border: calc(8 * var(--u)) solid #3a2a1c;
   border-bottom: 0;
   background: radial-gradient(ellipse at 50% 70%, #fff6c9, #ffb547 55%, #7a4a12);
-  perspective: 700px;
+  perspective: calc(700 * var(--u));
   perspective-origin: 120% 50%;
   cursor: pointer;
 }
@@ -817,9 +830,9 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">DEEP</span>`)}
 .leaf i {
   position: absolute;
   top: 50%;
-  right: 12px;
-  width: 14px;
-  height: 14px;
+  right: calc(12 * var(--u));
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
   border-radius: 50%;
   background: #ffd36b;
 }`,
