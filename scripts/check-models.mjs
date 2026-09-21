@@ -84,7 +84,8 @@ const wanted = args.filter((a) => !a.startsWith('-'));
 const ids = wanted.length ? wanted : demos.map((d) => d.id);
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 900, height: 700 } });
+// Judged on a card, the tightest canvas there is and the one most of the gallery is seen at.
+const page = await browser.newPage({ viewport: { width: 360, height: 300 } });
 page.on('pageerror', (e) => console.log('  page error:', e.message));
 
 const widest = (a, b) => {
