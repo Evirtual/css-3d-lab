@@ -61,9 +61,11 @@ function siteStamp(dir = 'src', stamp = { files: 0, latest: 0 }) {
 
 /**
  * Runs in the model's frame: what the model draws, in vmin, measured from the canvas middle.
- * It is scripts/check-models.mjs's own measurement, with the canvas size added to what it returns,
- * so a number here means exactly what a number there means. It sweeps the whole animation (and a
- * forced :hover) and keeps the widest extent, then puts every clock back where it found it.
+ * It reads the boxes of what paints (a fill, a border, a shadow, a ::before or ::after, and text by
+ * the text itself), which is quick enough to take on 13 surfaces; check-models, which judges the
+ * band, measures pictures instead, so its numbers can differ from these. It sweeps the whole
+ * animation (and a forced :hover) and keeps the widest extent, then puts every clock back where
+ * it found it.
  */
 const LOOK = `() => {
   const win = window, doc = document;
@@ -94,12 +96,24 @@ const LOOK = `() => {
         const cs = win.getComputedStyle(el);
         if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) continue;
         if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
-        const ink = cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none' || cs.boxShadow !== 'none' ||
+        const paints = cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none' || cs.boxShadow !== 'none' ||
           (parseFloat(cs.borderTopWidth) > 0 && cs.borderTopColor !== 'rgba(0, 0, 0, 0)') ||
-          [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) ||
           ['::before', '::after'].some(p => !['none', 'normal'].includes(win.getComputedStyle(el, p).content));
-        const box = el.getBoundingClientRect();
-        if (!ink || box.width < 1 || box.height < 1) continue;
+        // Text is measured where the text is, not by the box it sits in: a line of words in a box
+        // the size of the canvas (the confetti's "click" over its whole clickable scene) is a few
+        // vmin of ink, not a full-canvas drawing.
+        const words = [...el.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim());
+        let box = paints ? el.getBoundingClientRect() : null;
+        if (words.length) {
+          const range = doc.createRange();
+          for (const n of words) {
+            range.selectNodeContents(n);
+            const q = range.getBoundingClientRect();
+            if (q.width < 1 || q.height < 1) continue;
+            box = box ? { left: Math.min(box.left, q.left), top: Math.min(box.top, q.top), right: Math.max(box.right, q.right), bottom: Math.max(box.bottom, q.bottom) } : q;
+          }
+        }
+        if (!box || box.right - box.left < 1 || box.bottom - box.top < 1) continue;
         if (el.closest(CONTROL)) controls = true;
         l = Math.min(l, box.left); t = Math.min(t, box.top); r = Math.max(r, box.right); b = Math.max(b, box.bottom);
       }
