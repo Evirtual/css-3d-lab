@@ -447,12 +447,13 @@
   {
     "model": "chartpanel",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:12:19+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Revenue line chart on a panel, about 80 x 42vmin, centred; paused on a designed tilted rest, flattening on hover with the value labels readable.",
-    "motionFlagsResolved": []
+    "reviewedAt": "2026-09-21T17:18:38Z",
+    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
+    "notes": "Revenue line chart on a tilted glass panel, about 82 x 46vmin, centred (within 4vmin up). Paused on the finished tilted rest; hover lays the panel flat and the point values (18 to 55) read. The panel is dark on both stages, so its own text reads on light too; the small \"Revenue $k\" title is the weakest but legible. The how steps (tilt on the container) match.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 3a5bf07."
   },
   {
     "model": "cube",
@@ -1602,147 +1603,143 @@
   {
     "model": "heatmap",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "3D commit heatmap over a caption, 76 x 53vmin and centred; the caption updates per cell without moving the model.",
-    "motionFlagsResolved": [
-      {
-        "flag": "across: flicker at 5,6,11",
-        "reason": "The flagged frames are the pointer sweep moving the highlight from one cell to the next and the caption updating to that cell; that jump between cells is the intended per-cell hover, not a glitch."
-      }
-    ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): fixed: roofs light in 0.12s and fade in 0.35s (commit 8880b4b); the across-pass flicker is gone and the check passes."
+    "reviewer": "re-review agent 2",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T17:18:38Z",
+    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
+    "notes": "Commit heatmap of blocks on a dark plate over a \"174 commits in 4 weeks\" caption; hovering a block lights its roof and the caption gives its count (\"Thu, week 4: 15 commits\"), and the light-up is quick and clean now. Two problems at rest, both stages: (1) the plate's near corner, with the \"Fri\" label, comes down onto the caption line, so on the light stage the dark plate corner cuts into \"174 commits in 4 weeks\" between \"in\" and \"4\" at card, editor and full-screen size, and on dark \"Fri\" touches the caption; the drawing overflows its box into the control zone. (2) The weekday labels (Mon to Fri) are pale lavender set along the plate's edge, half on the dark plate and half on the stage, so on the light stage they all but vanish. Raise or shrink the plate so it clears the zone by the contract's 4vmin gap, and give the day labels the stage's ink or put them fully on the plate.",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 3a5bf07."
   },
   {
     "model": "stackbars",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Stacked bars over a caption and Pro/Team/Starter pills, 75 x 62vmin at rest and up to 70vmin with the hover callout, centred; the callout stays clear of the corners.",
+    "reviewer": "re-review agent 2",
+    "verdict": "problem",
+    "reviewedAt": "2026-09-21T17:18:38Z",
+    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
+    "notes": "Stacked bars over the caption and Pro/Team/Starter legend toggles, about 76 x 67vmin, centred; toggling a product off shrinks its segments and slides the rest down (Team + Starter $246k, Starter $87k, \"No product shown · switch one on\"), and the toggles read on both stages. The problem is the hover callout: pointing at a lower (Pro) segment puts the \"Q4 · Pro · $63k\" / \"Q1 · Pro · $42k\" callout where the bars cut through it in 3D, so a pink and teal sliver of the neighbouring bar is drawn across \"Pro\" and the value, on both stages (filmed at 640 x 420, pointer on Q4 and Q1 Pro). The Team callout higher up is clean. The callout needs to float in front of every bar (as neonbars' tooltip does with its translateZ) or be drawn flat on top.",
     "motionFlagsResolved": [
       {
         "flag": "hover button#1 \"Pro\": changes nothing on screen",
-        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
       },
       {
         "flag": "leave button#1 \"Pro\": changes nothing on screen",
-        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
       },
       {
         "flag": "hover button#2 \"Team\": changes nothing on screen",
-        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
       },
       {
         "flag": "leave button#2 \"Team\": changes nothing on screen",
-        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
       },
       {
         "flag": "leave button#3 \"Starter\": changes nothing on screen",
-        "reason": "The legend toggles are all on at rest: an on toggle's tint (.legend button[aria-pressed=true], a later rule of equal weight) replaces the hover tint, so none reacts to hover while on; an off one does. An on toggle is its selected state, normal UI. (ruled at 1d88b26)"
+        "reason": "All three legend toggles are on at rest, and an on toggle's tint replaces the hover tint, so none reacts to hover while on (probed: 0 pixels change on each); switched off, Pro does lighten on hover. An on toggle is its selected state, normal UI (confirmed by eye at 3a5bf07)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 5 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at 3a5bf0712e62c704122ebf94a418cfdae87af850 (re-review agent 2): 5 of 5 current flag(s) confirmed false alarms."
   },
   {
     "model": "funnel",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "When a stage is hovered the 'Sign-ups · 3,720 · 30% of visitors' callout lands on top of the funnel's own stage labels ('Visitors 12,400', 'Sign-ups 3,720'), so both texts collide and neither reads cleanly on a card or on the large canvas.",
+    "reviewer": "re-review agent 2",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T17:18:38Z",
+    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
+    "notes": "Funnel of glass slabs with stage names and counts beside them, over a \"12,400 visitors → 410 paid · 3.3% overall\" caption and Web/App pills, about 82 x 62vmin and centred. The old collision is gone: pointing at a stage hides the stage names and one tooltip (\"Trials · 1,480 · 40% of sign-ups\") glides to the slab, reading cleanly on both stages; it sits over the slab it describes, which is how it points at it. App narrows the slabs to the new numbers (8,200 → 780 paid · 9.5%). The stage names are small on a card (about 3vmin) but read; pills measure as the shared block.",
     "motionFlagsResolved": [
       {
         "flag": "leave button#1 \"Web\": changes nothing on screen",
-        "reason": "Web is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. Only the leave was flagged; the hover did the same. (ruled at 1d88b26)"
+        "reason": "Web is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pill beside it changes about 60% of its own, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at 3a5bf07)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at 3a5bf0712e62c704122ebf94a418cfdae87af850 (re-review agent 2): 1 of 1 current flag(s) confirmed false alarms."
   },
   {
     "model": "candles",
     "kind": "visual",
-    "reviewer": "re-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T22:30:00+07:00",
-    "commit": "2029b84ef7dede0b84488c1a3a02a8317b440e55",
-    "notes": "Centred now and the caption and 7D/12D pills read on both stages, but the chart itself is still small in its box: on a card the candles fill only about 45 x 15vmin, a thin strip under a mostly empty price plane, and the axis labels ($62k, Sep 08) and the hover tooltip are about 2.5vmin (7px on a 360 x 300 card), well under the 4vmin control text, so they read only up close. The fix grew the labels from about 5px and centred the chart; the chart body needs to be larger (taller candles, less empty range above them) for the text and the candles to read at card size.",
+    "reviewer": "re-review agent 2",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T17:18:38Z",
+    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
+    "notes": "The earlier problem is fixed. The chart now fills its box: candles about 58 x 28vmin on a card over the floor strip, the whole stack about 84 x 73vmin and centred within 2vmin. The price and date labels ($61.5k, Sep 08) are 4vmin and the tooltip 3.6vmin, measured, so they read on a card, on both stages. The tooltip glides to the pointed-at candle with its O/H/L/C; it covers several neighbouring candles while shown, as a tooltip that size must. 7D zooms the scale in (\"7 days · +1.7%\"). Pills measure as the shared block.",
     "motionFlagsResolved": [
       {
         "flag": "leave button#2 \"12D\": changes nothing on screen",
-        "reason": "12D is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. Only the leave was flagged; the hover did the same. (ruled at 1d88b26)"
+        "reason": "12D is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pill beside it changes about 60% of its own, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at 3a5bf07)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at 3a5bf0712e62c704122ebf94a418cfdae87af850 (re-review agent 2): 1 of 1 current flag(s) confirmed false alarms."
   },
   {
     "model": "waterfall",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "Waterfall chart with an 'End · $131k' callout over a caption and Aug/Sep pills, 63 x 59vmin and centred; step labels small but legible.",
+    "reviewedAt": "2026-09-21T17:18:38Z",
+    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
+    "notes": "Waterfall of neon glass boxes over a \"$120k → $131k · +9%\" caption and Aug/Sep pills, about 66 x 64vmin, centred. Paused on the finished August steps; Sep glides every box to the new month and rescales (to 240, \"$131k → $105k · −20%\"). The one tooltip (\"Ads · −$22k → $101k\", \"Refunds · −$18k → $187k\") floats in front cleanly. Step names are small and on the light stage pale lavender, but legible; pills measure as the shared block.",
     "motionFlagsResolved": [
       {
         "flag": "leave button#1 \"Aug\": changes nothing on screen",
-        "reason": "Aug is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. Only the leave was flagged; the hover did the same. (ruled at 1d88b26)"
+        "reason": "Aug is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pill beside it changes about 60% of its own, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at 3a5bf07)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 1 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at 3a5bf0712e62c704122ebf94a418cfdae87af850 (re-review agent 2): 1 of 1 current flag(s) confirmed false alarms."
   },
   {
     "model": "treemap",
     "kind": "visual",
-    "reviewer": "visual-review agent",
+    "reviewer": "re-review agent 2",
     "verdict": "fine",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "3D treemap of coins over a caption and 24h/7d pills, about 72-84 x 63vmin and centred; the big tiles' labels read, the smallest are tiny but decorative.",
+    "reviewedAt": "2026-09-21T17:18:38Z",
+    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
+    "notes": "3D treemap of coin tiles on a plate over a caption and 24h/7d pills, about 84 x 63vmin and centred. Hovering or clicking a tile lifts it and the caption gives its numbers (\"XRP · $180B · +5.6%\"); 7d raises and sinks the blocks with the caption following (\"7d · 5 up, 4 down · biggest SOL +11.4%\"). The big tiles' labels read on both stages, the smallest are tiny but decorative. Pills measure as the shared block.",
     "motionFlagsResolved": [
       {
         "flag": "hover button#1 \"24h\": changes nothing on screen",
-        "reason": "24h is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "24h is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pill beside it changes about 60% of its own, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at 3a5bf07)"
       },
       {
         "flag": "leave button#1 \"24h\": changes nothing on screen",
-        "reason": "24h is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "24h is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pill beside it changes about 60% of its own, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at 3a5bf07)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at 3a5bf0712e62c704122ebf94a418cfdae87af850 (re-review agent 2): 2 of 2 current flag(s) confirmed false alarms."
   },
   {
     "model": "radar",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "On a light stage the 'Ours' and 'Theirs' legend pills turn pale teal and pale pink while their labels stay white, so the labels are unreadable; on dark it is fine (66 x 59-65vmin, centred, flattening on hover).",
-    "motionFlagsResolved": []
+    "reviewer": "re-review agent 2",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T17:18:38Z",
+    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
+    "notes": "Radar on a plate lying back, over a caption and Ours/Theirs toggles, about 68 x 64vmin, centred. The earlier light-stage problem is fixed: the Ours/Theirs words are now the stage's ink on their tinted pills and read on both stages, and the axis names on the plate are haloed so \"Speed\", which hangs over the plate's edge, reads on light too. Hover lays the plate flat with a tooltip per axis (\"Tests 7/10 5/10\"); the toggles drop a series (\"Theirs · best Docs 8 · worst Support 4\") or both (\"Nothing shown · press a name\").",
+    "motionFlagsResolved": [],
+    "motion": "check-motion reports \"pass\" for it; nothing to rule. Motion looked at by eye at 3a5bf07."
   },
   {
     "model": "activity",
     "kind": "visual",
-    "reviewer": "visual-review agent",
-    "verdict": "problem",
-    "reviewedAt": "2026-09-21T20:25:41+07:00",
-    "commit": "f45d45c27b1e6fb66cd278b53dda663f7a83c502",
-    "notes": "On a light stage the 'MON' label in the middle of the rings is white on the pale stage and all but disappears; the rings, caption and day pills are fine, and on dark it reads well (63-76 x 59vmin, centred).",
+    "reviewer": "re-review agent 2",
+    "verdict": "fine",
+    "reviewedAt": "2026-09-21T17:18:38Z",
+    "commit": "3a5bf0712e62c704122ebf94a418cfdae87af850",
+    "notes": "Three neon rings over a \"Move 70% · Exercise 73% · Stand 75%\" caption and Mon to Thu pills, about 76 x 63vmin, centred. The earlier light-stage problem is fixed: the day in the middle (\"MON\") is now the stage's dark ink on light and reads. Day pills sweep the arcs to the new day (Wed runs Stand to 100%), hovering a ring puts its figures in the caption. Pills measure as the shared block.",
     "motionFlagsResolved": [
       {
         "flag": "hover button#1 \"Mon\": changes nothing on screen",
-        "reason": "Mon is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "Mon is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pill beside it changes about 60% of its own, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at 3a5bf07)"
       },
       {
         "flag": "leave button#1 \"Mon\": changes nothing on screen",
-        "reason": "Mon is selected: the selected pill wears the brand gradient (background-image), which paints over the control block's hover tint (a background-color); filmed and styles probed: the tint is set under the gradient. A selected control that does not react to hover is normal UI. (ruled at 1d88b26)"
+        "reason": "Mon is the selected pill: it wears the brand gradient (background-image), which paints over the control block's hover tint. Probed again: hovering it changes 0 of its pixels while the unselected pill beside it changes about 60% of its own, so the block's hover works and only the selected state is still. Normal UI (confirmed by eye at 3a5bf07)"
       }
     ],
-    "motion": "Motion flags ruled by eye at 1d88b263de8ceadcb7e7500cdb992838fcaebf90 (motion-flags agent, 2026-09-21): all 2 flag(s) ruled, none a real glitch; see motionFlagsResolved."
+    "motion": "Motion flags looked at again by eye at 3a5bf0712e62c704122ebf94a418cfdae87af850 (re-review agent 2): 2 of 2 current flag(s) confirmed false alarms."
   }
 ]
