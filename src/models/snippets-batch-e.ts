@@ -15,12 +15,15 @@ const CITY_C = [VIOLET, TEAL, PINK, VIOLET, AMBER, VIOLET, TEAL, PINK];
 
 // solar: the delays set where each planet starts, and so the paused picture. These put the
 // planets spread round the sun with the system's drawing centred on the canvas (the old ones
-// bunched them low), so a paused card shows a balanced moment of the same loop.
+// bunched them low), so a paused card shows a balanced moment of the same loop. It has to balance
+// at every size: on a small card only the planets and the bright ends of the trails read as solid,
+// on a large canvas (the share image, a full screen) the thin trails do too, so the violet and
+// amber planets sit where both pictures come out centred.
 const SOLAR = [
   { r: 34, t: 5, s: 9, c: TEAL, d: -1 },
   { r: 54, t: 9, s: 13, c: PINK, d: 0 },
-  { r: 76, t: 14, s: 11, c: VIOLET, d: -8 },
-  { r: 98, t: 22, s: 16, c: AMBER, d: -2 },
+  { r: 76, t: 14, s: 11, c: VIOLET, d: -10 },
+  { r: 98, t: 22, s: 16, c: AMBER, d: -3.2 },
 ];
 
 // island: terrain heights, row by row from the far corner (0.5 = the pond)
