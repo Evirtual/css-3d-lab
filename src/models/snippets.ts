@@ -19,6 +19,9 @@ import { CUBE_FACES, type Snippet } from './snippet-utils';
 
 export { standaloneDoc, type Snippet } from './snippet-utils';
 
+/** clock: one split-flap card: two still halves behind, a two-sided flap in front. */
+const FLAP_CARD = '<span class="card"><b class="half top"><i></i></b><b class="half bottom"><i></i></b><b class="flap"><b class="half top front"><i></i></b><b class="half bottom back"><i></i></b></b></span>';
+
 const CUBE_FACE_LOOK = `.cube > * {
   position: absolute;
   inset: 0;
@@ -1552,16 +1555,18 @@ for (let i = 0; i < COUNT; i++) {
   clock: {
     how: [
       'CSS has no idea what time it is — JS reads the clock and writes the digits.',
-      'The flip itself is a CSS keyframe: <code>rotateX(-90deg)</code> → <code>0</code>.',
-      'To replay a CSS animation on the same element: remove the class, force a reflow (<code>void el.offsetWidth</code>), add the class back.',
+      'Each card is a real split flap: four halves. Behind, the <b>top half of the new value</b> and the <b>bottom half of the old one</b> stand still. In front, a flap hinged on the middle line (<code>transform-origin: bottom</code>) carries the old top half on its face and the new bottom half on its back (<code>rotateX(180deg)</code>, both sides <code>backface-visibility: hidden</code>).',
+      'A half is a box with <code>overflow: hidden</code> and half the height of the card; the digits inside it are the full height of the card, pinned to its top or to its bottom, so each half shows exactly its half of them.',
+      'The flip is one CSS keyframe, <code>rotateX(0)</code> → <code>rotateX(-180deg)</code>: the old top falls towards you and lands as the new bottom. Midway it is edge-on, and the still halves behind it are what you see, as on a real board.',
+      'When it lands (<code>animationend</code>), JS writes the new value on the parts that still showed the old one and takes the class off, so the flap is back up, showing the same digits it covers. To replay the animation: remove the class, force a reflow (<code>void el.offsetWidth</code>), add it back.',
       'Only the pairs whose value actually changed are flipped.',
       'Hours and minutes share one line and the seconds sit under them. Three pairs in a row are four times wider than they are tall, so at the width the canvas allows the clock would come out too short to read; two lines give it the height.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the digits and their cards are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="clock">
-    <div class="row"><span></span><em>:</em><span></span></div>
-    <div class="row"><span></span></div>
+    <div class="row">${FLAP_CARD}<em>:</em>${FLAP_CARD}</div>
+    <div class="row">${FLAP_CARD}</div>
   </div>
 </div>`,
     css: `.scene {
@@ -1592,38 +1597,117 @@ for (let i = 0; i < COUNT; i++) {
   transform-style: preserve-3d;
 }
 
-.clock span {
-  min-width: 2.2ch;
-  padding: calc(10 * var(--u)) calc(14 * var(--u));
-  border-radius: calc(12 * var(--u));
-  text-align: center;
-  color: #fff;
-  background: linear-gradient(#2a2f52 49%, #0c0e1d 49% 52%, #1d2140 52%);
-  box-shadow: 0 calc(14 * var(--u)) calc(22 * var(--u)) calc(-12 * var(--u)) #000;
-}
-
 .clock em { color: #ffb547; font-style: normal; }
 
-.clock .is-flipping {
-  animation: flip 0.55s cubic-bezier(0.3, 1.5, 0.5, 1);
+/* a card: two still halves behind, one flap in front */
+.card {
+  position: relative;
+  width: calc(96 * var(--u));
+  height: calc(86 * var(--u));
+  border-radius: calc(12 * var(--u));
+  box-shadow: 0 calc(14 * var(--u)) calc(22 * var(--u)) calc(-12 * var(--u)) #000;
+  color: #fff;
+  transform-style: preserve-3d;
 }
 
-@keyframes flip {
-  from { transform: rotateX(-90deg); }
+.half {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+}
+
+.half.top {
+  top: 0;
+  border-radius: calc(12 * var(--u)) calc(12 * var(--u)) 0 0;
+  background: #2a2f52;
+  box-shadow: inset 0 calc(-1.5 * var(--u)) #0c0e1d; /* the split line */
+}
+
+.half.bottom {
+  bottom: 0;
+  border-radius: 0 0 calc(12 * var(--u)) calc(12 * var(--u));
+  background: #1d2140;
+}
+
+/* the digits are the card's full height, pinned to the top or the bottom of their half */
+.half i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(86 * var(--u));
+  font-style: normal;
+  line-height: calc(86 * var(--u));
+  text-align: center;
+}
+
+.half.top i { top: 0; }
+.half.bottom i { bottom: 0; }
+
+/* the flap: the top half's box, hinged on the middle line, a hair in front of the still halves
+   so it never shares their plane */
+.flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  transform-origin: bottom;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(0.5 * var(--u))) rotateX(0deg);
+}
+
+.flap .half {
+  inset: 0;
+  height: auto;
+  backface-visibility: hidden;
+}
+
+/* its back: turned over, so it lands as the bottom half the right way up */
+.flap .back {
+  transform: rotateX(180deg);
+}
+
+.card.is-flipping .flap {
+  animation: flap 0.5s ease-in forwards;
+}
+
+@keyframes flap {
+  from { transform: translateZ(calc(0.5 * var(--u))) rotateX(0deg); }
+  to   { transform: translateZ(calc(0.5 * var(--u))) rotateX(-180deg); }
 }`,
-    js: `const parts = [...document.querySelectorAll('.clock span')];
+    js: `const cards = [...document.querySelectorAll('.clock .card')].map((card) => ({
+  card,
+  top: card.querySelector(':scope > .top i'),     // new value, top half (still)
+  bottom: card.querySelector(':scope > .bottom i'), // old value, bottom half (still)
+  front: card.querySelector('.flap .front i'),     // old value, top half (falls)
+  back: card.querySelector('.flap .back i'),       // new value, bottom half (lands)
+  value: '',
+}));
+
+// the flap has landed: every part shows the new value, and the flap goes back up over it
+function settle(c) {
+  c.bottom.textContent = c.front.textContent = c.value;
+  c.card.classList.remove('is-flipping');
+}
+cards.forEach((c) => c.card.addEventListener('animationend', () => settle(c)));
 
 function tick() {
   const d = new Date();
   [d.getHours(), d.getMinutes(), d.getSeconds()].forEach((n, i) => {
     const text = String(n).padStart(2, '0');
-    const el = parts[i];
-    if (el.textContent === text) return;
+    const c = cards[i];
+    if (c.value === text) return;
 
-    el.textContent = text;
-    el.classList.remove('is-flipping');
-    void el.offsetWidth;              // force reflow so the animation restarts
-    el.classList.add('is-flipping');
+    const first = !c.value;
+    if (!first) settle(c); // a flip that never landed (paused) finishes first
+    c.value = text;
+    c.top.textContent = c.back.textContent = text;
+    if (first) return settle(c);
+
+    void c.card.offsetWidth;          // force reflow so the animation restarts
+    c.card.classList.add('is-flipping');
   });
 }
 
