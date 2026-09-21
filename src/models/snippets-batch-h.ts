@@ -727,7 +727,7 @@ label:hover .lift {
   justify-items: center;
   gap: calc(18 * var(--u));
   padding: calc(18 * var(--u)) calc(10 * var(--u));
-  color: #eceefb;
+  /* no colour of its own: the label is written on the stage, so it takes the stage's ink */
   font-size: calc(15 * var(--u));
   font-weight: 800;
   cursor: pointer;
@@ -902,7 +902,6 @@ ${CUBE_FACES}
 
 .text small {
   display: grid;
-  color: #949bc0;
   font-size: calc(11 * var(--u));
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -914,8 +913,14 @@ ${CUBE_FACES}
   transition: opacity 0.3s;
 }
 
+/* Off: the stage's ink, softened; On: violet leaning towards that ink, so both read on a dark
+   and on a light stage */
+.text small span:first-child {
+  color: color-mix(in srgb, currentColor 65%, transparent);
+}
+
 .text small span + span {
-  color: #8b6cff;
+  color: color-mix(in srgb, #8b6cff 60%, currentColor);
   opacity: 0;
 }
 
