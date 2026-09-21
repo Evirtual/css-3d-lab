@@ -278,11 +278,12 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
 
   rocket: {
     how: [
-      'The body is a <b>cylinder of 10 strips</b>: each one <code>rotateY(n × 36deg) translateZ(13px)</code>. The nose uses the same angles with triangles that stand on the body’s top edge and lean in by <code>atan(13 / 30)</code>, so their tips meet on the axis.',
-      'One 10s timeline drives everything, with matching percentages in each <code>@keyframes</code>: ignition at 6%, lift-off at 13%, gone by 40%, back from the top at 56%, touchdown at 88%. Start and end are the same frame, so the loop has no seam.',
-      'To leave the stage whatever its height, the flight layer is as big as the stage (<code>inset: 0</code>) and moves by <code>translateY(-125%)</code>: a percentage of its own height, i.e. more than one stage. Per-keyframe easing speeds the climb up and slows the landing down.',
+      'The body is a <b>cylinder of 10 strips</b>: each one <code>rotateY(n × 36deg)</code>, then a <code>translateZ</code> of 13 units. The nose uses the same angles with triangles that stand on the body’s top edge and lean in by <code>atan(13 / 30)</code>, so their tips meet on the axis.',
+      'One 10s timeline drives everything, with matching percentages in each <code>@keyframes</code>: ignition at 6%, lift-off at 13%, out of sight by 40%, on the way back at 56%, touchdown at 88%. Start and end are the same frame, so the loop has no seam.',
+      'The rocket never leaves the frame. It lifts straight off the pad, then flies <b>away from the camera</b>: the flight layer moves 6000 units back with <code>translateZ</code>, and at that depth an 800-unit perspective draws it an eighth of its size. <code>perspective-origin</code> sits at the top of the frame, so a rocket shrinking into the distance also closes in on the sky above the pad: it reads as a climb, and it is a speck near the top when <code>visibility</code> hides it, before it comes back down. (Not <code>opacity</code>: below 1 it would flatten the 3D rocket into one plane.) Per-keyframe easing speeds the climb up and slows the landing down.',
       'The flame is two crossed planes of radial gradients. The container scales them on and off (short while the rocket is still on the pad, so the flame never pokes out under it); two pseudo-elements flicker with fast <code>alternate</code> loops. Only <code>transform</code> and <code>opacity</code> move.',
       'The camera sways ±28° on the ground and on the rocket with the same animation, so they stay in step, and the fins show their depth.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the frame is 260 × 215 units and the rocket 114 tall, so the launch is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="launch">
   <div class="base">
@@ -290,7 +291,7 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
     <div class="glow"></div>
     <div class="tower"><i></i><i></i></div>
     <div class="arm"></div>
-${lines(6, (i) => `<em style="--x:${[-1, -0.55, -0.2, 0.25, 0.6, 1][i]};--z:${[8, -10, 14, -6, 12, -12][i]}px;--s:${[1, 0.8, 1.1, 0.9, 1.2, 0.85][i]}"></em>`, '    ')}
+${lines(6, (i) => `<em style="--x:${[-1, -0.55, -0.2, 0.25, 0.6, 1][i]};--z:${[8, -10, 14, -6, 12, -12][i]};--s:${[1, 0.8, 1.1, 0.9, 1.2, 0.85][i]}"></em>`, '    ')}
   </div>
   <div class="flight">
     <div class="craft">
@@ -306,10 +307,16 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
   </div>
 </div>`,
     css: `.launch {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the launch is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.3vmin;
+  position: relative;
+  width: calc(260 * var(--u));
+  height: calc(215 * var(--u));
+  perspective: calc(800 * var(--u));
+  /* the eye looks at the top of the frame, so whatever flies away into the distance closes in
+     on the sky above the pad: the rocket climbs as it shrinks, and never leaves the frame */
+  perspective-origin: 50% 0;
   transform-style: preserve-3d;
 }
 
@@ -318,7 +325,7 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 .craft {
   position: absolute;
   left: 50%;
-  top: 76%;
+  top: calc(179 * var(--u));
   transform-style: preserve-3d;
   animation: sway 16s ease-in-out infinite alternate;
 }
@@ -326,54 +333,54 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 .base::before {
   content: '';
   position: absolute;
-  left: -130px;
-  top: -130px;
-  width: 260px;
-  height: 260px;
+  left: calc(-130 * var(--u));
+  top: calc(-130 * var(--u));
+  width: calc(260 * var(--u));
+  height: calc(260 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(139 108 255 / 0.24), transparent);
-  transform: translateY(1px) rotateX(90deg);
+  transform: translateY(calc(1 * var(--u))) rotateX(90deg);
 }
 
 .pad,
 .glow {
   position: absolute;
-  left: -46px;
-  top: -46px;
-  width: 92px;
-  height: 92px;
+  left: calc(-46 * var(--u));
+  top: calc(-46 * var(--u));
+  width: calc(92 * var(--u));
+  height: calc(92 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, #555a7c 0 50%, ${AMBER} 51% 55%, #33374f 56% 92%, #5c6186 93% 97%, transparent 98%);
   transform: rotateX(90deg);
 }
 
 .glow {
-  left: -70px;
-  top: -70px;
-  width: 140px;
-  height: 140px;
+  left: calc(-70 * var(--u));
+  top: calc(-70 * var(--u));
+  width: calc(140 * var(--u));
+  height: calc(140 * var(--u));
   background: radial-gradient(closest-side, #ffe2b0, rgb(255 77 157 / 0.45) 45%, transparent);
   opacity: 0;
-  transform: translateY(-1px) rotateX(90deg);
+  transform: translateY(calc(-1 * var(--u))) rotateX(90deg);
   animation: glow 10s linear infinite;
 }
 
 .tower {
   position: absolute;
   transform-style: preserve-3d;
-  transform: translate3d(-40px, 0, -8px);
+  transform: translate3d(calc(-40 * var(--u)), 0, calc(-8 * var(--u)));
 }
 
 .tower i {
   position: absolute;
-  left: -6px;
-  top: -104px;
-  width: 12px;
-  height: 104px;
+  left: calc(-6 * var(--u));
+  top: calc(-104 * var(--u));
+  width: calc(12 * var(--u));
+  height: calc(104 * var(--u));
   background:
-    linear-gradient(90deg, #aab0d0 0 2px, transparent 2px calc(100% - 2px), #aab0d0 0),
-    repeating-linear-gradient(40deg, #aab0d0 0 1.2px, transparent 1.2px 10px),
-    repeating-linear-gradient(-40deg, #aab0d0 0 1.2px, transparent 1.2px 10px);
+    linear-gradient(90deg, #aab0d0 0 calc(2 * var(--u)), transparent calc(2 * var(--u)) calc(100% - calc(2 * var(--u))), #aab0d0 0),
+    repeating-linear-gradient(40deg, #aab0d0 0 calc(1.2 * var(--u)), transparent calc(1.2 * var(--u)) calc(10 * var(--u))),
+    repeating-linear-gradient(-40deg, #aab0d0 0 calc(1.2 * var(--u)), transparent calc(1.2 * var(--u)) calc(10 * var(--u)));
   opacity: 0.85;
 }
 
@@ -383,29 +390,30 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 
 .arm {
   position: absolute;
-  left: -34px;
-  top: -74px;
-  width: 21px;
-  height: 4px;
+  left: calc(-34 * var(--u));
+  top: calc(-74 * var(--u));
+  width: calc(21 * var(--u));
+  height: calc(4 * var(--u));
   background: #aab0d0;
   transform-origin: 0 50%;
   animation: arm 10s ease-in-out infinite;
 }
 
-/* smoke: flat discs pushed out sideways (--x) at lift-off and at touchdown */
+/* smoke: flat discs pushed out sideways (--x) at lift-off and at touchdown; --x and --z are
+   plain numbers, and --z counts units */
 .base em {
   position: absolute;
-  left: -15px;
-  top: -26px;
-  width: 30px;
-  height: 30px;
+  left: calc(-15 * var(--u));
+  top: calc(-26 * var(--u));
+  width: calc(30 * var(--u));
+  height: calc(30 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 40% 35%, #d8dbeb, rgb(148 155 192 / 0.75) 55%, transparent 71%);
   opacity: 0;
   animation: smoke 10s linear infinite;
 }
 
-/* as big as the stage, so -125% is always more than one stage height */
+/* the flight layer is the whole frame; it rises a little and then flies away from the camera */
 .flight {
   position: absolute;
   inset: 0;
@@ -416,58 +424,58 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 .ship {
   position: absolute;
   transform-style: preserve-3d;
-  transform: translateY(-9px); /* the fins are the legs */
+  transform: translateY(calc(-9 * var(--u))); /* the fins are the legs */
 }
 
 /* body: 10 strips round the axis; --d is each side's baked-in shade */
 .ship i {
   position: absolute;
-  left: -4.5px;
-  top: -72px;
-  width: 9px; /* a hair more than 2 · 13 · tan(18°) = 8.45px: no cracks */
-  height: 72px;
+  left: calc(-4.5 * var(--u));
+  top: calc(-72 * var(--u));
+  width: calc(9 * var(--u)); /* a hair more than 2 · 13 · tan(18°) = 8.45 units: no cracks */
+  height: calc(72 * var(--u));
   background:
     linear-gradient(rgb(12 14 34 / var(--d)), rgb(12 14 34 / var(--d))),
     linear-gradient(#eef0fa 0 12%, ${VIOLET} 12% 20%, #eef0fa 20% 84%, #3b3f5e 84%);
   backface-visibility: hidden;
-  transform: rotateY(var(--a)) translateZ(13px);
+  transform: rotateY(var(--a)) translateZ(calc(13 * var(--u)));
 }
 
 /* nose: triangles on the same sides, leaning in by atan(13 / 30) */
 .ship b {
   position: absolute;
-  left: -4.23px;
-  top: -${r2(72 + NOSE_SIDE)}px;
-  width: 8.45px;
-  height: ${NOSE_SIDE}px; /* √(13² + 30²) */
+  left: calc(-4.23 * var(--u));
+  top: calc(-${r2(72 + NOSE_SIDE)} * var(--u));
+  width: calc(8.45 * var(--u));
+  height: calc(${NOSE_SIDE} * var(--u)); /* √(13² + 30²) */
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
   background:
     linear-gradient(rgb(12 14 34 / var(--d)), rgb(12 14 34 / var(--d))),
     linear-gradient(#ffb8d8, ${PINK});
   backface-visibility: hidden;
   transform-origin: 50% 100%;
-  transform: rotateY(var(--a)) translateZ(13px) rotateX(${NOSE_LEAN}deg);
+  transform: rotateY(var(--a)) translateZ(calc(13 * var(--u))) rotateX(${NOSE_LEAN}deg);
 }
 
 /* fins: planes standing out from the axis, turned round it */
 .ship s {
   position: absolute;
-  left: 11px;
-  top: -30px;
-  width: 20px;
-  height: 39px;
+  left: calc(11 * var(--u));
+  top: calc(-30 * var(--u));
+  width: calc(20 * var(--u));
+  height: calc(39 * var(--u));
   clip-path: polygon(0 0, 100% 60%, 100% 100%, 0 78%);
   background: linear-gradient(90deg, #b3366e, ${PINK} 70%);
-  transform-origin: -11px 0; /* = the axis */
+  transform-origin: calc(-11 * var(--u)) 0; /* = the axis */
   transform: rotateY(var(--a));
 }
 
 .ship u {
   position: absolute;
-  left: -7px;
+  left: calc(-7 * var(--u));
   top: 0;
-  width: 14px;
-  height: 8px;
+  width: calc(14 * var(--u));
+  height: calc(8 * var(--u));
   clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
   background: linear-gradient(#6a6f90, #2a2d42);
 }
@@ -478,19 +486,19 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 
 .window {
   position: absolute;
-  left: -5px;
-  top: -54px;
-  width: 10px;
-  height: 10px;
+  left: calc(-5 * var(--u));
+  top: calc(-54 * var(--u));
+  width: calc(10 * var(--u));
+  height: calc(10 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff 0 12%, ${TEAL} 42%, #125e58);
-  box-shadow: 0 0 0 1.5px #b8bcd6;
-  transform: translateZ(13.6px);
+  box-shadow: 0 0 0 calc(1.5 * var(--u)) #b8bcd6;
+  transform: translateZ(calc(13.6 * var(--u)));
 }
 
 .flame {
   position: absolute;
-  top: 7px;
+  top: calc(7 * var(--u));
   transform-style: preserve-3d;
   transform-origin: 0 0;
   animation: burn 10s linear infinite;
@@ -498,10 +506,10 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 
 .flame i {
   position: absolute;
-  left: -10px;
+  left: calc(-10 * var(--u));
   top: 0;
-  width: 20px;
-  height: 56px;
+  width: calc(20 * var(--u));
+  height: calc(56 * var(--u));
 }
 
 .flame i + i {
@@ -520,7 +528,7 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 }
 
 .flame i::after {
-  inset: 0 5px 38%;
+  inset: 0 calc(5 * var(--u)) 38%;
   background: radial-gradient(ellipse 50% 100% at 50% 0, #fff 0 35%, #ffdaa3 60%, transparent 98%);
   animation-duration: 0.15s;
   animation-direction: alternate-reverse;
@@ -531,11 +539,17 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
   to   { transform: rotateX(-12deg) rotateY(28deg); }
 }
 
-/* rest · climb, speeding up · off stage · landing, slowing down · rest */
+/* rest · lift-off straight up · away into the sky, speeding up · out of sight ·
+   back down onto the pad, slowing down · rest. Far away is small: 6000 units back behind an
+   800-unit perspective the rocket is an eighth of its size, near the top of the frame, and it
+   is hidden there. visibility, not opacity: opacity below 1 would flatten the 3D rocket. */
 @keyframes fly {
-  0%, 13% { transform: translateY(0); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.55); }
-  40%, 56% { transform: translateY(-125%); animation-timing-function: cubic-bezier(0.15, 0.55, 0.4, 1); }
-  88%, 100% { transform: translateY(0); }
+  0%, 13% { transform: translate3d(0, 0, 0); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+  22%     { transform: translate3d(0, calc(-60 * var(--u)), calc(-120 * var(--u))); animation-timing-function: cubic-bezier(0.4, 0, 0.9, 0.7); }
+  39.9%   { visibility: visible; }
+  40%, 56% { visibility: hidden; transform: translate3d(0, calc(-120 * var(--u)), calc(-6000 * var(--u))); animation-timing-function: cubic-bezier(0.15, 0.55, 0.4, 1); }
+  56.1%   { visibility: visible; }
+  88%, 100% { transform: translate3d(0, 0, 0); }
 }
 
 /* the flame only grows as the rocket clears the pad */
@@ -560,17 +574,17 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 }
 
 @keyframes arm {
-  0%, 3%, 96%, 100% { transform: translateZ(-4px) rotateY(0deg); }
-  9%, 91% { transform: translateZ(-4px) rotateY(75deg); }
+  0%, 3%, 96%, 100% { transform: translateZ(calc(-4 * var(--u))) rotateY(0deg); }
+  9%, 91% { transform: translateZ(calc(-4 * var(--u))) rotateY(75deg); }
 }
 
 @keyframes smoke {
-  0%, 8% { opacity: 0; transform: translate3d(0, 0, var(--z)) scale(0.3); }
-  13% { opacity: 0.85; transform: translate3d(calc(var(--x) * 18px), -3px, var(--z)) scale(0.9); }
-  32% { opacity: 0; transform: translate3d(calc(var(--x) * 62px), -18px, var(--z)) scale(calc(var(--s) * 1.7)); }
-  33%, 83% { opacity: 0; transform: translate3d(0, 0, var(--z)) scale(0.3); }
-  88% { opacity: 0.75; transform: translate3d(calc(var(--x) * 16px), -3px, var(--z)) scale(0.85); }
-  100% { opacity: 0; transform: translate3d(calc(var(--x) * 54px), -14px, var(--z)) scale(calc(var(--s) * 1.5)); }
+  0%, 8% { opacity: 0; transform: translate3d(0, 0, calc(var(--z) * var(--u))) scale(0.3); }
+  13% { opacity: 0.85; transform: translate3d(calc(var(--x) * 18 * var(--u)), calc(-3 * var(--u)), calc(var(--z) * var(--u))) scale(0.9); }
+  32% { opacity: 0; transform: translate3d(calc(var(--x) * 62 * var(--u)), calc(-18 * var(--u)), calc(var(--z) * var(--u))) scale(calc(var(--s) * 1.7)); }
+  33%, 83% { opacity: 0; transform: translate3d(0, 0, calc(var(--z) * var(--u))) scale(0.3); }
+  88% { opacity: 0.75; transform: translate3d(calc(var(--x) * 16 * var(--u)), calc(-3 * var(--u)), calc(var(--z) * var(--u))) scale(0.85); }
+  100% { opacity: 0; transform: translate3d(calc(var(--x) * 54 * var(--u)), calc(-14 * var(--u)), calc(var(--z) * var(--u))) scale(calc(var(--s) * 1.5)); }
 }`,
   },
 

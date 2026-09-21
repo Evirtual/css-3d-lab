@@ -54,11 +54,10 @@ export const demosJ: Demo[] = [
     id: 'rocket',
     title: 'Rocket launch',
     description:
-      'A rocket built from strips and leaning triangles lifts off its pad, leaves the stage and comes back down from the top to land, so the loop has no seam. Flame and smoke are gradient layers that only scale and fade.',
+      'A rocket built from strips and leaning triangles lifts off its pad and climbs away into the distance until it is a speck, then comes back down to land, so the loop has no seam. Flame and smoke are gradient layers that only scale and fade.',
     category: 'css',
     tags: ['loop', 'scene', 'space', 'cylinder'],
-    technique: ['cylinder of 10 strips + cone of 10 triangles', 'translateY in % of a full-stage layer', 'flame: crossed planes, scale-only flicker', 'one timeline shared by flight, flame and smoke'],
-    fill: true,
+    technique: ['cylinder of 10 strips + cone of 10 triangles', 'translateZ away + perspective-origin at the top = a climb', 'flame: crossed planes, scale-only flicker', 'one timeline shared by flight, flame and smoke'],
     html: `<div class="d-rocket">
       <div class="d-rocket__base">
         <div class="d-rocket__pad"></div><div class="d-rocket__glow"></div>
