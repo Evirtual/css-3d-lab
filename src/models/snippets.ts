@@ -793,20 +793,23 @@ ${CUBE_FACES}`,
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the wave is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.3vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(4, 48px);
-  gap: 8px;
+  grid-template-columns: repeat(4, calc(48 * var(--u)));
+  gap: calc(8 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(38deg) rotateZ(-8deg);
 }
 
 .tiles i {
   position: relative;
-  height: 48px;
+  height: calc(48 * var(--u));
   transform-style: preserve-3d;
   animation: tile-flip 3.2s ease-in-out infinite;
   animation-delay: calc(var(--d) * 0.13s);   /* --d = row + column */
@@ -817,7 +820,7 @@ ${CUBE_FACES}`,
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 8px;
+  border-radius: calc(8 * var(--u));
   backface-visibility: hidden;
 }
 
@@ -826,7 +829,7 @@ ${CUBE_FACES}`,
 
 @keyframes tile-flip {
   0%, 15%   { transform: rotateY(0deg); }
-  45%, 65%  { transform: rotateY(180deg) translateZ(-14px); }
+  45%, 65%  { transform: rotateY(180deg) translateZ(calc(-14 * var(--u))); }
   95%, 100% { transform: rotateY(360deg); }
 }`,
   },
