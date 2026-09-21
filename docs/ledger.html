@@ -299,8 +299,10 @@ button, input { font: inherit; color: inherit; }
 .tchip b { font-variant-numeric: tabular-nums; opacity: 0.65; }
 .tchip:hover:not(:disabled) { color: var(--text); border-color: var(--border-strong); }
 .tchip[aria-pressed="true"] { color: var(--bg); background: var(--accent-2); border-color: var(--accent-2); }
-/* five long status names: below 1100px the tabs take a row of their own and may wrap, rather than push the bar wider than the page */
-@media (max-width: 1100px) {
+/* five long status names: when the models panel is narrower than the bar needs on one line (on a narrow screen,
+   or beside the lead's record), the tabs take a row of their own and may wrap, rather than push the bar out of its card */
+section[aria-labelledby="tbl-h"] { container-type: inline-size; container-name: models; }
+@container models (max-width: 1000px) {
   .fbar__controls { flex: 1 1 100%; }
   .tabs { flex: 1 1 auto; min-width: 0; }
   .tab { flex: 1 1 0; min-width: 0; white-space: normal; line-height: 1.2; }
