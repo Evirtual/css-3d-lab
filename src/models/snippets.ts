@@ -1465,10 +1465,11 @@ scene.addEventListener('pointermove', (e) => {
 
   sphere: {
     how: [
-      'Writing hundreds of dots by hand is not realistic — JS generates them once from the Fibonacci-sphere formula.',
+      'Writing 120 dots by hand is not realistic — JS generates them once from the Fibonacci-sphere formula.',
       'Each dot gets <code>rotateY(longitude) rotateX(latitude) translateZ(radius)</code>: aim, then push outward. Same idea as the carousel, in two axes.',
       'After that JS is done. The rotation is an ordinary CSS keyframe animation on the container.',
       'The container is 0×0 so every dot rotates around the exact centre.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas. JS writes <code>translateZ(var(--r))</code> rather than a pixel radius, so the radius (130 units) stays in CSS and the ball is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="ball"></div>

@@ -220,7 +220,7 @@ export const interactiveDemos: Demo[] = [
     title: 'Point sphere',
     description: 'JS places the dots on a Fibonacci sphere once; the spin itself is a plain CSS animation.',
     category: 'js',
-    tags: ['generated', 'controls', 'loop'],
+    tags: ['generated', 'loop'],
     technique: ['DOM generated from a formula', 'rotateY · rotateX · translateZ per dot', 'CSS keyframe spin'],
     fill: true,
     html: `<div class="d-sphere">
