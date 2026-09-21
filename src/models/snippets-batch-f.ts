@@ -140,17 +140,18 @@ ${lines(3, (i) => `<i style="--i:${i}"></i>`)}
       'Each bulb is 12 trapezoid strips hinged on the tiny neck and leaning out by <code>atan((R − r) / H)</code>, like a cone with its tip cut off. <code>--s: -1</code> flips a strip upward with <code>scaleY(-1)</code> and reverses its lean, so one rule builds both bulbs.',
       'The sand is one 8-sided cone, the <b>same shape</b> in both bulbs. On top it hangs tip-down on the neck and shrinks toward that tip (<code>scale3d</code> with <code>transform-origin</code> on the tip), so its surface sinks and it keeps touching the glass. Below, the same cone grows from its footprint on the plate.',
       'Volume goes with the cube of the size, so for a steady flow the scale follows a cube root: 1 → 0.79 at half time → 0. A few keyframes approximate the curve.',
-      'The seamless trick: after the flip by 180°, the full pile is on top and looks exactly like the starting sand, just hanging 7.56px higher. So the loop restarts at 0°, and the first thing the sand does is slide down onto the neck.',
+      'The seamless trick: after the flip by 180°, the full pile is on top and looks exactly like the starting sand, just hanging 7.56 units higher. So the loop restarts at 0°, and the first thing the sand does is slide down onto the neck.',
       'The falling stream is a dashed line that scrolls down; it turns back against the spin so it never goes edge-on. The posts are two crossed planes each, so they have width from every side.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the hourglass is the same share of a gallery card, the editor and a recording canvas. The numbers above are those units.',
     ],
     html: `<div class="scene">
   <div class="hourglass">
     <div class="flip">
 ${lines(24, (i) => `<i style="--i:${i % 12}; --s:${i < 12 ? 1 : -1}; --mix:${glassMix(i % 12)}"></i>`, '      ')}
-      <b style="--y:-76px"></b>
-      <b style="--y:-69px"></b>
-      <b style="--y:69px"></b>
-      <b style="--y:76px"></b>
+      <b style="--y:calc(-76 * var(--u))"></b>
+      <b style="--y:calc(-69 * var(--u))"></b>
+      <b style="--y:calc(69 * var(--u))"></b>
+      <b style="--y:calc(76 * var(--u))"></b>
 ${lines(3, (i) => `<span class="post" style="--i:${i}"></span>`, '      ')}
       <div class="sand top">
 ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
@@ -165,7 +166,10 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the hourglass is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.34vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .hourglass {
@@ -183,35 +187,35 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
   animation: flip 9s infinite;
 }
 
-/* glass: 12 strips per bulb. Bulb height 66px, apothem 44px at the plate, 3px at the neck:
-   strip width 2 × 44 × tan(15deg) = 23.58px, slant √(66² + 41²) = 77.70px, lean atan(41 / 66) = 31.85deg */
+/* glass: 12 strips per bulb. Bulb height 66 units, apothem 44 units at the plate, 3 units at the neck:
+   strip width 2 × 44 × tan(15deg) = 23.58 units, slant √(66² + 41²) = 77.7 units, lean atan(41 / 66) = 31.85deg */
 .flip > i {
   --c: color-mix(in srgb, ${VIOLET} var(--mix), ${TEAL});
   --edge: color-mix(in srgb, var(--c) 55%, transparent);
   position: absolute;
   top: 0;
-  left: -11.79px;
-  width: 23.58px;
-  height: 77.7px;
+  left: calc(-11.79 * var(--u));
+  width: calc(23.58 * var(--u));
+  height: calc(77.7 * var(--u));
   transform-origin: 50% 0; /* hinged on the neck */
-  transform: rotateY(calc(var(--i) * 30deg)) translateZ(3px) rotateX(calc(var(--s) * 31.85deg)) scaleY(var(--s));
-  clip-path: polygon(46.59% 0, 53.41% 0, 100% 100%, 0 100%); /* 1.61px wide at the neck */
+  transform: rotateY(calc(var(--i) * 30deg)) translateZ(calc(3 * var(--u))) rotateX(calc(var(--s) * 31.85deg)) scaleY(var(--s));
+  clip-path: polygon(46.59% 0, 53.41% 0, 100% 100%, 0 100%); /* 1.61 units wide at the neck */
   background:
-    linear-gradient(to top left, transparent calc(50% - 1px), var(--edge) calc(50% - 1px) 50%, transparent 50%) left / 46.59% 100% no-repeat,
-    linear-gradient(to top right, transparent calc(50% - 1px), var(--edge) calc(50% - 1px) 50%, transparent 50%) right / 46.59% 100% no-repeat,
+    linear-gradient(to top left, transparent calc(50% - 1 * var(--u)), var(--edge) calc(50% - 1 * var(--u)) 50%, transparent 50%) left / 46.59% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 1 * var(--u)), var(--edge) calc(50% - 1 * var(--u)) 50%, transparent 50%) right / 46.59% 100% no-repeat,
     linear-gradient(color-mix(in srgb, var(--c) 44%, transparent), color-mix(in srgb, var(--c) 14%, transparent) 50%, color-mix(in srgb, var(--c) 30%, transparent));
 }
 
 /* plates: two discs at each end give them thickness */
 .flip > b {
   position: absolute;
-  top: -55px;
-  left: -55px;
-  width: 110px;
-  height: 110px;
+  top: calc(-55 * var(--u));
+  left: calc(-55 * var(--u));
+  width: calc(110 * var(--u));
+  height: calc(110 * var(--u));
   /* the rim is an inner line plus a soft shade, not a border: in the flip the discs pass
-     edge-on, where a 1.5px line breaks up; the shade survives */
-  box-shadow: inset 0 0 0 1.5px #a289ff, inset 0 0 8px rgb(162 137 255 / 0.35);
+     edge-on, where a 1.5 units line breaks up; the shade survives */
+  box-shadow: inset 0 0 0 calc(1.5 * var(--u)) #a289ff, inset 0 0 calc(8 * var(--u)) rgb(162 137 255 / 0.35);
   border-radius: 50%;
   background: radial-gradient(circle, #41387f, #6753c1);
   transform: translateY(var(--y)) rotateX(90deg);
@@ -220,12 +224,12 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
 /* posts: two crossed planes each */
 .post {
   position: absolute;
-  top: -76px;
-  left: -2.5px;
-  width: 5px;
-  height: 152px;
+  top: calc(-76 * var(--u));
+  left: calc(-2.5 * var(--u));
+  width: calc(5 * var(--u));
+  height: calc(152 * var(--u));
   transform-style: preserve-3d;
-  transform: rotateY(calc(var(--i) * 120deg + 60deg)) translateZ(49px);
+  transform: rotateY(calc(var(--i) * 120deg + 60deg)) translateZ(calc(49 * var(--u)));
 }
 
 .post::before,
@@ -233,7 +237,7 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 3px;
+  border-radius: calc(3 * var(--u));
   background: linear-gradient(90deg, #6f56cc, #b9a7ff, #6f56cc);
 }
 
@@ -241,24 +245,24 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
   transform: rotateY(90deg);
 }
 
-/* sand: an 8-sided cone 55.44px tall, base apothem 30.73px, tip at the top of its box.
-   Strip width 2 × 30.73 × tan(22.5deg) = 25.46px, slant 63.39px, lean atan(30.73 / 55.44) = 29deg */
+/* sand: an 8-sided cone 55.44 units tall, base apothem 30.73 units, tip at the top of its box.
+   Strip width 2 × 30.73 × tan(22.5deg) = 25.46 units, slant 63.39 units, lean atan(30.73 / 55.44) = 29deg */
 .sand {
   position: absolute;
-  left: -30.73px;
-  width: 61.46px;
-  height: 55.44px;
+  left: calc(-30.73 * var(--u));
+  width: calc(61.46 * var(--u));
+  height: calc(55.44 * var(--u));
   transform-style: preserve-3d;
 }
 
 .sand i {
   position: absolute;
   bottom: 0;
-  left: calc(50% - 12.73px);
-  width: 25.46px;
-  height: 63.39px;
+  left: calc(50% - 12.73 * var(--u));
+  width: calc(25.46 * var(--u));
+  height: calc(63.39 * var(--u));
   transform-origin: 50% 100%;
-  transform: rotateY(calc(var(--i) * 45deg)) translateZ(30.73px) rotateX(29deg);
+  transform: rotateY(calc(var(--i) * 45deg)) translateZ(calc(30.73 * var(--u))) rotateX(29deg);
   clip-path: polygon(50% 0, 0 100%, 100% 100%);
   background: linear-gradient(to top, #ffa851, #ffcb7e);
 }
@@ -267,13 +271,13 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
   background: linear-gradient(to top, #d18a41, #ffb547);
 }
 
-/* the flat face, 1.5px inside the cone so it never touches the strips */
+/* the flat face, 1.5 units inside the cone so it never touches the strips */
 .sand b {
   position: absolute;
-  top: calc(100% - 32.23px);
+  top: calc(100% - 32.23 * var(--u));
   left: 0;
-  width: 61.46px;
-  height: 61.46px;
+  width: calc(61.46 * var(--u));
+  height: calc(61.46 * var(--u));
   clip-path: polygon(29.29% 0, 70.71% 0, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0 70.71%, 0 29.29%);
   background: radial-gradient(circle, #ffd391, #ffa851);
   transform: rotateX(90deg) scale(0.95);
@@ -286,9 +290,9 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
   animation: drain 9s infinite;
 }
 
-/* bottom bulb: a pile 3px above the plate, growing from its footprint */
+/* bottom bulb: a pile 3 units above the plate, growing from its footprint */
 .sand.bottom {
-  top: 7.56px;
+  top: calc(7.56 * var(--u));
   transform-origin: 50% 100%;
   animation: fill 9s infinite;
 }
@@ -296,9 +300,9 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
 .stream {
   position: absolute;
   top: 0;
-  left: -1.5px;
-  width: 3px;
-  height: 66px;
+  left: calc(-1.5 * var(--u));
+  width: calc(3 * var(--u));
+  height: calc(66 * var(--u));
   overflow: hidden;
   opacity: 0;
   animation: stream 9s linear infinite, face-you 20s linear infinite;
@@ -307,8 +311,8 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
 .stream::before {
   content: '';
   position: absolute;
-  inset: -14px 0 0;
-  background: repeating-linear-gradient(#ffcb7e 0 4px, transparent 4px 7px);
+  inset: calc(-14 * var(--u)) 0 0;
+  background: repeating-linear-gradient(#ffcb7e 0 calc(4 * var(--u)), transparent calc(4 * var(--u)) calc(7 * var(--u)));
   animation: fall 0.35s linear infinite;
 }
 
@@ -329,7 +333,7 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
 
 /* scale = cube root of what is left, so the flow looks steady */
 @keyframes drain {
-  0%    { transform: translateY(-7.56px) rotateZ(180deg) scale3d(1, 1, 1); animation-timing-function: ease-in; }
+  0%    { transform: translateY(calc(-7.56 * var(--u))) rotateZ(180deg) scale3d(1, 1, 1); animation-timing-function: ease-in; }
   8%    { transform: translateY(0) rotateZ(180deg) scale3d(1, 1, 1); animation-timing-function: linear; }
   15%   { transform: translateY(0) rotateZ(180deg) scale3d(0.965, 0.965, 0.965); animation-timing-function: linear; }
   25.5% { transform: translateY(0) rotateZ(180deg) scale3d(0.909, 0.909, 0.909); animation-timing-function: linear; }
@@ -355,7 +359,7 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
 }
 
 @keyframes fall {
-  to { transform: translateY(14px); }
+  to { transform: translateY(calc(14 * var(--u))); }
 }`,
   },
 
