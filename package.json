@@ -12,8 +12,8 @@
     "dev": "npm run generate && vite",
     "build": "npm run generate && tsc && vite build",
     "preview": "vite preview",
-    "check-placement": "node scripts/check-placement.mjs",
-    "export": "node server/dev.mjs"
+    "export": "node server/dev.mjs",
+    "check-models": "node scripts/check-models.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",
