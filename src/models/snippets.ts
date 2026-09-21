@@ -1559,6 +1559,9 @@ layout();`,
 
 .controls input {
   width: 11vmin;
+  /* the browser gives a range input 2px of margin: px, not vmin, so the row was 2vmin wider on a
+     small canvas than on a large one */
+  margin: 0;
   accent-color: #ffb547;
   cursor: pointer;
 }`,

@@ -918,6 +918,9 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
 
 .controls input {
   width: 28vmin;
+  /* the browser gives a range input 2px of margin: px, not vmin, so the row was wider on a small
+     canvas than on a large one */
+  margin: 0;
   accent-color: #2ee6d6;
   cursor: pointer;
 }
