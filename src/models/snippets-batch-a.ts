@@ -251,7 +251,7 @@ ${lines(8, (i) => `    <i class="pav" style="--i:${i}"></i>`)}
     how: [
       'A torus is a circle swept around an axis, so build it from its cross-sections: 24 identical circles (<code>border-radius: 50%</code>).',
       'Each ring gets <code>rotateY(i × 15deg)</code> and then <code>translateX</code>, <b>not</b> <code>translateZ</code>. That keeps it in the plane through the axis, edge-on to the path, like a slice of the tube. (<code>translateZ</code> would lay it tangent, like a carousel panel.)',
-      'The <code>translateX</code> distance is the radius from the hole\'s centre to the tube\'s centre; the ring size is the tube\'s thickness.',
+      'The <code>translateX</code> distance is the radius from the hole\'s centre to the tube\'s centre; the ring size is the tube\'s thickness. Both are multiples of one base unit, <code>--u</code>, so the torus is the same share of a gallery card, the editor and a recording canvas.',
       'Colour follows <code>cos(i × 15deg)</code>: teal at ring 0, violet halfway round, teal again at the end, so there is no seam.',
     ],
     html: `<div class="scene">
@@ -260,13 +260,16 @@ ${lines(24, (i) => `    <i style="--i:${i}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the ring is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.4vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .torus {
   position: relative;
-  width: 40px;  /* tube thickness */
-  height: 40px;
+  width: calc(40 * var(--u));  /* tube thickness */
+  height: calc(40 * var(--u));
   transform-style: preserve-3d;
   animation: tumble 16s linear infinite;
 }
@@ -275,12 +278,12 @@ ${lines(24, (i) => `    <i style="--i:${i}"></i>`)}
   --hue: calc(214 - 39 * cos(var(--i) * 15deg)); /* 175 teal ... 253 violet ... 175 */
   position: absolute;
   inset: 0;
-  border: 2px solid hsl(var(--hue) 85% 64%);
+  border: calc(2 * var(--u)) solid hsl(var(--hue) 85% 64%);
   border-radius: 50%;
   background: hsl(var(--hue) 85% 64% / 0.14);
-  box-shadow: inset 0 0 10px hsl(var(--hue) 85% 64% / 0.45);
+  box-shadow: inset 0 0 calc(10 * var(--u)) hsl(var(--hue) 85% 64% / 0.45);
   /* 24 × 15deg = 360deg; translateX keeps each ring edge-on to the circle */
-  transform: rotateY(calc(var(--i) * 15deg)) translateX(56px);
+  transform: rotateY(calc(var(--i) * 15deg)) translateX(calc(56 * var(--u)));
 }
 
 /* spins on two axes; both end 360deg after they start, so the loop is seamless */
