@@ -570,9 +570,9 @@ ${CUBE_FACES}
   book: {
     how: [
       'Cover and pages are stacked sheets, all with <code>transform-origin: left</code> — the spine is the hinge.',
-      'Each sheet gets its index in <code>--n</code>. One unit of <code>translateZ</code> per sheet stops them z-fighting.',
-      'The keyframe’s end angle is <code>var(--end)</code>, computed per sheet, so one animation fans the pages out.',
-      'A small per-sheet <code>animation-delay</code> makes the cover lead and the pages follow.',
+      'Each sheet gets its index in <code>--n</code>. One unit of <code>translateZ</code> per sheet stops them z-fighting, and never less than 1px (<code>max(1px, var(--u))</code>): on a small card one unit is under a pixel.',
+      'Each sheet’s end angle is <code>var(--end)</code>, computed per sheet, so the pages fan out.',
+      'One number opens the book: <code>--open</code>, registered with <code>@property</code> so it can be animated, runs 0 → 1 and back. Each sheet turns over its own slice of it, the cover’s first and the bottom page’s last. Played backwards the slices come in the opposite order by themselves, so the book shuts bottom page first and the cover comes down last, on top. (A per-sheet <code>animation-delay</code> cannot do this: it keeps the cover first both ways, so the cover shuts under pages that are still open and they pass through it.)',
       'Every length is a multiple of one base unit, <code>--u</code>, so the book is the same share of a gallery card, the editor and a recording canvas.',
       'The open book is the size the band has to hold, not the shut one: the pages swing past the spine and lift toward you, where the perspective makes them bigger still. The <code>translateX</code> on the book puts the spine right of the middle so the swing has somewhere to go, and the padding above it does the same for the lift.',
     ],
@@ -607,6 +607,7 @@ ${CUBE_FACES}
   /* the pages swing left past the spine, so the spine sits right of the middle and the open
      book is what ends up centred, not the shut one */
   transform: translateX(calc(60 * var(--u))) rotateX(24deg) rotateY(-12deg);
+  animation: open 3.6s ease-in-out infinite alternate;
 }
 
 .book i {
@@ -616,9 +617,10 @@ ${CUBE_FACES}
   border-radius: 0 calc(5 * var(--u)) calc(5 * var(--u)) 0;
   background: linear-gradient(90deg, #cfd3e6, #fff 14%);
   transform-origin: left center;
-  transform: translateZ(calc(var(--n) * 1 * var(--u)));
-  animation: open 3.6s ease-in-out infinite alternate;
-  animation-delay: calc((4 - var(--n)) * 0.14s);
+  /* a sheet turns while --open runs through its slice: the cover's (n = 4) starts at 0, and each
+     sheet under it starts 0.04 later; every slice is 0.84 long */
+  --from: calc((4 - var(--n)) * 0.04);
+  transform: translateZ(calc(var(--n) * max(1px, var(--u)))) rotateY(calc(var(--end) * clamp(0, (var(--open) - var(--from)) / 0.84, 1)));
 }
 
 .book .cover {
@@ -627,9 +629,16 @@ ${CUBE_FACES}
   background: linear-gradient(90deg, #4a3a99, #8b6cff 12%);
 }
 
+/* how far open the book is, from 0 (shut) to 1; registered, so it animates as a number */
+@property --open {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 @keyframes open {
-  0%, 10%   { transform: translateZ(calc(var(--n) * 1 * var(--u))) rotateY(0deg); }
-  90%, 100% { transform: translateZ(calc(var(--n) * 1 * var(--u))) rotateY(var(--end)); }
+  0%, 10%   { --open: 0; }
+  90%, 100% { --open: 1; }
 }`,
   },
 
