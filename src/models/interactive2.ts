@@ -151,7 +151,7 @@ export const interactiveDemos2: Demo[] = [
     title: 'Wave grid',
     description: 'JS builds the grid and gives each cell its distance from the centre; CSS turns that into a ripple.',
     category: 'js',
-    tags: ['generated', 'controls', 'loop'],
+    tags: ['generated', 'loop'],
     technique: ['generated DOM', 'animation-delay from distance', 'one shared @keyframes'],
     fill: true,
     html: `<div class="d-wavegrid">

@@ -1775,6 +1775,7 @@ document.querySelector('nav').addEventListener('click', (e) => {
       'All cells run the same bobbing animation on <code>translateZ</code>.',
       '<code>animation-delay: calc(var(--d) * -0.22s)</code> offsets each cell by its distance, so the motion reads as a ripple spreading outward.',
       'Negative delays mean the wave is already in full swing on the first frame.',
+      'The grid is 11 × 11 cells in a square 260 units of one base unit, <code>--u</code>, across, and the cells rise 40 of them. Tied to the canvas, that keeps the wave the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="grid"></div>
