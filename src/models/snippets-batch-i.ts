@@ -773,14 +773,15 @@ ${Array.from(
 /* the floor is the stack's own plane, turned isometric; "up" is translateZ.
    The blocks and the columns all fly upwards and nothing ever goes below the plate, so the
    drawing sits well above its own layout box. translateY pushes the plate back down by that
-   much, which centres what is actually drawn rather than what is laid out. */
+   much, which centres what is actually drawn rather than what is laid out: the solid blocks,
+   over the whole loop, since the eye places the stack by them and not by the faint plate. */
 .stack {
   position: relative;
   display: grid;
   grid-template-columns: repeat(2, calc(38 * var(--u)));
   grid-auto-rows: calc(38 * var(--u));
   transform-style: preserve-3d;
-  transform: translateY(calc(24 * var(--u))) rotateX(58deg) rotateZ(45deg);
+  transform: translateY(calc(30 * var(--u))) rotateX(58deg) rotateZ(45deg);
 }
 
 /* the floor plate with the four landing places */
