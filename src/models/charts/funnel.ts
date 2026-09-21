@@ -181,7 +181,6 @@ const VIOLET = '#8b6cff';
 const TEAL = '#2ee6d6';
 const PINK = '#ff4d9d';
 const TEXT = '#eceefb';
-const MUTED = '#949bc0';
 const SURFACE = '#141830';
 
 /** The JSON as it sits at the top of the snippet: one stage per line. */
@@ -300,6 +299,12 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
   opacity: 1;
 }
 
+/* but not round the side: that face stands almost edge-on and its glow reaches out towards you
+   far enough to cut through the tooltip floating over it, leaving a slash across its text */
+.stage i:nth-child(3)::after {
+  box-shadow: none;
+}
+
 /* and the others step back */
 .funnel3d:has(.is-active) .stage:not(.is-active) i {
   opacity: 0.45;
@@ -339,11 +344,19 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
 .stage span {
   top: calc(1 * var(--u));
   left: calc(66 * var(--u));
-  color: ${TEXT};
+  /* no colour of its own: the names are written on the stage, so they take the stage's ink */
   font: 700 calc(12 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   transform: translateX(calc(var(--v) * calc(66 * var(--u)) + calc(12 * var(--u)))) translateZ(calc(14 * var(--u)));
-  transition: transform 0.8s cubic-bezier(0.3, 1.3, 0.5, 1) calc(var(--i) * 60ms);
+  transition:
+    transform 0.8s cubic-bezier(0.3, 1.3, 0.5, 1) calc(var(--i) * 60ms),
+    opacity 0.25s;
+}
+
+/* while the tooltip is up it says the pointed-at stage's name and value itself, and it floats
+   over the names of the stages around it: the names step aside so no two texts overlap */
+.funnel3d:has(.is-active) .stage span {
+  opacity: 0;
 }
 
 .stage strong {
@@ -353,7 +366,9 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
 
 .stage em {
   display: block;
-  color: ${MUTED};
+  /* the stage's ink, softened (by opacity: a colour mixed from currentColor here kept the old
+     stage's ink when the stage changed theme) */
+  opacity: 0.7;
   font-style: normal;
   font-weight: 600;
 }
@@ -418,7 +433,8 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
   border: 0;
   border-radius: 999px;
   background: rgb(140 150 220 / 0.2);
-  color: ${MUTED};
+  /* see-through, so the word is on the stage: the stage's ink, softened */
+  color: color-mix(in srgb, currentColor 75%, transparent);
   font: 600 4vmin system-ui, sans-serif;
   cursor: pointer;
   transition: background 0.35s, color 0.35s;
