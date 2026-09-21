@@ -1,109 +1,85 @@
-# Adding demos
+# Adding models
 
-Every demo is three things with the same `id` (lowercase letters/digits only):
+**The snippet is the model.** The site renders nothing else: every card, the viewer, the model's
+page, an edited version, a recording and a snapshot run the model's copy-paste snippet in a frame
+of its own (`src/preview.ts`), and that frame is the canvas. What a visitor copies is exactly what
+they saw.
 
-| What | Where | Notes |
+Every model is written to [VIEW-CONTRACT.md](VIEW-CONTRACT.md): one base unit tied to the canvas,
+one band every model lands in, controls that are the same object everywhere. Read it before you
+write a line. Nothing outside the model sizes it, moves it or corrects it, so a model that looks
+wrong is a model whose own code is wrong.
+
+## What a model is
+
+| What | Where | What it is for |
 | --- | --- | --- |
-| The demo | a `Demo` object (`src/models/types.ts`) in a file under `src/models/` | markup + optional `init` |
-| Its styles | `src/styles/models/_<id>.scss` | all classes prefixed `d-<id>`, keyframes prefixed `d-<id>-` |
-| Its copy-paste snippet | a `Snippet` (`src/models/snippet-utils.ts`) keyed by the same id | plain HTML + CSS (+ JS), no Sass |
+| **The snippet** | a `Snippet` (`src/models/snippet-utils.ts`) keyed by the id, in one of the maps `src/models/snippets.ts` merges | `{ how, html, css, js? }`: the only thing drawn, and what visitors copy |
+| **The gallery entry** | a `Demo` object (`src/models/types.ts`) in an array under `src/models/`, listed in `src/models/index.ts` | metadata only: `id`, `title`, `description`, `category`, `tags`, `technique` |
+| **Its group** | `MEMBERS` in `src/models/groups.ts` | where it sits in the gallery; an unassigned id throws |
 
-Then it is wired in: `src/models/index.ts` (demo list; `FEATURED` there decides what the gallery
-opens with), `src/models/snippets.ts` (snippet map), `src/styles/main.scss` (`@use 'models/<id>'`),
-`src/models/groups.ts` (`MEMBERS`).
+The `id` is lowercase letters and digits. The JSON-driven charts keep both halves in one file,
+`src/models/charts/<id>.ts`, exporting `demo` and `snippet`, collected by `src/models/batch-l.ts`.
 
-Read these first, they are the reference for style and quality: `src/models/pure.ts`,
-`src/models/interactive2.ts`, `src/models/snippets.ts` (first 150 lines), `src/styles/_mixins.scss`,
-`src/styles/models/_cube.scss`, `_dice.scss`, `_rollbutton.scss`, `_bars.scss`.
+`src/models/index.ts` also holds `FEATURED`, which decides what the gallery opens with.
 
-## The Demo object
+**What is left of the old implementation.** `Demo` still has `html`, `fill` and `init`, and most
+models still have a `src/styles/models/_<id>.scss` imported by `src/styles/main.scss`. None of
+them draws anything any more: the type still requires `html`, and the Sass is only shown in the
+"Sass source" tab. A new model does not need a Sass file (the tab is then empty). They are due to
+go; see VIEW-CONTRACT.md, "What goes with this".
 
-- `category: 'css'` means **zero JavaScript** — state comes from `:hover`, `:focus-within`,
-  `:checked` (radio/checkbox + label), `@keyframes`. `category: 'js'` has an `init(scene, stage)`
-  that returns a cleanup function removing every listener / timer / rAF it created.
-- JS demos: **JS supplies values, CSS renders them** (set custom properties or classes; let
-  `transition` / `animation` do the motion). No perpetual `requestAnimationFrame` loop; an rAF used
-  for inertia must stop when idle. Listen on `stage` or `scene`, never on `window`/`document`
-  unless removed in cleanup. Use Pointer Events. Must work with touch.
-- `html` is a template string. Use `{{uid}}` in every `id`/`name`/`for` of form controls (it is
-  replaced per mount, the same demo is mounted several times on one page).
-- `tags`: short lowercase search words. Use `'loop'` for self-running, `'hover'` for hover-driven,
-  `'sass-loop'` when the SCSS uses `@for`/`@each`, plus subject words (`'product'`, `'text'`...).
-- `technique`: 3–4 short strings naming the key properties/tricks.
+Read these first, as the reference for style: `docs/VIEW-CONTRACT.md`, the `cube` snippet at the
+top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
+
+## The gallery entry
+
+- `category: 'css'` means **zero JavaScript** in the snippet — state comes from `:hover`,
+  `:focus-within`, `:checked` (radio/checkbox + label), `@keyframes`. `category: 'js'` means the
+  snippet has `js`.
+- `tags`: short lowercase search words. They also decide the badge and how the checks play with
+  the model (`src/models/interaction.ts`): `'hover'`, `'pointer'` (follows the pointer), `'drag'`,
+  `'controls'` or `'form-hack'` (clicked), plus `'loop'` for self-running and subject words
+  (`'product'`, `'text'`...). A few ids are overridden in `interaction.ts`.
+- `technique`: 3–4 short strings naming the key properties/tricks (the ingredient chips).
 - `description`: one or two plain sentences saying what it is and the trick behind it.
-- `fill: true` only when the demo needs the whole stage (scenes, things with a control bar).
-  Then the scene is `position:absolute; inset:0`, so size things in `%`, not assuming a size.
 
-> **Being replaced.** [VIEW-CONTRACT.md](VIEW-CONTRACT.md) is the rule models are being rewritten
-> to: one band, one unit, everything in the model's own code. The section below describes the
-> measuring system that contract removes, and goes when the rewrite lands.
+## The snippet
 
-## Where a model sits, and how big it is
+`{ how: string[], html, css, js? }`.
 
-The site shows a model by running its **snippet** in a frame of 340 × 280 and scaling that frame to
-whatever stage it is on: a gallery card, the viewer, the model's own page, an edited version, a
-picture, a video. One frame everywhere is what stops a model being framed one way on a card and
-another way in the canvas, and it is why editing a model never moves it.
+- It runs in a frame whose body is the whole canvas (`standaloneDoc` in `snippet-utils.ts`):
+  no margin, `overflow: hidden`, and the model's HTML inside `#c3d-scene`, which is
+  `position: absolute; inset: 0; display: grid; place-items: center`. `1vmin` is a hundredth of
+  the canvas's short side.
+- The backdrop and the text colour are the site's (light or dark stage). The model paints no
+  backdrop and inherits its text colour. Pasted into an empty file, the snippet gets a dark page
+  (`#0b0d18`, text `#eceefb`).
+- Plain CSS only (no Sass), hard-coded accent colours (violet `#8b6cff`, teal `#2ee6d6`, pink
+  `#ff4d9d`, amber `#ffb547`), generic class names (`.scene`, `.cube`...). Expand any loop by hand
+  or, better, drive it with `style="--i:3"` + `calc()` so the CSS stays short.
+- `how`: 3–5 steps teaching the trick, may contain `<code>` and `<b>`. Explain *why*, not just what.
+- Comment the non-obvious lines. `CUBE_FACES` from `snippet-utils.ts` can be interpolated for cubes.
+- `js` (CSS + JS models only): plain browser JS, no imports, no TypeScript. **JS supplies values,
+  CSS renders them**: set custom properties or classes and let `transition` / `animation` do the
+  motion. No perpetual `requestAnimationFrame` loop; an rAF used for inertia stops when idle. Use
+  Pointer Events; it must work with touch. The frame is the model's own page, so scroll and drag
+  belong to it (VIEW-CONTRACT.md, rule 10).
+- A CSS edit in the editor is applied to the running frame without remounting it, so the
+  animation keeps its pose; an HTML or JS edit rebuilds the frame.
 
-Where the model sits inside that frame is measured once and kept in `src/models/placements.json`:
+## Size and place: the contract, not a measurement
+
+There is no measuring run, no placement file and no override: set the model's base unit `--u` in
+`vmin` and every length as a multiple of it (VIEW-CONTRACT.md, rules 1–10). Then check it:
 
 ```bash
-npm run place                 # every model
-npm run place -- cube dice    # just these
+npm run check-models -- <id>       # lands in the band, clears the corners, in every state
+node scripts/check-stages.mjs <id> # the same size on every surface and export shape
+node scripts/check-motion.mjs <id> # no flicker or pop through its animation and interactions
 ```
 
-The measuring runs each model's animation through, holds its hover state open, and plays with it
-the way its badge promises — click, drag, scroll. What the model shows **on its own** decides the
-middle and the size: two thirds of the frame, middle on middle. What it does when it is **played
-with** can only make it smaller, never move it, so a menu that swings open stays in the frame. A
-model already drawn to the edges of its frame at rest is marked `bleed` and covers the stage
-instead of sitting inside it. Buttons, labels and fields are left out of the middle, so the model
-is centred and its controls sit under it.
-
-So a model does not need a size of its own. Draw it at a comfortable size, keep its motion around
-it, and the framing follows.
-
-**If the measuring gets a model wrong**, correct it by hand in
-`src/models/placement-overrides.json`:
-
-```json
-{ "radial": { "zoom": 1.6, "y": -20 } }
-```
-
-Anything named there wins over the measurement, `npm run place` never touches that file, and every
-surface reads the same place — so a correction holds on a card, in the viewer, on the model's page,
-in an edit, in a video and in a picture.
-
-`npm run check-placement` opens every model on all four surfaces and reports any that differ.
-
-## Consistency rules (the site checks these; follow them from the start)
-
-- **Size and centring are automatic.** Design the model at a card's size (340 × 280); do not
-  hand-tune its size or offset, and do not add `translate` / `scale` hacks to the root to move it.
-  `npm run place` works both out — see *Where a model sits* above — and
-  `src/models/placement-overrides.json` is there for the few it gets wrong.
-- **The camera is the site's.** The stage's scene already has `perspective: 800px`, and it
-  scales with the stage, so a demo looks the same in a card, the dialog and full screen. A demo
-  may set its own `perspective` on an inner wrapper when it needs a different one.
-- **Controls live in the dock.** A demo with controls (buttons, swatches, sliders, arrows, dots)
-  is `fill: true` and uses the dock layout: root `display: grid; grid-template-rows:
-  minmax(0, 1fr) auto; width: 100%; height: 100%; padding: 10px 14px 14px;`, the model centred in
-  the first row, the controls centred in the last row. A status text (`<output>`) or a slider's
-  label goes **above** the controls, centred, never beside them. See `_dice.scss`,
-  `_turntable.scss`, `_cubenav.scss`, `_shapeshift.scss`.
-- **Hover demos**: the hover target never moves (rule 2), coplanar containers get
-  `pointer-events: none` (rule 3). A demo with nothing to play with just animates.
-
-## Styles (SCSS)
-
-- Start with `@use '../mixins' as *;` when you use `cube-faces($size)`, `face($color, $alpha)` or
-  `solid-core($inset, $color)`. Use `@use 'sass:math';` / `'sass:list'` for maths (no global
-  `nth()`, no `/` division). Percent from a number: `#{$x * 1%}`.
-- Colours come from the theme tokens so the demo works in light and dark: `var(--accent)` violet,
-  `var(--accent-2)` teal, `var(--hot)` pink, `var(--warm)` amber, `var(--text)`, `var(--muted)`,
-  `var(--bg)`, `var(--surface-solid)`, `var(--border)`, `var(--border-strong)`. Mix with
-  `color-mix(in srgb, var(--accent) 30%, transparent)`.
-- Put declarations before nested rules (Sass warns otherwise).
+`check-models` judges a model on a card, by the pixels it actually paints; it never adjusts it.
 
 ## Rules learned the hard way (these were all real bugs)
 
@@ -115,36 +91,44 @@ in an edit, in a video and in a picture.
    the container `pointer-events: none` and the tiles `pointer-events: auto`.
 4. Every ancestor between the perspective and a 3D child needs `transform-style: preserve-3d`.
    `overflow: hidden`, `filter`, `opacity < 1`, `mask`, `clip-path` on such an ancestor FLATTEN it.
-5. Never move anything to `translateZ` ≥ the perspective (800px): stop around 200px and fade out.
-6. Rounded faces on a closed box show daylight at the corners: use the `solid-core` mixin.
+5. Never move anything to `translateZ` ≥ the perspective (`calc(800 * var(--u))` in most
+   models): stop well short and fade out.
+6. Rounded faces on a closed box show daylight at the corners: plug them with an inner core
+   (the dice's plate is one).
 7. `backface-visibility: hidden` on faces that must not show mirrored from behind (text!).
 8. Keep it light: at most ~60 elements, no big blurs, no `filter` on animated elements.
 9. Loops must be seamless (end state == start state) and use `linear` or symmetrical easing.
-10. Keyboard: hover-only demos get `tabindex="0"` and the same effect on `:focus-visible` /
+10. Keyboard: hover-only models get `tabindex="0"` and the same effect on `:focus-visible` /
     `:focus-within`. Real `<button>`/`<input>` for controls.
 11. Honour reduced motion only by not being aggressive; the site has its own pause switch that
     sets `animation-play-state: paused` on everything in a stage.
+12. **A negative length is `calc(-N * var(--u))`, never `-calc(...)`.** `-calc(...)` is invalid
+    CSS, so the whole declaration is dropped: the candlestick chart lost the `translateY` that
+    lifted its wicks off the floor, and the dice's corner plate sat flush with the faces.
+13. **JS that writes a length writes a plain number, and CSS multiplies it by `--u`.** A script
+    that writes `px` (`el.style.setProperty('--h', h + 'px')`) sizes that part in pixels while
+    the rest of the model scales with the canvas. Seven charts had this bug. Write
+    `--h: 42` from JS and `height: calc(var(--h) * var(--u))` in CSS.
+14. **The painted-pixel ruler is the judge, not element boxes.** `check-models` photographs the
+    frame and measures every pixel with ink in it. A circle fills a square box and a ring turning
+    in the screen plane sweeps one, so an element box reads up to a third bigger than what is
+    drawn; a `box-shadow` is ink no box contains. Size a model by what the check reports.
+15. **A wide single line of text is too short for the floor.** Text at a width that fits the
+    canvas is well under 40vmin tall, and making it taller makes it too wide. Restack it: the
+    flip clock, the extruded headline, the pointer-lit text, the letter wave and the layered
+    text (GO over DEEP) all stand on two lines.
 
-## The snippet
+## Checks before committing
 
-`{ how: string[], html, css, js? }` — what visitors copy. It runs on a page whose body is a dark
-centred grid (`#0b0d18`, text `#eceefb`), so:
+- `npm run check-models -- <id>` holds; `node scripts/check-stages.mjs <id>` and
+  `node scripts/check-motion.mjs <id>` for anything that moves or is played with. Run them through
+  `npm run capture -- models <id>` (or `stages`, `motion`) to record the result for the ledger.
+- `node scripts/snippet-check.mjs <id>`: the standalone page has no script error.
+- `npm run build` regenerates every static page, runs `tsc`, and must pass.
+- Commit `src/sitemap-dates.json` if the build changed it.
 
-- Plain CSS only, hard-coded colours (violet `#8b6cff`, teal `#2ee6d6`, pink `#ff4d9d`, amber
-  `#ffb547`), generic class names (`.scene`, `.cube`...), a `.scene { perspective: 800px; }`
-  wrapper. It must reproduce the demo faithfully when pasted into an empty HTML file — expand any
-  Sass loop by hand or, better, drive it with `style="--i:3"` + `calc()` so the CSS stays short.
-- `how`: 3–5 steps teaching the trick, may contain `<code>` and `<b>`. Explain *why*, not just what.
-- Comment the non-obvious lines. `CUBE_FACES` from `snippet-utils.ts` can be interpolated for cubes.
-- `js` (JS demos only): plain browser JS, no imports, no TypeScript.
+## Its video and picture
 
-## Checks
-
-`npx tsc --noEmit` and `npx sass src/styles/models/_<id>.scss > /dev/null` must pass.
-`npm run build` regenerates every static page and must pass before committing.
-
-## Its video
-
-Nothing to do: the "Video" button makes the clip in the visitor's browser from the model on the
-stage (src/record.ts), so a new demo has one the moment it is live, and it can never show an old
-version of the model.
+Nothing to do: the Video and Image buttons send the live model to the render service (see the
+README, "Recording, snapshots and print"), so a new model has both the moment it is live, and they
+can never show an old version of it.
