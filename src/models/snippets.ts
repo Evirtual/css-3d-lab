@@ -255,7 +255,8 @@ ${CUBE_FACES}
 
   button: {
     how: [
-      'The "side" of the button is a stack of 1px <code>box-shadow</code>s going straight down.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the cap, its type and the depth of its side are the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'The "side" of the button is a stack of <code>box-shadow</code>s going straight down, one every 4 units. Each copy is the whole cap, so they overlap into one solid slab.',
       'The <code>&lt;button&gt;</code> is a static, invisible hit target; the visible cap is a <code>&lt;span&gt;</code> inside it. A pressed element that moves itself can slide out from under the pointer.',
       'On <code>:active</code>, move the cap down with <code>translateY</code> and shrink the stack by the same amount — the base appears to stay put.',
       'Keep the transition very short (≈80ms) so it feels mechanical.',
@@ -265,12 +266,15 @@ ${CUBE_FACES}
   <button class="push" type="button"><span>PUSH</span></button>
 </div>`,
     css: `.scene {
-  perspective: 600px;
+  /* one base unit: every length below is a multiple of it, so the button is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.53vmin;
+  perspective: calc(600 * var(--u));
 }
 
 /* static hit target (its bottom padding covers where the cap travels to) */
 .push {
-  padding: 0 0 8px;
+  padding: 0 0 calc(32 * var(--u));
   border: 0;
   background: none;
   cursor: pointer;
@@ -280,27 +284,28 @@ ${CUBE_FACES}
 /* the visible cap */
 .push span {
   display: block;
-  padding: 18px 46px;
-  border-radius: 16px;
-  font: 900 1.4rem system-ui;
+  padding: calc(56 * var(--u)) calc(22 * var(--u));
+  border-radius: calc(20 * var(--u));
+  font: 900 calc(26 * var(--u)) / 1.2 system-ui;
   letter-spacing: 0.14em;
   color: #fff;
   background: linear-gradient(#ff4d9d, #d63a80);
   pointer-events: none;
   box-shadow:
-    0 1px 0 #8f2a58, 0 2px 0 #8f2a58, 0 3px 0 #8f2a58,
-    0 4px 0 #8f2a58, 0 5px 0 #8f2a58, 0 6px 0 #8f2a58,
-    0 7px 0 #8f2a58, 0 8px 0 #8f2a58, 0 9px 0 #8f2a58,
-    0 10px 0 #8f2a58,
-    0 18px 22px rgb(0 0 0 / 0.55);
+    0 calc(4 * var(--u)) 0 #8f2a58, 0 calc(8 * var(--u)) 0 #8f2a58,
+    0 calc(12 * var(--u)) 0 #8f2a58, 0 calc(16 * var(--u)) 0 #8f2a58,
+    0 calc(20 * var(--u)) 0 #8f2a58, 0 calc(24 * var(--u)) 0 #8f2a58,
+    0 calc(28 * var(--u)) 0 #8f2a58, 0 calc(32 * var(--u)) 0 #8f2a58,
+    0 calc(36 * var(--u)) 0 #8f2a58, 0 calc(40 * var(--u)) 0 #8f2a58,
+    0 calc(64 * var(--u)) calc(76 * var(--u)) rgb(0 0 0 / 0.55);
   transition: transform 0.08s, box-shadow 0.08s;
 }
 
 .push:active span {
-  transform: translateY(8px);
+  transform: translateY(calc(32 * var(--u)));
   box-shadow:
-    0 1px 0 #8f2a58, 0 2px 0 #8f2a58,
-    0 6px 10px rgb(0 0 0 / 0.55);
+    0 calc(4 * var(--u)) 0 #8f2a58, 0 calc(8 * var(--u)) 0 #8f2a58,
+    0 calc(22 * var(--u)) calc(34 * var(--u)) rgb(0 0 0 / 0.55);
 }`,
   },
 
