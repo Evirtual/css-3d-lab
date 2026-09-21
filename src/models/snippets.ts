@@ -1683,7 +1683,7 @@ update();`,
   --dx: 0.7;   /* direction — overwritten from JS */
   --dy: 0.7;
   margin: 0;
-  font: 900 calc(72 * var(--u))/1.45 system-ui;   /* the lines stand apart: the shadow of one falls across the next, and the solid headline stands over the 40vmin floor */
+  font: 900 calc(72 * var(--u))/1.6 system-ui;   /* the lines stand apart: the shadow of one falls across the next, and the solid headline stands over the 40vmin floor even with the light straight in front, when there is no shadow */
   text-align: center;
   transform: translateY(calc(-4 * var(--u)));
   color: #fff;
