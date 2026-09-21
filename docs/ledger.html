@@ -1170,6 +1170,7 @@ table.mini code { font-size: 12px; }
         <dt>Visual review</dt>${dd(esc(s.review))}
         <dt>Text review</dt>${dd(esc(s.textReview))}
         <dt>The review log</dt>${dd(esc(s.reviewLog ?? ''))}
+        ${s.staleness ? `<dt id="def-stale">When a result or review goes stale</dt>${dd(esc(s.staleness))}` : ''}
         ${c.reviewed ? `<dt>Reviews found</dt>${dd(['visual', 'text'].map((k) => `${k}: <span class="n">${c.reviewed[k].fresh}</span> models with a fresh review, <span class="n">${c.reviewed[k].staleOnly}</span> with only stale ones${c.reviewed[k].problem ? `, <span class="n">${c.reviewed[k].problem}</span> whose latest found a problem` : ''}`).join('; ') + '.')}` : ''}
       </dl>
       <h3>Running totals</h3>

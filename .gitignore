@@ -27,3 +27,5 @@ debug.log
 /docs/ledger-watch.json
 /docs/ledger-queue.json.lock
 /docs/*.tmp
+# fingerprints of every model at past commits (scripts/fingerprint.mjs): a cache
+/.cache/

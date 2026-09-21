@@ -32,11 +32,14 @@ import { fileURLToPath } from 'node:url';
 const { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources } = await import(`./model-sources.mjs${new URL(import.meta.url).search}`);
 
 const { evaluateChecklist } = await import(`./checklist-proofs.mjs${new URL(import.meta.url).search}`);
+// staleness: whether each result still describes what it judged (snippet, play, text, render path)
+const { stalenessIndex, STALENESS_TEXT } = await import(`./fingerprint.mjs${new URL(import.meta.url).search}`);
 // the one list of checks: capture-check.mjs runs them, this gates on them, the page draws them
 const { REGISTRY, MODEL_CHECKS, forPage } = await import(`./checks-registry.mjs${new URL(import.meta.url).search}`);
 
 /** The build's own code: a hash of these files as they are on disk right now. */
 const CODE_FILES = ['scripts/ledger.mjs', 'scripts/model-sources.mjs', 'scripts/checklist-proofs.mjs', 'scripts/checks-registry.mjs'];
+CODE_FILES.push('scripts/fingerprint.mjs');
 export const codeVersion = () => createHash('sha1').update(CODE_FILES.map((f) => { try { return norm(readFileSync(join(ROOT, f), 'utf8')); } catch { return `(missing ${f})`; } }).join('\0')).digest('hex').slice(0, 10);
 /** The version this copy of the module was loaded from. A build compares it with the disk. */
 export const LOADED_CODE = codeVersion();
@@ -375,7 +378,7 @@ function readReviewLog(known) {
         else if (!Array.isArray(e.motionFlagsResolved) || resolved.length !== list.length) notes.push(`${where}: motionFlagsResolved must be a list of { flag, reason } or of strings; the entries that are not were left out`);
         if (resolved && noReason.length) { notes.push(`${where}: ${noReason.length} motion flag(s) marked resolved without a reason were left out`); resolved = resolved.filter((x) => x.reason); }
       }
-      entries.push({ motionFlagsResolved: resolved, model: e.model, kind: e.kind, reviewer: String(e.reviewer), verdict: e.verdict, reviewedAt: e.reviewedAt, commit: e.commit.toLowerCase(), fixCommit: fix, file: `docs/reviews/${f}` });
+      entries.push({ motionFlagsResolved: resolved, model: e.model, kind: e.kind, reviewer: String(e.reviewer), verdict: e.verdict, reviewedAt: e.reviewedAt, commit: e.commit.toLowerCase(), fixCommit: fix, file: `docs/reviews/${f}`, ...(e.fingerprints ? { fingerprints: e.fingerprints } : {}) });
     });
   }
   return { entries, files: files.length };
@@ -519,6 +522,13 @@ const generatedAt = new Date().toISOString();
 const head = git(['rev-parse', '--short', headFull]).trim();
 
 lap('checks');
+// every result and review judged against what it looked at (scripts/fingerprint.mjs); null lookups mean the old own-source rule
+const staleIx = await stalenessIndex({ checkFiles, reviews: [
+  ...[...perModel].flatMap(([id, list]) => list.flatMap((c) => [...(c.review ? [{ kind: 'visual', id, commit: c.hash }] : []), ...(c.textReview ? [{ kind: 'text', id, commit: c.hash }] : [])])),
+  ...reviewLog.entries.map((e) => ({ kind: e.kind, id: e.model, commit: e.fixCommit ?? e.commit, fingerprints: e.fingerprints })),
+] });
+if (staleIx.error) notes.push(`staleness fell back to each model's own source text, because the fingerprints could not be worked out: ${staleIx.error}`);
+lap('staleness');
 const models = demos.map((d) => {
   const src = sources.get(d.id);
   const snippet = src?.snippet ?? null;
@@ -548,10 +558,14 @@ const models = demos.map((d) => {
     const r = file?.models?.[d.id];
     if (!r) { checks[name] = { status: 'never' }; continue; }
     const stale = [];
-    if (r.fingerprint && src && r.fingerprint !== src.fingerprint) stale.push('the model\'s own source has changed since this ran');
-    if (!r.fingerprint) stale.push('no fingerprint was recorded, so it cannot be told whether the source changed');
+    const judged = staleIx.check(name, d.id);
+    if (judged) stale.push(...judged.why);
+    else {
+      if (r.fingerprint && src && r.fingerprint !== src.fingerprint) stale.push('the model\'s own source has changed since this ran');
+      if (!r.fingerprint) stale.push('no fingerprint was recorded, so it cannot be told whether the source changed');
+    }
     if (r.sourceChangedDuringRun) stale.push('the model\'s source changed while the check was running');
-    checks[name] = { status: r.status, summary: r.summary, detail: r.detail, ranAt: r.ranAt, runId: r.runId, commit: r.commit, args: r.args, stale: stale.length > 0, staleWhy: stale };
+    checks[name] = { status: r.status, summary: r.summary, detail: r.detail, ranAt: r.ranAt, runId: r.runId, commit: r.commit, args: r.args, stale: stale.length > 0, staleWhy: stale, staleBasis: judged?.basis ?? null };
   }
 
   const contract = checks[CONTRACT];
@@ -562,7 +576,7 @@ const models = demos.map((d) => {
     ...commits.filter((c) => c.textReview)
       .map((c) => ({ kind: 'text', source: 'commit', commit: c.hash, reviewedAt: c.date, reviewer: null, verdict: null, subject: c.subject })),
     ...reviewLog.entries.filter((e) => e.model === d.id).map(({ model, ...e }) => ({ ...e, source: 'log' })),
-  ].map((r) => { const against = r.fixCommit ?? r.commit; const s = changedSince(against, d.id, ctx); return { ...r, judgedAgainst: against, stale: s.stale, staleWhy: s.why }; })
+  ].map((r) => { const against = r.fixCommit ?? r.commit; const j = staleIx.review(r.kind, d.id, against, r.fingerprints); const s = j ? { stale: j.stale, why: j.why.join('; ') || null } : changedSince(against, d.id, ctx); return { ...r, judgedAgainst: against, stale: s.stale, staleWhy: s.why, staleBasis: j?.basis ?? null }; })
     .sort((a, b) => Date.parse(b.reviewedAt) - Date.parse(a.reviewedAt));
   // the latest fresh review of a kind decides; a stale one says nothing about the code as it is
   const judge = (kind, how) => {
@@ -691,7 +705,8 @@ const ledger = {
     gates: 'checked = every gate cleared on the current code, in this order: ' + GATES.map((g) => g.label).join(', ') + '. Motion is clear when the latest run is smooth or every flag is named as a false alarm in a fresh visual review (motionFlagsResolved); exports means the default settings only',
     review: 'a visual review: a docs/reviews/ entry of kind "visual", or a commit touching the model (by diff), not its converting commit, with a Reviewed-by: trailer or a subject starting "Review"',
     textReview: 'a text review: a docs/reviews/ entry of kind "text", or a commit matched to the model with a Text-reviewed-by: trailer or a subject starting "Text review" / "Review the text"',
-    reviewLog: `docs/reviews/*.json: ${reviewLog.files} file(s), ${reviewLog.entries.length} valid entr${reviewLog.entries.length === 1 ? 'y' : 'ies'}. A review is stale when the model's source changed after the commit it names; approval needs the latest fresh review of each kind not to be "problem"`,
+    staleness: STALENESS_TEXT,
+    reviewLog: `docs/reviews/*.json: ${reviewLog.files} file(s), ${reviewLog.entries.length} valid entr${reviewLog.entries.length === 1 ? 'y' : 'ies'}. A review is stale when something it judged changed after it (see staleness); approval needs the latest fresh review of each kind not to be "problem"`,
     queue: 'docs/ledger-queue.json is reported by the lead session and its agents through scripts/queue.mjs and is not read by this script',
     readiness: 'docs/RELEASE-CHECKLIST.md lines `- [ ] item — proof`; each file directly under docs/ plus README.md with `git log -1`; at risk: `git status --porcelain --untracked-files=all` with each file\'s modification time, as of this build',
     watcher: 'docs/ledger-watch.json, written by scripts/ledger-watch.mjs: its heartbeat, so the page can tell a quiet project from a watcher that has stopped',

@@ -13,6 +13,12 @@
  * Also used by scripts/generate-pages.mjs, for the file and line of each snippet.
  * Shared helpers outside those entries (a `rep()` or `lines()` at the top of a file) belong to no
  * one model, so a change to them does not count as a change to any model.
+ *
+ * This own text is what the ledger's commit list and "converted" read. It is not what decides
+ * whether a check result or a review is stale: that is scripts/fingerprint.mjs, which resolves each
+ * snippet (shared constants such as CUBE_FACES included) and adds the render path each check uses.
+ * fingerprints() here is still recorded with every check result as `fingerprint`, so an old result
+ * can be matched to the commit it ran on.
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';

@@ -9,7 +9,10 @@
  *  - the modification time and size of docs/checks/*.json, docs/reviews/*.json and
  *    docs/ledger-queue.json;
  *  - the modification time and size of every model file (src/models/**, src/styles/models/**),
- *    of docs/*.md and of README.md.
+ *    of docs/*.md and of README.md;
+ *  - the modification time and size of the render-path files (scripts/fingerprint.mjs
+ *    RENDER_FILES: the model frame, the export and share-image code), since a change there can
+ *    make a check result or a review stale.
  * The "at risk" list (git status) is refreshed by every rebuild, not watched on its own: running
  * git status every 3 s would not be free.
  * When any of them differs it runs buildLedger() from scripts/ledger.mjs in this process. One build
@@ -32,6 +35,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './model-sources.mjs';
+import { RENDER_FILES } from './fingerprint.mjs';
 
 /* ---------- the build code, reloaded whenever it changes on disk ---------- */
 let lib = await import('./ledger.mjs');
@@ -88,10 +92,11 @@ function look() {
     queue: stamp(join(ROOT, 'docs', 'ledger-queue.json')),
     docs: `${jsonStamps(join(ROOT, 'docs'), '.md')}|README.md=${stamp(join(ROOT, 'README.md'))}`,
     models: MODEL_DIRS.flatMap((d) => statTree(d, [])).join('|'),
+    render: RENDER_FILES.map((f) => `${f}=${stamp(join(ROOT, f))}`).join('|'),
     code: ['ledger.mjs', 'model-sources.mjs', 'checklist-proofs.mjs'].map((f) => stamp(join(ROOT, 'scripts', f))).join('|'),
   };
 }
-const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', docs: 'docs', code: 'build code', queue: 'queue', models: 'model files' };
+const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', docs: 'docs', code: 'build code', queue: 'queue', models: 'model files', render: 'render-path files' };
 
 /* ---------- heartbeat ---------- */
 const startedAt = new Date().toISOString();

@@ -58,6 +58,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fingerprints, ROOT, workingSources } from './model-sources.mjs';
+import { fingerprintsNow, recordFor } from './fingerprint.mjs';
 import { DEFAULTS, DEFAULTS_TEXT, isDefault } from './export-defaults.mjs';
 import { REGISTRY, pagesFor } from './checks-registry.mjs';
 
@@ -79,6 +80,8 @@ const runId = `${check}-${startedAt.replace(/[:.]/g, '-')}`;
 const commit = git('rev-parse', '--short', 'HEAD');
 const dirty = (git('status', '--porcelain', '--', 'src/models', 'src/styles/models') ?? '').split('\n').filter(Boolean).length;
 const printsBefore = fingerprints();
+// what each result judged, taken when the run starts (scripts/fingerprint.mjs): the ledger compares it with now
+const judgedBefore = await fingerprintsNow().catch((e) => { console.error(`capture-check: no fingerprints recorded with this run, so the ledger will judge it by its commit: ${e.message.split('\n')[0]}`); return null; });
 
 /* ---------- what each check's lines mean ---------- */
 const results = {}; // id → { status, summary, detail[], at }
@@ -291,6 +294,7 @@ function entry(r, printsNow) {
     commit,
     args,
     fingerprint: printsBefore[id] ?? null,
+    fingerprints: judgedBefore ? recordFor(check, judgedBefore, id) : null,
     sourceChangedDuringRun: (printsBefore[id] ?? null) !== (printsNow[id] ?? null),
     ...extra,
   };
