@@ -770,16 +770,19 @@ ${CUBE_FACES}`,
       'Hinge it on the horizon (<code>transform-origin: top</code>) and lay it down with <code>rotateX(80deg)</code>. A short <code>perspective</code> on the parent exaggerates the depth.',
       'Motion is a child layer sliding by <b>exactly one cell</b> with <code>transform</code>, so the loop is seamless. (Animating <code>background-position</code> looks the same but repaints every frame; transform does not.)',
       'A <code>mask</code> gradient fades the lines out toward the horizon.',
+      'The scene is <code>inset: 0</code>, so it fills the canvas edge to edge whatever its shape. The sun, the cell and the perspective are multiples of one base unit, <code>--u</code>, tied to the canvas, so the horizon looks the same on a gallery card and on a full screen.',
     ],
     html: `<div class="retro">
   <div class="sun"></div>
   <div class="floor"></div>
 </div>`,
     css: `.retro {
+  /* one base unit, tied to the canvas; the scene itself fills the canvas edge to edge */
+  --u: 0.33vmin;
   position: fixed;
   inset: 0;
   overflow: hidden;
-  perspective: 260px;
+  perspective: calc(260 * var(--u));
   perspective-origin: 50% 40%;
   background: linear-gradient(#12062e 0%, #3b0f5c 38%, #ff4d9d 50%, #0a0618 50.5%);
 }
@@ -788,18 +791,18 @@ ${CUBE_FACES}`,
   position: absolute;
   top: 14%;
   left: 50%;
-  width: 160px;
-  height: 160px;
+  width: calc(160 * var(--u));
+  height: calc(160 * var(--u));
   translate: -50% 0;
   border-radius: 50%;
   background: linear-gradient(#ffd34d, #ff4d9d 70%);
   mask: linear-gradient(#000 55%, transparent 55% 60%, #000 60% 70%,
         transparent 70% 77%, #000 77% 85%, transparent 85%);
-  box-shadow: 0 0 60px #ff4d9d;
+  box-shadow: 0 0 calc(60 * var(--u)) #ff4d9d;
 }
 
 .floor {
-  --cell: 40px;
+  --cell: calc(40 * var(--u));
   position: absolute;
   top: 50%;
   left: -100%;
@@ -818,8 +821,8 @@ ${CUBE_FACES}`,
   position: absolute;
   inset: calc(var(--cell) * -1) 0 0;
   background:
-    linear-gradient(#2ee6d6 2px, transparent 2px) 0 0 / var(--cell) var(--cell),
-    linear-gradient(90deg, #2ee6d6 2px, transparent 2px) 50% 0 / var(--cell) var(--cell);
+    linear-gradient(#2ee6d6 calc(2 * var(--u)), transparent calc(2 * var(--u))) 0 0 / var(--cell) var(--cell),
+    linear-gradient(90deg, #2ee6d6 calc(2 * var(--u)), transparent calc(2 * var(--u))) 50% 0 / var(--cell) var(--cell);
   animation: run 0.9s linear infinite;
 }
 
