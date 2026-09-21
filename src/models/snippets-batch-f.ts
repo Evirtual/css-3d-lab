@@ -369,12 +369,13 @@ ${lines(8, (i) => `<i style="--i:${i}"></i>`, '        ')}
       'The pointed tip needs no extra elements: each panel carries its own facet as a <code>::before</code>. The panel gets <code>transform-style: preserve-3d</code>, so the triangle can fold in along the panel\'s top edge by 40°. Its height, apothem / sin(40°) = <code>1.347 × w</code>, makes the six points meet on the axis.',
       'A crystal leans by walking its transforms: stand on the floor, <code>rotateY</code> to face its direction, <code>translateZ</code> out from the centre, then <code>rotateX</code> to lean outward. The same four numbers in a style attribute place all five.',
       'The inner glow is two crossed planes of radial gradient, so it has body from every side. Its opacity breathes on a pseudo-element: on the element itself, <code>opacity</code> would flatten its 3D children.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the cluster is the same share of a gallery card, the editor and a recording canvas. The style attribute hands each crystal plain numbers, and CSS turns them into lengths by multiplying by <code>--u</code>.',
     ],
     html: `<div class="scene">
   <div class="cluster">
     <b class="rock"></b>
 ${CRYSTALS.map(
-  (c) => `    <div class="crystal" style="--az:${c.az}deg; --off:${c.off}px; --tilt:${c.tilt}deg; --w:${c.w}px; --h:${c.h}px; --c:${c.c}; --c2:${c.c2}; --d:${c.d}s">
+  (c) => `    <div class="crystal" style="--az:${c.az}deg; --off:${c.off}; --tilt:${c.tilt}deg; --w:${c.w}; --h:${c.h}; --c:${c.c}; --c2:${c.c2}; --d:${c.d}s">
 ${lines(6, (i) => `<i style="--i:${i}"></i>`, '      ')}
       <b></b>
     </div>`,
@@ -382,7 +383,10 @@ ${lines(6, (i) => `<i style="--i:${i}"></i>`, '      ')}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the cluster is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.44vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .cluster {
@@ -393,29 +397,32 @@ ${lines(6, (i) => `<i style="--i:${i}"></i>`, '      ')}
   animation: spin 30s linear infinite;
 }
 
-/* stand on the floor (44px down), face a direction, step out, lean outward */
+/* stand on the floor (44 units down), face a direction, step out, lean outward */
 .crystal {
+  /* the style attribute gives each crystal plain numbers; they become lengths here */
+  --wide: calc(var(--w) * var(--u));
+  --tall: calc(var(--h) * var(--u));
   position: absolute;
   transform-style: preserve-3d;
-  transform: translateY(44px) rotateY(var(--az)) translateZ(var(--off)) rotateX(calc(var(--tilt) * -1));
+  transform: translateY(calc(44 * var(--u))) rotateY(var(--az)) translateZ(calc(var(--off) * var(--u))) rotateX(calc(var(--tilt) * -1));
 }
 
 /* six side panels in a closed ring */
 .crystal i {
   position: absolute;
-  top: calc(var(--h) * -1);
-  left: calc(var(--w) / -2);
-  width: var(--w);
-  height: var(--h);
+  top: calc(var(--tall) * -1);
+  left: calc(var(--wide) / -2);
+  width: var(--wide);
+  height: var(--tall);
   transform-style: preserve-3d; /* lets the tip fold in 3D */
-  transform: rotateY(calc(var(--i) * 60deg)) translateZ(calc(var(--w) * 0.866));
+  transform: rotateY(calc(var(--i) * 60deg)) translateZ(calc(var(--wide) * 0.866));
   background:
     linear-gradient(90deg, transparent 30%, rgb(255 255 255 / 0.2) 42%, transparent 54%),
     linear-gradient(to top, color-mix(in srgb, var(--c) 62%, transparent), color-mix(in srgb, var(--c) 14%, transparent) 70%, color-mix(in srgb, var(--c) 28%, transparent));
   box-shadow:
-    inset 1px 0 color-mix(in srgb, var(--c) 80%, transparent),
-    inset -1px 0 color-mix(in srgb, var(--c) 80%, transparent),
-    inset 0 1px color-mix(in srgb, var(--c) 85%, #fff);
+    inset calc(1 * var(--u)) 0 color-mix(in srgb, var(--c) 80%, transparent),
+    inset calc(-1 * var(--u)) 0 color-mix(in srgb, var(--c) 80%, transparent),
+    inset 0 calc(1 * var(--u)) color-mix(in srgb, var(--c) 85%, #fff);
 }
 
 .crystal i:nth-child(even) {
@@ -430,23 +437,23 @@ ${lines(6, (i) => `<i style="--i:${i}"></i>`, '      ')}
   bottom: 100%;
   left: 0;
   width: 100%;
-  height: calc(var(--w) * 1.347); /* apothem / sin(40deg) */
+  height: calc(var(--wide) * 1.347); /* apothem / sin(40deg) */
   transform-origin: 50% 100%;
   transform: rotateX(40deg);
   clip-path: polygon(50% 0, 0 100%, 100% 100%);
   background:
-    linear-gradient(to top left, transparent calc(50% - 1px), var(--edge) calc(50% - 1px) 50%, transparent 50%) left / 50% 100% no-repeat,
-    linear-gradient(to top right, transparent calc(50% - 1px), var(--edge) calc(50% - 1px) 50%, transparent 50%) right / 50% 100% no-repeat,
+    linear-gradient(to top left, transparent calc(50% - 1 * var(--u)), var(--edge) calc(50% - 1 * var(--u)) 50%, transparent 50%) left / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 1 * var(--u)), var(--edge) calc(50% - 1 * var(--u)) 50%, transparent 50%) right / 50% 100% no-repeat,
     linear-gradient(color-mix(in srgb, var(--c) 20%, #fff 30%), color-mix(in srgb, var(--c) 40%, transparent));
 }
 
 /* the inner glow: two crossed planes */
 .crystal b {
   position: absolute;
-  top: calc(var(--h) * -1);
-  left: calc(var(--w) * -0.8);
-  width: calc(var(--w) * 1.6);
-  height: var(--h);
+  top: calc(var(--tall) * -1);
+  left: calc(var(--wide) * -0.8);
+  width: calc(var(--wide) * 1.6);
+  height: var(--tall);
   transform-style: preserve-3d;
 }
 
@@ -466,13 +473,13 @@ ${lines(6, (i) => `<i style="--i:${i}"></i>`, '      ')}
 /* the rock: an uneven slab laid flat */
 .rock {
   position: absolute;
-  top: -24px;
-  left: -68px;
-  width: 136px;
-  height: 136px;
+  top: calc(-24 * var(--u));
+  left: calc(-68 * var(--u));
+  width: calc(136 * var(--u));
+  height: calc(136 * var(--u));
   clip-path: polygon(22% 4%, 62% 0, 92% 18%, 100% 55%, 84% 90%, 46% 100%, 12% 86%, 0 48%);
   background: radial-gradient(circle, #ae98ff 0 6%, #4a3e8d 24%, #2e2a5d 60%, #3c3576);
-  transform: translateY(1px) rotateX(90deg);
+  transform: translateY(calc(1 * var(--u))) rotateX(90deg);
 }
 
 @keyframes spin {
