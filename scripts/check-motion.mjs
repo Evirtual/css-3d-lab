@@ -26,8 +26,9 @@
  *    is filmed for 24 frames 100ms of page time apart instead, and says so.
  *  - EVERY INTERACTION, one at a time, in the same pass. The loop is held on its first frame.
  *    Hover and focus targets are read from the model's own CSS (what stands in front of :hover or
- *    :focus-visible), controls from the DOM. Each hover target gets a real pointer on a point
- *    that elementFromPoint says lands on that very element; then the pointer leaves. A pass
+ *    :focus-visible, as scripts/css-heads.mjs reads them, which check-access shares), controls
+ *    from the DOM. Each hover target gets a real pointer on a point that elementFromPoint says
+ *    lands on that very element; then the pointer leaves. A pass
  *    straight across the model follows. Every button is pressed and pressed again (and held down
  *    and let go when the model styles :active), every toggle switched on and off, every radio
  *    chosen, sliders set to min, middle and max, selects run through, focus targets focused by
@@ -68,6 +69,7 @@
  * colour change in the picture is always the model's.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { cssHeads } from './css-heads.mjs';
 import { join, resolve } from 'node:path';
 import { decode, cells as cellsAt, changeNear as changeNearAt, change, far, STILL, STILL_NEAR } from './pixels.mjs';
 import { createServer as createVite } from 'vite';
@@ -321,23 +323,8 @@ function holdHover(_, on) {
  * else, or turned away, is a part the pointer cannot reach, and a hover that "does nothing" is
  * often exactly that.
  */
-function partsOf() {
+function partsOf(_, heads) {
   const scene = document.querySelector('#c3d-scene') || document.body;
-  const css = (document.querySelector('#c3d-code')?.textContent ?? '').replace(/\/\*[\s\S]*?\*\//g, '');
-  const heads = { hover: new Set(), focus: new Set() };
-  for (const m of css.matchAll(/([^{}]+)\{/g)) {
-    const text = m[1].trim();
-    if (!text || text.startsWith('@') || /^(from|to|[\d.]+%)/.test(text)) continue;
-    for (const s of text.split(/,(?![^(]*\))/)) {
-      for (const [kind, re] of [['hover', /:hover/], ['focus', /:focus(-visible|-within)?/]]) {
-        const at = s.search(re);
-        if (at < 0) continue;
-        // .key:is(:hover, :focus-visible) names .key
-        const head = s.slice(0, at).trim().replace(/:(is|where)\($/, '');
-        if (head && !/[\s>+~(]$/.test(head)) heads[kind].add(head);
-      }
-    }
-  }
   const all = (window.c3dParts = []);
   // what a real press lands on, which is not always what elementFromPoint says: the browser's
   // hit test for events and the one it answers elementFromPoint with can disagree on 3D layers
@@ -675,7 +662,7 @@ async function filmOn(id, demo) {
     if (Math.max(...run.frames.map((f) => change(run.frames[0].grid, f.grid))) < STILL) notes.push({ run: run.name, text: 'changes nothing on screen' });
   };
   const rest = await shoot(clip);
-  const parts = await inFrame(partsOf);
+  const parts = await inFrame(partsOf, cssHeads(await inFrame(() => document.querySelector('#c3d-code')?.textContent ?? '')));
   /** Reachability findings for one part; returns the point to put the pointer on, or null. */
   const aim = (part, verb) => {
     if (!part.tried) { notes.push({ run: `${verb} ${part.name}`, text: 'is outside the canvas or has no box' }); return null; }

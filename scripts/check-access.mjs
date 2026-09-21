@@ -40,10 +40,10 @@
  *      - elements the model's script listens to for click, pointer or mouse events (read from
  *        CDP's event listeners), when neither they nor anything inside or around them is a stop;
  *      - hover targets: the part of each selector in front of :hover in the model's own CSS, as
- *        check-motion reads them. A hover target that is not a native control must be a stop (or
- *        hold one, or sit in one), and the CSS must give it the same effect on focus: some
- *        selector with :focus, :focus-visible or :focus-within must name it or a part around it
- *        (docs/ADDING-MODELS.md rule 10).
+ *        scripts/css-heads.mjs reads them (check-motion reads them the same way). A hover target
+ *        that is not a native control must be a stop (or hold one, or sit in one), and the CSS
+ *        must give it the same effect on focus: some selector with :focus, :focus-visible or
+ *        :focus-within must name it or a part around it (docs/ADDING-MODELS.md rule 10).
  *     And focus must show: each stop's picture is compared with the picture before any stop, round
  *     the stop (its box two cells wider, or its label's when it is a hidden input) and over the
  *     canvas, with check-motion's own measure and thresholds (scripts/pixels.mjs: STILL_NEAR round
@@ -59,6 +59,7 @@ import { pathToFileURL } from 'node:url';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
 import { decode, cells, changeNear, change, STILL, STILL_NEAR } from './pixels.mjs';
+import { cssHeads } from './css-heads.mjs';
 
 const OUT = resolve('.media-tmp/access');
 const args = process.argv.slice(2);
@@ -98,7 +99,7 @@ const NATIVE = 'a[href], button, input:not([type="hidden"]), select, textarea, s
  * need: the focusable or operable ones (named), the mouse controls, the hover targets with
  * whether the CSS gives them a focus counterpart.
  */
-function survey({ ROLES, NATIVE }) {
+function survey({ ROLES, NATIVE, heads }) {
   const scene = document.querySelector('#c3d-scene') || document.body;
   const els = [...scene.querySelectorAll('*')];
   els.forEach((el, n) => el.setAttribute('data-c3d-n', String(n)));
@@ -144,29 +145,8 @@ function survey({ ROLES, NATIVE }) {
       group: el.matches('input[type="radio"]') && el.name ? `radio:${el.name}` : el.matches('[role="tab"], [role="radio"], [role="option"], [role="menuitem"], [role="treeitem"], [role="gridcell"]') && el.parentElement ? `roving:${n(el.parentElement)}` : null });
   }
 
-  // hover and focus heads from the model's own CSS (as check-motion reads them)
-  const css = (document.querySelector('#c3d-code')?.textContent ?? '').replace(/\/\*[\s\S]*?\*\//g, '');
-  const heads = { hover: new Set(), focus: new Set() };
-  for (const m of css.matchAll(/([^{}]+)\{/g)) {
-    const text = m[1].trim();
-    if (!text || text.startsWith('@') || /^(from|to|[\d.]+%)/.test(text)) continue;
-    for (const s of text.split(/,(?![^(]*\))/)) {
-      for (const [kind, re] of [['hover', /:hover/], ['focus', /:focus(-visible|-within)?/]]) {
-        const at = s.search(re);
-        if (at < 0) continue;
-        let head = s.slice(0, at);
-        // inside a group: .slot:is(:hover, :focus-visible) names .slot; :not(:hover) and
-        // :has(:hover) name no hover target
-        const open = head.lastIndexOf('(');
-        if (open > head.lastIndexOf(')')) {
-          if (/:(not|has)$/.test(head.slice(0, open))) continue;
-          head = head.slice(0, open).replace(/:(is|where)$/, '');
-        }
-        head = head.trim();
-        if (head && !/[\s>+~(,]$/.test(head)) heads[kind].add(head);
-      }
-    }
-  }
+  // hover and focus heads from the model's own CSS, read in Node by scripts/css-heads.mjs (as
+  // check-motion reads them)
   const matching = (sel) => { try { return [...document.querySelectorAll(sel)].filter((el) => scene.contains(el) && el !== scene); } catch { return []; } };
   const focusEls = new Set([...heads.focus].flatMap(matching));
   const hover = [];
@@ -309,7 +289,8 @@ async function checkOn(id, page, context, errors) {
   }
 
   // 4. names
-  const info = await frame.evaluate(survey, { ROLES, NATIVE });
+  const heads = cssHeads(await frame.evaluate(() => document.querySelector('#c3d-code')?.textContent ?? ''));
+  const info = await frame.evaluate(survey, { ROLES, NATIVE, heads });
   facts.elements = info.count;
   const cdp = await context.newCDPSession(page);
   await cdp.send('DOM.enable');
