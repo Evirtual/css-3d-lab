@@ -1822,12 +1822,13 @@ controls.addEventListener('click', (e) => {
 }
 
 /* translateY first: the bob is straight up and down on screen. Measured by what it paints, the
-   drawing already sits a little above the layout box (the layers rise towards the viewer, which
-   is up the screen at this tilt), so the bob runs from 7 units below the box to 1 above it and
-   the drawing stays centred over the whole swing. */
+   window's solid body already sits a little low in its layout box, and hovering lifts the
+   layers up the screen (they rise towards the viewer, which is up the screen at this tilt), so
+   the bob runs from the box to 8 units above it: the paused window, at the bottom of the swing,
+   is centred, and so is the whole swing, raised layers and all. */
 @keyframes bob {
-  from { transform: translateY(calc(7 * var(--u))) rotateX(55deg) rotateZ(-38deg); }
-  to   { transform: translateY(calc(-1 * var(--u))) rotateX(55deg) rotateZ(-38deg); }
+  from { transform: translateY(0) rotateX(55deg) rotateZ(-38deg); }
+  to   { transform: translateY(calc(-8 * var(--u))) rotateX(55deg) rotateZ(-38deg); }
 }`,
   },
 };
