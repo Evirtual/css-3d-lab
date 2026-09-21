@@ -497,8 +497,9 @@ ${lines(6, (i) => `<i style="--i:${i}"></i>`, '      ')}
     how: [
       'A single flat bar vanishes whenever you see it edge-on, so every bar is <b>two crossed planes</b>: the element and its <code>::after</code> turned <code>rotateX(90deg)</code> around the bar\'s own length.',
       'One bar rule, three directions: along X as it is, along Z with <code>rotateY(90deg)</code>, standing up with <code>rotateZ(90deg)</code>. <code>--x</code>, <code>--y</code>, <code>--z</code> (−1, 0 or 1) times the spacing place it.',
-      'The lattice is three horizontal layers (6 bars and 9 nodes each) plus 9 posts running through all of them. A layer moves to <code>translateY(y × 1.3 × u)</code>: the middle one has <code>y = 0</code>, so the same keyframes leave it in place.',
+      'The lattice is three horizontal layers (6 bars and 9 nodes each) plus 9 posts running through all of them. A layer moves to <code>translateY(y × 1.3 × step)</code>: the middle one has <code>y = 0</code>, so the same keyframes leave it in place.',
       'The posts wrapper does <code>scaleY(1.3)</code> on the same beat, so the posts stretch by exactly what the layers move and no joint ever opens.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the lattice is the same share of a gallery card, the editor and a recording canvas. The spacing, <code>--step</code>, is 50 of those units, and the lattice is sized for its fullest breath.',
       'Nodes are round glows that turn back against the spin (<code>rotateY(-360deg)</code>, same timing), so they always face you.',
     ],
     html: `<div class="scene">
@@ -510,11 +511,14 @@ ${SPOTS.map((s) => `      <i style="--x:${s.x}; --z:${s.z}"></i>`).join('\n')}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the lattice is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.3vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .lattice {
-  --u: 50px; /* spacing */
+  --step: calc(50 * var(--u)); /* the spacing between nodes */
   position: relative;
   width: 0;
   height: 0;
@@ -529,7 +533,7 @@ ${SPOTS.map((s) => `      <i style="--x:${s.x}; --z:${s.z}"></i>`).join('\n')}
 }
 
 .layer {
-  transform: translateY(calc(var(--y) * var(--u)));
+  transform: translateY(calc(var(--y) * var(--step)));
   animation: breathe 2.4s ease-in-out infinite alternate;
 }
 
@@ -540,13 +544,13 @@ ${SPOTS.map((s) => `      <i style="--x:${s.x}; --z:${s.z}"></i>`).join('\n')}
 /* a bar along X, two crossed planes */
 .lattice i {
   position: absolute;
-  top: -1px;
-  left: calc(var(--u) * -1);
-  width: calc(var(--u) * 2);
-  height: 2px;
+  top: calc(-1 * var(--u));
+  left: calc(var(--step) * -1);
+  width: calc(var(--step) * 2);
+  height: calc(2 * var(--u));
   transform-style: preserve-3d;
   background: linear-gradient(90deg, ${TEAL}, rgb(139 108 255 / 0.85) 30% 70%, ${TEAL});
-  transform: translateZ(calc(var(--z) * var(--u)));
+  transform: translateZ(calc(var(--z) * var(--step)));
 }
 
 .lattice i::after {
@@ -559,21 +563,21 @@ ${SPOTS.map((s) => `      <i style="--x:${s.x}; --z:${s.z}"></i>`).join('\n')}
 
 /* the same bar along Z */
 .lattice i.z {
-  transform: translateX(calc(var(--x) * var(--u))) rotateY(90deg);
+  transform: translateX(calc(var(--x) * var(--step))) rotateY(90deg);
 }
 
 /* and standing up */
 .posts i {
-  transform: translateX(calc(var(--x) * var(--u))) translateZ(calc(var(--z) * var(--u))) rotateZ(90deg);
+  transform: translateX(calc(var(--x) * var(--step))) translateZ(calc(var(--z) * var(--step))) rotateZ(90deg);
 }
 
 .lattice b {
   --glow: 46 230 214;
   position: absolute;
-  top: -6px;
-  left: -6px;
-  width: 12px;
-  height: 12px;
+  top: calc(-6 * var(--u));
+  left: calc(-6 * var(--u));
+  width: calc(12 * var(--u));
+  height: calc(12 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle, color-mix(in srgb, rgb(var(--glow)) 25%, #fff) 0 22%, rgb(var(--glow)) 42%, rgb(var(--glow) / 0) 72%);
   animation: face-you 18s linear infinite;
@@ -589,17 +593,17 @@ ${SPOTS.map((s) => `      <i style="--x:${s.x}; --z:${s.z}"></i>`).join('\n')}
 
 /* y = 0 for the middle layer, so it stays put */
 @keyframes breathe {
-  to { transform: translateY(calc(var(--y) * var(--u) * 1.3)); }
+  to { transform: translateY(calc(var(--y) * var(--step) * 1.3)); }
 }
 
-/* (u + 0.3u) / u: exactly what the outer layers moved */
+/* (step + 0.3 step) / step: exactly what the outer layers moved */
 @keyframes stretch {
   to { transform: scaleY(1.3); }
 }
 
 @keyframes face-you {
-  from { transform: translate3d(calc(var(--x) * var(--u)), 0, calc(var(--z) * var(--u))) rotateY(0deg); }
-  to   { transform: translate3d(calc(var(--x) * var(--u)), 0, calc(var(--z) * var(--u))) rotateY(-360deg); }
+  from { transform: translate3d(calc(var(--x) * var(--step)), 0, calc(var(--z) * var(--step))) rotateY(0deg); }
+  to   { transform: translate3d(calc(var(--x) * var(--step)), 0, calc(var(--z) * var(--step))) rotateY(-360deg); }
 }`,
   },
 
