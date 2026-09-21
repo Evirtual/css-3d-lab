@@ -235,6 +235,7 @@ ${key('3D', true)}
       'The face that is about to come into view is <code>faces[step mod 4]</code>. JS writes the new number there just before changing <code>--a</code>, and keeps the faces above and below holding the true neighbours, so every turn reveals the right number.',
       'The CSS <code>transition</code> with a little overshoot does the rolling; JS only supplies the angle and the text.',
       'At a limit the button stays focusable (<code>aria-disabled</code>, not <code>disabled</code>, so focus never vanishes) and a short nudge animation on a wrapper says “no further”. The <code>&lt;output&gt;</code> above the buttons announces the quantity.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the stepper is the same share of a gallery card, the editor and a recording canvas. JS writes only an angle and a text, never a length. The buttons are part of the model, so there is no separate control row.',
     ],
     html: `<div class="stepper">
   <div class="view">
@@ -251,11 +252,14 @@ ${key('3D', true)}
   </div>
 </div>`,
     css: `.stepper {
+  /* one base unit: every length below is a multiple of it, so the stepper is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.32vmin;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  width: 340px;
-  height: 260px;
-  padding: 10px 14px 14px;
+  width: calc(340 * var(--u));
+  height: calc(260 * var(--u));
+  padding: calc(10 * var(--u)) calc(14 * var(--u)) calc(14 * var(--u));
   box-sizing: border-box;
 }
 
@@ -263,17 +267,17 @@ ${key('3D', true)}
   position: relative;
   display: grid;
   place-items: center;
-  perspective: 600px;
+  perspective: calc(600 * var(--u));
 }
 
 /* a soft shadow on the floor */
 .view::before {
   content: '';
   position: absolute;
-  bottom: calc(50% - 74px);
-  left: calc(50% - 62px);
-  width: 124px;
-  height: 20px;
+  bottom: calc(50% - 74 * var(--u));
+  left: calc(50% - 62 * var(--u));
+  width: calc(124 * var(--u));
+  height: calc(20 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
 }
@@ -294,7 +298,7 @@ ${key('3D', true)}
 }
 
 .cube {
-  --s: 94px;
+  --s: calc(94 * var(--u));
   position: relative;
   width: var(--s);
   height: var(--s);
@@ -309,7 +313,7 @@ ${key('3D', true)}
 .cube b {
   position: absolute;
   inset: 0;
-  border-radius: 14px;
+  border-radius: calc(14 * var(--u));
   transform-style: preserve-3d;
 }
 
@@ -317,19 +321,19 @@ ${key('3D', true)}
 .cube i {
   display: grid;
   place-items: center;
-  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1px line
+  /* an inner line plus a soft shade instead of a hard border: squeezed side-on, a 1 units line
      breaks up, the shade survives */
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #8b6cff, #fff 35%),
-    inset 0 0 8px color-mix(in srgb, color-mix(in srgb, #8b6cff, #fff 35%) 35%, transparent);
+    inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, #8b6cff, #fff 35%),
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, color-mix(in srgb, #8b6cff, #fff 35%) 35%, transparent);
   background:
     linear-gradient(150deg, rgb(255 255 255 / 0.28), transparent 45%),
     linear-gradient(color-mix(in srgb, #8b6cff, #ff4d9d 25%), color-mix(in srgb, #8b6cff, #000 25%));
   color: #fff;
-  font: 900 50px/1 system-ui, sans-serif;
+  font: 900 calc(50 * var(--u))/1 system-ui, sans-serif;
   font-style: normal;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 3px 0 color-mix(in srgb, #8b6cff, #000 45%);
+  text-shadow: 0 calc(3 * var(--u)) 0 color-mix(in srgb, #8b6cff, #000 45%);
   backface-visibility: hidden; /* never show a number mirrored through the cube */
 }
 
@@ -341,8 +345,8 @@ ${key('3D', true)}
 /* the two ends */
 .cube b {
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #8b6cff, #fff 15%),
-    inset 0 0 8px color-mix(in srgb, color-mix(in srgb, #8b6cff, #fff 15%) 35%, transparent);
+    inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, #8b6cff, #fff 15%),
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, color-mix(in srgb, #8b6cff, #fff 15%) 35%, transparent);
   background:
     radial-gradient(circle, transparent 0 30%, rgb(0 0 0 / 0.18) 31% 34%, transparent 35%),
     color-mix(in srgb, #8b6cff, #000 38%);
@@ -356,19 +360,19 @@ ${key('3D', true)}
 .cube b::before {
   content: '';
   position: absolute;
-  /* 1px short of the edge: full size, it would touch the next face and show there as a dotted
+  /* 1 units short of the edge: full size, it would touch the next face and show there as a dotted
      seam; much smaller leaves a channel along each edge you can see into */
-  inset: 1px;
+  inset: calc(1 * var(--u));
   background: color-mix(in srgb, #8b6cff, #000 45%);
-  transform: translateZ(-6px);
+  transform: translateZ(calc(-6 * var(--u)));
 }
 
 /* the dock: the status centred on top, the buttons under it */
 .bar {
   display: grid;
   justify-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: calc(6 * var(--u));
+  font-size: calc(12 * var(--u));
 }
 
 .bar output {
@@ -378,17 +382,17 @@ ${key('3D', true)}
 
 .buttons {
   display: flex;
-  gap: 10px;
-  padding: 4px;
-  border: 1px solid rgb(140 150 220 / 0.34);
-  border-radius: 999px;
+  gap: calc(10 * var(--u));
+  padding: calc(4 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(140 150 220 / 0.34);
+  border-radius: calc(999 * var(--u));
 }
 
 .buttons button {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -399,13 +403,13 @@ ${key('3D', true)}
 }
 
 .buttons svg {
-  width: 16px;
-  height: 16px;
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
 }
 
 .buttons button:focus-visible {
-  outline: 2px solid #2ee6d6;
-  outline-offset: 2px;
+  outline: calc(2 * var(--u)) solid #2ee6d6;
+  outline-offset: calc(2 * var(--u));
 }
 
 /* at a limit the button stays focusable, it only looks spent */
