@@ -341,8 +341,9 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
    *
    * The one thing the visitor may change is how big the model is in that canvas, and `--zoom`
    * says so: 1 is the 70vmin band the contract gives, and the preview (which runs the model in a
-   * frame of its own) zooms the scene by it. The export reads the zoom back out of the model's
-   * computed styles, so the file is what the frame showed.
+   * frame of its own) makes the scene that much bigger (a zoom) or smaller (a scale) about the
+   * canvas's middle. The export reads either back out of the model's computed styles, so the file
+   * is what the frame showed.
    */
   const fit = (): void => {
     const frame = el<HTMLElement>('[data-frame]');

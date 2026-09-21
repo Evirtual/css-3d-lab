@@ -87,12 +87,21 @@ export class Preview {
     // The frame fills the stage, so inside a model 1vmin is one hundredth of the canvas's short
     // side, and the model sizes and places itself from that. Nothing out here adjusts a model —
     // except when the visitor asks for it: the export dialog's Model size slider writes --zoom on
-    // the stage, and the scene is zoomed by it. Zoom, not scale, so the model is laid out and
-    // drawn at its new size and 3D layers stay sharp; and because a zoom is an ordinary computed
-    // style, a capture picks it up with everything else and the file matches the frame.
-    const zoom = stage?.style.getPropertyValue('--zoom').trim() ?? '';
+    // the stage, and the scene is made that much bigger or smaller about the canvas's middle.
+    //   Bigger is a zoom, so the model is laid out and drawn at its new size and 3D layers stay
+    // sharp. Smaller is a scale: the model keeps the layout it has untouched and is drawn smaller,
+    // so it is exactly that share of its untouched size. A zoom below 1 lays the model out again
+    // at the small size, and layout rounds every border up to a whole device pixel — switch's
+    // 1-unit rocker border, 0.27 px at 25% on a 16:9 canvas, becomes 1 px, and the rocker comes
+    // out at ×0.377 of its size instead of ×0.357.
+    //   Both are ordinary computed styles, so a capture picks them up with everything else and
+    // the file matches the frame.
+    const factor = Number.parseFloat(stage?.style.getPropertyValue('--zoom') ?? '');
+    const zoom = Number.isFinite(factor) && factor > 1 ? String(factor) : '';
+    const scale = Number.isFinite(factor) && factor > 0 && factor < 1 ? String(factor) : '';
     const scene = doc.getElementById('c3d-scene');
     if (scene && scene.style.zoom !== zoom) scene.style.zoom = zoom;
+    if (scene && scene.style.scale !== scale) scene.style.scale = scale;
     const theme = stage?.closest<HTMLElement>('[data-theme]')?.dataset.theme ?? this.theme;
     doc.body.style.color = theme === 'light' ? '#14172b' : '#eceefb';
     const paused = document.documentElement.hasAttribute('data-paused') || Boolean(wrap?.classList.contains('is-frozen')) || Boolean(stage?.closest('.is-offscreen'));
