@@ -36,12 +36,14 @@ $drop: 56px; // how high a block appears before it falls
     transform-style: preserve-3d;
     transform-origin: 50% 50% $s; // the middle of the two-block column
     animation: d-blockstack-leave $time linear infinite;
-    animation-delay: calc(var(--c) * #{$step} - #{$time * 0.32});
+    // 3s (60% of the loop) further on than it would start, like the blocks: see &__block
+    animation-delay: calc(var(--c) * #{$step} - #{$time * 0.92});
   }
 
   // A block carries the "arrive" animation: pop into the air, fall, bounce, sit, then vanish once
   // its column has flown off. --i = 0…7 staggers it (bottom layer first, back corner first).
-  // Delays are shifted back by a whole loop so every block is already mid-cycle on load.
+  // Delays are shifted back by 60% of the loop (3s): on load the cube is built and has not begun
+  // to come apart, so a paused stack looks finished, and every block is already mid-cycle.
   &__block {
     --z: calc(var(--l) * #{$s}); // resting height: bottom layer 0, top layer one block up
     --c1: var(--accent);
@@ -50,7 +52,7 @@ $drop: 56px; // how high a block appears before it falls
     transform-style: preserve-3d;
     transform-origin: 50% 50% ($s * 0.5);
     animation: d-blockstack-arrive $time linear infinite;
-    animation-delay: calc(var(--i) * #{$step} - #{$time});
+    animation-delay: calc(var(--i) * #{$step} - #{$time * 0.6});
 
     &:nth-child(2) {
       --c1: var(--accent-2);

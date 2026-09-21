@@ -804,7 +804,8 @@ ${Array.from(
   transform-style: preserve-3d;
   transform-origin: 50% 50% calc(34 * var(--u)); /* the middle of the two-block column */
   animation: stack-leave 5s linear infinite;
-  animation-delay: calc(var(--c) * 0.275s - 1.6s);
+  /* 3s further on than the blocks' own start, like them (see .block) */
+  animation-delay: calc(var(--c) * 0.275s - 4.6s);
 }
 
 /* a block: pops up in the air, falls, bounces, sits; bottom layer first */
@@ -816,8 +817,9 @@ ${Array.from(
   transform-style: preserve-3d;
   transform-origin: 50% 50% calc(17 * var(--u));
   animation: stack-arrive 5s linear infinite;
-  /* minus one loop: every block is already mid-cycle on load */
-  animation-delay: calc(var(--i) * 0.275s - 5s);
+  /* 3s into the loop on load: the cube is built and has not begun to come apart, so the stack
+     looks finished when it is paused, and every block is already mid-cycle */
+  animation-delay: calc(var(--i) * 0.275s - 3s);
 }
 
 .block:nth-child(2) { --color: #2ee6d6; }
