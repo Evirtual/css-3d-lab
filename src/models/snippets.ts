@@ -336,6 +336,7 @@ ${CUBE_FACES}
       'Each nested panel is positioned at <code>left: 100%</code> with <code>transform-origin: left</code> — a hinge on the parent’s right edge.',
       'Every level needs <code>transform-style: preserve-3d</code>, or the chain flattens at that level.',
       'Alternate the fold direction (+150° / −150°) for a zig-zag.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the map is four panels of 60 × 170 units, so it is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
   <div class="map">
@@ -349,27 +350,35 @@ ${CUBE_FACES}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 900px;
+  /* one base unit: every length below is a multiple of it, so the map is the same share of a
+     gallery card, the editor, a full screen and a recording canvas */
+  --u: 0.32vmin;
+  display: grid;
+  place-items: center;
+  perspective: calc(900 * var(--u));
 }
 
 .map {
-  width: 240px;          /* 4 panels × 60px */
-  height: 140px;
+  width: calc(240 * var(--u));          /* 4 panels × 60 units */
+  height: calc(170 * var(--u));
   transform-style: preserve-3d;
+  /* the panels swing toward you as they fold, which reaches further down than up, so the map
+     sits a little above the middle and the whole fold is what ends up centred */
+  translate: 0 calc(-24 * var(--u));
   transform: rotateX(28deg) rotateY(-8deg);
 }
 
 .panel {
-  width: 60px;
+  width: calc(60 * var(--u));
   height: 100%;
   transform-style: preserve-3d;
   background: linear-gradient(90deg, #2ee6d6, #157a72);
-  border: 1px solid rgb(255 255 255 / 0.25);
+  border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.25);
 }
 
 .panel .panel {
   position: absolute;
-  top: -1px;
+  top: calc(-1 * var(--u));
   left: 100%;
   transform-origin: left center;
   animation: fold-back 3.4s ease-in-out infinite alternate;
