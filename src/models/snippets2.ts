@@ -216,7 +216,8 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
 
   coin: {
     how: [
-      'Front and back are two discs pushed apart with <code>translateZ(±5px)</code>; the back one is pre-flipped with <code>rotateY(180deg)</code>.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the coin is the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
+      'Front and back are two discs pushed apart with <code>translateZ(±5)</code>; the back one is pre-flipped with <code>rotateY(180deg)</code>.',
       '<code>backface-visibility: hidden</code> stops you seeing the front face through the back.',
       'A flat disc has no edge, so seven plain discs are stacked between the faces. Edge-on, they merge into a solid rim.',
       'Spin the parent. That is all.',
@@ -229,13 +230,16 @@ ${lines(7, (i) => `<i style="--i:${i}"></i>`)}
   </div>
 </div>`,
     css: `.scene {
-  perspective: 800px;
+  /* one base unit: every length below is a multiple of it, so the coin is the same share of a
+     card, the editor, a full screen and a recording canvas */
+  --u: 0.33vmin;
+  perspective: calc(800 * var(--u));
 }
 
 .coin {
   position: relative;
-  width: 150px;
-  height: 150px;
+  width: calc(150 * var(--u));
+  height: calc(150 * var(--u));
   transform-style: preserve-3d;
   animation: coin-spin 4s linear infinite;
 }
@@ -247,25 +251,25 @@ ${lines(7, (i) => `<i style="--i:${i}"></i>`)}
   border-radius: 50%;
 }
 
-/* the rim: 7 discs spread from -4.2px to +4.2px */
+/* the rim: 7 discs spread from -4.2 to +4.2 */
 .coin i {
   background: #a8741a;
-  transform: translateZ(calc((var(--i) - 3) * 1.4px));
+  transform: translateZ(calc((var(--i) - 3) * 1.4 * var(--u)));
 }
 
 .coin b {
   display: grid;
   place-items: center;
-  border: 6px solid #e2a93b;
+  border: calc(6 * var(--u)) solid #e2a93b;
   background: radial-gradient(circle at 35% 30%, #fff1b8, #f1b93d 55%, #c98a1b);
   color: #8a5a0c;
-  font: 900 4.5rem system-ui;
+  font: 900 calc(72 * var(--u)) system-ui;
   backface-visibility: hidden;
-  transform: translateZ(5px);
+  transform: translateZ(calc(5 * var(--u)));
 }
 
 .coin b:last-child {
-  transform: rotateY(180deg) translateZ(5px);
+  transform: rotateY(180deg) translateZ(calc(5 * var(--u)));
 }
 
 @keyframes coin-spin {
