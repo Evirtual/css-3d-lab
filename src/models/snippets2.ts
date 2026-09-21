@@ -781,6 +781,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
       'Animate <code>rotateX</code> from −32° to +32° with <code>animation-direction: alternate</code>.',
       '<code>ease-in-out</code> is what makes it physical — slow at the ends of the swing, fast through the middle.',
       'A constant <code>rotateY</code> in both keyframes turns the sign slightly so you can see the swing.',
+      'A delay of minus half a swing (<code>-1.1s</code>) starts the loop with the sign hanging straight down, so a paused sign hangs at rest in the middle of the frame instead of held up at one end of its swing.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the sign is 220 × 190 units, so it is the same share of a gallery card, the editor and a recording canvas, and its swing toward you still stays inside the frame.',
     ],
     html: `<div class="scene">
@@ -802,7 +803,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   width: calc(220 * var(--u));
   height: calc(190 * var(--u));
   transform-origin: top center;
-  animation: swing 2.2s ease-in-out infinite alternate;
+  animation: swing 2.2s ease-in-out -1.1s infinite alternate;
 }
 
 /* rail + two cords */
