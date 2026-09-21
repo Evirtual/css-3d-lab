@@ -263,9 +263,12 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
   </div>
 </div>`,
   css: `.chart {
+  /* one base unit: every length below is a multiple of it, so the chart is the same share
+     of a card, the editor, a full screen and a recording canvas */
+  --u: 0.26vmin;
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: calc(10 * var(--u));
   font-family: system-ui, sans-serif;
 }
 
@@ -274,17 +277,18 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 }
 
 .scene {
-  perspective: 800px;
-  padding: 44px 50px 36px;
+  perspective: calc(800 * var(--u));
+  /* the price labels sit off the right edge, so the room for them is on the right */
+  padding: calc(44 * var(--u)) calc(88 * var(--u)) calc(36 * var(--u)) calc(50 * var(--u));
   pointer-events: none; /* the chart is turned: only the candles' columns take the pointer */
 }
 
 .candles3d {
   --n: 12; /* days shown; JS sets it */
-  --slot: calc(180px / var(--n)); /* each day's column */
+  --slot: calc(calc(180 * var(--u)) / var(--n)); /* each day's column */
   position: relative;
-  width: 180px;
-  height: 100px; /* the price scale */
+  width: calc(180 * var(--u));
+  height: calc(100 * var(--u)); /* the price scale */
   transform-style: preserve-3d;
   transform: rotateX(-18deg) rotateY(-26deg);
 }
@@ -292,44 +296,44 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 /* the floor: a neon grid laid flat under the candles */
 .floor {
   position: absolute;
-  left: -10px;
-  top: 85px;
-  width: 200px;
-  height: 30px;
-  border: 1px solid rgb(139 108 255 / 0.45);
-  border-radius: 6px;
+  left: -calc(10 * var(--u));
+  top: calc(85 * var(--u));
+  width: calc(200 * var(--u));
+  height: calc(30 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.45);
+  border-radius: calc(6 * var(--u));
   background:
-    repeating-linear-gradient(90deg, rgb(139 108 255 / 0.22) 0 1px, transparent 1px 15px),
-    repeating-linear-gradient(rgb(139 108 255 / 0.22) 0 1px, transparent 1px 15px),
+    repeating-linear-gradient(90deg, rgb(139 108 255 / 0.22) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(15 * var(--u))),
+    repeating-linear-gradient(rgb(139 108 255 / 0.22) 0 calc(1 * var(--u)), transparent calc(1 * var(--u)) calc(15 * var(--u))),
     rgb(139 108 255 / 0.09);
   transform: rotateX(90deg);
 }
 
 /* the price scale: lines at the bottom, middle and top, along the back of the floor; the numbers
-   at the right end, which reaches out past the last candle. The wall reaches 8px past the scale
+   at the right end, which reaches out past the last candle. The wall reaches calc(8 * var(--u)) past the scale
    at both ends (a label sticking out of a 3D-placed box gets its top half cut), so its lines
-   are 1px gradients at 8px, 58px and 107px */
+   are calc(1 * var(--u)) gradients at calc(8 * var(--u)), calc(58 * var(--u)) and calc(107 * var(--u)) */
 .wall {
   --line: rgb(236 238 251 / 0.24);
   position: absolute;
-  top: -8px;
-  left: -10px;
-  width: 200px;
-  height: 116px;
+  top: -calc(8 * var(--u));
+  left: -calc(10 * var(--u));
+  width: calc(200 * var(--u));
+  height: calc(116 * var(--u));
   background:
-    linear-gradient(var(--line), var(--line)) 0 8px / 100% 1px no-repeat,
-    linear-gradient(var(--line), var(--line)) 0 58px / 100% 1px no-repeat,
-    linear-gradient(var(--line), var(--line)) 0 107px / 100% 1px no-repeat;
-  transform: translateZ(-15px);
+    linear-gradient(var(--line), var(--line)) 0 calc(8 * var(--u)) / 100% calc(1 * var(--u)) no-repeat,
+    linear-gradient(var(--line), var(--line)) 0 calc(58 * var(--u)) / 100% calc(1 * var(--u)) no-repeat,
+    linear-gradient(var(--line), var(--line)) 0 calc(107 * var(--u)) / 100% calc(1 * var(--u)) no-repeat;
+  transform: translateZ(-calc(15 * var(--u)));
 }
 
 .wall span {
   position: absolute;
-  bottom: calc(8px + var(--t) * 100px);
+  bottom: calc(calc(8 * var(--u)) + var(--t) * calc(100 * var(--u)));
   left: 100%;
-  padding-left: 6px;
+  padding-left: calc(6 * var(--u));
   color: ${MUTED};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(9 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   transform: translateY(50%);
 }
@@ -337,11 +341,11 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 /* the first and last day shown, at the front edge of the floor */
 .date {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + calc(6 * var(--u)));
   left: 0;
   color: ${MUTED};
-  font: 700 9px/12px system-ui, sans-serif;
-  transform: translateZ(15px);
+  font: 700 calc(9 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
+  transform: translateZ(calc(15 * var(--u)));
 }
 
 .date:last-of-type {
@@ -398,11 +402,11 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 
 /* the wick: low → high, and a second line crossed at 90° so it has depth */
 .wick {
-  width: 2px;
-  margin-left: -1px;
+  width: calc(2 * var(--u));
+  margin-left: -calc(1 * var(--u));
   background: var(--tone);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--tone) 70%, transparent);
-  transform: translateY(calc(var(--lo) * -100px)) scaleY(calc(var(--hi) - var(--lo)));
+  box-shadow: 0 0 calc(6 * var(--u)) color-mix(in srgb, var(--tone) 70%, transparent);
+  transform: translateY(calc(var(--lo) * -calc(100 * var(--u)))) scaleY(calc(var(--hi) - var(--lo)));
 }
 
 .wick::before {
@@ -414,24 +418,24 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 /* the body: open ↔ close, coloured glass (the wick shows through). The element is the front,
    pushed half its depth towards you */
 .body {
-  /* a fine edge: under 1px shows as a hairline on sharp screens */
-  --edge: 0.6px solid color-mix(in srgb, color-mix(in srgb, var(--tone) 80%, #fff) 75%, transparent);
-  width: 9px;
-  margin-left: -4.5px;
+  /* a fine edge: under calc(1 * var(--u)) shows as a hairline on sharp screens */
+  --edge: calc(0.6 * var(--u)) solid color-mix(in srgb, color-mix(in srgb, var(--tone) 80%, #fff) 75%, transparent);
+  width: calc(9 * var(--u));
+  margin-left: -calc(4.5 * var(--u));
   border: var(--edge);
   background: color-mix(in srgb, var(--tone) 58%, transparent);
   box-shadow:
-    inset 0 0 8px color-mix(in srgb, var(--tone) 30%, transparent),
-    0 0 10px color-mix(in srgb, var(--tone) 22%, transparent);
-  transform: translateY(calc(var(--b) * -100px)) scaleY(var(--bh)) translateZ(4.5px);
+    inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--tone) 30%, transparent),
+    0 0 calc(10 * var(--u)) color-mix(in srgb, var(--tone) 22%, transparent);
+  transform: translateY(calc(var(--b) * -calc(100 * var(--u)))) scaleY(var(--bh)) translateZ(calc(4.5 * var(--u)));
 }
 
 /* right side, darker: hinged on the front's right edge, turned back */
 .body::before {
-  top: -0.6px;
+  top: -calc(0.6 * var(--u));
   left: 100%;
-  width: 9px;
-  height: calc(100% + 1.2px);
+  width: calc(9 * var(--u));
+  height: calc(100% + calc(1.2 * var(--u)));
   border: var(--edge);
   background: color-mix(in srgb, color-mix(in srgb, var(--tone) 55%, #05060c) 64%, transparent);
   transform-origin: left center;
@@ -440,10 +444,10 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 
 /* the lid: hinged on the front's top edge, laid flat; scaleY only carries it up */
 .body::after {
-  top: -0.6px;
-  left: -0.6px;
-  width: 9px;
-  height: 9px;
+  top: -calc(0.6 * var(--u));
+  left: -calc(0.6 * var(--u));
+  width: calc(9 * var(--u));
+  height: calc(9 * var(--u));
   border: var(--edge);
   background: color-mix(in srgb, var(--tone) 80%, transparent);
   transform-origin: center top;
@@ -457,15 +461,15 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
   position: absolute;
   top: 0;
   left: 50%;
-  width: 9px;
+  width: calc(9 * var(--u));
   height: 100%;
-  margin-left: -4.5px;
+  margin-left: -calc(4.5 * var(--u));
   background: color-mix(in srgb, var(--tone) 50%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--tone) 60%, transparent);
+  box-shadow: 0 0 calc(20 * var(--u)) color-mix(in srgb, var(--tone) 60%, transparent);
   opacity: 0;
   pointer-events: none;
   transform-origin: bottom center;
-  transform: translateY(calc(var(--b) * -100px)) scaleY(var(--bh)) translateZ(4.7px);
+  transform: translateY(calc(var(--b) * -calc(100 * var(--u)))) scaleY(var(--bh)) translateZ(calc(4.7 * var(--u)));
   transition:
     transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i) * 30ms),
     opacity 0.25s;
@@ -476,27 +480,27 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 }
 
 /* ONE tooltip for the chart: JS sets --tx / --ty (the candle's middle and its high, in px) and
-   it glides there. 40px towards you; --f (0 first day … 1 last) makes the ends hang inwards.
+   it glides there. calc(40 * var(--u)) towards you; --f (0 first day … 1 last) makes the ends hang inwards.
    Flat on purpose: its thickness is a hard edge up and to the right, where the depth runs. */
 .tip {
   --tone: ${TEAL};
   position: absolute;
   top: 0;
   left: 0;
-  padding: 3px 7px;
-  border: 1px solid var(--tone);
-  border-radius: 6px;
+  padding: calc(3 * var(--u)) calc(7 * var(--u));
+  border: calc(1 * var(--u)) solid var(--tone);
+  border-radius: calc(6 * var(--u));
   background: ${SURFACE};
   box-shadow:
-    3px -3px 0 color-mix(in srgb, var(--tone) 55%, #05060c),
-    0 0 14px color-mix(in srgb, var(--tone) 40%, transparent);
+    calc(3 * var(--u)) -calc(3 * var(--u)) 0 color-mix(in srgb, var(--tone) 55%, #05060c),
+    0 0 calc(14 * var(--u)) color-mix(in srgb, var(--tone) 40%, transparent);
   color: ${TEXT};
-  font: 700 9px/12px system-ui, sans-serif;
+  font: 700 calc(9 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(var(--tx, 0px), calc(var(--ty, 0px) - 12px)) translate(calc(var(--f, 0) * -100%), -100%) translateZ(40px);
+  transform: translate(var(--tx, calc(0 * var(--u))), calc(var(--ty, calc(0 * var(--u))) - calc(12 * var(--u)))) translate(calc(var(--f, 0) * -100%), -100%) translateZ(calc(40 * var(--u)));
   transition:
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
@@ -512,7 +516,7 @@ ${RANGES.map((n) => `    <button type="button" data-days="${n}">${n}D</button>`)
 
 output {
   color: ${MUTED};
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-variant-numeric: tabular-nums;
 }
 
@@ -521,36 +525,36 @@ output {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgb(140 150 220 / 0.34);
-  border-radius: 999px;
+  gap: calc(2 * var(--u));
+  padding: calc(3 * var(--u));
+  border: calc(1 * var(--u)) solid rgb(140 150 220 / 0.34);
+  border-radius: calc(999 * var(--u));
 }
 
 .seg::before {
   content: '';
   position: absolute;
-  top: 3px;
-  bottom: 3px;
-  left: 3px;
-  width: calc(50% - 4px);
-  border-radius: 999px;
+  top: calc(3 * var(--u));
+  bottom: calc(3 * var(--u));
+  left: calc(3 * var(--u));
+  width: calc(50% - calc(4 * var(--u)));
+  border-radius: calc(999 * var(--u));
   background: linear-gradient(135deg, ${VIOLET}, ${PINK});
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .seg:has(button:last-child[aria-pressed='true'])::before {
-  transform: translateX(calc(100% + 2px));
+  transform: translateX(calc(100% + calc(2 * var(--u))));
 }
 
 .seg button {
   position: relative; /* above the pill */
-  padding: 4px 16px;
+  padding: calc(4 * var(--u)) calc(16 * var(--u));
   border: 0;
-  border-radius: 999px;
+  border-radius: calc(999 * var(--u));
   background: transparent;
   color: ${MUTED};
-  font: 700 12px system-ui, sans-serif;
+  font: 700 calc(12 * var(--u)) system-ui, sans-serif;
   cursor: pointer;
 }
 
