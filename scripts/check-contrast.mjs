@@ -34,7 +34,10 @@
  * the glyphs of the one in front as its own. The pixels that change, inside a text's rects, are its glyphs; the strongest of
  * them (the tenth that change most) are the glyph cores, where a stroke covers its pixels whole. The text's colour is the mean of S1 over
  * the cores, and its background the mean of S0 over the same pixels: the actual pixels behind the
- * letters, the model's own panel, gradient, glow or 3D face included. A text whose glyphs change no
+ * letters, the model's own panel, gradient, glow or 3D face included. When the text's colour is a
+ * plain CSS colour with nothing on the way to change it (no filter or blend mode, no gradient fill),
+ * that colour, laid over the background at its alpha and every opacity above it, is its colour:
+ * exact where a thin stroke at 8px never covers a pixel whole. Otherwise the drawn cores decide. A text whose glyphs change no
  * pixel (behind something, clipped, off the canvas) is not shown, and is counted apart as not drawn.
  *
  * THE RULE. WCAG 2 AA: 4.5:1 for normal text, 3:1 for large text, which is at least 24 CSS px, or
@@ -127,6 +130,32 @@ const TEXTS = () => {
     const l = Math.max(0, r.left), t = Math.max(0, r.top), rr = Math.min(W, r.right), b = Math.min(H, r.bottom);
     return rr - l >= 1 && b - t >= 1 ? [l, t, rr, b] : null;
   };
+  // The text's colour as CSS gives it, when that is the whole story: a plain colour (its alpha and
+  // every opacity up to the scene taken as a share over what is behind), no filter or blend mode on
+  // the way, no gradient fill. Then it is exact even where a thin stroke never covers a pixel whole.
+  // Otherwise (gradient text, a filter) the pixels are the only truth, and css is null.
+  const parse = (c) => {
+    let m = /^rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)$/.exec(c);
+    if (m) return [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]];
+    m = /^color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)(?: \/ ([\d.]+))?\)$/.exec(c);
+    if (m) return [m[1] * 255, m[2] * 255, m[3] * 255, m[4] == null ? 1 : +m[4]];
+    return null;
+  };
+  const cssColour = (el, pseudo) => {
+    const cs = getComputedStyle(el, pseudo || null);
+    if (/text/.test(cs.backgroundClip) || /text/.test(cs.webkitBackgroundClip ?? '')) return null;
+    const fill = el instanceof SVGElement ? cs.fill : cs.webkitTextFillColor || cs.color;
+    const c = parse(fill);
+    if (!c) return null;
+    let alpha = c[3];
+    for (let e = el; e && e !== scene.parentElement; e = e.parentElement) {
+      const s = getComputedStyle(e);
+      if (s.filter !== 'none' || s.mixBlendMode !== 'normal') return null;
+      alpha *= +s.opacity;
+    }
+    if (pseudo) alpha *= +cs.opacity;
+    return [c[0], c[1], c[2], alpha];
+  };
   const name = (el) => el.tagName.toLowerCase() + (el.classList.length ? '.' + [...el.classList].join('.') : '');
   const scene = document.querySelector('#c3d-scene') ?? document.body;
   document.querySelectorAll('[data-c3d-t]').forEach((e) => e.removeAttribute('data-c3d-t'));
@@ -141,7 +170,7 @@ const TEXTS = () => {
     const rects = [...range.getClientRects()].map(clip).filter(Boolean);
     if (!rects.length) continue;
     const cs = getComputedStyle(el);
-    out.push({ tag: tag(el), pseudo: '', text: text.slice(0, 40), where: name(el), rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: el instanceof SVGElement });
+    out.push({ tag: tag(el), pseudo: '', css: cssColour(el, ''), text: text.slice(0, 40), where: name(el), rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: el instanceof SVGElement });
   }
   for (const el of scene.querySelectorAll('*')) {
     for (const pseudo of ['::before', '::after']) {
@@ -150,7 +179,7 @@ const TEXTS = () => {
       if (!m || !letters.test(m[1]) || !shows(el) || cs.display === 'none' || +cs.opacity === 0 || cs.visibility === 'hidden') continue;
       const rects = [el.getBoundingClientRect()].map(clip).filter(Boolean);
       if (!rects.length) continue;
-      out.push({ tag: tag(el), pseudo, text: m[1].slice(0, 40), where: `${name(el)}${pseudo}`, rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: false });
+      out.push({ tag: tag(el), pseudo, css: cssColour(el, pseudo), text: m[1].slice(0, 40), where: `${name(el)}${pseudo}`, rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: false });
     }
   }
   return out;
@@ -204,12 +233,16 @@ function measure(texts, withText, without) {
         }
       }
     }
-    if (cells.length < 3) return { ...t, drawn: false };
+    // too few glyph pixels to be read (a copy of a word clipped to a sliver, a fold's hidden third):
+    // not drawn, rather than judged on the colours of its antialiased edge
+    if (cells.length < Math.max(3, (t.size * DPR) / 2)) return { ...t, drawn: false };
     cells.sort((a, b) => b[0] - a[0]);
     const core = cells.slice(0, Math.max(3, Math.ceil(cells.length / 10)));
     const fg = [0, 0, 0], bg = [0, 0, 0];
     for (const [, i] of core) for (let c = 0; c < 3; c++) { fg[c] += withText.rgba[i * 4 + c]; bg[c] += without.rgba[i * 4 + c]; }
     for (let c = 0; c < 3; c++) { fg[c] /= core.length; bg[c] /= core.length; }
+    // a plain CSS colour is exact: laid over what is behind the cores at its alpha and opacities
+    if (t.css) for (let c = 0; c < 3; c++) fg[c] = t.css[c] * t.css[3] + bg[c] * (1 - t.css[3]);
     const large = t.size >= 24 || (t.weight >= 700 && t.size >= 18.66);
     return { ...t, drawn: true, fg, bg, ratio: ratio(fg, bg), need: large ? LARGE : NORMAL, large };
   });
