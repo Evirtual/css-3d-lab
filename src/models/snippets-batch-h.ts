@@ -731,7 +731,9 @@ label:hover .lift {
   display: grid;
   justify-items: center;
   gap: calc(18 * var(--u));
-  padding: calc(18 * var(--u)) calc(10 * var(--u));
+  /* more room above than below: the cube stands up out of the track, so this is what centres
+     the drawn stack, cube, track and caption together, rather than the label's box */
+  padding: calc(25 * var(--u)) calc(10 * var(--u)) calc(11 * var(--u));
   /* no colour of its own: the label is written on the stage, so it takes the stage's ink */
   font-size: calc(15 * var(--u));
   font-weight: 800;

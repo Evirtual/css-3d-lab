@@ -409,7 +409,7 @@ show('${YEARS[0]}');`,
       'A block is three surfaces. Each button is the <b>roof</b>, lifted by <code>translateZ(calc(var(--v) * 52 * var(--u)))</code>, and the <code>&lt;i&gt;</code> inside it is the roof\'s face; its <code>::before</code> and <code>::after</code> are the two walls you can see, hanging down from its edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>. Their height is the same <code>--v × 52</code> units.',
       'The colour follows the value too: <code>color-mix(in srgb, pink calc(var(--v) * 100%), teal)</code> runs from cold to hot with no colour scale in JS.',
       'Each block sits in a real <code>&lt;button&gt;</code>, so it can be tabbed to and tapped. The button is the lifted roof, not a tile on the floor: a tile on the floor would be hidden under the taller blocks in front of it, and could never be pointed at. The floor has <code>pointer-events: none</code>, so only the blocks are hit, and the view is tilted no steeper than <code>rotateX(48deg)</code> with blocks no taller than 52 units, so no block ever hides a whole roof behind it.',
-      'Every length is a multiple of one base unit, <code>--u</code>, so the grid is the same share of a gallery card, the editor and a recording canvas. The line under it that names the pointed-at block is in plain <code>vmin</code>: it is the caption of the same control zone every model has, and it keeps the zone\'s height whatever it says, so it cannot move the grid.',
+      'Every length is a multiple of one base unit, <code>--u</code>, so the grid is the same share of a gallery card, the editor and a recording canvas. The line under it that names the pointed-at block is in plain <code>vmin</code>: it is the caption of the same control zone every model has, one line whatever it says (it is never empty and never wraps), so it cannot move the grid.',
     ],
     html: `<div class="heat">
   <div class="view">
@@ -546,13 +546,13 @@ show('${YEARS[0]}');`,
   transition-duration: 0.12s; /* and comes on quickly */
 }
 
-/* the control zone: the same object, at the same size, in every model that has one. It holds
-   only the caption here and keeps the zone's full height, so a new line cannot move the grid. */
+/* the control zone: the same object in every model that has one, as tall as what it holds. It
+   holds only the caption here, one line that is never empty and never wraps, so a new line
+   cannot move the grid. */
 .controls {
   display: grid;
-  align-content: start;
   justify-items: center;
-  height: 16vmin;
+  gap: 2vmin;
   text-align: center;
 }
 

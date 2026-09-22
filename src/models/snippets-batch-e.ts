@@ -500,18 +500,18 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   background: radial-gradient(circle, #fffaf0 0 16%, rgb(255 181 71 / 0.55) 20%, transparent 68%);
 }
 
-/* the control zone, flat and outside the 3D world, where the band puts it in every model: its
-   top is 19vmin below the middle of the canvas, and it is a fixed height so the caption fading
-   out moves nothing */
+/* the control zone, flat and outside the 3D world, where the centred stack puts it in every
+   model: a caption alone is one 5.4vmin line, so the stack is 50 + 4 + 5.4vmin and the zone's
+   top is (50 + 4 - 5.4) / 2 = 24.3vmin below the middle of the canvas. The caption fades out
+   with opacity, so it moves nothing */
 .controls {
   position: absolute;
-  top: calc(50% + 19vmin);
+  top: calc(50% + 24.3vmin);
   left: 0;
   right: 0;
-  height: 16vmin;
   display: grid;
-  align-content: start;
   justify-items: center;
+  gap: 2vmin;
   text-align: center;
   pointer-events: none;
 }
