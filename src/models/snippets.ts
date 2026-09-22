@@ -871,6 +871,7 @@ ${CUBE_FACES}`,
       'Hinge it on the horizon (<code>transform-origin: top</code>) and lay it down with <code>rotateX(80deg)</code>. A short <code>perspective</code> on the parent exaggerates the depth.',
       'Motion is a child layer sliding by <b>exactly one cell</b> with <code>transform</code>, so the loop is seamless. (Animating <code>background-position</code> looks the same but repaints every frame; transform does not.)',
       'A <code>mask</code> gradient fades the lines out toward the horizon.',
+      'The sun stands on the horizon (<code>bottom: 50%</code>, the horizon\'s own 50%) and is only the part above it. Its circle is a <code>clip-path</code> and its slices a <code>mask</code>, both on the sun itself, so the slices stay inside the outline on every canvas.',
       'The scene is <code>inset: 0</code>, so it fills the canvas edge to edge whatever its shape. The sun, the cell and the perspective are multiples of one base unit, <code>--u</code>, tied to the canvas, so the horizon looks the same on a gallery card and on a full screen.',
     ],
     html: `<div class="retro">
@@ -888,18 +889,21 @@ ${CUBE_FACES}`,
   background: linear-gradient(#12062e 0%, #3b0f5c 38%, #ff4d9d 50%, #0a0618 50.5%);
 }
 
+/* the sun stands ON the horizon (bottom: 50%, the same 50% as the horizon line) and is only the
+   part above it: a 160-unit circle sunk 40 units, so nothing of it can reach the floor */
 .sun {
   position: absolute;
-  top: 14%;
+  bottom: 50%;
   left: 50%;
   width: calc(160 * var(--u));
-  height: calc(160 * var(--u));
+  height: calc(120 * var(--u));
   translate: -50% 0;
-  border-radius: 50%;
-  background: linear-gradient(#ffd34d, #ff4d9d 70%);
-  mask: linear-gradient(#000 55%, transparent 55% 60%, #000 60% 70%,
-        transparent 70% 77%, #000 77% 85%, transparent 85%);
-  box-shadow: 0 0 calc(60 * var(--u)) #ff4d9d;
+  background: linear-gradient(#ffd34d, #ff4d9d 93%);
+  /* the circle is a clip and the slices a mask, both on the sun itself, so the slices scale
+     with it and stay inside the outline on every canvas; their gaps grow toward the horizon */
+  clip-path: circle(calc(80 * var(--u)) at 50% calc(80 * var(--u)));
+  mask: linear-gradient(#000 50%, transparent 50% 52%, #000 52% 63%, transparent 63% 67%,
+        #000 67% 76%, transparent 76% 82%, #000 82% 89%, transparent 89% 97%, #000 97%);
 }
 
 .floor {
