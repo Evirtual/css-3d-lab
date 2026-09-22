@@ -645,6 +645,8 @@ table.mini code { font-size: 12px; }
 @keyframes ckrun { to { background-position: 17px 0; } }
 @media (prefers-reduced-motion: reduce) { .ckbars .bdbar.is-running { animation: none; } }
 .defs dt:target, .defs dt.is-lit { color: var(--accent-2); }
+.ovsub--run { margin-top: 14px; }
+#runnow:not(:empty) { margin-bottom: 14px; }
 </style>
 </head>
 <body>
@@ -677,11 +679,12 @@ table.mini code { font-size: 12px; }
     <p class="tally" id="balance" role="status"></p>
     <!-- the four stages are tabs: exactly one is selected, and its panel is right under them -->
     <div class="flowwrap" id="stats"></div>
+    <!-- what is running now: first thing under the stages, where it is seen -->
+    <div class="ovsub ovsub--run"><h3 id="run-h">Running now</h3><p id="run-note"></p></div>
+    <div id="runnow"></div>
     <div id="ov-stage" class="stagebox" role="tabpanel" tabindex="0"></div>
     <!-- what applies to every stage, always shown -->
     <div id="checkbars"></div>
-    <div class="ovsub"><h3 id="run-h">Running now</h3><p id="run-note"></p></div>
-    <div id="runnow"></div>
     <div class="ckbars ckbars--site" id="sitebars"></div>
   </section>
 
