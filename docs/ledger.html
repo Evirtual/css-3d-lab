@@ -148,20 +148,32 @@ button, input { font: inherit; color: inherit; }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-top: 18px; box-shadow: var(--shadow); }
 .panel > h2 + p, .panel > .head + p { margin-top: 4px; }
 .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+.head__acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 13px; }
 
 .notice { border: 1px solid color-mix(in srgb, var(--warm) 45%, transparent); background: color-mix(in srgb, var(--warm) 11%, var(--surface-solid)); border-radius: 12px; padding: 9px 14px; margin-top: 10px; font-size: 14px; }
 .notice.bad { border-color: color-mix(in srgb, var(--hot) 55%, transparent); background: color-mix(in srgb, var(--hot) 13%, var(--surface-solid)); }
 .notice.info { border-color: var(--border); background: var(--surface); color: var(--muted); }
 .notice b.big { display: block; font-size: 15px; color: var(--text); }
 
-/* summary cards, like the hero stats */
-/* the same gradient as the legend swatch, spread over the digits themselves: as a block it spans the
-   whole card, and a short number at its left edge only ever shows the violet end */
+:root { --never: color-mix(in srgb, var(--muted) 62%, var(--surface-solid)); --track: color-mix(in srgb, var(--muted) 12%, transparent); }
+/* what each reason a check is not cleared reads as, in bars, swatches and marks alike. "Didn't run"
+   is hatched: the test crashed, so it is a gap in the evidence, not a verdict on the model */
+:root {
+  --k-pass: var(--st-chk);
+  --k-stale: color-mix(in srgb, var(--warm) 45%, var(--surface-solid));
+  --k-flag: var(--warm);
+  --k-fail: var(--hot);
+  --k-broke: repeating-linear-gradient(135deg, var(--accent) 0 3px, color-mix(in srgb, var(--accent) 30%, transparent) 3px 6px);
+  --k-never: var(--never);
+}
 /* ---------- the four buckets as one arrow, built like the site's models: a lit top face, a darker side ---------- */
 .flowwrap { --notch: 24px; --depth: 26px; margin-top: 14px; perspective: 2600px; perspective-origin: 50% 30%; }
 .flow { list-style: none; margin: 0; padding: 8px 4px calc(var(--depth) + 14px); display: flex; transform-style: preserve-3d; transform: rotateX(22deg); transform-origin: 50% 50%; }
 .flow__li { position: relative; flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1 + 8px); transform-style: preserve-3d; }
 .flow__li:first-child { margin-left: 0; }
+/* the tilted list is coplanar with a step that is not raised, and could win its hit test: only the steps take the pointer */
+.flow, .flow__li { pointer-events: none; }
+.step { pointer-events: auto; }
 .step { --c: var(--muted); position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; transform-style: preserve-3d; transition: transform 0.25s ease; }
 .step--2 { --c: var(--accent); }
 .step--3 { --c: var(--accent-2); }
@@ -190,9 +202,9 @@ button, input { font: inherit; color: inherit; }
 .step.has-work .step__top { background: color-mix(in srgb, var(--c) 30%, var(--surface-solid)); }
 .step--4.has-work .step__top { background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 45%, var(--surface-solid)), color-mix(in srgb, var(--hot) 45%, var(--surface-solid))); }
 .step:hover { transform: translateZ(18px); }
-.step[aria-pressed="true"] { transform: translateZ(22px); }
-.step[aria-pressed="true"] .step__top { box-shadow: inset 0 -4px 0 var(--c); }
-.step[aria-pressed="true"] .step__label { color: var(--text); }
+.step[aria-selected="true"] { transform: translateZ(22px); }
+.step[aria-selected="true"] .step__top { box-shadow: inset 0 -4px 0 var(--c); }
+.step[aria-selected="true"] .step__label { color: var(--text); }
 .step:focus-visible { outline: none; }
 .step:focus-visible .step__label { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 4px; }
 .flow__hint { margin: 0; font-size: 13px; }
@@ -205,7 +217,7 @@ button, input { font: inherit; color: inherit; }
   .flow { flex-direction: column; transform: none; padding: 0 0 6px; }
   .flow__li { margin: calc(var(--notch) * -1 + 4px) 0 0; }
   .flow__li:first-child { margin-top: 0; }
-  .step, .step.has-work, .step:hover, .step[aria-pressed="true"] { transform: none; }
+  .step, .step.has-work, .step:hover, .step[aria-selected="true"] { transform: none; }
   .step__body { height: 86px; }
   .step__top, .step--1 .step__top, .step--4 .step__top { clip-path: polygon(0 0, 50% var(--notch), 100% 0, 100% calc(100% - var(--notch)), 50% 100%, 0 calc(100% - var(--notch))); }
   .step--1 .step__top { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), 50% 100%, 0 calc(100% - var(--notch))); }
@@ -216,20 +228,81 @@ button, input { font: inherit; color: inherit; }
   .step__n { grid-column: 2; grid-row: 1 / span 2; font-size: 26px; }
   .step__sub { grid-column: 1; }
 }
-.bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 16px; background: color-mix(in srgb, var(--muted) 22%, transparent); }
-.bar span { display: block; height: 100%; }
-.stat__sum { margin: 0; font-size: 12px; font-weight: 600; color: var(--accent-2); font-variant-numeric: tabular-nums; }
-.stat__sum.is-plain { color: var(--muted); font-weight: 500; }
-.stat__sum.odd { color: var(--hot); }
-:root { --never: color-mix(in srgb, var(--muted) 62%, var(--surface-solid)); --track: color-mix(in srgb, var(--muted) 12%, transparent); }
-.bdhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px 16px; margin-bottom: 10px; }
-.bdhead__title { margin: 0; font-size: 15px; font-weight: 750; letter-spacing: -0.01em; text-transform: none; color: var(--text); }
-.bdhead__n { margin-left: 4px; font-variant-numeric: tabular-nums; color: var(--accent); }
-.bdhead__means { margin: 2px 0 0; font-size: 13px; max-width: 70ch; }
-.bdhead__acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-.bdhead__all { padding: 5px 12px; font-size: 12.5px; }
-.bdtoggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
-.bdtoggle input { accent-color: var(--accent); margin: 0; }
+/* ---------- the overview: one sentence, the stage strip, what holds the rest, what is running ---------- */
+.headline { margin: 10px 0 0; font-size: clamp(17px, 2.2vw, 21px); font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; max-width: 72ch; }
+.headline b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.pillbtn { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: none; color: var(--muted); font: 500 13px/1.4 var(--font); cursor: pointer; transition: border-color 0.2s; }
+.pillbtn b { color: var(--text); font-variant-numeric: tabular-nums; }
+.pillbtn:hover { border-color: var(--accent); }
+.pillbtn[aria-pressed="true"] { border-color: var(--accent-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent-2); }
+.pillbtn { padding: 1px 8px; font-size: 11.5px; }
+.sw { flex: none; display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+.tally { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.tally__ok { color: var(--accent-2); font-weight: 650; cursor: help; border-bottom: 1px dotted currentColor; }
+.tally.bad { padding: 8px 12px; border: 2px solid var(--hot); border-radius: 10px; background: color-mix(in srgb, var(--hot) 16%, var(--surface-solid)); color: var(--text); font-size: 15px; }
+.tally.bad .tick { color: var(--hot); font-weight: 900; font-size: 18px; }
+.ovsub { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; margin: 22px 0 8px; }
+.ovsub h3 { margin: 0; }
+.ovsub p { margin: 0; font-size: 13px; color: var(--muted); max-width: 80ch; }
+.blockers { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.blk { display: grid; grid-template-columns: 4.5ch 10px minmax(0, 1fr) auto; gap: 2px 12px; align-items: start; width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--bg) 35%, transparent); color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+.blk:hover { border-color: var(--accent); }
+.blk[aria-pressed="true"] { border-color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 8%, transparent); box-shadow: inset 3px 0 0 var(--accent-2); }
+.blk__n { font-size: 20px; font-weight: 800; line-height: 1.2; text-align: right; font-variant-numeric: tabular-nums; }
+.blk .sw { margin-top: 7px; }
+.blk__t { min-width: 0; font-size: 14.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.blk__t > b { font-weight: 700; }
+.blk__why, .blk__state { display: block; font-size: 13px; color: var(--muted); }
+.blk__state { color: var(--text); }
+.blk__state code { font-size: 11.5px; }
+.blk__alone { margin-top: 3px; font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.blk__go { display: block; margin-top: 2px; font-size: 12px; color: var(--accent-2); font-weight: 600; }
+@media (max-width: 600px) {
+  .blk { grid-template-columns: 4ch 10px minmax(0, 1fr); gap: 2px 10px; padding: 10px; }
+  .blk__alone { grid-column: 3; margin: 2px 0 0; white-space: normal; }
+}
+.runs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.run { display: grid; grid-template-columns: minmax(0, 10em) minmax(60px, 1fr) auto; gap: 4px 12px; align-items: center; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--accent-2) 7%, transparent); font-size: 14px; }
+.run.gone { border-color: color-mix(in srgb, var(--hot) 55%, transparent); background: color-mix(in srgb, var(--hot) 9%, transparent); }
+.run__name { font-weight: 700; overflow-wrap: anywhere; }
+.run__track { height: 8px; border-radius: 999px; background: var(--track); overflow: hidden; }
+.run__track span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.4s; }
+.run.gone .run__track span { background: var(--hot); }
+.run__n { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.run__meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12.5px; color: var(--muted); }
+.run__meta b { color: var(--text); font-weight: 650; }
+.run__ids { grid-column: 1 / -1; }
+.qids .mid.is-done { border-color: color-mix(in srgb, var(--st-chk) 60%, transparent); color: var(--muted); }
+@media (max-width: 600px) { .run { grid-template-columns: minmax(0, 1fr) auto; } .run__track { grid-column: 1 / -1; order: 3; } .run__meta { order: 4; } .run__ids { order: 5; } }
+@media (prefers-reduced-motion: reduce) { .run__track span { transition: none; } }
+/* the picked stage's detail, under the strip */
+.stagebox { margin-top: 16px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: 14px; background: color-mix(in srgb, var(--bg) 35%, transparent); }
+/* the panel hangs from the selected tab: its top edge takes that stage's colour */
+.stagebox { border-top: 3px solid var(--stage-c, var(--border-strong)); }
+.stagebox__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px 16px; }
+.stagebox__head h3 { margin: 0; font-size: 15px; letter-spacing: -0.01em; text-transform: none; color: var(--text); }
+.stagebox__head h3 .n { margin-left: 6px; color: var(--accent-2); font-variant-numeric: tabular-nums; }
+.stagebox__means { margin: 2px 0 0; font-size: 13px; color: var(--muted); max-width: 80ch; }
+.stagebox__holds { margin: 10px 0 0; font-size: 13.5px; }
+.stagebox .ckbars { margin-top: 12px; }
+.stagebox .qids { margin-top: 10px; }
+.ckbars--site:empty { display: none; }
+/* every model, one line under the panel: the counts only, their split in each tooltip */
+.allline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 14px 0 0; font-size: 13.5px; color: var(--muted); }
+.allline .label { margin-right: 4px; }
+.allline b { color: var(--text); font-variant-numeric: tabular-nums; }
+.allline [data-tip] { cursor: help; border-bottom: 1px dotted color-mix(in srgb, var(--muted) 60%, transparent); }
+.allline__sep { opacity: 0.6; }
+#blk-btn small { opacity: 0.8; font-variant-numeric: tabular-nums; }
+/* the filter a blocker set: a chip in the sticky filter bar, with one click to drop it */
+.fchip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; }
+.fchip[hidden] { display: none; }
+.fchip__c { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 4px 4px 4px 12px; border-radius: 999px; background: linear-gradient(120deg, var(--accent), var(--hot)); color: #fff; font-size: 13px; font-weight: 650; }
+.fchip__c span { min-width: 0; overflow-wrap: anywhere; }
+.fchip__x { flex: none; display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.2); color: #fff; cursor: pointer; }
+.fchip__x:hover { background: rgb(255 255 255 / 0.35); }
+.fchip__x .icon { width: 14px; height: 14px; }
+.fchip__note { font-size: 12.5px; color: var(--muted); }
 .bd { list-style: none; padding: 0; margin: 0; font-size: 13px; }
 .bd li { display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 4ch; gap: 4px 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); }
 .bd li:first-child { border-top: 0; }
@@ -248,18 +321,7 @@ button, input { font: inherit; color: inherit; }
 .bdpill b { color: var(--text); font-variant-numeric: tabular-nums; }
 .bdpill.is-zero { opacity: 0.6; }
 .bd__note { font-size: 12px; color: var(--muted); font-style: italic; }
-.bdsum { margin: 10px 0 0; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 12px; font-weight: 600; color: var(--accent-2); font-variant-numeric: tabular-nums; }
-.bdsum.odd { color: var(--hot); }
 @media (max-width: 600px) { .bd li { grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr) 4ch; gap: 4px 8px; } .bd__under { grid-column: 1 / -1; } }
-.balance { margin-top: 12px; padding: 8px 12px; border-radius: 10px; font-size: 14px; font-variant-numeric: tabular-nums; }
-.balance.ok { border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, transparent); }
-.balance.ok .tick { color: var(--accent-2); font-weight: 900; }
-.balance.bad { border: 2px solid var(--hot); background: color-mix(in srgb, var(--hot) 16%, var(--surface-solid)); font-size: 15px; }
-.balance.bad .tick { color: var(--hot); font-weight: 900; font-size: 18px; }
-.reached { margin-top: 6px; font-size: 13px; color: var(--muted); }
-.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
-.rules { margin-top: 12px; font-size: 13px; color: var(--muted); }
 
 /* running check */
 .progress { border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, var(--surface-solid)); border-radius: 12px; padding: 10px 14px; margin-top: 10px; font-size: 14px; }
@@ -293,9 +355,6 @@ button, input { font: inherit; color: inherit; }
 .cl .proofline code { overflow-wrap: anywhere; }
 @media (max-width: 600px) { .cldlg { max-height: calc(100dvh - 16px); } .cldlg__head { padding: 14px 14px 10px; } .cldlg__body { padding: 4px 14px 16px; } }
 
-.balrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 12px; }
-.balrow .balance { flex: 1 1 320px; margin: 0; }
-.balrow__how { font-size: 13px; white-space: nowrap; }
 .defs { margin: 0; }
 .defs dt { margin-top: 12px; font-weight: 700; }
 .defs dd { margin: 2px 0 0; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
@@ -498,6 +557,8 @@ table.mini code { font-size: 12px; }
 .mk--flag { --c: var(--st-warn); background: var(--st-warn); color: var(--bg); border-color: transparent; }
 .mk--fail { --c: var(--st-bad); background: var(--st-bad); color: #fff; border-color: transparent; }
 .mk--never { --c: var(--muted); background: none; border-style: dashed; color: var(--muted); }
+/* the test crashed before judging the model: not a failure of the model, so never the failed red */
+.mk--broke { --c: var(--accent); background: none; border-style: dashed; color: var(--accent); }
 .mk--conv { --c: var(--st-conv); }
 .mk.is-running { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 35%, transparent); animation: mkpulse 1.4s ease-in-out infinite; }
 @keyframes mkpulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-2) 10%, transparent); } }
@@ -595,6 +656,7 @@ table.mini code { font-size: 12px; }
         <h1>View-contract <span>ledger</span></h1>
       </div>
       <div class="hero__btns">
+        <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" hidden>What’s holding models back</button>
         <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" hidden>Release checklist</button>
         <button class="btn" id="theme" type="button">Theme: auto</button>
       </div>
@@ -603,21 +665,24 @@ table.mini code { font-size: 12px; }
     <p class="live" id="live"></p>
   </header>
   <div id="livenote" aria-live="polite"></div>
-  <div id="running"></div>
   <div id="notices"></div>
 
   <section class="panel" aria-labelledby="sum-h">
     <div class="head notes-anchor">
       <h2 id="sum-h">Where the rewrite stands</h2>
-      <button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" hidden></button>
+      <div class="head__acts"><button type="button" class="linkish" id="rules-btn" aria-haspopup="dialog">How these are counted</button><button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" hidden></button></div>
       <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
     </div>
+    <p class="headline" id="headline">Loading…</p>
+    <p class="tally" id="balance" role="status"></p>
+    <!-- the four stages are tabs: exactly one is selected, and its panel is right under them -->
     <div class="flowwrap" id="stats"></div>
-    <div class="balrow"><p class="balance" id="balance" role="status"></p><button type="button" class="linkish balrow__how" id="rules-btn" aria-haspopup="dialog">How these are counted</button></div>
-    <div id="flow-bd"></div>
-    <div class="bar" id="bar" role="img"></div>
-    <div class="legend" id="legend"></div>
-    <div class="ckbars" id="checkbars"></div>
+    <div id="ov-stage" class="stagebox" role="tabpanel" tabindex="0"></div>
+    <!-- what applies to every stage, always shown -->
+    <div id="checkbars"></div>
+    <div class="ovsub"><h3 id="run-h">Running now</h3><p id="run-note"></p></div>
+    <div id="runnow"></div>
+    <div class="ckbars ckbars--site" id="sitebars"></div>
   </section>
 
   <div class="split">
@@ -647,6 +712,7 @@ table.mini code { font-size: 12px; }
         <div class="scrollrow__track"><div id="f-tags" class="chips" role="group" aria-label="Tags"></div></div>
         <button class="scrollrow__arrow scrollrow__arrow--next" type="button" aria-label="Scroll tags right" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
+      <div class="fchip" id="fchip" hidden></div>
     </div>
     <p class="showing" id="showing"></p>
     <div class="tbltools">
@@ -686,11 +752,25 @@ table.mini code { font-size: 12px; }
       <div>
         <span class="eyebrow">The definitions of the numbers</span>
         <h2 id="rules-title">How these are counted</h2>
-        <p class="muted">Every model is in exactly one bucket; the buckets add up to the number of models.</p>
+        <p class="muted">What each number on the page means, and where it comes from.</p>
       </div>
       <button type="button" class="cldlg__x" id="rules-close" aria-label="Close the definitions"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
     </div>
     <div class="cldlg__body" id="rules-body"></div>
+  </div>
+</dialog>
+
+<dialog id="blk-dialog" class="cldlg" aria-labelledby="blk-title">
+  <div class="cldlg__box">
+    <div class="cldlg__head">
+      <div>
+        <span class="eyebrow">Every reason, from ledger.json</span>
+        <h2 id="blk-title">What’s holding models back</h2>
+        <p class="muted" id="blk-note"></p>
+      </div>
+      <button type="button" class="cldlg__x" id="blk-close" aria-label="Close the list of what holds models back"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+    <div class="cldlg__body"><ol class="blockers" id="blockers" aria-labelledby="blk-title" style="margin-top:12px"></ol></div>
   </div>
 </dialog>
 
@@ -777,12 +857,12 @@ table.mini code { font-size: 12px; }
   /** How many table columns there are, for a row that spans them all. */
   const colCount = () => 5 + COLS.length;
   const checkChip = (r) => {
-    if (!r || r.status === 'never') return '<span class="chip s-warn">never run</span>';
+    if (!r || r.status === 'never') return '<span class="chip s-warn">not run yet</span>';
     if (r.status === 'untested') return '<span class="chip s-warn" title="the run did not include the default settings">not at defaults</span>';
     // a motion flag every one of whose flags a fresh visual review marks as a false alarm is cleared
     const cleared = r.status === 'flagged' && r.openFlags === 0;
-    const cls = r.status === 'pass' || cleared ? (r.stale ? 's-warn' : 's-chk') : r.status === 'flagged' ? 's-warn' : 's-bad';
-    const label = cleared ? 'flags cleared' : r.status === 'flagged' && r.openFlags != null ? `${r.openFlags} open flag${r.openFlags === 1 ? '' : 's'}` : { pass: 'pass', fail: 'fail', flagged: 'flagged', broke: 'broke', error: 'could not run' }[r.status] ?? r.status;
+    const cls = r.status === 'pass' || cleared ? (r.stale ? 's-warn' : 's-chk') : r.status === 'flagged' ? 's-warn' : r.status === 'broke' || r.status === 'error' ? 's-conv' : 's-bad';
+    const label = cleared ? 'flags cleared' : r.status === 'flagged' && r.openFlags != null ? `${r.openFlags} open flag${r.openFlags === 1 ? '' : 's'}` : { pass: 'pass', fail: 'fail', flagged: 'flagged', broke: "didn't run (test crashed)", error: "didn't run (a tab could not be run)" }[r.status] ?? r.status;
     return `<span class="chip ${cls}" title="${esc(r.ranAt ? 'ran ' + new Date(r.ranAt).toLocaleString() : '')}">${esc(label)}${r.stale ? ' · stale' : ''}</span>`;
   };
 
@@ -792,20 +872,22 @@ table.mini code { font-size: 12px; }
   const ico = (d) => `<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const GLYPH = {
     tick: ico('M2.5 6.2 5 8.6 9.5 3.6'), cross: ico('M3.2 3.2l5.6 5.6M8.8 3.2 3.2 8.8'), tilde: ico('M2.2 6.6c1.2-1.6 2.4-1.6 3.8 0s2.6 1.6 3.8 0'),
-    bang: ico('M6 2.6v4.2M6 9.3v.1'), dash: ico('M3 6h6'),
+    bang: ico('M6 2.6v4.2M6 9.3v.1'), dash: ico('M3 6h6'), bolt: ico('M6.8 2.2 4 6.4h4L5.2 9.8'),
   };
   const MARKS = {
     pass: [GLYPH.tick, 'pass'], cleared: [GLYPH.tick, 'flags cleared'], stale: [GLYPH.tilde, 'passed on older code'], flag: [GLYPH.bang, 'open flags'],
-    fail: [GLYPH.cross, 'failed'], never: [GLYPH.dash, 'never run'],
+    fail: [GLYPH.cross, 'failed'], broke: [GLYPH.bolt, "didn't run (test crashed)"], never: [GLYPH.dash, 'not run yet'],
   };
   /** What a check result reads as: its mark kind and its words. */
   function markKind(r) {
-    if (!r || r.status === 'never') return ['never', 'never run'];
+    if (!r || r.status === 'never') return ['never', 'not run yet'];
     if (r.status === 'untested') return ['never', 'not run at the default settings'];
     if (r.status === 'pass') return r.stale ? ['stale', 'passed on older code'] : ['pass', 'pass'];
     if (r.status === 'flagged' && r.openFlags === 0) return r.stale ? ['stale', 'flags cleared on older code'] : ['cleared', 'flags cleared'];
     if (r.status === 'flagged') return ['flag', `${r.openFlags ?? '?'} open flag${r.openFlags === 1 ? '' : 's'}${r.stale ? ' (older code)' : ''}`];
-    return ['fail', `${{ fail: 'failed', broke: 'broke', error: 'could not run' }[r.status] ?? r.status}${r.stale ? ' (older code)' : ''}`];
+    // the test crashed or a tab could not be run: the model was never judged, so this is not "failed"
+    if (r.status === 'broke' || r.status === 'error') return ['broke', `${r.status === 'error' ? "didn't run (a tab could not be run)" : "didn't run (test crashed)"}${r.stale ? ' (older code)' : ''}`];
+    return ['fail', `${{ fail: 'failed' }[r.status] ?? r.status}${r.stale ? ' (older code)' : ''}`];
   }
   const markHtml = (kind, label, tipText, glyph, extra = '') => `<span class="mk mk--${kind}${extra}" role="img" aria-label="${esc(label)}" data-tip data-tiptext="${esc(tipText)}">${glyph}</span>`;
   /** One check's mark for one model. The run in progress, if it is on this model now, pulses. */
@@ -832,7 +914,7 @@ table.mini code { font-size: 12px; }
     return markHtml(cls, `${kind} review: ${v}`, `${kind} review: ${v}. ${who}.`, L1, ' mk--letter');
   }
   function renderMarkLegend() {
-    const items = [['pass', 'pass'], ['cleared', 'flags cleared'], ['stale', 'passed on older code'], ['flag', 'open flags'], ['fail', 'failed'], ['never', 'never run']];
+    const items = [['pass', 'pass'], ['cleared', 'flags cleared'], ['stale', 'passed on older code'], ['flag', 'open flags'], ['fail', 'failed'], ['broke', "didn't run (test crashed)"], ['never', 'not run yet']];
     $('marklegend').innerHTML = items.map(([k, w]) => `<span><span class="mk mk--${k}" aria-hidden="true">${MARKS[k][0]}</span>${esc(w)}</span>`).join('')
       + `<span><span class="mk mk--pass is-running" aria-hidden="true">${GLYPH.tick}</span>running on it now</span><span><span class="mk mk--pass mk--letter" aria-hidden="true">V</span><span class="mk mk--pass mk--letter" aria-hidden="true">T</span>visual and text review</span>`;
   }
@@ -841,100 +923,373 @@ table.mini code { font-size: 12px; }
   let L = null, Q = null, W = null, qError = null, wMissing = false;
   // what the reader has chosen; kept for this tab (a convenience: the page works without it)
   const PAGE = 40; // rows rendered at first, and added each time the list end comes near
-  let filter = 'all', group = 'all', tags = new Set(), query = '', limit = PAGE, tagsOpen = false;
+  // blk: the blocker (from "What's holding models back") the table is filtered to, or null
+  let filter = 'all', group = 'all', tags = new Set(), query = '', limit = PAGE, tagsOpen = false, blk = null;
   const open = new Set();
   try {
     const s = JSON.parse(sessionStorage.getItem('ledger-view') || '{}');
-    filter = s.filter || 'all'; group = s.group || 'all'; tags = new Set(s.tags || []); query = s.query || ''; tagsOpen = Boolean(s.tagsOpen);
+    filter = s.filter || 'all'; group = s.group || 'all'; tags = new Set(s.tags || []); query = s.query || ''; tagsOpen = Boolean(s.tagsOpen); blk = s.blk || null;
     for (const id of s.open || []) open.add(id);
     limit = Math.max(PAGE, s.limit || PAGE);
     if (tags.size) tagsOpen = true; // as the gallery does when it opens with tags picked
   } catch {}
-  const saveView = () => { try { sessionStorage.setItem('ledger-view', JSON.stringify({ filter, group, tags: [...tags], query, open: [...open], limit, tagsOpen })); } catch {} };
+  const saveView = () => { try { sessionStorage.setItem('ledger-view', JSON.stringify({ filter, group, tags: [...tags], query, open: [...open], limit, tagsOpen, blk })); } catch {} };
   let prevSig = null; // model id → what its row shows, to mark rows that changed on a refresh
   let flash = new Set();
 
   const rowSig = (m) => JSON.stringify([m.status, m.converted, m.convertedInHead, ...COLS.map(([k]) => [m.checks[k]?.status, m.checks[k]?.stale, m.checks[k]?.ranAt]), m.commits.length, (m.reviews ?? []).map((r) => [r.kind, r.verdict, r.stale])]);
 
-  /* ---------- summary cards: same height; breakdowns behind a disclosure, sums always shown ---------- */
-  let lastBuckets = [];
-  let showZeros = false;
-  try { showZeros = localStorage.getItem('ledger-zeros') === '1'; } catch {}
-  const SHORT = { 'not converted': 'no --u in vmin yet', converted: 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
-  /* the breakdown under the arrow: one row per check (or per missing item), totals in one column */
-  const KIND = [['stale-pass', 'passed on older code', 'var(--warm)'], ['failed', 'failed', 'var(--hot)'], ['never', 'never run', 'var(--never)']];
-  const REASON_COLOR = { 'no-visual': 'var(--accent)', 'no-text': 'var(--accent-2)', 'stale-review': 'var(--warm)', problem: 'var(--hot)', unexplained: 'var(--hot)' };
+  /* ---------- the overview: one sentence, one bar, what holds the rest, what is running ---------- */
   /** A rounded bar of segments with a hairline between them; a segment shows its count when there is room. */
   const segBar = (segs, total) => {
     const live = segs.filter((s) => s.n);
     return `<span class="bdbar" aria-hidden="true">${live.map((s) => { const share = s.n / Math.max(1, total); return `<i style="flex-grow:${s.n};background:${s.c}">${share >= 0.15 ? `<em>${s.n}</em>` : ''}</i>`; }).join('')}<i class="bdbar__rest" style="flex-grow:${Math.max(0, total - live.reduce((a, x) => a + x.n, 0))}"></i></span>`;
   };
-  function breakdown(b) {
-    const zeros = showZeros;
-    let rows;
-    if (b.key === 'converted') {
-      const gates = [...new Set(b.parts.filter((p) => p.gate).map((p) => p.gate))];
-      rows = gates.map((g) => {
-        const segs = KIND.map(([k, label, c]) => ({ label: g === 'motion' && k === 'failed' ? 'open flag or broke' : g === 'exports' && k === 'never' ? 'never run at defaults' : g === 'motion' && k === 'stale-pass' ? 'clear on older code' : label, n: b.parts.find((p) => p.key === `${g}:${k}`)?.count ?? 0, c }));
-        return { name: GATE_NAME[g] ?? g, n: segs.reduce((s, x) => s + x.n, 0), segs };
-      });
-    } else {
-      rows = b.parts.map((p) => ({ name: p.label, n: p.count, segs: [{ label: p.label, n: p.count, c: REASON_COLOR[p.key] ?? 'var(--accent)' }], odd: p.key === 'unexplained', single: true }));
-    }
-    // a model is counted under the first row it does not clear, so a later row only sees the models
-    // no earlier row kept: say so, so a 0 is never read as a pass
-    let earlier = 0;
-    const unit = b.key === 'converted' ? 'check' : 'item';
-    const html = rows.map((r) => {
-      const reached = b.count - earlier;
-      const note = reached === 0 && earlier > 0 ? `not reached yet: all ${earlier} stop at an earlier ${unit}`
-        : r.n === 0 && reached > 0 ? (earlier ? `all ${reached} that got this far cleared it` : `all ${reached} cleared it`)
-        : earlier ? `${reached} got this far; ${earlier} stopped at an earlier ${unit}` : '';
-      earlier += r.n;
-      const pills = r.single ? '' : r.segs.filter((s) => zeros || s.n).map((s) => `<span class="bdpill${s.n ? '' : ' is-zero'}"><i style="background:${s.c}"></i>${esc(s.label)} <b>${s.n}</b></span>`).join('');
-      return `<li class="${r.odd ? 'odd' : ''}${r.n ? '' : ' is-empty'}">
-        <span class="bd__name">${esc(r.name)}</span>${segBar(r.segs, b.count)}<b class="bd__n">${r.n}</b>
-        ${pills || note ? `<span class="bd__under">${pills}${note ? `<span class="bd__note">${esc(note)}</span>` : ''}</span>` : ''}</li>`;
-    }).join('');
-    return `<ul class="bd">${html || '<li class="muted">Nothing in this bucket.</li>'}</ul>`;
+  /* one swatch per reason, the same in the blockers, the check bars and the table's marks */
+  const KIND_SW = { never: 'var(--k-never)', broke: 'var(--k-broke)', flagged: 'var(--k-flag)', failed: 'var(--k-fail)', 'stale-pass': 'var(--k-stale)' };
+  const REVIEW_SW = { none: 'var(--k-never)', stale: 'var(--k-stale)', problem: 'var(--k-fail)' };
+  const KIND_SHORT = { never: 'not run yet', broke: "didn't run", flagged: 'flagged', failed: 'failed', 'stale-pass': 'passed on older code' };
+  const cap = (s) => String(s ?? '').charAt(0).toUpperCase() + String(s ?? '').slice(1);
+  const fmtDur = (s) => (s < 90 ? `${Math.round(s)} s` : s < 5400 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`);
+  /** How long a run has left at its pace so far: an estimate; null while there is no pace to go by. */
+  function etaOf(p) {
+    if (!p || p.alive === false || !p.done || !p.total || p.done >= p.total) return null;
+    const el = (Date.parse(p.updatedAt) - Date.parse(p.startedAt)) / 1000;
+    if (!(el > 0)) return null;
+    const per = el / p.done;
+    return { left: per * (p.total - p.done), per };
   }
-  /* the four buckets as one extruded arrow; the step the filter picks opens its breakdown below */
+  /** The model ids a run was started on (its args, flags left out), and those it has reported so far. */
+  const idsOfRun = (p) => { const known = new Set(L.models.map((m) => m.id)); return (p?.args ?? []).filter((a) => known.has(a)); };
+  const doneInRun = (key, p) => new Set(L.models.filter((m) => p?.runId && m.checks[key]?.runId === p.runId).map((m) => m.id));
+  /** The words on the filter chip for a blocker key: "motion didn't run", "visual review stale". */
+  function chipLabel(key) {
+    if (key === 'convert') return 'not converted';
+    if (key === 'stale:any') return 'passed on older code';
+    if (String(key).startsWith('status:')) return STEP_SHORT[key.slice(7)] ?? key.slice(7);
+    const [a, b, c] = String(key).split(':');
+    if (a === 'review') return `${b} review ${c === 'none' ? 'missing' : c === 'problem' ? 'found a problem' : c}`;
+    return `${GATE_NAME[a] ?? a} ${KIND_SHORT[b] ?? b}`;
+  }
+
+  /* Every filter the overview can set, by key: the ledger's blockers (ledger.json counts.blockers,
+     each with its model ids), plus one row folding "passed on older code" across every check. */
+  let BLK = new Map();
+  function blockerRows() {
+    const bl = L.counts?.blockers;
+    if (!Array.isArray(bl)) return null;
+    for (const b of bl) BLK.set(b.key, { ids: new Set(b.ids), chip: chipLabel(b.key) });
+    const byId = new Map(L.models.map((m) => [m.id, m]));
+    const stale = bl.filter((b) => b.scope === 'check' && b.kind === 'stale-pass');
+    const rows = bl.filter((b) => !stale.includes(b)).map((b) => ({ key: b.key, b, scope: b.scope, count: b.count, alone: b.alone, ids: b.ids }));
+    if (stale.length) {
+      const ids = [...new Set(stale.flatMap((b) => b.ids))];
+      const alone = ids.filter((id) => (byId.get(id)?.holds ?? []).every((h) => h.endsWith(':stale-pass'))).length;
+      BLK.set('stale:any', { ids: new Set(ids), chip: chipLabel('stale:any') });
+      rows.push({ key: 'stale:any', stale, scope: 'check', count: ids.length, alone, ids });
+    }
+    // not converted first; then the checks' reasons, largest first; the reviews last
+    const rank = (r) => (r.scope === 'convert' ? 0 : r.scope === 'review' ? 2 : 1);
+    rows.sort((a, b) => rank(a) - rank(b) || (rank(a) === 1 ? b.count - a.count : 0));
+    return rows;
+  }
+  /** Whether the lead's record (reported, not measured) has unfinished work naming a check. */
+  const queueMentions = (check) => {
+    const re = new RegExp(`\\b${String(GATE_NAME[check] ?? check).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    return (Array.isArray(Q?.items) ? Q.items : []).filter((i) => i.status !== 'done' && re.test(`${i.name} ${i.brief ?? ''}`));
+  };
+  function blockerText(r) {
+    if (r.key === 'convert') return { title: 'Not converted', sw: 'var(--st-none)', why: `${esc(cap(r.b.means))}.`, state: '' };
+    if (r.key === 'stale:any') return {
+      title: 'Passed on older code', sw: KIND_SW['stale-pass'],
+      why: `${esc(cap(r.stale[0].means))}. By check: ${r.stale.map((s) => `${esc(GATE_NAME[s.check] ?? s.check)} ${s.count}`).join(', ')}.`,
+      state: 'A re-run of that check on the current code clears it.',
+    };
+    const b = r.b;
+    if (b.scope === 'review') return {
+      title: `${esc(cap(b.review))} review: ${esc(b.label)}`, sw: REVIEW_SW[b.kind] ?? 'var(--k-never)', why: `${esc(cap(b.means))}.`,
+      state: b.kind === 'problem' ? 'Fix what the review found, then review again.' : `Needs a fresh ${esc(b.review)} review (an entry in <code>docs/reviews/</code>).`,
+    };
+    const short = CHECK_LIST.find((c) => c.key === b.check)?.short ?? b.check;
+    const run = L.running?.[b.check];
+    // the models a run in progress has still to reach: named in its args, not reported by it yet
+    const reported = run ? doneInRun(b.check, run) : new Set();
+    const runIds = run ? new Set(idsOfRun(run).filter((id) => !reported.has(id))) : new Set();
+    const inRun = b.ids.filter((id) => runIds.has(id)).length;
+    const e = etaOf(run);
+    const runLine = !run ? '' : run.alive === false
+      ? `A run stopped without finishing (${esc(run.done)} of ${run.total ?? '?'} reported)`
+      : `A run is in progress: ${esc(run.done)} of ${run.total ?? '?'} done${e ? `, about ${fmtDur(e.left)} left (estimate)` : ''}`;
+    let state = '';
+    if (b.kind === 'never') {
+      state = run && run.alive !== false ? `${runLine}; ${inRun === b.count ? 'it will reach all of these' : `it will reach ${inRun} of these, not the other ${b.count - inRun}`}.`
+        : `${run ? `${runLine}. ` : ''}No run is going that will reach them: <code>npm run capture -- ${esc(b.check)}</code> starts one.`;
+    } else if (b.kind === 'broke') {
+      // what the test said when it crashed: the most common error among these models
+      const errs = new Map();
+      for (const id of b.ids) { const s = L.models.find((m) => m.id === id)?.checks[b.check]?.summary || 'no error recorded'; errs.set(s, (errs.get(s) ?? 0) + 1); }
+      const [top, topN] = [...errs].sort((x, y) => y[1] - x[1])[0] ?? ['no error recorded', 0];
+      const q = queueMentions(b.check);
+      const rerun = run && run.alive !== false && inRun ? `The run in progress will reach ${inRun} of them.`
+        : q.length ? `Re-run: the lead's record lists “${esc(q[0].name)}” (${esc(q[0].status)}), which names ${esc(GATE_NAME[b.check] ?? b.check)}. Reported, not measured.`
+        : 'No re-run is in progress, and none is on the lead’s record.';
+      state = `The test's error: “${esc(top)}”${topN < b.count ? ` (${topN} of ${b.count})` : ''}. ${rerun}`;
+    } else if (b.kind === 'flagged') {
+      state = 'Open one in the table for its flags. A fresh visual review can mark each one a false alarm.';
+    } else if (b.kind === 'failed') {
+      state = run && run.alive !== false && inRun ? `The run in progress will re-run ${inRun} of them. Open one in the table for what failed.` : 'Open one in the table for what failed.';
+    } else if (b.kind === 'stale-pass') state = 'A re-run of the check on the current code clears it.';
+    return { title: `${esc(short)}: ${esc(b.label)}`, sw: KIND_SW[b.kind] ?? 'var(--k-never)', why: `${esc(cap(b.means))}.`, state };
+  }
+
+  /* the four states as one extruded arrow, and as tabs: exactly one is selected, and its panel shows
+     that stage's detail. Selecting one does not filter the table; its panel has a button that does. */
   const STEP_SHORT = { 'not converted': 'Not converted', converted: 'Converted, not yet checked', checked: 'Checked, awaiting approval', approved: 'Approved' };
-  function renderStats() {
-    const total = lastBuckets.reduce((s, b) => s + b.count, 0) || 1;
-    $('stats').innerHTML = `<ol class="flow">${lastBuckets.map((b, i) => {
-      const on = filter === b.key;
-      const full = b.count / total;
+  const STEP_SUB = { 'not converted': 'no --u in vmin yet', converted: 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
+  const STAGE_C = ['var(--muted)', 'var(--accent)', 'var(--accent-2)', 'var(--hot)'];
+  let stage = null; // the selected tab's state key; remembered per viewer
+  try { stage = localStorage.getItem('ledger-stage'); } catch {}
+  /** The selected stage: the remembered one if it still exists, else the first with models in it. */
+  function pickStage(buckets) {
+    if (!buckets.some((b) => b.key === stage)) stage = (buckets.find((b) => b.count) ?? buckets[0])?.key ?? null;
+    return stage;
+  }
+  function selectStage(key, focus = false) {
+    stage = key;
+    try { localStorage.setItem('ledger-stage', key); } catch {}
+    renderOverview();
+    if (focus) $('stats').querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
+  }
+  function renderStats(buckets) {
+    const total = buckets.reduce((s, b) => s + b.count, 0) || 1;
+    pickStage(buckets);
+    $('stats').innerHTML = `<ol class="flow" role="tablist" aria-label="Stages of the rewrite">${buckets.map((b, i) => {
+      const on = stage === b.key;
       const rule = b.means && b.means.length <= 140 ? b.means : null;
-      return `<li class="flow__li">${rule ? `<span id="step-rule-${i}" class="visually-hidden">${esc(rule)}.</span>` : ''}<button type="button" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-step="${esc(b.key)}" aria-pressed="${on}"${rule ? ` data-tip aria-describedby="step-rule-${i}"` : ''}
-          aria-label="${esc(STEP_SHORT[b.key] ?? b.label)}: ${b.count} of ${total} models. ${on ? 'Showing only these; press again to show all' : 'Show only these in the table, with the breakdown'}">
+      const name = STEP_SHORT[b.key] ?? b.label;
+      return `<li class="flow__li" role="presentation">${rule ? `<span id="step-rule-${i}" class="visually-hidden">${esc(rule)}.</span>` : ''}<button type="button" role="tab" id="stage-tab-${i}" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-stage="${esc(b.key)}" aria-selected="${on}" aria-controls="ov-stage" tabindex="${on ? 0 : -1}"${rule ? ` data-tip aria-describedby="step-rule-${i}"` : ''}
+          aria-label="${esc(`${name}: ${b.count} of ${total} models`)}">
         <span class="step__body" aria-hidden="true">
-          <span class="step__top"><span class="step__fill" style="--full:${full}"></span>
-            <span class="step__text"><span class="step__label">${esc(STEP_SHORT[b.key] ?? b.label)}</span><span class="step__n">${b.count}</span><span class="step__sub">${esc(SHORT[b.key] ?? '')}</span></span></span>
+          <span class="step__top"><span class="step__fill" style="--full:${b.count / total}"></span>
+            <span class="step__text"><span class="step__label">${esc(name)}</span><span class="step__n">${b.count}</span><span class="step__sub">${esc(STEP_SUB[b.key] ?? '')}</span></span></span>
           <span class="step__side"></span>
         </span></button></li>`;
     }).join('')}</ol>`;
-    // the chosen bucket's breakdown, and its sum, under the arrow
-    const b = lastBuckets.find((x) => x.key === filter);
-    $('flow-bd').innerHTML = !b ? '<p class="muted flow__hint">Pick a step to see its breakdown and show only its models in the table.</p>'
-      : `<div class="flow__bd">
-        <div class="bdhead">
-          <div><h3 class="bdhead__title">${esc(b.label)} <span class="bdhead__n">${b.count}</span></h3><p class="muted bdhead__means">${esc(b.means ?? '')}.</p></div>
-          <div class="bdhead__acts">${b.parts ? `<label class="bdtoggle"><input type="checkbox" data-zeros${showZeros ? ' checked' : ''}> Show zeros</label>` : ''}<button type="button" class="btn bdhead__all" data-step="${esc(b.key)}">Show all models again</button></div>
-        </div>
-        ${b.parts ? `${breakdown(b)}<p class="bdsum ${b.partsBalance ? '' : 'odd'}">${b.partsBalance ? '✓' : '✗'} Its parts sum to ${b.partsSum}${b.partsBalance ? '' : `, not ${b.count}`}</p>` : `<p class="muted" style="margin:6px 0 0">One condition, no split.</p>`}</div>`;
   }
-  function pickStep(key) {
-    filter = filter === key ? 'all' : key;
-    limit = PAGE; saveView();
-    renderFilterChips(); renderRows(); renderStats();
-    $('stats').querySelector(`[data-step="${CSS.escape(key)}"]`)?.focus({ preventScroll: true });
+  function renderOverview() {
+    const c = L.counts, n = c.models;
+    const by = (k) => c.byStatus?.[k] ?? 0;
+    const ap = by('approved'), ch = by('checked'), cv = by('converted'), nc = by('not converted');
+    // the answer first, in one true sentence
+    const parts = [];
+    if (ch) parts.push(`<b>${ch}</b> ${ch === 1 ? 'has' : 'have'} every check clear and ${ch === 1 ? 'waits' : 'wait'} for review`);
+    if (cv) parts.push(`<b>${cv}</b> ${cv === 1 ? 'is' : 'are'} held by a check`);
+    if (nc) parts.push(`<b>${nc}</b> ${nc === 1 ? 'is' : 'are'} not converted yet`);
+    $('headline').innerHTML = ap === n ? `All <b>${n}</b> models approved.` : `<b>${ap}</b> of <b>${n}</b> models approved.${parts.length ? ` ${parts.join('; ')}.` : ''}`;
+
+    // the accounting: every model in exactly one state; the sum itself is one hover away
+    const buckets = c.buckets ?? STATUS.map((s) => ({ key: s.key, label: s.long, count: by(s.key) }));
+    const sum = buckets.reduce((s, b) => s + b.count, 0);
+    const bal = c.balance ?? { ok: sum === n, sum, models: n, problems: sum === n ? [] : [`the buckets sum to ${sum}, not ${n}`] };
+    // every state is a filter its panel's button (and the chip) can set
+    BLK = new Map(buckets.map((b) => [`status:${b.key}`, { ids: new Set(L.models.filter((m) => m.status === b.key).map((m) => m.id)), chip: STEP_SHORT[b.key] ?? b.label }]));
+    renderStats(buckets);
+    const sumText = `${buckets.map((b) => `${b.count} ${b.label.toLowerCase()}`).join(' + ')} = ${bal.sum}, and there are ${bal.models} models`;
+    $('balance').className = `tally${bal.ok ? '' : ' bad'}`;
+    $('balance').innerHTML = bal.ok
+      ? `<span class="tally__ok" tabindex="0" data-tip data-tiptext="${esc(`${sumText}. Each model is in exactly one state; the build fails if they do not add up.`)}" aria-label="${esc(`The numbers add up: ${sumText}`)}">✓ The numbers add up: every model is counted once</span>`
+      : `<span class="tick" aria-hidden="true">✗</span> <b>MISMATCH, the books do not balance:</b> ${bal.problems.map(esc).join('; ')} (${esc(sumText)}). Nothing on this page adds up until this is fixed.`;
+
+    // what holds the rest back
+    const rows = blockerRows();
+    if (!rows) {
+      $('blk-note').textContent = '';
+      $('blockers').innerHTML = '<li class="muted">This ledger was built before it listed what holds each model back; the list appears on the next build.</li>';
+    } else {
+      $('blk-note').textContent = rows.length
+        ? `These overlap: a model held by two checks is counted under both. ${cv} model${cv === 1 ? ' is' : 's are'} held by at least one check${nc ? `, ${nc} not converted` : ''}${ch ? `; the review rows count only the ${ch} with every check clear` : ''}. Click one to show exactly those models in the table.`
+        : '';
+      $('blockers').innerHTML = rows.length ? rows.map((r) => {
+        const t = blockerText(r);
+        const on = blk === r.key;
+        return `<li><button type="button" class="blk" data-blk="${esc(r.key)}" aria-pressed="${on}">
+          <span class="blk__n">${r.count}</span><span class="sw" style="background:${t.sw}" aria-hidden="true"></span>
+          <span class="blk__t"><b>${t.title}</b><span class="blk__why">${t.why}</span>${t.state ? `<span class="blk__state">${t.state}</span>` : ''}<span class="blk__go">${on ? 'Shown in the table now · click again to show every model' : `Show ${r.count === 1 ? 'it' : `these ${r.count}`} in the table`}</span></span>
+          <span class="blk__alone">${r.alone} held by this alone</span></button></li>`;
+      }).join('') : '<li class="muted">Nothing: every model is approved.</li>';
+    }
+    // the header button that opens them: models not approved, and why in its tooltip
+    const btn = $('blk-btn');
+    btn.hidden = !rows;
+    btn.innerHTML = `What’s holding models back <small>· ${n - ap}</small>`;
+    btn.setAttribute('aria-label', `What’s holding models back: ${n - ap} models not approved`);
+    btn.dataset.tip = '';
+    btn.dataset.tiptext = `${n - ap} of ${n} models are not approved: ${cv} held by a check${nc ? `, ${nc} not converted` : ''}${ch ? `, ${ch} waiting only on reviews` : ''}. Opens every reason, with counts.`;
+    renderRunning();
+    renderStage();
   }
-  for (const id of ['stats', 'flow-bd']) $(id).addEventListener('click', (e) => {
-    const step = e.target.closest('[data-step]');
-    if (step && L) { pickStep(step.dataset.step); return; }
-    const z = e.target.closest('[data-zeros]');
-    if (z) { showZeros = z.type === 'checkbox' ? z.checked : !showZeros; try { localStorage.setItem('ledger-zeros', showZeros ? '1' : '0'); } catch {} renderStats(); $('flow-bd').querySelector('[data-zeros]')?.focus({ preventScroll: true }); }
+
+  /* checks running now: a line each; the model ids behind a toggle */
+  const openRuns = new Set();
+  function renderRunning() {
+    const runs = Object.entries(L.running ?? {}).filter(([, p]) => p);
+    $('run-note').innerHTML = runs.length ? `From each check's result file, as the ledger built ${agoSpan(L.generatedAt)} read it.` : '';
+    if (!runs.length) { $('runnow').innerHTML = '<p class="muted" style="font-size:14px;margin:0">No check is running now.</p>'; return; }
+    $('runnow').innerHTML = `<ul class="runs">${runs.map(([key, p]) => {
+      const title = CHECK_NAMES[key] ?? key, short = CHECK_LIST.find((c) => c.key === key)?.short ?? key;
+      const gone = p.alive === false;
+      const pct = p.total ? Math.min(100, (100 * p.done) / p.total) : 0;
+      const e = etaOf(p);
+      const ids = idsOfRun(p), done = doneInRun(key, p);
+      const opened = openRuns.has(key);
+      return `<li class="run${gone ? ' gone' : ''}">
+        <span class="run__name" data-tip data-tiptext="${esc(title)}">${esc(short)}${gone ? ' · stopped' : ''}</span>
+        <span class="run__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? '?'}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><span style="width:${pct}%"></span></span>
+        <span class="run__n">${esc(p.done)} / ${esc(p.total ?? '?')}</span>
+        <span class="run__meta">
+          <span>last write <b>${agoSpan(p.updatedAt)}</b></span>
+          ${gone ? `<span>its process (pid ${esc(p.pid)}) is gone: it stopped without finishing, and the rest never reported</span>`
+            : e ? `<span tabindex="0" data-tip data-tiptext="${esc(`An estimate from the pace so far: about ${fmtDur(e.per)} per model, ${p.total - p.done} to go.`)}">about <b>${fmtDur(e.left)}</b> left (estimate)</span>` : '<span>no time estimate yet</span>'}
+          <span>started ${esc(clock(p.startedAt))}${p.commit ? ` at <code>${esc(p.commit)}</code>` : ''}</span>
+          ${p.last ? `<span>latest <code>${esc(p.last)}</code></span>` : ''}
+          ${p.totalIsEstimate ? `<span>the total is an estimate: ${esc(p.totalFrom)}</span>` : ''}
+          ${ids.length ? `<button type="button" class="linkish" data-runids="${esc(key)}" aria-expanded="${opened}">${opened ? 'hide models' : `show models (${ids.length})`}</button>` : ''}
+        </span>
+        ${opened ? `<div class="run__ids"><div class="qids">${ids.map((id) => `<span class="mid${done.has(id) ? ' is-done' : ''}" title="${done.has(id) ? 'reported in this run' : 'not reported in this run yet'}">${esc(id)}</span>`).join('')}</div>
+          <p class="run__meta" style="margin:6px 0 0">${done.size} reported in this run (dimmed), ${ids.length - done.size} still to go${p.args?.some((a) => a.startsWith('-')) ? `; flags <code>${esc(p.args.filter((a) => a.startsWith('-')).join(' '))}</code>` : ''}.</p></div>` : ''}
+      </li>`;
+    }).join('')}</ul>`;
+  }
+  $('runnow').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-runids]');
+    if (!b) return;
+    const k = b.dataset.runids;
+    openRuns.has(k) ? openRuns.delete(k) : openRuns.add(k);
+    renderRunning();
+    $('runnow').querySelector(`[data-runids="${CSS.escape(k)}"]`)?.focus({ preventScroll: true });
+  });
+
+  /* ---------- the one detail area under the strip: all models, or the picked stage ---------- */
+  const GATE_TALLY = { 'stale-pass': 'stale', flagged: 'flag', failed: 'fail', broke: 'broke', never: 'never' };
+  /** The per-check bars counted over some models only (a stage), from each model's gates. */
+  function bucketCheckBars(models) {
+    const list = CHECK_LIST.filter((c) => c.scope === 'model').map((c) => {
+      const tally = { pass: 0, stale: 0, flag: 0, fail: 0, broke: 0, never: 0 };
+      for (const m of models) { const k = m.gates?.[c.key]?.kind; tally[k == null ? 'pass' : GATE_TALLY[k] ?? 'never']++; }
+      return { ...c, unit: 'models', total: models.length, tally, captured: true, running: null, listed: 0, lastRun: null, kinds: null };
+    });
+    return checkBarsOf(list, false);
+  }
+  /** Where each model's latest review of a kind stands: fine or fixed (fresh), problem, stale, none. */
+  const reviewState = (m, kind) => {
+    const list = (m.reviews ?? []).filter((r) => r.kind === kind);
+    if (!list.length) return 'none';
+    const fresh = list.find((r) => !r.stale);
+    if (!fresh) return 'stale';
+    return fresh.verdict === 'problem' ? 'problem' : fresh.verdict === 'fixed' ? 'fixed' : 'fine';
+  };
+  const RV_SEGS = [['fine', 'fresh, fine', 'var(--k-pass)'], ['fixed', 'fresh, fixed', 'var(--st-conv)'], ['problem', 'found a problem', 'var(--k-fail)'], ['stale', 'stale', 'var(--k-stale)'], ['none', 'none yet', 'var(--k-never)']];
+  function reviewBars(models) {
+    return `<ul class="bd">${['visual', 'text'].map((kind) => {
+      const t = Object.fromEntries(RV_SEGS.map(([k]) => [k, 0]));
+      for (const m of models) t[reviewState(m, kind)]++;
+      const segs = RV_SEGS.map(([k, label, c]) => ({ label, n: t[k], c }));
+      const ok = t.fine + t.fixed;
+      const pills = segs.filter((x) => x.n).map((x) => `<span class="bdpill"><i style="background:${x.c}"></i>${esc(x.label)} <b>${x.n}</b></span>`).join('');
+      return `<li><span class="bd__name">${esc(cap(kind))} review</span>${segBar(segs, models.length)}<b class="bd__n">${ok}/${models.length}</b>
+        <span class="bd__under"><span class="bd__note" style="font-style:normal">${ok} of ${models.length} with a fresh ${kind} review that is not “problem”</span>${pills}</span></li>`;
+    }).join('')}</ul>`;
+  }
+  /** The blockers that hold a stage's models, counted over those models only, largest first. */
+  function holdsIn(models) {
+    const ids = new Set(models.map((m) => m.id));
+    return (blockerRows() ?? []).map((r) => ({ r, n: r.ids.filter((id) => ids.has(id)).length })).filter((x) => x.n).sort((a, b) => b.n - a.n);
+  }
+  const modelChips = (models) => `<div class="qids">${models.map((m) => `<span class="mid" title="${esc(m.title)}">${esc(m.id)}</span>`).join('')}</div>`;
+  function renderStage() {
+    const buckets = L.counts.buckets ?? [];
+    const key = stage, i = buckets.findIndex((x) => x.key === key), b = buckets[i];
+    const panel = $('ov-stage');
+    if (!b) { panel.innerHTML = ''; return; }
+    panel.setAttribute('aria-labelledby', `stage-tab-${i}`);
+    // the "All N" line would repeat the panel's own bars when this stage holds every model
+    $('checkbars').hidden = b.count === L.models.length && (key === 'converted' || key === 'not converted');
+    panel.style.setProperty('--stage-c', STAGE_C[i] ?? 'var(--border-strong)');
+    const models = L.models.filter((m) => m.status === key);
+    const holds = holdsIn(models);
+    const holdLine = holds.length
+      ? `<p class="stagebox__holds"><b>What holds them</b> (a model can have several): ${holds.slice(0, 4).map((x) => `${esc(chipLabel(x.r.key))} <b>${x.n}</b>`).join(', ')}${holds.length > 4 ? `, and ${holds.length - 4} more` : ''}. <button type="button" class="linkish" data-open-blk>Every reason</button></p>` : '';
+    let body = '';
+    if (!models.length) body = `<p class="stagebox__holds">${{ 'not converted': 'None: every model sets <code>--u</code> in vmin.', converted: 'None: no converted model is held by a check.', checked: 'None yet: no model has every automated check clear on its current code.', approved: 'None yet: no model has every check clear plus a fresh visual and a fresh text review.' }[key] ?? 'None.'}</p>`;
+    else if (key === 'converted') body = `${holdLine}<div class="ckbars"><h3>Checks, over these ${models.length} <span class="muted" style="text-transform:none;letter-spacing:0">· in gate order; each needs every one clear on its current code</span></h3>${bucketCheckBars(models)}</div>`;
+    else if (key === 'checked') body = `${holdLine}<div class="ckbars"><h3>Reviews, over these ${models.length} <span class="muted" style="text-transform:none;letter-spacing:0">· each needs a fresh visual and a fresh text review, neither “problem”</span></h3>${reviewBars(models)}</div>`;
+    else if (key === 'approved') body = models.length ? `<p class="stagebox__holds">Approved:</p>${modelChips(models)}` : '<p class="stagebox__holds">None yet: no model has every check clear plus a fresh visual and a fresh text review.</p>';
+    else body = models.length ? `${holdLine}${modelChips(models)}` : '<p class="stagebox__holds">None: every model sets <code>--u</code> in vmin.</p>';
+    const shown = blk === `status:${key}`;
+    panel.innerHTML = `<div class="stagebox__head"><div><h3 id="stage-h">${esc(STEP_SHORT[key] ?? b.label)}<span class="n">${b.count}</span></h3><p class="stagebox__means">${esc(cap(b.means ?? ''))}.</p></div>
+      ${b.count ? `<button type="button" class="btn bdhead__all" data-show="${esc(`status:${key}`)}" style="padding:5px 12px;font-size:12.5px">${shown ? 'Shown in the table below' : `Show ${b.count === 1 ? 'it' : `these ${b.count}`} in the table`}</button>` : ''}</div>${body}`;
+  }
+  $('ov-stage').addEventListener('click', (e) => {
+    if (!L) return;
+    if (e.target.closest('[data-open-blk]')) { openBlockers(e.target.closest('[data-open-blk]')); return; }
+    // show this stage's models in the table: sets the filter, never unsets it (the chip's × does that)
+    const b = e.target.closest('[data-show]');
+    if (b) showOnly(b.dataset.show, 'ov-stage', { toggle: false });
+  });
+
+  /* ---------- "What's holding models back": the blockers, in a dialog opened from the header ---------- */
+  let blkFrom = null, blkKeepFocus = false;
+  function openBlockers(from) {
+    const d = $('blk-dialog');
+    blkFrom = from ?? $('blk-btn');
+    if (!d.open) { if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', ''); }
+    $('blk-close').focus();
+  }
+  $('blk-btn').addEventListener('click', (e) => openBlockers(e.currentTarget));
+  $('blk-close').addEventListener('click', () => $('blk-dialog').close());
+  $('blk-dialog').addEventListener('click', (e) => { if (e.target === $('blk-dialog')) $('blk-dialog').close(); });
+  $('blk-dialog').addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('blk-dialog').open) { e.preventDefault(); $('blk-dialog').close(); } });
+  // focus goes back to whatever opened it, unless a blocker was picked: then it goes to the table's filter chip
+  $('blk-dialog').addEventListener('close', () => { if (!blkKeepFocus) (blkFrom?.isConnected ? blkFrom : $('blk-btn')).focus({ preventScroll: true }); blkKeepFocus = false; });
+
+  /** Pressed states of everything that sets the table's filter, without redrawing it. */
+  function syncPressed() {
+    document.querySelectorAll('[data-blk]').forEach((b) => b.setAttribute('aria-pressed', String(blk === b.dataset.blk)));
+    if (L) renderStage(); // its "show these in the table" button says whether they are
+  }
+  /**
+   * Show only one filter's models (a blocker, a check-bar segment or a stage of the strip) in the
+   * table: every other filter and the search are dropped so the rows are exactly those, all of them
+   * drawn, and the table scrolls into view with the filter chip. The same click again shows every model.
+   */
+  function showOnly(key, from, { toggle = true } = {}) {
+    const on = !toggle || blk !== key;
+    blk = on ? key : null;
+    filter = 'all'; group = 'all'; tags.clear(); query = '';
+    limit = Math.max(PAGE, L.models.length);
+    saveView(); renderFilterChips(); renderRows(); renderOverview();
+    if (on) {
+      $('tbl-h').closest('section').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      $('fchip').querySelector('button')?.focus({ preventScroll: true });
+    } else $(from)?.querySelector(`[data-blk="${CSS.escape(key)}"]`)?.focus({ preventScroll: true });
+  }
+  // the strip is redrawn on select, so the focus is put back on the selected tab
+  $('stats').addEventListener('click', (e) => { const b = e.target.closest('[data-stage]'); if (b && L) selectStage(b.dataset.stage, true); });
+  $('stats').addEventListener('keydown', (e) => {
+    const tabs = [...$('stats').querySelectorAll('[role="tab"]')];
+    const at = tabs.indexOf(document.activeElement);
+    if (at < 0 || !L) return;
+    const to = { ArrowRight: at + 1, ArrowDown: at + 1, ArrowLeft: at - 1, ArrowUp: at - 1, Home: 0, End: tabs.length - 1 }[e.key];
+    if (to == null) return;
+    e.preventDefault();
+    selectStage(tabs[(to + tabs.length) % tabs.length].dataset.stage, true);
+  });
+  for (const id of ['blockers', 'checkbars']) $(id).addEventListener('click', (e) => {
+    const b = e.target.closest('[data-blk]');
+    if (!b || !L) return;
+    // a blocker in the dialog: close it, then filter; focus goes to the filter chip, not back to the opener
+    if (id === 'blockers' && $('blk-dialog').open) { blkKeepFocus = true; $('blk-dialog').close(); }
+    showOnly(b.dataset.blk, id);
   });
 
   /* ---------- notes: collapsed to a badge; each closable; back when its content changes ---------- */
@@ -1025,13 +1380,14 @@ table.mini code { font-size: 12px; }
   /** Whether a model passes a set of filters. Every count on a chip is this, over all models. */
   const passes = (m, f) => {
     if (f.filter !== 'all' && m.status !== f.filter) return false;
+    if (f.blk && !BLK.get(f.blk)?.ids.has(m.id)) return false;
     if (f.group !== 'all' && m.group !== f.group) return false;
     for (const t of f.tags) if (!(m.tags ?? []).includes(t)) return false;
     const needle = f.query.trim().toLowerCase();
     if (needle && ![m.id, m.title, m.groupLabel, ...(m.tags ?? [])].join(' ').toLowerCase().includes(needle)) return false;
     return true;
   };
-  const view = () => ({ filter, group, tags, query });
+  const view = () => ({ filter, group, tags, query, blk });
   const countWith = (over) => { const f = { ...view(), ...over }; return L.models.filter((m) => passes(m, f)).length; };
 
   /** The latest review of a kind, as a chip: fresh verdict, stale, or none. */
@@ -1053,7 +1409,7 @@ table.mini code { font-size: 12px; }
     $('meta').innerHTML = `Built ${when(L.generatedAt)}${by} at HEAD <code>${esc(L.head)}</code>. Every status below is read from git, the model files and the captured checks.`;
 
     const notes = [];
-    for (const [name, src] of Object.entries(L.sources.checks)) if (/never been captured/.test(src)) notes.push({ key: `never:${name}`, col: name, html: `<b>${esc(CHECK_NAMES[name] ?? name)}</b> has no result file: its column says “never run” for every model because no run was captured, not because models failed. Capture one with <code>npm run capture -- ${esc(name)}</code>.` });
+    for (const [name, src] of Object.entries(L.sources.checks)) if (/never been captured/.test(src)) notes.push({ key: `never:${name}`, col: name, html: `<b>${esc(CHECK_NAMES[name] ?? name)}</b> has no result file: its column says “not run yet” for every model because no run was captured, not because models failed. Capture one with <code>npm run capture -- ${esc(name)}</code>.` });
     const other = L.models.filter((m) => m.uNotVmin);
     if (other.length) notes.push({ key: 'u-not-vmin', html: `<b>${other.length} model${other.length === 1 ? ' uses' : 's use'} --u but not in vmin</b>, so ${other.length === 1 ? 'it is' : 'they are'} not counted as converted: ${other.map((m) => `<code>${esc(m.id)}</code> (${m.uNotVmin.map((v) => `--u: ${esc(v)}`).join(', ')})`).join(', ')}.` });
     for (const note of L.notes ?? []) notes.push({ key: `ledger:${sig(note)}`, html: esc(note) });
@@ -1061,42 +1417,19 @@ table.mini code { font-size: 12px; }
     $('notices').innerHTML = '';
     renderNotes();
 
-    // checks in progress, as the last build saw their result files
-    const runs = Object.entries(L.running ?? {}).filter(([, p]) => p);
-    $('running').innerHTML = runs.map(([name, p]) => {
-      const pct = p.total ? Math.min(100, (100 * p.done) / p.total) : 0;
-      const gone = p.alive === false;
-      return `<div class="progress${gone ? ' gone' : ''}" role="status">
-        <b>${esc(CHECK_NAMES[name] ?? name)} ${gone ? 'stopped without finishing' : 'is running'}:</b>
-        <span class="num">${esc(p.done)}</span> of <span class="num">${p.total ?? '?'}</span> ${esc(p.counts ?? 'done')}${p.total != null && p.totalIsEstimate ? ` <span class="muted">(the total is an estimate: ${esc(p.totalFrom)})</span>` : ''}.
-        ${p.last ? `Latest: <code>${esc(p.last)}</code>, ` : ''}last write ${agoSpan(p.updatedAt)}; started ${esc(clock(p.startedAt))}${p.commit ? ` at <code>${esc(p.commit)}</code>` : ''}${p.args?.length ? `, args <code>${esc(p.args.join(' '))}</code>` : ''}.
-        ${gone ? `<br>Its process (pid ${esc(p.pid)}) is gone. The results it wrote are kept; the rest of the run never reported.` : ''}
-        <div class="track" aria-hidden="true"><span style="width:${pct}%"></span></div></div>`;
-    }).join('');
     // short headers: each names its check in the tooltip and opens its definition
     const theadHtml = `<th class="model" scope="col">Model</th><th class="st" scope="col">Status</th>${COLS.map(([k, label]) => {
       const p = L.running?.[k];
       const note = NOTES.find((n) => n.col === k); // why the column reads as it does, even after the note is dismissed
       const title = CHECK_NAMES[k] ?? k;
-      return `<th class="c" scope="col"><button type="button" class="colh" data-def="${esc(k)}" data-tip data-tiptext="${esc(`${title}. Click for its definition.`)}" aria-label="${esc(`${title}: open its definition`)}">${esc(label)}</button>${note ? helpIcon(`col-${k}`, `About the ${label} column`, note.html) : ''}${p ? `<span class="hrun${p.alive === false ? ' is-gone' : ''}" role="img" aria-label="${esc(`${title} ${p.alive === false ? 'stopped without finishing' : 'is running'}: ${p.done} of ${p.total ?? '?'}`)}" data-tip data-tiptext="${esc(`${title} ${p.alive === false ? 'stopped without finishing' : 'is running'}: ${p.done} of ${p.total ?? '?'} done. Its bar above has the details.`)}">${esc(p.done)}</span>` : ''}</th>`;
+      return `<th class="c" scope="col"><button type="button" class="colh" data-def="${esc(k)}" data-tip data-tiptext="${esc(`${title}. Click for its definition.`)}" aria-label="${esc(`${title}: open its definition`)}">${esc(label)}</button>${note ? helpIcon(`col-${k}`, `About the ${label} column`, note.html) : ''}${p ? `<span class="hrun${p.alive === false ? ' is-gone' : ''}" role="img" aria-label="${esc(`${title} ${p.alive === false ? 'stopped without finishing' : 'is running'}: ${p.done} of ${p.total ?? '?'}`)}" data-tip data-tiptext="${esc(`${title} ${p.alive === false ? 'stopped without finishing' : 'is running'}: ${p.done} of ${p.total ?? '?'} done. “Running now”, above, has the details.`)}">${esc(p.done)}</span>` : ''}</th>`;
     }).join('')}<th class="rvw c" scope="col"><span data-tip data-tiptext="Reviews: V is the visual review, T the text review">Reviews</span></th><th class="last" scope="col">Last commit</th><th class="num ncom" scope="col">Commits</th>`;
     // rewritten only when it changes, so an open tooltip is not pulled out from under the reader
     if ($('thead').dataset.html !== theadHtml) { $('thead').dataset.html = theadHtml; $('thead').innerHTML = theadHtml; stickyOffsets(); }
 
-    // one set of exclusive buckets, used by the cards, the bar, the legend and the status chips alike
-    const buckets = c.buckets ?? STATUS.map((s) => ({ key: s.key, label: s.key, count: c.byStatus[s.key] }));
-    const sum = buckets.reduce((s, b) => s + b.count, 0);
-    const bal = c.balance ?? { ok: sum === n, sum, models: n, problems: sum === n ? [] : [`the buckets sum to ${sum}, not ${n}`] };
-    const cls = { 'not converted': 'none', converted: 'conv', checked: 'chk', approved: 'ok' };
-    lastBuckets = buckets;
-    renderStats();
-    $('balance').className = `balance ${bal.ok ? 'ok' : 'bad'}`;
-    $('balance').innerHTML = bal.ok
-      ? `<span class="tick" aria-hidden="true">✓</span> <b>Total ${buckets.map((b) => b.count).join(' + ')} = ${bal.sum}</b>, which is every one of the ${bal.models} models, each in exactly one bucket.`
-      : `<span class="tick" aria-hidden="true">✗</span> <b>MISMATCH, the books do not balance:</b> ${bal.problems.map(esc).join('; ')} (${bal.models} models, buckets sum to ${bal.sum}). Nothing on this page adds up until this is fixed.`;
-    $('bar').innerHTML = buckets.map((b) => { const s = STATUS.find((x) => x.key === b.key); return `<span style="width:${(100 * b.count) / n}%;background:${s?.color}" title="${esc(b.label)}: ${b.count}"></span>`; }).join('');
-    $('bar').setAttribute('aria-label', buckets.map((b) => `${b.label} ${b.count}`).join(', '));
-    $('legend').innerHTML = buckets.map((b) => { const s = STATUS.find((x) => x.key === b.key); return `<span><i style="background:${s?.color}"></i>${esc(b.label)}: ${b.count}</span>`; }).join('');
+    // an old ledger has no blockers: a filter set by one would hide every row without saying why
+    if (!Array.isArray(c.blockers) && !String(blk).startsWith('status:')) blk = null;
+    renderOverview();
     renderRules();
     renderCheckBars();
     renderMarkLegend();
@@ -1119,7 +1452,7 @@ table.mini code { font-size: 12px; }
   function renderFilterChips() {
     const n = L.models.length;
     // short labels that never break; the bucket's full name and definition are in the tooltip
-    const meansOf = (k) => (lastBuckets.find((b) => b.key === k) ?? (L.counts.buckets ?? []).find((b) => b.key === k))?.means;
+    const meansOf = (k) => (L.counts.buckets ?? []).find((b) => b.key === k)?.means;
     $('f-status').innerHTML = [['all', 'All', 'every model, whatever its status'], ...STATUS.map((s) => [s.key, s.short, `${s.long}: ${meansOf(s.key) ?? ''}`])]
       .map(([k, label, def]) => { const n = countWith({ filter: k }); return `<button type="button" class="tab" data-f="${esc(k)}" aria-pressed="${filter === k}" aria-label="${esc(`${label}, ${n}`)}" data-tip data-tiptext="${esc(def)}">${esc(label)} <b aria-hidden="true">${n}</b></button>`; }).join('');
     tabsFade();
@@ -1146,7 +1479,14 @@ table.mini code { font-size: 12px; }
     $('tags-row').hidden = !tagsOpen;
     $('q-clear').hidden = !query;
     if ($('q').value !== query) $('q').value = query;
-    if (lastBuckets.length) renderStats();
+    // the chip for a filter a blocker set, with its count: the rows under it are exactly these
+    const fc = $('fchip');
+    fc.hidden = !blk;
+    if (blk) {
+      const x = BLK.get(blk);
+      fc.innerHTML = `<span class="fchip__c"><span>Showing: ${esc(x?.chip ?? chipLabel(blk))} (${x?.ids.size ?? 0})</span><button type="button" class="fchip__x" data-unblk aria-label="Stop showing only these; show every model">${XICON}</button></span>${x ? '' : '<span class="fchip__note">No model is held by this any more.</span>'}`;
+    } else fc.innerHTML = '';
+    syncPressed();
     queueMicrotask(() => { groupsScroll.reveal($('f-group').querySelector('.group[aria-pressed="true"]')); tagsScroll.update(); });
   }
   function onFilterClick(e) {
@@ -1155,7 +1495,8 @@ table.mini code { font-size: 12px; }
     if (b.dataset.f) filter = b.dataset.f;
     else if (b.dataset.g) group = b.dataset.g;
     else if (b.dataset.t) tags.has(b.dataset.t) ? tags.delete(b.dataset.t) : tags.add(b.dataset.t);
-    else if ('clear' in b.dataset) { filter = 'all'; group = 'all'; tags.clear(); query = ''; }
+    else if ('clear' in b.dataset) { filter = 'all'; group = 'all'; tags.clear(); query = ''; blk = null; }
+    else if ('unblk' in b.dataset) { blk = null; }
     else if (b.id === 'tags-toggle') { tagsOpen = !tagsOpen; saveView(); renderFilterChips(); return; }
     else if (b.id === 'q-clear') { query = ''; $('q').focus(); }
     else return;
@@ -1224,10 +1565,12 @@ table.mini code { font-size: 12px; }
   let groupState = {};
   try { groupState = JSON.parse(localStorage.getItem('ledger-groups') || '{}') || {}; } catch {}
   let foldView = { key: '', fold: {} }; // folds made while a filter is on: forgotten when the filter changes
-  const filteringNow = () => filter !== 'all' || group !== 'all' || tags.size > 0 || query.trim() !== '';
+  const filteringNow = () => blk !== null || filter !== 'all' || group !== 'all' || tags.size > 0 || query.trim() !== '';
   const saveGroups = () => { try { localStorage.setItem('ledger-groups', JSON.stringify(groupState)); } catch {} };
   /** Whether any check of a model fails, flags or is running on it now: what a folded group must still show. */
   const problemsOf = (m) => COLS.map(([k]) => k).filter((k) => ['fail', 'flag'].includes(markKind(m.checks[k])[0]));
+  /** The checks whose test crashed on a model: shown apart from its problems, since the model was never judged. */
+  const brokeOf = (m) => COLS.map(([k]) => k).filter((k) => markKind(m.checks[k])[0] === 'broke');
   const runningOn = (m) => COLS.map(([k]) => k).filter((k) => { const r = L.running?.[k]; return r && r.alive !== false && r.last === m.id; });
   function groupSections(list) {
     const order = (L.groups ?? []).map((g) => g.key);
@@ -1251,7 +1594,10 @@ table.mini code { font-size: 12px; }
     // the problems inside, per check: shown on the row whether it is open or folded
     const probs = COLS.map(([k, label]) => {
       const bad = g.all.filter((m) => problemsOf(m).includes(k)).length;
-      return bad ? `<span class="chip s-bad" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]}: ${bad} model${bad === 1 ? '' : 's'} in this group failing or flagged`)}">✗ ${esc(label)} ${bad}</span>` : '';
+      return bad ? `<span class="chip s-bad" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]}: ${bad} model${bad === 1 ? '' : 's'} in this group failed or flagged`)}">✗ ${esc(label)} ${bad}</span>` : '';
+    }).join('') + COLS.map(([k, label]) => {
+      const nr = g.all.filter((m) => brokeOf(m).includes(k)).length;
+      return nr ? `<span class="chip s-conv" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]}: the test crashed on ${nr} model${nr === 1 ? '' : 's'} in this group, so ${nr === 1 ? 'it was' : 'they were'} never judged`)}">${esc(label)} didn't run ${nr}</span>` : '';
     }).join('') + COLS.map(([k, label]) => {
       const on = g.all.filter((m) => runningOn(m).includes(k)).length;
       return on ? `<span class="chip s-chk" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]} is running on a model in this group now`)}">running ${esc(label)}</span>` : '';
@@ -1259,8 +1605,8 @@ table.mini code { font-size: 12px; }
     const shownNote = g.models.length !== n ? `, ${g.models.length} match` : '';
     return `<tr class="grow"><th colspan="${colCount()}" scope="rowgroup"><div class="grow__in">
       <button type="button" class="grow__btn" data-grp="${esc(g.key)}" aria-expanded="${opened}">${CHEVRON}${esc(g.label)} <span class="n">· ${n}${shownNote}</span></button>
-      <span class="grow__bar" role="img" aria-label="${esc(`${ap} approved, ${ch} awaiting approval, ${cv} to check${nc ? `, ${nc} not converted` : ''}, of ${n}`)}">${seg(ap, 'var(--accent)', 'approved')}${seg(ch, 'var(--st-chk)', 'awaiting approval')}${seg(cv, 'var(--warm)', 'to check')}${seg(nc, 'var(--never)', 'not converted')}</span>
-      <span class="grow__meta">${ap} approved · ${ch} awaiting · ${cv} to check${nc ? ` · ${nc} not converted` : ''}</span>
+      <span class="grow__bar" role="img" aria-label="${esc(`${ap} approved, ${ch} awaiting approval, ${cv} to check${nc ? `, ${nc} not converted` : ''}, of ${n}`)}">${seg(ap, 'var(--st-ok)', 'approved')}${seg(ch, 'var(--st-chk)', 'awaiting approval')}${seg(cv, 'var(--st-conv)', 'to check')}${seg(nc, 'var(--st-none)', 'not converted')}</span>
+      <span class="grow__meta">${ap} approved · ${ch} awaiting approval · ${cv} to check${nc ? ` · ${nc} not converted` : ''}</span>
       ${probs ? `<span class="grow__probs">${probs}</span>` : ''}</div></th></tr>`;
   }
   function modelRow(m, flat) {
@@ -1301,21 +1647,21 @@ table.mini code { font-size: 12px; }
     const hidden = total - matching.length;
     const onScreen = Math.min(limit, matching.length);
     const glabel = (L.groups ?? []).find((g) => g.key === group)?.label ?? group;
-    const why = [filter !== 'all' ? `status “${filter}”` : '', group !== 'all' ? `group “${glabel}”` : '', ...[...tags].map((t) => `#${t}`), query.trim() ? `search “${query.trim()}”` : ''].filter(Boolean).join(', ');
+    const why = [blk ? `“${BLK.get(blk)?.chip ?? chipLabel(blk)}”` : '', filter !== 'all' ? `status “${filter}”` : '', group !== 'all' ? `group “${glabel}”` : '', ...[...tags].map((t) => `#${t}`), query.trim() ? `search “${query.trim()}”` : ''].filter(Boolean).join(', ');
     const screen = '';
     $('showing').innerHTML = hidden
       ? `${matching.length} of ${total} match; ${hidden} hidden by ${esc(why)}.${screen} <button type="button" class="linkish" id="clear">Show all ${total}</button>`
       : `All ${total} match.${screen}`;
-    $('clear')?.addEventListener('click', () => { filter = 'all'; group = 'all'; tags.clear(); query = ''; limit = PAGE; saveView(); render(); });
+    $('clear')?.addEventListener('click', () => { blk = null; filter = 'all'; group = 'all'; tags.clear(); query = ''; limit = PAGE; saveView(); render(); });
 
     // Sections per group, in the ledger's group order. A filter that leaves only a few models drops
     // them for a flat list with a group mark on each row. A folded group renders no rows, and the
     // lazy loading counts only rows that are drawn.
-    const filtering = filter !== 'all' || group !== 'all' || tags.size > 0 || query.trim() !== '';
+    const filtering = blk !== null || filter !== 'all' || group !== 'all' || tags.size > 0 || query.trim() !== '';
     const flat = filtering && matching.length <= FLAT_BELOW;
     const sections = flat ? [{ key: null, models: matching }] : groupSections(matching);
     // with a filter or a search, every group with matches opens (the viewer may still fold one, for this view only)
-    const viewKey = JSON.stringify([filter, group, [...tags], query.trim()]);
+    const viewKey = JSON.stringify([blk, filter, group, [...tags], query.trim()]);
     if (viewKey !== foldView.key) foldView = { key: viewKey, fold: {} };
     const isOpen = (g) => !g.key ? true : filtering ? !foldView.fold[g.key] : groupOpen(g);
     let budget = limit, html = '', drawn = 0, cut = 0, folded = 0, foldedGroups = 0;
@@ -1441,12 +1787,15 @@ table.mini code { font-size: 12px; }
     }).join('');
   }
   /* ---------- a bar per check, from the registry: every model (or page), none left out ---------- */
-  const CK_SEGS = [['pass', 'pass', 'var(--st-chk)'], ['stale', 'passed on older code', 'var(--warm)'], ['fail', 'failing', 'var(--hot)'], ['never', 'not run', 'var(--never)']];
-  function checkBarsOf(list) {
+  // [tally key, words, swatch, the blocker kind a click filters the table to]. "Didn't run" is the
+  // test crashing before it judged the model; "not run yet" is no run having reached it
+  const CK_SEGS = [['pass', 'pass', 'var(--k-pass)', null], ['stale', 'passed on older code', 'var(--k-stale)', 'stale-pass'], ['flag', 'flagged, needs a person', 'var(--k-flag)', 'flagged'],
+    ['fail', 'failed', 'var(--k-fail)', 'failed'], ['broke', "didn't run (test crashed)", 'var(--k-broke)', 'broke'], ['never', 'not run yet', 'var(--k-never)', 'never']];
+  function checkBarsOf(list, interactive = true) {
     return `<ul class="bd">${list.map((c) => {
       const t = c.tally ?? { pass: 0, stale: 0, fail: 0, never: c.total ?? 0 };
       const total = c.total ?? 0;
-      const segs = CK_SEGS.map(([k, label, col]) => ({ label, n: t[k] ?? 0, c: col }));
+      const segs = CK_SEGS.map(([k, label, col, kind]) => ({ label, n: t[k] ?? 0, c: col, blk: c.scope === 'model' && kind ? `${c.key}:${kind}` : null }));
       const run = c.running;
       const ran = total - (t.never ?? 0);
       const unit = c.unit === 'pages' ? 'pages' : 'models';
@@ -1455,7 +1804,10 @@ table.mini code { font-size: 12px; }
       const kinds = c.kinds ? KIND_ORDER.filter((k) => c.kinds[k]).map((k) => `${c.kinds[k].pages} ${k}${c.kinds[k].pass === c.kinds[k].pages ? '' : ` (${c.kinds[k].pass} pass)`}`).join(' · ') : '';
       const status = !c.captured && !run ? `not run yet (0 of ${total} ${unit})` : `${t.pass} of ${total} ${unit} pass${kinds ? ` (${kinds})` : ''}${c.listed ? ` · ${c.listed} of them with listed findings (waived or the model's own text, not failed)` : ''}${c.lastRun?.finishedAt ? ` · last run ${new Date(c.lastRun.finishedAt).toLocaleString()}${c.lastRun.commit ? ` at ${c.lastRun.commit}` : ''}` : ''}`;
       const runChip = run ? `<span class="chip ${run.alive === false ? 's-bad' : 's-chk'}">${run.alive === false ? 'stopped' : 'running'} ${esc(run.done)} of ${run.total ?? '?'}</span>` : '';
-      const pills = segs.filter((x) => x.n).map((x) => `<span class="bdpill"><i style="background:${x.c}"></i>${esc(x.label)} <b>${x.n}</b></span>`).join('');
+      // a segment a blocker covers is a button: it filters the table to those models, as the blocker does
+      const pills = segs.filter((x) => x.n).map((x) => (interactive && x.blk && BLK.has(x.blk)
+        ? `<button type="button" class="pillbtn" data-blk="${esc(x.blk)}" aria-pressed="${blk === x.blk}" data-tip data-tiptext="${esc(`${c.short}: ${x.n} ${x.label}. Click to show only these in the table.`)}"><i class="sw" style="background:${x.c};width:8px;height:8px;border-radius:50%"></i>${esc(x.label)} <b>${x.n}</b></button>`
+        : `<span class="bdpill"><i style="background:${x.c}"></i>${esc(x.label)} <b>${x.n}</b></span>`)).join('');
       const bar = segBar(segs, total).replace('class="bdbar"', `class="bdbar${run && run.alive !== false ? ' is-running' : ''}"`);
       return `<li><button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
         <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}</span>${pills}</span></li>`;
@@ -1467,8 +1819,11 @@ table.mini code { font-size: 12px; }
     const n = L.models.length;
     // a ledger from before the registry has no tallies: say so rather than draw empty bars as if nothing ran
     if (!L.checkList) { $('checkbars').innerHTML = '<p class="muted">This ledger was built before it listed its checks; the bars appear on the next build.</p>'; return; }
-    $('checkbars').innerHTML = `<h3>Checks, per model <span class="muted" style="text-transform:none;letter-spacing:0">· of ${n} models, in gate order; a model is checked when it passes every one on its current code</span></h3>${checkBarsOf(models)}`
-      + (site.length ? `<h3>Site <span class="muted" style="text-transform:none;letter-spacing:0">· counted in pages, not a gate on any model</span></h3>${checkBarsOf(site)}` : '');
+    // over every model, one line: the bars are in the selected stage's panel, over its models only.
+    // Each count's full split (older code, flagged, failed, didn't run, not run yet) is in its tooltip.
+    const splitOf = (c) => CK_SEGS.filter(([k]) => c.tally?.[k]).map(([k, label]) => `${c.tally[k]} ${label}`).join(', ');
+    $('checkbars').innerHTML = `<p class="allline"><span class="label">All ${n}, passing</span> ${models.map((c) => `<span tabindex="0" data-tip data-tiptext="${esc(`${c.title}, over all ${n} models: ${splitOf(c)}.`)}">${esc(c.short.toLowerCase())} <b>${c.tally?.pass ?? 0}</b></span>`).join('<span class="allline__sep" aria-hidden="true">·</span>')}</p>`;
+    $('sitebars').innerHTML = (site.length ? `<h3>Site <span class="muted" style="text-transform:none;letter-spacing:0">· counted in pages, not a gate on any model</span></h3>${checkBarsOf(site)}` : '');
   }
   /** Opens the definitions at one check's entry. */
   function openDef(key) {
@@ -1485,22 +1840,28 @@ table.mini code { font-size: 12px; }
   /* ---------- "How these are counted": every fact the summary's numbers are defined by ---------- */
   function renderRules() {
     const c = L.counts, s = L.sources;
-    const B = (key) => (c.buckets ?? []).find((b) => b.key === key);
-    const conv = B('converted'), chk = B('checked');
-    const order = (b) => (b?.parts ?? []).filter((p) => p.key !== 'unexplained');
+    const buckets = c.buckets ?? [];
+    const B = (key) => buckets.find((b) => b.key === key);
+    const sum = buckets.reduce((a, b) => a + b.count, 0);
     const gates = s.gateRules ?? [];
     const dd = (html) => `<dd>${html}</dd>`;
+    const n = (x) => `<span class="n">${esc(x)}</span>`;
+    // the first-reason split the build balances: each held model under the first thing that holds it
+    const firsts = (b) => !b?.parts ? '' : `${b.parts.filter((p) => p.count).map((p) => `${esc(p.label)} ${n(p.count)}`).join(', ') || 'none'}; these sum to ${n(b.partsSum)}${b.partsBalance ? ' ✓' : `, not ${n(b.count)} ✗`}`;
     $('rules-body').innerHTML = `
-      <h3>The buckets</h3>
+      <h3>The four states</h3>
+      <p class="muted" style="font-size:14px">The sentence and the four arrows at the top. Every model is in exactly one of these. The arrows are tabs: one is always selected (the last one you picked, or else the first with models in it), and the panel under them shows that stage’s detail: its check bars, its review bars or its models. The panel’s button shows those models in the table; the filter chip’s × shows every model again.</p>
       <dl class="defs">
-        <dt>Not converted <span class="n">${B('not converted')?.count ?? c.byStatus['not converted']}</span></dt>
-        ${dd(`${esc(B('not converted')?.means ?? '')}. <b>Converted</b> means: ${esc(s.converted)}.`)}
-        <dt>Converted, not yet checked <span class="n">${conv?.count ?? ''}</span></dt>
-        ${dd(`${esc(conv?.means ?? '')}. It is split by the <b>first</b> gate a model does not clear, in the gate order below, so a 0 for a later gate means no model has stopped there yet, not that they passed it. ${esc(s.gateKinds ?? '')}.`)}
-        <dt>Checked, awaiting approval <span class="n">${chk?.count ?? ''}</span></dt>
-        ${dd(`${esc(chk?.means ?? '')}. It is split by the first missing item, in this order: ${order(chk).map((p) => esc(p.label)).join(', then ')}.`)}
-        <dt>Approved <span class="n">${B('approved')?.count ?? ''}</span></dt>
-        ${dd(`${esc(B('approved')?.means ?? '')}.`)}
+        ${['approved', 'checked', 'converted', 'not converted'].map((k) => B(k)).filter(Boolean).map((b) => `<dt>${esc(b.label)} ${n(b.count)}</dt>${dd(`${esc(b.means ?? '')}.${b.key === 'not converted' ? ` <b>Converted</b> means: ${esc(s.converted)}.` : ''}`)}`).join('')}
+        <dt id="def-sum">The numbers add up ${n(c.balance?.ok ? '✓' : '✗')}</dt>
+        ${dd(`${buckets.map((b) => `${n(b.count)} ${esc(b.label.toLowerCase())}`).join(' + ')} = ${n(sum)}, and there are ${n(c.models)} models. <code>scripts/ledger.mjs</code> fails the build if these differ, if a first-reason split below does not add up, or if what holds a model back does not match its state.${c.balance?.problems?.length ? ` Now: <b>${c.balance.problems.map(esc).join('; ')}</b>.` : ''}`)}
+      </dl>
+      <h3>What’s holding models back</h3>
+      <p class="muted" style="font-size:14px">The list behind the <b>What’s holding models back</b> button at the top. Each row counts the models one reason holds back, and clicking it shows exactly those models in the table. The rows <b>overlap</b>: a model held by two checks is counted under both, so they do not add up to the model count. “Held by this alone” counts the models with no other reason, the ones that move on once it is fixed. Review rows count only models whose every check is clear. “Passed on older code” is one row for all checks, with the count per check in it; the check bars below split it per check. Rows are largest first, after “not converted”, with reviews last.</p>
+      <dl class="defs">
+        ${(s.holdKinds ?? []).map((k) => `<dt>${esc(cap(k.label))}</dt>${dd(`${esc(k.means)}.${k.key === 'broke' ? ' A crash says nothing about the model, so it is never counted as failed: not in the bars, not in the marks, not in the counts.' : ''}`)}`).join('')}
+        ${(s.reviewHolds ?? []).map((k) => `<dt>Review ${esc(k.label)}</dt>${dd(`${esc(k.means)}.`)}`).join('')}
+        ${B('converted')?.parts ? `<dt>First reason, in gate order</dt>${dd(`The ledger also files each model under the first thing that holds it, in the gate order below. Unlike the rows above, these do add up. ${esc(B('converted').label)}: ${firsts(B('converted'))}. ${esc(B('checked')?.label ?? '')}: ${firsts(B('checked'))}.`)}` : ''}
       </dl>
       <h3>The checks, in gate order</h3>
       <p class="muted" style="font-size:14px">${esc(s.gates ?? '')}.</p>
@@ -1686,12 +2047,14 @@ table.mini code { font-size: 12px; }
     const a = document.activeElement;
     const caret = a?.id === 'q' ? [a.selectionStart, a.selectionEnd] : null;
     const row = a?.closest?.('tr.row')?.dataset.id;
+    const onTab = a?.getAttribute?.('role') === 'tab';
     const key = ['f', 'g', 't'].find((k) => a?.closest?.('#filters') && a.dataset?.[k] != null);
     const btn = key ? `#filters button[data-${key}="${CSS.escape(a.dataset[key])}"]` : null;
     render();
     if (caret) { const q = $('q'); q.focus({ preventScroll: true }); try { q.setSelectionRange(...caret); } catch {} }
     else if (row) document.querySelector(`tr.row[data-id="${CSS.escape(row)}"]`)?.focus({ preventScroll: true });
     else if (btn) document.querySelector(btn)?.focus({ preventScroll: true });
+    else if (onTab) $('stats').querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
     $('tablewrap').scrollLeft = tx;
     scrollTo(x, y);
   }
@@ -1741,7 +2104,7 @@ table.mini code { font-size: 12px; }
     fetchError = errs.length ? errs.join('; ') : null;
     if (!fetchError) lastChangeAt = Date.now();
     const firstRender = changedL && !rendered;
-    if (changedL) rerender(); else if (changedQ) renderQueue();
+    if (changedL) rerender(); else if (changedQ) { renderQueue(); renderOverview(); }
     if (firstRender) { rendered = true; try { const y = Number(sessionStorage.getItem('ledger-scroll')); if (y > 0) scrollTo(0, y); } catch {} }
     renderLive();
   }

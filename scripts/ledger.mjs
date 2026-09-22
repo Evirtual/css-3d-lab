@@ -64,10 +64,32 @@ const MODEL_KEYS = MODEL_CHECKS.map((c) => c.key);
  * counted in pages, in `checkList`.
  */
 export const GATES = MODEL_CHECKS.map((c) => ({ key: c.key, name: c.name, label: c.label }));
-const GATE_KINDS = [
-  { key: 'stale-pass', label: 'passed on older code' },
-  { key: 'failed', label: 'failed' },
-  { key: 'never', label: 'never run' },
+/**
+ * Why a gate is not cleared, one of these. "broke" is not a verdict on the model: the check's own
+ * test crashed or timed out (check-motion's BROKE, check-exports' "a tab could not be run"), so the
+ * model was never actually judged. It is kept apart from "failed" everywhere.
+ */
+export const GATE_KINDS = [
+  { key: 'never', label: 'not run yet', means: 'no captured run has reported it yet' },
+  { key: 'broke', label: "didn't run (test crashed)", means: 'the test itself crashed or timed out before it judged the model, so the model was never actually tested: not a model failure; it needs a re-run' },
+  { key: 'flagged', label: 'flagged, needs a person', means: 'the check flagged something it cannot judge alone; a person has to look, and a fresh visual review can mark each flag a false alarm' },
+  { key: 'failed', label: 'failed', means: 'the latest result is a failure' },
+  { key: 'stale-pass', label: 'passed on older code', means: 'it passed (or its flags were cleared), but something it judged has changed since, so it needs a re-run' },
+];
+/** A gate's verdict from a check result: null when cleared, else one of GATE_KINDS. */
+export function gateKind(key, c) {
+  if (c.status === 'never' || c.status === 'untested') return 'never';
+  const passed = c.status === 'pass' || (key === 'motion' && c.status === 'flagged' && c.openFlags === 0);
+  if (passed) return c.stale ? 'stale-pass' : null;
+  if (c.status === 'flagged') return 'flagged';
+  if (c.status === 'broke' || c.status === 'error') return 'broke';
+  return 'failed';
+}
+/** What still stands between a model whose every check is clear and approval, per review kind. */
+const REVIEW_HOLDS = [
+  { key: 'none', label: 'none yet', means: 'no review of this kind has been recorded' },
+  { key: 'stale', label: 'stale', means: 'every review of this kind is on code that has changed since' },
+  { key: 'problem', label: 'found a problem', means: 'the latest fresh review of this kind says "problem"' },
 ];
 /** The check whose pass counts as "checked" and towards approval: scripts/check-models.mjs judges a model against docs/VIEW-CONTRACT.md. */
 const CONTRACT = 'models';
@@ -89,15 +111,13 @@ let notes = [];
  * For "checked, awaiting approval" a model missing several things is counted once, under the first
  * reason that applies in the order written here.
  */
+/** A gate kind's words for one check (exports judges the default settings; motion's pass can be flags cleared). */
+const kindLabel = (g, k) => (g === 'exports' && k.key === 'never' ? 'not run at the default settings yet' : g === 'motion' && k.key === 'stale-pass' ? 'clear on older code' : k.label);
 function GATES_PARTS() {
-  const means = {
-    'stale-pass': 'it passed (or its flags were cleared), but the model changed since',
-    failed: 'the latest result did not pass', never: 'no captured run has reported it',
-  };
   return GATES.flatMap((g) => GATE_KINDS.map((k) => ({
     key: `${g.key}:${k.key}`, gate: g.key,
-    label: `${g.name}: ${g.key === 'motion' && k.key === 'failed' ? 'open flag or broke' : g.key === 'exports' && k.key === 'never' ? 'never run at default settings' : g.key === 'motion' && k.key === 'stale-pass' ? 'clear on older code' : k.label}`,
-    means: means[k.key],
+    label: `${g.name}: ${kindLabel(g.key, k)}`,
+    means: k.means,
   })));
 }
 export const BUCKETS = [
@@ -602,9 +622,7 @@ const models = demos.map((d) => {
   // each gate: ok, or why not (stale-pass / failed / never)
   const gates = {};
   for (const g of GATES) {
-    const c = checks[g.key];
-    const passed = c.status === 'pass' || (g.key === 'motion' && c.status === 'flagged' && c.openFlags === 0);
-    const kind = c.status === 'never' || c.status === 'untested' ? 'never' : passed ? (c.stale ? 'stale-pass' : null) : 'failed';
+    const kind = gateKind(g.key, checks[g.key]);
     gates[g.key] = { ok: kind === null, kind };
   }
   const firstGap = GATES.find((g) => !gates[g.key].ok) ?? null;
@@ -615,7 +633,9 @@ const models = demos.map((d) => {
     const k = gates[g.key].kind, c = checks[g.key];
     if (k === 'never') missing.push(c.status === 'untested' && g.key === 'exports' ? `check-exports ran on it, but its run left out the default settings, so there is no default-settings verdict` : `the ${g.label} has never reported this model`);
     else if (k === 'stale-pass') missing.push(`the ${g.label} ${g.key === 'motion' && c.status === 'flagged' ? 'was cleared' : 'passed'}, but on source that has changed since`);
-    else if (k === 'failed') missing.push(g.key === 'motion' && c.status === 'flagged' ? `the ${g.label} has ${c.openFlags} open flag(s) no fresh visual review marks as a false alarm` : `the ${g.label}'s last result is "${c.status}"`);
+    else if (k === 'flagged') missing.push(`the ${g.label} has ${c.openFlags ?? 'some'} open flag(s) no fresh visual review marks as a false alarm; a person has to look`);
+    else if (k === 'broke') missing.push(`the ${g.label} did not run on it: its test crashed or timed out before judging the model (${c.summary || c.status}), so the model was never tested; it needs a re-run`);
+    else if (k === 'failed') missing.push(`the ${g.label}'s last result is "${c.status}"`);
   }
   const visualGap = judge('visual', 'a docs/reviews/ entry, or a commit touching it with a Reviewed-by: trailer or a "Review …" subject, other than the converting commit');
   const textGap = judge('text', 'a docs/reviews/ entry, or a commit with a Text-reviewed-by: trailer or a "Text review …" subject');
@@ -636,9 +656,22 @@ const models = demos.map((d) => {
       : fresh('visual')[0].verdict === 'problem' || fresh('text')[0].verdict === 'problem' ? 'problem'
       : 'unexplained'; // cannot happen while approval is defined as it is; shown, and fails the balance, if it ever does
   }
+  // everything holding the model back, overlapping: what the page's "What's holding models back"
+  // counts and filters by. Reviews are listed only once every check is clear (a model still held by
+  // a check has its reviews judged again after the fix).
+  const holds = [];
+  if (!converted) holds.push('convert');
+  for (const g of GATES) if (gates[g.key].kind) holds.push(`${g.key}:${gates[g.key].kind}`);
+  if (checked) {
+    for (const k of ['visual', 'text']) {
+      const list = reviews.filter((r) => r.kind === k), fresh = list.filter((r) => !r.stale);
+      const h = !list.length ? 'none' : !fresh.length ? 'stale' : fresh[0].verdict === 'problem' ? 'problem' : null;
+      if (h) holds.push(`review:${k}:${h}`);
+    }
+  }
 
   return {
-    id: d.id, title: d.title, group: d.group, part, groupLabel: groups.find((g) => g.key === d.group)?.label ?? null, tags: d.tags ?? [], status,
+    id: d.id, title: d.title, group: d.group, part, holds, groupLabel: groups.find((g) => g.key === d.group)?.label ?? null, tags: d.tags ?? [], status,
     converted, convertedInHead,
     uNotVmin: unit === 'other' ? uValues(snippet.css) : null,
     reviews,
@@ -666,8 +699,9 @@ const ledger = {
     const run = running[c.key] ? { done: running[c.key].done ?? 0, total: running[c.key].total ?? null, alive: running[c.key].alive } : null;
     const captured = Boolean(checkFiles[c.key]);
     if (c.scope === 'model') {
-      const tally = { pass: 0, stale: 0, fail: 0, never: 0 };
-      for (const m of models) { const k = m.gates[c.key]?.kind; tally[k == null ? 'pass' : k === 'stale-pass' ? 'stale' : k === 'failed' ? 'fail' : 'never']++; }
+      // one segment per gate kind: a crashed test (broke) and an open flag are never counted as failed
+      const tally = { pass: 0, stale: 0, flag: 0, fail: 0, broke: 0, never: 0 };
+      for (const m of models) { const k = m.gates[c.key]?.kind; tally[k == null ? 'pass' : { 'stale-pass': 'stale', flagged: 'flag', failed: 'fail', broke: 'broke', never: 'never' }[k] ?? 'never']++; }
       return { ...c, unit: 'models', total: models.length, tally, captured, running: run };
     }
     // a site check: its result file's entries are pages
@@ -679,7 +713,7 @@ const ledger = {
     const kindOf = (p) => (p.startsWith('/embed/') ? 'embeds' : p.startsWith('/demos/') ? 'redirects' : 'public');
     const kinds = {};
     for (const [p, x] of byPath) { const k = (kinds[kindOf(p)] ??= { pages: 0, pass: 0 }); k.pages++; if (x.status === 'pass') k.pass++; }
-    const tally = { pass: pages.filter((x) => x.status === 'pass').length, stale: 0, fail: pages.filter((x) => x.status !== 'pass').length, never: 0 };
+    const tally = { pass: pages.filter((x) => x.status === 'pass').length, stale: 0, flag: 0, fail: pages.filter((x) => x.status !== 'pass').length, broke: 0, never: 0 };
     tally.never = total - tally.pass - tally.fail;
     // passes whose findings the check lists rather than fails (check-seo's WAIVED and OWN-TEXT)
     const listed = pages.filter((x) => x.status === 'pass' && x.listed).length;
@@ -707,7 +741,10 @@ const ledger = {
     // each gate's rule on its own, in gate order, for the page's "How these are counted"
     gateRules: GATES.map((g) => ({ key: g.key, name: g.name, label: g.label, source: checkFiles[g.key] ? `docs/checks/${g.key}.json, updated ${checkFiles[g.key].updatedAt}` : 'no result file: never captured',
       rule: REGISTRY.find((c) => c.key === g.key).rule })),
-    gateKinds: 'Each gate not cleared is one of: passed on older code (it passed, or its flags were cleared, but the model changed since), failed (the latest result did not pass), never run (no captured run has reported it)',
+    gateKinds: `Each gate not cleared is one of: ${GATE_KINDS.map((k) => `${k.label} (${k.means})`).join('; ')}`,
+    // the same, as data, for the page's "What's holding models back" and its definitions
+    holdKinds: GATE_KINDS.map(({ key, label, means }) => ({ key, label, means })),
+    reviewHolds: REVIEW_HOLDS.map(({ key, label, means }) => ({ key, label, means })),
     gates: 'checked = every gate cleared on the current code, in this order: ' + GATES.map((g) => g.label).join(', ') + '. Motion is clear when the latest run is smooth or every flag is named as a false alarm in a fresh visual review (motionFlagsResolved); exports means the default settings only',
     review: 'a visual review: a docs/reviews/ entry of kind "visual", or a commit touching the model (by diff), not its converting commit, with a Reviewed-by: trailer or a subject starting "Review"',
     textReview: 'a text review: a docs/reviews/ entry of kind "text", or a commit matched to the model with a Text-reviewed-by: trailer or a subject starting "Text review" / "Review the text"',
@@ -735,6 +772,24 @@ const ledger = {
       const sum = parts.reduce((s, p) => s + p.count, 0);
       return { ...b, count: n, parts, partsSum: sum, partsBalance: sum === n && !odd };
     }),
+    held: count((m) => m.status === 'converted' || m.status === 'not converted'),
+    // everything holding models back, one entry per reason, OVERLAPPING: a model held by two checks
+    // is in both. `alone` is how many are held by that reason and nothing else. In the page's order:
+    // not converted first, then the checks' reasons by size (ties in gate order), then reviews.
+    blockers: (() => {
+      const defs = [
+        { key: 'convert', scope: 'convert', label: 'not converted', means: 'the snippet does not set --u in vmin' },
+        ...GATES.flatMap((g, gi) => GATE_KINDS.map((k, ki) => ({ key: `${g.key}:${k.key}`, scope: 'check', check: g.key, kind: k.key, label: kindLabel(g.key, k), means: k.means, order: gi * 10 + ki }))),
+        ...['visual', 'text'].flatMap((rk) => REVIEW_HOLDS.map((h) => ({ key: `review:${rk}:${h.key}`, scope: 'review', review: rk, kind: h.key, label: h.label, means: h.means }))),
+      ];
+      const out = defs.map((d) => {
+        const held = models.filter((m) => m.holds.includes(d.key));
+        return { ...d, count: held.length, alone: held.filter((m) => m.holds.length === 1).length, ids: held.map((m) => m.id) };
+      }).filter((b) => b.count);
+      const rank = { convert: 0, check: 1, review: 2 };
+      out.sort((a, b) => rank[a.scope] - rank[b.scope] || (a.scope === 'check' ? b.count - a.count || a.order - b.order : 0));
+      return out.map(({ order, ...b }) => b);
+    })(),
     // running totals, for anyone who wants them; never the same names as the buckets
     reachedAtLeast: [
       { label: 'reached at least "converted"', count: count((m) => m.status !== 'not converted') },
@@ -777,6 +832,16 @@ const bucketSum = c0.buckets.reduce((s, b) => s + b.count, 0);
 const problems = [];
 if (bucketSum !== models.length) problems.push(`the buckets sum to ${bucketSum}, not ${models.length} models`);
 for (const b of c0.buckets) if (b.parts && !b.partsBalance) problems.push(`"${b.label}" is ${b.count}, but its parts sum to ${b.partsSum}${b.parts.some((p) => p.key === 'unexplained') ? ' with some models under no known reason' : ''}`);
+// and every model's holds must agree with its bucket: the blockers list is only true if they do
+const disagree = models.filter((m) => {
+  const gate = m.holds.some((h) => GATES.some((g) => h.startsWith(`${g.key}:`)));
+  const review = m.holds.some((h) => h.startsWith('review:'));
+  if (m.status === 'approved') return m.holds.length > 0;
+  if (m.status === 'checked') return gate || !review;
+  if (m.status === 'converted') return !gate || review;
+  return !m.holds.includes('convert');
+});
+if (disagree.length) problems.push(`${disagree.length} model(s) have holds that do not match their bucket: ${disagree.slice(0, 5).map((m) => `${m.id} (${m.status}: ${m.holds.join(', ') || 'none'})`).join('; ')}`);
 c0.balance = { models: models.length, sum: bucketSum, ok: problems.length === 0, problems };
 if (problems.length) {
   console.error(`\nLEDGER DOES NOT BALANCE:\n${problems.map((p) => `  - ${p}`).join('\n')}\n`);
