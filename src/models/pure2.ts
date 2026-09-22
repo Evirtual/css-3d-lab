@@ -71,7 +71,7 @@ export const pureDemos2: Demo[] = [
     title: 'Letter wave',
     description: 'Every letter does the same flip; the stagger turns it into a wave.',
     category: 'css',
-    tags: ['loop', 'text'],
+    tags: ['loop', 'text', 'wide'],
     technique: ['inline-block letters', 'animation-delay from --i', 'rotateY flip'],
   },
   {

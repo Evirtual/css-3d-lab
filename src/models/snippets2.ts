@@ -552,7 +552,8 @@ ${starShadows(40, 900, 2024)};
       'A letter has two sides, like a card: its own text with <code>backface-visibility: hidden</code> is the front, and a <code>::after</code> with <code>content: attr(data-c)</code>, turned <code>rotateY(180deg)</code> and hidden from behind too, is the back. Halfway through the flip you read the back, the right way round, never a mirrored letter.',
       '<code>animation-delay: calc(var(--i) * 0.12s)</code> offsets each letter, and the offsets read as a travelling wave.',
       'Put the real word in <code>aria-label</code> and hide the spans from screen readers, or it is read letter by letter.',
-      '<code>--i</code> carries on across the line break, so the wave rolls off the end of one line and into the start of the next.',
+      '<code>--i</code> carries on from WAVE into 3D, so the wave rolls across the gap between the words.',
+      'The word stands on one line, as a word does. Seven letters in a row are about four times wider than they are tall, so it is sized by its width, like the other wide models in the gallery, not by its height: it is marked <code>wide</code> in its gallery entry.',
       'Every length is a multiple of one base unit, <code>--u</code>, the lift toward the camera included, so the word is the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
@@ -568,17 +569,17 @@ ${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" data-c="${c}" aria-h
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the word is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.41vmin;
+  --u: 0.26vmin;
   perspective: calc(600 * var(--u));
 }
 
-/* Two lines, because seven letters in a row are four times wider than they are tall: sized to
-   the 92vmin width limit the word would stand 26vmin high, well under the 40vmin floor. Stacked,
-   the wave rolls through WAVE and on into 3D. */
+/* One line: WAVE, a word's gap, 3D. Seven letters in a row are about four times wider than they
+   are tall, so the word is sized by its width (it is marked 'wide'): the unit puts it near the
+   width the gallery's other wide models have */
 .wave {
-  display: grid;
-  justify-items: center;
-  gap: calc(6 * var(--u));
+  display: flex;
+  align-items: center;
+  gap: calc(22 * var(--u));
   margin: 0;
   font: 900 calc(64 * var(--u))/1 system-ui;
   transform-style: preserve-3d;
