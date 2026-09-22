@@ -63,6 +63,8 @@ export const snippetsD: Record<string, Snippet> = {
   display: grid;
   align-content: start;
   gap: calc(6 * var(--u));
+  /* 84 × 120 outside, padding and border included: centred in its slot, 6 units clear top and bottom */
+  box-sizing: border-box;
   width: calc(84 * var(--u));
   height: calc(120 * var(--u));
   padding: calc(8 * var(--u));
