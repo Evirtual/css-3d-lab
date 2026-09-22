@@ -29,7 +29,9 @@
  * WHAT IS BEHIND IT. Each state is photographed twice: as it is (S1), and with every glyph's fill
  * made transparent and nothing else changed (S0: -webkit-text-fill-color, SVG fill and stroke, and
  * the background of gradient text, background-clip: text; transitions off, so hiding starts none).
- * The pixels that change between the two, inside a text's rects, are its glyphs; the strongest of
+ * A text under AA is photographed once more with only its own fill hidden, and judged on that:
+ * with every fill hidden, a text behind another (a face turned away, a word under a card) would take
+ * the glyphs of the one in front as its own. The pixels that change, inside a text's rects, are its glyphs; the strongest of
  * them (the tenth that change most) are the glyph cores, where a stroke covers its pixels whole. The text's colour is the mean of S1 over
  * the cores, and its background the mean of S0 over the same pixels: the actual pixels behind the
  * letters, the model's own panel, gradient, glow or 3D face included. A text whose glyphs change no
@@ -127,6 +129,8 @@ const TEXTS = () => {
   };
   const name = (el) => el.tagName.toLowerCase() + (el.classList.length ? '.' + [...el.classList].join('.') : '');
   const scene = document.querySelector('#c3d-scene') ?? document.body;
+  document.querySelectorAll('[data-c3d-t]').forEach((e) => e.removeAttribute('data-c3d-t'));
+  const tag = (el) => { if (!el.hasAttribute('data-c3d-t')) el.setAttribute('data-c3d-t', String(out.length)); return el.getAttribute('data-c3d-t'); };
   const walker = document.createTreeWalker(scene, NodeFilter.SHOW_TEXT);
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
     const text = n.textContent.replace(/\s+/g, ' ').trim();
@@ -137,7 +141,7 @@ const TEXTS = () => {
     const rects = [...range.getClientRects()].map(clip).filter(Boolean);
     if (!rects.length) continue;
     const cs = getComputedStyle(el);
-    out.push({ text: text.slice(0, 40), where: name(el), rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: el instanceof SVGElement });
+    out.push({ tag: tag(el), pseudo: '', text: text.slice(0, 40), where: name(el), rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: el instanceof SVGElement });
   }
   for (const el of scene.querySelectorAll('*')) {
     for (const pseudo of ['::before', '::after']) {
@@ -146,16 +150,32 @@ const TEXTS = () => {
       if (!m || !letters.test(m[1]) || !shows(el) || cs.display === 'none' || +cs.opacity === 0 || cs.visibility === 'hidden') continue;
       const rects = [el.getBoundingClientRect()].map(clip).filter(Boolean);
       if (!rects.length) continue;
-      out.push({ text: m[1].slice(0, 40), where: `${name(el)}${pseudo}`, rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: false });
+      out.push({ tag: tag(el), pseudo, text: m[1].slice(0, 40), where: `${name(el)}${pseudo}`, rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: false });
     }
   }
   return out;
 };
 
-/** Hides every glyph's fill and nothing else (no transition starts: they are off while it is hidden). */
+/**
+ * Hides every glyph's fill and nothing else (no transition starts: they are off while it is hidden),
+ * or, given one text's tag (and its pseudo-element, if it is one), that text's alone.
+ */
 const HIDE = (on) => {
   let s = document.querySelector('#c3d-nofill');
   if (!on) { s?.remove(); document.querySelectorAll('[data-c3d-bgtext]').forEach((e) => e.removeAttribute('data-c3d-bgtext')); return; }
+  if (typeof on === 'object') {
+    const sel = `[data-c3d-t="${on.tag}"]${on.pseudo}`;
+    s = document.createElement('style');
+    s.id = 'c3d-nofill';
+    s.textContent = `*, *::before, *::after { transition: none !important; }
+${sel} { -webkit-text-fill-color: transparent !important; fill-opacity: 0 !important; stroke-opacity: 0 !important; }
+${on.pseudo ? '' : `${sel} text, ${sel} tspan { fill-opacity: 0 !important; stroke-opacity: 0 !important; }`}`;
+    const el = document.querySelector(`[data-c3d-t="${on.tag}"]`);
+    if (el && /text/.test(getComputedStyle(el, on.pseudo || null).backgroundClip)) s.textContent += `
+${sel} { background: none !important; }`;
+    document.head.append(s);
+    return;
+  }
   for (const el of document.querySelectorAll('*')) {
     const cs = getComputedStyle(el);
     if (/text/.test(cs.backgroundClip) || /text/.test(cs.webkitBackgroundClip ?? '')) el.setAttribute('data-c3d-bgtext', '');
@@ -224,7 +244,21 @@ async function onStage(browser, id, title, snippet, clicks, stageName) {
       await page.waitForTimeout(60);
       const without = decode(await page.screenshot());
       await page.evaluate(HIDE, false);
-      for (const m of measure(texts, withText, without)) seen.push({ ...m, stage: stageName, state: label });
+      const first = measure(texts, withText, without);
+      // A text under AA on the first pass is shot again with only its own fill hidden: with every
+      // fill hidden, a text behind another (a face turned away, a label under a card) takes the
+      // glyphs of the one in front as its own. Its own pixels then decide.
+      for (let k = 0; k < first.length; k++) {
+        let m = first[k];
+        if (m.drawn && m.ratio < m.need) {
+          await page.evaluate(HIDE, { tag: texts[k].tag, pseudo: texts[k].pseudo });
+          await page.waitForTimeout(60);
+          const alone = decode(await page.screenshot());
+          await page.evaluate(HIDE, false);
+          m = measure([texts[k]], withText, alone)[0];
+        }
+        seen.push({ ...m, stage: stageName, state: label });
+      }
     };
     await still('at rest');
     await page.evaluate(() => {
