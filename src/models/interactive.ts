@@ -55,7 +55,7 @@ export const interactiveDemos: Demo[] = [
     title: 'Flip clock',
     description: 'Real time needs JS. Each pair that changes re-triggers a CSS rotateX flip.',
     category: 'js',
-    tags: ['generated'],
+    tags: ['generated', 'wide'],
     technique: ['setInterval for the time', 'animation restart via reflow', 'rotateX flip keyframes'],
   },
 ];

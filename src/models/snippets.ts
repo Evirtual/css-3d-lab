@@ -1785,40 +1785,29 @@ for (let i = 0; i < COUNT; i++) {
       'The flip is one CSS keyframe, <code>rotateX(0)</code> → <code>rotateX(-180deg)</code>: the old top falls towards you and lands as the new bottom. Midway it is edge-on, and the still halves behind it are what you see, as on a real board.',
       'When it lands (<code>animationend</code>), JS writes the new value on the parts that still showed the old one and takes the class off, so the flap is back up, showing the same digits it covers. To replay the animation: remove the class, force a reflow (<code>void el.offsetWidth</code>), add it back.',
       'Only the pairs whose value actually changed are flipped.',
-      'Hours and minutes share one line and the seconds sit under them. Three pairs in a row are four times wider than they are tall, so at the width the canvas allows the clock would come out too short to read; two lines give it the height.',
+      'Hours, minutes and seconds stand on one line, <code>HH : MM : SS</code>, as on a real flip clock. That line is about four times wider than it is tall, so the clock is sized by its width, like the other wide models in the gallery, not by its height: it is marked <code>wide</code> in its gallery entry.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the digits and their cards are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="scene">
-  <div class="clock">
-    <div class="row">${FLAP_CARD}<em>:</em>${FLAP_CARD}</div>
-    <div class="row">${FLAP_CARD}</div>
-  </div>
+  <div class="clock">${FLAP_CARD}<em>:</em>${FLAP_CARD}<em>:</em>${FLAP_CARD}</div>
 </div>`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the clock is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.33vmin;
+  --u: 0.23vmin;
   perspective: calc(700 * var(--u));
 }
 
-/* Hours and minutes on one line, seconds under them. Three pairs side by side are four times
-   wider than they are tall: sized to the 92vmin width limit, the whole clock would stand 22vmin
-   high, well under the 40vmin floor. Two lines give it the height the band asks for without
-   making the cards a shape no flip clock has. */
+/* Hours, minutes and seconds on one line, as a flip clock has them. The line is about four times
+   wider than it is tall, so the clock is sized by its width (it is marked 'wide'): the unit puts it
+   near the width the gallery's other wide models have */
 .clock {
-  display: grid;
-  justify-items: center;
-  gap: calc(12 * var(--u));
-  font: 800 calc(56 * var(--u)) ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;
-  transform: rotateY(-14deg) rotateX(6deg);
-  transform-style: preserve-3d;
-}
-
-.clock .row {
   display: flex;
   align-items: center;
   gap: calc(8 * var(--u));
+  font: 800 calc(56 * var(--u)) ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  transform: rotateY(-14deg) rotateX(6deg);
   transform-style: preserve-3d;
 }
 
