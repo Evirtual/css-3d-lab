@@ -501,10 +501,12 @@ table.mini code { font-size: 12px; }
 .mk--conv { --c: var(--st-conv); }
 .mk.is-running { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 35%, transparent); animation: mkpulse 1.4s ease-in-out infinite; }
 @keyframes mkpulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-2) 10%, transparent); } }
-.mk--letter { font-size: 10.5px; }
+.mk--letter { font-size: 10.5px; line-height: 1; }
+.mk svg { display: block; }
+.marks-legend .mk svg { width: 10px; height: 10px; }
 .marks-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12.5px; color: var(--muted); }
 .marks-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.marks-legend .mk { width: 18px; height: 18px; font-size: 10px; }
+.marks-legend .mk { display: inline-grid; place-items: center; gap: 0; width: 18px; height: 18px; font-size: 10px; } /* the legend's `span` rule would make it a left-packed flex row */
 .tbltools { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin: 4px 0 8px; }
 .tbltools__acts { display: flex; gap: 8px; }
 .tbltools__acts .btn { padding: 4px 12px; font-size: 12.5px; }
@@ -785,9 +787,16 @@ table.mini code { font-size: 12px; }
   };
 
   /* ---------- the compact marks: each has its words in the tooltip and in its accessible name ---------- */
+  // Drawn as SVG on a centred 12×12 box, not as text: a font's ✓ ✗ ~ ! – sit off the middle of the
+  // circle by different amounts in every font (the legend showed them all a little high and left).
+  const ico = (d) => `<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const GLYPH = {
+    tick: ico('M2.5 6.2 5 8.6 9.5 3.6'), cross: ico('M3.2 3.2l5.6 5.6M8.8 3.2 3.2 8.8'), tilde: ico('M2.2 6.6c1.2-1.6 2.4-1.6 3.8 0s2.6 1.6 3.8 0'),
+    bang: ico('M6 2.6v4.2M6 9.3v.1'), dash: ico('M3 6h6'),
+  };
   const MARKS = {
-    pass: ['✓', 'pass'], cleared: ['✓', 'flags cleared'], stale: ['~', 'passed on older code'], flag: ['!', 'open flags'],
-    fail: ['✗', 'failed'], never: ['–', 'never run'],
+    pass: [GLYPH.tick, 'pass'], cleared: [GLYPH.tick, 'flags cleared'], stale: [GLYPH.tilde, 'passed on older code'], flag: [GLYPH.bang, 'open flags'],
+    fail: [GLYPH.cross, 'failed'], never: [GLYPH.dash, 'never run'],
   };
   /** What a check result reads as: its mark kind and its words. */
   function markKind(r) {
@@ -825,7 +834,7 @@ table.mini code { font-size: 12px; }
   function renderMarkLegend() {
     const items = [['pass', 'pass'], ['cleared', 'flags cleared'], ['stale', 'passed on older code'], ['flag', 'open flags'], ['fail', 'failed'], ['never', 'never run']];
     $('marklegend').innerHTML = items.map(([k, w]) => `<span><span class="mk mk--${k}" aria-hidden="true">${MARKS[k][0]}</span>${esc(w)}</span>`).join('')
-      + `<span><span class="mk mk--pass is-running" aria-hidden="true">✓</span>running on it now</span><span><span class="mk mk--pass mk--letter" aria-hidden="true">V</span><span class="mk mk--pass mk--letter" aria-hidden="true">T</span>visual and text review</span>`;
+      + `<span><span class="mk mk--pass is-running" aria-hidden="true">${GLYPH.tick}</span>running on it now</span><span><span class="mk mk--pass mk--letter" aria-hidden="true">V</span><span class="mk mk--pass mk--letter" aria-hidden="true">T</span>visual and text review</span>`;
   }
 
   /* ---------- state ---------- */
