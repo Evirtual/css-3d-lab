@@ -439,8 +439,28 @@ export const STALENESS_TEXT = 'A result or review is stale when something it jud
   + 'a visual review: the snippet, how it is played, and the model frame; a text review: the text (title, description, how, technique, tags, category) and the snippet it describes. '
   + `The render paths: ${Object.entries(RENDER_PATHS).map(([k, list]) => `${k}: ${list.map(partLabel).join(', ')}`).join('; ')}. `
   + 'A check\'s own script is not part of it, but its rule version is: a result judged under an older version of the check\'s rule (scripts/checks-registry.mjs, ruleVersion) is stale, "rule changed (vN → vM)". New results record these fingerprints (capture-check writes them; reviewers add `node scripts/fingerprint.mjs <id> --kind visual|text`); an older one that names only a commit is judged by the model as it was at that commit, rebuilt from git. '
-  + 'The reason says what changed and at which commit: "render changed at <commit>", "text changed (description) at <commit>", "shared file <file> changed at <commit>", or "(not committed yet)".';
+  + 'The reason says what changed and at which commit: "render changed at <commit>", "text changed (description) at <commit>", "shared file <file> changed at <commit>", or "(not committed yet)". '
+  + 'Rulings (scripts/fingerprint.mjs, RULINGS): a commit ruled to change nothing a kind of review judged does not stale a review of that kind by itself; the review is judged again from the model as it was at that commit, and the ledger names the ruling on every review that relies on it.';
 const WORD = { boxmark: 'its boxSizing mark changed', snippet: 'render changed', play: 'how it is played changed (interaction.ts)', text: 'text changed' };
+
+/**
+ * RULINGS: commits ruled to change nothing a review of `kinds` judged, each with its reason and
+ * evidence. A review older than a ruled commit is not made stale by that commit: where the first
+ * change after the review is the ruled commit, the review is judged again from the model as it
+ * was AT the ruled commit, so any other change, before or after it, still stales it. The ledger
+ * shows the ruling on every review that relies on it (`ruled` in judge()'s answer). Only what is
+ * listed here is ruled; nothing is inferred.
+ */
+export const RULINGS = [
+  {
+    commit: '3a75002',
+    kinds: ['visual'],
+    title: 'Hold hover removal changes nothing a visual review judged',
+    reason: 'It removed the stage\'s Hold hover / Hold tap switch. In the frame (src/preview.ts) it deleted only the code that filled #c3d-held while that switch was on, a state no visitor can reach any more; standaloneDoc changed only in a comment above it; the bookshelf\'s snippet changed only in a CSS comment and its how text. No model draws differently at rest, hovered, clicked or in motion.',
+    evidence: 'The full run of every check after it (2026-09-22/23, a77b0f8 to 9d111c5, all 135 models, every result recorded through capture-check): contract 135/135, stages 135/135, pause and access 135/135, box-sizing 135/135, contrast 135/135, share preview 135/135. Nothing a visual review judges — size, pose, centring, the themes, the hover pose the checks force through #c3d-held — came out differently from before it.',
+  },
+];
+const rulingFor = (kind, commit) => RULINGS.find((x) => x.kinds.includes(kind) && commit && (x.commit.startsWith(commit) || commit.startsWith(x.commit)));
 /**
  * Whether one result still describes the model: { stale, why: [..], basis }. `r` is
  * { kind, id, commit, fingerprints?, own?, ranAt? }: the result's kind (a check key, 'visual' or 'text'),
@@ -477,13 +497,25 @@ export async function judge(r, now, opts) {
   const diffs = differences(r.kind, then, now.models[r.id] ? { ...now.models[r.id], paths: now.paths } : null);
   if (!now.models[r.id]) return { stale: true, why: ['the model no longer exists'], basis };
   const why = [];
+  const ruled = [];
   for (const d of diffs) {
     const was = basis === 'recorded' ? (d.part.startsWith('path:') ? then.paths?.[d.part.slice(5)] : then[d.part]) : undefined;
-    const when = at ? await changedAt(at, r.id, d.part, opts, was) : null;
+    let when = at ? await changedAt(at, r.id, d.part, opts, was) : null;
+    // a ruled commit (RULINGS): judge again from the model as it was at that commit
+    const ruling = rulingFor(r.kind, when);
+    if (ruling) {
+      const full = commitHash(ruling.commit);
+      const pathPart = d.part.startsWith('path:') ? ALL_PARTS.find((p) => `path:${partLabel(p)}` === d.part) : null;
+      const atRuled = pathPart ? partAt(full, pathPart) : (await fingerprintsAt(full, opts)).models[r.id]?.[d.part] ?? null;
+      const nowVal = pathPart ? now.paths[d.part.slice(5)] : now.models[r.id][d.part] ?? null;
+      if (!ruled.includes(ruling)) ruled.push(ruling);
+      if (atRuled === nowVal) continue;
+      when = await changedAt(full, r.id, d.part, opts);
+    }
     const word = d.part.startsWith('path:') ? `shared file ${d.part.slice(5)} changed` : d.fields ? `${WORD[d.part]} (${d.fields.join(', ')})` : WORD[d.part];
     why.push(`${word}${when ? ` at ${when}` : at ? ' (not committed yet)' : ''}`);
   }
-  return { stale: why.length > 0, why, basis };
+  return { stale: why.length > 0, why, basis, ruled: ruled.map(({ commit, title, reason, evidence }) => ({ commit, title, reason, evidence })) };
 }
 
 /**

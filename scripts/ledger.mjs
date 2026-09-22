@@ -571,7 +571,7 @@ const models = demos.map((d) => {
     ...commits.filter((c) => c.textReview)
       .map((c) => ({ kind: 'text', source: 'commit', commit: c.hash, reviewedAt: c.date, reviewer: null, verdict: null, subject: c.subject })),
     ...reviewLog.entries.filter((e) => e.model === d.id).map(({ model, ...e }) => ({ ...e, source: 'log' })),
-  ].map((r) => { const against = r.fixCommit ?? r.commit; const j = staleIx.review(r.kind, d.id, against, r.fingerprints); const s = j ? { stale: j.stale, why: j.why.join('; ') || null } : changedSince(against, d.id, ctx); return { ...r, judgedAgainst: against, stale: s.stale, staleWhy: s.why, staleBasis: j?.basis ?? null }; })
+  ].map((r) => { const against = r.fixCommit ?? r.commit; const j = staleIx.review(r.kind, d.id, against, r.fingerprints); const s = j ? { stale: j.stale, why: j.why.join('; ') || null } : changedSince(against, d.id, ctx); return { ...r, judgedAgainst: against, stale: s.stale, staleWhy: s.why, staleBasis: j?.basis ?? null, ruledBy: j?.ruled?.length ? j.ruled : null }; })
     .sort((a, b) => Date.parse(b.reviewedAt) - Date.parse(a.reviewedAt));
   // the latest fresh review of a kind decides; a stale one says nothing about the code as it is
   const judge = (kind, how) => {

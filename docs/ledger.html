@@ -1736,7 +1736,8 @@ table.mini code { font-size: 12px; }
       const who = r.source === 'log' ? `${esc(r.reviewer)} · <code>${esc(r.file)}</code>` : `commit marker: ${esc(r.subject)}`;
       return `<li><span class="chip s-none">${esc(r.kind)}</span> ${v} ${r.stale ? `<span class="chip s-warn">stale</span>` : ''}
         <span class="muted num">${esc(String(r.reviewedAt).slice(0, 16).replace('T', ' '))}</span> read <code>${esc(String(r.commit).slice(0, 7))}</code> · ${who}
-        ${r.stale ? `<br><span class="muted" style="font-size:13px">Stale: ${esc(r.staleWhy)}.</span>` : ''}</li>`;
+        ${r.stale ? `<br><span class="muted" style="font-size:13px">Stale: ${esc(r.staleWhy)}.</span>` : ''}
+        ${(r.ruledBy ?? []).map((x) => `<br><span class="chip s-conv" title="${esc(`${x.reason} Evidence: ${x.evidence}`)}">ruling</span> <span class="muted" style="font-size:13px">Not staled by <code>${esc(x.commit)}</code>: ${esc(x.title)} (scripts/fingerprint.mjs, RULINGS). ${esc(x.reason)} Evidence: ${esc(x.evidence)}</span>`).join('')}</li>`;
     }).join('')}</ul>` : '<p class="muted">No review recorded, in docs/reviews/ or as a commit marker.</p>'));
 
     const byDiff = m.commits.filter((c) => c.matchedBy.includes('diff')).length;
