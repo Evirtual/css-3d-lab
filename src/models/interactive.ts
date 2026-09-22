@@ -39,7 +39,7 @@ export const interactiveDemos: Demo[] = [
     title: 'Pointer-lit text',
     description: 'The extrusion is a stack of text-shadows whose direction follows your pointer.',
     category: 'js',
-    tags: ['pointer', 'text', 'faux-3d'],
+    tags: ['pointer', 'text', 'faux-3d', 'wide'],
     technique: ['text-shadow with calc(var() × n)', 'works without JS: default direction', 'pointer → custom properties'],
   },
   {

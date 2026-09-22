@@ -1668,29 +1668,31 @@ update();`,
       'So the entire extrusion direction is controlled by just two numbers, and its size by a third: <code>--u</code>, the one base unit every length here is a multiple of.',
       'JS treats the pointer as a light: it writes the <b>opposite</b> direction into <code>--dx</code> / <code>--dy</code>, and the shadow swings away from it. It writes plain numbers, never lengths, so the CSS stays in charge of the scale.',
       'Without JS the defaults still give a perfectly good static extrusion — a nice progressive enhancement.',
+      'The headline stands on one line. It is many times wider than it is tall, so it is sized by its width, like the other wide models in the gallery, not by its height: it is marked <code>wide</code> in its gallery entry.',
     ],
     html: `<div class="scene" tabindex="0" role="img" aria-label="LIGHT SHADOW, a headline whose long shadow falls away from the pointer">
-  <h1 class="lit">LIGHT<br>SHADOW</h1>
+  <h1 class="lit">LIGHT SHADOW</h1>
 </div>`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the headline is the same share of
      a card, the editor, a full screen and a recording canvas */
-  --u: 0.25vmin;
+  --u: 0.145vmin;
   display: grid;
   place-items: center;
   width: 100vw;   /* the whole canvas is the light's field, so the pointer is read across it */
   height: 100vh;
 }
 
-/* Two lines, because one is a shape the band cannot hold: SHADOW on its own draws three and a
-   half times wider than it is tall, so sized to the 92vmin width limit it stands well under the
-   40vmin floor. The word the light casts sits under the light itself. */
+/* One line, as a headline is: LIGHT SHADOW draws many times wider than it is tall, so it is sized
+   by its width (it is marked 'wide'): the unit puts it near the width the gallery's other wide
+   models have */
 .lit {
   --dx: 0.7;   /* direction — overwritten from JS */
   --dy: 0.7;
   margin: 0;
-  font: 900 calc(72 * var(--u))/1.6 system-ui;   /* the lines stand apart: the shadow of one falls across the next, and the solid headline stands over the 40vmin floor even with the light straight in front, when there is no shadow */
+  font: 900 calc(72 * var(--u))/1.2 system-ui;
   text-align: center;
+  white-space: nowrap;
   transform: translateY(calc(-4 * var(--u)));
   color: #fff;
   text-shadow:
