@@ -121,7 +121,10 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   top: calc(-6 * var(--u));
   left: 100%;
   padding-left: calc(6 * var(--u));
-  color: ${MUTED};
+  /* the stage's own ink, softened with opacity: a fixed pale lavender read on the dark stage and
+     was 2.2:1 on the light one */
+  color: inherit;
+  opacity: 0.72;
   font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
 }
 
@@ -247,7 +250,8 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   top: calc(100% + calc(8 * var(--u)));
   left: calc(-7 * var(--u));
   width: calc(33 * var(--u));
-  color: ${MUTED};
+  color: inherit; /* the stage's ink, softened: see .wall span */
+  opacity: 0.72;
   font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   text-align: center;
   transform: translateZ(calc(9.5 * var(--u)));
