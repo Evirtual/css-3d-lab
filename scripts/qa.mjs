@@ -8,11 +8,21 @@
 //
 // Every model runs in a frame of its own (src/preview.ts), so the looking is done inside that
 // frame; the clicking and hovering is done on the page, where a visitor's pointer is.
+//
+// A broken browser breaks one model at most (scripts/browser-guard.mjs): a model whose run hits a
+// browser-level error (a protocol error, "Unable to capture screenshot", a goto timeout, a crashed
+// or closed target) is run again, once, in a fresh browser, and a line `note: <id>: retried after a
+// browser failure` follows the problems; only a second failure makes it "QA itself failed". What
+// the broken try found is dropped. The browser is also replaced every 20 models; a model waits (up
+// to 3 minutes) while free memory is under 1.5 GB, with a `note: <id>: ran under memory pressure`
+// when it had to go on anyway; and a crash inside Playwright prints the problems found so far and
+// exits 3, rather than dying silently.
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
+import { BrowserGuard, crashGuard } from './browser-guard.mjs';
 
 const DIST = resolve(process.env.QA_DIST || 'dist'); // QA_DIST: test another build (a deliberately broken copy)
 const only = process.argv.slice(2);
@@ -31,14 +41,18 @@ const server = createServer((req, res) => {
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
-const browser = await chromium.launch();
+// replaced by a fresh one when it breaks, and every 20 models (scripts/browser-guard.mjs)
+const guard = new BrowserGuard({ launch: () => chromium.launch() });
+await guard.start();
 
 const W = Number(process.env.QA_W || 340); // QA_W / QA_H: test a bigger stage (the demo is then zoomed)
 const H = Number(process.env.QA_H || 280); // a card's stage is 340 × 280
 const problems = [];
 const notes = [];
+const guardNotes = []; // what scripts/browser-guard.mjs had to do, per model
 
-async function check(demo) {
+/** One model; what it finds goes into out, so a try the browser broke adds nothing. */
+async function check(demo, browser, out) {
   const how = interactionOf(demo);
   const page = await browser.newPage({ viewport: { width: W, height: H } });
   const errors = [];
@@ -51,8 +65,8 @@ async function check(demo) {
   // the model itself lives in the frame; everything measured below is measured in there
   const inner = page.frames().find((fr) => fr !== page.mainFrame());
   if (!inner) {
-    problems.push(`${demo.id}: the model never appeared`);
-    await page.close();
+    out.problems.push(`${demo.id}: the model never appeared`);
+    await page.close().catch(() => {});
     return;
   }
 
@@ -88,7 +102,7 @@ async function check(demo) {
   });
   // Whether a model may reach past its edges is the contract's business now, and
   // scripts/check-models.mjs judges it. Here it is only reported, never failed.
-  if (spill > 6) notes.push(`${demo.id}: draws ${spill}px past the card stage`);
+  if (spill > 6) out.notes.push(`${demo.id}: draws ${spill}px past the card stage`);
 
   // 2. interaction: freeze time-based motion, play, and see whether the picture changes
   if (how !== 'none') {
@@ -149,29 +163,43 @@ async function check(demo) {
     await page.waitForTimeout(1300);
     await freeze();
     const after = await page.screenshot();
-    if (before.equals(after) && !changedDuring) problems.push(`${demo.id}: ${how} changed nothing on screen`);
+    if (before.equals(after) && !changedDuring) out.problems.push(`${demo.id}: ${how} changed nothing on screen`);
   }
-  if (errors.length) problems.push(`${demo.id}: errors: ${[...new Set(errors)].join(' | ').slice(0, 200)}`);
-  await page.close();
+  if (errors.length) out.problems.push(`${demo.id}: errors: ${[...new Set(errors)].join(' | ').slice(0, 200)}`);
+  await page.close().catch(() => {});
 }
 
 const list = only.length ? demos.filter((d) => only.includes(d.id)) : demos;
 const queue = [...list];
+const tally = () => {
+  console.log(`\nQA: ${list.length} demos, ${problems.length} problem(s)`);
+  for (const p of problems.sort()) console.log('  ' + p);
+  for (const n of guardNotes) console.log(`note: ${n}`);
+};
+// a crash inside Playwright: the problems found so far, then exit 3
+crashGuard('qa', async () => { console.log('\nPARTIAL: QA crashed before every model was run; what it found so far:'); tally(); });
 await Promise.all(
   Array.from({ length: 4 }, async () => {
     for (let d = queue.shift(); d; d = queue.shift()) {
       try {
-        await check(d);
+        const { value, notes: said } = await guard.run(d.id, async (browser) => {
+          const out = { problems: [], notes: [] };
+          await check(d, browser, out);
+          return out;
+        });
+        problems.push(...value.problems);
+        notes.push(...value.notes);
+        for (const n of said) guardNotes.push(`${d.id}: ${n}`);
       } catch (err) {
         problems.push(`${d.id}: QA itself failed: ${(err.stack ?? err.message).split('\n').slice(0, 3).join(' | ')}`);
+        for (const n of err.notes ?? []) guardNotes.push(`${d.id}: ${n}`);
       }
       process.stdout.write('.');
     }
   }),
 );
-await browser.close();
+await guard.close();
 server.close();
-console.log(`\nQA: ${list.length} demos, ${problems.length} problem(s)`);
-for (const p of problems.sort()) console.log('  ' + p);
+tally();
 // a check that cannot fail is not a check: problems fail the run
 process.exitCode = problems.length ? 1 : 0;
