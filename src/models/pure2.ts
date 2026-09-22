@@ -45,7 +45,7 @@ export const pureDemos2: Demo[] = [
   {
     id: 'flipper',
     title: 'Flipping loader',
-    description: 'The classic square loader: half a turn on X, then half a turn on Y.',
+    description: 'The classic square loader: half a turn on X, then half a turn on Y, and both again, so the square ends the loop exactly where it began.',
     category: 'css',
     tags: ['loop', 'loader'],
     technique: ['perspective() inside transform', 'multi-step @keyframes', 'no wrapper needed'],

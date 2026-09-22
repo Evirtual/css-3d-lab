@@ -421,9 +421,8 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
     how: [
       'One element, no wrapper: the <code>perspective()</code> <b>function</b> goes inside the transform itself.',
       'It must come <b>first</b> in the transform list, and must be repeated in every keyframe.',
-      'Step 1 flips on X, step 2 flips on Y while X stays at −180°.',
+      'Step 1 flips on X, step 2 flips on Y while X stays at −180°. Two half turns leave the square upside down (the same as a half turn on Z), so its gradient would jump at the seam; steps 3 and 4 flip X and Y once more, and after four the square is back exactly where it started.',
       'Use this form when you cannot add a parent just to hold <code>perspective</code>.',
-      'A flat square seen exactly edge-on draws nothing, and a half turn always passes edge-on. So the square has thickness: <code>::before</code> and <code>::after</code> are its top and left edges, folded back out of its plane (<code>transform-style: preserve-3d</code> lets them), and those are the two edges that face you at the two edge-on moments.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas — the <code>perspective()</code> distance too, 260 units — so the square and the depth of its flip are the same share of a gallery card, the editor and a recording canvas.',
     ],
     html: `<div class="loader"></div>`,
@@ -431,50 +430,22 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
   /* one base unit: every length below is a multiple of it, so the loader is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
   --u: 0.46vmin;
-  position: relative;
   width: calc(90 * var(--u));
   height: calc(90 * var(--u));
   border-radius: calc(12 * var(--u));
   background: linear-gradient(135deg, #2ee6d6, #8b6cff);
   box-shadow: 0 0 calc(30 * var(--u)) rgb(139 108 255 / 0.6);
-  transform-style: preserve-3d; /* so its two edges below stand out of its plane */
-  animation: flip 1.8s ease-in-out infinite;
-}
-
-/* A flat square seen exactly edge-on draws nothing, and a 180deg flip always passes edge-on. So
-   it has thickness: two edges, 12 deep, folded back from its top and its left. Those are the two
-   that face you at the two edge-on moments (halfway through the X flip, and through the Y flip). */
-.loader::before,
-.loader::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.loader::before {
-  left: calc(10 * var(--u));
-  width: calc(70 * var(--u));
-  height: calc(12 * var(--u));
-  background: linear-gradient(90deg, #1fa89d, #6a4fd6);
-  transform-origin: top;
-  transform: rotateX(-90deg);
-}
-
-.loader::after {
-  top: calc(10 * var(--u));
-  width: calc(12 * var(--u));
-  height: calc(70 * var(--u));
-  background: linear-gradient(180deg, #1fa89d, #6a4fd6);
-  transform-origin: left;
-  transform: rotateY(90deg);
+  /* each step is a 0.9s half turn, eased on its own */
+  animation: flip 3.6s ease-in-out infinite;
 }
 
 /* the perspective() function scales with the loader too, so the flip keeps its depth */
 @keyframes flip {
   0%   { transform: perspective(calc(260 * var(--u))) rotateX(0deg)    rotateY(0deg); }
-  50%  { transform: perspective(calc(260 * var(--u))) rotateX(-180deg) rotateY(0deg); }
-  100% { transform: perspective(calc(260 * var(--u))) rotateX(-180deg) rotateY(-180deg); }
+  25%  { transform: perspective(calc(260 * var(--u))) rotateX(-180deg) rotateY(0deg); }
+  50%  { transform: perspective(calc(260 * var(--u))) rotateX(-180deg) rotateY(-180deg); }
+  75%  { transform: perspective(calc(260 * var(--u))) rotateX(-360deg) rotateY(-180deg); }
+  100% { transform: perspective(calc(260 * var(--u))) rotateX(-360deg) rotateY(-360deg); }
 }`,
   },
 
