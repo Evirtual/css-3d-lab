@@ -1355,14 +1355,18 @@ scene.addEventListener('pointercancel', release);`,
   color: #fff;
   cursor: pointer;
   pointer-events: auto;
-  background: linear-gradient(160deg, hsl(var(--hue) 85% 64%), hsl(var(--hue) 70% 36%));
+  /* deep enough for the white numbers, 3:1 or more at their size, on either stage */
+  background: linear-gradient(160deg, hsl(var(--hue) 80% 56%), hsl(var(--hue) 70% 34%));
   box-shadow: 0 calc(16 * var(--u)) calc(24 * var(--u)) calc(-14 * var(--u)) #000;
-  opacity: calc(1 - var(--abs) * 0.3);
+  /* the next card each side stays whole and dims with brightness, not opacity: see-through, on the
+     light stage its number went pale (2.7:1); the ones further out fade away as before */
+  filter: brightness(calc(1 - var(--abs) * 0.12));
+  opacity: clamp(0, 2.2 - var(--abs) * 0.8, 1);
   transform:
     translateX(calc(var(--o) * 44 * var(--u) + var(--sign) * 34 * var(--u)))
     translateZ(calc(var(--abs) * -60 * var(--u)))
     rotateY(calc(var(--sign) * -58deg));
-  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.55s;
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.55s, filter 0.55s;
 }
 
 /* Anything more than two out is off the end of the flow: gone, and out of hit-testing with it,
