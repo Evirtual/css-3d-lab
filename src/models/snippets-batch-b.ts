@@ -404,8 +404,9 @@ scene.addEventListener('pointercancel', leave);`,
     how: [
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the box, its label and the card inside are the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
       'An open-top box: four walls around the centre and a base laid flat with <code>rotateX(-90deg)</code>, pushed down by half the wall height.',
-      'The lid stands <b>above</b> the back wall and is hinged on its bottom edge with <code>transform-origin: 50% 100%</code>. <code>rotateX(-90deg)</code> would lay it flat over the opening; at rest it holds <code>rotateX(-40deg)</code>, ajar, with the card peeking over the rim, so even a paused box reads as a box to open. <code>rotateX(12deg)</code> swings it open past vertical.',
+      'The lid stands <b>above</b> the back wall and is hinged on its bottom edge with <code>transform-origin: 50% 100%</code>. At rest <code>rotateX(-90deg)</code> lays it flat over the opening, so the box is shut and the card inside is hidden; open, <code>rotateX(-25deg)</code> stands it up, leaning a little towards you.',
       'Two transitions, swapped delays: opening, the lid goes first and the card rises 0.3s later; closing, the card drops first and the lid waits 0.3s. Each state carries the delay for the move <i>into</i> it.',
+      'The camera looks down on the box at 45°, so its top is a big part of what you see: shut, the box is 45vmin tall on its own, and the open lid, foreshortened, still fits in the band above it. As the lid opens the whole box sinks 14 units (<code>translate</code>, on top of the swaying <code>transform</code>), so the shut box and the open one are both centred.',
       'The hovered element is a static wrapper; the box inside has <code>pointer-events: none</code>. A hovered element that moves away from the pointer would flicker.',
     ],
     html: `<div class="scene">
@@ -424,7 +425,7 @@ scene.addEventListener('pointercancel', leave);`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the box is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.35vmin;
+  --u: 0.37vmin;
   perspective: calc(800 * var(--u));
 }
 
@@ -434,8 +435,9 @@ scene.addEventListener('pointercancel', leave);`,
   --card-dark: #2e2a5e;
   display: grid;
   place-items: center;
-  width: calc(200 * var(--u));
-  height: calc(186 * var(--u));
+  /* just wider than the box, and as tall as it is open, so the pointer on the lid keeps it open */
+  width: calc(136 * var(--u));
+  height: calc(180 * var(--u));
   border-radius: calc(16 * var(--u));
   outline-offset: calc(-4 * var(--u));
   cursor: pointer;
@@ -450,6 +452,8 @@ scene.addEventListener('pointercancel', leave);`,
   pointer-events: none;
   transform-style: preserve-3d;
   animation: sway 5s ease-in-out infinite alternate;
+  translate: 0 0;
+  transition: translate 0.55s ease-in-out 0.3s; /* closing: sinks back up with the lid */
 }
 
 .wall {
@@ -516,8 +520,8 @@ scene.addEventListener('pointercancel', leave);`,
     linear-gradient(90deg, transparent 42%, #ff4d9d 42% 58%, transparent 58%),
     linear-gradient(#6e65a4, var(--card));
   transform-origin: 50% 100%;
-  /* at rest the lid is ajar, lifted 50deg off the opening, so a paused box already says "open me" */
-  transform: translateZ(calc(-44 * var(--u))) rotateX(-40deg);
+  /* at rest the lid is shut, laid flat over the opening */
+  transform: translateZ(calc(-44 * var(--u))) rotateX(-90deg);
   transition: transform 0.55s ease-in-out 0.3s; /* closing: wait for the card */
 }
 
@@ -539,8 +543,8 @@ scene.addEventListener('pointercancel', leave);`,
   color: #fff;
   font: 900 calc(10 * var(--u)) system-ui;
   letter-spacing: calc(1.5 * var(--u));
-  /* at rest its top edge peeks over the rim, under the ajar lid */
-  transform: translateY(calc(-16 * var(--u)));
+  /* at rest it is inside the shut box, out of sight */
+  transform: translateY(0);
   transition: transform 0.5s ease-in-out;
 }
 
@@ -555,23 +559,32 @@ scene.addEventListener('pointercancel', leave);`,
 
 .package:hover .lid,
 .package:focus-visible .lid {
-  /* past vertical, leaning back */
-  transform: translateZ(calc(-44 * var(--u))) rotateX(12deg);
-  transition: transform 0.7s cubic-bezier(0.3, 1.35, 0.5, 1);
+  /* stood up, leaning a little towards you: seen from 45deg above, a lid leaning back would stand
+     taller in the picture than the band has room for */
+  transform: translateZ(calc(-44 * var(--u))) rotateX(-25deg);
+  transition: transform 0.7s cubic-bezier(0.3, 1.15, 0.5, 1);
+}
+
+/* the box sinks as the lid opens, by half of what the open lid adds on top, so shut and open are
+   both centred */
+.package:hover .box,
+.package:focus-visible .box {
+  translate: 0 calc(14 * var(--u));
+  transition: translate 0.7s ease-in-out;
 }
 
 /* opening: the card waits until the lid is out of the way */
 .package:hover .card,
 .package:focus-visible .card {
-  transform: translateY(calc(-56 * var(--u)));
+  transform: translateY(calc(-50 * var(--u)));
   transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1) 0.3s;
 }
 
-/* the box sits 29 units below its layout box: the open lid and the risen card stand well above
-   it, and this is what keeps the whole thing centred, ajar at rest and open */
+/* the camera looks down at 45deg; the box sits 3 units below its layout box, which centres
+   it shut */
 @keyframes sway {
-  from { transform: translateY(calc(29 * var(--u))) rotateX(-24deg) rotateY(-38deg); }
-  to   { transform: translateY(calc(29 * var(--u))) rotateX(-24deg) rotateY(-22deg); }
+  from { transform: translateY(calc(3 * var(--u))) rotateX(-45deg) rotateY(-38deg); }
+  to   { transform: translateY(calc(3 * var(--u))) rotateX(-45deg) rotateY(-22deg); }
 }`,
   },
 
