@@ -67,6 +67,15 @@
  * Frames are taken the way check-models.mjs takes them: the embed page on a 360 × 300 card, the
  * site's backdrop removed, the iframe clipped. The backdrop is replaced by one flat colour so a
  * colour change in the picture is always the model's.
+ *
+ * A BROKEN BROWSER BREAKS ONE MODEL AT MOST (scripts/browser-guard.mjs). A model whose run hits a
+ * browser-level error (a protocol error, "Unable to capture screenshot", a setContent or goto
+ * timeout, a crashed or closed target) is filmed again, once, in a fresh browser, and its line
+ * ends "retried after a browser failure"; only a second failure makes it BROKE. The browser is
+ * also replaced every 20 models; a model waits (up to 3 minutes) while free memory is under
+ * 1.5 GB, and its line ends "ran under memory pressure" when it had to go on anyway; and a crash
+ * inside Playwright writes report.json with what was filmed so far and exits 3, rather than dying
+ * silently.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { cssHeads } from './css-heads.mjs';
@@ -74,6 +83,7 @@ import { join, resolve } from 'node:path';
 import { decode, cells as cellsAt, changeNear as changeNearAt, change, far, STILL, STILL_NEAR } from './pixels.mjs';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
+import { BrowserGuard, crashGuard, unlessBrowser } from './browser-guard.mjs';
 
 const OUT = resolve('.media-tmp/motion');
 const args = process.argv.slice(2);
@@ -450,9 +460,16 @@ const converted = (id) => /--u\s*:/.test(snippets[id]?.css ?? '');
 const ids = wanted.length ? wanted : demos.map((d) => d.id).filter((id) => all || converted(id));
 
 mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch();
+let browser, sheet; // both replaced whenever scripts/browser-guard.mjs launches a fresh browser
 let page; // a new one for every model, in a context of its own: see film()
-const sheet = await browser.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+const guard = new BrowserGuard({
+  launch: () => chromium.launch(),
+  setup: async (b) => {
+    browser = b;
+    sheet = await b.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
+  },
+});
+await guard.start();
 const inFrame = (fn, arg) => page.frameLocator('iframe').locator('body').evaluate(fn, arg);
 const BG = [16, 17, 26];
 const suffix = VW === 360 && VH === 300 ? '' : `@${VW}x${VH}`;
@@ -503,13 +520,13 @@ async function film(id) {
   try {
     return await filmOn(id, demo);
   } finally {
-    await page.context().close();
+    await page.context().close().catch(() => {}); // a dead browser's context: the error that matters is the one above
   }
 }
 
 async function filmOn(id, demo) {
   await page.goto(`${base}/embed/${id}/`, { waitUntil: 'domcontentloaded' });
-  const there = await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(() => false);
+  const there = await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(unlessBrowser(false));
   if (!there) return { id, broke: 'never appeared' };
   await page.addStyleTag({ content: BARE });
   await page.mouse.move(1, 1);
@@ -866,15 +883,23 @@ ${p === 0 ? loose.map((n) => `<p>${n.run}: ${n.text}</p>`).join('') : ''}${pages
 }
 
 const report = [];
+// a crash inside Playwright: what was filmed so far goes to report.json (capture-check has each line already)
+crashGuard('check-motion', async () => {
+  writeFileSync(join(OUT, `report${suffix}.json`), JSON.stringify(report, null, 1));
+  console.error(`check-motion: report${suffix}.json has the ${report.length} model(s) filmed before the crash`);
+});
 for (const id of ids) {
-  let result;
+  let result, notes = [];
   try {
-    result = await film(id);
+    ({ value: result, notes } = await guard.run(id, () => film(id)));
   } catch (e) {
     result = { id, broke: e.message.split('\n')[0] };
+    notes = e.notes ?? [];
   }
+  if (notes.length) result.guard = notes;
+  const also = notes.length ? `; ${notes.join('; ')}` : ''; // what scripts/browser-guard.mjs had to do, on the model's own line
   report.push(result);
-  if (result.broke) { console.log(`BROKE   ${id.padEnd(16)} ${result.broke}`); continue; }
+  if (result.broke) { console.log(`BROKE   ${id.padEnd(16)} ${result.broke}${also}`); continue; }
   const found = [
     ...result.runs.flatMap((r) => [
       ...(r.flicker.length ? [`${r.name}: flicker at ${r.flicker.map((f) => f.frame).join(',')}`] : []),
@@ -884,11 +909,11 @@ for (const id of ids) {
   ];
   const { hover, controls, focus } = result.parts;
   const dismissed = result.runs.reduce((sum, r) => sum + r.dismissed.length, 0);
-  console.log(`${found.length ? 'LOOK AT' : 'smooth '} ${id.padEnd(16)} ${hover} hover, ${controls} controls, ${focus} focus; ${result.files.length} strip(s)${dismissed ? `; ${dismissed} flicker candidate(s) dismissed as motion on a ${FINE}ms re-film` : ''}`);
+  console.log(`${found.length ? 'LOOK AT' : 'smooth '} ${id.padEnd(16)} ${hover} hover, ${controls} controls, ${focus} focus; ${result.files.length} strip(s)${dismissed ? `; ${dismissed} flicker candidate(s) dismissed as motion on a ${FINE}ms re-film` : ''}${also}`);
   for (const f of found) console.log(`          ${f}`);
 }
 writeFileSync(join(OUT, `report${suffix}.json`), JSON.stringify(report, null, 1));
 const flagged = report.filter((r) => r.broke || r.notes.length || r.runs.some((x) => x.flicker.length || x.pops.length));
 console.log(`\n${report.length - flagged.length}/${report.length} pass the automatic check. It only flags; the strips in ${OUT} have to be looked at.`);
-await browser.close();
+await guard.close();
 await vite.close();
