@@ -322,6 +322,8 @@ export const snippetsD: Record<string, Snippet> = {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* the header is its section's 32 units, border included */
+  box-sizing: border-box;
   height: 100%;
   padding: 0 calc(12 * var(--u));
   border: calc(1 * var(--u)) solid rgb(140 150 220 / 0.34);
@@ -352,6 +354,9 @@ export const snippetsD: Record<string, Snippet> = {
   top: calc(100% + 5 * var(--u));
   right: 0;
   left: 0;
+  /* 71 units outside, padding and border included: the sections below slide down 76, the panel
+     and its 5-unit gap */
+  box-sizing: border-box;
   height: calc(71 * var(--u));
   padding: calc(9 * var(--u)) calc(12 * var(--u));
   border: calc(1 * var(--u)) solid color-mix(in srgb, #2ee6d6 60%, transparent);
