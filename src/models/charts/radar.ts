@@ -97,7 +97,9 @@ export const snippet: Snippet = {
 
 .scene {
   perspective: calc(800 * var(--u));
-  padding: calc(16 * var(--u)) calc(30 * var(--u)) calc(10 * var(--u));
+  /* more room below than above: the chart sits a little high in the box, where the flat chart
+     (on hover) still fits, and the drawn stack at rest is centred */
+  padding: calc(7 * var(--u)) calc(30 * var(--u)) calc(19 * var(--u));
   pointer-events: none; /* the plate lies back, partly behind this box: only the wrapper takes the pointer */
 }
 
@@ -117,6 +119,10 @@ export const snippet: Snippet = {
   inset: 0;
   transform-style: preserve-3d;
   transform: rotateX(50deg) rotateZ(-12deg);
+  /* turned about a line a quarter down, not its middle: lying back, it keeps its top nearer the
+     flat chart's top, so the resting chart fills the top of the box. About its middle it sat low,
+     and the drawn stack with it: 5vmin under the middle of the card */
+  transform-origin: 50% 25%;
   transition: transform 0.7s ${EASE};
   pointer-events: none;
 }

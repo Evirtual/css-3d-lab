@@ -63,8 +63,10 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
 .scene {
   perspective: calc(800 * var(--u));
   /* the scale's numbers and the tooltip reach out past the right of the bars: the extra room on
-     the right is what centres what is drawn, not the bars' box */
-  padding: calc(30 * var(--u)) calc(72 * var(--u)) calc(40 * var(--u)) calc(40 * var(--u));
+     the right is what centres what is drawn, not the bars' box. The room below is more than
+     above, so the bars sit high in the box: the tooltip's room over the tallest bar is empty at
+     rest, and with the bars in the middle the drawn stack sat 5vmin low */
+  padding: calc(14 * var(--u)) calc(72 * var(--u)) calc(57 * var(--u)) calc(40 * var(--u));
   pointer-events: none; /* the chart is turned: only the bars take the pointer */
 }
 

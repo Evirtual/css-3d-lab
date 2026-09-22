@@ -711,8 +711,9 @@ ${CUBE_FACES}
 .band {
   /* one base unit: every length in the cube is a multiple of it, so the cube is the same share
      of a card, the editor, a full screen and a recording canvas. The zone under it is in plain
-     vmin, because it is the same object in every model. */
-  --u: 0.22vmin;
+     vmin, because it is the same object in every model. Sized so the cube fills the model box:
+     at 0.22 it left 8vmin of the box empty over the cube, and the centred stack sat 4vmin low. */
+  --u: 0.29vmin;
   position: relative;
   display: grid;
   justify-items: center;

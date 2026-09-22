@@ -261,7 +261,9 @@ ${key('3D', true)}
      centre, it hangs off the right-hand side, and on a 1:1 or 9:16 canvas the stepper sat 4vmin
      off the middle */
   width: calc(280 * var(--u));
-  height: calc(260 * var(--u));
+  /* as tall as the cube and the dock need: a taller box left empty room over the cube, which the
+     centred stack counts, so the drawn stepper sat 4vmin low */
+  height: calc(252 * var(--u));
   padding: calc(10 * var(--u)) calc(14 * var(--u)) calc(14 * var(--u));
   box-sizing: border-box;
 }
@@ -277,9 +279,9 @@ ${key('3D', true)}
 .view::before {
   content: '';
   position: absolute;
-  bottom: calc(50% - 74 * var(--u));
-  left: calc(50% - 62 * var(--u));
-  width: calc(124 * var(--u));
+  bottom: calc(50% - 78 * var(--u));
+  left: calc(50% - 72 * var(--u));
+  width: calc(144 * var(--u));
   height: calc(20 * var(--u));
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
@@ -301,7 +303,7 @@ ${key('3D', true)}
 }
 
 .cube {
-  --s: calc(94 * var(--u));
+  --s: calc(110 * var(--u));
   position: relative;
   width: var(--s);
   height: var(--s);

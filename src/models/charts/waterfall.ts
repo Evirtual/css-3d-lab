@@ -116,8 +116,10 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
 .scene {
   perspective: calc(800 * var(--u));
   /* the scale's numbers stand off the right end: the room on the right balances them, and the
-     chart's shift left (on .fall3d) centres the solid drawing in the model box */
-  padding: calc(36 * var(--u)) calc(60 * var(--u)) calc(44 * var(--u)) calc(40 * var(--u));
+     chart's shift left (on .fall3d) centres the solid drawing in the model box. The room below is
+     more than above, so the chart sits high in the box: the tooltip's room over the tallest step
+     is empty at rest, and with the chart in the middle the drawn stack sat 5vmin low */
+  padding: calc(21 * var(--u)) calc(60 * var(--u)) calc(59 * var(--u)) calc(40 * var(--u));
   pointer-events: none; /* the chart is turned: only the steps take the pointer */
 }
 
@@ -291,7 +293,10 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
 }
 
 /* ONE tooltip for the chart: JS sets --tx / --ty (the top of the pointed-at box, as plain
-   numbers in the chart's own units that CSS multiplies by --u) and it glides there. 40 units
+   numbers in the chart's own units that CSS multiplies by --u) and it glides there, 6 units over
+   the box: close, so the room it needs above the tallest step is small and the chart at rest can
+   sit centred with its caption. --ax is the share of its width that hangs left of the step (JS: from
+   0.2 at the first step to 0.8 at the last), so a long tip never hangs off a side. 40 units
    towards you, because the steps on the right stand nearer; +18 undoes the
    sideways drift that lift gets from the 28deg turn. Kept flat: its thickness is a hard shadow
    up and to the right, the way the boxes' depth runs on screen. */
@@ -312,7 +317,7 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(calc((var(--tx, 0) + 18) * var(--u)), calc((var(--ty, 0) - 14) * var(--u))) translate(-50%, -100%) translateZ(calc(40 * var(--u)));
+  transform: translate(calc((var(--tx, 0) + 18) * var(--u)), calc((var(--ty, 0) - 6) * var(--u))) translate(calc(var(--ax, 0.5) * -100%), -100%) translateZ(calc(40 * var(--u)));
   transition:
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
@@ -450,6 +455,9 @@ function place(i) {
   if (!wasOn) tipEl.style.transition = 'none'; // from hidden: appear in place, don't fly in
   tipEl.textContent = tipText(r);
   tipEl.style.setProperty('--tx', i * PITCH + W / 2); // plain numbers: CSS multiplies them by --u
+  // which share of its own width hangs left of its step: the first steps' tips open to the right
+  // and the last ones' to the left, so a long tip never hangs off the chart's side
+  tipEl.style.setProperty('--ax', (0.2 + (0.6 * i) / Math.max(1, rows.length - 1)).toFixed(3));
   tipEl.style.setProperty('--ty', (1 - Math.max(r.from, r.to) / scaleTop) * H);
   tipEl.className = 'tip is-on is-' + r.kind;
   if (!wasOn) {

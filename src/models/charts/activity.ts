@@ -82,7 +82,7 @@ export const snippet: Snippet = {
   /* one base unit: every length in the rings is a multiple of it, so they are the same share of
      a card, the editor, a full screen and a recording canvas. The control zone under them is in
      plain vmin, because it is the same object in every model. */
-  --u: 0.28vmin;
+  --u: 0.31vmin;
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
@@ -94,6 +94,10 @@ export const snippet: Snippet = {
   display: grid;
   place-items: center;
   height: 50vmin;
+  /* one row, the box's own height: the rings' box, with the room it keeps round them for the
+     lift, is taller than the box, and in a row sized to it the rings hung off the bottom, so the
+     drawn stack sat 5vmin low. In a fixed row they overflow evenly, and sit in the middle */
+  grid-template-rows: 100%;
 }
 
 .scene {
