@@ -565,18 +565,19 @@ table.mini code { font-size: 12px; }
 .mk--letter { font-size: 10.5px; line-height: 1; }
 .mk svg { display: block; }
 .marks-legend .mk svg { width: 10px; height: 10px; }
-.marks-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.marks-legend { display: flex; flex-wrap: nowrap; gap: 4px 12px; align-items: center; font-size: 12px; color: var(--muted); flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; } /* one row; scrolls sideways on narrow screens */
+.marks-legend::-webkit-scrollbar { display: none; }
 .marks-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .marks-legend .mk { display: inline-grid; place-items: center; gap: 0; width: 18px; height: 18px; font-size: 10px; } /* the legend's `span` rule would make it a left-packed flex row */
-.tbltools { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin: 4px 0 8px; }
-.tbltools__acts { display: flex; gap: 8px; }
+.tbltools { display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin: 8px 0 0; } /* inside the sticky filter bar, so the key stays in view while the table scrolls */
+.tbltools__acts { display: flex; gap: 8px; flex: none; }
 .tbltools__acts .btn { padding: 4px 12px; font-size: 12.5px; }
 
 /* ---------- the model table: one line per model, sticky header, sticky model column, sections per group ---------- */
 .table-wrap { overflow: visible; margin: 0; }
 #tbl { table-layout: auto; border-collapse: separate; border-spacing: 0; }
 #tbl th, #tbl td { padding: 7px 6px; vertical-align: middle; }
-#tbl thead th { position: sticky; top: var(--stick-head, 0px); z-index: 3; background: var(--surface-solid); box-shadow: inset 0 -1px 0 var(--border); }
+#tbl thead th { position: sticky; top: calc(var(--stick-head, 0px)); z-index: 3; background: var(--surface-solid); box-shadow: inset 0 -1px 0 var(--border); }
 #tbl th.c, #tbl td.c { width: 1%; text-align: center; white-space: nowrap; }
 #tbl td.model, #tbl th.model { position: sticky; left: 0; z-index: 1; background: var(--surface-solid); width: 100%; max-width: 0; }
 #tbl thead th.model { z-index: 4; }
@@ -629,7 +630,7 @@ table.mini code { font-size: 12px; }
   #tbl tr.row > td.c::before, #tbl tr.row > td.rvw::before { content: attr(data-label); order: 2; font-size: 11.5px; font-weight: 600; color: var(--muted); }
   #tbl tr.row > td.last, #tbl tr.row > td.ncom { display: none; }
   #tbl tr.grow, #tbl tr.grow > th { display: block; }
-  #tbl tr.grow > th { top: var(--stick-head, 0px); }
+  #tbl tr.grow > th { top: calc(var(--stick-head, 0px)); }
   #tbl tr.detail, #tbl tr.detail > td, #tbl tr.more, #tbl tr.more > td, #tbl tr.empty, #tbl tr.empty > td { display: block; }
 }
 
@@ -713,12 +714,12 @@ table.mini code { font-size: 12px; }
         <button class="scrollrow__arrow scrollrow__arrow--next" type="button" aria-label="Scroll tags right" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
       <div class="fchip" id="fchip" hidden></div>
+      <div class="tbltools">
+        <div class="marks-legend" id="marklegend" aria-label="What the marks mean"></div>
+        <div class="tbltools__acts" id="grp-acts"><button type="button" class="btn" id="expand-all">Expand all</button><button type="button" class="btn" id="collapse-all">Collapse all</button></div>
+      </div>
     </div>
     <p class="showing" id="showing"></p>
-    <div class="tbltools">
-      <div class="marks-legend" id="marklegend" aria-label="What the marks mean"></div>
-      <div class="tbltools__acts" id="grp-acts"><button type="button" class="btn" id="expand-all">Expand all</button><button type="button" class="btn" id="collapse-all">Collapse all</button></div>
-    </div>
     <div class="table-wrap" id="tablewrap">
       <table id="tbl">
         <thead><tr id="thead"><th class="model">Model</th><th class="st">Status</th></tr></thead>
@@ -1550,6 +1551,8 @@ table.mini code { font-size: 12px; }
   }
   if ('ResizeObserver' in window) { const ro = new ResizeObserver(stickyOffsets); ro.observe($('filters')); ro.observe($('thead')); }
   addEventListener('resize', stickyOffsets);
+  // the filter bar can change height as it sticks (its chips rewrap) without a resize: re-measure on scroll, once a frame
+  { let last = 0; addEventListener('scroll', () => { const t = performance.now(); if (t - last > 100) { last = t; stickyOffsets(); } }, { passive: true }); }
   const tagsScroll = scrollRow($('tags-row'));
   $('filters').addEventListener('click', onFilterClick);
   $('q').addEventListener('input', () => { if (!L) return; query = $('q').value; limit = PAGE; saveView(); renderFilterChips(); renderRows(); });
