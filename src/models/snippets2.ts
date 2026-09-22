@@ -363,6 +363,7 @@ ${lines(9, (i) => `<i style="--i:${i}"></i>`)}
 
 .gyro,
 .gyro div {
+  box-sizing: content-box; /* each ring is 84% of the inside of the one round it: by design, on any page */
   display: grid;
   place-items: center;
   border: calc(4 * var(--u)) solid #8b6cff;
@@ -473,6 +474,7 @@ ${lines(10, (i) => `<i style="--i:${i}"></i>`, '  ')}
 }
 
 .tunnel i {
+  box-sizing: content-box; /* a frame is its opening, its border drawn outside it: by design, on any page */
   position: absolute;
   width: calc(260 * var(--u));
   height: calc(260 * var(--u));
@@ -964,6 +966,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
 }
 
 .door {
+  box-sizing: content-box; /* the frame is drawn outside the leaf's opening: by design, on any page */
   position: relative;
   width: calc(150 * var(--u));
   height: calc(250 * var(--u));
@@ -1325,6 +1328,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
 }
 
 .rocker {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   display: grid;
   grid-template-rows: 1fr 1fr;
   width: calc(90 * var(--u));

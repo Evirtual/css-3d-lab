@@ -137,6 +137,7 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
 
 /* the floor: a neon grid laid flat along the bottom */
 .floor {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   position: absolute;
   left: calc(-12 * var(--u));
   top: calc(76 * var(--u));

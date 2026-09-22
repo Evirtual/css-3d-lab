@@ -112,6 +112,7 @@ export const snippet: Snippet = {
 
 /* the floor: a grid laid flat along the bottom of the columns */
 .floor {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   position: absolute;
   left: calc(-12 * var(--u));
   top: calc(74 * var(--u));

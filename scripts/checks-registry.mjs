@@ -56,6 +56,11 @@ export const REGISTRY = [
     rule: 'cleared when its latest result is a pass on the model\'s current code: paused by the site, with reduced motion emulated, its picture does not change over 4 seconds (a script\'s timer included), and a model that moved moves again when un-paused; every rendered control has an accessible name; Tab reaches everything a mouse can use, and focus shows',
   },
   {
+    key: 'boxsizing', script: 'check-boxsizing.mjs', scope: 'model', name: 'box sizing', short: 'Box',
+    title: 'No reliance on outside CSS (check-boxsizing)', label: 'box-sizing check (check-boxsizing)',
+    rule: 'cleared when its latest result is a pass on the model\'s current code: its standalone file draws the same, at rest and with :hover forced, with and without a page rule making every box border-box (within 0.25% of the canvas over its own noise), or its gallery entry says boxSizing: \'content-box by design: <why>\' and it does differ; a mark on a model that draws the same fails',
+  },
+  {
     key: 'seo', script: 'check-seo.mjs', scope: 'site', name: 'seo', short: 'SEO',
     title: 'SEO over the built site (check-seo)', label: 'SEO check (check-seo)',
     rule: 'cleared when its latest run on the built site (after npm run build) reports no FAIL line for the page; WAIVED and OWN-TEXT findings are listed, not failed',

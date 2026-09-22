@@ -126,6 +126,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
 
 /* the floor: a neon grid laid flat under the candles */
 .floor {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   position: absolute;
   left: calc(-10 * var(--u));
   top: calc(85 * var(--u));
@@ -253,6 +254,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
 /* the body: open ↔ close, coloured glass (the wick shows through). The element is the front,
    pushed half its depth towards you */
 .body {
+  box-sizing: content-box; /* sized to meet at the edges, borders outside: on any page */
   /* a fine edge: under calc(1 * var(--u)) shows as a hairline on sharp screens */
   --edge: calc(0.6 * var(--u)) solid color-mix(in srgb, color-mix(in srgb, var(--tone) 80%, #fff) 75%, transparent);
   width: calc(9 * var(--u));
@@ -267,6 +269,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
 
 /* right side, darker: hinged on the front's right edge, turned back */
 .body::before {
+  box-sizing: content-box; /* sized to meet at the edges, borders outside: on any page */
   top: calc(-0.6 * var(--u));
   left: 100%;
   width: calc(9 * var(--u));
@@ -279,6 +282,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
 
 /* the lid: hinged on the front's top edge, laid flat; scaleY only carries it up */
 .body::after {
+  box-sizing: content-box; /* sized to meet at the edges, borders outside: on any page */
   top: calc(-0.6 * var(--u));
   left: calc(-0.6 * var(--u));
   width: calc(9 * var(--u));

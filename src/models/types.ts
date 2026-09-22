@@ -13,6 +13,13 @@ export interface Demo {
   tags: string[];
   /** Key CSS properties / tricks the effect relies on. */
   technique: string[];
+  /**
+   * Only for a model that is content-box by its own design and draws differently when a page makes
+   * every box border-box: `'content-box by design: <why>'`. scripts/check-boxsizing.mjs reads it,
+   * prints it on the model's line, and fails a model that carries it but draws the same either way
+   * (docs/VIEW-CONTRACT.md, "No reliance on outside CSS").
+   */
+  boxSizing?: string;
 }
 
 export const CATEGORY_LABEL: Record<Category, string> = {

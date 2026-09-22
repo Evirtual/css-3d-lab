@@ -670,6 +670,7 @@ setInterval(function () {
 }
 
 .anaglyph {
+  box-sizing: content-box; /* its padding and edge are round the words */
   display: grid;
   place-items: center;
   gap: calc(2 * var(--u));

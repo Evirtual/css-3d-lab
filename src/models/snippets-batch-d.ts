@@ -1387,6 +1387,7 @@ render();`,
 /* a ring is a circle whose border is transparent except top and bottom: two arcs on opposite
    sides, tapering at the ends, that chase each other as the ring spins in its own plane */
 .rings i {
+  box-sizing: content-box; /* a ring is its hole, its border drawn outside it: by design, on any page */
   position: relative;
   grid-area: 1 / 1;
   width: var(--d);
@@ -1477,6 +1478,7 @@ render();`,
 
 /* glass floor: a strip centred on the bottom edge, laid flat */
 .equalizer::before {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   content: '';
   position: absolute;
   right: calc(-12 * var(--u));

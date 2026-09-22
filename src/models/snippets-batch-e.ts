@@ -157,6 +157,7 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:
 
 .orbit .ringed::before,
 .orbit .ringed::after {
+  box-sizing: content-box; /* each ring is sized by its hole, its border drawn outside it */
   content: '';
   position: absolute;
   top: 50%;
@@ -227,6 +228,7 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
 }
 
 .world {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   --cell: calc(40 * var(--u)); /* grid pitch */
   --line: rgb(255 181 71 / 0.4);
   position: relative;
@@ -1447,6 +1449,7 @@ ${PINS.map((p, i) => `      <i style="--x:${p.x}%;--y:${p.y}%;--c:${p.c};--i:${i
 }
 
 .plane {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   --land: #1c5a60;
   --water: #262a55;
   --road: rgb(255 181 71 / 0.6);

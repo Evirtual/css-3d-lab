@@ -81,6 +81,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
 
 /* the floor: a neon grid laid flat along the bottom */
 .floor {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   position: absolute;
   left: calc(-12 * var(--u));
   top: calc(74 * var(--u));
@@ -452,6 +453,7 @@ show('${YEARS[0]}');`,
 
 /* 5 columns and 4 rows: a 34-unit pitch, 26-unit blocks, a 10-unit margin */
 .world {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   position: relative;
   width: calc(182 * var(--u));
   height: calc(160 * var(--u)); /* 4 rows, and a strip along the near edge for the day names */

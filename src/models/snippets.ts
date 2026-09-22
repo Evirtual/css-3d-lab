@@ -374,6 +374,7 @@ ${CUBE_FACES}
 }
 
 .panel {
+  box-sizing: content-box; /* a panel's numbers are its face, its edge drawn round it: by design, on any page */
   width: calc(60 * var(--u));
   height: 100%;
   transform-style: preserve-3d;

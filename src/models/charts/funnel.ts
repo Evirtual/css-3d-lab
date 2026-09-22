@@ -140,6 +140,7 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
 
 /* coloured glass: the colour mixed with transparent, a fine bright edge, a small inner glow */
 .stage i {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   /* under one unit shows as a hairline on sharp screens */
   border: calc(0.6 * var(--u)) solid color-mix(in srgb, color-mix(in srgb, var(--c) 80%, #fff) 75%, transparent);
   background: color-mix(in srgb, var(--c) 58%, transparent);

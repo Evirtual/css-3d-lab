@@ -101,6 +101,7 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
 
 /* the layout's area is 184 × 136 units, plus a 6-unit margin */
 .plate {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   position: relative;
   width: calc(196 * var(--u));
   height: calc(148 * var(--u));
@@ -114,6 +115,7 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
 
 /* the footprint: --x / --y / --w / --h are % of the 184 × 136 area, with a 3-unit gap between tiles */
 .tile {
+  box-sizing: content-box; /* its size is its inside, its edge outside it, on any page */
   --hue: ${TEAL};
   /* grey for a small move, full colour for the largest */
   --c: color-mix(in srgb, var(--hue) calc(30% + var(--v) * 70%), ${MUTED});
@@ -144,6 +146,7 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
    footprint and squashed to this block's height from that edge, so it always meets the roof */
 .tile::before,
 .tile::after {
+  box-sizing: content-box; /* sized to meet at the edges, borders outside: on any page */
   content: '';
   position: absolute;
   border: var(--edge);

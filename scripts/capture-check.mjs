@@ -8,6 +8,7 @@
  *   node scripts/capture-check.mjs exports [args…]  scripts/check-exports.mjs
  *   node scripts/capture-check.mjs media [args…]    scripts/check-media.mjs (on the built site)
  *   node scripts/capture-check.mjs access [args…]   scripts/check-access.mjs
+ *   node scripts/capture-check.mjs boxsizing [args…] scripts/check-boxsizing.mjs
  *   (npm run capture -- models cube dice)
  *
  * Which checks there are is scripts/checks-registry.mjs, the one list the ledger and its page read
@@ -35,6 +36,8 @@
  *    per-model run, and its entries say `matrix.defaultsOnly`.
  *  - media: `pass <id> …` and `FAILS <id> …`, with the reasons indented under a failure.
  *  - access: the same as media.
+ *  - boxsizing: the same lines again, and its closing `N/M models do not depend on outside CSS.`
+ *    A pass only prints its line under --pass, so the wrapper adds it, as for models.
  *  - seo (a site check: its entries are pages, not models): `FAIL <page> <rule>: <what>` (a page
  *    can have several; they are grouped by page), `pass <page>`, and `listed <page> <rules>`, a pass
  *    whose findings are listed rather than failed (WAIVED or OWN-TEXT), recorded with `listed: true`.
@@ -72,7 +75,7 @@ if (!CHECKS[check]) {
   process.exit(2);
 }
 const args = [...rest];
-if ((check === 'models' || check === 'seo') && !args.includes('--pass')) args.push('--pass');
+if (['models', 'seo', 'boxsizing'].includes(check) && !args.includes('--pass')) args.push('--pass');
 const record = !(check === 'stages' && args.includes('--json'));
 if (!record) console.error('capture-check: --json prints numbers without a verdict, so this run is shown but not recorded.');
 
@@ -142,6 +145,17 @@ const parsers = {
     }
     if (/^ {10}\S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
     if (/pass the access check/.test(line)) summaryLine = line.trim();
+  },
+  // boxsizing: `pass <id> …` and `FAILS <id> …` with the problems indented under a failure, as access
+  boxsizing(line) {
+    const m = /^(FAILS|pass)s+(S+)s*(.*)$/.exec(line);
+    if (m) {
+      current = m[2];
+      results[current] = { status: m[1] === 'pass' ? 'pass' : 'fail', summary: m[3], detail: [], at: now() };
+      return;
+    }
+    if (/^ {10}S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
+    if (/models do not depend on outside CSS/.test(line)) summaryLine = line.trim();
   },
   seo(line) {
     const f = /^FAIL (\S+) (.*)$/.exec(line);
@@ -268,7 +282,7 @@ function expectedTotal() {
     const src = workingSources();
     const demoIds = [...src].filter(([, m]) => m.parts.some((p) => p.kind === 'demo' || (p.whole && p.file.includes('/charts/')))).map(([id]) => id);
     const converted = demoIds.filter((id) => src.get(id)?.snippet?.css.includes('--u:'));
-    if (check === 'models' || check === 'stages' || check === 'media' || check === 'access') return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
+    if (['models', 'stages', 'media', 'access', 'boxsizing'].includes(check)) return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
     const site = REGISTRY.find((c) => c.key === check && c.scope === 'site');
     if (site) return { total: pagesFor(site), totalIsEstimate: true, totalFrom: 'the page count scripts/checks-registry.mjs gives' };
     if (check === 'motion') return args.includes('--all')
