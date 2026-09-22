@@ -599,7 +599,9 @@ ${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" data-c="${c}" aria-h
 .wave .line span {
   position: relative;
   display: inline-block;
-  color: hsl(calc(255 + var(--i) * 18) 90% 70%);
+  /* one lightness for every hue, 3:1 or more on both stages (large text): hsl at 70% was 2.3:1 on
+     the light one */
+  color: oklch(62% 0.22 calc(290 + var(--i) * 18));
   transform-style: preserve-3d;
   backface-visibility: hidden;
   animation: wave 2.8s ease-in-out infinite;
@@ -661,7 +663,9 @@ ${[...RING_TEXT].map((c, i) => `    <span style="--i:${i}" aria-hidden="true">${
   position: absolute;
   inset: 0;
   text-align: center;
-  color: #2ee6d6;
+  /* a teal of middle lightness, 3:1 or more on both stages (large text): #2ee6d6 was 1.4:1 on the
+     light one */
+  color: oklch(62% 0.13 185);
   backface-visibility: hidden;
   transform: rotateY(calc(var(--i) * 360deg / var(--n))) translateZ(var(--r));
 }
@@ -1193,7 +1197,8 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   border-radius: calc(18 * var(--u));
   color: #fff;
   font: 800 calc(17.6 * var(--u)) system-ui;
-  background: linear-gradient(135deg, #2ee6d6, #8b6cff);
+  /* deep enough for white words, 5.2:1 at its worst end: the bright #2ee6d6 was 2.2:1 */
+  background: linear-gradient(135deg, #087a70, #6a45f5);
   box-shadow: 0 calc(22 * var(--u)) calc(36 * var(--u)) calc(-16 * var(--u)) #8b6cff;
   pointer-events: none;
   transition: transform 0.35s ease-out;
@@ -1403,7 +1408,9 @@ input:checked ~ em {
   border-radius: calc(10 * var(--u));
   color: #fff;
   font-weight: 800;
-  background: linear-gradient(120deg, #8b6cff, #ff4d9d);
+  /* the brand gradient deep enough for white words (5.1:1 at its worst end): the bright #8b6cff to
+     #ff4d9d was 3.7:1 */
+  background: linear-gradient(120deg, #6a45f5, #d1206f);
 }
 
 /* the list is in the flow, so the menu is as tall as what is open of it and the stage centres
@@ -2083,7 +2090,7 @@ for (let row = 0; row < N; row++) {
   place-items: center;
   overflow: hidden;
   perspective: calc(850 * var(--u));
-  color: #949bc0;
+  color: inherit; /* the stage's own ink: a fixed pale lavender was 2.5:1 on the light stage */
   font: 700 calc(62 * var(--u)) system-ui, sans-serif;
   cursor: pointer;
   user-select: none;
