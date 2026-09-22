@@ -63,8 +63,11 @@ export const REGISTRY = [
   },
   {
     key: 'exports', script: 'check-exports.mjs', scope: 'model', name: 'exports', short: 'Export',
-    ruleVersion: 1,
-    rules: [{ v: 1, from: null, what: 'as first recorded' }],
+    ruleVersion: 2,
+    rules: [
+      { v: 1, from: null, what: 'as first recorded' },
+      { v: 2, from: null, what: 'a full-canvas scene\'s clear PNG is not held to the see-through test (it paints the canvas by design); the slider\'s scaling is judged to 4% or 2 px at each edge, whichever is more' },
+    ],
     title: 'Export at default settings (check-exports)', label: 'export check at default settings (check-exports)',
     rule: 'cleared when its verdict at the export dialog\'s default settings (image 1:1 at 1600 px PNG, video 9:16 at 1080p, a loop) is a pass on the current code; a run that left the defaults out counts as never run, and the full settings matrix is a sample that does not gate',
   },

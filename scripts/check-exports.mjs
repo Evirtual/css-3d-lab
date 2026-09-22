@@ -24,7 +24,7 @@
  *   drift     a loop recording, decoded frame by frame: the model's box per frame and the change
  *             per frame; a jump, a creep or a resize shows as a spike against the model's own
  *             smooth motion. A model with no loop is filmed live for two seconds, untouched.
- *   formats   PNG and JPEG have the stage's backdrop, PNG clear has none, WebM clear is asked for
+ *   formats   PNG and JPEG have the stage's backdrop, PNG clear has none (not judged on a full-canvas scene, which paints the canvas by design), WebM clear is asked for
  *
  *   node scripts/check-exports.mjs                     the sample of converted models, every setting
  *   node scripts/check-exports.mjs cube dice           just these
@@ -644,11 +644,11 @@ async function checkImages(id) {
       if (Math.abs(aspect / want - 1) > 2 / Math.min(file.width, file.height) + 0.001) miss(id, 'dims', `image ${shape} ${size}`, `file aspect ${aspect.toFixed(4)}, shape ${want.toFixed(4)}`, 'app');
       if (file.drawn?.width && Math.max(file.drawn.width / file.width, file.drawn.height / file.height) < 0.999) miss(id, 'detail', `image ${shape} ${size}`, `drawn at ${file.drawn.width}×${file.drawn.height} and stretched up to ${file.width}×${file.height} (${(file.width / file.drawn.width).toFixed(2)}×): the file has fewer real pixels than it says`, 'app');
       if (only.has('picture')) {
-        if (!(gap <= TOL)) miss(id, 'picture', `image ${shape} ${size}`, `model on screen ${boxText(scr.box)}, in the file ${boxText(m.box)} (worst edge ${pc(gap)}% off)`, scr.moving > 0.002 ? 'model (moves by script, so screen and file are different moments)' : 'app');
-        if (m.like > PIC_TOL) miss(id, 'picture', `image ${shape} ${size}`, `downscaled picture differs from the canvas by ${m.like.toFixed(1)} levels on average`, scr.moving > 0.002 ? 'model (moves by script)' : 'app');
+        if (!(gap <= TOL)) miss(id, 'picture', `image ${shape} ${size}`, `model on screen ${boxText(scr.box)}, in the file ${boxText(m.box)} (worst edge ${pc(gap)}% off)`, scr.moving > 0.002 ? 'model (still moving after the freeze — its script, or a transition started since — so screen and file are different moments)' : 'app');
+        if (m.like > PIC_TOL) miss(id, 'picture', `image ${shape} ${size}`, `downscaled picture differs from the canvas by ${m.like.toFixed(1)} levels on average`, scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app');
         if (m.align) {
           entry.files[size].align = m.align;
-          judgeAlign(m.align, { id, what: `image ${shape} ${size}`, fault: scr.moving > 0.002 ? 'model (moves by script)' : 'app', indent: '         ' });
+          judgeAlign(m.align, { id, what: `image ${shape} ${size}`, fault: scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app', indent: '         ' });
         }
       }
       await back();
@@ -718,8 +718,19 @@ async function checkImages(id) {
         const clipped = touches(f);
         const refFull = ref.l < 0.003 && ref.r > 0.997;
         if (!clipped && !refFull) {
-          if (Math.abs(hr / k - 1) > 0.04) miss(id, 'slider', `${shape} ${fill}%`, `height scaled ×${hr.toFixed(3)}, want ×${k.toFixed(3)}`, 'app (the zoom does not scale the model by the ratio) — or model, if it sizes by something other than vmin');
-          if (Math.abs(wr / k - 1) > 0.04) miss(id, 'slider', `${shape} ${fill}%`, `width scaled ×${wr.toFixed(3)}, want ×${k.toFixed(3)}`, 'app (or model)');
+          // within 4%, or 2 px at each edge, whichever is more: the footprint's edge on a soft
+          // shadow's faint tail is found to about a pixel either way, which on a thin model (the
+          // pointer-lit headline is ~20 px tall at 25% in 9:16) is more than 4% of the side
+          const [cw = 0, ch = 0] = s.canvas ?? [];
+          const slack = (side) => Math.max(0.04, side > 0 ? 4 / side : 0);
+          const hTol = slack(ch * (ref.b - ref.t) * k), wTol = slack(cw * (ref.r - ref.l) * k);
+          if (Math.abs(hr / k - 1) > hTol) miss(id, 'slider', `${shape} ${fill}%`, `height scaled ×${hr.toFixed(3)}, want ×${k.toFixed(3)} (±${pc(hTol)}%)`, 'app (the zoom does not scale the model by the ratio) — or model, if it sizes by something other than vmin');
+          if (Math.abs(wr / k - 1) > wTol) miss(id, 'slider', `${shape} ${fill}%`, `width scaled ×${wr.toFixed(3)}, want ×${k.toFixed(3)} (±${pc(wTol)}%)`, 'app (or model)');
+          if (hTol > 0.04 || wTol > 0.04) {
+            // not a pass to 4%: too few pixels on the dialog's canvas to tell, and the report says so
+            say(`    (a thin model: its scaling is judged to 2 px at each edge, ±${pc(Math.max(hTol, wTol))}%, not 4%)`);
+            untestable.push(`${id}: slider ${shape} ${fill}% — the model is too thin on the ${cw}×${ch} canvas to judge its scaling to 4%; judged to 2 px at each edge (±${pc(Math.max(hTol, wTol))}%) instead`);
+          }
         }
         if (Math.abs(dcx) > TOL || Math.abs(dcy) > TOL) miss(id, 'slider', `${shape} ${fill}%`, `centre is ${pc(dcx)}% across, ${pc(dcy)}% down from where scaling about the canvas middle puts it${clipped ? ' (clipped at the edge)' : ''}`, clipped ? 'expected when the model outgrows the canvas' : 'app');
       }
@@ -746,7 +757,10 @@ async function checkImages(id) {
       say(`  format ${picture.padEnd(9)} ${sig} ${file.type}, see-through ${pc(m.alpha.clear)}%, opaque ${pc(m.alpha.opaque)}%, corner alpha max ${m.alpha.cornerAlpha}, corner rgb ${corner.slice(0, 3).join(',')} (stage ${scr.bg.join(',')}), model ${boxText(m.box)}`);
       if (picture === 'png-clear') {
         if (sig !== 'png') miss(id, 'formats', picture, `file is ${sig}`, 'app');
-        if (m.alpha.clear < 0.2 || m.alpha.cornerAlpha > 0) miss(id, 'formats', picture, `not see-through: ${pc(m.alpha.clear)}% of pixels clear, corners reach alpha ${m.alpha.cornerAlpha}`, FULL_CANVAS(scr.box) ? 'model (full-canvas: it paints into the corners on screen too)' : 'model (paints its own backdrop) or app');
+        // a full-canvas scene paints the whole canvas by design (VIEW-CONTRACT.md), so its clear
+        // PNG has nothing see-through to show: that test is not for it, and the report says so
+        if (FULL_CANVAS(scr.box)) say(`    png-clear: a full-canvas scene paints the canvas edge to edge by design, so the see-through test is not applied (${pc(m.alpha.clear)}% of pixels clear)`);
+        else if (m.alpha.clear < 0.2 || m.alpha.cornerAlpha > 0) miss(id, 'formats', picture, `not see-through: ${pc(m.alpha.clear)}% of pixels clear, corners reach alpha ${m.alpha.cornerAlpha}`, 'model (paints its own backdrop) or app');
       } else {
         if (sig !== (picture === 'jpeg' ? 'jpeg' : 'png')) miss(id, 'formats', picture, `file is ${sig}`, 'app');
         if (m.alpha.opaque < 0.999) miss(id, 'formats', picture, `only ${pc(m.alpha.opaque)}% opaque: the backdrop is missing`, 'app');
@@ -814,9 +828,9 @@ async function checkVideos(id) {
         if (!said || said.width !== file.width || said.height !== file.height) miss(id, 'dims', `video ${shape} ${q}p`, `caption says ${file.caption}, file is ${file.width}×${file.height}`, 'app');
         if (Math.min(file.width, file.height) !== q) miss(id, 'dims', `video ${shape} ${q}p`, `short side ${Math.min(file.width, file.height)}`, 'app');
         if (Math.abs(file.width / file.height / want - 1) > 0.01) miss(id, 'dims', `video ${shape} ${q}p`, `aspect ${(file.width / file.height).toFixed(3)}, shape ${want.toFixed(3)}`, 'app');
-        if (only.has('picture') && !(gap <= TOL * 1.5)) miss(id, 'picture', `video ${shape} ${q}p`, `frame 0 ${boxText(f0)} vs screen ${boxText(scr.box)} (${pc(gap)}% off)`, scr.moving > 0.002 ? 'model (moves by script)' : 'app');
+        if (only.has('picture') && !(gap <= TOL * 1.5)) miss(id, 'picture', `video ${shape} ${q}p`, `frame 0 ${boxText(f0)} vs screen ${boxText(scr.box)} (${pc(gap)}% off)`, scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app');
         if (vid.align) {
-          judgeAlign(vid.align, { id, what: `video ${shape} ${q}p frame 0`, fault: scr.moving > 0.002 ? 'model (moves by script)' : 'app', indent: '         ' });
+          judgeAlign(vid.align, { id, what: `video ${shape} ${q}p frame 0`, fault: scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app', indent: '         ' });
         }
         await back();
       }
