@@ -46,7 +46,9 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import { join, posix, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { norm, ROOT, sourcesOf } from './model-sources.mjs';
-import { ruleStale } from './checks-registry.mjs';
+// with this module's own query, as ledger.mjs imports its helpers: the watcher re-imports the build
+// code as ledger.mjs?v=<version>, and a plain import would hand it the registry it loaded at start
+const { ruleStale } = await import(`./checks-registry.mjs${new URL(import.meta.url).search}`);
 
 const toPosix = (p) => p.split(sep).join('/');
 const h = (value) => createHash('sha1').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex').slice(0, 12);
