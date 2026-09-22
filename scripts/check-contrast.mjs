@@ -205,7 +205,9 @@ async function onStage(browser, id, title, snippet, clicks, stageName) {
     const page = await context.newPage();
     page.on('pageerror', (e) => errors.push(e.message.split('\n')[0]));
     await page.clock.install({ time: new Date('2026-01-01T10:08:30Z') });
-    await page.clock.pauseAt(new Date('2026-01-01T10:08:30Z'));
+    // a moment after the install, never at it: the page's own start may already have moved the clock
+    // past the install time ("Cannot fast-forward to the past", vinyl and swipe)
+    await page.clock.pauseAt(new Date('2026-01-01T10:08:31Z'));
     const url = `${base}/__c3d-file/contrast.html`;
     await page.route(url, (r) => r.fulfill({ contentType: 'text/html', body: html }));
     await page.goto(url, { waitUntil: 'load' });
