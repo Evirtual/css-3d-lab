@@ -42,7 +42,6 @@ const VIOLET = '#8b6cff';
 const TEAL = '#2ee6d6';
 const PINK = '#ff4d9d';
 const TEXT = '#eceefb';
-const MUTED = '#949bc0';
 const SURFACE = '#141830';
 
 /** The data as it would arrive from an API; the arrays of numbers on one line. */
@@ -152,7 +151,8 @@ export const snippet: Snippet = {
   top: calc(-6 * var(--u));
   left: 100%;
   padding-left: calc(6 * var(--u));
-  color: ${MUTED};
+  color: inherit; /* the stage's own ink, softened with opacity: a fixed pale lavender was 2.3:1 on the light stage */
+  opacity: 0.72;
   font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
 }
 
@@ -178,7 +178,8 @@ export const snippet: Snippet = {
   top: calc(100% + calc(8 * var(--u)));
   left: calc(-6 * var(--u));
   width: calc(36 * var(--u));
-  color: ${MUTED};
+  color: inherit; /* the stage's ink, softened: see .wall span */
+  opacity: 0.72;
   font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   text-align: center;
   transform: translateZ(calc(12 * var(--u)));
