@@ -1266,6 +1266,8 @@ stage.addEventListener('pointercancel', leave);`,
   position: relative;
   display: grid;
   place-items: center;
+  /* 220 × 160 outside, its border included: the glow's travel below stops at this edge */
+  box-sizing: border-box;
   width: calc(220 * var(--u));
   height: calc(160 * var(--u));
   /* the field: a faint violet pad, the same tint on a dark stage and a light one (a grey dashed
