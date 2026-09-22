@@ -819,6 +819,8 @@ ${lines(16, (i) => `    <i style="--d:${Math.floor(i / 4) + (i % 4)}"></i>`)}
   position: absolute;
   top: 0;
   left: calc(50% - var(--side) / 2);
+  /* one side wide, border included, so neighbouring faces meet edge to edge */
+  box-sizing: border-box;
   width: var(--side);
   height: 100%;
   background: hsl(var(--hue) 85% 64% / 0.26);
