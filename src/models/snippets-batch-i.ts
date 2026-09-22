@@ -263,8 +263,8 @@ export const snippetsI: Record<string, Snippet> = {
   --u: 0.37vmin;
   display: grid;
   place-items: center;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   perspective: calc(800 * var(--u));
 }
 

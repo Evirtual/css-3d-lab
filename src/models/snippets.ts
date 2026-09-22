@@ -1086,8 +1086,8 @@ ${CUBE_FACES}`,
   --u: 0.28vmin;
   display: grid;
   place-items: center;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   perspective: calc(800 * var(--u));
 }
 
@@ -1191,8 +1191,8 @@ scene.addEventListener('pointerleave', () => {
     css: `.scene {
   display: grid;
   place-items: center;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   /* one base unit: every length below is a multiple of it, so the cube is the same share of a
      card, the editor, a full screen and a recording canvas. Sized for the worst drag: turned
      corner-on, the cube spans its body diagonal, √3 × 140 units */
@@ -1688,8 +1688,8 @@ update();`,
   --u: 0.145vmin;
   display: grid;
   place-items: center;
-  width: 100vw;   /* the whole canvas is the light's field, so the pointer is read across it */
-  height: 100vh;
+  width: 100%;   /* the whole canvas is the light's field, so the pointer is read across it */
+  height: 100%;
 }
 
 /* One line, as a headline is: LIGHT SHADOW draws many times wider than it is tall, so it is sized

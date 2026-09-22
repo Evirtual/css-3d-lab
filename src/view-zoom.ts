@@ -1,4 +1,4 @@
-import { fillLimitOf, MIN_FILL, NATURAL_FILL, sampleFillLimit, watchFillLimit } from './fill-limit';
+import { fillLimitOf, fillsCanvas, MIN_FILL, NATURAL_FILL, sampleFillLimit, watchFillLimit } from './fill-limit';
 
 /**
  * "View zoom": the model shown bigger or smaller on the large stage — the model page, the home
@@ -76,7 +76,9 @@ function show(wrap: HTMLElement, fill: number, top: number): void {
   const out = wrap.querySelector<HTMLElement>(':scope > .stage__view [data-view-zoom-out]');
   if (out) out.textContent = `${fill}%`;
   const hint = wrap.querySelector<HTMLElement>(':scope > .stage__view [data-view-zoom-hint]');
-  if (hint) hint.textContent = `${HINT}, max ${top}%`;
+  const stage = stageOf(wrap);
+  // a full-canvas scene is not made bigger: that would only crop it
+  if (hint) hint.textContent = `${HINT}, max ${top}%${stage && fillsCanvas(stage) ? ': it fills the canvas' : ''}`;
 }
 
 /** The page's zoom on this stage shown at `fill` (percent of the frame, within the top end). */

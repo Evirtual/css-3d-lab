@@ -23,7 +23,7 @@ import {
 } from './record';
 import type { PrintSetup } from './models/snippet-utils';
 import { showThanks } from './thanks';
-import { MIN_FILL, watchFillLimit } from './fill-limit';
+import { fillsCanvas, MIN_FILL, watchFillLimit } from './fill-limit';
 
 /**
  * One dialog with three tabs — Video, Image, Print.
@@ -446,7 +446,8 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     const top = zoomTop();
     return `${top > MIN_FILL ? ((Math.round(chosen().fill * 100) - MIN_FILL) / (top - MIN_FILL)) * 100 : 100}%`;
   };
-  const zoomHint = (): string => `how much of the frame it fills${fillTop === null ? '' : `, max ${fillTop}%`}`;
+  // a full-canvas scene stops at its own size: bigger would only crop it
+  const zoomHint = (): string => `how much of the frame it fills${fillTop === null ? '' : `, max ${fillTop}%${stage && fillsCanvas(stage) ? ': it fills the canvas' : ''}`}`;
   const zoomSlider = (): string => `
     <fieldset class="maker__set maker__set--slider">
       <legend>Model size <span class="maker__legendHint" data-zoom-hint>${zoomHint()}</span></legend>

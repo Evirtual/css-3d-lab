@@ -1179,8 +1179,8 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   grid-template: repeat(3, 1fr) / repeat(3, 1fr);
   /* the zones are the whole canvas, so the tilt follows the pointer anywhere on it and no hit
      area ever hangs past the canvas edge */
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   perspective: calc(800 * var(--u));
 }
 

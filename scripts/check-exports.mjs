@@ -13,8 +13,14 @@
  *             A scene that paints the whole canvas (starfield, grid, room…) has the canvas as its
  *             box, so its file must fill the frame and its picture must line up with the canvas's,
  *             tile by tile (FULL_CANVAS, align())
- *   slider    at 70% the file is the canvas; at 25/50/100% the model is scaled by fill/0.7 and
- *             stays centred, on screen and in the file
+ *   slider    at 70% the file is the canvas; asked for 25/50/100%, the dialog gives min(asked, the
+ *             model's top end — its range's max, which its hint must name), the model is scaled
+ *             by that / 0.7 and stays centred, on screen and in the file, and above 70% the file
+ *             never shows it inside the 4vmin margin (src/fill-limit.ts). The margin is judged to
+ *             one pixel of the canvas, not of the file: the file is the canvas drawn at another
+ *             size, so a canvas pixel of anti-aliasing is two or more file pixels, and the file's
+ *             box cannot be told apart from the canvas's more finely than that. A full-canvas scene
+ *             (FULL_CANVAS) is not judged on the margin: it fills the canvas by design
  *   drift     a loop recording, decoded frame by frame: the model's box per frame and the change
  *             per frame; a jump, a creep or a resize shows as a spike against the model's own
  *             smooth motion. A model with no loop is filmed live for two seconds, untouched.
@@ -659,11 +665,23 @@ async function checkImages(id) {
         await dlg((v) => { const s = document.querySelector('.maker [data-zoom]'); s.value = String(v); s.dispatchEvent(new Event('input', { bubbles: true })); }, fill);
         await settle();
         await freeze();
+        // The slider stops at the model's top end (src/fill-limit.ts): the most it can fill and
+        // still clear every edge by 4vmin, which the range's max and the hint both say. Asked
+        // for more, the dialog must give min(asked, top) and draw the file at that.
+        const got = await dlg(() => {
+          const s = document.querySelector('.maker [data-zoom]');
+          const hint = document.querySelector('.maker [data-zoom-hint]')?.textContent ?? '';
+          return { value: Number(s.value), max: Number(s.max), hint: Number((hint.match(/max (\d+)%/) ?? [])[1] ?? NaN), zoom: document.querySelector('.maker [data-live] .stage')?.style.getPropertyValue('--zoom') ?? '' };
+        });
+        const want = Math.min(fill, got.max);
+        if (got.value !== want) miss(id, 'slider', `${shape} ${fill}%`, `the dialog gives ${got.value}%, want min(asked ${fill}%, top end ${got.max}%) = ${want}%`, 'app');
+        if (got.hint !== got.max) miss(id, 'slider', `${shape} ${fill}%`, `the hint says max ${got.hint}%, the slider stops at ${got.max}%`, 'app');
+        if (Math.abs(Number(got.zoom) - got.value / 70) > 0.001) miss(id, 'slider', `${shape} ${fill}%`, `the stage's --zoom is ${got.zoom}, want ${(got.value / 70).toFixed(4)} for ${got.value}%`, 'app');
         const scr = await screen();
         const file = await make();
         if (file.error) { miss(id, 'slider', `${shape} ${fill}%`, `no file: ${file.error}`, 'app'); continue; }
         const m = await measureImage(file, scr);
-        at[fill] = { screen: scr.box, full: scr.full, file: m.box, like: m.like };
+        at[fill] = { screen: scr.box, full: scr.full, file: m.box, like: m.like, value: got.value, top: got.max, canvas: [scr.cw, scr.ch] };
         await back();
       }
       await dlg(() => { const s = document.querySelector('.maker [data-zoom]'); s.value = '70'; s.dispatchEvent(new Event('input', { bubbles: true })); });
@@ -671,10 +689,21 @@ async function checkImages(id) {
       row.slider[shape] = at;
       // scaling and centre are judged on the footprint; the file against the screen on INK
       const ref = at[70]?.full;
+      // a full-canvas scene fills the canvas edge to edge by design (VIEW-CONTRACT.md): the 4vmin
+      // margin is not for it, and its top end is 70% (bigger would only crop it)
+      const fullScene = FULL_CANVAS(at[70]?.screen);
+      if (fullScene) say(`  slider ${shape}: a full-canvas scene, so the 4vmin margin is not judged (its top end is ${at[70]?.top}%)`);
       for (const fill of [70, ...FILLS]) {
         const s = at[fill]; if (!s || !ref || !s.full) continue;
         const f = s.full;
-        const k = fill / 70;
+        const k = s.value / 70; // what the dialog gave: the asked value, or its top end
+        // the file never shows the model past the 4vmin margin, to within one pixel of the canvas
+        if (!fullScene && s.file && s.canvas?.[0] && s.canvas?.[1]) {
+          const [cw, ch] = s.canvas;
+          const mx = (0.04 * Math.min(cw, ch) - 1) / cw, my = (0.04 * Math.min(cw, ch) - 1) / ch;
+          const past = Math.max(mx - s.file.l, s.file.r - (1 - mx), my - s.file.t, s.file.b - (1 - my));
+          if (s.value > 70 && past > 0) miss(id, 'slider', `${shape} ${fill}%`, `at ${s.value}% the file shows the model ${pc(past)}% into the 4vmin margin (${boxText(s.file)})`, 'app (the top end lets it past the margin)');
+        }
         const touches = (b) => b.l < 0.003 || b.t < 0.003 || b.r > 0.997 || b.b > 0.997;
         const wr = (f.r - f.l) / (ref.r - ref.l), hr = (f.b - f.t) / (ref.b - ref.t);
         // Scaling about the canvas centre moves a box whose middle is off the centre towards it
@@ -683,7 +712,7 @@ async function checkImages(id) {
         const expect = (c) => 0.5 + (c - 0.5) * k;
         const dcx = (f.l + f.r) / 2 - expect((ref.l + ref.r) / 2), dcy = (f.t + f.b) / 2 - expect((ref.t + ref.b) / 2);
         const gap = boxGap(s.file, s.screen);
-        say(`  slider ${shape} ${String(fill).padStart(3)}%: screen ${boxText(s.screen)} footprint ${boxText(f)} (w ×${wr.toFixed(3)}, h ×${hr.toFixed(3)}, want ×${k.toFixed(3)}; centre off scaling-about-the-middle by ${pc(dcx)}%,${pc(dcy)}%), file ${boxText(s.file)} (edge gap ${pc(gap)}%, diff ${s.like.toFixed(1)})`);
+        say(`  slider ${shape} ${String(fill).padStart(3)}%${s.value !== fill ? ` -> ${s.value}% (top end ${s.top}%)` : ''}: screen ${boxText(s.screen)} footprint ${boxText(f)} (w ×${wr.toFixed(3)}, h ×${hr.toFixed(3)}, want ×${k.toFixed(3)}; centre off scaling-about-the-middle by ${pc(dcx)}%,${pc(dcy)}%), file ${boxText(s.file)} (edge gap ${pc(gap)}%, diff ${s.like.toFixed(1)})`);
         if (!(gap <= TOL)) miss(id, 'slider', `${shape} ${fill}%`, `file ${boxText(s.file)} vs screen ${boxText(s.screen)} (${pc(gap)}% off)`, 'app');
         if (fill === 70) continue;
         const clipped = touches(f);

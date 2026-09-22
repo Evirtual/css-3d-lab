@@ -6,13 +6,22 @@
  * contract's 70vmin band) and a value v shows it v / 70% times as big about the canvas's middle.
  * The top end is the value at which the model's drawn box, grown that way, still clears every edge
  * of the canvas by PAD (4vmin), and at full screen the View zoom bar along the bottom too. It is
- * floored to the sliders' 5% steps, never under 70% (the model as it is) nor over 100%.
+ * floored to the sliders' 5% steps, never under 70% (the model as it is) nor over 100%. A
+ * full-canvas scene (VIEW-CONTRACT.md: it fills the canvas edge to edge by design, so the margin is
+ * not for it) stops at 70%: making it bigger would only crop it. Smaller works as for any model.
  *
  * The drawn box is measured inside the model's frame, as the union of every part that paints (a
  * fill, a border, a shadow, text, an image, a drawn ::before/::after), 3D turns included — the
- * print's rule (printDoc's drawn()):
+ * print's rule (printDoc's drawn()) — each box grown by how far its outer box-shadows and its
+ * filter's drop-shadows and blur reach past it (what a pseudo-element draws outside its element's
+ * box is not seen):
  *  - over the model's CSS animation loop, swept in one go: every animation seeked to 24 moments
  *    and put back, all in one task, before anything is painted, so nothing is seen to move;
+ *  - for a model that follows the pointer (tagged 'pointer'), over the pointer's extremes: the
+ *    pointer is walked through the canvas's four corners and its middle in the frame, as pointer
+ *    and mouse events the model's own script reads, each pose swept to where its transitions end;
+ *    then every style and class its script wrote is put back and the transitions it started are
+ *    cancelled, all in one task, so nothing is seen to move;
  *  - over the states the visitor puts it in: a transition or a one-off animation (a hover, a lid
  *    opening) is swept to its end the same way the moment it starts, so the top end comes down
  *    before the model has grown; a pose moved by the pointer is measured the frame it changes;
@@ -21,11 +30,14 @@
  * A box measured while the dialog's --zoom is on is divided back by it, so the top end does not
  * depend on the value it limits.
  */
+import { demos } from './models';
+
 export const MIN_FILL = 25;
 export const NATURAL_FILL = 70;
 export const MAX_FILL = 100;
 const STEP = 5;
 const PAD = 0.04; // of the canvas's short side, on every side
+const FULL = 0.95; // a drawing that covers this much of the canvas both ways fills it
 
 type Box = { l: number; t: number; r: number; b: number }; // reach from the middle, at 70%
 
@@ -39,9 +51,17 @@ class Limit {
   private timer = 0;
   private detach: (() => void)[] = [];
   private frameWatch?: MutationObserver;
+  /** The model follows the pointer: its limit holds wherever the pointer is. */
+  private follows = false;
+  /** Where the visitor's own pointer is in the frame, or null when it is not over it. */
+  private real: { x: number; y: number } | null = null;
+  /** Set while the pointer is being walked through the canvas: those events are ours. */
+  private walking = false;
   private resize: ResizeObserver;
   private watch: MutationObserver;
-  readonly listeners = new Set<(max: number | null) => void>();
+  readonly listeners = new Set<(max: number | null, full: boolean) => void>();
+  /** The model is a full-canvas scene: at rest its drawing covers the canvas, by design. */
+  full = false;
   /** The top end in percent, or null while the model has not been measured. */
   max: number | null = null;
 
@@ -69,15 +89,31 @@ class Limit {
     this.frameWatch?.disconnect();
     this.frame = frame;
     this.doc = doc;
+    this.real = null;
+    // the model, found by the frame's title (preview.ts: "<title> — live preview")
+    const title = frame?.title.replace(/ — live preview$/, '');
+    this.follows = Boolean(title && demos.some((d) => d.title === title && d.tags.includes('pointer')));
     if (!doc) return this.restart();
     // an edit to the model's CSS is written into the frame's <style id="c3d-code">
     this.frameWatch = new MutationObserver(() => this.restartSoon());
     const code = doc.getElementById('c3d-code');
     if (code) this.frameWatch.observe(code, { childList: true, characterData: true, subtree: true });
     const on = (type: string, fn: EventListener): void => {
-      doc.addEventListener(type, fn, { passive: true, capture: true });
-      this.detach.push(() => doc.removeEventListener(type, fn, { capture: true }));
+      const own: EventListener = (e) => {
+        if (!this.walking) fn(e);
+      };
+      doc.addEventListener(type, own, { passive: true, capture: true });
+      this.detach.push(() => doc.removeEventListener(type, own, { capture: true }));
     };
+    // the visitor's pointer, to put it back after a walk
+    on('pointermove', (e) => {
+      const p = e as PointerEvent;
+      if (p.isTrusted) this.real = { x: p.clientX, y: p.clientY };
+    });
+    on('pointerout', (e) => {
+      const p = e as PointerEvent;
+      if (p.isTrusted && !p.relatedTarget) this.real = null;
+    });
     // a move only moves what paints; a hover, a click or a key can make new parts paint
     for (const type of ['pointermove', 'wheel', 'scroll']) on(type, () => this.sampleNextFrame(false));
     for (const type of ['pointerover', 'pointerout', 'pointerdown', 'pointerup', 'click', 'keydown', 'focusin', 'input', 'change']) on(type, () => this.sampleNextFrame(true));
@@ -96,8 +132,87 @@ class Limit {
     this.seen = null;
     if (!this.doc || !this.frame?.isConnected) return this.publish(null);
     this.painters = paintersOf(this.doc);
+    // at rest, before anything moves: a drawing that covers the canvas both ways is a full-canvas
+    // scene (VIEW-CONTRACT.md, "Full-canvas models"; check-models and check-stages call it so at
+    // 95%, by the same measure: what it paints)
+    this.take();
+    const rest = this.seen as Box | null; // (take() has just set it)
+    const cw = this.doc.documentElement.clientWidth, ch = this.doc.documentElement.clientHeight;
+    this.full = Boolean(rest && cw && ch && (rest.l + rest.r) * this.factor() >= FULL * cw && (rest.t + rest.b) * this.factor() >= FULL * ch);
     this.sweep();
+    if (this.follows) this.walk();
     this.update();
+  }
+
+  /** The pointer walked through the canvas's corners and middle, each pose measured, then put back. */
+  private walk(): void {
+    const doc = this.doc!;
+    const win = doc.defaultView as (Window & typeof globalThis) | null;
+    if (!win) return;
+    const w = doc.documentElement.clientWidth, h = doc.documentElement.clientHeight;
+    const before = new Set(doc.getAnimations());
+    // what the model's script may write while it is walked: every element's style and class
+    const kept = [...doc.querySelectorAll('*')].map((el) => [el, el.getAttribute('style'), el.getAttribute('class')] as const);
+    const fire = (el: Element, type: string, x: number, y: number, bubbles = true): void => {
+      const init = { clientX: x, clientY: y, bubbles, cancelable: true, composed: true, view: win };
+      el.dispatchEvent(type.startsWith('pointer') ? new win.PointerEvent(type, { ...init, pointerId: 1, pointerType: 'mouse', isPrimary: true }) : new win.MouseEvent(type, init));
+    };
+    const at = (x: number, y: number): Element => doc.elementFromPoint(x, y) ?? doc.body;
+    let last: Element | null = null;
+    const leave = (el: Element, x: number, y: number): void => {
+      fire(el, 'pointerout', x, y);
+      fire(el, 'mouseout', x, y);
+      for (let n: Element | null = el; n; n = n.parentElement) {
+        fire(n, 'pointerleave', x, y, false);
+        fire(n, 'mouseleave', x, y, false);
+      }
+    };
+    const moveTo = (x: number, y: number): void => {
+      const el = at(x, y);
+      if (last && last !== el) leave(last, x, y);
+      if (last !== el) {
+        fire(el, 'pointerover', x, y);
+        fire(el, 'mouseover', x, y);
+        for (let n: Element | null = el; n; n = n.parentElement) fire(n, 'pointerenter', x, y, false);
+      }
+      fire(el, 'pointermove', x, y);
+      fire(el, 'mousemove', x, y);
+      last = el;
+    };
+    this.walking = true;
+    try {
+      for (const [x, y] of [[1, 1], [w - 2, 1], [1, h - 2], [w - 2, h - 2], [w / 2, h / 2]] as const) {
+        moveTo(x, y);
+        this.painters = paintersOf(doc);
+        this.take();
+        // where the transitions it started are going
+        const runs = doc.getAnimations().filter((a) => !before.has(a) && a.playState !== 'idle' && (a instanceof win.CSSTransition || (a instanceof win.CSSAnimation && Number.isFinite(a.effect?.getComputedTiming().activeDuration))));
+        for (let i = 1; i <= 6; i++) {
+          for (const a of runs) {
+            const end = Number(a.effect?.getComputedTiming().endTime) || 0;
+            a.currentTime = Math.max(0, end - 1) * (i / 6);
+          }
+          this.take();
+        }
+      }
+    } finally {
+      // as it was: the pointer taken away again (unless the visitor's is there), every style and
+      // class the script wrote put back, and the transitions that started cut short
+      if (last && !this.real) leave(last, -1, -1);
+      for (const [el, style, cls] of kept) {
+        if (el.getAttribute('style') !== style) {
+          if (style === null) el.removeAttribute('style');
+          else el.setAttribute('style', style);
+        }
+        if (el.getAttribute('class') !== cls) {
+          if (cls === null) el.removeAttribute('class');
+          else el.setAttribute('class', cls);
+        }
+      }
+      for (const a of doc.getAnimations()) if (!before.has(a) && a instanceof win.CSSTransition) a.cancel();
+      this.painters = paintersOf(doc);
+      this.walking = false;
+    }
   }
 
   /** The dialog's --zoom on the stage now (1 on the page). */
@@ -184,14 +299,20 @@ class Limit {
   private take(): void {
     const doc = this.doc!;
     const w = doc.documentElement.clientWidth, h = doc.documentElement.clientHeight;
+    const win = doc.defaultView!;
     let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
     for (const el of this.painters) {
       const box = el.getBoundingClientRect();
       if (!box.width || !box.height) continue;
-      l = Math.min(l, box.left);
-      t = Math.min(t, box.top);
-      r = Math.max(r, box.right);
-      b = Math.max(b, box.bottom);
+      // a shadow or a blur is ink no box contains: its reach, in the element's own pixels, grown
+      // by how much bigger the element is drawn than it is laid out (its zoom, its 3D turn)
+      const glow = glowOf(win.getComputedStyle(el));
+      const own = el instanceof win.HTMLElement ? el.offsetWidth : 0;
+      const k = own > 0 ? box.width / own : 1;
+      l = Math.min(l, box.left - glow.l * k);
+      t = Math.min(t, box.top - glow.t * k);
+      r = Math.max(r, box.right + glow.r * k);
+      b = Math.max(b, box.bottom + glow.b * k);
     }
     if (l === Infinity) return;
     const f = this.factor();
@@ -206,6 +327,8 @@ class Limit {
     const w = doc.documentElement.clientWidth, h = doc.documentElement.clientHeight;
     const s = this.seen;
     if (!w || !h || !s) return this.publish(null);
+    // a scene that already fills the canvas is not made bigger: that would only crop it
+    if (this.full) return this.publish(NATURAL_FILL);
     const pad = PAD * Math.min(w, h);
     // at full screen the View zoom bar lies over the canvas's bottom edge: the model stops above it
     const bar = this.stage.parentElement?.querySelector<HTMLElement>(':scope > .stage__view');
@@ -217,10 +340,12 @@ class Limit {
     this.publish(Math.max(NATURAL_FILL, Math.min(MAX_FILL, top)));
   }
 
+  private shown = false;
   private publish(max: number | null): void {
-    if (max === this.max) return;
+    if (max === this.max && this.full === this.shown) return;
     this.max = max;
-    for (const fn of this.listeners) fn(max);
+    this.shown = this.full;
+    for (const fn of this.listeners) fn(max, this.full);
   }
 }
 
@@ -231,7 +356,7 @@ const limits = new WeakMap<HTMLElement, Limit>();
  * (null while the model is not measured). One measurement per stage, shared by every caller.
  * Returns the function that stops following.
  */
-export function watchFillLimit(stage: HTMLElement, onChange: (max: number | null) => void): () => void {
+export function watchFillLimit(stage: HTMLElement, onChange: (max: number | null, full: boolean) => void): () => void {
   let limit = limits.get(stage);
   if (!limit) {
     limit = new Limit(stage);
@@ -239,7 +364,7 @@ export function watchFillLimit(stage: HTMLElement, onChange: (max: number | null
   }
   const l = limit;
   l.listeners.add(onChange);
-  onChange(l.max);
+  onChange(l.max, l.full);
   return () => {
     l.listeners.delete(onChange);
     if (l.listeners.size) return;
@@ -251,9 +376,40 @@ export function watchFillLimit(stage: HTMLElement, onChange: (max: number | null
 /** The top end now for `stage` (null when it is not followed or not measured yet). */
 export const fillLimitOf = (stage: HTMLElement): number | null => limits.get(stage)?.max ?? null;
 
+/** Whether the model on `stage` is a full-canvas scene (its top end is then 70%: it fills the canvas). */
+export const fillsCanvas = (stage: HTMLElement): boolean => Boolean(limits.get(stage)?.full && limits.get(stage)?.max !== null);
+
 /** Looks at a model moved by its own script (not a CSS animation or transition). */
 export function sampleFillLimit(stage: HTMLElement): void {
   limits.get(stage)?.sample(true);
+}
+
+/** How far past its box an element's outer shadows and blur reach, side by side, in its own pixels. */
+function glowOf(cs: CSSStyleDeclaration): { l: number; t: number; r: number; b: number } {
+  const g = { l: 0, t: 0, r: 0, b: 0 };
+  const reach = (x: number, y: number, far: number): void => {
+    g.l = Math.max(g.l, far - x);
+    g.r = Math.max(g.r, far + x);
+    g.t = Math.max(g.t, far - y);
+    g.b = Math.max(g.b, far + y);
+  };
+  if (cs.boxShadow !== 'none') {
+    // one shadow per comma outside the colour's parentheses
+    for (const one of cs.boxShadow.split(/,(?![^(]*\))/)) {
+      if (/\binset\b/.test(one)) continue;
+      const [x = 0, y = 0, blur = 0, spread = 0] = (one.match(/-?[\d.]+px/g) ?? []).map(parseFloat);
+      reach(x, y, blur + spread);
+    }
+  }
+  if (cs.filter !== 'none') {
+    // drop-shadow(rgba(…) 0px 4px 12px): its colour has parentheses of its own
+    for (const [, args] of cs.filter.matchAll(/drop-shadow\(((?:[^()]|\([^()]*\))*)\)/g)) {
+      const [x = 0, y = 0, blur = 0] = (args!.match(/-?[\d.]+px/g) ?? []).map(parseFloat);
+      reach(x, y, blur);
+    }
+    for (const [, r] of cs.filter.matchAll(/blur\(([\d.]+)px\)/g)) reach(0, 0, 2 * parseFloat(r!));
+  }
+  return g;
 }
 
 /** The parts of the model that paint something. */
