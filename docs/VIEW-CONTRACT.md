@@ -27,13 +27,21 @@ One band, the same height in every model, centred in the canvas.
 | | Height |
 | --- | --- |
 | The band | 70vmin |
-| Control zone, when there is one | 16vmin (a 4.5vmin caption line, a 2vmin gap, an 8vmin row) |
+| Control zone, when there is one | what it holds, and no more: a caption line (4.5vmin text, 5.4vmin with its line height), an 8vmin row, 2vmin between them when it has both. At most 16vmin |
 | Gap between the model and the control zone | 4vmin |
 | Model box, with controls | 50vmin |
 | Model box, with no controls | 70vmin |
 
 So a model with a row of buttons under it is automatically a little smaller than one without, and
 both take up the same area.
+
+**The zone is sized by its content, and the drawn stack is centred.** The zone is never a fixed
+reserve: a zone that holds only a caption is one line tall, one that holds a row is the row. The
+model box, the gap and the zone stand in one stack, and that whole stack is centred in the canvas.
+For a model with controls the stack is at most 50 + 4 + 16 = 70vmin, the band. A fixed 16vmin
+reserve under a caption-only zone left about 10vmin of empty space at the bottom of the stack, so
+the drawn model and its caption sat 4vmin above the middle of the card (the heatmap), higher than every
+model around it.
 
 **Height is what is held; width is free.** The box is not a square and a model does not have to be
 one. What everything the model draws must satisfy, in every state, is:
@@ -47,8 +55,9 @@ one. What everything the model draws must satisfy, in every state, is:
 A wide, short model is wide. A tall model is tall. They are the same height as each other, which
 is what makes them read as equally prominent, and they are all centred.
 
-The band is centred, which puts the model box slightly above the middle of the canvas when there
-is a control zone under it, and exactly in the middle when there is not.
+The stack is centred, which puts the model box above the middle of the canvas when there is a
+control zone under it, by half of the gap and the zone, and exactly in the middle when there is not.
+What is drawn, the model and its zone together, is centred either way.
 
 ## Controls
 
@@ -122,10 +131,17 @@ What it holds, exactly:
 | Tallest | solid | 70vmin for everything drawn, **the control zone included**. The 50vmin model box inside the band is not measured on its own: the stack in rule 5 is what holds it |
 | Shortest | solid | 40vmin |
 | Widest | solid | 92% of the canvas width |
-| Centred | solid | within 4vmin sideways; vertically within 4vmin, or 11vmin when there is a control zone |
+| Centred | solid | within 4vmin, sideways and vertically, for every model: a control zone gets no more (see below) |
 | Canvas edge | all | nothing drawn reaches the canvas edge, unless the model is full-canvas |
 | Top corners | all | nothing drawn within 14vmin of either top corner |
 | Full canvas | all | a drawing that covers at least 95% of the canvas both ways is judged as full-canvas, and must cover 98% |
+
+**One centring limit for everyone.** The vertical limit used to be 11vmin for a model with a
+control zone, because the zone was a fixed reserve and the band's centre was not the drawing's.
+With the zone sized by its content and the drawn stack centred, a model with controls has no
+reason to sit further off than any other, and the allowance only let models with a caption sit
+visibly high and pass (the heatmap at rest 4vmin high, the toggle 4). The limit is measured on the
+drawn stack, the model and its zone together, in solid ink, like every other model.
 
 Every row above is measured on the union of every state. **The resting pose is judged on its own
 as well.** A union can be big and centred while the model at rest is small or off to one side (a
@@ -136,7 +152,7 @@ first moment of the loop, with no pointer and nothing clicked, must by itself be
 | At rest | Ink | |
 | --- | --- | --- |
 | Shortest | solid | 40vmin |
-| Centred | solid | within 4vmin sideways; vertically within 4vmin, or 11vmin when a control zone shows at rest |
+| Centred | solid | within 4vmin, sideways and vertically, as for every model |
 
 A model whose open and closed states sit in different places balances them: the resting pose is
 centred and the open pose still inside the band. One that cannot do both changes its motion (hinge
@@ -154,7 +170,7 @@ reviewable. For a marked model:
 | Marked `'expands'` | Ink | |
 | --- | --- | --- |
 | At rest, shortest | solid | no floor: the control at its natural size |
-| At rest, centred | solid | as for any model: within 4vmin sideways; vertically within 4vmin, or 11vmin when a control zone shows at rest |
+| At rest, centred | solid | as for any model: within 4vmin, sideways and vertically |
 | Open, shortest | solid | 40vmin: the union of every look after its interaction (its clicks, or the pointer sweep, each with `:hover` forced) |
 | Open, tallest and centred | solid | 70vmin, and centred within the usual limits |
 
@@ -232,11 +248,14 @@ These are the things that would otherwise be found one model at a time.
 - **Controls are usable by a finger.** 8vmin is about 22px on a card and about 30px in the viewer.
   A control that is smaller than 24px anywhere a visitor can tap it is too small, so the height is
   a floor, not a target.
-- **A caption may not move anything.** The control zone is a fixed height whether it holds one
-  line, a row of buttons, or both, and a caption whose text changes as the model is used must not
-  reflow the model above it.
+- **A caption may not move anything.** The control zone is the height of what it holds, so a
+  caption whose text changes as the model is used keeps its one line: it is never emptied (it says
+  an idle line, such as the total, when nothing is pointed at), it does not wrap
+  (`white-space: nowrap` when its text changes), and it fades with `opacity`, never
+  `display: none`. Then it never reflows the model above it.
 - **A full-canvas model may still have controls.** The zone sits in the same place, over the
-  model, at the same size. Being full-canvas changes what is behind the controls, not where they
+  model, at the same size: where the centred stack would put it, its top at
+  `calc(50% + 27vmin - Z / 2)` for a zone Z tall (a caption alone: `calc(50% + 24.3vmin)`). Being full-canvas changes what is behind the controls, not where they
   are.
 - **Printing follows the same band.** The dialog's Print makes a snapshot through the render
   service at the sheet's own shape and prints that picture edge to edge (`src/video.ts`,
@@ -293,8 +312,8 @@ Design in whatever numbers you like — 180 and 100 above are just the proportio
 set `--u` so the model lands in the band. Nothing else has to change afterwards.
 
 **2. Land in the band.** 70vmin tall with no controls, 50vmin with them, never under 40vmin, never
-over 92% of the canvas wide, centred within 4vmin (vertically 11vmin with a control zone, since
-the band is centred and the model box sits above the middle). Check, do not guess:
+over 92% of the canvas wide, centred within 4vmin both ways, with or without a control zone (the
+zone is sized by what it holds and the whole drawn stack is centred, so there is no allowance). Check, do not guess:
 `npm run check-models <id>`.
 
 **3. Hold the whole model still.** The band is for everything the model draws at any moment: the
@@ -311,7 +330,8 @@ is sized to:
 
 ```css
 /* The model box and the zone stand in one stack, so the zone is the same distance below the
-   model in every model and the pair is centred as the band says. Do NOT position the zone from
+   model in every model and the pair is centred as the band says. The zone is as tall as what it
+   holds: no fixed height, so a caption alone is one line and the stack stays centred. Do NOT position the zone from
    the canvas middle: a model's drawing can overflow its layout box, and the row lands on it. */
 .band { display: grid; justify-items: center; gap: 4vmin; }
 .view { height: 50vmin; display: grid; place-items: center; }   /* the model box */

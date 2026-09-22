@@ -131,6 +131,13 @@ node scripts/check-motion.mjs <id> # no flicker or pop through its animation and
     92vmin, centred, with no height floor (the flip clock stands on one line this way). Restack
     only when two lines are a layout the model would have anyway; the extruded headline, the
     pointer-lit text, the letter wave and the layered text (GO over DEEP) stand on two lines.
+16. **A caption or a row of controls gets no centring allowance.** The control zone is as tall as
+    what it holds (a caption alone is one 5.4vmin line), never a fixed 16vmin reserve, and the
+    whole drawn stack, model box, 4vmin gap and zone, is centred. check-models holds every model,
+    with controls or without, to 4vmin off the middle both ways, measured on the solid ink of the
+    model and its zone together. It once allowed 11vmin vertically with a control zone, and models
+    with a caption sat visibly high on their cards and passed. A model that lays its own caption
+    out (the toggle's "Dark mode" under its track) centres the whole of it, caption included.
 
 ## Checks before committing
 

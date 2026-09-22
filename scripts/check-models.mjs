@@ -31,7 +31,7 @@
  * mid-animation state is big and centred (a closed book beside an open one that is centred). But
  * a paused card, and every card parked offscreen, shows exactly the resting pose: the first moment
  * of the loop, with no pointer and nothing clicked (VIEW-CONTRACT.md, ground rule 9). So that one
- * picture must itself be centred (the same 4vmin, vertically 11 with a control zone at rest) and at
+ * picture must itself be centred (the same 4vmin both ways, as for every model) and at
  * least the 40vmin floor tall, judged on solid ink like the rest. The union checks stand as they
  * are: the resting pose is judged as well as, not instead of, every state.
  *
@@ -106,7 +106,12 @@ const FLOOR = 40; // nothing may be smaller than this
 const WIDE_FLOOR = 80;
 const WIDEST = 92; // per cent of the canvas width
 const CORNER = 14; // the site's badge and menu live in the top corners
-const CENTRED = 4; // how far off the middle a model may sit, in vmin
+// How far off the middle a model may sit, in vmin, both ways and for EVERY model. A model with a
+// control zone gets no more: the zone is sized by what it holds and the whole drawn stack (model
+// box, gap, zone) is centred (VIEW-CONTRACT.md, the band), so it is judged like any other. The old
+// 11vmin vertical allowance was for a fixed 16vmin reserve under the model, and it let a model with
+// a caption sit visibly high on its card (the heatmap and the toggle, 4vmin high at rest) and pass.
+const CENTRED = 4;
 const INK = 24; // alpha out of 255 over which a pixel is drawn at all: the edges are judged on this
 const FINEST = 480; // at most this many moments in GUIDE's quick pass over the timeline (and at most one per 16ms)
 const SOLID = 128; // alpha out of 255 from which a pixel is solid body: position and size are judged on this
@@ -579,7 +584,7 @@ async function judgeModel(id, notes = []) {
       if (long && seen.width < WIDE_FLOOR) broke.push(`${seen.width.toFixed(0)}vmin wide, under ${WIDE_FLOOR} (wide)`);
       if (seen.width > WIDEST) broke.push(`${seen.width.toFixed(0)}vmin wide, over ${WIDEST}`);
       if (Math.abs(seen.offX) > CENTRED) broke.push(`${seen.offX.toFixed(0)}vmin off centre sideways`);
-      if (Math.abs(seen.offY) > CENTRED + (seen.controls ? 7 : 0)) broke.push(`${seen.offY.toFixed(0)}vmin off centre vertically`);
+      if (Math.abs(seen.offY) > CENTRED) broke.push(`${seen.offY.toFixed(0)}vmin off centre vertically`);
       if (seen.corner < CORNER) broke.push(`within ${seen.corner.toFixed(0)}vmin of a top corner`);
       // the resting pose, on its own: what a paused or offscreen card shows
       if (rest && !rest.drawn) broke.push('at rest: nothing drawn');
@@ -590,7 +595,7 @@ async function judgeModel(id, notes = []) {
         // a wide model is sized by its width: the floor is a width, at rest too
         if (long && rest.width < WIDE_FLOOR) broke.push(`at rest: ${rest.width.toFixed(0)}vmin wide, under ${WIDE_FLOOR} (wide)`);
         if (Math.abs(rest.offX) > CENTRED) broke.push(`at rest: ${rest.offX.toFixed(0)}vmin off centre sideways`);
-        if (Math.abs(rest.offY) > CENTRED + (rest.controls ? 7 : 0)) broke.push(`at rest: ${rest.offY.toFixed(0)}vmin off centre vertically`);
+        if (Math.abs(rest.offY) > CENTRED) broke.push(`at rest: ${rest.offY.toFixed(0)}vmin off centre vertically`);
       }
       // ...and a control that opens, open, on its own: the union of every look after the interaction
       if (opens && !opened) broke.push('marked expands, but nothing opens it: it has no interaction the check can drive');
@@ -599,7 +604,7 @@ async function judgeModel(id, notes = []) {
         if (opened.height < FLOOR) broke.push(`open: ${opened.height.toFixed(0)}vmin tall, under ${FLOOR}`);
         if (opened.height > tallest) broke.push(`open: ${opened.height.toFixed(0)}vmin tall, over ${tallest}`);
         if (Math.abs(opened.offX) > CENTRED) broke.push(`open: ${opened.offX.toFixed(0)}vmin off centre sideways`);
-        if (Math.abs(opened.offY) > CENTRED + (opened.controls ? 7 : 0)) broke.push(`open: ${opened.offY.toFixed(0)}vmin off centre vertically`);
+        if (Math.abs(opened.offY) > CENTRED) broke.push(`open: ${opened.offY.toFixed(0)}vmin off centre vertically`);
       }
     }
   }
