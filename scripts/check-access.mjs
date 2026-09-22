@@ -52,12 +52,22 @@
  * Prints `pass <id> …` or `FAILS <id> …` with each problem indented under it, and a tally.
  * Exits 1 when a model fails (or could not be checked). The three pictures of a model that moved
  * while paused, and report.json with every model's numbers, go to .media-tmp/access/.
+ *
+ * A BROKEN BROWSER BREAKS ONE MODEL AT MOST (scripts/browser-guard.mjs). A model whose run hits a
+ * browser-level error (a protocol error, "Unable to capture screenshot", a goto timeout, a crashed
+ * or closed target) is checked again, once, in a fresh browser (the models beside it finish first,
+ * or are retried with it), and its line ends "retried after a browser failure"; only a second
+ * failure makes it "could not be checked". The browser is also replaced every 20 models; a model
+ * waits (up to 3 minutes) while free memory is under 1.5 GB, and its line ends "ran under memory
+ * pressure" when it had to go on anyway; and a crash inside Playwright writes report.json with the
+ * models checked so far and exits 3, rather than dying silently.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
+import { BrowserGuard, crashGuard, isBrowserError, unlessBrowser } from './browser-guard.mjs';
 import { decode, cells, changeNear, change, STILL, STILL_NEAR } from './pixels.mjs';
 import { cssHeads } from './css-heads.mjs';
 
@@ -205,10 +215,12 @@ if (unknown.length) {
 }
 
 mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch();
+// replaced by a fresh one when it breaks, and every 20 models (scripts/browser-guard.mjs)
+const guard = new BrowserGuard({ launch: () => chromium.launch() });
+await guard.start();
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function checkModel(id) {
+async function checkModel(id, browser) {
   const context = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 1, reducedMotion: 'no-preference' });
   const page = await context.newPage();
   const errors = [];
@@ -216,9 +228,10 @@ async function checkModel(id) {
   try {
     return await checkOn(id, page, context, errors);
   } catch (e) {
+    if (isBrowserError(e)) throw e; // the browser's, not the model's: scripts/browser-guard.mjs retries it
     return { id, broke: e.message.split('\n')[0] };
   } finally {
-    await context.close();
+    await context.close().catch(() => {});
   }
 }
 
@@ -226,7 +239,7 @@ async function checkOn(id, page, context, errors) {
   const problems = [];
   const facts = {};
   await page.goto(`${base}/embed/${tried ? demos[0].id : id}/`, { waitUntil: 'domcontentloaded' });
-  if (!(await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(() => false))) return { id, broke: 'never appeared' };
+  if (!(await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(unlessBrowser(false)))) return { id, broke: 'never appeared' };
   if (tried) {
     // the tried model in place of the page's own, through the same Preview the site mounts with
     await page.evaluate(async (code) => {
@@ -235,7 +248,7 @@ async function checkOn(id, page, context, errors) {
       const p = new Preview('try', code.title, code, code, 'dark');
       stage.replaceChildren(p.frame);
     }, { title: tried.title, html: tried.html, css: tried.css, ...(tried.js ? { js: tried.js } : {}) });
-    if (!(await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(() => false))) return { id, broke: 'the tried model never appeared' };
+    if (!(await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(unlessBrowser(false)))) return { id, broke: 'the tried model never appeared' };
   }
   await page.addStyleTag({ content: BARE });
   await page.mouse.move(1, 1);
@@ -395,16 +408,30 @@ async function checkOn(id, page, context, errors) {
 const results = [];
 const queue = [...ids];
 const started = Date.now();
+const reportFile = join(OUT, TRY ? `report-${ids[0].replace(/[:/\\]/g, '_')}.json` : 'report.json');
+// a crash inside Playwright: the models checked so far go to the report (capture-check has each line already)
+crashGuard('check-access', async () => {
+  writeFileSync(reportFile, JSON.stringify({ at: new Date().toISOString(), partial: `crashed after ${results.length} of ${ids.length} model(s)`, tolerance: { DIFF, TINY }, results }, null, 2));
+  console.error(`check-access: ${reportFile} has the ${results.length} model(s) checked before the crash`);
+});
 async function worker() {
   while (queue.length) {
     const id = queue.shift();
-    const r = await checkModel(id);
+    let r, notes = [];
+    try {
+      ({ value: r, notes } = await guard.run(id, (browser) => checkModel(id, browser)));
+    } catch (e) {
+      r = { id, broke: e.message.split('\n')[0] };
+      notes = e.notes ?? [];
+    }
+    if (notes.length) r.guard = notes;
+    const also = notes.length ? `; ${notes.join('; ')}` : ''; // what scripts/browser-guard.mjs had to do, on the model's own line
     results.push(r);
     const f = r.facts ?? {};
-    if (r.broke) console.log(`FAILS ${id} could not be checked: ${r.broke}`);
-    else if (!r.problems.length) console.log(`pass  ${id} ${f.moves ? 'stops when paused, starts again' : 'still on its own, still when paused'}; ${f.named} named; ${f.tabStops} tab stop(s)`);
+    if (r.broke) console.log(`FAILS ${id} could not be checked: ${r.broke}${also}`);
+    else if (!r.problems.length) console.log(`pass  ${id} ${f.moves ? 'stops when paused, starts again' : 'still on its own, still when paused'}; ${f.named} named; ${f.tabStops} tab stop(s)${also}`);
     else {
-      console.log(`FAILS ${id} ${r.problems.length} problem(s)`);
+      console.log(`FAILS ${id} ${r.problems.length} problem(s)${also}`);
       for (const p of r.problems) console.log(`          ${p}`);
     }
   }
@@ -412,11 +439,11 @@ async function worker() {
 try {
   await Promise.all(Array.from({ length: Math.min(JOBS, ids.length) }, worker));
 } finally {
-  await browser.close();
+  await guard.close();
   await vite.close();
 }
 const failed = results.filter((r) => r.broke || r.problems.length);
-writeFileSync(join(OUT, TRY ? `report-${ids[0].replace(/[:/\\]/g, '_')}.json` : 'report.json'), JSON.stringify({ at: new Date().toISOString(), tolerance: { DIFF, TINY }, results }, null, 2));
+writeFileSync(reportFile, JSON.stringify({ at: new Date().toISOString(), tolerance: { DIFF, TINY }, results }, null, 2));
 console.log(`\n${results.length - failed.length} of ${results.length} models pass the access check (pause, names, keyboard) in ${((Date.now() - started) / 60000).toFixed(1)} min.`);
 if (failed.length) console.log(`failing: ${failed.map((r) => r.id).join(' ')}`);
 process.exit(failed.length ? 1 : 0);
