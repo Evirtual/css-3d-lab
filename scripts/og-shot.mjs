@@ -26,6 +26,17 @@
  * square folded up to the top). docs/VIEW-CONTRACT.md makes the resting pose, the first moment of
  * the loop, the one that must be centred and full-sized on its own, since it is what a paused card
  * shows; check-models proves it for every model. So the share image shows that pose.
+ *
+ * EXCEPT A CONTROL THAT OPENS, WHICH IS SHOT OPEN. A model tagged 'expands' (src/models/
+ * interaction.ts; docs/VIEW-CONTRACT.md, "A control that opens rests small") rests as a lone small
+ * control, a poor preview, and the contract asks the floor of its OPEN state instead. So after the
+ * first stop it is opened the way it is played (open() below): a click model has its first
+ * checkbox or radio checked (or its first button, label or summary clicked) from script, so the
+ * pointer goes nowhere; a hover model has the pointer put on its first focusable part (a tabindex,
+ * a link, a button, a summary, a label), which is also what a visitor hovers. The pointer is not
+ * parked for it. The transitions the opening starts run for SETTLE ms and are then stopped at their
+ * end like any other, so the picture is the model fully open. scripts/check-media.mjs renders it
+ * the same way and judges that pose.
  */
 export const VIEWPORT = { width: 2400, height: 1260 };
 export const MOMENT = 0; // the resting pose: see THE POSE above
@@ -114,7 +125,41 @@ async function freeze(body, moment) {
 }
 
 /**
- * Loads the og page for `demo` ({ id, pointer }) and puts it at the moment described above.
+ * Opens a model tagged 'expands' the way it is played (`how`, from interaction.ts): see EXCEPT A
+ * CONTROL THAT OPENS above. Returns what it did, or null when it found nothing to open it with.
+ */
+async function open(page, frame, how) {
+  if (how === 'click') {
+    return frame.evaluate(() => {
+      const scene = document.querySelector('#c3d-scene') ?? document.body;
+      const box = [...scene.querySelectorAll('input[type="checkbox"], input[type="radio"]')].find((i) => !i.checked && !i.disabled);
+      const el = box ?? scene.querySelector('button:not([disabled]), label, summary');
+      if (!el) return null;
+      el.click();
+      return box ? `checked ${box.type}` : `clicked ${el.localName}`;
+    });
+  }
+  if (how === 'hover') {
+    // where the part is, in the frame's own pixels, mapped onto the page by hand: the og page is
+    // laid out with CSS zoom, and Playwright's own hover() lands the pointer off the frame there
+    const at = await frame.evaluate(() => {
+      const el = document.querySelector('#c3d-scene [tabindex], #c3d-scene a[href], #c3d-scene button, #c3d-scene summary, #c3d-scene label');
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: innerWidth };
+    });
+    const box = at && (await page.locator('.stage iframe').first().boundingBox());
+    if (!box) return null;
+    const k = box.width / at.w;
+    await page.mouse.move(box.x + at.x * k, box.y + at.y * k);
+    const on = await frame.evaluate(() => document.querySelector('#c3d-scene [tabindex], #c3d-scene a[href], #c3d-scene button, #c3d-scene summary, #c3d-scene label').matches(':hover'));
+    return on ? 'hovered' : null;
+  }
+  return null;
+}
+
+/**
+ * Loads the og page for `demo` ({ id, pointer, how?, expands? }) and puts it at the moment described above.
  * Returns what a checker needs to know about how it got there. `frameTimeout` is how long the
  * model's frame may take to load before the shot is given up as broken.
  */
@@ -132,8 +177,13 @@ export async function settle(page, base, demo, { frameTimeout = 20_000 } = {}) {
   // its area). The home image's cube lives in the page itself, not in a frame.
   const target = frame ?? page;
   await target.evaluate(`(${freeze})(document.body, ${MOMENT})`);
-  // hover / pointer demos look alive with the pointer parked off-centre over them
-  if (demo.pointer) await page.mouse.move(1740, 560); // over the demo (the right side), a little off centre
+  // a control that opens is shot open (EXCEPT A CONTROL THAT OPENS above); other hover / pointer
+  // demos look alive with the pointer parked off-centre over them
+  let opened = null;
+  if (demo.expands && frame) {
+    opened = await open(page, frame, demo.how);
+    if (!opened) throw new Error(`${demo.id} is tagged expands but og-shot found nothing to open it with (${demo.how ?? 'no interaction'})`);
+  } else if (demo.pointer) await page.mouse.move(1740, 560); // over the demo (the right side), a little off centre
   await page.waitForTimeout(SETTLE); // hover transitions settle, script loops get going
   // again: a hover can start transitions and animations of its own, which end at their end
   await target.evaluate(`(${freeze})(document.body, ${MOMENT})`);
@@ -152,5 +202,5 @@ export async function settle(page, base, demo, { frameTimeout = 20_000 } = {}) {
     steady = now.equals(last);
     last = now;
   }
-  return { frame, steady };
+  return { frame, steady, opened };
 }

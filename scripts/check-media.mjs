@@ -33,7 +33,8 @@
  *
  * 3. THE PICTURE IS THE MODEL AS THE SITE RENDERS IT NOW. The og page is rendered again, fresh,
  *    exactly as generate-media shoots it (scripts/og-shot.mjs: same page, size, pointer and
- *    moment), and:
+ *    moment; a control that opens, tagged 'expands', opened the same way, since the image shows it
+ *    open: see og-shot's EXCEPT A CONTROL THAT OPENS), and:
  *    - the model's frame is the current code: its document is compared with what
  *      src/models/snippet-utils.ts standaloneDoc() makes from the snippet in src/models now, so a
  *      dist/ built before a model changed fails here, not silently;
@@ -55,7 +56,9 @@
  *      wide, within 4vmin of the middle (vertically 11 with a control zone), not reaching the
  *      canvas edge; a model whose faint ink (alpha 24+) covers 95% of the canvas each way is a
  *      full-canvas scene and must cover 98%. Here the canvas is the og layout's model area and
- *      the pose is the one the image shows, not every pose check-models goes through.
+ *      the pose is the one the image shows, not every pose check-models goes through: the resting
+ *      pose, or for a control that opens ('expands') its open pose, so that is the pose judged
+ *      here, and its pass line says "shot open (<how it was opened>)".
  *
  * The thresholds were set on known-good models (see the numbers each pass line prints): over all
  * 135, the file and a fresh render differed in at most 0.41% of the model's area (the opening
@@ -108,8 +111,11 @@ const vite = await createVite({ configFile: false, root: resolve('.'), server: {
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
 const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
 const { standaloneDoc } = await vite.ssrLoadModule('/src/models/snippet-utils.ts');
+const { interactionOf, expands } = await vite.ssrLoadModule('/src/models/interaction.ts');
 await vite.close();
 const pointer = new Map(JSON.parse(readFileSync('src/generated/model-ids.json', 'utf8')).map((d) => [d.id, d.pointer]));
+// how og-shot is to shoot a model: a control that opens ('expands') is shot open, the way it is played
+const shotOf = (d) => ({ id: d.id, pointer: pointer.get(d.id), how: interactionOf(d), expands: expands(d) });
 const unknown = wanted.filter((id) => !demos.some((d) => d.id === id));
 if (unknown.length) { console.error(`No such model: ${unknown.join(', ')}`); process.exit(2); }
 const list = demos.filter((d) => !wanted.length || wanted.includes(d.id));
@@ -383,9 +389,10 @@ async function checkOne(d, cmp, browser) {
     page.on('pageerror', (e) => errors.push(`page error: ${e.message.split('\n')[0]}`));
     page.on('response', (r) => { if (r.status() >= 400) errors.push(`${r.status()} for ${r.url().replace(base, '')}`); });
     page.on('requestfailed', (r) => errors.push(`request failed: ${r.url().replace(base, '')}`));
-    let frame;
-    try { ({ frame } = await settle(page, base, { id: d.id, pointer: pointer.get(d.id) })); }
+    let frame, opened;
+    try { ({ frame, opened } = await settle(page, base, shotOf(d))); }
     catch (e) { if (isBrowserError(e)) throw e; why.push(`the og page did not render: ${e.message.split('\n')[0]}`); return { why, facts }; }
+    if (opened) facts.opened = `shot open (${opened})`;
     const fresh = await page.screenshot({ type: 'png' });
     await page.waitForTimeout(WOBBLE_GAP);
     const again = await page.screenshot({ type: 'png' });
@@ -441,7 +448,7 @@ async function checkOne(d, cmp, browser) {
         const ctx2 = await shotContext(browser);
         try {
           const p2 = await ctx2.newPage();
-          await settle(p2, base, { id: d.id, pointer: pointer.get(d.id) });
+          await settle(p2, base, shotOf(d));
           shots.set(`/__mc/${d.id}.again.png`, await p2.screenshot({ type: 'png' }));
           c = await cmp.evaluate(compare, args);
           facts.reloaded = true;
@@ -514,7 +521,7 @@ await Promise.all(Array.from({ length: CONCURRENCY }, async (_, slot) => {
     const also = notes.length ? `; ${notes.join('; ')}` : ''; // what scripts/browser-guard.mjs had to do, on the model's own line
     results.push({ id: d.id, ...r });
     const f = r.facts;
-    const summary = [f.size, f.diff, f.scripted, f.visible && `${f.visible} visible`, f.headline && `headline ${f.headline}`, f.version && `?v=${f.version}`].filter(Boolean).join('; ');
+    const summary = [f.opened, f.size, f.diff, f.scripted, f.visible && `${f.visible} visible`, f.headline && `headline ${f.headline}`, f.version && `?v=${f.version}`].filter(Boolean).join('; ');
     // one line per model, then its reasons, printed together so parallel models never interleave
     console.log(`${r.why.length ? 'FAILS' : 'pass '}   ${d.id.padEnd(14)} ${r.why.length ? `${r.why.length} problem(s)` : summary}${also}${r.why.map((w) => `\n          ${w}`).join('')}`);
   }
