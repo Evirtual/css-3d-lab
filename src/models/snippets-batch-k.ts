@@ -46,7 +46,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   /* one base unit: every length in the chart is a multiple of it, so it is the same share of a
      card, the editor, a full screen and a recording canvas. The control zone under it is in
      plain vmin, because it is the same object in every model. */
-  --u: 0.3vmin;
+  --u: 0.27vmin;
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
@@ -160,7 +160,9 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
 /* One tooltip for the whole chart: JS moves it to the pointed-at bar (--tx, --ty, plain numbers
    in the chart's own units, which CSS multiplies by --u) and it glides there, text changing on
    the way. 40 units towards you (the chart is turned, so the bars to the right stand nearer);
-   its thickness is a flat edge up and to the right, like the bars' depth */
+   its thickness is a flat edge up and to the right, like the bars' depth. It clears the bar by 12
+   units: the tooltip on the tallest bar is the chart's tallest state, and the drawn stack stays
+   inside the band there, not only at rest */
 .tip {
   --c: color-mix(in srgb, ${VIOLET}, ${TEAL} calc(var(--i, 0) * 20%));
   position: absolute;
@@ -178,7 +180,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transform: translate(calc(var(--tx, 0) * var(--u)), calc((var(--ty, 0) - 30) * var(--u))) translate(-50%, -100%) translateZ(calc(40 * var(--u)));
+  transform: translate(calc(var(--tx, 0) * var(--u)), calc((var(--ty, 0) - 12) * var(--u))) translate(-50%, -100%) translateZ(calc(40 * var(--u)));
   transition:
     transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.2s;
