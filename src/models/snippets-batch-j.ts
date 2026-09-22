@@ -1015,7 +1015,7 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   left: calc(50% - calc(14 * var(--u)));
   top: calc(50% - calc(7 * var(--u)));
   width: calc(28 * var(--u));
-  color: ${MUTED};
+  color: #b4b9d9; /* lighter than the muted #949bc0, which was 4.2:1 on the dial's face */
   font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
   font-style: normal;
   text-align: center;
@@ -1298,13 +1298,16 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
   background: linear-gradient(160deg, #3d3576, #202045);
   color: ${TEXT};
   backface-visibility: hidden;
-  /* 1 in front, fainter further back, 0 once passed */
-  opacity: clamp(0, min(1 - var(--d) * 0.2, 1 + var(--d) * 4), 1);
+  /* darker further back (brightness, not opacity: a see-through card went pale on the light stage
+     and its words with it, 1.3:1), never under 0.8, so every card's words still read; gone once
+     passed */
+  filter: brightness(clamp(0.8, 1 - var(--d) * 0.1, 1));
+  opacity: clamp(0, 1 + var(--d) * 4, 1);
   /* beside the road, one step back per index; passed cards held one step ahead of the camera */
   transform:
     translate3d(calc(var(--s) * 112 * var(--u)), 0, calc((var(--i) * -1 + min(var(--d) + 1, 0)) * 110 * var(--u)))
     rotateY(calc(var(--s) * -16deg));
-  transition: opacity 0.6s, transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1), border-color 0.4s;
+  transition: opacity 0.6s, filter 0.6s, transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1), border-color 0.4s;
 }
 
 .card b {
@@ -1314,7 +1317,7 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 }
 
 .card span {
-  color: ${MUTED};
+  color: #b8bddd; /* lighter than the muted #949bc0, so it reads on a card dimmed with distance */
   font-size: calc(15 * var(--u));
   font-weight: 700;
   white-space: nowrap;
@@ -1400,7 +1403,7 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 }
 
 .controls button:last-child:not(:disabled):hover {
-  filter: brightness(1.2);
+  filter: brightness(0.88); /* darker, not lighter: brightened, its white word was 4.3:1 */
 }
 
 /* a button that does nothing does not light up when pointed at */
