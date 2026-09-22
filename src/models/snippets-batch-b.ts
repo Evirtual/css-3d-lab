@@ -108,8 +108,10 @@ export const snippetsB: Record<string, Snippet> = {
   overflow: hidden;
   border-radius: calc(11 * var(--u));
   background:
-    radial-gradient(circle at 80% 8%, rgb(255 181 71 / 0.8), transparent 45%),
-    linear-gradient(165deg, #8b6cff, #ff4d9d 70%, #ffb547 120%);
+    /* a wallpaper deep enough for the white clock and date: the bright #8b6cff to #ff4d9d, and the
+       amber glow over the clock, made them 2.6:1 */
+    radial-gradient(circle at 80% 8%, rgb(255 181 71 / 0.4), transparent 45%),
+    linear-gradient(165deg, #6a45f5, #d1206f 70%, #c96f00 120%);
   color: #fff;
 }
 
@@ -120,7 +122,7 @@ export const snippetsB: Record<string, Snippet> = {
   letter-spacing: calc(-0.5 * var(--u));
 }
 
-.screen small { margin-top: calc(2 * var(--u)); font-size: calc(8 * var(--u)); opacity: 0.85; }
+.screen small { margin-top: calc(2 * var(--u)); font-size: calc(8 * var(--u)); }
 
 .notch {
   position: absolute;
@@ -298,9 +300,11 @@ export const snippetsB: Record<string, Snippet> = {
   border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.28);
   border-radius: calc(14 * var(--u));
   background:
-    radial-gradient(circle at 0% 100%, rgb(46 230 214 / 0.7), transparent 55%),
-    radial-gradient(circle at 100% 0%, rgb(255 77 157 / 0.85), transparent 60%),
-    linear-gradient(135deg, #8b6cff, #453880);
+    /* deep glows, so the white name and date read over them: the bright teal glow under the name
+       made it 2.3:1 */
+    radial-gradient(circle at 0% 100%, rgb(8 122 112 / 0.85), transparent 55%),
+    radial-gradient(circle at 100% 0%, rgb(209 32 111 / 0.85), transparent 60%),
+    linear-gradient(135deg, #6a45f5, #453880);
 }
 
 /* exactly the card: only the circle's centre walks, from one edge to the other */
@@ -309,7 +313,7 @@ export const snippetsB: Record<string, Snippet> = {
   inset: 0;
   background: radial-gradient(
     circle at calc(50% + var(--gx) * 2%) calc(50% + var(--gy) * 2%),
-    rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.12) 56%, transparent 96%);
+    rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.05) 56%, transparent 96%); /* soft enough that the white name and date read through it */
 }
 
 .chip {
@@ -358,8 +362,7 @@ export const snippetsB: Record<string, Snippet> = {
   bottom: calc(15 * var(--u));
   font-size: calc(9 * var(--u));
   font-weight: 700;
-  letter-spacing: calc(1.2 * var(--u));
-  opacity: 0.85;
+  letter-spacing: calc(1.2 * var(--u)); /* full white: at 0.85, under the glare, it was 2.3:1 */
 }
 
 .name { left: calc(18 * var(--u)); }
@@ -538,7 +541,8 @@ scene.addEventListener('pointercancel', leave);`,
   height: calc(52 * var(--u));
   border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.5);
   border-radius: calc(8 * var(--u));
-  background: linear-gradient(140deg, #2ee6d6, #8b6cff 60%, #ff4d9d);
+  /* deep enough for its white NEW, 4.5:1 or more: the bright #2ee6d6 and #8b6cff were 3.7:1 */
+  background: linear-gradient(140deg, #087a70, #6a45f5 60%, #d1206f);
   box-shadow: inset 0 0 calc(14 * var(--u)) rgb(255 255 255 / 0.25);
   color: #fff;
   font: 900 calc(10 * var(--u)) system-ui;
@@ -785,7 +789,7 @@ scene.addEventListener('pointercancel', leave);`,
   background:
     radial-gradient(circle at 78% 72%, transparent 0 calc(17 * var(--u)), rgb(255 255 255 / 0.9) calc(17.5 * var(--u)) calc(19 * var(--u)), transparent calc(19.5 * var(--u)) calc(27 * var(--u)), rgb(255 255 255 / 0.55) calc(27.5 * var(--u)) calc(29 * var(--u)), transparent calc(29.5 * var(--u)) calc(38 * var(--u)), rgb(255 255 255 / 0.3) calc(38.5 * var(--u)) calc(40 * var(--u)), transparent calc(40.5 * var(--u))),
     radial-gradient(circle at 78% 72%, #ffb547 0 calc(17 * var(--u)), transparent calc(17.5 * var(--u))),
-    linear-gradient(150deg, #8b6cff, #ff4d9d 85%);
+    linear-gradient(150deg, #6a45f5, #d1206f 85%); /* deep enough for the white words */
   color: #fff;
   font-family: system-ui, sans-serif;
   backface-visibility: hidden;
@@ -803,8 +807,7 @@ scene.addEventListener('pointercancel', leave);`,
   font-size: calc(8 * var(--u));
   font-weight: 700;
   letter-spacing: calc(1 * var(--u));
-  text-transform: uppercase;
-  opacity: 0.85;
+  text-transform: uppercase; /* full white: at 0.85 on the sleeve it was 2.9:1 */
 }
 
 /* closes the left side: centred on the left edge, turned side-on */
