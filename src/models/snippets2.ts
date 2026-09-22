@@ -2048,7 +2048,7 @@ for (let row = 0; row < N; row++) {
       'On click, JS creates 36 particles in the middle of the canvas. Each gets a random vector in custom properties: <code>--x</code>, <code>--y</code>, <code>--z</code>, <code>--spin</code>, <code>--hue</code>. The vectors come in mirrored pairs, one to the left and one to the right, so the burst is always balanced.',
       'There is only <b>one</b> keyframe rule. It reads those variables, so every particle flies somewhere different.',
       '<code>--z</code> is what makes it 3D: particles coming toward the camera grow, the others shrink away.',
-      'Each particle removes itself on <code>animationend</code>, so the DOM never fills up.',
+      'Each particle removes itself on <code>animationend</code>, and at most three bursts (108 pieces) are ever in flight: a click past that first removes the oldest. A paused stage never ends an animation, so without the cap every click would add its pieces for good, and fast clicking would pile up 3D layers until the page froze.',
       'At rest, twenty-four pieces wait round the words, written into the HTML with their place and tilt in <code>--x</code>, <code>--y</code>, <code>--r</code>, so a paused card shows confetti and not just a caption. A click adds <code>.popped</code>: they flick outward, shrink and fade as the burst takes over, and a timer takes the class off again. Their resting rule jumps <code>transform</code> back at once but fades <code>opacity</code> in slowly, so they reappear in place instead of flying back.',
       'The whole canvas is the click target (<code>inset: 0</code>), but the burst always starts from the words in the middle, so it stays inside the frame wherever you click. JS writes the vector as plain numbers and the keyframe multiplies them by one base unit, <code>--u</code>, tied to the canvas, so the burst is the same share of a gallery card and a full screen.',
     ],
@@ -2162,6 +2162,7 @@ for (let row = 0; row < N; row++) {
 }`,
     js: `const party = document.querySelector('.party');
 const rand = (min, max) => min + Math.random() * (max - min);
+const MAX = 108; // pieces in flight at once: three bursts
 
 let settle;
 
@@ -2190,6 +2191,10 @@ function burst() {
       party.append(p);
     }
   }
+  // at most three bursts in flight: the oldest pieces make way. A paused stage never ends an
+  // animation, so without this every click would add 36 pieces for good
+  const flying = party.querySelectorAll(':scope > i');
+  for (let k = 0; k < flying.length - MAX; k++) flying[k].remove();
 }
 
 party.addEventListener('pointerdown', burst);
