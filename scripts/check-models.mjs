@@ -35,6 +35,17 @@
  * least the 40vmin floor tall, judged on solid ink like the rest. The union checks stand as they
  * are: the resting pose is judged as well as, not instead of, every state.
  *
+ * A CONTROL THAT OPENS RESTS SMALL, WHEN IT SAYS SO. A model that IS a small control which opens
+ * into something (a menu button, a fold-down menu, a disclosure) carries the tag 'expands' in its
+ * gallery entry (src/models/interaction.ts, expands()); nothing is inferred. Its resting pose is
+ * then the control at its natural size: the 40vmin floor is not asked of it at rest, but its rest
+ * centring is judged as for any model. Instead its OPEN state must reach the floor: the union of
+ * every look after its interaction (the clicks, or the pointer sweep, with :hover forced in each)
+ * must be at least 40vmin tall on solid ink, at most 70, and centred within the usual limits, on
+ * top of the union checks every model gets. A marked model with no interaction to open it fails.
+ * Its line says "rests small by design (expands)" with both sizes, pass or fail. A box, a book or
+ * a card is not a control: it keeps the floor at rest.
+ *
  * NO MOMENT SLIPS BETWEEN THE PICTURES. The timeline is photographed at 12 regular moments per
  * loop (see momentsOf), which on a 24s loop is one picture every 2s: a part that overshoots for
  * less than that can break the band unseen. So before the pictures, a quick pass puts the timeline
@@ -332,7 +343,7 @@ const vite = await createVite({ logLevel: 'error', server: { host: '127.0.0.1', 
 await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
-const { interactionsOf } = await vite.ssrLoadModule('/src/models/interaction.ts');
+const { interactionsOf, expands } = await vite.ssrLoadModule('/src/models/interaction.ts');
 const args = process.argv.slice(2);
 const showPasses = args.includes('--pass');
 const wanted = args.filter((a) => !a.startsWith('-'));
@@ -489,6 +500,10 @@ async function judgeModel(id, notes = []) {
   let seen = await look();
   // the first look, before any interaction, is the only one whose first picture is the resting pose
   const rest = seen?.rest;
+  // a control that opens (tag 'expands'): its open state is every look after the interaction
+  const opens = Boolean(demo && expands(demo));
+  let opened = null;
+  const after = async () => { const l = await look(); seen = widest(seen, l); if (opens) opened = widest(opened, l); };
   const box = await page.locator('.stage[data-demo], .stage').first().boundingBox();
   if (box && seen) {
     const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
@@ -500,13 +515,13 @@ async function judgeModel(id, notes = []) {
         for (let i = 0; i < many; i++) {
           await controls.nth(i).click({ force: true, timeout: 4000 }).catch(() => {});
           await page.waitForTimeout(400);
-          seen = widest(seen, await look());
+          await after();
         }
-        if (!many) { await page.mouse.click(cx, cy); await page.waitForTimeout(400); seen = widest(seen, await look()); }
+        if (!many) { await page.mouse.click(cx, cy); await page.waitForTimeout(400); await after(); }
       } else if (way === 'drag') {
         await page.mouse.move(cx, cy);
         await page.mouse.down();
-        for (const dx of [-110, 110]) { await page.mouse.move(cx + dx, cy + 20, { steps: 6 }); await page.waitForTimeout(220); seen = widest(seen, await look()); }
+        for (const dx of [-110, 110]) { await page.mouse.move(cx + dx, cy + 20, { steps: 6 }); await page.waitForTimeout(220); await after(); }
         await page.mouse.up();
       } else if (way === 'move' || way === 'hover') {
         // the corners and the sides of the canvas, a hair inside it: a model that follows the
@@ -515,11 +530,11 @@ async function judgeModel(id, notes = []) {
         for (const [dx, dy] of [[-0.49, -0.49], [0.49, -0.49], [0.49, 0.49], [-0.49, 0.49], [0, -0.49], [0.49, 0], [0, 0.49], [-0.49, 0]]) {
           await page.mouse.move(cx + box.width * dx, cy + box.height * dy, { steps: 4 });
           await page.waitForTimeout(220);
-          seen = widest(seen, await look());
+          await after();
         }
       } else if (way === 'scroll') {
         await page.mouse.move(cx, cy);
-        for (const by of [400, -800]) { await page.mouse.wheel(0, by); await page.waitForTimeout(300); seen = widest(seen, await look()); }
+        for (const by of [400, -800]) { await page.mouse.wheel(0, by); await page.waitForTimeout(300); await after(); }
       }
     }
   }
@@ -547,14 +562,27 @@ async function judgeModel(id, notes = []) {
       if (rest && !rest.drawn) broke.push('at rest: nothing drawn');
       else if (rest?.faint) broke.push('at rest: no solid ink, only faint');
       else if (rest) {
-        if (rest.height < FLOOR) broke.push(`at rest: ${rest.height.toFixed(0)}vmin tall, under ${FLOOR}`);
+        // a control that opens rests at its natural size: the floor is asked of its open state below
+        if (rest.height < FLOOR && !opens) broke.push(`at rest: ${rest.height.toFixed(0)}vmin tall, under ${FLOOR}`);
         if (Math.abs(rest.offX) > CENTRED) broke.push(`at rest: ${rest.offX.toFixed(0)}vmin off centre sideways`);
         if (Math.abs(rest.offY) > CENTRED + (rest.controls ? 7 : 0)) broke.push(`at rest: ${rest.offY.toFixed(0)}vmin off centre vertically`);
+      }
+      // ...and a control that opens, open, on its own: the union of every look after the interaction
+      if (opens && !opened) broke.push('marked expands, but nothing opens it: it has no interaction the check can drive');
+      else if (opens) {
+        if (opened.faint) broke.push('open: no solid ink, only faint');
+        if (opened.height < FLOOR) broke.push(`open: ${opened.height.toFixed(0)}vmin tall, under ${FLOOR}`);
+        if (opened.height > tallest) broke.push(`open: ${opened.height.toFixed(0)}vmin tall, over ${tallest}`);
+        if (Math.abs(opened.offX) > CENTRED) broke.push(`open: ${opened.offX.toFixed(0)}vmin off centre sideways`);
+        if (Math.abs(opened.offY) > CENTRED + (opened.controls ? 7 : 0)) broke.push(`open: ${opened.offY.toFixed(0)}vmin off centre vertically`);
       }
     }
   }
   rows.push({ id, broke, seen });
-  if (broke.length) console.log(`FAILS   ${id.padEnd(14)} ${broke.join('; ')}${also}`);
+  // a control that opens says so on its line, pass or fail, with its rest and open sizes
+  const small = !opens ? '' : `; rests small by design (expands)${rest && opened ? `: at rest ${rest.width.toFixed(0)} × ${rest.height.toFixed(0)} vmin, off ${rest.offX.toFixed(0)}, ${rest.offY.toFixed(0)}; open ${opened.width.toFixed(0)} × ${opened.height.toFixed(0)} vmin, off ${opened.offX.toFixed(0)}, ${opened.offY.toFixed(0)}` : ''}`;
+  if (broke.length) console.log(`FAILS   ${id.padEnd(14)} ${broke.join('; ')}${small}${also}`);
+  else if (opens) console.log(`holds   ${id.padEnd(14)} ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${seen.controls ? ', with controls' : ''}${small}${also}`);
   else if (showPasses || also) console.log(`holds   ${id.padEnd(14)} ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${seen.controls ? ', with controls' : ''}${rest ? `; at rest ${rest.width.toFixed(0)} × ${rest.height.toFixed(0)} vmin, off ${rest.offX.toFixed(0)}, ${rest.offY.toFixed(0)}` : ''}${also}`);
   else process.stdout.write('.');
 }

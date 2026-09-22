@@ -31,6 +31,18 @@ export function interactionsOf(d: Pick<Demo, 'id' | 'tags'>): Exclude<Interactio
   return all.slice(0, 2);
 }
 
+/**
+ * A model that IS a small control which opens into something (a menu button, a fold-down menu, a
+ * disclosure): at rest it is only the control, at its natural size, and it opens on its
+ * interaction. It says so with the tag `'expands'`, never inferred. docs/VIEW-CONTRACT.md, "A
+ * control that opens rests small": check-models then judges its resting pose on centring only and
+ * requires its OPEN state to reach the 40vmin floor, and the share image (scripts/og-shot.mjs)
+ * shows it open. A box, a book or a card is not a control and keeps the resting floor.
+ */
+export function expands(d: Pick<Demo, 'tags'>): boolean {
+  return d.tags.includes('expands');
+}
+
 /** The main way (the reels and the checks drive the demo this way). */
 export function interactionOf(d: Pick<Demo, 'id' | 'tags'>): Interaction {
   return interactionsOf(d)[0] ?? 'none';

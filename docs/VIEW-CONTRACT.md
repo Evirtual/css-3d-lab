@@ -142,6 +142,30 @@ A model whose open and closed states sit in different places balances them: the 
 centred and the open pose still inside the band. One that cannot do both changes its motion (hinge
 from the middle, fold symmetrically), not the rule.
 
+**A control that opens rests small.** One exception, and a narrow one. A model that IS a small
+control which opens into something (a menu button, a fold-down menu, a disclosure) rests at the
+control's natural size: at rest it is only the control, as it would be on a real page, and it
+opens on its interaction. Growing the control to 40vmin, or leaving what it opens half out at
+rest, makes it a thing no page has ("normally there would not be a dropdown like that in the real
+world"). Such a model says so with the tag `'expands'` in its gallery entry
+(`src/models/interaction.ts`, `expands()`); nothing is inferred, so every use is visible and
+reviewable. For a marked model:
+
+| Marked `'expands'` | Ink | |
+| --- | --- | --- |
+| At rest, shortest | solid | no floor: the control at its natural size |
+| At rest, centred | solid | as for any model: within 4vmin sideways; vertically within 4vmin, or 11vmin when a control zone shows at rest |
+| Open, shortest | solid | 40vmin: the union of every look after its interaction (its clicks, or the pointer sweep, each with `:hover` forced) |
+| Open, tallest and centred | solid | 70vmin, and centred within the usual limits |
+
+Every union check above still holds as for any model. `check-models` says "rests small by
+design (expands)" on the model's line with its rest and open sizes, and fails a marked model that
+nothing opens. Its share image is shot open (`scripts/og-shot.mjs`), since a lone button is a poor
+preview, and `check-media` judges that open pose. A box, a book, a card or a greeting card is
+not a control: it opens, but it is the object, not a button for one, and it keeps the floor at
+rest. The models that use it: `radial` (the radial action menu: only the + button at rest) and
+`dropdown` (the fold-down menu: only its Menu bar at rest).
+
 What the frame clips, the picture cannot show: a model drawn past the canvas edge is measured up
 to the edge, so its numbers are a floor.
 

@@ -28,7 +28,7 @@ const vite = await createServer({ configFile: false, root, server: { middlewareM
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
 const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
 const { GROUPS, GROUP_ORDER } = await vite.ssrLoadModule('/src/models/groups.ts');
-const { interactionHtml, interactionOf } = await vite.ssrLoadModule('/src/models/interaction.ts');
+const { interactionHtml, interactionOf, expands } = await vite.ssrLoadModule('/src/models/interaction.ts');
 const { videoButton } = await vite.ssrLoadModule('/src/video.ts');
 const { thanksHtml } = await vite.ssrLoadModule('/src/thanks.ts');
 const { logoHtml } = await vite.ssrLoadModule('/src/logo.ts');
@@ -534,7 +534,7 @@ demos.forEach((d, i) => write(`models/${d.id}/index.html`, demoPage(d, i)));
 demos.forEach((d) => write(`public/demos/${d.id}/index.html`, movedPage(d)));
 for (const d of demos) write(`embed/${d.id}/index.html`, embedPage(d));
 write('embed/cover/index.html', coverPage());
-write('src/generated/model-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, how: interactionOf(d), pointer: interactionOf(d) !== 'none', hover: interactionOf(d) === 'hover' }))));
+write('src/generated/model-ids.json', JSON.stringify(demos.map((d) => ({ id: d.id, how: interactionOf(d), pointer: interactionOf(d) !== 'none', hover: interactionOf(d) === 'hover', expands: expands(d) }))));
 for (const g of GROUP_ORDER) write(`groups/${g}/index.html`, groupPage(g));
 
 // Plain, crawlable links to every page, injected into the home page by vite.config.ts.

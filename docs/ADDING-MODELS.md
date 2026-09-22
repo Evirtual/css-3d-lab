@@ -40,6 +40,11 @@ top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
   the model (`src/models/interaction.ts`): `'hover'`, `'pointer'` (follows the pointer), `'drag'`,
   `'controls'` or `'form-hack'` (clicked), plus `'loop'` for self-running and subject words
   (`'product'`, `'text'`...). A few ids are overridden in `interaction.ts`.
+  `'expands'` marks a model that IS a small control opening into something (a menu button, a
+  fold-down menu, a disclosure): it rests at the control's natural size, and the 40vmin floor is
+  asked of its open state instead (VIEW-CONTRACT.md, "A control that opens rests small"). Its rest
+  is still centred, and its share image is shot open. Only a control gets it: a box, a book or a
+  card that opens keeps the floor at rest. Used by `radial` and `dropdown`.
 - `technique`: 3–4 short strings naming the key properties/tricks (the ingredient chips).
 - `description`: one or two plain sentences saying what it is and the trick behind it.
 
