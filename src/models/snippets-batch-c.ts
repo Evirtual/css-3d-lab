@@ -498,7 +498,8 @@ setInterval(function () {
   gap: calc(4 * var(--u));
   width: 300%;
   height: 100%;
-  background: linear-gradient(115deg, #8b6cff, #ff4d9d 60%, #ffb547);
+  /* deep enough for its white words: the bright #8b6cff, #ff4d9d, #ffb547 were 2.5:1 */
+  background: linear-gradient(115deg, #6a45f5, #d1206f 60%, #c96f00);
   color: #fff;
   font-size: calc(41 * var(--u));
   font-weight: 900;
@@ -510,8 +511,7 @@ setInterval(function () {
 .panel > b > span small {
   font-size: calc(10 * var(--u));
   font-weight: 700;
-  letter-spacing: 0.3em;
-  opacity: 0.85;
+  letter-spacing: 0.3em; /* full white: at 0.85, under the middle panel's sheen, it was 2.9:1 */
 }
 
 /* shading that sells the fold: fades out as the paper flattens (opacity is cheap to animate) */
@@ -524,7 +524,7 @@ setInterval(function () {
 }
 
 .panel-mid > b::after {
-  background: linear-gradient(90deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0));
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0));
 }
 
 .fold:hover .panel > b::after,
@@ -838,7 +838,9 @@ stage.addEventListener('pointercancel', leave);`,
   padding: calc(12 * var(--u)) calc(14 * var(--u));
   border: calc(1 * var(--u)) solid #262b4a;
   border-radius: calc(12 * var(--u));
-  background: rgb(22 26 51 / 0.6);
+  /* opaque, so its light words read on either stage: see-through, on the light stage the card was
+     mid grey and the words on it 2.4:1 */
+  background: #11142a;
   color: #eceefb;
   font-size: calc(13 * var(--u));
   font-weight: 600;
@@ -1001,7 +1003,9 @@ stage.addEventListener('pointercancel', leave);`,
   padding: calc(3 * var(--u));
   border: calc(1 * var(--u)) solid #262b4a;
   border-radius: calc(10 * var(--u));
-  background: rgb(22 26 51 / 0.6);
+  /* opaque, so the tab names read on either stage: see-through, on the light stage the bar was mid
+     grey and the names on it 1.8:1 */
+  background: #11142a;
 }
 
 .tabs-nav label {
@@ -1051,7 +1055,7 @@ stage.addEventListener('pointercancel', leave);`,
   border-radius: calc(10 * var(--u));
   background:
     linear-gradient(140deg, color-mix(in srgb, var(--c) 34%, transparent), transparent 70%),
-    rgb(11 13 24 / 0.88);
+    rgb(11 13 24); /* opaque: its words read the same on either stage */
   backface-visibility: hidden;
   transform: rotateX(calc(var(--i) * -90deg)) translateZ(calc(46 * var(--u)));
 }
@@ -1080,7 +1084,7 @@ stage.addEventListener('pointercancel', leave);`,
 .tabs input:nth-of-type(2):checked ~ .tabs-nav label:nth-of-type(2),
 .tabs input:nth-of-type(3):checked ~ .tabs-nav label:nth-of-type(3),
 .tabs input:nth-of-type(4):checked ~ .tabs-nav label:nth-of-type(4) {
-  background: #8b6cff;
+  background: #6a45f5; /* deep enough for white words, 5.9:1: #8b6cff was 3.7:1 */
   color: #fff;
 }
 
