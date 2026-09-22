@@ -24,7 +24,6 @@ written by `npm run ledger`.
 ## The models
 
 - [ ] The verify gate holds over all 135 models — `npm run verify` ends with `GATE HOLDS: every model held every check.` and exits 0
-- [ ] Every model is converted to the base unit --u in vmin — `npm run ledger` prints `135 converted` and `node -p "require('./docs/ledger.json').counts.notConverted"` prints `0`
 - [ ] Every model is approved in the ledger — `node -p "require('./docs/ledger.json').counts.approved"` prints `135`
 - [ ] The check results behind the ledger are published with the code, so anyone who clones the repo can rebuild it: every check in scripts/checks-registry.mjs has its docs/checks/<key>.json committed, after the final full runs (docs/ledger.json itself stays ignored: it is rebuilt from these by `npm run ledger`) — `grep -qx /docs/checks/ .gitignore || echo unignored` prints `unignored`, and `node --input-type=module -e "import {REGISTRY} from './scripts/checks-registry.mjs'; import {execSync} from 'node:child_process'; const t=execSync('git ls-files docs/checks').toString(); const m=REGISTRY.map(c=>'docs/checks/'+c.key+'.json').filter(f=>!t.includes(f)); console.log(m.length?'not committed: '+m.join(' '):'all '+REGISTRY.length+' committed')"` prints `all N committed`, N being the registry's length (otherwise it names each missing file)
 - [ ] The ledger was built on the commit being pushed — `node -p "require('./docs/ledger.json').head"` prints the same short hash as `git rev-parse --short HEAD`

@@ -83,6 +83,11 @@
  * only by less than the truth. Over all four it covers the canvas, and is judged as a full-canvas
  * model like anything else that does: the picture cannot tell overflowing from filling.
  *
+ * ONE BASE UNIT, IN VMIN. A model whose snippet CSS (comments left out) does not set --u to a
+ * value in vmin fails, whatever it draws: VIEW-CONTRACT.md ground rule 1. Its line says so, and
+ * names the unit when --u is set in another one. This was the ledger's "Not converted" stage; it is
+ * now part of the contract, so a model is simply held by the contract check until it has one.
+ *
  * A BROKEN BROWSER BREAKS ONE MODEL AT MOST (scripts/browser-guard.mjs). A model whose run hits a
  * browser-level error (a protocol error, "Unable to capture screenshot", a goto timeout, a crashed
  * or closed target) is judged again, once, in a fresh browser, and its line ends "retried after a
@@ -476,6 +481,12 @@ async function look() {
   }
 }
 
+/**
+ * What the model's own CSS sets its base unit --u to, comments left out: VIEW-CONTRACT.md ground
+ * rule 1 (one base unit, tied to the canvas in vmin). The values, [] when it sets none.
+ */
+const uValues = (css) => [...String(css ?? '').replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/--u\s*:\s*([^;}\n]+)/g)].map((m) => m[1].trim());
+
 /** Forgets every module Vite has transformed, so the next page load reads the files as they are now. */
 function freshCode() {
   for (const env of Object.values(vite.environments ?? {})) env.moduleGraph?.invalidateAll();
@@ -567,6 +578,11 @@ async function judgeModel(id, notes = []) {
   }
 
   const broke = [];
+  // ground rule 1: the model's own unit, in vmin, so it keeps its proportions on every canvas. Read
+  // from the snippet as the site loads it (after freshCode, so the code on disk now)
+  const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
+  const u = uValues(snippets[id]?.css);
+  if (!u.some((v) => /vmin\b/.test(v))) broke.push(u.length ? `sets its base unit --u only in another unit (${u.join(', ')}), not vmin (VIEW-CONTRACT.md, ground rule 1)` : 'does not set its base unit --u in vmin (VIEW-CONTRACT.md, ground rule 1: every length a multiple of one --u tied to the canvas)');
   if (!seen) broke.push('nothing drawn');
   else {
     const full = seen.coversW >= 0.95 && seen.coversH >= 0.95;

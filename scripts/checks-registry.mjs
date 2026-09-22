@@ -27,8 +27,9 @@
  *              old rule never counts as a pass under the new one. A change that only reports
  *              differently (a message, a column) is not a new version.
  *  - rules     the history behind ruleVersion, oldest first: { v, from, what }, `from` the commit
- *              that brought version v in (null for the first). A result recorded before versions
- *              were recorded is given the version its commit had.
+ *              that brought version v in (null for the first, and for any version made after results
+ *              began recording theirs). A result recorded before versions were recorded is given the
+ *              version its commit had.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -36,10 +37,12 @@ import { join } from 'node:path';
 export const REGISTRY = [
   {
     key: 'models', script: 'check-models.mjs', scope: 'model', name: 'contract', short: 'Contract',
-    ruleVersion: 2,
+    ruleVersion: 3,
     rules: [
       { v: 1, from: null, what: 'the band, the floor, the widest, the edges and the corners, as VIEW-CONTRACT.md had them; centred within 4vmin sideways and 11vmin vertically with a control zone' },
       { v: 2, from: '69cae52', what: 'every model centred within 4vmin both ways, a control zone included: the zone is sized by its content and the whole drawn stack is centred' },
+      // from null: every result since records its ruleVersion, so none has to be dated by its commit
+      { v: 3, from: null, what: 'as v2, and the snippet must set its base unit --u in vmin (ground rule 1), which the ledger used to count apart as Not converted' },
     ],
     title: 'Contract check (check-models)', label: 'contract check (check-models)',
     rule: 'cleared when its latest result is a pass on the model\'s current code',

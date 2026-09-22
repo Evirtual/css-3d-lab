@@ -23,15 +23,15 @@
  * takes many minutes; the export service it talks to is shared, and started here if nothing already
  * answers on 127.0.0.1:8787, so the shards do not race to start one each.
  *
- * Converted or not: a model is converted when its snippet CSS sets `--u:`. Until the conversion pass
- * is done the unconverted ones are expected to fail, so every result is split in two, and a failure
- * in a converted model is never hidden among them.
+ * Every model is held to every check the same way. There is no "not converted" allowance any more:
+ * a model whose snippet does not set --u in vmin fails the contract check (check-models) like any
+ * other failure, so it fails the gate.
  *
  * A model a check did not report on (the shard crashed, hung, or the check is missing) is "no
  * verdict", counted and named apart, never counted as held.
  *
- * Exit code: 0 everything held; 1 a converted model failed or had no verdict, or the build or a
- * check could not run; 2 only unconverted models failed.
+ * Exit code: 0 everything held; 1 a model failed or had no verdict, or the build or a check could
+ * not run.
  *
  * Every shard's full output is kept in a log directory, printed at the start and the end.
  */
@@ -62,16 +62,16 @@ const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*/, '').
 const LOGS = join(tmpdir(), 'css-3d-lab-verify', stamp);
 mkdirSync(LOGS, { recursive: true });
 
-/* ---------------- the models, and which are converted ---------------- */
+/* ---------------- the models ---------------- */
 const vite = await createVite({ root: ROOT, server: { middlewareMode: true, watch: null, hmr: false }, appType: 'custom', logLevel: 'error' });
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
-const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
 await vite.close();
 const all = demos.map((d) => d.id);
 const unknown = wanted.filter((id) => !all.includes(id));
 if (unknown.length) { console.error(`No such model: ${unknown.join(', ')}`); process.exit(1); }
 const ids = wanted.length ? all.filter((id) => wanted.includes(id)) : all;
-const converted = new Set(ids.filter((id) => /--u\s*:/.test(snippets?.[id]?.css ?? '')));
+// every model is held to everything: there is no unconverted allowance any more (see above)
+const converted = new Set(ids);
 
 /* ---------------- the checks, and how to read each one's output ---------------- */
 // Each parser returns { verdicts: Map(id -> { ok, why }), finished } for the ids it was given. An
@@ -185,7 +185,7 @@ const checks = CHECKS.filter((c) => !fast || c.fast);
 const missing = checks.filter((c) => !existsSync(join(ROOT, c.script)));
 const runnable = checks.filter((c) => !missing.includes(c));
 
-console.log(`verify: ${ids.length} model${ids.length === 1 ? '' : 's'} (${converted.size} converted, ${ids.length - converted.size} not yet), ` +
+console.log(`verify: ${ids.length} model${ids.length === 1 ? '' : 's'}, ` +
   `${checks.map((c) => c.name).join(', ')}${fast ? ' (--fast)' : ''}; ${JOBS} jobs (${jobsWhy})`);
 console.log(`logs: ${LOGS}`);
 for (const c of missing) console.log(`MISSING ${c.script}: ${c.name} cannot run, so every model has no verdict for it`);
@@ -317,7 +317,7 @@ service?.close();
 
 /* ---------------- the summary ---------------- */
 const line = '='.repeat(78);
-console.log(`\n${line}\nverify: ${ids.length} models (${converted.size} converted, ${ids.length - converted.size} not yet converted), ${JOBS} jobs, ${clock(Date.now() - started)}`);
+console.log(`\n${line}\nverify: ${ids.length} models, ${JOBS} jobs, ${clock(Date.now() - started)}`);
 if (buildNote) console.log(buildNote);
 if (mediaNote) console.log(mediaNote);
 if (serviceNote) console.log(serviceNote);
@@ -357,7 +357,7 @@ console.log(`\n${line}`);
 const code = broken || convertedBad ? 1 : unconvertedBad ? 2 : 0;
 if (code === 0) console.log(`GATE HOLDS: every model held every check.`);
 else {
-  if (badConverted.size) console.log(`GATE FAILS: ${badConverted.size} converted model${badConverted.size === 1 ? '' : 's'} failed or had no verdict: ${list([...badConverted])}`);
+  if (badConverted.size) console.log(`GATE FAILS: ${badConverted.size} model${badConverted.size === 1 ? '' : 's'} failed or had no verdict: ${list([...badConverted])}`);
   if (badUnconverted.size) console.log(`${badUnconverted.size} unconverted model${badUnconverted.size === 1 ? '' : 's'} failed (expected until they are converted): ${list([...badUnconverted])}`);
   if (missing.length) console.log(`missing check${missing.length === 1 ? '' : 's'}: ${missing.map((c) => c.script).join(', ')}`);
   if (!buildOk) console.log(`qa did not run: ${buildNote}`);

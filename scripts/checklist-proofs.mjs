@@ -64,7 +64,6 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     [/^Local-only files stay local/, KEYS.index, () => { const t = git('ls-files', 'hero-options.html', 'og-preview.html', 'harness-tmp').trim(); return t ? F(`tracked: ${t.split('\n').join(', ')}`) : T('none of them is tracked'); }],
     [/^The remote has nothing main lacks/, () => N('needs git fetch, which uses the network')],
     [/^The verify gate holds/, () => N('npm run verify runs every check in browsers: slow')],
-    [/^Every model is converted/, () => counts.notConverted === 0 && counts.converted === n ? T(`${counts.converted} of ${n} converted`) : F(`${counts.converted} of ${n} converted, ${counts.notConverted} not`)],
     [/^Every model is approved/, () => counts.approved === n ? T(`${n} of ${n} approved`) : F(`${counts.approved} of ${n} approved`)],
     [/^The check results behind the ledger are published with the code/, () => `${KEYS.index()}|${mtime('.gitignore')}`, () => {
       // the files named by the registry, so a check added there is asked for here too

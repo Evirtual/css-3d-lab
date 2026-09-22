@@ -175,27 +175,26 @@ button, input { font: inherit; color: inherit; }
 .flow, .flow__li { pointer-events: none; }
 .step { pointer-events: auto; }
 .step { --c: var(--muted); position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; transform-style: preserve-3d; transition: transform 0.25s ease; }
-.step--2 { --c: var(--accent); }
-.step--3 { --c: var(--accent-2); }
-.step--4 { --c: var(--hot); }
+.step--1 { --c: var(--accent); }
+.step--2 { --c: var(--accent-2); }
+.step--3 { --c: var(--hot); }
 .step__body { position: relative; display: block; height: 122px; transform-style: preserve-3d; }
 .step__top, .step__side { position: absolute; left: 0; right: 0; }
 .step__top { top: 0; bottom: 0; overflow: hidden; background: color-mix(in srgb, var(--c) 16%, var(--surface-solid));
   clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%, var(--notch) 50%); }
 .step--1 .step__top { clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%); }
-.step--4 .step__top { clip-path: polygon(0 0, calc(100% - var(--notch) * 2) 0, 100% 50%, calc(100% - var(--notch) * 2) 100%, 0 100%, var(--notch) 50%); }
+.step--3 .step__top { clip-path: polygon(0 0, calc(100% - var(--notch) * 2) 0, 100% 50%, calc(100% - var(--notch) * 2) 100%, 0 100%, var(--notch) 50%); }
 /* the extrusion: hangs from the front edge and folds back under the top face */
 .step__side { top: 100%; height: var(--depth); left: var(--notch); right: var(--notch); transform-origin: 50% 0; transform: rotateX(-90deg); background: color-mix(in srgb, var(--c) 42%, #03040a); }
 .step--1 .step__side { left: 0; }
-.step--4 .step__side { right: calc(var(--notch) * 2); }
+.step--3 .step__side { right: calc(var(--notch) * 2); }
 .step__fill { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--full) * 100%); background: color-mix(in srgb, var(--c) 22%, transparent); }
 .step__text { position: relative; display: grid; align-content: center; height: 100%; padding: 8px calc(var(--notch) + 10px) 8px calc(var(--notch) + 14px); }
 .step--1 .step__text { padding-left: 16px; }
-.step--4 .step__text { padding-right: calc(var(--notch) * 2 + 8px); }
+.step--3 .step__text { padding-right: calc(var(--notch) * 2 + 8px); }
 .step__label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); line-height: 1.25; }
 .step__n { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--c); }
-.step--1 .step__n { color: var(--text); }
-.step--4 .step__n { width: fit-content; background: var(--st-ok); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.step--3 .step__n { width: fit-content; background: var(--st-ok); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .step__sub { font-size: 11.5px; line-height: 1.3; color: var(--muted); }
 /* where the work is: raised, and lit more strongly */
 .step.has-work { transform: translateZ(12px); }
@@ -796,9 +795,8 @@ table.mini code { font-size: 12px; }
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const STATUS = [
     // short names for the same exclusive buckets as the summary: never read as running totals
-    { key: 'not converted', short: 'Not converted', long: 'not converted', cls: 's-none', color: 'var(--st-none)' },
-    { key: 'converted', short: 'To check', long: 'converted, not yet checked', cls: 's-conv', color: 'var(--st-conv)' },
-    { key: 'checked', short: 'Awaiting approval', long: 'checked, awaiting approval', cls: 's-chk', color: 'var(--st-chk)' },
+    { key: 'to check', short: 'To check', long: 'to check: an automated check is not cleared', cls: 's-conv', color: 'var(--st-conv)' },
+    { key: 'checked', short: 'Awaiting review', long: 'awaiting review: every check clear', cls: 's-chk', color: 'var(--st-chk)' },
     { key: 'approved', short: 'Approved', long: 'approved', cls: 's-ok', color: 'var(--st-ok)' },
   ];
   /** The overall status as one compact pill; the bucket's full name is in the tooltip. */
@@ -938,7 +936,7 @@ table.mini code { font-size: 12px; }
   let prevSig = null; // model id → what its row shows, to mark rows that changed on a refresh
   let flash = new Set();
 
-  const rowSig = (m) => JSON.stringify([m.status, m.converted, m.convertedInHead, ...COLS.map(([k]) => [m.checks[k]?.status, m.checks[k]?.stale, m.checks[k]?.ranAt]), m.commits.length, (m.reviews ?? []).map((r) => [r.kind, r.verdict, r.stale])]);
+  const rowSig = (m) => JSON.stringify([m.status, ...COLS.map(([k]) => [m.checks[k]?.status, m.checks[k]?.stale, m.checks[k]?.ranAt]), m.commits.length, (m.reviews ?? []).map((r) => [r.kind, r.verdict, r.stale])]);
 
   /* ---------- the overview: one sentence, one bar, what holds the rest, what is running ---------- */
   /** A rounded bar of segments with a hairline between them; a segment shows its count when there is room. */
@@ -965,7 +963,6 @@ table.mini code { font-size: 12px; }
   const doneInRun = (key, p) => new Set(L.models.filter((m) => p?.runId && m.checks[key]?.runId === p.runId).map((m) => m.id));
   /** The words on the filter chip for a blocker key: "motion didn't run", "visual review stale". */
   function chipLabel(key) {
-    if (key === 'convert') return 'not converted';
     if (key === 'stale:any') return 'passed on older code';
     if (String(key).startsWith('status:')) return STEP_SHORT[key.slice(7)] ?? key.slice(7);
     const [a, b, c] = String(key).split(':');
@@ -989,8 +986,8 @@ table.mini code { font-size: 12px; }
       BLK.set('stale:any', { ids: new Set(ids), chip: chipLabel('stale:any') });
       rows.push({ key: 'stale:any', stale, scope: 'check', count: ids.length, alone, ids });
     }
-    // not converted first; then the checks' reasons, largest first; the reviews last
-    const rank = (r) => (r.scope === 'convert' ? 0 : r.scope === 'review' ? 2 : 1);
+    // the checks' reasons, largest first; the reviews last
+    const rank = (r) => (r.scope === 'review' ? 2 : 1);
     rows.sort((a, b) => rank(a) - rank(b) || (rank(a) === 1 ? b.count - a.count : 0));
     return rows;
   }
@@ -1000,7 +997,6 @@ table.mini code { font-size: 12px; }
     return (Array.isArray(Q?.items) ? Q.items : []).filter((i) => i.status !== 'done' && re.test(`${i.name} ${i.brief ?? ''}`));
   };
   function blockerText(r) {
-    if (r.key === 'convert') return { title: 'Not converted', sw: 'var(--st-none)', why: `${esc(cap(r.b.means))}.`, state: '' };
     if (r.key === 'stale:any') return {
       title: 'Passed on older code', sw: KIND_SW['stale-pass'],
       why: `${esc(cap(r.stale[0].means))}. By check: ${r.stale.map((s) => `${esc(GATE_NAME[s.check] ?? s.check)} ${s.count}`).join(', ')}.`,
@@ -1043,11 +1039,11 @@ table.mini code { font-size: 12px; }
     return { title: `${esc(short)}: ${esc(b.label)}`, sw: KIND_SW[b.kind] ?? 'var(--k-never)', why: `${esc(cap(b.means))}.`, state };
   }
 
-  /* the four states as one extruded arrow, and as tabs: exactly one is selected, and its panel shows
+  /* the three states as one extruded arrow, and as tabs: exactly one is selected, and its panel shows
      that stage's detail. Selecting one does not filter the table; its panel has a button that does. */
-  const STEP_SHORT = { 'not converted': 'Not converted', converted: 'Converted, not yet checked', checked: 'Checked, awaiting approval', approved: 'Approved' };
-  const STEP_SUB = { 'not converted': 'no --u in vmin yet', converted: 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
-  const STAGE_C = ['var(--muted)', 'var(--accent)', 'var(--accent-2)', 'var(--hot)'];
+  const STEP_SHORT = { 'to check': 'To check', checked: 'Awaiting review', approved: 'Approved' };
+  const STEP_SUB = { 'to check': 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
+  const STAGE_C = ['var(--accent)', 'var(--accent-2)', 'var(--hot)'];
   let stage = null; // the selected tab's state key; remembered per viewer
   try { stage = localStorage.getItem('ledger-stage'); } catch {}
   /** The selected stage: the remembered one if it still exists, else the first with models in it. */
@@ -1080,12 +1076,11 @@ table.mini code { font-size: 12px; }
   function renderOverview() {
     const c = L.counts, n = c.models;
     const by = (k) => c.byStatus?.[k] ?? 0;
-    const ap = by('approved'), ch = by('checked'), cv = by('converted'), nc = by('not converted');
+    const ap = by('approved'), ch = by('checked'), cv = by('to check');
     // the answer first, in one true sentence
     const parts = [];
     if (ch) parts.push(`<b>${ch}</b> ${ch === 1 ? 'has' : 'have'} every check clear and ${ch === 1 ? 'waits' : 'wait'} for review`);
     if (cv) parts.push(`<b>${cv}</b> ${cv === 1 ? 'is' : 'are'} held by a check`);
-    if (nc) parts.push(`<b>${nc}</b> ${nc === 1 ? 'is' : 'are'} not converted yet`);
     $('headline').innerHTML = ap === n ? `All <b>${n}</b> models approved.` : `<b>${ap}</b> of <b>${n}</b> models approved.${parts.length ? ` ${parts.join('; ')}.` : ''}`;
 
     // the accounting: every model in exactly one state; the sum itself is one hover away
@@ -1108,7 +1103,7 @@ table.mini code { font-size: 12px; }
       $('blockers').innerHTML = '<li class="muted">This ledger was built before it listed what holds each model back; the list appears on the next build.</li>';
     } else {
       $('blk-note').textContent = rows.length
-        ? `These overlap: a model held by two checks is counted under both. ${cv} model${cv === 1 ? ' is' : 's are'} held by at least one check${nc ? `, ${nc} not converted` : ''}${ch ? `; the review rows count only the ${ch} with every check clear` : ''}. Click one to show exactly those models in the table.`
+        ? `These overlap: a model held by two checks is counted under both. ${cv} model${cv === 1 ? ' is' : 's are'} held by at least one check${ch ? `; the review rows count only the ${ch} with every check clear` : ''}. Click one to show exactly those models in the table.`
         : '';
       $('blockers').innerHTML = rows.length ? rows.map((r) => {
         const t = blockerText(r);
@@ -1125,7 +1120,7 @@ table.mini code { font-size: 12px; }
     btn.innerHTML = `What’s holding models back <small>· ${n - ap}</small>`;
     btn.setAttribute('aria-label', `What’s holding models back: ${n - ap} models not approved`);
     btn.dataset.tip = '';
-    btn.dataset.tiptext = `${n - ap} of ${n} models are not approved: ${cv} held by a check${nc ? `, ${nc} not converted` : ''}${ch ? `, ${ch} waiting only on reviews` : ''}. Opens every reason, with counts.`;
+    btn.dataset.tiptext = `${n - ap} of ${n} models are not approved: ${cv} held by a check${ch ? `, ${ch} waiting only on reviews` : ''}. Opens every reason, with counts.`;
     renderRunning();
     renderStage();
   }
@@ -1214,18 +1209,18 @@ table.mini code { font-size: 12px; }
     if (!b) { panel.innerHTML = ''; return; }
     panel.setAttribute('aria-labelledby', `stage-tab-${i}`);
     // the "All N" line would repeat the panel's own bars when this stage holds every model
-    $('checkbars').hidden = b.count === L.models.length && (key === 'converted' || key === 'not converted');
+    $('checkbars').hidden = b.count === L.models.length && key === 'to check';
     panel.style.setProperty('--stage-c', STAGE_C[i] ?? 'var(--border-strong)');
     const models = L.models.filter((m) => m.status === key);
     const holds = holdsIn(models);
     const holdLine = holds.length
       ? `<p class="stagebox__holds"><b>What holds them</b> (a model can have several): ${holds.slice(0, 4).map((x) => `${esc(chipLabel(x.r.key))} <b>${x.n}</b>`).join(', ')}${holds.length > 4 ? `, and ${holds.length - 4} more` : ''}. <button type="button" class="linkish" data-open-blk>Every reason</button></p>` : '';
     let body = '';
-    if (!models.length) body = `<p class="stagebox__holds">${{ 'not converted': 'None: every model sets <code>--u</code> in vmin.', converted: 'None: no converted model is held by a check.', checked: 'None yet: no model has every automated check clear on its current code.', approved: 'None yet: no model has every check clear plus a fresh visual and a fresh text review.' }[key] ?? 'None.'}</p>`;
-    else if (key === 'converted') body = `${holdLine}<div class="ckbars"><h3>Checks, over these ${models.length} <span class="muted" style="text-transform:none;letter-spacing:0">· in gate order; each needs every one clear on its current code</span></h3>${bucketCheckBars(models)}</div>`;
+    if (!models.length) body = `<p class="stagebox__holds">${{ 'to check': 'None: no model is held by a check.', checked: 'None yet: no model has every automated check clear on its current code.', approved: 'None yet: no model has every check clear plus a fresh visual and a fresh text review.' }[key] ?? 'None.'}</p>`;
+    else if (key === 'to check') body = `${holdLine}<div class="ckbars"><h3>Checks, over these ${models.length} <span class="muted" style="text-transform:none;letter-spacing:0">· in gate order; each needs every one clear on its current code</span></h3>${bucketCheckBars(models)}</div>`;
     else if (key === 'checked') body = `${holdLine}<div class="ckbars"><h3>Reviews, over these ${models.length} <span class="muted" style="text-transform:none;letter-spacing:0">· each needs a fresh visual and a fresh text review, neither “problem”</span></h3>${reviewBars(models)}</div>`;
     else if (key === 'approved') body = models.length ? `<p class="stagebox__holds">Approved:</p>${modelChips(models)}` : '<p class="stagebox__holds">None yet: no model has every check clear plus a fresh visual and a fresh text review.</p>';
-    else body = models.length ? `${holdLine}${modelChips(models)}` : '<p class="stagebox__holds">None: every model sets <code>--u</code> in vmin.</p>';
+    else body = models.length ? `${holdLine}${modelChips(models)}` : '<p class="stagebox__holds">None.</p>';
     const shown = blk === `status:${key}`;
     panel.innerHTML = `<div class="stagebox__head"><div><h3 id="stage-h">${esc(STEP_SHORT[key] ?? b.label)}<span class="n">${b.count}</span></h3><p class="stagebox__means">${esc(cap(b.means ?? ''))}.</p></div>
       ${b.count ? `<button type="button" class="btn bdhead__all" data-show="${esc(`status:${key}`)}" style="padding:5px 12px;font-size:12.5px">${shown ? 'Shown in the table below' : `Show ${b.count === 1 ? 'it' : `these ${b.count}`} in the table`}</button>` : ''}</div>${body}`;
@@ -1411,8 +1406,6 @@ table.mini code { font-size: 12px; }
 
     const notes = [];
     for (const [name, src] of Object.entries(L.sources.checks)) if (/never been captured/.test(src)) notes.push({ key: `never:${name}`, col: name, html: `<b>${esc(CHECK_NAMES[name] ?? name)}</b> has no result file: its column says “not run yet” for every model because no run was captured, not because models failed. Capture one with <code>npm run capture -- ${esc(name)}</code>.` });
-    const other = L.models.filter((m) => m.uNotVmin);
-    if (other.length) notes.push({ key: 'u-not-vmin', html: `<b>${other.length} model${other.length === 1 ? ' uses' : 's use'} --u but not in vmin</b>, so ${other.length === 1 ? 'it is' : 'they are'} not counted as converted: ${other.map((m) => `<code>${esc(m.id)}</code> (${m.uNotVmin.map((v) => `--u: ${esc(v)}`).join(', ')})`).join(', ')}.` });
     for (const note of L.notes ?? []) notes.push({ key: `ledger:${sig(note)}`, html: esc(note) });
     NOTES = notes;
     $('notices').innerHTML = '';
@@ -1592,7 +1585,7 @@ table.mini code { font-size: 12px; }
   function groupRow(g, opened) {
     const n = g.all.length;
     const count = (st) => g.all.filter((m) => m.status === st).length;
-    const ap = count('approved'), ch = count('checked'), cv = count('converted'), nc = count('not converted');
+    const ap = count('approved'), ch = count('checked'), cv = count('to check');
     const seg = (x, c, w) => x ? `<i style="flex-grow:${x};background:${c}" title="${esc(`${x} ${w}`)}"></i>` : '';
     // the problems inside, per check: shown on the row whether it is open or folded
     const probs = COLS.map(([k, label]) => {
@@ -1608,8 +1601,8 @@ table.mini code { font-size: 12px; }
     const shownNote = g.models.length !== n ? `, ${g.models.length} match` : '';
     return `<tr class="grow"><th colspan="${colCount()}" scope="rowgroup"><div class="grow__in">
       <button type="button" class="grow__btn" data-grp="${esc(g.key)}" aria-expanded="${opened}">${CHEVRON}${esc(g.label)} <span class="n">· ${n}${shownNote}</span></button>
-      <span class="grow__bar" role="img" aria-label="${esc(`${ap} approved, ${ch} awaiting approval, ${cv} to check${nc ? `, ${nc} not converted` : ''}, of ${n}`)}">${seg(ap, 'var(--st-ok)', 'approved')}${seg(ch, 'var(--st-chk)', 'awaiting approval')}${seg(cv, 'var(--st-conv)', 'to check')}${seg(nc, 'var(--st-none)', 'not converted')}</span>
-      <span class="grow__meta">${ap} approved · ${ch} awaiting approval · ${cv} to check${nc ? ` · ${nc} not converted` : ''}</span>
+      <span class="grow__bar" role="img" aria-label="${esc(`${ap} approved, ${ch} awaiting review, ${cv} to check, of ${n}`)}">${seg(ap, 'var(--st-ok)', 'approved')}${seg(ch, 'var(--st-chk)', 'awaiting review')}${seg(cv, 'var(--st-conv)', 'to check')}</span>
+      <span class="grow__meta">${ap} approved · ${ch} awaiting review · ${cv} to check</span>
       ${probs ? `<span class="grow__probs">${probs}</span>` : ''}</div></th></tr>`;
   }
   function modelRow(m, flat) {
@@ -1618,7 +1611,7 @@ table.mini code { font-size: 12px; }
     const short = glabel.split(/\s*[&,]\s*|\s+/)[0];
     return `<tr class="row${flash.has(m.id) ? ' flash' : ''}" tabindex="0" data-id="${esc(m.id)}" aria-expanded="${open.has(m.id)}">
         <td class="model"><div class="mt"><b data-tip data-tiptext="${esc(`${m.title} (${m.id}), group: ${glabel || 'none'}`)}">${esc(m.title)}</b><code>${esc(m.id)}</code>${flat && glabel ? `<span class="gchip" data-tip data-tiptext="${esc(`Group: ${glabel}`)}" aria-label="${esc(`group: ${glabel}`)}">${esc(short)}</span>` : ''}</div></td>
-        <td class="st">${chipFor(m.status)}${m.converted && m.convertedInHead === false ? ' <span class="chip s-warn" data-tip data-tiptext="the working tree has --u: but HEAD does not">not committed</span>' : ''}</td>
+        <td class="st">${chipFor(m.status)}</td>
         ${COLS.map(([k, label]) => `<td class="c" data-label="${esc(label)}">${checkMark(k, m)}</td>`).join('')}
         <td class="rvw c" data-label="Reviews"><span class="rv">${reviewMark(m, 'visual')}${reviewMark(m, 'text')}</span></td>
         <td class="num last">${last ? `<span data-tip data-tiptext="${esc(`${last.hash}: ${last.subject}`)}">${esc(last.date.slice(0, 10))}</span>` : '<span class="muted">none found</span>'}</td>
@@ -1712,8 +1705,7 @@ table.mini code { font-size: 12px; }
     parts.push(m.approved ? '<p><b>Approved.</b> All four conditions hold.</p>'
       : `<p><b>Not approved.</b> Missing:</p><ul class="missing">${m.missing.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`);
     parts.push(`<p class="muted">Snippet: ${m.snippet ? `<code>${esc(m.snippet.file)}:${esc(m.snippet.line)}</code>${m.snippet.foundBy !== 'grep' ? ` (${esc(m.snippet.foundBy)})` : ''}` : 'not found'}
-      · converted in working tree: <b>${m.converted ? 'yes' : 'no'}</b>, in HEAD: <b>${m.convertedInHead == null ? 'unknown' : m.convertedInHead ? 'yes' : 'no'}</b>
-      · converting commit: ${m.convertingCommit ? `<code>${esc(m.convertingCommit)}</code>` : m.converted ? '<b>none found</b> (no committed diff adds --u: to this snippet)' : '—'}
+      · converting commit (the one that first set --u in vmin): ${m.convertingCommit ? `<code>${esc(m.convertingCommit)}</code>` : '<b>none found</b>'}
       · source fingerprint <code>${esc(m.fingerprint)}</code></p>`);
     for (const n of m.notes) parts.push(`<div class="notice">${esc(n)}</div>`);
 
@@ -1852,19 +1844,19 @@ table.mini code { font-size: 12px; }
     // the first-reason split the build balances: each held model under the first thing that holds it
     const firsts = (b) => !b?.parts ? '' : `${b.parts.filter((p) => p.count).map((p) => `${esc(p.label)} ${n(p.count)}`).join(', ') || 'none'}; these sum to ${n(b.partsSum)}${b.partsBalance ? ' ✓' : `, not ${n(b.count)} ✗`}`;
     $('rules-body').innerHTML = `
-      <h3>The four states</h3>
-      <p class="muted" style="font-size:14px">The sentence and the four arrows at the top. Every model is in exactly one of these. The arrows are tabs: one is always selected (the last one you picked, or else the first with models in it), and the panel under them shows that stage’s detail: its check bars, its review bars or its models. The panel’s button shows those models in the table; the filter chip’s × shows every model again.</p>
+      <h3>The three states</h3>
+      <p class="muted" style="font-size:14px">The sentence and the three arrows at the top. Every model is in exactly one of these. The arrows are tabs: one is always selected (the last one you picked, or else the first with models in it), and the panel under them shows that stage’s detail: its check bars, its review bars or its models. The panel’s button shows those models in the table; the filter chip’s × shows every model again.</p>
       <dl class="defs">
-        ${['approved', 'checked', 'converted', 'not converted'].map((k) => B(k)).filter(Boolean).map((b) => `<dt>${esc(b.label)} ${n(b.count)}</dt>${dd(`${esc(b.means ?? '')}.${b.key === 'not converted' ? ` <b>Converted</b> means: ${esc(s.converted)}.` : ''}`)}`).join('')}
+        ${['approved', 'checked', 'to check'].map((k) => B(k)).filter(Boolean).map((b) => `<dt>${esc(b.label)} ${n(b.count)}</dt>${dd(`${esc(b.means ?? '')}.`)}`).join('')}
         <dt id="def-sum">The numbers add up ${n(c.balance?.ok ? '✓' : '✗')}</dt>
         ${dd(`${buckets.map((b) => `${n(b.count)} ${esc(b.label.toLowerCase())}`).join(' + ')} = ${n(sum)}, and there are ${n(c.models)} models. <code>scripts/ledger.mjs</code> fails the build if these differ, if a first-reason split below does not add up, or if what holds a model back does not match its state.${c.balance?.problems?.length ? ` Now: <b>${c.balance.problems.map(esc).join('; ')}</b>.` : ''}`)}
       </dl>
       <h3>What’s holding models back</h3>
-      <p class="muted" style="font-size:14px">The list behind the <b>What’s holding models back</b> button at the top. Each row counts the models one reason holds back, and clicking it shows exactly those models in the table. The rows <b>overlap</b>: a model held by two checks is counted under both, so they do not add up to the model count. “Held by this alone” counts the models with no other reason, the ones that move on once it is fixed. Review rows count only models whose every check is clear. “Passed on older code” is one row for all checks, with the count per check in it; the check bars below split it per check. Rows are largest first, after “not converted”, with reviews last.</p>
+      <p class="muted" style="font-size:14px">The list behind the <b>What’s holding models back</b> button at the top. Each row counts the models one reason holds back, and clicking it shows exactly those models in the table. The rows <b>overlap</b>: a model held by two checks is counted under both, so they do not add up to the model count. “Held by this alone” counts the models with no other reason, the ones that move on once it is fixed. Review rows count only models whose every check is clear. “Passed on older code” is one row for all checks, with the count per check in it; the check bars below split it per check. Rows are largest first, with reviews last.</p>
       <dl class="defs">
         ${(s.holdKinds ?? []).map((k) => `<dt>${esc(cap(k.label))}</dt>${dd(`${esc(k.means)}.${k.key === 'broke' ? ' A crash says nothing about the model, so it is never counted as failed: not in the bars, not in the marks, not in the counts.' : ''}`)}`).join('')}
         ${(s.reviewHolds ?? []).map((k) => `<dt>Review ${esc(k.label)}</dt>${dd(`${esc(k.means)}.`)}`).join('')}
-        ${B('converted')?.parts ? `<dt>First reason, in gate order</dt>${dd(`The ledger also files each model under the first thing that holds it, in the gate order below. Unlike the rows above, these do add up. ${esc(B('converted').label)}: ${firsts(B('converted'))}. ${esc(B('checked')?.label ?? '')}: ${firsts(B('checked'))}.`)}` : ''}
+        ${B('to check')?.parts ? `<dt>First reason, in gate order</dt>${dd(`The ledger also files each model under the first thing that holds it, in the gate order below. Unlike the rows above, these do add up. ${esc(B('to check').label)}: ${firsts(B('to check'))}. ${esc(B('checked')?.label ?? '')}: ${firsts(B('checked'))}.`)}` : ''}
       </dl>
       <h3>The checks, in gate order</h3>
       <p class="muted" style="font-size:14px">${esc(s.gates ?? '')}.</p>
@@ -1992,7 +1984,7 @@ table.mini code { font-size: 12px; }
   const item = (known) => (i) => {
     const models = Array.isArray(i.models) ? i.models : [];
     const ledger = models.filter((id) => known.has(id)).map((id) => L.models.find((m) => m.id === id));
-    const done = ledger.filter((m) => m.converted).length;
+    const done = ledger.filter((m) => m.status === 'approved').length;
     const cls = ['running', 'queued', 'done'].includes(i.status) ? i.status : '';
     const how = i.status === 'done'
       ? (i.started && i.finished ? `took <b>${esc(took(i.started, i.finished) ?? '?')}</b>` : '<b>no duration</b> (start or finish not recorded)')
@@ -2003,7 +1995,7 @@ table.mini code { font-size: 12px; }
       <p class="when">${how}${i.status === 'done' && i.finished ? ` · done ${agoSpan(i.finished)}` : ''}</p>
       ${i.brief ? `<p class="qbrief${openBriefs.has(i.name) ? ' is-open' : ''}" data-brief="${key}" title="${openBriefs.has(i.name) ? 'Click to shorten' : 'Click to read all of it'}">${esc(i.brief)}</p>` : ''}
       <div class="qids">${models.length ? models.map((id) => `<span class="mid${known.has(id) ? '' : ' not-id'}" title="${known.has(id) ? 'a model id' : 'not a model id: a label the reporter wrote'}">${esc(id)}</span>`).join('') : '<span class="muted" style="font-size:12px">no models listed</span>'}</div>
-      ${ledger.length ? `<p class="qmeasured">Measured, not claimed: ${done} of ${ledger.length} converted in the working tree now.</p>` : ''}</div>`;
+      ${ledger.length ? `<p class="qmeasured">Measured, not claimed: ${done} of ${ledger.length} approved now.</p>` : ''}</div>`;
   };
 
   /* ---------- live: what the watcher and the fetches say ---------- */

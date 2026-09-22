@@ -133,7 +133,7 @@ async function build(why) {
     const reused = [r.reusedGitReplay && 'git', r.reusedModelLoad && 'models'].filter(Boolean);
     const run = Object.entries(r.running).filter(([, p]) => p).map(([k, p]) => ` · ${k} running ${p.done}/${p.total ?? '?'}${p.alive === false ? ' (process gone)' : ''}`).join('');
     lastBuild = { at: new Date().toISOString(), reason: why, ms: r.ms, ok: true, head: r.head, codeVersion: lib.LOADED_CODE, balanced: r.balanced };
-    console.log(`${clock()} rebuilt (${why}) in ${(r.ms / 1000).toFixed(1)} s${reused.length ? `, reused ${reused.join('+')}` : ''}: ${c.converted}/${c.models} converted, ${c.checked} checked, ${c.approved} approved${run}${r.notes.length ? ` · ${r.notes.length} note(s)` : ''}${r.balanced === false ? ' · DOES NOT BALANCE' : ''} [code ${lib.LOADED_CODE}]`);
+    console.log(`${clock()} rebuilt (${why}) in ${(r.ms / 1000).toFixed(1)} s${reused.length ? `, reused ${reused.join('+')}` : ''}: ${c.toCheck} to check, ${c.checked - c.approved} awaiting review, ${c.approved} approved, of ${c.models}${run}${r.notes.length ? ` · ${r.notes.length} note(s)` : ''}${r.balanced === false ? ' · DOES NOT BALANCE' : ''} [code ${lib.LOADED_CODE}]`);
   } catch (e) {
     lastBuild = { at: new Date().toISOString(), reason: why, ok: false, error: e.message.split('\n')[0], codeVersion: lib.LOADED_CODE };
     console.log(`${clock()} build FAILED (${why}): ${lastBuild.error}`);

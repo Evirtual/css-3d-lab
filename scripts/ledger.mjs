@@ -5,9 +5,10 @@
  *
  * Every status in it is read from a source, never typed:
  *  - the model list is src/models/index.ts `demos`, loaded the way the checks load it;
- *  - `converted` is whether the model's snippet CSS contains `--u:` in the working tree (the
- *    snippet is found by its `  <id>: {` line; see model-sources.mjs), and `convertedInHead`
- *    the same question asked of HEAD;
+ *  - every model is in one of three stages: To check (an automated check is not cleared on its
+ *    current code), Awaiting review (every check clear, its reviews do not yet approve it) and
+ *    Approved. Whether its snippet sets its base unit --u in vmin is not a stage of its own: the
+ *    contract check (check-models) fails a model that does not, so it is To check, held there;
  *  - `commits` come from git: a commit belongs to a model when its diff touches the model's own
  *    entries (worked out line by line, by replaying each file's history), or when its subject
  *    names the model's id or title — each commit says which of those matched;
@@ -121,10 +122,9 @@ function GATES_PARTS() {
   })));
 }
 export const BUCKETS = [
-  { key: 'not converted', label: 'Not converted', means: 'the snippet does not set --u in vmin' },
-  { key: 'converted', label: 'Converted, not yet checked', means: `sets --u in vmin, but not every automated check (${GATES.map((g) => g.name).join(', ')}) is cleared on the code as it is now`,
+  { key: 'to check', label: 'To check', means: `not every automated check (${GATES.map((g) => g.name).join(', ')}) is cleared on the code as it is now; a snippet that does not set --u in vmin fails the contract check, so it is here too`,
     parts: GATES_PARTS() },
-  { key: 'checked', label: 'Checked, awaiting approval', means: 'every automated check cleared on the current code, but its reviews do not yet approve it',
+  { key: 'checked', label: 'Awaiting review', means: 'every automated check cleared on the current code, but its reviews do not yet approve it',
     parts: [
       { key: 'no-visual', label: 'no visual review', means: 'no visual review at all' },
       { key: 'no-text', label: 'no text review', means: 'no text review at all' },
@@ -135,15 +135,12 @@ export const BUCKETS = [
 ];
 
 /**
- * What `--u` is set to in some CSS, comments left out. A model is CONVERTED when its snippet sets
- * --u in vmin (the contract's unit, e.g. `--u: 0.3vmin`). One that sets --u only in some other
- * unit (lattice's `--u: 50px` spacing) is not converted; it is listed apart, as "uses --u but not
- * in vmin".
+ * What --u is set to in a line of CSS, and whether one of those values is in vmin: read on each
+ * line a commit adds, to find a model's converting commit (the one that first set --u in vmin), which
+ * does not count as a review of it. Whether a model sets --u now is the contract check's to judge.
  */
-export const uValues = (css) => [...String(css ?? '').replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/--u\s*:\s*([^;}\n]+)/g)].map((m) => m[1].trim());
-export const inVmin = (values) => values.some((v) => /vmin\b/.test(v));
-/** 'vmin' | 'other' | null (no --u at all) */
-const unitOf = (css) => { const v = uValues(css); return !v.length ? null : inVmin(v) ? 'vmin' : 'other'; };
+const uValues = (css) => [...String(css ?? '').replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/--u\s*:\s*([^;}\n]+)/g)].map((m) => m[1].trim());
+const inVmin = (values) => values.some((v) => /vmin\b/.test(v));
 const git = (args, opts = {}) => execFileSync('git', ['-c', 'core.quotepath=off', ...args], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 30, ...opts });
 
 /* ---------- the model list ---------- */
@@ -152,8 +149,6 @@ async function loadDemos() {
   const vite = await createServer({ logLevel: 'error', appType: 'custom', server: { middlewareMode: true, hmr: false, watch: null } });
   try {
     const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
-    let snippets = null;
-    try { ({ snippets } = await vite.ssrLoadModule('/src/models/snippets.ts')); } catch (e) { notes.push(`the snippet map could not be loaded, so the runtime cross-check of --u: was skipped: ${e.message.split('\n')[0]}`); }
     let groups = [];
     try {
       const { GROUPS, GROUP_ORDER } = await vite.ssrLoadModule('/src/models/groups.ts');
@@ -161,7 +156,7 @@ async function loadDemos() {
     } catch (e) { notes.push(`src/models/groups.ts could not be loaded, so groups have no labels: ${e.message.split('\n')[0]}`); }
     return {
       demos: demos.map((d) => ({ id: d.id, title: d.title, group: d.group, tags: Array.isArray(d.tags) ? [...d.tags] : [] })),
-      groups, snippets, from: 'src/models/index.ts demos (loaded through vite)',
+      groups, from: 'src/models/index.ts demos (loaded through vite)',
     };
   } finally {
     await vite.close();
@@ -298,16 +293,6 @@ function history(ids, titles) {
   const shortIndex = new Map(all.map((c, i) => [c.short, i]));
   const headSources = sourcesOf(headTexts);
   return { perModel, commitCount: all.length, headLines, order, shortIndex, headSources };
-}
-
-/** Whether the snippet in HEAD (not the working tree) already sets --u in vmin. */
-function convertedAt(lines, id) {
-  if (!lines) return null;
-  const e = entriesOf(lines).find((x) => x.id === id && x.kind === 'snippet');
-  if (!e) return null;
-  const body = lines.slice(e.start - 1, e.end).join('\n');
-  const at = body.search(/^    css:/m);
-  return at >= 0 && unitOf(body.slice(at)) === 'vmin';
 }
 
 /* ---------- docs and release readiness ---------- */
@@ -509,7 +494,7 @@ else {
   notes.length = before;
 }
 notes.push(...loaded.notes);
-const { demos, snippets, from, groups = [] } = loaded;
+const { demos, from, groups = [] } = loaded;
 const ids = demos.map((d) => d.id);
 const titles = Object.fromEntries(demos.map((d) => [d.id, d.title]));
 lap('model load');
@@ -552,21 +537,8 @@ lap('staleness');
 const models = demos.map((d) => {
   const src = sources.get(d.id);
   const snippet = src?.snippet ?? null;
-  const unit = snippet ? unitOf(snippet.css) : null;
-  const converted = unit === 'vmin';
   const why = [];
   if (!snippet) why.push('no snippet found for this id');
-  const runtime = snippets?.[d.id]?.css;
-  if (runtime != null && (unitOf(runtime) === 'vmin') !== converted) why.push(`the loaded snippet CSS ${unitOf(runtime) === 'vmin' ? 'sets' : 'does not set'} --u in vmin but the source text ${converted ? 'does' : 'does not'}`);
-
-  let convertedInHead = null;
-  if (snippet) {
-    if (snippet.found === 'grep') convertedInHead = convertedAt(headLines.get(snippet.file), d.id);
-    else {
-      const lines = headLines.get(snippet.file);
-      if (lines) { const t = lines.join('\n'); const at = t.indexOf('css:'); convertedInHead = at >= 0 && unitOf(t.slice(at)) === 'vmin'; }
-    }
-  }
 
   const commits = perModel.get(d.id) ?? [];
   const byDiff = commits.filter((c) => c.matchedBy.includes('diff'));
@@ -631,7 +603,6 @@ const models = demos.map((d) => {
   const firstGap = GATES.find((g) => !gates[g.key].ok) ?? null;
   const allClear = !firstGap;
   const missing = [];
-  if (!converted) missing.push(unit === 'other' ? `not converted: the snippet sets --u only in another unit (${uValues(snippet.css).join(', ')}), not vmin` : 'not converted: the snippet CSS does not set --u');
   for (const g of GATES) {
     const k = gates[g.key].kind, c = checks[g.key];
     if (k === 'never') missing.push(c.status === 'untested' && g.key === 'exports' ? `check-exports ran on it, but its run left out the default settings, so there is no default-settings verdict` : `the ${g.label} has never reported this model`);
@@ -645,11 +616,11 @@ const models = demos.map((d) => {
   if (visualGap) missing.push(visualGap);
   if (textGap) missing.push(textGap);
   const approved = missing.length === 0;
-  const checked = converted && allClear;
-  const status = approved ? 'approved' : checked ? 'checked' : converted ? 'converted' : 'not converted';
+  const checked = allClear;
+  const status = approved ? 'approved' : checked ? 'checked' : 'to check';
   // which reason, inside its bucket (see BUCKETS for the order)
   let part = null;
-  if (status === 'converted') part = firstGap ? `${firstGap.key}:${gates[firstGap.key].kind}` : 'unexplained';
+  if (status === 'to check') part = firstGap ? `${firstGap.key}:${gates[firstGap.key].kind}` : 'unexplained';
   if (status === 'checked') {
     const of = (k) => reviews.filter((r) => r.kind === k);
     const fresh = (k) => of(k).filter((r) => !r.stale);
@@ -663,7 +634,6 @@ const models = demos.map((d) => {
   // counts and filters by. Reviews are listed only once every check is clear (a model still held by
   // a check has its reviews judged again after the fix).
   const holds = [];
-  if (!converted) holds.push('convert');
   for (const g of GATES) if (gates[g.key].kind) holds.push(`${g.key}:${gates[g.key].kind}`);
   if (checked) {
     for (const k of ['visual', 'text']) {
@@ -675,8 +645,6 @@ const models = demos.map((d) => {
 
   return {
     id: d.id, title: d.title, group: d.group, part, holds, groupLabel: groups.find((g) => g.key === d.group)?.label ?? null, tags: d.tags ?? [], status,
-    converted, convertedInHead,
-    uNotVmin: unit === 'other' ? uValues(snippet.css) : null,
     reviews,
     snippet: snippet ? { file: snippet.file, line: snippet.line, foundBy: snippet.found } : null,
     fingerprint: src?.fingerprint ?? null,
@@ -737,7 +705,6 @@ const ledger = {
   sources: {
     models: from,
     groups: 'src/models/groups.ts GROUPS, in GROUP_ORDER; each model\'s group and tags as its demo entry gives them',
-    converted: 'snippet CSS (from its `    css:` line to the end of the `  <id>: {` entry, or a chart file\'s css), comments left out, sets --u in vmin; working tree',
     commits: `git log, ${commitCount} commits; diff matches by replaying src/models and src/styles/models line by line`,
     checks: Object.fromEntries(CHECKS.map((c) => [c, checkFiles[c] ? `docs/checks/${c}.json, updated ${checkFiles[c].updatedAt}` : 'no result file: this check has never been captured'])),
     contractCheck: CONTRACT,
@@ -759,12 +726,9 @@ const ledger = {
   },
   counts: {
     models: models.length,
-    converted: count((m) => m.converted),
-    convertedInHead: count((m) => m.convertedInHead === true),
+    toCheck: count((m) => m.status === 'to check'),
     checked: count((m) => m.status === 'checked' || m.status === 'approved'),
     approved: count((m) => m.approved),
-    notConverted: count((m) => !m.converted),
-    uNotVmin: count((m) => m.uNotVmin),
     byStatus: Object.fromEntries(BUCKETS.map((b) => [b.key, count((m) => m.status === b.key)])),
     buckets: BUCKETS.map((b) => {
       const n = count((m) => m.status === b.key);
@@ -775,13 +739,12 @@ const ledger = {
       const sum = parts.reduce((s, p) => s + p.count, 0);
       return { ...b, count: n, parts, partsSum: sum, partsBalance: sum === n && !odd };
     }),
-    held: count((m) => m.status === 'converted' || m.status === 'not converted'),
+    held: count((m) => m.status === 'to check'),
     // everything holding models back, one entry per reason, OVERLAPPING: a model held by two checks
     // is in both. `alone` is how many are held by that reason and nothing else. In the page's order:
-    // not converted first, then the checks' reasons by size (ties in gate order), then reviews.
+    // the checks' reasons by size (ties in gate order), then reviews.
     blockers: (() => {
       const defs = [
-        { key: 'convert', scope: 'convert', label: 'not converted', means: 'the snippet does not set --u in vmin' },
         ...GATES.flatMap((g, gi) => GATE_KINDS.map((k, ki) => ({ key: `${g.key}:${k.key}`, scope: 'check', check: g.key, kind: k.key, label: kindLabel(g.key, k), means: k.means, order: gi * 10 + ki }))),
         ...['visual', 'text'].flatMap((rk) => REVIEW_HOLDS.map((h) => ({ key: `review:${rk}:${h.key}`, scope: 'review', review: rk, kind: h.key, label: h.label, means: h.means }))),
       ];
@@ -789,14 +752,13 @@ const ledger = {
         const held = models.filter((m) => m.holds.includes(d.key));
         return { ...d, count: held.length, alone: held.filter((m) => m.holds.length === 1).length, ids: held.map((m) => m.id) };
       }).filter((b) => b.count);
-      const rank = { convert: 0, check: 1, review: 2 };
+      const rank = { check: 1, review: 2 };
       out.sort((a, b) => rank[a.scope] - rank[b.scope] || (a.scope === 'check' ? b.count - a.count || a.order - b.order : 0));
       return out.map(({ order, ...b }) => b);
     })(),
     // running totals, for anyone who wants them; never the same names as the buckets
     reachedAtLeast: [
-      { label: 'reached at least "converted"', count: count((m) => m.status !== 'not converted') },
-      { label: 'reached at least "checked"', count: count((m) => m.status === 'checked' || m.status === 'approved') },
+      { label: 'reached at least "awaiting review"', count: count((m) => m.status === 'checked' || m.status === 'approved') },
       { label: 'reached "approved"', count: count((m) => m.status === 'approved') },
     ],
     checks: Object.fromEntries(MODEL_KEYS.map((c) => {
@@ -841,8 +803,8 @@ const disagree = models.filter((m) => {
   const review = m.holds.some((h) => h.startsWith('review:'));
   if (m.status === 'approved') return m.holds.length > 0;
   if (m.status === 'checked') return gate || !review;
-  if (m.status === 'converted') return !gate || review;
-  return !m.holds.includes('convert');
+  if (m.status === 'to check') return !gate || review;
+  return true; // a status that is none of the three stages
 });
 if (disagree.length) problems.push(`${disagree.length} model(s) have holds that do not match their bucket: ${disagree.slice(0, 5).map((m) => `${m.id} (${m.status}: ${m.holds.join(', ') || 'none'})`).join('; ')}`);
 c0.balance = { models: models.length, sum: bucketSum, ok: problems.length === 0, problems };
@@ -854,7 +816,7 @@ lap('balance'); ledger.build.phases = phases;
 const wrote = writeAtomic(OUT, JSON.stringify(ledger, null, 1), { log: quiet ? null : console.error });
 const c = ledger.counts;
 if (!quiet) {
-  console.log(`docs/ledger.json: ${c.models} models — ${c.converted} converted (${c.convertedInHead} of them in HEAD), ${c.checked} checked, ${c.approved} approved.`);
+  console.log(`docs/ledger.json: ${c.models} models — ${c.toCheck} to check, ${c.checked - c.approved} awaiting review, ${c.approved} approved.`);
   for (const name of MODEL_KEYS) console.log(`  ${name.padEnd(7)} ${Object.entries(c.checks[name]).map(([k, v]) => `${v} ${k}`).join(', ')}`);
   for (const n of notes) console.log(`  note: ${n}`);
 }
