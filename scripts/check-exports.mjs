@@ -53,12 +53,24 @@
  * The animations are held at one moment (CAPTURE_T ms, as compare-capture does) so the screen and
  * the file are of the same pose. A model that moves by script as well is caught (two screenshots
  * apart differ) and flagged, since its screen and file cannot be of the same instant.
+ *
+ * A BROKEN BROWSER BREAKS ONE MODEL AT MOST (scripts/browser-guard.mjs). A model whose run hits a
+ * browser-level error (a protocol error, "Unable to capture screenshot", a goto timeout, a crashed
+ * or closed target) is run again from the start, both tabs, once, in a fresh browser: its name is
+ * printed again, what the broken try printed is dropped (scripts/capture-check.mjs starts the
+ * model's section afresh at its name), and "    note: retried after a browser failure" is printed
+ * at the end of its section. Only a second failure gives it `MISMATCH run browser: …  [harness]`.
+ * Such an error is never reported as a tab that could not be run. The browser is also replaced
+ * every 20 models; a model waits (up to 3 minutes) while free memory is under 1.5 GB, and says
+ * "ran under memory pressure" in the same kind of note when it had to go on anyway; and a crash
+ * inside Playwright is said on stderr with exit 3, the sections printed before it kept.
  */
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
+import { BrowserGuard, crashGuard, isBrowserError } from './browser-guard.mjs';
 import { exportServer } from '../server/dev.mjs';
 import { DEFAULTS } from './export-defaults.mjs';
 
@@ -117,9 +129,20 @@ const cacheDir = mkdtempSync(join(tmpdir(), 'check-exports-vite-'));
 const vite = await createVite({ logLevel: 'error', cacheDir, server: { host: '127.0.0.1', port: 0, watch: null, hmr: false } });
 await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
-const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1 });
-await context.addInitScript(() => { try { localStorage.setItem('c3d-dots', '0'); } catch {} });
+// the browser, its one context and the lab page: all made again whenever scripts/browser-guard.mjs
+// launches a fresh browser (after one breaks, and every 20 models); started once HELPERS exists, below
+let context, lab;
+const guard = new BrowserGuard({
+  launch: () => chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] }),
+  setup: async (browser) => {
+    context = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1 });
+    await context.addInitScript(() => { try { localStorage.setItem('c3d-dots', '0'); } catch {} });
+    await context.addInitScript({ content: HELPERS });
+    lab = await context.newPage();
+    await lab.goto("about:blank");
+    await lab.evaluate(HELPERS);
+  },
+});
 
 /* ---------------- pixel work, done in a browser ---------------- */
 // Installed in the lab page and the model page alike. Everything returns fractions of the image.
@@ -281,11 +304,7 @@ window.__px = {
     return s / (p.length / 4);
   },
 };`;
-await context.addInitScript({ content: HELPERS });
-
-const lab = await context.newPage();
-await lab.goto("about:blank");
-await lab.evaluate(HELPERS);
+await guard.start();
 
 /* ---------------- the report ---------------- */
 const results = [];
@@ -828,10 +847,25 @@ async function checkVideos(id) {
 
 /* ---------------- run ---------------- */
 const started = Date.now();
+crashGuard('check-exports', async () => console.error(`check-exports: the sections printed before the crash are kept; ${mismatches.length} mismatch(es) in them`));
 for (const id of models) {
-  say(`\n${id}`);
-  try { await checkImages(id); } catch (e) { miss(id, 'run', 'image tab', e.message.split('\n')[0], 'harness'); await page?.close().catch(() => {}); }
-  try { await checkVideos(id); } catch (e) { miss(id, 'run', 'video tab', e.message.split('\n')[0], 'harness'); await page?.close().catch(() => {}); }
+  let notes = [];
+  // a try that the browser broke leaves nothing behind: each try starts by dropping what an earlier
+  // one added, and the name printed again starts the model's section afresh for capture-check
+  const mark = { results: results.length, mismatches: mismatches.length, untestable: untestable.length };
+  try {
+    ({ notes } = await guard.run(id, async () => {
+      results.length = mark.results; mismatches.length = mark.mismatches; untestable.length = mark.untestable;
+      say(`\n${id}`);
+      try { await checkImages(id); } catch (e) { await page?.close().catch(() => {}); if (isBrowserError(e)) throw e; miss(id, 'run', 'image tab', e.message.split('\n')[0], 'harness'); }
+      try { await checkVideos(id); } catch (e) { await page?.close().catch(() => {}); if (isBrowserError(e)) throw e; miss(id, 'run', 'video tab', e.message.split('\n')[0], 'harness'); }
+    }));
+  } catch (e) {
+    // the retry broke its browser too
+    notes = e.notes ?? [];
+    miss(id, 'run', 'browser', e.message.split('\n')[0], 'harness');
+  }
+  for (const n of notes) say(`    note: ${n}`);
 }
 
 say(`\n${mismatches.length} mismatch${mismatches.length === 1 ? '' : 'es'} in ${((Date.now() - started) / 60000).toFixed(1)} min:`);
@@ -839,7 +873,7 @@ for (const m of mismatches) say(`  ${m.model.padEnd(10)} ${m.check.padEnd(8)} ${
 if (untestable.length) { say('\nnot testable here:'); for (const u of [...new Set(untestable)]) say(`  ${u}`); }
 if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ T, INK, TOL, mode: defaultsOnly ? 'defaults' : quick ? 'quick' : 'full', models, results, mismatches, untestable }, null, 2));
 
-await browser.close();
+await guard.close();
 await vite.close();
 service?.close();
 rmSync(cacheDir, { recursive: true, force: true });
