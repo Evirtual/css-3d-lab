@@ -1218,7 +1218,7 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 /* the camera: close, and high above the road */
 .scene {
   position: relative;
-  width: calc(340 * var(--u));
+  width: calc(380 * var(--u));
   height: calc(200 * var(--u));
   perspective: calc(560 * var(--u));
   perspective-origin: 50% calc(-80 * var(--u));
@@ -1236,9 +1236,9 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 /* the road: stood on its near edge, laid back flat; it stays put */
 .road {
   position: absolute;
-  left: calc(50% - calc(34 * var(--u)));
+  left: calc(50% - calc(48 * var(--u)));
   top: calc(62% - calc(684 * var(--u))); /* its near edge 36 units below the cards' centre */
-  width: calc(68 * var(--u));
+  width: calc(96 * var(--u));
   height: calc(720 * var(--u)); /* it has faded out by its far end, so it stops there */
   overflow: hidden;
   background:
@@ -1285,14 +1285,14 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 .card {
   --d: calc(var(--i) - var(--a)); /* steps from the active card */
   position: absolute;
-  left: calc(-50 * var(--u));
-  top: calc(-52 * var(--u));
+  left: calc(-62 * var(--u));
+  top: calc(-62 * var(--u));
   display: grid;
   align-content: center;
   gap: calc(2 * var(--u));
-  width: calc(100 * var(--u));
-  height: calc(56 * var(--u));
-  padding: 0 calc(12 * var(--u));
+  width: calc(124 * var(--u));
+  height: calc(66 * var(--u));
+  padding: 0 calc(15 * var(--u));
   border: calc(1 * var(--u)) solid rgb(140 150 220 / 0.34);
   border-radius: calc(10 * var(--u));
   background: linear-gradient(160deg, #3d3576, #202045);
@@ -1302,20 +1302,20 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
   opacity: clamp(0, min(1 - var(--d) * 0.2, 1 + var(--d) * 4), 1);
   /* beside the road, one step back per index; passed cards held one step ahead of the camera */
   transform:
-    translate3d(calc(var(--s) * 62 * var(--u)), 0, calc((var(--i) * -1 + min(var(--d) + 1, 0)) * 110 * var(--u)))
+    translate3d(calc(var(--s) * 112 * var(--u)), 0, calc((var(--i) * -1 + min(var(--d) + 1, 0)) * 110 * var(--u)))
     rotateY(calc(var(--s) * -16deg));
   transition: opacity 0.6s, transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1), border-color 0.4s;
 }
 
 .card b {
-  font-size: calc(20 * var(--u));
+  font-size: calc(25 * var(--u));
   font-weight: 900;
   line-height: 1;
 }
 
 .card span {
   color: ${MUTED};
-  font-size: calc(12 * var(--u));
+  font-size: calc(15 * var(--u));
   font-weight: 700;
   white-space: nowrap;
 }
