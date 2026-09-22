@@ -65,12 +65,23 @@
  * image, a blank model, a cropped headline, a stale image (colours changed; turned only 3 degrees:
  * 1.9%; and one of a model that moves in script), an image of the wrong size, and tags with no
  * ?v= version each fail here, while untouched models beside them pass.
+ *
+ * A BROKEN BROWSER BREAKS ONE MODEL AT MOST (scripts/browser-guard.mjs). A model whose run hits a
+ * browser-level error (a protocol error, "Unable to capture screenshot", a goto timeout, a crashed
+ * or closed target) is checked again, once, in a fresh browser (the models beside it finish first,
+ * or are retried with it), and its line ends "retried after a browser failure"; only a second
+ * failure makes it FAILS ("the check could not run"). Such an error is never read as "the og page
+ * did not render". The browser is also replaced every 20 models; a model waits (up to 3 minutes)
+ * while free memory is under 1.5 GB, and its line ends "ran under memory pressure" when it had to
+ * go on anyway; and a crash inside Playwright is said on stderr with exit 3, the lines printed
+ * before it kept.
  */
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
 import { chromium } from 'playwright';
+import { BrowserGuard, crashGuard, isBrowserError } from './browser-guard.mjs';
 import { createServer as createVite } from 'vite';
 import { MOMENT, settle, shotContext, VIEWPORT } from './og-shot.mjs';
 
@@ -119,10 +130,17 @@ const server = createServer((req, res) => {
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
-const browser = await chromium.launch();
-// one comparison page per worker, so the pixel work of parallel models runs in parallel
-const cmpCtx = await browser.newContext();
-const cmps = await Promise.all(Array.from({ length: CONCURRENCY }, async () => { const p = await cmpCtx.newPage(); await p.goto(`${base}/__mc/`); return p; }));
+// one comparison page per worker, so the pixel work of parallel models runs in parallel; made again
+// whenever scripts/browser-guard.mjs launches a fresh browser (after one breaks, and every 20 models)
+let cmpCtx, cmps;
+const guard = new BrowserGuard({
+  launch: () => chromium.launch(),
+  setup: async (b) => {
+    cmpCtx = await b.newContext();
+    cmps = await Promise.all(Array.from({ length: CONCURRENCY }, async () => { const p = await cmpCtx.newPage(); await p.goto(`${base}/__mc/`); return p; }));
+  },
+});
+await guard.start();
 
 /* ---------- 1. the file and the tags ---------- */
 /** Width, height and kind from the file's own bytes: a JPEG's SOF marker. */
@@ -355,7 +373,7 @@ async function compare({ jpg, fresh, again, plate, model, panel, DIFF }) {
 }
 
 /* ---------- one model ---------- */
-async function checkOne(d, cmp) {
+async function checkOne(d, cmp, browser) {
   const why = [], facts = {};
   fileAndTags(d, why, facts);
   const ctx = await shotContext(browser);
@@ -367,7 +385,7 @@ async function checkOne(d, cmp) {
     page.on('requestfailed', (r) => errors.push(`request failed: ${r.url().replace(base, '')}`));
     let frame;
     try { ({ frame } = await settle(page, base, { id: d.id, pointer: pointer.get(d.id) })); }
-    catch (e) { why.push(`the og page did not render: ${e.message.split('\n')[0]}`); return { why, facts }; }
+    catch (e) { if (isBrowserError(e)) throw e; why.push(`the og page did not render: ${e.message.split('\n')[0]}`); return { why, facts }; }
     const fresh = await page.screenshot({ type: 'png' });
     await page.waitForTimeout(WOBBLE_GAP);
     const again = await page.screenshot({ type: 'png' });
@@ -472,7 +490,7 @@ async function checkOne(d, cmp) {
       }
     }
   } finally {
-    await ctx.close();
+    await ctx.close().catch(() => {}); // a dead browser's context: the error that matters is the one above
   }
   return { why, facts };
 }
@@ -481,20 +499,28 @@ async function checkOne(d, cmp) {
 const started = Date.now();
 const queue = [...list];
 const results = [];
-await Promise.all(Array.from({ length: CONCURRENCY }, async () => {
-  const cmp = cmps.pop();
+crashGuard('check-media', async () => console.error(`check-media: ${results.length} of ${list.length} model(s) checked before the crash, each on its own line above`));
+await Promise.all(Array.from({ length: CONCURRENCY }, async (_, slot) => {
   for (let d = queue.shift(); d; d = queue.shift()) {
-    let r;
-    try { r = await checkOne(d, cmp); } catch (e) { r = { why: [`the check could not run: ${e.message.split('\n')[0]}`], facts: {} }; }
+    let r, notes = [];
+    try {
+      // this worker's comparison page in whichever browser is current
+      ({ value: r, notes } = await guard.run(d.id, (browser) => checkOne(d, cmps[slot], browser)));
+    } catch (e) {
+      r = { why: [`the check could not run: ${e.message.split('\n')[0]}`], facts: {} };
+      notes = e.notes ?? [];
+    }
+    if (notes.length) r.guard = notes;
+    const also = notes.length ? `; ${notes.join('; ')}` : ''; // what scripts/browser-guard.mjs had to do, on the model's own line
     results.push({ id: d.id, ...r });
     const f = r.facts;
     const summary = [f.size, f.diff, f.scripted, f.visible && `${f.visible} visible`, f.headline && `headline ${f.headline}`, f.version && `?v=${f.version}`].filter(Boolean).join('; ');
     // one line per model, then its reasons, printed together so parallel models never interleave
-    console.log(`${r.why.length ? 'FAILS' : 'pass '}   ${d.id.padEnd(14)} ${r.why.length ? `${r.why.length} problem(s)` : summary}${r.why.map((w) => `\n          ${w}`).join('')}`);
+    console.log(`${r.why.length ? 'FAILS' : 'pass '}   ${d.id.padEnd(14)} ${r.why.length ? `${r.why.length} problem(s)` : summary}${also}${r.why.map((w) => `\n          ${w}`).join('')}`);
   }
 }));
-await cmpCtx.close();
-await browser.close();
+await cmpCtx.close().catch(() => {});
+await guard.close();
 server.close();
 const bad = results.filter((r) => r.why.length);
 console.log(`\n${results.length - bad.length}/${results.length} share previews are right. (moment ${MOMENT}ms, ${((Date.now() - started) / 60000).toFixed(1)} min)`);
