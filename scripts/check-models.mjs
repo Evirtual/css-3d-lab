@@ -35,6 +35,12 @@
  * least the 40vmin floor tall, judged on solid ink like the rest. The union checks stand as they
  * are: the resting pose is judged as well as, not instead of, every state.
  *
+ * THE RESTING POSE AFTER NO HOVER. Every picture without :hover (the resting pose first among them)
+ * is taken before :hover is forced at all, in GUIDE's quick pass or in a picture. Forcing it and then
+ * taking it away starts every closing transition, and the POSE of a transition at the start of the
+ * timeline is its first moment: the rest was read as the open pose at the start of its way back
+ * (the package, shut at rest, read 47 × 64 vmin, its open lid; it now reads 47 × 48).
+ *
  * A CONTROL THAT OPENS RESTS SMALL, WHEN IT SAYS SO. A model that IS a small control which opens
  * into something (a menu button, a fold-down menu, a disclosure) carries the tag 'expands' in its
  * gallery entry (src/models/interaction.ts, expands()); nothing is inferred. Its resting pose is
@@ -406,21 +412,23 @@ async function look() {
     let seen = null, body = null, controls = false, first = null;
     const join = (a, b) => (a ? { ...b, l: Math.min(a.l, b.l), t: Math.min(a.t, b.t), r: Math.max(a.r, b.r), b: Math.max(a.b, b.b) } : b);
     const times = momentsOf(await frame().evaluate(new Function('return ' + PLAN)()));
-    const poses = [];
+    // Every picture without :hover is taken before :hover is forced at all (see THE RESTING POSE
+    // AFTER NO HOVER): forcing it and taking it away again starts the closing transitions, and a
+    // picture taken then is the open pose at the start of its way back, not the resting pose.
+    const n = times.length, span = times.span ?? Math.max(...times, 0);
     for (const hover of [false, true]) {
-      const n = times.length, span = times.span ?? Math.max(...times, 0);
-      poses.push(...times.map((t, k) => ({ t, hover, k, n })));
       // the regular moments first (the first is the resting pose), then the extremes between them
+      const poses = times.map((t, k) => ({ t, hover, k, n }));
       for (const t of await extremes(times, hover)) poses.push({ t, hover, k: span ? (t / span) * (n - 1) : 0, n });
-    }
-    for (const pose of poses) {
-      const shows = await frame().evaluate(new Function('return ' + POSE)(), pose);
-      controls = shows || controls;
-      const ink = inkBoxes(await page.screenshot({ omitBackground: true, clip }), INK, SOLID);
-      // the first pose is the start of the timeline with no :hover: the resting pose, on a first look
-      first ??= { solid: ink.solid, all: ink.all, controls: shows };
-      if (ink.all) seen = join(seen, ink.all);
-      if (ink.solid) body = join(body, ink.solid);
+      for (const pose of poses) {
+        const shows = await frame().evaluate(new Function('return ' + POSE)(), pose);
+        controls = shows || controls;
+        const ink = inkBoxes(await page.screenshot({ omitBackground: true, clip }), INK, SOLID);
+        // the first pose is the start of the timeline with no :hover: the resting pose, on a first look
+        first ??= { solid: ink.solid, all: ink.all, controls: shows };
+        if (ink.all) seen = join(seen, ink.all);
+        if (ink.solid) body = join(body, ink.solid);
+      }
     }
     await frame().evaluate(new Function('return ' + RELEASE)());
     if (!seen) return null;
