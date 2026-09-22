@@ -125,6 +125,15 @@ Without `npm run export` running, everything works in dev except making a video 
 
 Every script says how to run it in the comment at its top.
 
+**When the browser breaks.** Every browser-driven check (`check-models`, `check-stages`, `check-motion`, `check-access`, `check-media`, `check-exports` and `qa`) runs its models through `scripts/browser-guard.mjs`, so one bad moment costs at most one model, not the rest of the run:
+
+- A model whose run hits a browser-level error (a protocol error, "Unable to capture screenshot", a `goto` or `setContent` timeout, a crashed or closed target, a disconnected browser) runs again, once, in a fresh browser, and its result says `retried after a browser failure`. Only a second failure makes it fail or `BROKE`, and the next model starts in a fresh browser too.
+- The browser is replaced every 20 models (`C3D_RELAUNCH_EVERY`), so its memory cannot creep up over a long run.
+- Before each model, free memory is read. Under 1.5 GB (`C3D_MIN_FREE_GB`) the check waits, logging `waiting for memory: X GB free` every 10 s, for up to 3 minutes (`C3D_MEM_WAIT_S`). If memory is still low, the model runs anyway and its result says `ran under memory pressure`. Nothing else is ever killed.
+- A crash inside Playwright ends the run with `CRASHED` on stderr and exit 3, not silently. Results printed before the crash are kept: `capture-check` records each model as its line arrives, `check-stages` prints its report for the finished models under a `PARTIAL` line, and `check-motion` and `check-access` write their `report.json` so far.
+
+The notes go on each model's own line, where `capture-check` records them with the result. For `check-stages` and `check-exports` they go on a `note:` line under the model instead, and for `qa` on a `note:` line after the problems. Those lines show in the log, but `capture-check` does not record them. Messages about the browser itself go to stderr, prefixed `browser-guard:`. The checks' output is otherwise unchanged, so `capture-check` reads it as before. To test the guard, `C3D_FAULT=kill-after:N` kills the browser once after the Nth model, `kill-during:N` kills it 3 s into a model, and `crash-after:N` throws an unhandled rejection.
+
 ## Add a model
 
 See [docs/ADDING-MODELS.md](docs/ADDING-MODELS.md) — the snippet is the model, written to
