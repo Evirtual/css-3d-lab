@@ -95,6 +95,7 @@ const FAINT = 6;
 const TOL = 0.015; // a box edge may be this share of the side off before it is a mismatch
 const PIC_TOL = 6; // mean luminance difference (0-255) between screen and file, downscaled
 const LIVE_MS = 1200; // a live take for the size matrix
+const MAKE_MS = 20 * 60_000; // how long to wait for one export to come back (see make())
 
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
@@ -453,7 +454,12 @@ async function make({ live = false } = {}) {
     if (file) return { ok: true, note };
     if (/did not work/.test(note)) return { ok: false, note };
     return false;
-  }, null, { timeout: 240_000, polling: 250 }).then((h) => h.jsonValue()).catch(() => ({ ok: false, note: 'timed out after 240s' }));
+  // Long enough for the largest export the dialog offers: a 30 s loop is 900 frames, and the page's
+  // own watchdog (src/capture-client.ts) gives the service 70 s + 1 s a frame, about 16 minutes, so
+  // a shorter wait here would call a render that is still going "timed out" instead of letting the
+  // app say what happened. 4 minutes did exactly that to five heavy models once the service's own
+  // deadline stopped cutting them short.
+  }, null, { timeout: MAKE_MS, polling: 250 }).then((h) => h.jsonValue()).catch(() => ({ ok: false, note: `timed out after ${MAKE_MS / 1000}s` }));
   const took = (Date.now() - started) / 1000;
   if (!done.ok) return { caption, note: done.note, took, error: done.note };
   // the first bitmap made is the service's first frame; the app then makes one of the file itself
@@ -844,7 +850,7 @@ async function checkVideos(id) {
       const file = live ? await (async () => {
         // an untouched model, filmed live for two seconds
         await click('.maker [data-go]'); await page.waitForTimeout(2000); await click('.maker [data-stop]');
-        await page.waitForFunction(() => document.querySelector('.maker [data-frame] video') || /did not work/.test(document.querySelector('.maker [data-note]')?.textContent ?? ''), null, { timeout: 240_000 });
+        await page.waitForFunction(() => document.querySelector('.maker [data-frame] video') || /did not work/.test(document.querySelector('.maker [data-note]')?.textContent ?? ''), null, { timeout: MAKE_MS });
         const note = await dlg(() => document.querySelector('.maker [data-note]')?.textContent ?? '');
         if (/did not work/.test(note)) return { error: note };
         return dlg(async () => { const el = document.querySelector('.maker [data-frame] video'); const v = document.createElement('video'); v.src = el.src; await new Promise((ok) => { v.onloadedmetadata = ok; }); return { src: el.src, width: v.videoWidth, height: v.videoHeight, duration: v.duration, note: document.querySelector('.maker [data-note]').textContent }; });
