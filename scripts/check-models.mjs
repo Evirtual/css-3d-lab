@@ -46,6 +46,13 @@
  * Its line says "rests small by design (expands)" with both sizes, pass or fail. A box, a book or
  * a card is not a control: it keeps the floor at rest.
  *
+ * A WIDE MODEL IS SIZED BY ITS WIDTH, WHEN IT SAYS SO. A model whose own design is a long, low
+ * shape (a clock of three pairs on one line) carries the tag 'wide' (interaction.ts, wide()); again
+ * nothing is inferred. It is exempt from the 40vmin height floor, at rest and in the union, and is
+ * held to a width floor instead: at least WIDE_FLOOR vmin wide at rest and in the union of every
+ * state, at most the usual 92, and centred by the usual rules at rest and in every state. Its line
+ * says "sized by width (wide)" with its rest and union sizes, pass or fail.
+ *
  * NO MOMENT SLIPS BETWEEN THE PICTURES. The timeline is photographed at 12 regular moments per
  * loop (see momentsOf), which on a 24s loop is one picture every 2s: a part that overshoots for
  * less than that can break the band unseen. So before the pictures, a quick pass puts the timeline
@@ -86,6 +93,11 @@ import { BrowserGuard, crashGuard, isBrowserError, unlessBrowser } from './brows
 
 const BAND = 70; // the model box, with no controls
 const FLOOR = 40; // nothing may be smaller than this
+// ...except a model tagged 'wide', which is sized by width instead: at least this wide. The
+// gallery's wide models sit 80 to 91vmin across (keycaps 80, rating and the chart panel 81, the
+// wide text models 86 to 91), so 80 is the narrowest a wide model already is: one under it reads
+// as a model that is simply small, not one that is wide by design
+const WIDE_FLOOR = 80;
 const WIDEST = 92; // per cent of the canvas width
 const CORNER = 14; // the site's badge and menu live in the top corners
 const CENTRED = 4; // how far off the middle a model may sit, in vmin
@@ -343,7 +355,7 @@ const vite = await createVite({ logLevel: 'error', server: { host: '127.0.0.1', 
 await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
-const { interactionsOf, expands } = await vite.ssrLoadModule('/src/models/interaction.ts');
+const { interactionsOf, expands, wide } = await vite.ssrLoadModule('/src/models/interaction.ts');
 const args = process.argv.slice(2);
 const showPasses = args.includes('--pass');
 const wanted = args.filter((a) => !a.startsWith('-'));
@@ -502,6 +514,8 @@ async function judgeModel(id, notes = []) {
   const rest = seen?.rest;
   // a control that opens (tag 'expands'): its open state is every look after the interaction
   const opens = Boolean(demo && expands(demo));
+  // a wide model (tag 'wide'): sized by its width, not its height
+  const long = Boolean(demo && wide(demo));
   let opened = null;
   const after = async () => { const l = await look(); seen = widest(seen, l); if (opens) opened = widest(opened, l); };
   const box = await page.locator('.stage[data-demo], .stage').first().boundingBox();
@@ -553,7 +567,8 @@ async function judgeModel(id, notes = []) {
       if (seen.faint) broke.push('no solid ink, only faint');
       if (seen.edge) broke.push('reaches the canvas edge');
       if (seen.height > tallest) broke.push(`${seen.height.toFixed(0)}vmin tall, over ${tallest}`);
-      if (seen.height < FLOOR) broke.push(`${seen.height.toFixed(0)}vmin tall, under ${FLOOR}`);
+      if (seen.height < FLOOR && !long) broke.push(`${seen.height.toFixed(0)}vmin tall, under ${FLOOR}`);
+      if (long && seen.width < WIDE_FLOOR) broke.push(`${seen.width.toFixed(0)}vmin wide, under ${WIDE_FLOOR} (wide)`);
       if (seen.width > WIDEST) broke.push(`${seen.width.toFixed(0)}vmin wide, over ${WIDEST}`);
       if (Math.abs(seen.offX) > CENTRED) broke.push(`${seen.offX.toFixed(0)}vmin off centre sideways`);
       if (Math.abs(seen.offY) > CENTRED + (seen.controls ? 7 : 0)) broke.push(`${seen.offY.toFixed(0)}vmin off centre vertically`);
@@ -563,7 +578,9 @@ async function judgeModel(id, notes = []) {
       else if (rest?.faint) broke.push('at rest: no solid ink, only faint');
       else if (rest) {
         // a control that opens rests at its natural size: the floor is asked of its open state below
-        if (rest.height < FLOOR && !opens) broke.push(`at rest: ${rest.height.toFixed(0)}vmin tall, under ${FLOOR}`);
+        if (rest.height < FLOOR && !opens && !long) broke.push(`at rest: ${rest.height.toFixed(0)}vmin tall, under ${FLOOR}`);
+        // a wide model is sized by its width: the floor is a width, at rest too
+        if (long && rest.width < WIDE_FLOOR) broke.push(`at rest: ${rest.width.toFixed(0)}vmin wide, under ${WIDE_FLOOR} (wide)`);
         if (Math.abs(rest.offX) > CENTRED) broke.push(`at rest: ${rest.offX.toFixed(0)}vmin off centre sideways`);
         if (Math.abs(rest.offY) > CENTRED + (rest.controls ? 7 : 0)) broke.push(`at rest: ${rest.offY.toFixed(0)}vmin off centre vertically`);
       }
@@ -581,8 +598,10 @@ async function judgeModel(id, notes = []) {
   rows.push({ id, broke, seen });
   // a control that opens says so on its line, pass or fail, with its rest and open sizes
   const small = !opens ? '' : `; rests small by design (expands)${rest && opened ? `: at rest ${rest.width.toFixed(0)} × ${rest.height.toFixed(0)} vmin, off ${rest.offX.toFixed(0)}, ${rest.offY.toFixed(0)}; open ${opened.width.toFixed(0)} × ${opened.height.toFixed(0)} vmin, off ${opened.offX.toFixed(0)}, ${opened.offY.toFixed(0)}` : ''}`;
-  if (broke.length) console.log(`FAILS   ${id.padEnd(14)} ${broke.join('; ')}${small}${also}`);
-  else if (opens) console.log(`holds   ${id.padEnd(14)} ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${seen.controls ? ', with controls' : ''}${small}${also}`);
+  // a wide model says so on its line too
+  const byWidth = !long ? '' : `; sized by width (wide)${seen ? `: ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${rest ? `, at rest ${rest.width.toFixed(0)} × ${rest.height.toFixed(0)} vmin, off ${rest.offX.toFixed(0)}, ${rest.offY.toFixed(0)}` : ''}` : ''}`;
+  if (broke.length) console.log(`FAILS   ${id.padEnd(14)} ${broke.join('; ')}${small}${byWidth}${also}`);
+  else if (opens || long) console.log(`holds   ${id.padEnd(14)} ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${seen.controls ? ', with controls' : ''}${small}${byWidth}${also}`);
   else if (showPasses || also) console.log(`holds   ${id.padEnd(14)} ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${seen.controls ? ', with controls' : ''}${rest ? `; at rest ${rest.width.toFixed(0)} × ${rest.height.toFixed(0)} vmin, off ${rest.offX.toFixed(0)}, ${rest.offY.toFixed(0)}` : ''}${also}`);
   else process.stdout.write('.');
 }

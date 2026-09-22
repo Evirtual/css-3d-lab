@@ -54,9 +54,11 @@
  *      check-models does (the page and stage backdrop taken off, the frame photographed on
  *      nothing): solid ink (alpha 128+) at least 40vmin and at most 70vmin tall, at most 92vmin
  *      wide, within 4vmin of the middle (vertically 11 with a control zone), not reaching the
- *      canvas edge; a model whose faint ink (alpha 24+) covers 95% of the canvas each way is a
- *      full-canvas scene and must cover 98%. Here the canvas is the og layout's model area and
- *      the pose is the one the image shows, not every pose check-models goes through: the resting
+ *      canvas edge (a model tagged 'wide' is sized by width instead: at least 80vmin wide and no
+ *      height floor, as check-models judges it); a model whose faint ink (alpha 24+) covers 95%
+ *      of the canvas each way is a full-canvas scene and must cover 98%. Here the canvas is the
+ *      og layout's model area and the pose is the one the image shows, not every pose
+ *      check-models goes through: the resting
  *      pose, or for a control that opens ('expands') its open pose, so that is the pose judged
  *      here, and its pass line says "shot open (<how it was opened>)".
  *
@@ -95,6 +97,7 @@ const VISIBLE = 0.005; // at least this share of the model's area must differ fr
 const WOBBLE_GAP = 350; // ms between the two renders that tell a model moving in script
 const INK = 24, SOLID = 128; // check-models' two alpha thresholds (all ink, solid body)
 const BAND = 70, FLOOR = 40, WIDEST = 92, CENTRED = 4; // docs/VIEW-CONTRACT.md, as check-models reads it
+const WIDE_FLOOR = 80; // a model tagged 'wide' is sized by width: at least this wide, no height floor (check-models)
 const CONCURRENCY = 3;
 
 const argv = process.argv.slice(2);
@@ -111,7 +114,7 @@ const vite = await createVite({ configFile: false, root: resolve('.'), server: {
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
 const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
 const { standaloneDoc } = await vite.ssrLoadModule('/src/models/snippet-utils.ts');
-const { interactionOf, expands } = await vite.ssrLoadModule('/src/models/interaction.ts');
+const { interactionOf, expands, wide } = await vite.ssrLoadModule('/src/models/interaction.ts');
 await vite.close();
 const pointer = new Map(JSON.parse(readFileSync('src/generated/model-ids.json', 'utf8')).map((d) => [d.id, d.pointer]));
 // how og-shot is to shoot a model: a control that opens ('expands') is shot open, the way it is played
@@ -487,7 +490,9 @@ async function checkOne(d, cmp, browser) {
           const offX = ((s.l + s.r) / 2 - W / 2) / unit, offY = ((s.t + s.b) / 2 - H / 2) / unit;
           const ctrl = Boolean(fr?.controls);
           facts.size = `${w.toFixed(0)} × ${h.toFixed(0)} vmin, off ${offX.toFixed(1)}, ${offY.toFixed(1)}${ctrl ? ', with controls' : ''}`;
-          if (h < FLOOR) why.push(`${h.toFixed(2)}vmin tall in the image, under ${FLOOR}`);
+          if (h < FLOOR && !wide(d)) why.push(`${h.toFixed(2)}vmin tall in the image, under ${FLOOR}`);
+          if (wide(d)) facts.size += ', sized by width (wide)';
+          if (wide(d) && w < WIDE_FLOOR) why.push(`${w.toFixed(2)}vmin wide in the image, under ${WIDE_FLOOR} (wide)`);
           if (h > BAND) why.push(`${h.toFixed(2)}vmin tall in the image, over ${BAND}`);
           if (w > WIDEST) why.push(`${w.toFixed(2)}vmin wide in the image, over ${WIDEST}`);
           if (Math.abs(offX) > CENTRED) why.push(`${offX.toFixed(2)}vmin off centre sideways in its area`);

@@ -43,6 +43,16 @@ export function expands(d: Pick<Demo, 'tags'>): boolean {
   return d.tags.includes('expands');
 }
 
+/**
+ * A model whose own design is a long, low shape (the flip clock's three pairs on one line) is sized
+ * by its WIDTH: it says so with the tag `'wide'`, never inferred. docs/VIEW-CONTRACT.md, "A wide
+ * model is sized by its width": check-models and check-media then drop the 40vmin height floor
+ * for it and ask at least 80vmin of width instead, centred as usual.
+ */
+export function wide(d: Pick<Demo, 'tags'>): boolean {
+  return d.tags.includes('wide');
+}
+
 /** The main way (the reels and the checks drive the demo this way). */
 export function interactionOf(d: Pick<Demo, 'id' | 'tags'>): Interaction {
   return interactionsOf(d)[0] ?? 'none';

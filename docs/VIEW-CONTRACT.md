@@ -166,6 +166,27 @@ not a control: it opens, but it is the object, not a button for one, and it keep
 rest. The models that use it: `radial` (the radial action menu: only the + button at rest) and
 `dropdown` (the fold-down menu: only its Menu bar at rest).
 
+**A wide model is sized by its width.** The second exception. Some models are, by their own
+design, a long and low shape: a flip clock's three pairs stand on one line. At the widest the
+band allows, such a shape is well under 40vmin tall, and restacking it onto two lines only to
+reach the floor gives it a layout it would not otherwise have. So a model marked with the tag
+`'wide'` in its gallery entry (`src/models/interaction.ts`, `wide()`; never inferred) is sized
+by its width instead of its height:
+
+| Marked `'wide'` | Ink | |
+| --- | --- | --- |
+| Shortest | solid | no floor, at rest or in any state |
+| Narrowest | solid | 80vmin, at rest and in the union of every state |
+| Widest | solid | 92, as for any model |
+| Centred | solid | as for any model, at rest and in every state |
+
+80vmin is the narrowest the gallery's wide models already are (the keycaps 80, the rating and the
+chart panel 81, the wide text models 86 to 91): under it a model reads as small, not as wide by
+design. `check-models` says "sized by width (wide)" on its line with its sizes, and
+`check-media` holds its share image to the same width floor. A model that is merely short is not
+wide: only one whose design is a line gets the mark. The model that uses it: `clock` (the flip
+clock, `HH : MM : SS` on one line).
+
 What the frame clips, the picture cannot show: a model drawn past the canvas edge is measured up
 to the edge, so its numbers are a floor.
 

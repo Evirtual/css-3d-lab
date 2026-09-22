@@ -45,6 +45,9 @@ top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
   asked of its open state instead (VIEW-CONTRACT.md, "A control that opens rests small"). Its rest
   is still centred, and its share image is shot open. Only a control gets it: a box, a book or a
   card that opens keeps the floor at rest. Used by `radial` and `dropdown`.
+  `'wide'` marks a model whose own design is a long, low line (a clock of three pairs): it is
+  sized by its width, at least 80vmin and at most 92, centred as usual, with no 40vmin height
+  floor (VIEW-CONTRACT.md, "A wide model is sized by its width"). Used by `clock`.
 - `technique`: 3–4 short strings naming the key properties/tricks (the ingredient chips).
 - `description`: one or two plain sentences saying what it is and the trick behind it.
 
@@ -122,10 +125,12 @@ node scripts/check-motion.mjs <id> # no flicker or pop through its animation and
     frame and measures every pixel with ink in it. A circle fills a square box and a ring turning
     in the screen plane sweeps one, so an element box reads up to a third bigger than what is
     drawn; a `box-shadow` is ink no box contains. Size a model by what the check reports.
-15. **A wide single line of text is too short for the floor.** Text at a width that fits the
-    canvas is well under 40vmin tall, and making it taller makes it too wide. Restack it: the
-    flip clock, the extruded headline, the pointer-lit text, the letter wave and the layered
-    text (GO over DEEP) all stand on two lines.
+15. **A wide single line is too short for the height floor.** A line at a width that fits the
+    canvas is well under 40vmin tall, and making it taller makes it too wide. When the line IS
+    the design, keep it and mark the model `'wide'`: it is then sized by its width, 80 to
+    92vmin, centred, with no height floor (the flip clock stands on one line this way). Restack
+    only when two lines are a layout the model would have anyway; the extruded headline, the
+    pointer-lit text, the letter wave and the layered text (GO over DEEP) stand on two lines.
 
 ## Checks before committing
 
