@@ -361,6 +361,8 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
   position: absolute;
   left: calc(50% - 50.98 * var(--u));
   top: calc(100% - 50.98 * var(--u));
+  /* its border is inside that diameter, so the disc stays centred on the cone's axis */
+  box-sizing: border-box;
   width: calc(101.96 * var(--u));
   height: calc(101.96 * var(--u));
   border-radius: 50%;
