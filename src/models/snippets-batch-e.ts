@@ -140,14 +140,19 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:
 
 /* the ring wraps the ball: its far half (::before) is drawn under the ball (the <i>), its near
    half (::after) over it, in DOM order. The planet faces the camera, so the far half is always the
-   upper half of the ellipse: both halves are the same tilted ellipse, cut along its long axis */
+   upper half of the ellipse: both halves are the same tilted ellipse, centred on the ball and cut
+   along its long axis, through the ball's centre */
 .orbit .ringed {
+  /* a box as wide as the ring, not just the ball: the planet cuts through the orbital plane, and
+     where the browser splits it there, it dropped any ring that stuck out of the box */
+  left: calc(50% - var(--s) * var(--u) * 1.1);
+  width: calc(var(--s) * var(--u) * 2.2);
   background: none; /* the ball is the <i>, so it can sit between the two halves */
 }
 
 .ringed i {
   position: absolute;
-  inset: 0;
+  inset: 0 calc(var(--s) * var(--u) * 0.6);
 }
 
 .orbit .ringed::before,
@@ -156,9 +161,12 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 180%;
-  height: 50%;
+  width: calc(var(--s) * var(--u) * 1.8);
+  height: calc(var(--s) * var(--u) / 2);
   border: calc(2 * var(--u)) solid #ffd79a;
+  /* the same pale gold on a dark stage, a deeper gold on a light one: its lightness follows the
+     stage's text colour, which the model inherits */
+  border-color: oklch(from currentColor calc(0.75 + l * 0.16) calc(0.19 - l * 0.09) 75);
   border-radius: 50%;
   transform: translate(-50%, -50%) rotate(-18deg);
 }
