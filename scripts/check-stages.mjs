@@ -41,11 +41,23 @@
  * rest too and catches the action's doing, not the pointer's. A reading that could not be taken at
  * rest is marked "pointed" and is only ever compared with another pointed one; this check does not
  * set out to measure the pointed pose (a model's hover and drag extents are check-models' business).
+ *
+ * A BROKEN BROWSER BREAKS ONE MODEL AT MOST (scripts/browser-guard.mjs). A model whose run hits a
+ * browser-level error (a protocol error, "Unable to capture screenshot", a goto timeout, a crashed
+ * or closed target) is measured again from the start, once, in a fresh browser (and a fresh
+ * context and page), and a line "  note: retried after a browser failure" is printed under its
+ * readings; only a second failure reports it, as before, with "the run stopped early". Those notes
+ * are about the run, not the model, so they are never counted as disagreements. The browser is also
+ * replaced every 20 models; a model waits (up to 3 minutes) while free memory is under 1.5 GB, and
+ * says "ran under memory pressure" in the same kind of note when it had to go on anyway. A crash
+ * inside Playwright prints the report (table, disagreements, tally) for the models finished before
+ * it, under a "PARTIAL" line, and exits 3, so scripts/capture-check.mjs still records them.
  */
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
+import { BrowserGuard, crashGuard, isBrowserError } from './browser-guard.mjs';
 
 /**
  * What the site was, in one number, so a report can say whether it was still that at the end.
@@ -413,21 +425,29 @@ const { standaloneDoc } = await vite.ssrLoadModule('/src/models/snippet-utils.ts
 // every model the gallery shows, as check-models runs with no ids
 const ids = wanted.length ? wanted : demos.map((d) => d.id);
 
-const browser = await chromium.launch();
-const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-// every frame draws the same random numbers, from the same seed: a scene that scatters its parts
-// with Math.random (the snow, the confetti) is then the same scene on every surface
-await context.addInitScript(() => {
-  let seed = 0x2f6b4a1d;
-  Math.random = () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+// one context and page for the whole run, made again whenever scripts/browser-guard.mjs launches a
+// fresh browser (after one breaks, and every 20 models)
+let context, page;
+const guard = new BrowserGuard({
+  launch: () => chromium.launch(),
+  setup: async (browser) => {
+    context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    // every frame draws the same random numbers, from the same seed: a scene that scatters its parts
+    // with Math.random (the snow, the confetti) is then the same scene on every surface
+    await context.addInitScript(() => {
+      let seed = 0x2f6b4a1d;
+      Math.random = () => {
+        seed = (seed + 0x6d2b79f5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    });
+    page = await context.newPage();
+    page.on('pageerror', (e) => say(`  page error: ${e.message}`));
+  },
 });
-const page = await context.newPage();
-page.on('pageerror', (e) => say(`  page error: ${e.message}`));
+await guard.start();
 
 /**
  * Puts the pointer on no part of any model: on the page's own chrome, off every frame. Tried in
@@ -593,12 +613,45 @@ const fingerprint = (text) => {
 
 const before = siteStamp();
 const results = [];
+// a crash inside Playwright: the report of every model finished before it, then exit 3
+crashGuard('check-stages', async () => {
+  const done = results.filter((row) => row.done);
+  console.log(`\nPARTIAL: the run crashed after ${done.length} of ${ids.length} model(s); the report below covers those only.`);
+  results.splice(0, results.length, ...done);
+  report();
+});
 for (const id of ids) {
   const row = { id, css: snippets?.[id]?.css ? fingerprint(snippets[id].css) : null, stages: {}, moves: [], notes: [] };
   results.push(row);
   say(`\n${id}`);
   try {
+    ({ notes: row.guard } = await guard.run(id, () => {
+      // every attempt starts from nothing: a retry after a broken browser keeps nothing of the first
+      row.stages = {}; row.moves = []; row.notes = [];
+      return measureModel(id, row);
+    }));
+  } catch (err) {
+    // a browser that broke twice: reported like any stage that could not be driven
+    row.notes.push(`the run stopped early: ${err instanceof Error ? err.message.split('\n')[0] : String(err)}`);
+    row.guard = err.notes;
+  }
+  finishRow(row);
+}
 
+/** A model's readings and notes, printed as it finishes. What scripts/browser-guard.mjs had to do (row.guard) is printed as notes too, but never counted as a disagreement. */
+function finishRow(row) {
+  for (const stage of STAGES) if (!(stage in row.stages)) row.stages[stage] = null;
+  const pointed = STAGES.filter((s) => row.stages[s]?.pose === 'pointed');
+  if (pointed.length) row.notes.push(`the model still had something under the pointer on: ${pointed.join(', ')} after the pointer was parked off it — those lines are of the pointed pose and are compared only with each other`);
+  say(STAGES.map((s) => `  ${s.padEnd(11)} ${showFull(row.stages[s])}${row.stages[s] ? `   canvas ${Math.round(row.stages[s].canvasW)}×${Math.round(row.stages[s].canvasH)}${row.stages[s].pose === 'pointed' ? '   POINTED' : ''}   pointer on ${row.stages[s].parkedOn ?? '?'}` : ''}`).join('\n'));
+  for (const note of row.notes) say(`  note: ${note}`);
+  for (const note of row.guard ?? []) say(`  note: ${note}`);
+  row.done = true;
+}
+
+/** One model on every surface, into row. Throws a browser-level error for scripts/browser-guard.mjs to retry. */
+async function measureModel(id, row) {
+  try {
   /* ---------- the gallery card, and the dialog it opens ---------- */
   await context.clearCookies();
   await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
@@ -607,7 +660,7 @@ for (const id of ids) {
   await page.reload({ waitUntil: 'domcontentloaded' });
   await parkOff();
   const demo = demos.find((d) => d.id === id);
-  if (!demo) { row.notes.push('no such model'); say('  no such model'); continue; }
+  if (!demo) { row.notes.push('no such model'); say('  no such model'); return; }
   await revealCard(id, demo.title);
   row.stages.card = await look(CARD(id), { settle: true });
 
@@ -718,111 +771,110 @@ for (const id of ids) {
   }
 
   } catch (err) {
+    // a browser that broke: scripts/browser-guard.mjs measures the model again in a fresh one
+    if (isBrowserError(err)) throw err;
     // a stage that could not be driven is reported as unmeasured, never guessed at
     row.notes.push(`the run stopped early: ${err instanceof Error ? err.message.split('\n')[0] : String(err)}`);
     await page.evaluate(() => document.exitFullscreen()).catch(() => {});
     await page.setViewportSize({ width: 1280, height: 900 }).catch(() => {});
   }
-
-  for (const stage of STAGES) if (!(stage in row.stages)) row.stages[stage] = null;
-  const pointed = STAGES.filter((s) => row.stages[s]?.pose === 'pointed');
-  if (pointed.length) row.notes.push(`the model still had something under the pointer on: ${pointed.join(', ')} after the pointer was parked off it — those lines are of the pointed pose and are compared only with each other`);
-  say(STAGES.map((s) => `  ${s.padEnd(11)} ${showFull(row.stages[s])}${row.stages[s] ? `   canvas ${Math.round(row.stages[s].canvasW)}×${Math.round(row.stages[s].canvasH)}${row.stages[s].pose === 'pointed' ? '   POINTED' : ''}   pointer on ${row.stages[s].parkedOn ?? '?'}` : ''}`).join('\n'));
-  for (const note of row.notes) say(`  note: ${note}`);
 }
+
+report();
+await guard.close();
+await vite.close();
 
 /* ---------- the report ---------- */
-const after = siteStamp();
-const moved = after.files !== before.files || after.latest !== before.latest;
-// A row is judged as a full-canvas scene when its own page shows it covering the canvas, on the one
-// mapping that places most of it the same (see FULL-CANVAS SCENES)
-for (const row of results) {
-  row.full = isFull(row.stages.page);
-  if (!row.full) continue;
-  const { mapping, scores } = mappingOf(row);
-  row.mapping = mapping;
-  row.mappings = scores.map((x) => ({ mapping: mappingName(x.m), placedDifferently: Math.round(x.share * 1000) / 10 }));
-}
-if (asJson) {
-  // what was in view is thousands of numbers per reading: it did its job in the comparison
-  console.log(JSON.stringify({ steady: !moved, results }, (key, value) => (key === 'view' ? undefined : value), 2));
-} else {
-  if (moved) {
-    console.log(`\nWARNING: src changed while this ran (last saved ${new Date(after.latest).toLocaleTimeString()}).`);
-    console.log('The models measured first and the ones measured last may not be the same site. Run it again on a quiet tree.');
-  }
-  console.log('\nAll numbers are vmin of the canvas the model is in: width × height @ offset from the middle.');
-  console.log('A full-canvas scene says instead how much of the canvas it fills at its emptiest moment.\n');
-  // a pose is only ever compared with the same pose: at rest with at rest (every reading this check
-  // sets out to take), pointed with pointed
-  const alike = (a, b) => a.pose === b.pose;
-  const ID = Math.max(11, ...results.map((row) => row.id.length + 1)); // capture-check splits the table on whitespace
-  console.log(['model'.padEnd(ID), ...STAGES.map((s) => s.padEnd(26))].join(''));
+function report() {
+  const after = siteStamp();
+  const moved = after.files !== before.files || after.latest !== before.latest;
+  // A row is judged as a full-canvas scene when its own page shows it covering the canvas, on the one
+  // mapping that places most of it the same (see FULL-CANVAS SCENES)
   for (const row of results) {
-    console.log([row.id.padEnd(ID), ...STAGES.map((s) => showFull(row.stages[s]).padEnd(26))].join(''));
+    row.full = isFull(row.stages.page);
+    if (!row.full) continue;
+    const { mapping, scores } = mappingOf(row);
+    row.mapping = mapping;
+    row.mappings = scores.map((x) => ({ mapping: mappingName(x.m), placedDifferently: Math.round(x.share * 1000) / 10 }));
   }
-
-  const scenes = results.filter((row) => row.full);
-  if (scenes.length) {
-    // which mapping each full-canvas scene was judged on, and how the others did: a scene that
-    // fits two about equally well is laid out the same in both where it is measured
-    console.log('\nFull-canvas scenes, each judged on one mapping (placed differently, over every surface against the page):');
-    for (const row of scenes) {
-      console.log(`  ${row.id.padEnd(ID)}${mappingName(row.mapping)}   (${row.mappings.map((x) => `${x.mapping}: ${x.placedDifferently}%`).join('; ')})`);
+  if (asJson) {
+    // what was in view is thousands of numbers per reading: it did its job in the comparison
+    console.log(JSON.stringify({ steady: !moved, results }, (key, value) => (key === 'view' ? undefined : value), 2));
+  } else {
+    if (moved) {
+      console.log(`\nWARNING: src changed while this ran (last saved ${new Date(after.latest).toLocaleTimeString()}).`);
+      console.log('The models measured first and the ones measured last may not be the same site. Run it again on a quiet tree.');
     }
-  }
-
-  let bad = 0;
-  console.log('\nDisagreements (against the model\'s own page):');
-  for (const row of results) {
-    const ref = row.stages.page;
-    const full = row.full ? row.mapping : null; // a full-canvas scene is judged on its one mapping
-    const off = [];
-    if (!ref) off.push('the model page could not be measured');
-    else for (const s of STAGES) {
-      const seen = row.stages[s];
-      if (s === 'page') continue;
-      if (!seen) { off.push(`${s}: not measured`); continue; }
-      if (!alike(ref, seen)) continue; // said once, in the note on pointed lines
-      const d = apart(ref, seen, full);
-      if (d.bad) off.push(full ? `${s}: ${d.size}, against the page` : `${s}: ${show(seen)} against ${show(ref)} — ${d.size} apart`);
+    console.log('\nAll numbers are vmin of the canvas the model is in: width × height @ offset from the middle.');
+    console.log('A full-canvas scene says instead how much of the canvas it fills at its emptiest moment.\n');
+    // a pose is only ever compared with the same pose: at rest with at rest (every reading this check
+    // sets out to take), pointed with pointed
+    const alike = (a, b) => a.pose === b.pose;
+    const ID = Math.max(11, ...results.map((row) => row.id.length + 1)); // capture-check splits the table on whitespace
+    console.log(['model'.padEnd(ID), ...STAGES.map((s) => s.padEnd(26))].join(''));
+    for (const row of results) {
+      console.log([row.id.padEnd(ID), ...STAGES.map((s) => showFull(row.stages[s]).padEnd(26))].join(''));
     }
-    for (const m of row.moves) {
-      if (!m.before || !m.first) continue;
-      if (!alike(m.before, m.first) || (m.after && !alike(m.first, m.after))) {
-        off.push(`"${m.label}" not compared: the pointer was on the model for part of it (${[m.before, m.first, m.after].filter(Boolean).map((x) => x.pose).join(' → ')})`);
-        continue;
+
+    const scenes = results.filter((row) => row.full);
+    if (scenes.length) {
+      // which mapping each full-canvas scene was judged on, and how the others did: a scene that
+      // fits two about equally well is laid out the same in both where it is measured
+      console.log('\nFull-canvas scenes, each judged on one mapping (placed differently, over every surface against the page):');
+      for (const row of scenes) {
+        console.log(`  ${row.id.padEnd(ID)}${mappingName(row.mapping)}   (${row.mappings.map((x) => `${x.mapping}: ${x.placedDifferently}%`).join('; ')})`);
       }
-      const j = apart(m.before, m.first, full);
-      const settled = m.after ? apart(m.first, m.after, full) : null;
-      if (j.bad) off.push(full ? `jump on "${m.label}": ${j.size}` : `jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.size})`);
-      else if (settled?.bad) off.push(full ? `settles after "${m.label}": ${settled.size}` : `settles after "${m.label}": ${show(m.first)} → ${show(m.after)} (${settled.size})`);
     }
-    for (const note of row.notes) off.push(note);
-    if (off.length) { bad++; console.log(`  ${row.id}\n${off.map((o) => `    ${o}`).join('\n')}`); }
-  }
-  if (!bad) console.log('  none.');
 
-  // "Nothing jumps" is worth a number even when nothing is wrong: this is the largest movement
-  // measured across every transition, so a quiet report says how quiet it was.
-  console.log('\nThe biggest movement on any transition (before → the first frame it could be measured again):');
-  for (const row of results) {
-    let worst = null;
-    for (const m of row.moves) {
-      if (!m.before || !m.first || !alike(m.before, m.first) || (m.after && !alike(m.first, m.after))) continue;
-      const d = apart(m.before, m.first, row.full ? row.mapping : null).d;
-      const s = m.after ? apart(m.first, m.after, row.full ? row.mapping : null).d : 0;
-      if (!worst || Math.max(d, s) > Math.max(worst.d, worst.s)) worst = { label: m.label, d, s, m };
+    let bad = 0;
+    console.log('\nDisagreements (against the model\'s own page):');
+    for (const row of results) {
+      const ref = row.stages.page;
+      const full = row.full ? row.mapping : null; // a full-canvas scene is judged on its one mapping
+      const off = [];
+      if (!ref) off.push('the model page could not be measured');
+      else for (const s of STAGES) {
+        const seen = row.stages[s];
+        if (s === 'page') continue;
+        if (!seen) { off.push(`${s}: not measured`); continue; }
+        if (!alike(ref, seen)) continue; // said once, in the note on pointed lines
+        const d = apart(ref, seen, full);
+        if (d.bad) off.push(full ? `${s}: ${d.size}, against the page` : `${s}: ${show(seen)} against ${show(ref)} — ${d.size} apart`);
+      }
+      for (const m of row.moves) {
+        if (!m.before || !m.first) continue;
+        if (!alike(m.before, m.first) || (m.after && !alike(m.first, m.after))) {
+          off.push(`"${m.label}" not compared: the pointer was on the model for part of it (${[m.before, m.first, m.after].filter(Boolean).map((x) => x.pose).join(' → ')})`);
+          continue;
+        }
+        const j = apart(m.before, m.first, full);
+        const settled = m.after ? apart(m.first, m.after, full) : null;
+        if (j.bad) off.push(full ? `jump on "${m.label}": ${j.size}` : `jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.size})`);
+        else if (settled?.bad) off.push(full ? `settles after "${m.label}": ${settled.size}` : `settles after "${m.label}": ${show(m.first)} → ${show(m.after)} (${settled.size})`);
+      }
+      for (const note of row.notes) off.push(note);
+      if (off.length) { bad++; console.log(`  ${row.id}\n${off.map((o) => `    ${o}`).join('\n')}`); }
     }
-    console.log(
-      worst
-        ? `  ${row.id.padEnd(11)} ${Number.isFinite(worst.d) ? `${worst.d.toFixed(1)}${row.full ? '% of what is in view moved' : 'vmin'}` : 'a gap'} on "${worst.label}"${worst.s > 0.05 ? `, and ${Number.isFinite(worst.s) ? `${worst.s.toFixed(1)}${row.full ? '%' : 'vmin'} more` : 'a gap'} before it settled` : ''}`
-        : `  ${row.id.padEnd(11)} no transition could be measured`,
-    );
-  }
+    if (!bad) console.log('  none.');
 
-  console.log(`\n${results.length - bad}/${results.length} models are the same everywhere, within ${TOL}vmin (a full-canvas scene: filling the canvas, with no more than ${pct(FULL_SHARE)} of what is in view placed differently).`);
+    // "Nothing jumps" is worth a number even when nothing is wrong: this is the largest movement
+    // measured across every transition, so a quiet report says how quiet it was.
+    console.log('\nThe biggest movement on any transition (before → the first frame it could be measured again):');
+    for (const row of results) {
+      let worst = null;
+      for (const m of row.moves) {
+        if (!m.before || !m.first || !alike(m.before, m.first) || (m.after && !alike(m.first, m.after))) continue;
+        const d = apart(m.before, m.first, row.full ? row.mapping : null).d;
+        const s = m.after ? apart(m.first, m.after, row.full ? row.mapping : null).d : 0;
+        if (!worst || Math.max(d, s) > Math.max(worst.d, worst.s)) worst = { label: m.label, d, s, m };
+      }
+      console.log(
+        worst
+          ? `  ${row.id.padEnd(11)} ${Number.isFinite(worst.d) ? `${worst.d.toFixed(1)}${row.full ? '% of what is in view moved' : 'vmin'}` : 'a gap'} on "${worst.label}"${worst.s > 0.05 ? `, and ${Number.isFinite(worst.s) ? `${worst.s.toFixed(1)}${row.full ? '%' : 'vmin'} more` : 'a gap'} before it settled` : ''}`
+          : `  ${row.id.padEnd(11)} no transition could be measured`,
+      );
+    }
+
+    console.log(`\n${results.length - bad}/${results.length} models are the same everywhere, within ${TOL}vmin (a full-canvas scene: filling the canvas, with no more than ${pct(FULL_SHARE)} of what is in view placed differently).`);
+  }
 }
-
-await browser.close();
-await vite.close();
