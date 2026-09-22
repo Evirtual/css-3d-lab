@@ -297,7 +297,9 @@ and `::after` content, SVG text) is shot with and without its glyph fill: the pi
 letters are its background, the model's own panel, glow or 3D face included, and its colour is its
 CSS colour laid over them at its opacity (or the drawn pixels, for gradient or filtered text). It
 must reach WCAG AA, 4.5:1, or 3:1 for text at least 24px, or bold and 18.66px, at that canvas size.
-Text in a disabled control is exempt, and listed as exempt on the model's line. A model's text that
+Text in a disabled control is exempt, and listed as exempt on the model's line. A word drawn as a
+stack of copies (the layers of an extruded headline) is read from its front copy: a back layer
+lying on a readable copy of the same text is counted and named on the line, not failed. A model's text that
 is a fixed colour on the bare stage cannot reach 4.5:1 on both stages: it inherits the stage's ink
 (softened with opacity, as the caption is), or sits on a surface of the model's own.
 
