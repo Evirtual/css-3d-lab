@@ -105,8 +105,11 @@ export const snippetsI: Record<string, Snippet> = {
   inset: 0;
   display: grid;
   align-content: start;
-  gap: calc(6 * var(--u));
-  padding: calc(68 * var(--u)) calc(10 * var(--u)) 0 calc(16 * var(--u));
+  gap: calc(3 * var(--u));
+  /* the rows 3 units apart and the words 64 units down, so the signature ends on the page and the
+     heart stays clear of the title: 6 apart from 68 down, it hung off the page's bottom edge, dark
+     on the dark stage */
+  padding: calc(64 * var(--u)) calc(10 * var(--u)) 0 calc(16 * var(--u));
   border-radius: 0 calc(6 * var(--u)) calc(6 * var(--u)) 0;
   background:
     radial-gradient(circle at 78% 16%, #ffb547 0 calc(2.5 * var(--u)), transparent calc(3.5 * var(--u))),
@@ -203,7 +206,7 @@ export const snippetsI: Record<string, Snippet> = {
     radial-gradient(circle at 22% 18%, rgb(255 255 255 / 0.75) 0 calc(2 * var(--u)), transparent calc(3 * var(--u))),
     radial-gradient(circle at 76% 26%, #ffb547 0 calc(3 * var(--u)), transparent calc(4 * var(--u))),
     radial-gradient(circle at 30% 80%, #2ee6d6 0 calc(2.5 * var(--u)), transparent calc(3.5 * var(--u))),
-    linear-gradient(150deg, #8b6cff, #ff4d9d);
+    linear-gradient(150deg, #6a45f5, #d1206f); /* deep enough for the white words, 5.1:1 at the worst end */
 }
 
 .front b {
@@ -580,6 +583,9 @@ ${BOOKS.map(
     linear-gradient(180deg, transparent calc(10 * var(--u)), rgb(255 255 255 / 0.55) calc(10 * var(--u)) calc(12 * var(--u)), transparent calc(12 * var(--u)) calc(100% - 12 * var(--u)), rgb(255 255 255 / 0.55) calc(100% - 12 * var(--u)) calc(100% - 10 * var(--u)), transparent 0),
     linear-gradient(90deg, color-mix(in srgb, var(--c) 60%, #000), var(--c) 30%, var(--c) 65%, color-mix(in srgb, var(--c) 70%, #000));
   color: #fff;
+  /* a dark halo round the white words, so they read on the brightest spines and covers too: on the
+     teal and the amber they were 1.6:1 */
+  text-shadow: 0 0 calc(1 * var(--u)) rgb(0 0 0 / 0.75), 0 0 calc(3 * var(--u)) rgb(0 0 0 / 0.55);
   font-size: calc(8 * var(--u));
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -610,6 +616,7 @@ ${BOOKS.map(
     radial-gradient(circle at 50% 36%, rgb(255 255 255 / 0.35) 0 calc(12 * var(--u)), transparent calc(13 * var(--u))),
     linear-gradient(160deg, color-mix(in srgb, var(--c) 85%, #fff), color-mix(in srgb, var(--c) 70%, #000));
   color: #fff;
+  text-shadow: 0 0 calc(1 * var(--u)) rgb(0 0 0 / 0.75), 0 0 calc(3 * var(--u)) rgb(0 0 0 / 0.55); /* see the spine */
   font-size: calc(9 * var(--u));
   text-align: center;
   transform-origin: 0 50%;
