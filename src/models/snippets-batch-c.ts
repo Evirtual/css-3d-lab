@@ -1095,11 +1095,11 @@ stage.addEventListener('pointercancel', leave);`,
   radial: {
     how: [
       'A real checkbox holds the open/closed state and takes the keyboard; the button visitors see is its <code>&lt;label&gt;</code>, which is why only the plus icon inside needs to rotate on <code>:checked</code>, not the whole button.',
-      'Closed, every item rests just behind the button, a little way out along its spoke and shrunk (<code>scale(0.7)</code>, pulled back in Z), so the five colours peek out round it like a bud: even a paused card shows a menu, not a lone plus. <code>:checked</code> swaps in a transform list with the <b>same functions</b> but different numbers, so the browser animates each one independently.',
-      '<code>rotate(a) translateX(r) rotate(-a)</code> walks a point out along a straight spoke at angle <code>a</code> while the trailing <code>rotate(-a)</code> cancels the turn, so every icon stays upright as it travels. Only <code>r</code> changes between closed and open, so each item moves straight out along its spoke. The five spokes are 72° apart, a full ring round the button.',
+      'Closed, it is only the button: every item waits hidden directly behind it, centre on centre, shrunk (<code>scale(0.4)</code>) and pulled back in Z. <code>:checked</code> swaps in a transform list with the <b>same functions</b> but different numbers, so the browser animates each one independently.',
+      '<code>rotate(a) translateX(r) rotate(-a)</code> walks a point out along a straight spoke at angle <code>a</code> while the trailing <code>rotate(-a)</code> cancels the turn, so every icon stays upright as it travels. Of those three, only <code>r</code> changes between closed and open (0 to 70 units), so each item moves straight out along its spoke; the <code>translateZ</code> and <code>scale</code> after them bring it forward and up to full size as it goes. The five spokes are 72° apart, a full ring round the button.',
       '<code>--i</code> staggers the opening so the items fan out one after another; on close the delay is reversed (<code>(4 - var(--i))</code>) so the <b>last</b> item to open is the <b>first</b> to leave.',
-      'Closed items get <code>visibility: hidden</code> and <code>pointer-events: none</code> so Tab and clicks skip them until the menu is actually open. The bud you see is the <code>::before</code> of each item, which sets <code>visibility: visible</code> for itself: a hidden parent can still show a visible child, and a hidden button cannot take focus.',
-      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The button sits in the middle and the items open into a full ring round it, so the menu is centred closed and open alike, and opening never moves the button.',
+      'Closed items get <code>opacity: 0</code>, <code>visibility: hidden</code> and <code>pointer-events: none</code>, so they are not seen and Tab and clicks skip them until the menu is actually open.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The button sits in the middle and the items open into a full ring round it, so the menu is centred closed and open alike, and opening never moves the button. At rest it is only the button, at the size of a button: a control that opens into something rests small by design and fills the frame open.',
     ],
     html: `<div class="scene">
   <div class="radial">
@@ -1196,8 +1196,8 @@ stage.addEventListener('pointercancel', leave);`,
   transform: scale(1);
 }
 
-/* every item rests behind the button, a short way out along its spoke, so it peeks out round the
-   button; its place on the ring is turn-to-angle, walk out, turn back (so the icon stays upright) */
+/* every item waits hidden behind the button, centre on centre; its place on the ring is
+   turn-to-angle, walk out, turn back (so the icon stays upright) */
 .item {
   --a: calc(-90deg + var(--i) * 72deg); /* five spokes, 72deg apart, the first straight up */
   position: absolute;
@@ -1213,31 +1213,15 @@ stage.addEventListener('pointercancel', leave);`,
   background: color-mix(in srgb, var(--c) 30%, #0b0d18);
   color: #eceefb;
   cursor: pointer;
+  opacity: 0;
   visibility: hidden; /* closed items must not be reachable by Tab */
   pointer-events: none;
-  transform: rotate(var(--a)) translateX(calc(51 * var(--u))) rotate(calc(var(--a) * -1)) translateZ(calc(-10 * var(--u))) rotateX(0deg) scale(0.7);
+  transform: rotate(var(--a)) translateX(0) rotate(calc(var(--a) * -1)) translateZ(calc(-30 * var(--u))) rotateX(0deg) scale(0.4);
   /* closing: the last item leaves first */
   transition:
     transform 0.35s ease-in calc((4 - var(--i)) * 35ms),
+    opacity 0.25s linear calc((4 - var(--i)) * 35ms + 0.1s),
     visibility 0s linear 0.55s;
-}
-
-/* the bud: a plain disc in the item's colour, shown while the button itself is hidden. It sets
-   its own visibility, which a hidden parent allows, and fades once the real button is out */
-.item::before {
-  content: "";
-  position: absolute;
-  inset: calc(-1 * var(--u));
-  border: inherit;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--c) 55%, #0b0d18);
-  visibility: visible;
-  transition: opacity 0.25s linear calc((4 - var(--i)) * 35ms + 0.1s);
-}
-
-.radial > input:checked ~ .item::before {
-  opacity: 0;
-  transition: opacity 0.2s linear calc(var(--i) * 45ms + 0.1s);
 }
 
 .item svg {
@@ -1251,12 +1235,14 @@ stage.addEventListener('pointercancel', leave);`,
 }
 
 .radial > input:checked ~ .item {
+  opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: rotate(var(--a)) translateX(calc(70 * var(--u))) rotate(calc(var(--a) * -1)) translateZ(calc(26 * var(--u))) rotateX(0deg) scale(1);
   /* opening: staggered by index, with a little overshoot */
   transition:
     transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) calc(var(--i) * 45ms),
+    opacity 0.2s linear calc(var(--i) * 45ms),
     visibility 0s;
 }`,
   },
