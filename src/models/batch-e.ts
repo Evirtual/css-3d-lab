@@ -8,7 +8,7 @@ export const demosE: Demo[] = [
       'Orbits are rings on a tilted plane, each spinning at its own speed. Every planet undoes both rotations, so it always faces the camera.',
     category: 'css',
     tags: ['loop', 'space', 'billboard', 'orbit'],
-    technique: ['rotateX tilted plane', 'rotateZ orbit per ring', 'counter-rotation = billboarding', 'negative animation-delay'],
+    technique: ['rotateX tilted plane', 'rotateZ orbit per ring', 'counter-rotation = billboarding', 'negative animation-delay', 'ring split around the ball (clip-path)'],
   },
   {
     id: 'city',

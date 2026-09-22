@@ -62,12 +62,13 @@ export const snippetsE: Record<string, Snippet> = {
       'Each ring spins with <code>rotateZ(0 → 360deg)</code>; its planet sits on the ring’s top edge and rides along. A negative <code>animation-delay</code> starts every planet at a different angle.',
       'To keep a planet round and facing you, undo everything above it <b>in reverse order</b>: <code>rotateZ(-angle) rotateX(-56deg) rotateZ(16deg)</code>. The planet runs that with the same duration and delay as its ring, so the rotations cancel at every frame. That is billboarding.',
       'The sun gets the same inverse without the spin. The fading trail is a <code>conic-gradient</code> cut to a thin ring with a <code>mask</code>, on a pseudo-element, so the mask never flattens the planet.',
+      'The ringed planet’s ring wraps it: the same tilted ellipse is drawn twice and cut along its long axis with <code>clip-path</code>. The far (upper) half is a <code>::before</code> painted <b>under</b> the ball, an inner <code>&lt;i&gt;</code>, and the near half an <code>::after</code> painted <b>over</b> it, simply in DOM order. The planet always faces you, so the upper half is the far one at every point of the orbit.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the widest orbit is 196 units across, and each ring’s radius and planet size are written on it as plain numbers that CSS multiplies by the unit. The plane leans back 56°, not further, so the system stands tall enough in the frame without growing wider than it.',
     ],
     html: `<div class="scene">
   <div class="system">
     <div class="sun"></div>
-${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:${p.s};--c:${p.c};--d:${p.d}s"><b${i === 3 ? ' class="ringed"' : ''}></b></div>`).join('\n')}
+${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:${p.s};--c:${p.c};--d:${p.d}s">${i === 3 ? '<b class="ringed"><i></i></b>' : '<b></b>'}</div>`).join('\n')}
   </div>
 </div>`,
     css: `.scene {
@@ -127,13 +128,29 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:
   left: calc(50% - var(--s) * var(--u) / 2);
   width: calc(var(--s) * var(--u));
   height: calc(var(--s) * var(--u));
-  border-radius: 50%;
-  background: radial-gradient(circle at 34% 30%, #fff 0 6%, var(--c) 42%, color-mix(in srgb, var(--c) 45%, #000));
   /* same duration + delay as the ring: the two rotations cancel */
   animation: face var(--t) linear var(--d) infinite;
 }
 
-/* a flat ring; hiding its top border makes the far half pass "behind" */
+.orbit b,
+.ringed i {
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fff 0 6%, var(--c) 42%, color-mix(in srgb, var(--c) 45%, #000));
+}
+
+/* the ring wraps the ball: its far half (::before) is drawn under the ball (the <i>), its near
+   half (::after) over it, in DOM order. The planet faces the camera, so the far half is always the
+   upper half of the ellipse: both halves are the same tilted ellipse, cut along its long axis */
+.orbit .ringed {
+  background: none; /* the ball is the <i>, so it can sit between the two halves */
+}
+
+.ringed i {
+  position: absolute;
+  inset: 0;
+}
+
+.orbit .ringed::before,
 .orbit .ringed::after {
   content: '';
   position: absolute;
@@ -142,9 +159,16 @@ ${SOLAR.map((p, i) => `    <div class="orbit" style="--r:${p.r};--t:${p.t}s;--s:
   width: 180%;
   height: 50%;
   border: calc(2 * var(--u)) solid #ffd79a;
-  border-top-color: transparent;
   border-radius: 50%;
   transform: translate(-50%, -50%) rotate(-18deg);
+}
+
+.orbit .ringed::before {
+  clip-path: inset(0 0 50% 0);
+}
+
+.orbit .ringed::after {
+  clip-path: inset(50% 0 0 0);
 }
 
 @keyframes orbit {
