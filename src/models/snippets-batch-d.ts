@@ -77,14 +77,16 @@ export const snippetsD: Record<string, Snippet> = {
   );
   box-shadow: 0 calc(12 * var(--u)) calc(18 * var(--u)) calc(-12 * var(--u)) #000;
   color: #eceefb;
-  opacity: var(--o, 1);
+  /* the cards not pointed at dim by brightness, not opacity: see-through, on the light stage their
+     words were 1.6:1; darkened, they stay on their own dark card on either stage */
+  filter: brightness(var(--o, 1));
   pointer-events: none;
   transform-origin: 50% 100%;
   /* one transform, fed by variables: every state below only ever changes numbers */
   transform: translate3d(var(--x, 0), var(--y, 0), var(--z)) rotateY(var(--ry, 0deg)) rotateZ(var(--r));
   transition:
     transform 0.45s cubic-bezier(0.3, 1.3, 0.5, 1),
-    opacity 0.3s;
+    filter 0.3s;
 }
 
 .fan-card i {
@@ -115,7 +117,7 @@ export const snippetsD: Record<string, Snippet> = {
 /* something is active: every card dims... */
 .fan:hover .fan-slot,
 .fan:focus-within .fan-slot {
-  --o: 0.5;
+  --o: 0.7;
 }
 
 /* ...cards AFTER the active one lean away to the right... */
@@ -1169,7 +1171,9 @@ render();`,
 
 /* plan name */
 .card small {
-  color: var(--c);
+  /* the plan's colour lifted towards white, so it reads on its dark glass card: the violet as it is
+     was 3:1 */
+  color: color-mix(in srgb, var(--c), #fff 45%);
   font-size: calc(8 * var(--u));
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -1205,7 +1209,8 @@ render();`,
   margin-top: calc(8 * var(--u));
   padding: calc(4 * var(--u)) 0;
   border-radius: calc(99 * var(--u));
-  background: var(--c);
+  /* the plan's colour deepened, so its white word reads: on the violet as it is, 3.5:1 */
+  background: color-mix(in srgb, var(--c), #000 28%);
   color: #fff;
   font-size: calc(8 * var(--u));
   font-style: normal;
