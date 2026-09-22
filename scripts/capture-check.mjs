@@ -148,13 +148,13 @@ const parsers = {
   },
   // boxsizing: `pass <id> …` and `FAILS <id> …` with the problems indented under a failure, as access
   boxsizing(line) {
-    const m = /^(FAILS|pass)s+(S+)s*(.*)$/.exec(line);
+    const m = /^(FAILS|pass)\s+(\S+)\s*(.*)$/.exec(line);
     if (m) {
       current = m[2];
       results[current] = { status: m[1] === 'pass' ? 'pass' : 'fail', summary: m[3], detail: [], at: now() };
       return;
     }
-    if (/^ {10}S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
+    if (/^ {10}\S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
     if (/models do not depend on outside CSS/.test(line)) summaryLine = line.trim();
   },
   seo(line) {
