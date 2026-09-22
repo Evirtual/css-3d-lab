@@ -26,7 +26,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # The render service (the Cloudflare Worker in worker/) is baked into the bundle at build
+      # time; without it the Video / Image / Print dialog says the export service is not configured.
       - run: npm run build
+        env:
+          VITE_CAPTURE_URL: ${{ vars.VITE_CAPTURE_URL }}
       # Screenshot every demo from the built site into dist/media: the social preview images.
       # A failure here fails the deploy, so pages never point at an image that does not exist.
       - name: Install headless Chromium
