@@ -10,6 +10,15 @@ one band every model lands in, controls that are the same object everywhere. Rea
 write a line. Nothing outside the model sizes it, moves it or corrects it, so a model that looks
 wrong is a model whose own code is wrong.
 
+**The contract fixes outcomes, not designs** (VIEW-CONTRACT.md, [Outcomes, not
+designs](VIEW-CONTRACT.md#outcomes-not-designs)): centred, within the size band, text readable on
+both stages, finished at rest, the same on every surface, no reliance on outside CSS. How a model
+gets there is free, so invent. It declares its shape class (normal, `'wide'`, `'expands'`,
+full-canvas), and when a good design does not fit any class, add a class, with its reason, its
+check, a broken copy that proves the check and the docs, rather than bending the model into a worse
+design. Whether its 3D is right and its motion reads as the thing is for a person to judge, in a
+close-up review.
+
 ## What a model is
 
 | What | Where | What it is for |
@@ -49,6 +58,11 @@ top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
   sized by its width, at least 80vmin and at most 92, centred as usual, with no 40vmin height
   floor (VIEW-CONTRACT.md, "A wide model is sized by its width"). Used by `clock`.
 - `technique`: 3–4 short strings naming the key properties/tricks (the ingredient chips).
+- `boxSizing` (rarely): `'content-box by design: <why>'`, for a model that draws differently when a
+  page makes every box border-box and cannot say which box it means in its own CSS. Say it in the
+  CSS first (`box-sizing: content-box` or `border-box` on the boxes whose numbers need it):
+  check-boxsizing fails a model that differs without either, and fails the mark on a model that
+  draws the same.
 - `description`: one or two plain sentences saying what it is and the trick behind it.
 
 ## The snippet
@@ -82,7 +96,9 @@ There is no measuring run, no placement file and no override: set the model's ba
 `vmin` and every length as a multiple of it (VIEW-CONTRACT.md, rules 1–10). Then check it:
 
 ```bash
-npm run check-models -- <id>       # lands in the band, clears the corners, in every state
+npm run check-models -- <id>       # sets --u in vmin, lands in the band, clears the corners, in every state
+node scripts/check-contrast.mjs <id>  # every text readable on the dark stage and the light one
+node scripts/check-boxsizing.mjs <id> # draws the same whatever box-sizing the page sets
 node scripts/check-stages.mjs <id> # the same size on every surface and export shape
 node scripts/check-motion.mjs <id> # no flicker or pop through its animation and interactions
 ```
@@ -144,6 +160,10 @@ node scripts/check-motion.mjs <id> # no flicker or pop through its animation and
 - `npm run check-models -- <id>` holds; `node scripts/check-stages.mjs <id>` and
   `node scripts/check-motion.mjs <id>` for anything that moves or is played with. Run them through
   `npm run capture -- models <id>` (or `stages`, `motion`) to record the result for the ledger.
+- `node scripts/check-contrast.mjs <id>` and `node scripts/check-boxsizing.mjs <id>`, recorded with
+  `npm run capture -- contrast <id>` and `-- boxsizing <id>`. A text in a fixed colour on the bare
+  stage cannot reach 4.5:1 on both stages: inherit the stage's ink (softened with opacity, as the
+  caption is), or put it on a surface of the model's own.
 - `node scripts/snippet-check.mjs <id>`: the standalone page has no script error.
 - `npm run build` regenerates every static page, runs `tsc`, and must pass.
 - Commit `src/sitemap-dates.json` if the build changed it.

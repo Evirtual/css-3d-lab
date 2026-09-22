@@ -8,6 +8,63 @@ This is what makes a model look identical on a gallery card, in the viewer, on i
 the editor, in a recording and in a snapshot. There is nothing to recalculate, so nothing can
 shift between those states.
 
+## Outcomes, not designs
+
+The contract fixes what a visitor can measure, never how a model is built. What every model is held
+to is these outcomes, and each has a check that measures it:
+
+| Outcome | Checked by |
+| --- | --- |
+| Centred: the drawn stack within 4vmin of the middle, both ways, at rest and in every state | `check-models` |
+| Within the size band: 40 to 70vmin tall (or its shape class's own band), at most 92% wide, clear of the edges and the top corners | `check-models` |
+| Text readable on both stages: WCAG AA against the pixels behind it, dark and light | `check-contrast` |
+| Finished at rest: the paused first moment is a whole pose, and a paused model stops | `check-models` (the resting pose), `check-access` |
+| The same on every surface: card, viewer, page, editor, export, the copied file | `check-stages`, `check-exports`, `check-media` |
+| No reliance on outside CSS: the model draws the same whatever the page around it sets | `check-boxsizing`, and `check-models`' `--u` in vmin |
+
+How a model gets there is free. Claude, who writes the models, must stay free to invent new ones:
+a new idea may need a layout, a unit, a trick or a structure no model has used yet, and nothing here
+forbids it so long as the outcomes hold. The band's numbers (the 50vmin model box, the 4vmin gap)
+and the control block below are the way most models get there, and the way to start, not rules of
+their own: a model that reaches the same outcomes another way is as right as one that copies them.
+
+**Every model declares its shape class.** `wide` and `expands` are never inferred, so every
+exception is visible in the model's gallery entry and reviewable; full-canvas is declared by the
+model's own CSS, and the checks know it by what it paints (a drawing that covers the canvas):
+
+| Class | How it says so | What it is held to |
+| --- | --- | --- |
+| normal | nothing | the band: 40 to 70vmin tall on solid ink, at rest and in every state |
+| `wide` | the tag `'wide'` | a width floor instead of the height floor: at least 80vmin wide at rest and in every state |
+| `expands` | the tag `'expands'` | no floor at rest (the control at its natural size); its open state must reach 40vmin |
+| full-canvas | its own CSS: the scene `inset: 0`, sized in percentages | covering the canvas, at least 98% both ways, at every moment |
+
+**When a good design does not fit, add or adjust a class; do not bend the model.** If a model's
+own design is right and a rule makes it worse (a flip clock restacked onto two lines to reach a
+height floor, a dropdown grown to 40vmin at rest), that is a missing class, not a bad model. Adding
+one takes five things, all in the same change:
+
+1. **The mark** in the model's gallery entry: a tag in `tags`, or a field on `Demo`
+   (`src/models/types.ts`), read by one function (`src/models/interaction.ts`, as `wide()` and
+   `expands()` are). Never inferred.
+2. **The rule**, with its reason: what the class is held to instead, in this file, in a table like
+   the ones above, and why the normal rule is wrong for it.
+3. **The check**: the checker reads the mark, holds the model to the class's rule, and says the
+   class on the model's line, pass or fail, so every use shows in every run. Where the check can
+   tell, a mark on a model that does not need it fails, so the mark cannot outlive its design
+   (check-boxsizing does this for `boxSizing`).
+4. **The broken copy that proves it**: a copy of a model that breaks the class's rule, in
+   `.media-tmp/<check>/`, which the check fails, next to the real model it passes (`--try` where the
+   check has it).
+5. **The docs**: this file, `docs/ADDING-MODELS.md` if it changes how a model is written, and the
+   check's `ruleVersion` in `scripts/checks-registry.mjs` bumped, since its rule's meaning changed.
+
+**What no check can judge is left to a person.** Whether the 3D is correct (faces meet, nothing
+shows through that should not, the light comes from one side), and whether the motion reads as the
+thing it is meant to be (a book that opens like a book, a coin that spins like a coin), are judged
+in a close-up visual review, recorded in `docs/reviews/` or a `Reviewed-by:` commit. The checks
+prove the outcomes above; they do not prove a model is good.
+
 ## The canvas is the body
 
 A model runs in its own frame, and that frame IS the canvas. Inside the snippet it behaves exactly
@@ -107,7 +164,7 @@ scrolled:
 - the model box is where the band says it is, and has not moved or resized;
 - nothing but a full-canvas model touches the canvas edge.
 
-Two checks judge this; neither adjusts anything.
+These checks judge it, and the ones after them what else the outcomes need; none adjusts anything.
 
 `npm run check-models` (`scripts/check-models.mjs`) opens every model on a card (a 360 × 300
 page, each model in a fresh browser context), drives it through those states as its tags say —
@@ -135,6 +192,7 @@ What it holds, exactly:
 | Canvas edge | all | nothing drawn reaches the canvas edge, unless the model is full-canvas |
 | Top corners | all | nothing drawn within 14vmin of either top corner |
 | Full canvas | all | a drawing that covers at least 95% of the canvas both ways is judged as full-canvas, and must cover 98% |
+| Base unit | (the CSS) | the snippet sets `--u` in `vmin` (ground rule 1); a model without it fails whatever it draws |
 
 **One centring limit for everyone.** The vertical limit used to be 11vmin for a model with a
 control zone, because the zone was a fixed reserve and the band's centre was not the drawing's.
@@ -216,6 +274,46 @@ moment, and on showing the same scene: at 12 instants of its animation, what is 
 compared thing by thing on one mapping for the whole scene. Each axis is measured in shares of the
 canvas, or in vmin from the scene's vanishing point. A scene that mixes the two (flakes falling in
 vmin from the top past trees placed in percentages) is a different scene on another shape.
+
+**No reliance on outside CSS.** `node scripts/check-boxsizing.mjs` opens every model's standalone
+file (what "Copy as one HTML file" hands over) at 400 × 400, paused at one moment (a seeded
+`Math.random`, a paused clock, every animation at the start of its timeline), at rest and with
+`:hover` forced, as it is and with `*, *::before, *::after { box-sizing: border-box }` ahead of its
+CSS, as the site's stylesheet once had it. A pixel differs when a channel is more than 24/255
+apart; a model fails when over 0.25% of the canvas differs beyond its own noise (two openings of the
+same file, since Chromium rasters one paused 3D scene one of two ways). The fix is in the model: it
+says which box its numbers mean, `box-sizing: border-box` where they are outside sizes (the card of
+the tilt, the photos of the polaroid), `content-box` where they are the inside (a ring whose width
+is its hole, a floor with a hairline edge round it: the gyro, the rings, the tunnel, the door and
+the fold among them). A model that cannot say so in its CSS may carry `boxSizing: 'content-box by
+design: <why>'` in its gallery entry: the check passes it, prints the reason and the difference on
+its line, and fails that mark on a model that draws the same either way.
+
+**Text readable on both stages.** `node scripts/check-contrast.mjs` runs every model the way the
+site's frame does, on a card's 360 × 300 canvas, on the dark stage (`#07080f`, ink `#eceefb`) and
+on the light one (`#f3f4fc`, ink `#14172b`), at rest, with `:hover` forced, with the pointer on the
+middle and after each of up to six controls is clicked. Every text it shows (text nodes, `::before`
+and `::after` content, SVG text) is shot with and without its glyph fill: the pixels behind its
+letters are its background, the model's own panel, glow or 3D face included, and its colour is its
+CSS colour laid over them at its opacity (or the drawn pixels, for gradient or filtered text). It
+must reach WCAG AA, 4.5:1, or 3:1 for text at least 24px, or bold and 18.66px, at that canvas size.
+Text in a disabled control is exempt, and listed as exempt on the model's line. A model's text that
+is a fixed colour on the bare stage cannot reach 4.5:1 on both stages: it inherits the stage's ink
+(softened with opacity, as the caption is), or sits on a surface of the model's own.
+
+**One base unit, in vmin, is part of the contract.** `check-models` also fails a model whose
+snippet CSS does not set `--u` to a value in `vmin` (ground rule 1), and says which unit it has
+when it is set in another. It used to be the ledger's "Not converted" stage; the ledger now has
+three stages, To check, Awaiting review and Approved, and a model without `--u` in vmin is held by
+the contract check like any other failure.
+
+**A stricter rule makes old results stale.** Every check in `scripts/checks-registry.mjs` has a
+`ruleVersion` and the history behind it. Bump it whenever a rule's meaning changes (a limit, a new
+thing judged, a state or a surface added or dropped); a change that only reports differently is not
+a new version. `npm run capture` records the version with every result, and the ledger marks a
+result judged under another version stale, "rule changed (vN → vM)", so a pass under the old rule
+never counts under the new one. `check-models` is at v3: v2 is this file's 4vmin centring for every
+model (69cae52), v3 adds `--u` in vmin.
 
 ## The rest of the rules, decided up front
 
