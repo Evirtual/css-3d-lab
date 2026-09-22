@@ -280,13 +280,15 @@ ${lines(4, (i) => `<i style="--n:${i};--d:${WM_SHADE[i]}"></i>`)}
   rocket: {
     how: [
       'The body is a <b>cylinder of 10 strips</b>: each one <code>rotateY(n × 36deg)</code>, then a <code>translateZ</code> of 13 units. The nose uses the same angles with triangles that stand on the body’s top edge and lean in by <code>atan(13 / 30)</code>, so their tips meet on the axis.',
-      'One 10s timeline drives everything, with matching percentages in each <code>@keyframes</code>: ignition at 6%, lift-off at 13%, out of sight by 40%, on the way back at 46%, touchdown at 88%. Start and end are the same frame, so the loop has no seam.',
-      'The climb goes <b>into depth, not up</b>, so the rocket needs no empty sky above it and can fill the frame on its pad. The flight layer moves 5000 units away with <code>translateZ</code>, where an 800-unit perspective draws it a seventh of its size. <code>perspective-origin</code> sits on the rocket\'s shoulder, just under the nose, and everything far away closes in on that point: the tail lifts off the pad and the rocket shrinks up into the sky while the nose never rises past where it stood. The small real lift in <code>translateY</code> is kept under a fortieth of the depth for the same reason. It is hidden with <code>visibility</code> for just 0.6s at the far end (not <code>opacity</code>: below 1 it would flatten the 3D rocket into one plane). Per-keyframe easing speeds the climb up and slows the landing down.',
-      'The flame is two crossed planes of radial gradients. The container scales them on and off (short while the rocket is still on the pad, so the flame never pokes out under it); two pseudo-elements flicker with fast <code>alternate</code> loops. Only <code>transform</code> and <code>opacity</code> move.',
-      'The camera sways ±28° on the ground and on the rocket with the same animation, so they stay in step, and the fins show their depth. The gantry is nearly as tall as the rocket, so while the rocket is far away the pad still fills the frame.',
-      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the frame is 190 × 132 units, the pad 118 units down it and the rocket 111 tall from fins to nose, so the launch is the same share of a gallery card, the editor and a recording canvas.',
+      'One 10s timeline drives everything, with matching percentages in each <code>@keyframes</code>: ignition at 6%, lift-off at 13%, out of the top of the frame by 54%, the next rocket back on its pad at 70%. Start and end are the same frame, so the loop has no seam.',
+      'The launch is filmed the way a camera on the ground follows one: the rocket rises only a few units in the frame while the <b>ground drops away</b> under it, then it speeds up and <b>leaves through the top</b>. The ground moves with the <code>translate</code> property, so it adds to the swaying <code>transform</code> instead of replacing it. Once the rocket has gone the camera pans back down, and the pad comes up into view with the next rocket already standing on it: the flight layer runs the same keyframes and easing as the ground for that stretch, so the rocket stays on the pad all the way.',
+      'The frame is a window onto the sky. A <code>mask-image</code> gradient fades its top and bottom edges over a few units, so the rocket and the ground slip out of view instead of being cut by a hard line, and nothing leaves the band. The mask is on a flat wrapper, <code>.sky</code>, not on the 3D <code>.launch</code>: on an element with <code>preserve-3d</code> it would flatten the rocket into one plane. For the same reason the rocket is hidden with <code>visibility</code>, not <code>opacity</code>, for the 0.1s it is put back on the pad, and the ground while it is wholly below the frame.',
+      'The flame is two crossed planes of radial gradients. The container scales them on and off (short while the rocket is still on the pad, so the flame never pokes out under it, and long in flight); two pseudo-elements flicker with fast <code>alternate</code> loops. Only <code>transform</code>, <code>translate</code> and <code>opacity</code> move.',
+      'The camera sways ±28° on the ground and on the rocket with the same animation, so they stay in step, and the fins show their depth.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas: the frame is 215 × 150 units, the pad 124 units down it and the rocket 111 tall from fins to nose, so the launch is the same share of a gallery card, the editor and a recording canvas.',
     ],
-    html: `<div class="launch">
+    html: `<div class="sky">
+<div class="launch">
   <div class="base">
     <div class="pad"></div>
     <div class="glow"></div>
@@ -306,22 +308,28 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
       </div>
     </div>
   </div>
+</div>
 </div>`,
-    css: `.launch {
+    css: `.sky {
   /* one base unit: every length below is a multiple of it, so the launch is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.52vmin;
+  --u: 0.46vmin;
+  /* the frame is a window onto the sky: the rocket flies out through its top edge and the ground
+     drops out through its bottom one, each fading out over a few units, so nothing is cut by a
+     hard line and nothing leaves the band. The mask is on this flat wrapper, not on .launch: on an
+     element with preserve-3d it would flatten the 3D rocket into one plane */
+  -webkit-mask-image: linear-gradient(transparent, #000 calc(10 * var(--u)), #000 calc(100% - 8 * var(--u)), transparent);
+  mask-image: linear-gradient(transparent, #000 calc(10 * var(--u)), #000 calc(100% - 8 * var(--u)), transparent);
+}
+
+.launch {
   position: relative;
-  /* 190 units is 99vmin, inside a square canvas: a box wider than the canvas does not centre, it
-     hangs off the right, 2vmin off the middle on 1:1 and 9:16. Everything in it is placed from its
-     middle, so the width moves nothing */
-  width: calc(190 * var(--u));
-  height: calc(132 * var(--u));
+  /* 215 units is 99vmin, inside a square canvas: a box wider than the canvas does not centre, it
+     hangs off the right. Everything in it is placed from its middle, so the width moves nothing */
+  width: calc(215 * var(--u));
+  height: calc(150 * var(--u));
   perspective: calc(800 * var(--u));
-  /* the eye looks at the rocket's shoulder, just under the nose, so whatever flies away into the
-     distance closes in on that point: the rocket climbs by shrinking, and never needs sky above
-     it. The frame is only as tall as the rocket on its pad, so the rocket is drawn large */
-  perspective-origin: 50% calc(27 * var(--u));
+  perspective-origin: 50% 45%;
   transform-style: preserve-3d;
 }
 
@@ -330,9 +338,16 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 .craft {
   position: absolute;
   left: 50%;
-  top: calc(118 * var(--u));
+  top: calc(124 * var(--u));
   transform-style: preserve-3d;
   animation: sway 16s ease-in-out infinite alternate;
+}
+
+/* the camera follows the rocket up: the ground drops away out of the bottom of the frame, and
+   after the rocket has gone it pans back down to the pad. translate, not transform, so it adds to
+   the sway instead of replacing it */
+.base {
+  animation: sway 16s ease-in-out infinite alternate, camera 10s infinite;
 }
 
 .base::before {
@@ -362,8 +377,8 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 .glow {
   left: calc(-70 * var(--u));
   top: calc(-70 * var(--u));
-  width: calc(140 * var(--u));
-  height: calc(140 * var(--u));
+  width: calc(150 * var(--u));
+  height: calc(150 * var(--u));
   background: radial-gradient(closest-side, #ffe2b0, rgb(255 77 157 / 0.45) 45%, transparent);
   opacity: 0;
   transform: translateY(calc(-1 * var(--u))) rotateX(90deg);
@@ -404,7 +419,7 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
   animation: arm 10s ease-in-out infinite;
 }
 
-/* smoke: flat discs pushed out sideways (--x) at lift-off and at touchdown; --x and --z are
+/* smoke: flat discs pushed out sideways (--x) at lift-off; --x and --z are
    plain numbers, and --z counts units */
 .base em {
   position: absolute;
@@ -418,7 +433,8 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
   animation: smoke 10s linear infinite;
 }
 
-/* the flight layer is the whole frame; it rises a little and then flies away from the camera */
+/* the flight layer is the whole frame: the rocket lifts off and climbs out of the top, and the
+   next one rides back into view on the pad */
 .flight {
   position: absolute;
   inset: 0;
@@ -544,30 +560,43 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
   to   { transform: rotateX(-12deg) rotateY(28deg); }
 }
 
-/* rest · lift-off · away into the sky, speeding up · out of sight · back down onto the pad,
-   slowing down · rest. The climb is depth, not height: shrinking towards the perspective-origin
-   at the shoulder lifts the tail off the pad, and the few units of real lift never take the nose
-   higher than it stands at rest (lift ≤ depth ÷ 40 at every keyframe), so the rocket needs no sky
-   above it. 5000 units back behind an 800-unit perspective it is a seventh of its size, and it is
-   hidden there for 0.6s. visibility, not opacity: opacity below 1 would flatten the 3D rocket. */
+/* where the rocket is in the frame. rest · lift-off: the camera follows,
+   so the rocket rises only a few units in the frame while the ground drops away under it · out through the top, speeding up ·
+   hidden for 0.2s while it is put back on the pad, still below the frame · rides back up with the
+   ground (the same numbers and easing as camera, so it stands on the pad all the way) · rest.
+   visibility, not opacity: opacity below 1 would flatten the 3D rocket. */
 @keyframes fly {
-  0%, 13% { transform: translate3d(0, 0, 0); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
-  22%     { transform: translate3d(0, calc(-5 * var(--u)), calc(-300 * var(--u))); animation-timing-function: cubic-bezier(0.4, 0, 0.9, 0.7); }
-  39.9%   { visibility: visible; }
-  40%, 46% { visibility: hidden; transform: translate3d(0, calc(-100 * var(--u)), calc(-5000 * var(--u))); animation-timing-function: cubic-bezier(0.15, 0.55, 0.4, 1); }
-  46.1%   { visibility: visible; }
-  88%, 100% { transform: translate3d(0, 0, 0); }
+  0%, 13% { transform: translate3d(0, 0, 0); animation-timing-function: ease-in; }
+  20%     { transform: translate3d(0, calc(-3 * var(--u)), 0); }
+  50%     { transform: translate3d(0, calc(-14 * var(--u)), calc(-220 * var(--u))); animation-timing-function: cubic-bezier(0.5, 0, 1, 0.5); }
+  53.9%   { visibility: visible; }
+  54%     { visibility: hidden; }
+  55%     { transform: translate3d(0, calc(-330 * var(--u)), calc(-500 * var(--u))); }
+  55.1%   { transform: translate3d(0, calc(150 * var(--u)), 0); }
+  55.15%  { visibility: hidden; }
+  55.2%   { visibility: visible; transform: translate3d(0, calc(150 * var(--u)), 0); animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1); }
+  70%, 100% { transform: translate3d(0, 0, 0); }
 }
 
-/* the flame only grows as the rocket clears the pad */
+/* the ground: still until lift-off, then it drops out of the frame, faster and faster, waits
+   there while the rocket leaves, and comes back up with the next rocket on it */
+@keyframes camera {
+  0%, 14% { translate: 0 0; animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.55); }
+  50%, 55.2% { translate: 0 calc(150 * var(--u)); animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1); }
+  70%, 100% { translate: 0 0; }
+  /* while it is wholly below the frame it is hidden, so it is not there at all */
+  47.9%   { visibility: visible; }
+  48%, 55.5% { visibility: hidden; }
+  55.6%   { visibility: visible; }
+}
+
+/* the flame only grows as the rocket clears the pad, and is out on the next rocket */
 @keyframes burn {
   0%, 6% { transform: scale(0.4, 0); }
   10% { transform: scale(1, 0.2); }
   20% { transform: scale(1, 0.35); }
-  30%, 72% { transform: scale(1, 1.15); }
-  80% { transform: scale(1, 0.5); }
-  86% { transform: scale(0.9, 0.2); }
-  90%, 100% { transform: scale(0.4, 0); }
+  34%, 55% { transform: scale(1.1, 1.7); }
+  55.1%, 100% { transform: scale(0.4, 0); }
 }
 
 @keyframes flicker {
@@ -576,22 +605,20 @@ ${lines(10, (i) => `<b style="${side(i, 10)}"></b>`, '        ')}
 }
 
 @keyframes glow {
-  0%, 6%, 28%, 72%, 92%, 100% { opacity: 0; }
-  12%, 17%, 82%, 87% { opacity: 1; }
+  0%, 6%, 28%, 100% { opacity: 0; }
+  12%, 17% { opacity: 1; }
 }
 
 @keyframes arm {
-  0%, 3%, 96%, 100% { transform: translateZ(calc(-4 * var(--u))) rotateY(0deg); }
-  9%, 91% { transform: translateZ(calc(-4 * var(--u))) rotateY(75deg); }
+  0%, 3%, 80%, 100% { transform: translateZ(calc(-4 * var(--u))) rotateY(0deg); }
+  9%, 72% { transform: translateZ(calc(-4 * var(--u))) rotateY(75deg); }
 }
 
 @keyframes smoke {
   0%, 8% { opacity: 0; transform: translate3d(0, 0, calc(var(--z) * var(--u))) scale(0.3); }
   13% { opacity: 0.85; transform: translate3d(calc(var(--x) * 18 * var(--u)), calc(-3 * var(--u)), calc(var(--z) * var(--u))) scale(0.9); }
   32% { opacity: 0; transform: translate3d(calc(var(--x) * 62 * var(--u)), calc(-18 * var(--u)), calc(var(--z) * var(--u))) scale(calc(var(--s) * 1.7)); }
-  33%, 83% { opacity: 0; transform: translate3d(0, 0, calc(var(--z) * var(--u))) scale(0.3); }
-  88% { opacity: 0.75; transform: translate3d(calc(var(--x) * 16 * var(--u)), calc(-3 * var(--u)), calc(var(--z) * var(--u))) scale(0.85); }
-  100% { opacity: 0; transform: translate3d(calc(var(--x) * 54 * var(--u)), calc(-14 * var(--u)), calc(var(--z) * var(--u))) scale(calc(var(--s) * 1.5)); }
+  33%, 100% { opacity: 0; transform: translate3d(0, 0, calc(var(--z) * var(--u))) scale(0.3); }
 }`,
   },
 

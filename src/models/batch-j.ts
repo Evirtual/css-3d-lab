@@ -14,10 +14,10 @@ export const demosJ: Demo[] = [
     id: 'rocket',
     title: 'Rocket launch',
     description:
-      'A rocket built from strips and leaning triangles fills the frame on its pad, lifts off and climbs away into the distance until it is a speck, then comes back down to land, so the loop has no seam. The climb is depth, not height, so no empty sky is needed above it. Flame and smoke are gradient layers that only scale and fade.',
+      'A rocket built from strips and leaning triangles fills the frame on its pad, lifts off in a cloud of smoke and climbs out of the top of the frame, the camera following it up as the ground drops away. Then the camera pans back down to the pad, where the next rocket stands ready, so the loop has no seam. Flame and smoke are gradient layers that only scale and fade.',
     category: 'css',
     tags: ['loop', 'scene', 'space', 'cylinder'],
-    technique: ['cylinder of 10 strips + cone of 10 triangles', 'translateZ away + perspective-origin at the shoulder = a climb', 'flame: crossed planes, scale-only flicker', 'one timeline shared by flight, flame and smoke'],
+    technique: ['cylinder of 10 strips + cone of 10 triangles', 'the ground drops with translate = a camera following the climb', 'flame: crossed planes, scale-only flicker', 'a mask-faded window, on a flat wrapper round the 3D scene'],
   },
   {
     id: 'lighthouse',
