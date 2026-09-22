@@ -185,7 +185,9 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
   gap: calc(2 * var(--u));
   padding: calc(3 * var(--u)) calc(4 * var(--u));
   border: var(--edge);
-  background: color-mix(in srgb, var(--c) 80%, transparent);
+  /* over the chart's own dark, not see-through: on the light stage the roof went pale under its
+     light words */
+  background: color-mix(in srgb, var(--c) 80%, #0b0d18);
   box-shadow:
     inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--c) 30%, transparent),
     0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 22%, transparent);
@@ -201,7 +203,8 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
   position: absolute;
   inset: calc(-0.6 * var(--u));
   z-index: -1;
-  background: color-mix(in srgb, color-mix(in srgb, var(--c) 70%, #fff) 60%, transparent);
+  /* the tile's own colour, not a whitened one: whitened, the words on the pointed-at tile were 2.8:1 */
+  background: color-mix(in srgb, var(--c) 30%, transparent);
   box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--c) 30%, #fff), 0 0 calc(22 * var(--u)) color-mix(in srgb, var(--c) 75%, transparent);
   opacity: 0;
   transition: opacity 0.25s;
@@ -213,7 +216,7 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
 }
 
 .tile small {
-  color: rgb(236 238 251 / 0.8);
+  color: #eceefb; /* full strength: at 0.8 on the pointed-at tile it was 3.2:1 */
   font-size: calc(9 * var(--u));
 }
 
