@@ -58,10 +58,20 @@
  * to that edge and no further, so its numbers are a floor. Over one or two edges it still fails,
  * only by less than the truth. Over all four it covers the canvas, and is judged as a full-canvas
  * model like anything else that does: the picture cannot tell overflowing from filling.
+ *
+ * A BROKEN BROWSER BREAKS ONE MODEL AT MOST (scripts/browser-guard.mjs). A model whose run hits a
+ * browser-level error (a protocol error, "Unable to capture screenshot", a goto timeout, a crashed
+ * or closed target) is judged again, once, in a fresh browser, and its line ends "retried after a
+ * browser failure"; only a second failure makes it FAILS ("could not be judged"). Such an error is
+ * never read as "could not measure" or "nothing drawn". The browser is also replaced every 20
+ * models; a model waits (up to 3 minutes) while free memory is under 1.5 GB, and its line ends
+ * "ran under memory pressure" when it had to go on anyway (a quiet pass then prints its line too);
+ * and a crash inside Playwright is said on stderr with exit 3, the lines printed before it kept.
  */
 import { inflateSync } from 'node:zlib';
 import { createServer as createVite } from 'vite';
 import { chromium } from 'playwright';
+import { BrowserGuard, crashGuard, isBrowserError, unlessBrowser } from './browser-guard.mjs';
 
 const BAND = 70; // the model box, with no controls
 const FLOOR = 40; // nothing may be smaller than this
@@ -328,7 +338,9 @@ const showPasses = args.includes('--pass');
 const wanted = args.filter((a) => !a.startsWith('-'));
 const ids = wanted.length ? wanted : demos.map((d) => d.id);
 
-const browser = await chromium.launch();
+// replaced by a fresh one when it breaks, and every 20 models (scripts/browser-guard.mjs)
+const guard = new BrowserGuard({ launch: () => chromium.launch() });
+await guard.start();
 // a new one for every model, in a context of its own: see EACH MODEL FROM A CLEAN START
 let page;
 
@@ -420,6 +432,8 @@ async function look() {
       controls,
     };
   } catch (e) {
+    // a browser that broke is not the model's doing: scripts/browser-guard.mjs retries the model
+    if (isBrowserError(e)) throw e;
     // a measurement that broke is not a model that draws nothing: say which it was
     console.log('  could not measure:', e.message.split('\n')[0]);
     return null;
@@ -433,26 +447,36 @@ function freshCode() {
 }
 
 const rows = [];
+crashGuard('check-models', async () => console.error(`check-models: ${rows.length} of ${ids.length} model(s) judged before the crash, each on its own line above`));
 for (const id of ids) {
   freshCode();
-  // Judged on a card, the tightest canvas there is and the one most of the gallery is seen at.
-  const context = await browser.newContext({ viewport: { width: 360, height: 300 } });
-  page = await context.newPage();
-  page.on('pageerror', (e) => console.log('  page error:', e.message));
   try {
-    await judgeModel(id);
-  } finally {
-    await context.close();
+    await guard.run(id, async (browser, notes) => {
+      // Judged on a card, the tightest canvas there is and the one most of the gallery is seen at.
+      const context = await browser.newContext({ viewport: { width: 360, height: 300 } });
+      page = await context.newPage();
+      page.on('pageerror', (e) => console.log('  page error:', e.message));
+      try {
+        await judgeModel(id, notes);
+      } finally {
+        await context.close().catch(() => {}); // a dead browser's context: the error that matters is judgeModel's
+      }
+    });
+  } catch (e) {
+    const why = `could not be judged: ${e.message.split('\n')[0]}`;
+    rows.push({ id, broke: [why] });
+    console.log(`FAILS   ${id.padEnd(14)} ${why}${e.notes?.length ? `; ${e.notes.join('; ')}` : ''}`);
   }
 }
 
-async function judgeModel(id) {
+async function judgeModel(id, notes = []) {
+  const also = notes.length ? `; ${notes.join('; ')}` : ''; // what scripts/browser-guard.mjs had to do, on the model's own line
   const demo = demos.find((d) => d.id === id);
   await page.goto(`${base}/embed/${id}/`, { waitUntil: 'domcontentloaded' });
-  const there = await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(() => false);
+  const there = await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(unlessBrowser(false));
   if (!there) {
     rows.push({ id, broke: ['never appeared'] });
-    console.log(`FAILS   ${id.padEnd(14)} never appeared`);
+    console.log(`FAILS   ${id.padEnd(14)} never appeared${also}`);
     return;
   }
   await page.addStyleTag({ content: BARE });
@@ -530,14 +554,14 @@ async function judgeModel(id) {
     }
   }
   rows.push({ id, broke, seen });
-  if (broke.length) console.log(`FAILS   ${id.padEnd(14)} ${broke.join('; ')}`);
-  else if (showPasses) console.log(`holds   ${id.padEnd(14)} ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${seen.controls ? ', with controls' : ''}${rest ? `; at rest ${rest.width.toFixed(0)} × ${rest.height.toFixed(0)} vmin, off ${rest.offX.toFixed(0)}, ${rest.offY.toFixed(0)}` : ''}`);
+  if (broke.length) console.log(`FAILS   ${id.padEnd(14)} ${broke.join('; ')}${also}`);
+  else if (showPasses || also) console.log(`holds   ${id.padEnd(14)} ${seen.width.toFixed(0)} × ${seen.height.toFixed(0)} vmin${seen.controls ? ', with controls' : ''}${rest ? `; at rest ${rest.width.toFixed(0)} × ${rest.height.toFixed(0)} vmin, off ${rest.offX.toFixed(0)}, ${rest.offY.toFixed(0)}` : ''}${also}`);
   else process.stdout.write('.');
 }
 
 const bad = rows.filter((r) => r.broke.length);
 console.log(`\n${rows.length - bad.length}/${rows.length} models hold the contract.`);
 if (bad.length) console.log('To rewrite: ' + bad.map((r) => r.id).join(', '));
-await browser.close();
+await guard.close();
 await vite.close();
 process.exit(bad.length ? 1 : 0);
