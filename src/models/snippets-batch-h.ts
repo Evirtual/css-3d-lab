@@ -521,7 +521,9 @@ ${WORDS.map((_, i) => `    <label for="star-${i + 1}" style="--i:${i}"><span cla
 }
 
 .title {
-  color: #949bc0;
+  /* the stage's own ink, softened with opacity: a fixed pale lavender was 2.5:1 on the light stage */
+  color: inherit;
+  opacity: 0.72;
   font-size: calc(16 * var(--u));
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -668,7 +670,9 @@ label:hover .lift {
 .words {
   display: grid;
   margin: 0;
-  color: #ffb547;
+  /* a deep gold, 3:1 or more on both stages (this is large text): the stars' bright #ffb547 was
+     1.6:1 on the light one */
+  color: #c47a00;
   font-size: calc(26 * var(--u));
   font-weight: 800;
 }
@@ -682,7 +686,7 @@ label:hover .lift {
 }
 
 .words span:first-child {
-  color: #949bc0;
+  color: inherit; /* the stage's own ink: a fixed pale lavender vanished on the light stage */
   opacity: 1;
   transform: none;
 }
