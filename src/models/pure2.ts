@@ -165,9 +165,9 @@ export const pureDemos2: Demo[] = [
   {
     id: 'dropdown',
     title: 'Fold-down menu',
-    description: 'Hover or focus the button: items swing down from their top edge, one after another.',
+    description: 'At rest it is only its Menu bar. Hover or focus it: the items swing down from their top edge, one after another.',
     category: 'css',
-    tags: ['hover', 'ui'],
-    technique: ['rotateX(-50deg) → 0 with origin top', 'transition-delay from --i', 'tabindex + :focus for keyboards'],
+    tags: ['hover', 'ui', 'expands'],
+    technique: ['rotateX(-90deg) → 0 with origin top', 'transition-delay from --i', 'tabindex + :focus for keyboards'],
   },
 ];

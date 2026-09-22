@@ -1368,11 +1368,11 @@ input:checked ~ em {
 
   dropdown: {
     how: [
-      'Each item hangs from its top edge (<code>transform-origin: top</code>) and rests half folded, <code>rotateX(-50deg)</code>: tilted slats you can still read, so a paused card shows a menu with its items rather than a lone button. The items set their own light text colour, because their dark panel is dark on a light stage too.',
-      'On <code>:hover</code> / <code>:focus</code> of the menu they swing flat to 0°.',
+      'At rest it is only the "Menu" bar, as a real menu is. Each item hangs from its top edge (<code>transform-origin: top</code>) folded up out of sight, <code>rotateX(-90deg)</code> with <code>opacity: 0</code>, and gives back the room it takes with a negative <code>margin-bottom</code> of its own height, so the folded list is no height at all. The items set their own light text colour, because their dark panel is dark on a light stage too.',
+      'On <code>:hover</code> / <code>:focus</code> of the menu they swing down flat to 0° and take their room back (<code>margin-bottom: 0</code>), with the same duration and easing, so each row grows exactly as its item swings into it.',
       '<code>transition-delay: calc(var(--i) * 80ms)</code> opens them one after another.',
       'The non-hover rule uses the <b>reversed</b> delay, so closing runs bottom-up. <code>perspective</code> on the list gives the swing its depth.',
-      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The menu keeps room under its button for the open list, so it is centred open as well as closed.',
+      'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The stage centres the menu by its height, so the bar alone is centred at rest and the whole open menu is centred open: as the rows grow the bar rises by half of what they add, in step with them, with no motion of its own. The list has no gap under the bar (padding, not margin), so the pointer stays on the menu as it rises.',
     ],
     html: `<div class="menu" tabindex="0">
   <span>Menu ▾</span>
@@ -1386,13 +1386,8 @@ input:checked ~ em {
     css: `.menu {
   /* one base unit: every length below is a multiple of it, so the menu is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.3vmin;
-  position: relative;
+  --u: 0.29vmin;
   width: calc(200 * var(--u));
-  /* room for the open list under the button, so the menu is centred open, not just closed: the
-     list is absolute, and without this the button alone would be centred and the list would hang
-     off the bottom */
-  margin-bottom: calc(172 * var(--u));
   cursor: pointer;
   font: calc(16 * var(--u)) system-ui, sans-serif;
 }
@@ -1406,31 +1401,47 @@ input:checked ~ em {
   background: linear-gradient(120deg, #8b6cff, #ff4d9d);
 }
 
+/* the list is in the flow, so the menu is as tall as what is open of it and the stage centres
+   exactly that: the bar alone at rest, bar and list open */
 .menu ul {
-  position: absolute;
-  inset: 100% 0 auto;
-  margin: calc(4 * var(--u)) 0 0;
-  padding: 0;
+  margin: 0;
+  /* the gap under the bar is the list's own padding, so the pointer never falls between the two
+     as the menu rises; folded, the list takes no pointer, so hovering under the bar opens nothing */
+  padding: calc(4 * var(--u)) 0 0;
   list-style: none;
   perspective: calc(500 * var(--u));
+  pointer-events: none;
+}
+
+.menu:hover ul,
+.menu:focus ul {
+  pointer-events: auto;
 }
 
 .menu li {
   padding: calc(10 * var(--u)) calc(16 * var(--u));
+  line-height: calc(20 * var(--u)); /* with the padding and border, 42 units tall */
   background: #141830;
   border: calc(1 * var(--u)) solid #2a3054;
   color: #eceefb; /* its own colour: the panel is dark on a light stage too */
+  opacity: 0;
   transform-origin: top center;
-  /* at rest the items hang half folded, like slats, so a paused card shows a menu with its items
-     in it, not a lone button; hover swings them flat */
-  transform: rotateX(-50deg);
-  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+  /* at rest the items are folded up out of sight and give back their room, so the menu is only
+     its bar; hover swings them down from their top edge as their rows grow */
+  transform: rotateX(-90deg);
+  margin-bottom: calc(-42 * var(--u));
+  transition:
+    transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1),
+    margin-bottom 0.35s cubic-bezier(0.3, 1.4, 0.5, 1),
+    opacity 0.2s;
   transition-delay: calc((3 - var(--i)) * 50ms);   /* closing: bottom-up */
 }
 
 .menu:hover li,
 .menu:focus li {
+  opacity: 1;
   transform: rotateX(0deg);
+  margin-bottom: 0;
   transition-delay: calc(var(--i) * 80ms);         /* opening: top-down */
 }`,
   },
