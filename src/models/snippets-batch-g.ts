@@ -712,8 +712,9 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   padding: calc(12 * var(--u)) calc(14 * var(--u));
   color: #fff;
   background:
-    radial-gradient(circle at 100% 0%, rgb(255 181 71 / 0.55), transparent 50%),
-    linear-gradient(135deg, #8b6cff, #c55dcb);
+    /* deep enough for the white details (4.5:1 and more): the bright #8b6cff to #c55dcb was 3.7:1 */
+    radial-gradient(circle at 100% 0%, rgb(255 181 71 / 0.35), transparent 50%),
+    linear-gradient(135deg, #6a45f5, #a3339f);
   transform: rotateY(180deg) translateZ(calc(2 * var(--u)));
 }
 
