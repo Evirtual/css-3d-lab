@@ -432,7 +432,7 @@ scene.addEventListener('pointercancel', leave);`,
     how: [
       'Each book is a box from four faces around its spine: the spine at the front, two covers turned ±90° on the spine\'s edges with <code>transform-origin</code>, and the page block laid flat on top. The bottom and the back are never seen, so they are not drawn. Every face is <code>box-sizing: border-box</code>, so the front cover’s padding and the page block’s border sit inside it: the covers are exactly the spine’s height and the pages’ depth.',
       'The slots (one per book, laid out by flexbox on the tilted shelf) are the hit targets. They are all in one plane, so the shelf gets <code>pointer-events: none</code> and only the slots <code>auto</code>; the books inside are <code>pointer-events: none</code> and free to move. The one book that is out turns <code>pointer-events</code> back on: it is drawn in front of its neighbours’ slots, and a pointer moving onto it must stay on it, not land on the slot behind it.',
-      'A held hover (the stage’s Hold hover switch, or a print) holds <code>:hover</code> on every slot at once. <code>.slot:hover:not(:has(~ .slot:hover))</code> pulls out only the last of them, so the held pose is one a pointer can make; with a real pointer only one slot is hovered and the rule reads as plain <code>:hover</code>.',
+      'A forced hover (the checks make every <code>:hover</code> match, to judge the hover pose) holds <code>:hover</code> on every slot at once. <code>.slot:hover:not(:has(~ .slot:hover))</code> pulls out only the last of them, so the held pose is one a pointer can make; with a real pointer only one slot is hovered and the rule reads as plain <code>:hover</code>.',
       'The book turns around its own middle: <code>transform-origin: 50% 50% -36 units</code> puts the pivot half its depth <i>behind</i> the spine.',
       'Pulling out uses the separate <code>translate</code> and <code>rotate</code> properties instead of one <code>transform</code>, so each gets its own transition and delay: slide out first, then turn; on the way back, turn first, then slide in. It never swings through its neighbours.',
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the shelf is the same share of a gallery card, the editor and a recording canvas. Each book\'s thickness and height come from its style attribute as plain numbers, and CSS multiplies them by <code>--u</code>.',
@@ -540,8 +540,8 @@ ${BOOKS.map(
     rotate 0.35s ease-in-out;
 }
 
-/* only the last slot that reads as hovered comes out: a pointer only ever hovers one, but "Hold
-   hover" and a print hold :hover on all of them, and five books out at once is a pose no visitor
+/* only the last slot that reads as hovered comes out: a pointer only ever hovers one, but a
+   pose check forces :hover on all of them, and five books out at once is a pose no visitor
    can make (every book in the air, turned into its neighbour, the shelf left behind) */
 .slot:hover:not(:has(~ .slot:hover)) .book,
 .slot:focus-visible .book {

@@ -13,7 +13,7 @@ import { initHero, initShapes } from './hero';
 import { initStickyBars } from './sticky-bars';
 import { printModel } from './print';
 import { initThanks, showThanks, thanksHtml } from './thanks';
-import { holdHoverHtml, markHolds } from './hold-hover';
+import { markPause, pauseHtml } from './stage-pause';
 import { initVideoMaker, trackDownloads, videoButton } from './video';
 import type { PrintSetup } from './models/snippet-utils';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
@@ -400,7 +400,7 @@ function openViewer(id: string): void {
         <div class="stage-wrap">
           <div class="stage stage--lg"></div>
           ${zoomHtml()}
-          ${holdHoverHtml()}
+          ${pauseHtml()}
           <button type="button" class="stage__fs" data-fullscreen aria-label="Full screen"></button>
           <p class="stage__edited" data-edited hidden>Your edited version <button type="button" class="link" data-reset>Reset to original</button></p>
         </div>
@@ -438,8 +438,8 @@ function openViewer(id: string): void {
 
   printOpenModel = (stage, setup) => printModel(live, stage, setup);
   const stageEl = viewerBody.querySelector<HTMLElement>('.stage')!;
-  // "Hold hover" only where the model reacts to hover
-  markHolds(stageEl, live.current.css);
+  // "Pause" only where the model animates
+  markPause(stageEl, live.current.css);
   const editedBar = viewerBody.querySelector<HTMLElement>('[data-edited]')!;
   const panel = viewerBody.querySelector<HTMLElement>('.code__panel')!;
   const note = viewerBody.querySelector<HTMLElement>('.code__note')!;

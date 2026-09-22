@@ -2159,8 +2159,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   right: 52px;
 }
 
-// The hold switches (hold-hover.ts), top left: Pause on animated models, Hold hover / tap on
-// models that react to hover
+// The Pause switch (stage-pause.ts), top left, on animated models only
 .stage__holds {
   position: absolute;
   top: 10px;
@@ -2170,14 +2169,14 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   gap: 6px;
 }
 
-// narrow stages: no room beside the dot controls, so the switches sit at the bottom right,
+// narrow stages: no room beside the dot controls, so the switch sits at the bottom right,
 // under them. Measured on the stage itself (a container query): a narrow stage can sit in a
 // wide window, beside the code.
 .stage-wrap {
   container: stage-wrap / inline-size;
 }
 
-@container stage-wrap (max-width: 459px) { // both switches (188px) + the controls (244px) + gaps need 450px
+@container stage-wrap (max-width: 459px) { // kept from when two switches stood here (188px + the 244px controls + gaps)
   .stage__holds {
     top: auto;
     right: 10px;
@@ -2206,7 +2205,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   opacity: 0.75;
   transition: opacity 0.2s, border-color 0.2s;
 
-  .stage-wrap[data-hoverable] &[data-hold-hover],
   .stage-wrap[data-animated] &[data-freeze] {
     display: flex;
   }

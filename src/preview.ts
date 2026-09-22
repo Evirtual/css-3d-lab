@@ -106,10 +106,6 @@ export class Preview {
     doc.body.style.color = theme === 'light' ? '#14172b' : '#eceefb';
     const paused = document.documentElement.hasAttribute('data-paused') || Boolean(wrap?.classList.contains('is-frozen')) || Boolean(stage?.closest('.is-offscreen'));
     doc.documentElement.toggleAttribute('data-paused', paused);
-    const held = Boolean(wrap?.classList.contains('is-held'));
-    const holdStyle = doc.querySelector('#c3d-held')!;
-    const css = held ? this.code.css.replace(/:hover/g, ':not(.c3d-never)') : '';
-    if (holdStyle.textContent !== css) holdStyle.textContent = css;
   }
 
   close(): void {

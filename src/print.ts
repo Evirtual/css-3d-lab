@@ -1,6 +1,5 @@
 import type { LiveEdit } from './live-edit';
 import type { PrintLook, PrintSetup } from './models/snippet-utils';
-import { isHeld } from './hold-hover';
 
 /**
  * A computed colour as sRGB 0–255 channels and an alpha 0–1, or null if it is in a form this does
@@ -118,6 +117,6 @@ export function printModel(live: LiveEdit, stage?: HTMLElement | null, setup?: P
   });
   frame.srcdoc = setup?.picture
     ? pictureSheet(setup.picture, paper)
-    : live.printDoc(lookOf(stage ?? null), isHeld(stage ?? null), clockOf(stage ?? null), { paper, fill: setup?.fill ?? 2 / 3 });
+    : live.printDoc(lookOf(stage ?? null), clockOf(stage ?? null), { paper, fill: setup?.fill ?? 2 / 3 });
   document.body.append(frame);
 }

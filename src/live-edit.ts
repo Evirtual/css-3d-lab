@@ -59,8 +59,8 @@ export class LiveEdit {
   }
 
   /** A print-ready A4 page of the CURRENT code (edited or not), which opens the print dialog. */
-  printDoc(look?: PrintLook, held = false, clock: number | null = null, setup?: PrintSetup): string {
-    return printDoc(this.title, { how: [], ...this.current }, 1, `${site.url.replace('https://', '')}/models/${this.id}/`, look, held, clock, setup);
+  printDoc(look?: PrintLook, clock: number | null = null, setup?: PrintSetup): string {
+    return printDoc(this.title, { how: [], ...this.current }, 1, `${site.url.replace('https://', '')}/models/${this.id}/`, look, clock, setup);
   }
 
   private preview?: Preview;

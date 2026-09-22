@@ -265,7 +265,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   const mount = (): void => {
     const frame = el<HTMLElement>('[data-live]');
     if (!stage || !frame) return;
-    // The whole stage panel comes across, not just the model: its Pause and Hold hover switches,
+    // The whole stage panel comes across, not just the model: its Pause switch,
     // its dots and its light or dark — the same controls, in the same place, doing the same thing.
     // They are wired to the document and find their stage by looking upwards, so they carry on
     // working wherever the panel is.
@@ -851,7 +851,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       return;
     }
 
-    // Pause, Hold hover, the dots, light or dark: the panel's own switches, doing their own work.
+    // Pause, the dots, light or dark: the panel's own switches, doing their own work.
     // Whatever they changed about the backdrop is read back off the stage and painted in the frame.
     if (stage && target.closest('[data-live]')) return; // the stage's own switches, doing their own work
 

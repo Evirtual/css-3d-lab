@@ -27,6 +27,9 @@ const RESIZE_SNAP = `new ResizeObserver(function(){var r=document.documentElemen
  * theme: that is how an edited snippet runs inside the site's own stage. It then also scales its
  * content with the frame, like every stage does (`size` is the demo's own size factor): the frame
  * does it itself, because zooming an iframe from outside behaves differently between browsers.
+ * The empty `#c3d-held` style is the checks' slot (check-models, check-motion, check-stages): they
+ * write the model's CSS into it with every :hover made to match, to judge its hover pose. The site
+ * itself never fills it.
  */
 export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light'): string {
   const background = stage ? 'transparent' : '#0b0d18';
@@ -85,10 +88,7 @@ export interface PrintSetup {
   picture?: string;
 }
 
-export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: PrintLook = { bg: '#0b0d18', light: false }, held = false, clock: number | null = null, setup: PrintSetup = { paper: 'landscape', fill: 2 / 3 }): string {
-  // held ("Hold hover" on the stage): every :hover rule applies, as if the pointer were on it.
-  // :not(.c3d-none) always matches and weighs the same as :hover, so the cascade is unchanged.
-  const css = held ? s.css.replace(/:hover/g, ':not(.c3d-none)') : s.css;
+export function printDoc(title: string, s: Snippet, _size = 1, url = '', look: PrintLook = { bg: '#0b0d18', light: false }, clock: number | null = null, setup: PrintSetup = { paper: 'landscape', fill: 2 / 3 }): string {
   const ink = look.light ? '#14172b' : '#eceefb';
   const backdrop = look.dots ? `${look.dots.image} 0 0 / ${look.dots.size}, ${look.bg}` : look.bg;
   return `<!doctype html>
@@ -161,7 +161,7 @@ body {
   }
 }
 
-${css}
+${s.css}
 </style>
 </head>
 <body>

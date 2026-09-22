@@ -19,7 +19,7 @@ import type { PrintSetup } from './models/snippet-utils';
 import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 import { printModel } from './print';
 import { initThanks, showThanks } from './thanks';
-import { markHolds } from './hold-hover';
+import { markPause } from './stage-pause';
 
 /**
  * Enhances the static demo and group pages. Everything a search engine needs is already in the
@@ -141,8 +141,8 @@ if (stage && demo && box) {
     }
   });
 
-  // "Hold hover" only where the model reacts to hover
-  markHolds(stage, live.current.css);
+  // "Pause" only where the model animates
+  markPause(stage, live.current.css);
   box.dataset.enhanced = ''; // CSS switches from "stacked with labels" to "tabbed"
   initTint();
   initZoom();
