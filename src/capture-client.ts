@@ -12,7 +12,11 @@ export async function* renderedFrames(scene: CapturedScene, scale: number, count
   const cancel = () => abort.abort();
   if (signal?.aborted) cancel();
   signal?.addEventListener('abort', cancel, { once: true });
-  const timeout = window.setTimeout(cancel, 185_000);
+  // A watchdog for a service that stopped answering, not a budget for the work: it scales with the
+  // frames asked for, a little above the service's own deadline (server/render.mjs: 60 s + 1 s a
+  // frame), so a slow render ends with the service's own message and not with a silent cancel here.
+  // A flat 185 s cut the longest exports the dialog offers (a 30 s loop is 900 frames) short.
+  const timeout = window.setTimeout(cancel, 70_000 + Math.min(count, 900) * 1_000);
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   try {
     const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...scene, scale, count, fps: 30, frame }), signal: abort.signal });

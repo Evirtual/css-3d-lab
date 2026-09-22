@@ -74,7 +74,15 @@ export async function renderCapture(browser, payload, signal) {
     await browser.close().catch(() => {});
   };
   const abort = () => { void close(); };
-  const timeout = setTimeout(abort, 180_000);
+  // The whole render's deadline: a watchdog for a browser that stopped answering, not a budget for
+  // the work. Every frame already has its own 15 s guard below, and the stream is closed as soon as
+  // the client goes away. A flat 3 minutes killed exactly the largest exports the dialog offers: a
+  // 30 s loop is 900 frames, and a heavy model's frame at 1080p takes a few hundred ms, so 18
+  // models (solar, ferris, planet, rocket… every long loop with a lot to draw) ended in "The render
+  // could not finish" while lighter 900-frame models finished. It scales with the frames asked for:
+  // one second each, which is well over the worst frame seen and still bounded (at most ~16 min,
+  // since validateCapture caps a scene at 900 frames).
+  const timeout = setTimeout(abort, 60_000 + Math.min(payload.count, 900) * 1_000);
   signal?.addEventListener('abort', abort, { once: true });
   try {
     if (signal?.aborted) throw new Error('Export cancelled');
