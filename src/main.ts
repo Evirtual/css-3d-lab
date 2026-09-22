@@ -17,6 +17,7 @@ import { markPause, pauseHtml } from './stage-pause';
 import { initVideoMaker, trackDownloads, videoButton } from './video';
 import type { PrintSetup } from './models/snippet-utils';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
+import { initViewZoom, viewZoomHtml } from './view-zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
 import { initCardStages } from './card-stage';
 import { interactionHtml } from './models/interaction';
@@ -399,6 +400,7 @@ function openViewer(id: string): void {
       <section>
         <div class="stage-wrap">
           <div class="stage stage--lg"></div>
+          ${viewZoomHtml()}
           ${zoomHtml()}
           ${pauseHtml()}
           <button type="button" class="stage__fs" data-fullscreen aria-label="Full screen"></button>
@@ -514,6 +516,7 @@ function openViewer(id: string): void {
   };
 
   initFullscreen(viewerBody);
+  initViewZoom(viewerBody);
   fitStages(viewerBody);
   initTint();
   initZoom();

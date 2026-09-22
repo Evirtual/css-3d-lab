@@ -2180,13 +2180,13 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   .stage__holds {
     top: auto;
     right: 10px;
-    bottom: 10px;
+    bottom: calc(10px + var(--view-bar, 0px));
     left: auto;
   }
 
   // above the "Your edited version" note when that shows
   .stage-wrap:has([data-edited]:not([hidden])) .stage__holds {
-    bottom: 50px;
+    bottom: calc(50px + var(--view-bar, 0px));
   }
 }
 
@@ -2243,7 +2243,7 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 
 .stage__edited {
   position: absolute;
-  bottom: 10px;
+  bottom: calc(10px + var(--view-bar, 0px));
   left: 10px;
   z-index: 3;
   display: flex;
@@ -2256,6 +2256,60 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   color: var(--warm);
   font-size: 12.5px;
   font-weight: 600;
+}
+
+// View zoom (view-zoom.ts): the export dialog's Model size slider, on the page: how much of the
+// frame the model fills, 25% to 100%, 70% being its own size. Its frame is drawn scaled about the
+// canvas's middle; nothing inside the frame changes, so the code, what Copy gives and every
+// capture stay the model at its own size. ONE control for the model page, the home page's viewer,
+// full screen and the export dialog's full screen: under the canvas in the page, a bar along its
+// bottom edge at full screen.
+//   Its look is the export dialog's Model size slider: the same markup and the same classes
+// (maker__set, its legend and hint, maker__slider and its output, maker__zoom), so the two cannot
+// drift apart. Only where it sits is its own, below.
+.stage-wrap[data-view-zoomed] > .stage > .live-frame {
+  scale: var(--view-zoom, 1);
+}
+
+// lent to the export dialog: the size is the dialog's (its --zoom), so the page's is off there
+.stage[data-in-maker] > .live-frame {
+  scale: none !important;
+}
+
+// in the dialog the settings column has the slider; at the dialog's full screen this one shows it
+.maker__live .stage-wrap:not(:fullscreen) > .stage__view {
+  display: none !important;
+}
+
+// Flat, as it is in the dialog: no card around it.
+.stage__view {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 12px 0 0;
+
+  // the canvas takes the whole screen: the bar sits over its bottom edge
+  .stage-wrap:fullscreen > & {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    z-index: 3;
+    width: min(560px, calc(100% - 32px));
+    margin: 0;
+    translate: -50% 0;
+  }
+
+  label {
+    cursor: pointer;
+  }
+}
+
+// the notes and switches at the canvas's bottom step up above the bar at full screen
+.stage-wrap:fullscreen:has(> .stage__view) {
+  --view-bar: 64px;
+}
+
+.maker__live .stage-wrap:not(:fullscreen) {
+  --view-bar: 0px;
 }
 
 // The site's own share menu (instead of the operating system's share sheet).

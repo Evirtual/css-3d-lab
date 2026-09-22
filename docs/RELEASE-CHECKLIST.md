@@ -48,6 +48,7 @@ written by `npm run ledger`.
 - [ ] Every model's share preview is right: its image is the size its tags say, its title, description and headline are the model's own, and the picture is the model as the site renders it now — after `npm run build && npm run media`, `npm run capture -- media $(node -p "require('./src/generated/model-ids.json').map(d=>d.id).join(' ')")` ends with `135/135 share previews are right.` and the ledger's Share column is a fresh pass for all 135 (`node -p "require('./docs/ledger.json').checkList.find(c=>c.key==='media').tally.pass"` prints `135`)
 - [ ] The build works on the Node the workflow uses — `node -v` prints v22 (deploy.yml sets `node-version: 22`), or the build above was run on 22
 - [ ] The sitemap dates are regenerated and committed — `npm run generate && git status --short src/sitemap-dates.json` prints nothing
+- [ ] View zoom changes the view only — on /models/cube/ (a manual check in the browser), View zoom at 100% draws the model 1.43× about the canvas middle in the editor view and at full screen, keeps 100% into and out of full screen, leaves the CSS tab's text and an Image export as they are at 70%, and the home dialog opens the next model at 70%; `grep -c "maker__zoom" src/view-zoom.ts` prints 1 (it wears the export slider's own classes)
 - [ ] The dev fallback address is not in the production bundle — `grep -rl "127.0.0.1:8787" dist/` prints nothing
 
 ## The render service

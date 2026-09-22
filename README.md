@@ -36,6 +36,11 @@ cards & galleries, loaders & patterns, scenes & objects, data & tools), in two h
   remounting it (the animation keeps its pose), HTML or JS edits rebuild the frame. Edits are saved
   per model in `localStorage` (`c3d-edit:<id>`) and can be reset. "Copy" and "Copy as one HTML
   file" buttons.
+- **View zoom** (`src/view-zoom.ts`): under the large stage (model page, home dialog) and along
+  its bottom at full screen, the export dialog's Model size slider for looking: how much of the
+  frame the model fills, 25% to 100%, 70% its own size. It only scales how the frame is shown, so
+  the code, Copy, recordings and snapshots are unchanged; it keeps its value into and out of full
+  screen, is not saved, and a new model starts at 70%.
 - **Lazy mounting** (`src/lazy-mount.ts`): a model is mounted only within 600px of the viewport
   and only runs while on screen, so rendering cost follows what is on screen, not the total count.
 - Pause-all-animations switch (on by default when the OS asks for reduced motion), light / dark

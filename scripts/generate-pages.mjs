@@ -41,6 +41,7 @@ if (incomplete.length) throw new Error(`No copy-paste snippet for: ${incomplete.
 const { CATEGORY_LABEL } = await vite.ssrLoadModule('/src/models/types.ts');
 const { highlight } = await vite.ssrLoadModule('/src/highlight.ts');
 const { icon } = await vite.ssrLoadModule('/src/icons.ts');
+const { viewZoomHtml } = await vite.ssrLoadModule('/src/view-zoom.ts');
 await vite.close();
 
 // Where each snippet sits in the repository, for the "GitHub" buttons: "src/models/<file>.ts#L<n>",
@@ -349,6 +350,7 @@ function demoPage(d, index) {
             <div class="stage stage--lg" data-demo="${d.id}">
               <noscript><p class="page-noscript">The live 3D preview needs JavaScript to load. The explanation and full code are below.</p></noscript>
             </div>
+            ${viewZoomHtml()}
             <button type="button" class="stage__mode" data-stage-theme aria-label="Switch this preview to light"></button>
             <div class="stage__zoom" role="group" aria-label="Background dot size"><button type="button" data-dots="0" data-dots-scope="stage" aria-pressed="false" title="No background dots">Off</button><button type="button" data-dots="1" data-dots-scope="stage" aria-pressed="false" title="Background dots 1×">1×</button><button type="button" data-dots="2" data-dots-scope="stage" aria-pressed="true" title="Background dots 2×">2×</button><button type="button" data-dots="3" data-dots-scope="stage" aria-pressed="false" title="Background dots 3×">3×</button></div>
             <div class="stage__holds"><button type="button" class="stage__hold stage__hold--freeze" data-freeze aria-pressed="false" title="Stop this model on the pose it is in now (it prints like this too)"><span class="stage__tick" aria-hidden="true"></span>Pause</button></div>
