@@ -1117,9 +1117,6 @@ render();`,
   display: flex;
   width: calc(210 * var(--u));
   height: calc(168 * var(--u));
-  /* the shadows under the cards and a card stepping forward both reach down, not up: lift the row
-     by that much, so what it draws is centred */
-  translate: 0 calc(-13 * var(--u));
   transform-style: preserve-3d;
   pointer-events: none;
 }
@@ -1148,6 +1145,8 @@ render();`,
   align-content: start;
   justify-items: center;
   gap: calc(6 * var(--u));
+  /* 66 × 140 outside, padding and border included: centred in its slot */
+  box-sizing: border-box;
   width: calc(66 * var(--u));
   height: calc(140 * var(--u));
   padding: calc(10 * var(--u)) calc(7 * var(--u));
