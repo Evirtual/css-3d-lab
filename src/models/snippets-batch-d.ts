@@ -734,6 +734,9 @@ root.addEventListener('keydown', key);`,
   position: absolute;
   top: calc(50% - 44 * var(--u));
   left: calc(50% - 36 * var(--u));
+  /* 72 × 88 outside, the white border included: the picture (62) and caption (21) fill it, and
+     the contact shadow under it is the same box */
+  box-sizing: border-box;
   width: calc(72 * var(--u));
   height: calc(88 * var(--u));
   padding: calc(5 * var(--u)) calc(5 * var(--u)) 0;
