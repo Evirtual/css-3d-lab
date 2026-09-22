@@ -63,7 +63,6 @@ const VIOLET = '#8b6cff';
 const TEAL = '#2ee6d6';
 const PINK = '#ff4d9d';
 const TEXT = '#eceefb';
-const MUTED = '#949bc0';
 const SURFACE = '#141830';
 
 /** The JSON as an API would send it, each step on one line. */
@@ -178,7 +177,8 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
   top: calc(-6 * var(--u));
   left: 100%;
   padding-left: calc(6 * var(--u));
-  color: ${MUTED};
+  color: inherit; /* the stage's own ink, softened with opacity: a fixed pale lavender was 2.3:1 on the light stage */
+  opacity: 0.72;
   font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
 }
 
@@ -286,7 +286,8 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
   position: absolute;
   top: calc(100% + calc(6 * var(--u)));
   right: 50%;
-  color: ${MUTED};
+  color: inherit; /* the stage's ink, softened: see .wall span */
+  opacity: 0.72;
   font: 700 calc(13 * var(--u))/calc(15 * var(--u)) system-ui, sans-serif;
   white-space: nowrap;
   transform-origin: 100% 0;
