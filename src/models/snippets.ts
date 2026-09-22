@@ -118,12 +118,13 @@ ${CUBE_FACES}
   border-radius: calc(16 * var(--u));
   font: 700 calc(24 * var(--u)) system-ui;
   color: #fff;
-  background: linear-gradient(135deg, #8b6cff, #ff4d9d);
+  /* deep enough for white words (5.1:1 at the worst end): the bright #8b6cff to #ff4d9d was 3.3:1 */
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
   backface-visibility: hidden;
 }
 
 .flip-back {
-  background: linear-gradient(135deg, #2ee6d6, #8b6cff);
+  background: linear-gradient(135deg, #087a70, #6a45f5); /* deep for white words: #2ee6d6 was 1.6:1 */
   transform: rotateY(180deg);
 }`,
   },
@@ -169,7 +170,7 @@ ${CUBE_FACES}
   border-radius: calc(10 * var(--u));
   font: 800 calc(22 * var(--u)) system-ui;
   color: #fff;
-  background: hsl(calc(250 + var(--i) * 18) 80% 60% / 0.85);
+  background: hsl(calc(250 + var(--i) * 18) 80% 52% / 0.92); /* deep enough for white numbers on either stage */
   transform:
     rotateY(calc(var(--i) * 360deg / var(--count)))
     translateZ(var(--radius));
@@ -1106,7 +1107,8 @@ ${CUBE_FACES}`,
   color: #fff;
   /* the card's own words, so they scale with the card and not with the page */
   font: 500 calc(17 * var(--u))/1.35 system-ui, sans-serif;
-  background: linear-gradient(135deg, #8b6cff, #ff4d9d);
+  /* deep enough for its white words (5.1:1 at the worst end): the bright #8b6cff to #ff4d9d was 3:1 */
+  background: linear-gradient(135deg, #6a45f5, #d1206f);
   box-shadow: 0 calc(24 * var(--u)) calc(40 * var(--u)) calc(-18 * var(--u)) #8b6cff;
   transform-style: preserve-3d;
   /* the glow shadow hangs below the card and a tilt towards the pointer throws the near edge
@@ -1520,7 +1522,8 @@ layout();`,
   border-radius: calc(16 * var(--u));
   font: 900 calc(38 * var(--u)) system-ui, sans-serif;
   color: #fff;
-  background: linear-gradient(135deg, #ffb547, #ff4d9d);
+  /* deep enough for its white 3D, 3:1 or more (large text): the bright #ffb547 was 2.3:1 */
+  background: linear-gradient(135deg, #c96f00, #d1206f);
   transform: rotateX(var(--rx, 20deg)) rotateY(var(--ry, -35deg));
 }
 
@@ -1697,17 +1700,19 @@ update();`,
   white-space: nowrap;
   transform: translateY(calc(-4 * var(--u)));
   color: #fff;
+  /* the long shadow in a deep amber, so the white face stands 3:1 or more off it (large text) where
+     the shadow shows at its edges; from a bright #e6a340 it was 2.2:1 */
   text-shadow:
-    calc(var(--dx) * 1 * var(--u))  calc(var(--dy) * 1 * var(--u))  0 #e6a340,
-    calc(var(--dx) * 2 * var(--u))  calc(var(--dy) * 2 * var(--u))  0 #d99a3c,
-    calc(var(--dx) * 3 * var(--u))  calc(var(--dy) * 3 * var(--u))  0 #cc9139,
-    calc(var(--dx) * 4 * var(--u))  calc(var(--dy) * 4 * var(--u))  0 #bf8835,
-    calc(var(--dx) * 5 * var(--u))  calc(var(--dy) * 5 * var(--u))  0 #b37f32,
-    calc(var(--dx) * 6 * var(--u))  calc(var(--dy) * 6 * var(--u))  0 #a6762e,
-    calc(var(--dx) * 7 * var(--u))  calc(var(--dy) * 7 * var(--u))  0 #996d2b,
-    calc(var(--dx) * 8 * var(--u))  calc(var(--dy) * 8 * var(--u))  0 #8c6327,
-    calc(var(--dx) * 9 * var(--u))  calc(var(--dy) * 9 * var(--u))  0 #805a24,
-    calc(var(--dx) * 10 * var(--u)) calc(var(--dy) * 10 * var(--u)) 0 #735120,
+    calc(var(--dx) * 1 * var(--u))  calc(var(--dy) * 1 * var(--u))  0 #b07424,
+    calc(var(--dx) * 2 * var(--u))  calc(var(--dy) * 2 * var(--u))  0 #a56d22,
+    calc(var(--dx) * 3 * var(--u))  calc(var(--dy) * 3 * var(--u))  0 #9a6620,
+    calc(var(--dx) * 4 * var(--u))  calc(var(--dy) * 4 * var(--u))  0 #905f1d,
+    calc(var(--dx) * 5 * var(--u))  calc(var(--dy) * 5 * var(--u))  0 #85581b,
+    calc(var(--dx) * 6 * var(--u))  calc(var(--dy) * 6 * var(--u))  0 #7a5019,
+    calc(var(--dx) * 7 * var(--u))  calc(var(--dy) * 7 * var(--u))  0 #6f4917,
+    calc(var(--dx) * 8 * var(--u))  calc(var(--dy) * 8 * var(--u))  0 #654214,
+    calc(var(--dx) * 9 * var(--u))  calc(var(--dy) * 9 * var(--u))  0 #5a3b12,
+    calc(var(--dx) * 10 * var(--u)) calc(var(--dy) * 10 * var(--u)) 0 #4f3410,
     calc(var(--dx) * 22 * var(--u)) calc(var(--dy) * 22 * var(--u)) calc(20 * var(--u)) rgb(0 0 0 / 0.5);
 }
 
