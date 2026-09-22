@@ -29,16 +29,17 @@
  * WHAT IS BEHIND IT. Each state is photographed twice: as it is (S1), and with every glyph's fill
  * made transparent and nothing else changed (S0: -webkit-text-fill-color, SVG fill and stroke, and
  * the background of gradient text, background-clip: text; transitions off, so hiding starts none).
- * A text under AA is photographed once more with only its own fill hidden, and judged on that:
- * with every fill hidden, a text behind another (a face turned away, a word under a card) would take
- * the glyphs of the one in front as its own. The pixels that change, inside a text's rects, are its glyphs; the strongest of
- * them (the tenth that change most) are the glyph cores, where a stroke covers its pixels whole. The text's colour is the mean of S1 over
- * the cores, and its background the mean of S0 over the same pixels: the actual pixels behind the
- * letters, the model's own panel, gradient, glow or 3D face included. When the text's colour is a
- * plain CSS colour with nothing on the way to change it (no filter or blend mode, no gradient fill),
- * that colour, laid over the background at its alpha and every opacity above it, is its colour:
- * exact where a thin stroke at 8px never covers a pixel whole. Otherwise the drawn cores decide. A text whose glyphs change no
- * pixel (behind something, clipped, off the canvas) is not shown, and is counted apart as not drawn.
+ * A text under AA is photographed once more with only its own fill hidden, and judged on that: with
+ * every fill hidden, a text behind another (a face turned away, a word under a card) would take the
+ * glyphs of the one in front as its own. The pixels that change, inside a text's rects, are its
+ * glyphs; the tenth that change most are its cores, where a stroke covers its pixels whole. Its
+ * background is the mean of S0 over the cores: the actual pixels behind the letters, the model's
+ * own panel, gradient, glow or 3D face included. Its colour, when it is a plain CSS colour with
+ * nothing on the way to change it (no filter, blend mode or mask, no gradient fill), is that colour
+ * laid over the background at its alpha and every opacity above it: exact even where a thin stroke
+ * at 8px never covers a pixel whole. Otherwise it is the mean of S1 over the cores. A text with
+ * fewer glyph pixels than half its size in device px (behind something, clipped, a sliver of a
+ * copy) is not shown, and is counted apart as not drawn.
  *
  * THE RULE. WCAG 2 AA: 4.5:1 for normal text, 3:1 for large text, which is at least 24 CSS px, or
  * bold (700 and over) and at least 18.66 CSS px, at the card's canvas size. Text in a disabled
@@ -132,8 +133,8 @@ const TEXTS = () => {
   };
   // The text's colour as CSS gives it, when that is the whole story: a plain colour (its alpha and
   // every opacity up to the scene taken as a share over what is behind), no filter or blend mode on
-  // the way, no gradient fill. Then it is exact even where a thin stroke never covers a pixel whole.
-  // Otherwise (gradient text, a filter) the pixels are the only truth, and css is null.
+  // the way, no mask fading it, no gradient fill. Then it is exact even where a thin stroke never covers a pixel whole.
+  // Otherwise (gradient text, a filter, a mask) the pixels are the only truth, and css is null.
   const parse = (c) => {
     let m = /^rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)$/.exec(c);
     if (m) return [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]];
@@ -150,7 +151,7 @@ const TEXTS = () => {
     let alpha = c[3];
     for (let e = el; e && e !== scene.parentElement; e = e.parentElement) {
       const s = getComputedStyle(e);
-      if (s.filter !== 'none' || s.mixBlendMode !== 'normal') return null;
+      if (s.filter !== 'none' || s.mixBlendMode !== 'normal' || (s.maskImage && s.maskImage !== 'none') || (s.webkitMaskImage && s.webkitMaskImage !== 'none')) return null;
       alpha *= +s.opacity;
     }
     if (pseudo) alpha *= +cs.opacity;
