@@ -1450,7 +1450,10 @@ table.mini code { font-size: 12px; }
       const run = c.running;
       const ran = total - (t.never ?? 0);
       const unit = c.unit === 'pages' ? 'pages' : 'models';
-      const status = !c.captured && !run ? `not run yet (0 of ${total} ${unit})` : `${t.pass} of ${total} ${unit} pass${c.listed ? ` · ${c.listed} of them with listed findings (waived or the model's own text, not failed)` : ''}${c.lastRun?.finishedAt ? ` · last run ${new Date(c.lastRun.finishedAt).toLocaleString()}${c.lastRun.commit ? ` at ${c.lastRun.commit}` : ''}` : ''}`;
+      // a site check's pages by kind, public first: "145 public · 136 embeds · 135 redirects"
+      const KIND_ORDER = ['public', 'embeds', 'redirects'];
+      const kinds = c.kinds ? KIND_ORDER.filter((k) => c.kinds[k]).map((k) => `${c.kinds[k].pages} ${k}${c.kinds[k].pass === c.kinds[k].pages ? '' : ` (${c.kinds[k].pass} pass)`}`).join(' · ') : '';
+      const status = !c.captured && !run ? `not run yet (0 of ${total} ${unit})` : `${t.pass} of ${total} ${unit} pass${kinds ? ` (${kinds})` : ''}${c.listed ? ` · ${c.listed} of them with listed findings (waived or the model's own text, not failed)` : ''}${c.lastRun?.finishedAt ? ` · last run ${new Date(c.lastRun.finishedAt).toLocaleString()}${c.lastRun.commit ? ` at ${c.lastRun.commit}` : ''}` : ''}`;
       const runChip = run ? `<span class="chip ${run.alive === false ? 's-bad' : 's-chk'}">${run.alive === false ? 'stopped' : 'running'} ${esc(run.done)} of ${run.total ?? '?'}</span>` : '';
       const pills = segs.filter((x) => x.n).map((x) => `<span class="bdpill"><i style="background:${x.c}"></i>${esc(x.label)} <b>${x.n}</b></span>`).join('');
       const bar = segBar(segs, total).replace('class="bdbar"', `class="bdbar${run && run.alive !== false ? ' is-running' : ''}"`);

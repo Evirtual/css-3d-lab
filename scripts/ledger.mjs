@@ -671,14 +671,20 @@ const ledger = {
       return { ...c, unit: 'models', total: models.length, tally, captured, running: run };
     }
     // a site check: its result file's entries are pages
-    const pages = Object.values(checkFiles[c.key]?.models ?? {});
+    const byPath = Object.entries(checkFiles[c.key]?.models ?? {});
+    const pages = byPath.map(([, x]) => x);
     const total = Math.max(pages.length, c.pages ?? 0);
+    // What kind of page each is, from its path: the embeds and the old /demos/ redirects are pages
+    // too (the check reads every HTML file in dist/), but only the public ones are in the sitemap.
+    const kindOf = (p) => (p.startsWith('/embed/') ? 'embeds' : p.startsWith('/demos/') ? 'redirects' : 'public');
+    const kinds = {};
+    for (const [p, x] of byPath) { const k = (kinds[kindOf(p)] ??= { pages: 0, pass: 0 }); k.pages++; if (x.status === 'pass') k.pass++; }
     const tally = { pass: pages.filter((x) => x.status === 'pass').length, stale: 0, fail: pages.filter((x) => x.status !== 'pass').length, never: 0 };
     tally.never = total - tally.pass - tally.fail;
     // passes whose findings the check lists rather than fails (check-seo's WAIVED and OWN-TEXT)
     const listed = pages.filter((x) => x.status === 'pass' && x.listed).length;
     const lastRun = checkFiles[c.key]?.runs?.[0] ?? null;
-    return { ...c, unit: 'pages', total, tally, listed, captured, running: run, lastRun: lastRun ? { finishedAt: lastRun.finishedAt, commit: lastRun.commit, summaryLine: lastRun.summaryLine } : null };
+    return { ...c, unit: 'pages', total, tally, listed, kinds, captured, running: run, lastRun: lastRun ? { finishedAt: lastRun.finishedAt, commit: lastRun.commit, summaryLine: lastRun.summaryLine } : null };
   }),
   readiness,
   exportsMatrix: (() => {
