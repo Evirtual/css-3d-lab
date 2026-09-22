@@ -12,7 +12,8 @@
  *
  * The drawn box is measured inside the model's frame, as the union of every part that paints (a
  * fill, a border, a shadow, text, an image, a drawn ::before/::after), 3D turns included — the
- * print's rule (printDoc's drawn()) — each box grown by how far its outer box-shadows and its
+ * print's rule (printDoc's drawn()) — each box grown by how far its outer box-shadows, its
+ * text-shadows (a long shadow stack, like the pointer-lit text's, reaches far past its box) and its
  * filter's drop-shadows and blur reach past it (what a pseudo-element draws outside its element's
  * box is not seen):
  *  - over the model's CSS animation loop, swept in one go: every animation seeked to 24 moments
@@ -384,7 +385,7 @@ export function sampleFillLimit(stage: HTMLElement): void {
   limits.get(stage)?.sample(true);
 }
 
-/** How far past its box an element's outer shadows and blur reach, side by side, in its own pixels. */
+/** How far past its box an element's outer shadows (box and text) and blur reach, side by side, in its own pixels. */
 function glowOf(cs: CSSStyleDeclaration): { l: number; t: number; r: number; b: number } {
   const g = { l: 0, t: 0, r: 0, b: 0 };
   const reach = (x: number, y: number, far: number): void => {
@@ -399,6 +400,13 @@ function glowOf(cs: CSSStyleDeclaration): { l: number; t: number; r: number; b: 
       if (/\binset\b/.test(one)) continue;
       const [x = 0, y = 0, blur = 0, spread = 0] = (one.match(/-?[\d.]+px/g) ?? []).map(parseFloat);
       reach(x, y, blur + spread);
+    }
+  }
+  if (cs.textShadow !== 'none') {
+    // a text-shadow falls from the text, which lies inside the box (a long shadow stack reaches far)
+    for (const one of cs.textShadow.split(/,(?![^(]*\))/)) {
+      const [x = 0, y = 0, blur = 0] = (one.match(/-?[\d.]+px/g) ?? []).map(parseFloat);
+      reach(x, y, blur);
     }
   }
   if (cs.filter !== 'none') {
