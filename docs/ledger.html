@@ -1919,10 +1919,24 @@ table.mini code { font-size: 12px; }
       ? `<div class="table-wrap"><table class="mini"><thead><tr><th>File</th><th>State</th><th>Last changed</th></tr></thead><tbody>${R.atRisk.map((f) => `<tr><td><code>${esc(f.path)}</code></td><td><span class="chip ${f.code === '??' ? 's-bad' : 's-warn'}">${esc(f.kind)}</span></td><td class="num">${f.modifiedAt ? agoSpan(f.modifiedAt) : '<span class="muted">gone from disk</span>'}</td></tr>`).join('')}</tbody></table></div>`
       : '<p>Nothing: every file in the working tree matches a commit.</p>';
     const X = L.exportsMatrix;
+    // A run's arguments as a short label: its flags, and "N models" for the ids (the whole list
+    // folds away): a --defaults run over all 135 printed every id on every row.
+    const runLabel = (m) => {
+      const a = m.args ?? [];
+      const flags = a.filter((x) => x.startsWith('-'));
+      const ids = a.filter((x) => !x.startsWith('-'));
+      const head = `${flags.join(' ') || 'no flags'}${ids.length ? ` · ${ids.length} model${ids.length === 1 ? '' : 's'}` : ' · its sample'}${m.sizes ? ` · SIZES=${m.sizes}` : ''}`;
+      return ids.length > 3 ? `<details class="runargs"><summary><code class="muted">${esc(head)}</code></summary><code class="muted">${esc(ids.join(' '))}</code></details>` : `<code class="muted">${esc(head)}${ids.length ? `: ${esc(ids.join(' '))}` : ''}</code>`;
+    };
+    const rows = X?.models ?? [];
+    // a --defaults run makes no setting outside the defaults, so it has nothing to say in this table
+    const full = rows.filter((m) => !(m.args ?? []).includes('--defaults'));
+    const defaultsOnly = rows.length - full.length;
     const matrix = !X ? '' : `<h3>Exports: default settings per model, the full matrix on a sample</h3>
       <div class="notice info" style="color:var(--text)">${esc(X.note)}</div>
-      ${X.models?.length ? `<div class="table-wrap"><table class="mini"><thead><tr><th>Model</th><th>Run</th><th>Mismatches outside the defaults</th></tr></thead><tbody>${X.models.map((m) => `<tr><td><code>${esc(m.id)}</code></td><td class="num">${m.ranAt ? agoSpan(m.ranAt) : '—'}<br><code class="muted">${esc((m.args ?? []).join(' ') || 'no args')}${m.sizes ? ` · SIZES=${esc(m.sizes)}` : ''}</code></td><td>${m.mismatches.length ? `<ul class="missing">${m.mismatches.map((x) => `<li>${esc(x.check)} ${esc(x.what)}: ${esc(x.detail)}</li>`).join('')}</ul>` : '<span class="muted">none among the settings this run made</span>'}</td></tr>`).join('')}</tbody></table></div>`
-        : '<p class="muted">No model has been through check-exports yet.</p>'}`;
+      ${defaultsOnly ? `<p class="muted">For ${defaultsOnly} model${defaultsOnly === 1 ? '' : 's'} the latest export result comes from a <code>--defaults</code> run, which makes only the default settings, so there is nothing for this table to add; their verdicts (pass, fail or didn't run) are in the Export bar and the model table.</p>` : ''}
+      ${full.length ? `<div class="table-wrap"><table class="mini"><thead><tr><th>Model</th><th>Run</th><th>Mismatches outside the defaults</th></tr></thead><tbody>${full.map((m) => `<tr><td><code>${esc(m.id)}</code></td><td class="num">${m.ranAt ? agoSpan(m.ranAt) : '—'}<br>${runLabel(m)}</td><td>${m.mismatches.length ? `<ul class="missing">${m.mismatches.map((x) => `<li>${esc(x.check)} ${esc(x.what)}: ${esc(x.detail)}</li>`).join('')}</ul>` : '<span class="muted">none among the settings this run made</span>'}</td></tr>`).join('')}</tbody></table></div>`
+        : `<p class="muted">${rows.length ? 'No model has a full-matrix run on record yet (every setting, on the sample: <code>node scripts/check-exports.mjs</code>).' : 'No model has been through check-exports yet.'}</p>`}`;
     renderChecklist();
     $('readiness').innerHTML = `${matrix}<h3>Release checklist</h3><p class="muted">It opens from the <b>Release checklist</b> button at the top of the page, with each item's proof run here where that is cheap.</p>
       <h3>Documents: when each last reached a commit</h3>${docs}
