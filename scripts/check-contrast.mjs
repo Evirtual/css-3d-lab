@@ -44,8 +44,10 @@
  * THE RULE. WCAG 2 AA: 4.5:1 for normal text, 3:1 for large text, which is at least 24 CSS px, or
  * bold (700 and over) and at least 18.66 CSS px, at the card's canvas size. Text in a disabled
  * control (:disabled, aria-disabled="true", or inside one) is exempt, as WCAG exempts an inactive
- * component: it is listed as exempt on the model's line, never silently left out. A text's
- * verdict is its worst state on each stage.
+ * component: it is listed as exempt on the model's line, never silently left out. A word drawn as a
+ * stack of copies (the layers of an extruded headline) is read from its front copy: a copy under AA
+ * lying at least half on a copy of the same text that reaches AA, in the same state, is one of its
+ * layers, counted and said on the line. A text's verdict is its worst state on each stage.
  *
  * Lines: `pass <id> …` (texts measured, the worst ratio, and what was exempt or not drawn) and
  * `FAILS <id> …`, each failing text indented under it with its ratio, what it needs, its colours,
@@ -339,10 +341,24 @@ async function judge(id, browser) {
   const worst = new Map();
   let exempt = 0, undrawn = 0;
   const exemptNames = new Set();
+  // A word drawn as a stack of copies (the layers of an extruded headline, the depth of a 3D
+  // letter) is read from its front copy: a copy under AA that lies mostly on another copy of the
+  // same text, in the same state, which reaches AA, is one of its layers, not a text of its own.
+  // It is counted, and said on the model's line; a copy that stands on its own is judged as a text.
+  const box = (m) => m.rects.reduce((b, [l, t, r, bt]) => [Math.min(b[0], l), Math.min(b[1], t), Math.max(b[2], r), Math.max(b[3], bt)], [Infinity, Infinity, -Infinity, -Infinity]);
+  const overlap = (a, b) => {
+    const w = Math.min(a[2], b[2]) - Math.max(a[0], b[0]), h = Math.min(a[3], b[3]) - Math.max(a[1], b[1]);
+    return w > 0 && h > 0 ? (w * h) / Math.min((a[2] - a[0]) * (a[3] - a[1]), (b[2] - b[0]) * (b[3] - b[1])) : 0;
+  };
+  const layerOf = (m) => m.drawn && m.ratio < m.need && all.some((o) => o !== m && o.drawn && !o.disabled && o.stage === m.stage && o.state === m.state
+    && o.text === m.text && o.ratio >= o.need && overlap(box(m), box(o)) >= 0.5);
+  let layers = 0;
+  const layerNames = new Set();
   for (const m of all) {
     const key = `${m.stage}\0${m.where}\0${m.text}`;
     if (m.disabled) { exempt++; exemptNames.add(`"${m.text}"`); continue; }
     if (!m.drawn) { undrawn++; continue; }
+    if (layerOf(m)) { layers++; layerNames.add(`"${m.text}"`); continue; }
     const w = worst.get(key);
     if (!w || m.ratio / m.need < w.ratio / w.need) worst.set(key, m);
   }
@@ -354,6 +370,7 @@ async function judge(id, browser) {
   for (const e of [...new Set(errors)]) problems.push(`page error: ${e}`);
   const notes = [
     exempt ? `${exemptNames.size} disabled text(s) exempt (${[...exemptNames].slice(0, 3).join(', ')})` : '',
+    layers ? `${layers} reading(s) of a stacked copy under a readable front copy of the same text, judged by the front copy (${[...layerNames].slice(0, 3).join(', ')})` : '',
     undrawn ? `${undrawn} reading(s) of text not drawn (hidden behind something or clipped)` : '',
   ].filter(Boolean);
   return { id, problems, texts, lowest, notes };

@@ -91,8 +91,11 @@ export const REGISTRY = [
   },
   {
     key: 'contrast', script: 'check-contrast.mjs', scope: 'model', name: 'contrast', short: 'Text',
-    ruleVersion: 1,
-    rules: [{ v: 1, from: null, what: 'as first recorded' }],
+    ruleVersion: 2,
+    rules: [
+      { v: 1, from: null, what: 'every text, each copy judged on its own' },
+      { v: 2, from: null, what: 'a stacked copy of a word (a layer of an extruded headline), lying at least half on a readable copy of the same text, is judged by that front copy' },
+    ],
     title: 'Text readable on both stages (check-contrast)', label: 'text contrast check (check-contrast)',
     rule: "cleared when its latest result is a pass on the model's current code: every text it shows, at rest, with :hover forced, with the pointer on it and after each of its controls is clicked, reaches WCAG AA against the pixels behind it (4.5:1, or 3:1 for text at least 24px, or bold and 18.66px, on a card's canvas) on the dark stage and on the light one; text in a disabled control is exempt and listed",
   },
