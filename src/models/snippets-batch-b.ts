@@ -404,9 +404,9 @@ scene.addEventListener('pointercancel', leave);`,
     how: [
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the box, its label and the card inside are the same share of a gallery card, the editor and a recording canvas. The numbers below are those units.',
       'An open-top box: four walls around the centre and a base laid flat with <code>rotateX(-90deg)</code>, pushed down by half the wall height.',
-      'The lid stands <b>above</b> the back wall and is hinged on its bottom edge with <code>transform-origin: 50% 100%</code>. At rest <code>rotateX(-90deg)</code> lays it flat over the opening, so the box is shut and the card inside is hidden; open, <code>rotateX(-25deg)</code> stands it up, leaning a little towards you.',
+      'The lid stands <b>above</b> the back wall and is hinged on its bottom edge with <code>transform-origin: 50% 100%</code>. At rest <code>rotateX(-90deg)</code> lays it flat over the opening, so the box is shut and the card inside is hidden; open, <code>rotateX(-32deg)</code> lifts it most of the way up, leaning a little towards you.',
       'Two transitions, swapped delays: opening, the lid goes first and the card rises 0.3s later; closing, the card drops first and the lid waits 0.3s. Each state carries the delay for the move <i>into</i> it.',
-      'The camera looks down on the box at 45°, so its top is a big part of what you see: shut, the box is 45vmin tall on its own, and the open lid, foreshortened, still fits in the band above it. As the lid opens the whole box sinks 14 units (<code>translate</code>, on top of the swaying <code>transform</code>), so the shut box and the open one are both centred.',
+      'The camera looks at the box from a gentle 24° above, and it is the box’s own size that fills the frame: at <code>--u: 0.41vmin</code> the shut box is 42–43vmin tall. Open, the lid stops at <code>rotateX(-32deg)</code>, short of upright, so lid and card stay inside the 70vmin band; as it opens the whole box sinks 26 units (<code>translate</code>, on top of the swaying <code>transform</code>), so the shut box and the open one are both centred.',
       'The hovered element is a static wrapper; the box inside has <code>pointer-events: none</code>. A hovered element that moves away from the pointer would flicker.',
     ],
     html: `<div class="scene">
@@ -425,7 +425,7 @@ scene.addEventListener('pointercancel', leave);`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the box is the same share of a
      card, the editor, a full screen and a recording canvas */
-  --u: 0.37vmin;
+  --u: 0.41vmin;
   perspective: calc(800 * var(--u));
 }
 
@@ -437,7 +437,7 @@ scene.addEventListener('pointercancel', leave);`,
   place-items: center;
   /* just wider than the box, and as tall as it is open, so the pointer on the lid keeps it open */
   width: calc(136 * var(--u));
-  height: calc(180 * var(--u));
+  height: calc(170 * var(--u));
   border-radius: calc(16 * var(--u));
   outline-offset: calc(-4 * var(--u));
   cursor: pointer;
@@ -559,9 +559,9 @@ scene.addEventListener('pointercancel', leave);`,
 
 .package:hover .lid,
 .package:focus-visible .lid {
-  /* stood up, leaning a little towards you: seen from 45deg above, a lid leaning back would stand
-     taller in the picture than the band has room for */
-  transform: translateZ(calc(-44 * var(--u))) rotateX(-25deg);
+  /* lifted most of the way up, leaning a little towards you: upright or leaning back, the lid
+     would stand taller than the band has room for */
+  transform: translateZ(calc(-44 * var(--u))) rotateX(-32deg);
   transition: transform 0.7s cubic-bezier(0.3, 1.15, 0.5, 1);
 }
 
@@ -569,7 +569,7 @@ scene.addEventListener('pointercancel', leave);`,
    both centred */
 .package:hover .box,
 .package:focus-visible .box {
-  translate: 0 calc(14 * var(--u));
+  translate: 0 calc(26 * var(--u));
   transition: translate 0.7s ease-in-out;
 }
 
@@ -580,11 +580,11 @@ scene.addEventListener('pointercancel', leave);`,
   transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1) 0.3s;
 }
 
-/* the camera looks down at 45deg; the box sits 3 units below its layout box, which centres
-   it shut */
+/* the camera looks down at a gentle 24deg; the box sits 2 units above its layout box, which
+   centres it shut */
 @keyframes sway {
-  from { transform: translateY(calc(3 * var(--u))) rotateX(-45deg) rotateY(-38deg); }
-  to   { transform: translateY(calc(3 * var(--u))) rotateX(-45deg) rotateY(-22deg); }
+  from { transform: translateY(calc(-2 * var(--u))) rotateX(-24deg) rotateY(-38deg); }
+  to   { transform: translateY(calc(-2 * var(--u))) rotateX(-24deg) rotateY(-22deg); }
 }`,
   },
 

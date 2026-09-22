@@ -24,7 +24,7 @@ export const demosB: Demo[] = [
     id: 'package',
     title: 'Unboxing',
     description:
-      'A shut box, seen from above. Hover or focus: the lid swings open on its back edge and the product card rises out. One hinge (transform-origin) and two staggered transitions.',
+      'A shut box, seen from a gentle angle. Hover or focus: the lid swings open on its back edge and the product card rises out. One hinge (transform-origin) and two staggered transitions.',
     category: 'css',
     tags: ['hover', 'product', 'box', 'packaging'],
     technique: ['lid hinged with transform-origin: bottom', 'open-top box from 4 walls + base', 'transition-delay swaps between open and close', 'static hit area'],
