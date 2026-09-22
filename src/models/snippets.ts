@@ -1080,7 +1080,7 @@ ${CUBE_FACES}`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the card is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
-  --u: 0.23vmin;
+  --u: 0.28vmin;
   display: grid;
   place-items: center;
   width: 100vw;
@@ -1095,6 +1095,8 @@ ${CUBE_FACES}`,
   display: grid;
   align-content: end;
   gap: calc(2 * var(--u));
+  /* the card is 280 × 176 outside, a bank card's shape: its padding is inside that */
+  box-sizing: border-box;
   width: calc(280 * var(--u));
   height: calc(176 * var(--u));
   padding: calc(20 * var(--u));
@@ -1107,7 +1109,7 @@ ${CUBE_FACES}`,
   transform-style: preserve-3d;
   /* the glow shadow hangs below the card and a tilt towards the pointer throws the near edge
      further out, so what the card paints sits below its box: the lift centres the drawing */
-  transform: translateY(calc(-13 * var(--u))) rotateX(var(--rx)) rotateY(var(--ry));
+  transform: translateY(calc(-4 * var(--u))) rotateX(var(--rx)) rotateY(var(--ry));
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
