@@ -33,9 +33,9 @@ const { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources
 
 const { evaluateChecklist } = await import(`./checklist-proofs.mjs${new URL(import.meta.url).search}`);
 // staleness: whether each result still describes what it judged (snippet, play, text, render path)
-const { stalenessIndex, STALENESS_TEXT } = await import(`./fingerprint.mjs${new URL(import.meta.url).search}`);
+const { stalenessIndex, STALENESS_TEXT, contains } = await import(`./fingerprint.mjs${new URL(import.meta.url).search}`);
 // the one list of checks: capture-check.mjs runs them, this gates on them, the page draws them
-const { REGISTRY, MODEL_CHECKS, forPage } = await import(`./checks-registry.mjs${new URL(import.meta.url).search}`);
+const { REGISTRY, MODEL_CHECKS, forPage, ruleStale } = await import(`./checks-registry.mjs${new URL(import.meta.url).search}`);
 
 /** The build's own code: a hash of these files as they are on disk right now. */
 const CODE_FILES = ['scripts/ledger.mjs', 'scripts/model-sources.mjs', 'scripts/checklist-proofs.mjs', 'scripts/checks-registry.mjs'];
@@ -583,9 +583,12 @@ const models = demos.map((d) => {
     else {
       if (r.fingerprint && src && r.fingerprint !== src.fingerprint) stale.push('the model\'s own source has changed since this ran');
       if (!r.fingerprint) stale.push('no fingerprint was recorded, so it cannot be told whether the source changed');
+      // the rule it was judged under (the staleness index says this itself when it could be built)
+      const rule = ruleStale(name, r, contains);
+      if (rule) stale.push(rule);
     }
     if (r.sourceChangedDuringRun) stale.push('the model\'s source changed while the check was running');
-    checks[name] = { status: r.status, summary: r.summary, detail: r.detail, ranAt: r.ranAt, runId: r.runId, commit: r.commit, args: r.args, stale: stale.length > 0, staleWhy: stale, staleBasis: judged?.basis ?? null };
+    checks[name] = { status: r.status, summary: r.summary, detail: r.detail, ranAt: r.ranAt, runId: r.runId, commit: r.commit, ruleVersion: r.ruleVersion ?? null, args: r.args, stale: stale.length > 0, staleWhy: stale, staleBasis: judged?.basis ?? null };
   }
 
   const contract = checks[CONTRACT];
@@ -740,7 +743,7 @@ const ledger = {
     contractCheck: CONTRACT,
     // each gate's rule on its own, in gate order, for the page's "How these are counted"
     gateRules: GATES.map((g) => ({ key: g.key, name: g.name, label: g.label, source: checkFiles[g.key] ? `docs/checks/${g.key}.json, updated ${checkFiles[g.key].updatedAt}` : 'no result file: never captured',
-      rule: REGISTRY.find((c) => c.key === g.key).rule })),
+      rule: ((c) => `${c.rule}. Its rule is version ${c.ruleVersion ?? 1}${c.rules?.length > 1 ? ` (${c.rules.map((r) => `v${r.v}${r.from ? ` from ${r.from}` : ''}: ${r.what}`).join('; ')})` : ''}; a result judged under another version is stale, "rule changed"`)(REGISTRY.find((c) => c.key === g.key)) })),
     gateKinds: `Each gate not cleared is one of: ${GATE_KINDS.map((k) => `${k.label} (${k.means})`).join('; ')}`,
     // the same, as data, for the page's "What's holding models back" and its definitions
     holdKinds: GATE_KINDS.map(({ key, label, means }) => ({ key, label, means })),

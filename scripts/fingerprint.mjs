@@ -24,8 +24,10 @@
  *  - a visual review: snippet + play + the frame. The reviews record what the model looks like
  *    on the canvas (size, pose, centring, themes), not the words, so text does not stale them;
  *  - a text review: text + snippet (it says whether the words describe the code).
- * A check's own script is not part of its fingerprint: a stricter check is a new rule for the
- * next run, not a change in what the old run looked at.
+ * A check's own script is not part of its fingerprint, but its RULE is: every check in
+ * scripts/checks-registry.mjs has a ruleVersion, bumped whenever its rule's meaning changes, and a
+ * result judged under another version is stale, "rule changed (vN → vM)". A result from before
+ * versions were recorded is given the version its commit had (the registry's `rules` history).
  *
  *   node scripts/fingerprint.mjs <id> [--kind visual|text|models|stages|motion|exports|media]
  *
@@ -44,6 +46,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import { join, posix, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { norm, ROOT, sourcesOf } from './model-sources.mjs';
+import { ruleStale } from './checks-registry.mjs';
 
 const toPosix = (p) => p.split(sep).join('/');
 const h = (value) => createHash('sha1').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex').slice(0, 12);
@@ -414,6 +417,18 @@ function partAt(commit, p) {
   return memo.parts.get(k);
 }
 
+/** Whether commit `b` contains commit `a` (a is b or an ancestor of it); remembered per pair. */
+const containsMemo = new Map();
+export function contains(a, b) {
+  const k = `${a}\0${b}`;
+  if (!containsMemo.has(k)) {
+    let yes = false;
+    try { execFileSync('git', ['merge-base', '--is-ancestor', a, b], { cwd: ROOT, stdio: 'ignore' }); yes = true; } catch {}
+    containsMemo.set(k, yes);
+  }
+  return containsMemo.get(k);
+}
+
 /* ---------- staleness: what a result judged, then and now ---------- */
 /** The rule in words, for the ledger's definitions dialog. */
 export const STALENESS_TEXT = 'A result or review is stale when something it judged has changed since, and only then. '
@@ -421,7 +436,7 @@ export const STALENESS_TEXT = 'A result or review is stale when something it jud
   + 'the export check: the same, its render path adding the capture and recording code; the share-preview check: the same plus the text (the title is drawn in the image); the box-sizing check: the snippet, its boxSizing mark and the standalone file; the contrast check: the snippet, how it is played and the standalone file; '
   + 'a visual review: the snippet, how it is played, and the model frame; a text review: the text (title, description, how, technique, tags, category) and the snippet it describes. '
   + `The render paths: ${Object.entries(RENDER_PATHS).map(([k, list]) => `${k}: ${list.map(partLabel).join(', ')}`).join('; ')}. `
-  + 'A check\'s own script is not part of it. New results record these fingerprints (capture-check writes them; reviewers add `node scripts/fingerprint.mjs <id> --kind visual|text`); an older one that names only a commit is judged by the model as it was at that commit, rebuilt from git. '
+  + 'A check\'s own script is not part of it, but its rule version is: a result judged under an older version of the check\'s rule (scripts/checks-registry.mjs, ruleVersion) is stale, "rule changed (vN → vM)". New results record these fingerprints (capture-check writes them; reviewers add `node scripts/fingerprint.mjs <id> --kind visual|text`); an older one that names only a commit is judged by the model as it was at that commit, rebuilt from git. '
   + 'The reason says what changed and at which commit: "render changed at <commit>", "text changed (description) at <commit>", "shared file <file> changed at <commit>", or "(not committed yet)".';
 const WORD = { boxmark: 'its boxSizing mark changed', snippet: 'render changed', play: 'how it is played changed (interaction.ts)', text: 'text changed' };
 /**
@@ -487,7 +502,10 @@ export async function stalenessIndex({ checkFiles, reviews }, opts) {
     const now = await fingerprintsNow(opts);
     for (const [ck, file] of Object.entries(checkFiles ?? {})) {
       for (const [id, r] of Object.entries(file?.models ?? {})) {
-        out.set(key('check', ck, id), await judge({ kind: ck, id, commit: r.commit, fingerprints: r.fingerprints, own: r.fingerprint, ranAt: r.ranAt }, now, opts));
+        const j = await judge({ kind: ck, id, commit: r.commit, fingerprints: r.fingerprints, own: r.fingerprint, ranAt: r.ranAt }, now, opts);
+        // the rule it was judged under, beside what it looked at
+        const rule = ruleStale(ck, r, contains);
+        out.set(key('check', ck, id), rule ? { ...j, stale: true, why: [rule, ...j.why] } : j);
       }
     }
     for (const rv of reviews ?? []) {

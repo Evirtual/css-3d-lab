@@ -49,7 +49,8 @@
  *
  * Each model's entry is replaced only when this run reported it, so a run over two models keeps
  * the last known result of the other 133. Every entry carries the moment its line was printed, the
- * run it came from, HEAD at the time, and a fingerprint of the model's own source (see
+ * run it came from, HEAD at the time, the check's ruleVersion (scripts/checks-registry.mjs: a
+ * result judged under an older rule is stale), and a fingerprint of the model's own source (see
  * model-sources.mjs) taken when the run started, so the ledger can tell a result that still
  * describes the code from one that is stale.
  *
@@ -68,7 +69,7 @@ import { join } from 'node:path';
 import { fingerprints, ROOT, workingSources } from './model-sources.mjs';
 import { fingerprintsNow, recordFor } from './fingerprint.mjs';
 import { DEFAULTS, DEFAULTS_TEXT, isDefault } from './export-defaults.mjs';
-import { REGISTRY, pagesFor } from './checks-registry.mjs';
+import { REGISTRY, pagesFor, ruleVersionOf } from './checks-registry.mjs';
 
 const CHECKS = Object.fromEntries(REGISTRY.map((c) => [c.key, c.script]));
 const [check, ...rest] = process.argv.slice(2);
@@ -333,6 +334,9 @@ function entry(r, printsNow) {
     ranAt: r.at,
     runId,
     commit,
+    // the version of the check's rule this result was judged under (scripts/checks-registry.mjs):
+    // the ledger marks it stale when the rule has changed since
+    ruleVersion: ruleVersionOf(check),
     args,
     fingerprint: printsBefore[id] ?? null,
     fingerprints: judgedBefore ? recordFor(check, judgedBefore, id) : null,
@@ -440,7 +444,7 @@ child.on('close', (code, signal) => {
   const models = { ...(o.models ?? {}) };
   for (const [id, r] of Object.entries(results)) models[id] = entry({ ...r, id }, printsAfter);
   const run = {
-    runId, startedAt, finishedAt, script: `scripts/${CHECKS[check]}`, args, exitCode: code, signal,
+    runId, startedAt, finishedAt, script: `scripts/${CHECKS[check]}`, ruleVersion: ruleVersionOf(check), args, exitCode: code, signal,
     commit, uncommittedModelFiles: dirty, reported: Object.keys(results).length,
     expected: expected?.total ?? null, expectedIsEstimate: expected?.totalIsEstimate ?? true,
     summaryLine, warnings, complete: complete && code != null,
