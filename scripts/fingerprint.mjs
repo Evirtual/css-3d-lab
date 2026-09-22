@@ -20,6 +20,7 @@
  *  - check-exports: the same, its path adding the capture and recording code;
  *  - check-media: snippet + play + text (the title is drawn in the image) + its path;
  *  - check-boxsizing: snippet + boxmark + the standalone file (standaloneDoc): it opens only the file;
+ *  - check-contrast: snippet + play (it clicks the controls a clicked model has) + standaloneDoc;
  *  - a visual review: snippet + play + the frame. The reviews record what the model looks like
  *    on the canvas (size, pose, centring, themes), not the words, so text does not stale them;
  *  - a text review: text + snippet (it says whether the words describe the code).
@@ -82,7 +83,7 @@ export const RENDER_PATHS = {
   stages: [...FRAME, P.video, P.lazy],
   // the file the dialog makes: the scene captured, sent to the render service, recorded
   exports: [...FRAME, P.video, P.scene, P.client, P.record, P.render],
-  // the file a visitor takes away, opened on its own (check-boxsizing)
+  // the page standaloneDoc makes, opened on its own (check-boxsizing, check-contrast)
   file: [P.doc],
   // the share image: the og layout on the embed page, shot by generate-media through og-shot
   media: [...FRAME, P.embedPage, P.ogCss, P.media, P.ogShot],
@@ -95,6 +96,7 @@ export const USES = {
   exports: { parts: ['snippet', 'play'], path: 'exports' },
   media: { parts: ['snippet', 'play', 'text'], path: 'media' },
   boxsizing: { parts: ['snippet', 'boxmark'], path: 'file' },
+  contrast: { parts: ['snippet', 'play'], path: 'file' },
   visual: { parts: ['snippet', 'play'], path: 'frame' },
   text: { parts: ['text', 'snippet'], path: null },
 };
@@ -416,7 +418,7 @@ function partAt(commit, p) {
 /** The rule in words, for the ledger's definitions dialog. */
 export const STALENESS_TEXT = 'A result or review is stale when something it judged has changed since, and only then. '
   + 'What each depends on: the contract, stage and motion checks: the RESOLVED snippet (html, css and js as the site loads them, shared constants such as CUBE_FACES filled in), how the model is played (the ways interaction.ts gives it from its tags), and that check\'s render path; '
-  + 'the export check: the same, its render path adding the capture and recording code; the share-preview check: the same plus the text (the title is drawn in the image); the box-sizing check: the snippet, its boxSizing mark and the standalone file; '
+  + 'the export check: the same, its render path adding the capture and recording code; the share-preview check: the same plus the text (the title is drawn in the image); the box-sizing check: the snippet, its boxSizing mark and the standalone file; the contrast check: the snippet, how it is played and the standalone file; '
   + 'a visual review: the snippet, how it is played, and the model frame; a text review: the text (title, description, how, technique, tags, category) and the snippet it describes. '
   + `The render paths: ${Object.entries(RENDER_PATHS).map(([k, list]) => `${k}: ${list.map(partLabel).join(', ')}`).join('; ')}. `
   + 'A check\'s own script is not part of it. New results record these fingerprints (capture-check writes them; reviewers add `node scripts/fingerprint.mjs <id> --kind visual|text`); an older one that names only a commit is judged by the model as it was at that commit, rebuilt from git. '

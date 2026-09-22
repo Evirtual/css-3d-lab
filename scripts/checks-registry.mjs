@@ -61,6 +61,11 @@ export const REGISTRY = [
     rule: 'cleared when its latest result is a pass on the model\'s current code: its standalone file draws the same, at rest and with :hover forced, with and without a page rule making every box border-box (within 0.25% of the canvas over its own noise), or its gallery entry says boxSizing: \'content-box by design: <why>\' and it does differ; a mark on a model that draws the same fails',
   },
   {
+    key: 'contrast', script: 'check-contrast.mjs', scope: 'model', name: 'contrast', short: 'Text',
+    title: 'Text readable on both stages (check-contrast)', label: 'text contrast check (check-contrast)',
+    rule: "cleared when its latest result is a pass on the model's current code: every text it shows, at rest, with :hover forced, with the pointer on it and after each of its controls is clicked, reaches WCAG AA against the pixels behind it (4.5:1, or 3:1 for text at least 24px, or bold and 18.66px, on a card's canvas) on the dark stage and on the light one; text in a disabled control is exempt and listed",
+  },
+  {
     key: 'seo', script: 'check-seo.mjs', scope: 'site', name: 'seo', short: 'SEO',
     title: 'SEO over the built site (check-seo)', label: 'SEO check (check-seo)',
     rule: 'cleared when its latest run on the built site (after npm run build) reports no FAIL line for the page; WAIVED and OWN-TEXT findings are listed, not failed',
