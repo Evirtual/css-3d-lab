@@ -38,7 +38,9 @@ cards & galleries, loaders & patterns, scenes & objects, data & tools), in two h
   file" buttons.
 - **View zoom** (`src/view-zoom.ts`): under the large stage (model page, home dialog) and along
   its bottom at full screen, the export dialog's Model size slider for looking: how much of the
-  frame the model fills, 25% to 100%, 70% its own size. It only scales how the frame is shown, so
+  frame the model fills, from 25% (70% is its own size) up to the most it can fill and still clear
+  every canvas edge by 4vmin, measured per model and canvas (`src/fill-limit.ts`, the export
+  slider's own top end too; the hint names it). It only scales how the frame is shown, so
   the code, Copy, recordings and snapshots are unchanged; it keeps its value into and out of full
   screen, is not saved, and a new model starts at 70%.
 - **Lazy mounting** (`src/lazy-mount.ts`): a model is mounted only within 600px of the viewport

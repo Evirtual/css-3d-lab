@@ -23,6 +23,7 @@ import {
 } from './record';
 import type { PrintSetup } from './models/snippet-utils';
 import { showThanks } from './thanks';
+import { MIN_FILL, watchFillLimit } from './fill-limit';
 
 /**
  * One dialog with three tabs — Video, Image, Print.
@@ -191,6 +192,13 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   /** The stage's own backdrop, remembered before it moved (the frame paints it now). */
   let look: Paint | null = null;
   let copiedPreview: Preview | undefined;
+  /**
+   * The Model size slider's top end for the model in the frame, in percent (fill-limit.ts, the
+   * View zoom's own math): the most it can fill and still clear every edge by 4vmin. Null until
+   * the model is measured; followed while the dialog holds a stage.
+   */
+  let fillTop: number | null = null;
+  let unfollow: (() => void) | null = null;
   let closing = false;
   /** Which opening this is: a close that was still fading out must not shut the next one. */
   let opened = 0;
@@ -312,7 +320,38 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     dress(panel, stage);
   };
 
+  /** The slider says the top end, and a value above it comes down to it. */
+  const onFillTop = (top: number | null): void => {
+    fillTop = top;
+    // a film being made keeps the size it started with; the next fit brings it within
+    if (!dialog?.open || busy || top === null) return;
+    const over = chosen().fill * 100 > top;
+    if (over) chosen().fill = top / 100;
+    showZoom();
+    if (over) fit();
+  };
+  /** The slider, its figure and its hint say the size and the top end now. */
+  const showZoom = (): void => {
+    const slider = el<HTMLInputElement>('.maker__settings [data-zoom]');
+    if (slider) {
+      slider.max = String(zoomTop());
+      slider.value = String(Math.round(chosen().fill * 100));
+      slider.style.setProperty('--done', zoomDone());
+    }
+    const out = el<HTMLElement>('[data-zoom-out]');
+    if (out) out.textContent = `${Math.round(chosen().fill * 100)}%`;
+    const hint = el<HTMLElement>('[data-zoom-hint]');
+    if (hint) hint.textContent = zoomHint();
+  };
+  const follow = (): void => {
+    unfollow?.();
+    unfollow = stage ? watchFillLimit(stage, onFillTop) : null;
+  };
+
   const unmount = (): void => {
+    unfollow?.();
+    unfollow = null;
+    fillTop = null;
     // the dialog's own copy of an edited model is the dialog's to throw away
     if (copied) {
       copiedPreview?.close();
@@ -349,6 +388,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     const frame = el<HTMLElement>('[data-frame]');
     if (!stage || !frame) return;
     frame.style.setProperty('--aspect', String(aspectOf() ?? shape));
+    // never past the top end (a film being made keeps the size it started with)
+    if (fillTop !== null && !busy && chosen().fill * 100 > fillTop) {
+      chosen().fill = fillTop / 100;
+      showZoom();
+    }
     stage.style.setProperty('--zoom', (chosen().fill / CONTRACT_FILL).toFixed(4));
     // the model runs in a frame of its own, which knows nothing of our variables: hand it over
     syncPreview(stage);
@@ -396,11 +440,18 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     </fieldset>`;
 
 
+  /** The slider's range: 25% up to the top end for this model and frame (100% until measured). */
+  const zoomTop = (): number => fillTop ?? 100;
+  const zoomDone = (): string => {
+    const top = zoomTop();
+    return `${top > MIN_FILL ? ((Math.round(chosen().fill * 100) - MIN_FILL) / (top - MIN_FILL)) * 100 : 100}%`;
+  };
+  const zoomHint = (): string => `how much of the frame it fills${fillTop === null ? '' : `, max ${fillTop}%`}`;
   const zoomSlider = (): string => `
     <fieldset class="maker__set maker__set--slider">
-      <legend>Model size <span class="maker__legendHint">how much of the frame it fills</span></legend>
+      <legend>Model size <span class="maker__legendHint" data-zoom-hint>${zoomHint()}</span></legend>
       <div class="maker__slider">
-        <input class="maker__zoom" type="range" min="25" max="100" step="5" value="${Math.round(chosen().fill * 100)}" style="--done:${(((chosen().fill * 100) - 25) / 75) * 100}%" data-zoom aria-label="How much of the frame the model fills">
+        <input class="maker__zoom" type="range" min="25" max="${zoomTop()}" step="5" value="${Math.round(chosen().fill * 100)}" style="--done:${zoomDone()}" data-zoom aria-label="How much of the frame the model fills">
         <output data-zoom-out>${Math.round(chosen().fill * 100)}%</output>
       </div>
     </fieldset>`;
@@ -628,6 +679,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     });
     dialog.showModal();
     mount();
+    follow();
     fillDialog();
     fit();
   };
@@ -810,7 +862,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     chosen().fill = Number(slider.value) / 100;
     const out = el<HTMLElement>('[data-zoom-out]');
     if (out) out.textContent = `${slider.value}%`;
-    slider.style.setProperty('--done', `${((Number(slider.value) - 25) / 75) * 100}%`);
+    slider.style.setProperty('--done', zoomDone());
     fit();
   });
 
