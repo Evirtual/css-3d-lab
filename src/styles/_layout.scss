@@ -1348,6 +1348,17 @@ $gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) sca
   }
 }
 
+// What a card's stage holds while its model is not mounted (src/lazy-mount.ts: past about two
+// screens from the viewport the frame goes, so a long gallery does not carry a document per card).
+// The stage's own height is fixed above, so the card cannot change size either way; this fills it,
+// so nothing inside the card reflows when the frame comes and goes, and it gives the unmounted
+// state something to see and a check something to count.
+.stage__placeholder {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 // Every demo scales with its stage: --fit (fit.ts) is how much bigger the stage is than a card's,
 // and the scene is ZOOMED by it: laid out and drawn at that size, sharp at any size. (A scaled
 // scene is a stretched bitmap: 3D layers go soft.) A filling scene keeps inset: 0, so it still

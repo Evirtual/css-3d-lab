@@ -22,12 +22,12 @@ import { cardMenuHtml, initCardLook } from './card-look';
 import { initCardStages } from './card-stage';
 import { interactionHtml } from './models/interaction';
 import { demos, type GroupedDemo } from './models';
+import { LazyMounter } from './lazy-mount';
 import { GROUPS, GROUP_ORDER, type Group } from './models/groups';
 import { snippets } from './models/snippets';
-import { CATEGORY_LABEL, type Category, type Demo } from './models/types';
+import { CATEGORY_LABEL, type Category } from './models/types';
 import type { Lang } from './highlight';
 import { hydrateIcons, icon } from './icons';
-import { mountModel } from './preview';
 
 const REPO = 'https://github.com/Evirtual/css-3d-lab';
 
@@ -68,36 +68,17 @@ const matches = (d: GroupedDemo, f: Filters): boolean => {
 
 const count = (f: Filters): number => demos.filter((d) => matches(d, f)).length;
 
-/* ---------- mounting demos ---------- */
-
-const mount = (demo: Demo, stage: HTMLElement): (() => void) => mountModel(stage, demo.id, demo.title);
-
 /* ---------- grid ---------- */
 
 const grid = $('#grid');
 const cards = new Map<string, HTMLElement>();
 
-// Lazy mounting, in two rings, so the cost of the page follows what is on screen:
+// Lazy mounting, in three rings (src/lazy-mount.ts, which the generated pages use too), so the
+// cost of the page follows what is on screen:
 //  - within 600px of the viewport a demo is MOUNTED (so it is already there when it scrolls in),
-//  - only while actually on screen is it RUNNING; the rest sit paused via .is-offscreen.
-const mounted = new Map<Element, () => void>();
-const demoByCard = new Map<Element, Demo>();
-const nearby = new IntersectionObserver(
-  (entries) => {
-    for (const e of entries) {
-      if (e.isIntersecting && !mounted.has(e.target)) {
-        mounted.set(e.target, mount(demoByCard.get(e.target)!, e.target.querySelector<HTMLElement>('.stage')!));
-      } else if (!e.isIntersecting) {
-        mounted.get(e.target)?.();
-        mounted.delete(e.target);
-      }
-    }
-  },
-  { rootMargin: '600px' },
-);
-const onScreen = new IntersectionObserver((entries) => {
-  for (const e of entries) e.target.classList.toggle('is-offscreen', !e.isIntersecting);
-});
+//  - only while actually on screen is it RUNNING; the rest sit paused via .is-offscreen,
+//  - past about two screens it is UNMOUNTED and its stage keeps a placeholder.
+const mounter = new LazyMounter();
 
 for (const [i, demo] of demos.entries()) {
   const card = document.createElement('article');
@@ -120,9 +101,7 @@ for (const [i, demo] of demos.entries()) {
         <button class="btn btn--accent" type="button" data-open="${demo.id}">Learn &amp; copy ${icon('arrow-right')}</button>
       </footer>
     </div>`;
-  demoByCard.set(card, demo);
-  nearby.observe(card);
-  onScreen.observe(card);
+  mounter.add(card, demo.id, demo.title);
   cards.set(demo.id, card);
   grid.append(card);
 }
