@@ -226,6 +226,323 @@ button, input { font: inherit; color: inherit; }
   --k-broke: repeating-linear-gradient(135deg, var(--accent) 0 3px, color-mix(in srgb, var(--accent) 30%, transparent) 3px 6px);
   --k-never: var(--never);
 }
+/* ---------- the three stages as chevron tabs: one neon wave running through three gates ----------
+   The strip is one scene, not three boxes. A dark sky sits over a perspective grid floor, and a single
+   waveform travels left to right across all three arrows: the same period, the same phase, one crest
+   leaving an arrow exactly where the next picks it up. What changes at a gate is how tall that wave
+   stands, and the three chevrons are what tells you where one stage ends and the next begins.
+
+   WHAT THE WAVE'S HEIGHT MEANS. A stage's amplitude is that stage's share of every model, and nothing
+   else. A stage holding nothing is a flat line -- empty reads as empty. A stage holding anything gets
+   at least a visible ripple (14% of the tallest), so "a few" never reads as "none"; above that the
+   height is the share, straight. The exact number is the count on the arrow and the first words of its
+   tooltip, so the picture never has to be measured.
+
+   THE ARC ALONG IT, which is the same number told a second way: at To check the trace is thin and
+   faint, mid-strip it gains its second harmonic as it gathers, and at Approved it is full and steady
+   with the sun standing on the horizon behind it. All three come out of that one amplitude, so none of
+   them can say something the count does not.
+
+   WHERE THE WORDS SIT. Every arrow's label, count and line of description is left-aligned in the top
+   two thirds -- y 14..76 of the 128px body -- and the whole scene (wave, floor, sun, horizon glow)
+   lives below y 86. So the only thing behind a word is that stage's sky ramp, which is one named mix
+   of the stage's own colour over one base, measured on both themes. That is the whole contrast
+   argument, and it is why the ramp's three percentages are tokens rather than numbers in a gradient:
+   raising one is what lowers the contrast, and there is nowhere else it can leak in from. */
+:root {
+  --step-ink-2: #e9ecfd;
+  /* the two grounds: the sky the words sit on, and the deck the wave and the floor live on */
+  --sw-sky-base: #06070f;
+  --sw-deck: #04050c;
+  --sw-sky-a: 4%;      /* the stage's colour at the top of its panel */
+  --sw-sky-b: 9%;      /* ...level with the words */
+  --sw-sky-c: 17%;     /* ...at the horizon, which is below every word */
+  --sw-lift: 0%;       /* hover and select raise the whole ramp by one step, and only by this */
+  --sw-sky-up: 7%;
+  --sw-rim: 15%;
+  /* the wave: a bright core over two wider, fainter strokes. Three flat strokes, not a blur filter --
+     a soft edge that costs one path each instead of a filter pass over the strip every frame. */
+  --sw-core-mix: #ffffff;
+  --sw-core: 55%;      /* the lit core: the stage's colour carried toward --sw-core-mix */
+  --sw-halo-a: 0.2;    /* the middle stroke */
+  --sw-halo-b: 0.09;   /* the outer one */
+  /* the floor. Cyan, as the lab's own synthwave floor has it (models/grid): one colour for all three
+     stages, because the floor is the ground the whole strip stands on, not a per-stage reading. */
+  --sw-grid: color-mix(in srgb, var(--accent-2) 30%, transparent);
+  --sw-cell: 22px;
+  --sw-sun-1: color-mix(in srgb, var(--warm) 80%, var(--sw-deck));
+  --sw-sun-2: color-mix(in srgb, var(--hot) 62%, var(--sw-deck));
+  --sw-sun-glow: color-mix(in srgb, var(--hot) 34%, transparent);
+}
+/* Light. The sky goes pale so the dark ink on it reads; the deck stays night, because no word is ever
+   over the deck and that is where the neon can stay neon on both themes. */
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --step-ink-2: #272c4c;
+  --sw-sky-base: #ffffff;
+  --sw-sky-a: 7%; --sw-sky-b: 16%; --sw-sky-c: 30%; --sw-sky-up: 8%; --sw-rim: 13%;
+  --sw-core: 62%;
+  --sw-halo-a: 0.24; --sw-halo-b: 0.1;
+  --sw-grid: color-mix(in srgb, var(--accent-2) 34%, transparent);
+} }
+:root[data-theme="light"] {
+  --step-ink-2: #272c4c;
+  --sw-sky-base: #ffffff;
+  --sw-sky-a: 7%; --sw-sky-b: 16%; --sw-sky-c: 30%; --sw-sky-up: 8%; --sw-rim: 13%;
+  --sw-core: 62%;
+  --sw-halo-a: 0.24; --sw-halo-b: 0.1;
+  --sw-grid: color-mix(in srgb, var(--accent-2) 34%, transparent);
+}
+
+.flowwrap { --notch: 26px; --tipx: 6px; --tipy: 9px; --deck: 28px; margin-top: 16px; position: relative; }
+.flow { list-style: none; margin: 0; padding: 0; display: flex; }
+.flow__li { position: relative; flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1); }
+.flow__li:first-child { margin-left: 0; }
+/* the list items overlap, so a click in the overlap would land on the later one's empty box: only the
+   buttons take the pointer, and each button is clipped to its own chevron, so the hit area is the shape */
+.flow, .flow__li { pointer-events: none; }
+.step { pointer-events: auto; }
+/* the notch of one tab is the exact negative of the tip before it, so they interlock with no seam */
+.step, .scene__sky {
+  --sky: linear-gradient(180deg,
+    color-mix(in srgb, var(--c) calc(var(--sw-sky-a) + var(--sw-lift)), var(--sw-sky-base)) 0%,
+    color-mix(in srgb, var(--c) calc(var(--sw-sky-b) + var(--sw-lift)), var(--sw-sky-base)) 60%,
+    color-mix(in srgb, var(--c) calc(var(--sw-sky-c) + var(--sw-lift)), var(--sw-sky-base)) 100%);
+}
+.step {
+  --c: var(--muted);
+  position: relative; display: block; width: 100%; padding: 0; border: 0; background: none;
+  color: var(--text); font: inherit; text-align: left; cursor: pointer;
+  /* on the button itself: the pointer then hits the chevron, not the box around it */
+  clip-path: polygon(0 0,
+    calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
+    0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
+}
+.step--1 { --c: var(--accent); clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
+.step--2 { --c: var(--accent-2); }
+.step--3 { --c: var(--good); }
+/* the panel: the stage's sky, a glow along the top rim, and a hairline of its own colour along the base */
+.step__body {
+  position: relative; display: block; height: 128px; overflow: hidden;
+  background:
+    linear-gradient(to top, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
+    radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
+    var(--sky);
+}
+
+/* ---------- the scene ----------
+   Side by side the three arrows are windows onto one scene. The sky is painted per chevron -- that is
+   what still separates the stages -- but the deck, the floor, the sun and the wave are single elements
+   across the whole strip, so a crest really does leave one arrow and arrive in the next. The scene sits
+   under the buttons and paints nothing opaque over them, so the arrows are still tabs: clickable across
+   their whole shape, focusable, and marked when selected.
+   Stacked on a narrow screen three arrows are not one horizon, so there each one draws its own. */
+.flow__scene { display: none; }
+@media (min-width: 901px) {
+  .flow { position: relative; z-index: 1; }
+  .step { --sky: transparent; }                 /* the scene paints the sky, on its own panels */
+  .step__wrap { display: none; }                /* and the floor and the wave, for all three at once */
+  .flow__scene {
+    display: block; position: absolute; inset: 0; pointer-events: none;
+    --tabw: calc((100% + 2 * var(--notch)) / 3);
+    /* the outline of the three interlocking chevrons together: a flat left end, one tip on the right */
+    clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%);
+  }
+  .scene__sky {
+    position: absolute; top: 0; bottom: 0; width: var(--tabw);
+    left: calc(var(--i) * (var(--tabw) - var(--notch)));
+    background: var(--sky);
+    clip-path: polygon(0 0,
+      calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
+      0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
+  }
+  .scene__sky.s1 { --c: var(--accent);
+    clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
+  .scene__sky.s2 { --c: var(--accent-2); }
+  .scene__sky.s3 { --c: var(--good); }
+  /* the selected stage's sky is a step richer, exactly as its own panel would have been */
+  .flow__scene[data-sel="0"] .scene__sky.s1,
+  .flow__scene[data-sel="1"] .scene__sky.s2,
+  .flow__scene[data-sel="2"] .scene__sky.s3 { --sw-lift: var(--sw-sky-up); }
+  /* one sky does not stop dead at a chevron: each carries a little of its neighbour across the join */
+  .scene__blend {
+    position: absolute; top: 0; bottom: 0; width: 120px; opacity: 0.5;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 42%, #000 58%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 42%, #000 58%, transparent);
+  }
+  .scene__blend.j1 { left: calc(var(--tabw) - var(--notch) - 60px);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) var(--sw-sky-b), var(--sw-sky-base)), color-mix(in srgb, var(--accent-2) var(--sw-sky-b), var(--sw-sky-base))); }
+  .scene__blend.j2 { left: calc(2 * (var(--tabw) - var(--notch)) - 60px);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--accent-2) var(--sw-sky-b), var(--sw-sky-base)), color-mix(in srgb, var(--good) var(--sw-sky-b), var(--sw-sky-base))); }
+}
+/* ---------- the floor ----------
+   The lab's own synthwave floor (models/grid), turned side on: one plane laid down with rotateX under a
+   short perspective, and the motion is the line layer sliding by exactly one cell with transform, so the
+   loop is seamless and nothing repaints. Sideways, not toward the camera, because the strip's flow is
+   left to right. The mask fades the lines out into the horizon and again at the floor's far edge, so
+   the grid never ends on a hard line. */
+.sw__deck {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--deck); overflow: hidden;
+  perspective: 58px; perspective-origin: 50% 0%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sw-deck) 72%, transparent), var(--sw-deck) 34%);
+}
+.sw__deck i {
+  position: absolute; left: -70%; right: -70%; top: 0; height: 190px;
+  transform-origin: 50% 0%; transform: rotateX(81deg);
+  background:
+    repeating-linear-gradient(90deg, var(--sw-grid) 0 1px, transparent 1px var(--sw-cell)),
+    repeating-linear-gradient(180deg, var(--sw-grid) 0 1px, transparent 1px var(--sw-cell));
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 52%, transparent 96%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 52%, transparent 96%);
+  animation: swrun 3.6s linear infinite;
+}
+@keyframes swrun { to { transform: rotateX(81deg) translateX(var(--sw-cell)); } }
+/* the horizon: a low wash of the strip's pink where the sky meets the deck, and a hairline under it
+   that carries the three stages' colours. Both start at the top of the deck, below every word. */
+.sw__horizon {
+  position: absolute; left: 0; right: 0; bottom: var(--deck); height: 14px;
+  background: linear-gradient(180deg, transparent, var(--sw-sun-glow));
+  opacity: 0.55;
+}
+.sw__horizon::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 52%, transparent) 0 26%,
+    color-mix(in srgb, var(--accent-2) 52%, transparent) 40% 60%,
+    color-mix(in srgb, var(--good) 52%, transparent) 74% 100%);
+}
+/* ---------- the sun ----------
+   It stands ON the horizon and is only the part above it: a 23px circle clipped to its top 27px, its
+   slices cut by a mask on the sun itself, exactly as the floor model does it. It sits at the far end of
+   the Approved arrow, past the last word on it, with its reflection running down the deck.
+   The disc is a landmark and does not move with the count. What the count moves is the light around it,
+   so the Approved end warms as its share grows and the wave stays the thing that carries the number. */
+.sw__sun { position: absolute; left: 89.5%; bottom: var(--deck); width: 46px; height: 27px; translate: -50% 0; }
+.sw__sun i {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, var(--sw-sun-1), var(--sw-sun-2));
+  clip-path: circle(23px at 50% 23px);
+  -webkit-mask-image: linear-gradient(180deg, #000 42%, transparent 42% 47%, #000 47% 61%, transparent 61% 66%, #000 66% 78%, transparent 78% 84%, #000 84%);
+  mask-image: linear-gradient(180deg, #000 42%, transparent 42% 47%, #000 47% 61%, transparent 61% 66%, #000 66% 78%, transparent 78% 84%, #000 84%);
+}
+.sw__sun::before {
+  content: ''; position: absolute; left: -30px; right: -30px; top: -10px; bottom: -8px;
+  background: radial-gradient(50% 62% at 50% 78%, var(--sw-sun-glow), transparent 72%);
+  animation: swbreathe 9s ease-in-out infinite alternate;
+  opacity: calc(0.28 + 0.62 * var(--ch3, 0));
+}
+@keyframes swbreathe { from { opacity: calc(0.2 + 0.46 * var(--ch3, 0)); } to { opacity: calc(0.28 + 0.62 * var(--ch3, 0)); } }
+/* the reflection: the same warm light lying on the deck, narrow and fading downward */
+.sw__sun::after {
+  content: ''; position: absolute; left: 50%; top: 100%; width: 20px; height: var(--deck); translate: -50% 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--warm) 26%, transparent), transparent 84%);
+  opacity: calc(0.3 + 0.7 * var(--ch3, 0));
+}
+/* ---------- the wave ----------
+   One SVG over the whole strip. Each stage is a <g> of its own carrying the same sine at its own
+   amplitude, and all three are drawn from the same origin, so they are in phase: what changes at a gate
+   is only how tall the crest is. Each <g> is masked to its own stretch with a soft join across the
+   chevron, so one wave swells into the next instead of stepping.
+   The travel is a transform on the <g>, sliding by exactly one period, so every loop lands where it
+   started and nothing recomputes. Each <g> holds three strokes of the same path -- a wide faint one, a
+   narrower one, and the core -- which is the soft falloff, done in paint instead of a blur filter.
+   The harmonic rides the same amplitude, so a stage with nothing in it has no structure either. */
+.sw__wave { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; }
+.sw__wave g { animation: swflow var(--dur) linear infinite; opacity: 0.72; transition: opacity 0.3s; }
+@keyframes swflow { from { transform: translateX(0); } to { transform: translateX(calc(var(--wvp) * -1px)); } }
+.sw__wave path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; transition: d 0.85s cubic-bezier(0.24, 1.32, 0.36, 1); }
+.sw__wave .h3 { stroke: var(--c); stroke-width: 9; opacity: var(--sw-halo-b); }
+.sw__wave .h2 { stroke: var(--c); stroke-width: 5; opacity: var(--sw-halo-a); }
+.sw__wave .h1 { stroke: var(--core); stroke-width: 2; }
+/* the harmonic: a finer ripple over the crest, at a third of the height and its own drift */
+.sw__wave .hm { stroke: var(--core); stroke-width: 1; opacity: 0.42; }
+.sw__wave .s1 { --c: var(--accent); --dur: 7.2s; }
+.sw__wave .s2 { --c: var(--accent-2); --dur: 6.1s; }
+.sw__wave .s3 { --c: var(--good); --dur: 5.2s; }
+.sw__wave .m1 { --c: var(--accent); --dur: 4.3s; }
+.sw__wave .m2 { --c: var(--accent-2); --dur: 3.7s; }
+.sw__wave .m3 { --c: var(--good); --dur: 3.2s; }
+.sw__wave g { --core: color-mix(in srgb, var(--c) var(--sw-core), var(--sw-core-mix)); }
+/* the selected stage's wave is the one at full strength; the other two hold back a step */
+.flow__scene[data-sel="0"] .sw__wave .s1, .flow__scene[data-sel="0"] .sw__wave .m1,
+.flow__scene[data-sel="1"] .sw__wave .s2, .flow__scene[data-sel="1"] .sw__wave .m2,
+.flow__scene[data-sel="2"] .sw__wave .s3, .flow__scene[data-sel="2"] .sw__wave .m3 { opacity: 1; }
+
+.step__text { position: relative; display: grid; align-content: center; height: 100%; padding: 12px calc(var(--notch) + 10px) 50px calc(var(--notch) + 14px); }
+.step--1 .step__text { padding-left: 16px; }
+.step__label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--step-ink-2); line-height: 1.25; }
+.step__n { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--c) 14%, var(--text)); }
+.step__sub { font-size: 11.5px; line-height: 1.3; color: var(--step-ink-2); }
+/* hover and select move the one number the sky ramp is built from, so the words never leave the
+   measured range: every tone behind them is still a mix of that stage's colour over the one base */
+.step:hover { --sw-lift: 4%; }
+.step[aria-selected="true"] { --sw-lift: var(--sw-sky-up); }
+/* the selected one is marked five ways: a solid bar along its base and its top, a brighter sky, a
+   full-strength label with its colour beside it, its wave at full strength, and the panel below it
+   taking its colour */
+.step[aria-selected="true"] .step__body { background:
+    linear-gradient(to top, var(--c) 0 5px, transparent 5px),
+    linear-gradient(to bottom, var(--c) 0 2px, transparent 2px),
+    radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
+    var(--sky); }
+.step[aria-selected="true"] .step__label { color: var(--text); }
+.step[aria-selected="true"] .step__label::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 2px; background: var(--c); vertical-align: 0.5px; }
+.step:focus-visible { outline: none; }
+.step:focus-visible .step__label { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 4px; }
+.flow__hint { margin: 0; font-size: 13px; }
+.flow__bd { margin-top: 4px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+
+/* ---------- still, for anyone who asked for still ----------
+   Everything the strip does is a transform or an opacity on a named element, so "reduce" is that list
+   of names at the weight they were declared at. The scene keeps every one of its parts: a wave held
+   mid-stroke still says which stage stands tallest, which is the whole reading. */
+@media (prefers-reduced-motion: reduce) {
+  .sw__deck i, .sw__wave g, .sw__sun::before { animation: none; }
+  .sw__wave path, .sw__wave g { transition: none; }
+}
+/* ---------- narrow screens and phones: the arrow runs top to bottom ----------
+   Three stacked arrows are not one horizon, so each draws its own: its sky, its own stretch of floor and
+   its own wave, at the same amplitude its share earns it on the wide layout. The sun does not come with
+   them -- 100px of arrow has no sky to stand it in, and at this width it would land on the count -- so
+   the Approved arrow points down into its warm light instead. */
+@media (max-width: 900px) {
+  .flowwrap { --notch: 14px; --tipx: 5px; --tipy: 10px; --deck: 28px; }
+  .flow { flex-direction: column; }
+  .flow__li { margin: calc(var(--notch) * -1) 0 0; }
+  .flow__li:first-child { margin-top: 0; }
+  .step, .step--1 {
+    clip-path: polygon(0 0,
+      calc(50% - var(--tipy)) calc(var(--notch) - var(--tipx)), 50% var(--notch), calc(50% + var(--tipy)) calc(var(--notch) - var(--tipx)),
+      100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch)));
+  }
+  .step--1 { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch))); }
+  .step__body { height: 100px; background:
+      linear-gradient(to right, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
+      radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
+      var(--sky); }
+  .step[aria-selected="true"] .step__body { background:
+      linear-gradient(to right, var(--c) 0 5px, transparent 5px),
+      radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
+      var(--sky); }
+  /* one stage's own scene, inside its own panel */
+  .step__wrap { position: absolute; inset: 0; pointer-events: none; }
+  .step__wrap .sw__sun { display: none; }
+  .step--3 .step__wrap .sw__deck { background-image:
+      radial-gradient(60% 150% at 50% 100%, color-mix(in srgb, var(--warm) calc(9% + 16% * var(--ch, 0)), transparent), transparent 70%),
+      linear-gradient(180deg, color-mix(in srgb, var(--sw-deck) 72%, transparent), var(--sw-deck) 34%); }
+  .step__wrap .sw__wave g { opacity: 0.82; }
+  .step[aria-selected="true"] .step__wrap .sw__wave g { opacity: 1; }
+  .step__text, .step--1 .step__text { padding: 10px 16px 30px 20px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; }
+  .step__label { grid-column: 1; }
+  .step__n { grid-column: 2; grid-row: 1 / span 2; font-size: 26px; }
+  .step__sub { grid-column: 1; }
+}
+</style>
+<style id="ledger-ocean" media="not all">
+/* ---------- the sea under three skies, kept whole and switched off ----------
+   This is the strip as commit e196e17 left it, every line of it, behind media="not all" so the browser
+   parses it and applies none of it. It sits after the wave's own CSS on purpose: turn it on and it wins
+   every rule the two share. The one line that turns it on is `const OCEAN` in the script below, which
+   drops the media attribute and builds the sea's markup instead of the wave's. */
 /* ---------- the three stages as chevron tabs: each is a glass, and its models are the liquid in it ----------
    The level is that stage's share of every model, so the three levels add up to one full glass. Every
    colour the text sits on (the empty glass, the liquid, the wave crest) is a named mix of that stage's
@@ -529,6 +846,8 @@ button, input { font: inherit; color: inherit; }
   .step__n { grid-column: 2; grid-row: 1 / span 2; font-size: 26px; }
   .step__sub { grid-column: 1; }
 }
+</style>
+<style>
 /* ---------- the overview: one sentence, the stage strip, what holds the rest, what is running ---------- */
 .headline { margin: 10px 0 0; font-size: clamp(17px, 2.2vw, 21px); font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; max-width: 72ch; }
 .headline b { font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -884,27 +1203,23 @@ table.mini code { font-size: 12px; }
    to width the moment it goes. The panel keeps its own width while it travels, so nothing inside it
    reflows on the way out. */
 .lead { position: relative; --lead-w: clamp(300px, 26vw, 380px); }
+/* the panel's head stacks in both layouts, so the title row's right end is the panel's right end */
+.lead .head { flex-direction: column; align-items: stretch; gap: 4px; }
 .lead__ttl { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; min-width: 0; }
+.lead__row { display: flex; align-items: center; gap: 8px; width: 100%; }
+.lead__row .eyebrow { margin-bottom: 0; }
+.lead__row .leadedge { margin-left: auto; }
 .lead__acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .lead__counts { margin: 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .lead__counts b { color: var(--text); font-weight: 700; }
 /* The handle: fixed to the window, standing just outside whichever edge the panel's own left edge is at.
    --lead-x is that edge, measured with everything else; when the panel is away it is the window's right
    edge, so the same handle ends up resting against the side of the screen. */
-/* The control that sends it away: a child of the panel, standing just off its outer edge, so it travels
-   with the panel and never overlaps a word of what is in it. */
-.leadedge { position: absolute; top: 20px; right: 100%; display: grid; gap: 3px; justify-items: center; padding: 9px 5px; border: 1px solid var(--border-strong); border-right: 0; border-radius: 10px 0 0 10px; background: var(--surface-solid); color: var(--muted); font: 600 11px/1 var(--font); cursor: pointer; }
+/* The control that sends it away sits in the panel's own title row, at its right end: a small icon
+   button, the chevron pointing the way the panel goes. */
+.leadedge { flex: none; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 1px solid var(--border-strong); border-radius: 9px; background: none; color: var(--muted); cursor: pointer; }
 .leadedge:hover { color: var(--text); border-color: var(--accent); }
 .leadedge[hidden] { display: none; }
-.leadedge__a { font-size: 13px; font-weight: 800; }
-.leadedge__t { writing-mode: vertical-rl; letter-spacing: 0.06em; text-transform: uppercase; }
-/* Narrow, the record is a full-width block: its left edge is the page's own margin, and a handle
-   standing off it would hang off the side of the screen. The edge it slides toward is the right one
-   there, so the panel keeps a gutter on that side and the handle stands in it -- never over a word. */
-@media (max-width: 1099px) {
-  .lead { padding-right: 38px; }
-  .leadedge { right: 5px; left: auto; top: 12px; border-right: 1px solid var(--border-strong); border-radius: 10px; }
-}
 /* The control that brings it back: fixed to the window's right edge, vertically centred, and on screen
    only while the record is away -- the script hides it the instant the panel starts coming back. */
 .leadtab { position: fixed; top: 50%; right: 0; translate: 0 -50%; z-index: 40; display: grid; gap: 7px; justify-items: center; padding: 13px 7px; border: 1px solid var(--border-strong); border-right: 0; border-radius: 12px 0 0 12px; background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
@@ -933,7 +1248,7 @@ table.mini code { font-size: 12px; }
      stands off its edge */
   .split > .lead > #lead-body { max-height: calc(100vh - var(--stick-top) * 2 - 92px); overflow: auto; overscroll-behavior: contain; }
   .split .board { grid-template-columns: minmax(0, 1fr); }
-  .split .lead .head { flex-direction: column; align-items: flex-start; }
+  .split .lead .head { flex-direction: column; align-items: stretch; }
 }
 .qitem { cursor: default; }
 .qtop { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
@@ -1309,7 +1624,14 @@ table.mini code { font-size: 12px; }
   <section class="panel lead" id="leadpanel" aria-labelledby="q-h">
     <div class="head">
       <div class="lead__ttl">
-        <span class="eyebrow">The lead's record</span>
+        <div class="lead__row">
+          <span class="eyebrow">The lead's record</span>
+          <!-- at the right end of the title row, which is where a panel's own controls belong -->
+          <button type="button" class="leadedge" id="lead-hide" aria-expanded="true" aria-controls="leadpanel"
+            aria-label="Hide the lead’s record" title="Hide the lead’s record. Nothing in it is measured against git or the checks.">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
         <h2 id="q-h">Running and queued work</h2>
         <p class="lead__counts" id="lead-counts"></p>
       </div>
@@ -1321,11 +1643,6 @@ table.mini code { font-size: 12px; }
       <p class="muted">From <code>ledger-queue.json</code>, which the lead session and its agents report through <code>npm run queue -- start|done</code>. Nothing here is checked against git or the checks; the table above is.</p>
       <div id="queue"></div>
     </div>
-    <!-- on the panel's own outer edge, outside its content, so it travels with the panel -->
-    <button type="button" class="leadedge" id="lead-hide" aria-expanded="true" aria-controls="leadpanel"
-      title="Slide the lead’s record out of the way. Nothing in it is measured against git or the checks.">
-      <span class="leadedge__a" aria-hidden="true">›</span><span class="leadedge__t">Hide</span>
-    </button>
   </section>
   <!-- The handle that brings the record back: fixed to the window's right edge, and there only while
        the record is away. While the record is here, the control is the one on its own edge, above. -->
