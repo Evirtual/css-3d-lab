@@ -34,7 +34,9 @@
  *    settings matrix, which is run on a sample and is not part of the per-model verdict. The
  *    defaults are listed once, in scripts/export-defaults.mjs, for this and for check-exports
  *    --defaults, which makes exactly them: `npm run capture -- exports --defaults <ids>` is the
- *    per-model run, and its entries say `matrix.defaultsOnly`.
+ *    per-model run, and its entries say `matrix.defaultsOnly`. The check's `      look: …` lines
+ *    are readings it leaves for a person, not mismatches, so nothing here reads them and they
+ *    never change a verdict; they are in the check's own report and its --json.
  *  - media: `pass <id> …` and `FAILS <id> …`, with the reasons indented under a failure.
  *  - access: the same as media.
  *  - boxsizing: the same lines again, and its closing `N/M models do not depend on outside CSS.`

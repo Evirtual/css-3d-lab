@@ -111,6 +111,19 @@ export function captureScene(stage: HTMLElement, animated = false): CapturedScen
       animations.push({ target: index, pseudo: effect.pseudoElement, frames: effect.getKeyframes(), timing, time: Number(a.currentTime) || 0, rate: a.playbackRate });
     }
   });
+  // A form control's own parts — a range slider's track and thumb — can only be styled through
+  // pseudo-elements whose computed style cannot be read (getComputedStyle with
+  // ::-webkit-slider-thumb answers for the input itself), so inlining every element's style
+  // leaves them behind and the file shows the browser's default slider instead of the model's.
+  // Their rules travel as rules. Nothing else does: everything else is already inlined.
+  for (const sheet of [...root.ownerDocument.styleSheets]) {
+    try {
+      for (const rule of [...(sheet.cssRules as unknown as CSSRule[])]) {
+        const selector = (rule as CSSStyleRule).selectorText;
+        if (selector && /::(-webkit-(slider|range)|-moz-range)[\w-]*/.test(selector)) rules.push(rule.cssText);
+      }
+    } catch { /* a stylesheet from another origin cannot be read; a model's own always can */ }
+  }
   for (const el of copy.querySelectorAll('script,style,link,meta,base,iframe,object,embed')) el.remove();
   copy.style.cssText += `;position:relative;inset:auto;margin:0;width:${width}px;height:${height}px;min-height:0;box-sizing:border-box;border:0;border-radius:0;background:transparent;transform:none;translate:none;scale:none;zoom:1;overflow:hidden`;
   // The stage's decorative pseudo-layers are painted by the export compositor, not twice.
