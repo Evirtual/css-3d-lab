@@ -37,7 +37,7 @@ export const pureDemos2: Demo[] = [
   {
     id: 'gyro',
     title: 'Gyroscope',
-    description: 'Three nested rings, each spinning on a different axis — the rotations compound.',
+    description: 'Three nested rings, each spinning on a single axis — the rotations compound.',
     category: 'css',
     tags: ['loop', 'loader'],
     technique: ['nested preserve-3d', 'one axis per level', 'different durations'],

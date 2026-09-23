@@ -27,7 +27,7 @@ export const demosI: Demo[] = [
       'Five real books on a shelf, each a box with a spine, two covers and a block of pages. Point at one and it slides out toward you and turns to show its front cover, while its slot on the shelf stays put as the hit target.',
     category: 'css',
     tags: ['hover', 'cards', 'gallery', 'shape'],
-    technique: ['cuboid from 4 faces sized by --t / --h', 'transform-origin at the book’s 3D centre', 'static slots, pointer-events: none books', 'translateZ + rotateY to pull out'],
+    technique: ['cuboid from 4 faces sized by --t / --h', 'transform-origin at the book’s 3D centre', 'static slots, pointer-events: none books', 'separate translate / rotate properties to pull out'],
   },
   {
     id: 'dotorbit',

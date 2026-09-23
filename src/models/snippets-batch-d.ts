@@ -258,7 +258,7 @@ export const snippetsD: Record<string, Snippet> = {
     how: [
       'Real <code>&lt;input type="radio"&gt;</code>s (visually hidden, not <code>display: none</code>) drive the state — that keeps arrow-key navigation and screen readers working for free.',
       'A panel is a flap <b>hinged on its top edge</b>: <code>transform-origin: top center</code> plus <code>rotateX(-90deg)</code> to fold it flat, edge-on to the viewer, until its radio is checked.',
-      'Nothing animates <code>height</code>. The frame has a fixed size; sections below the open one are pushed down with <code>translateY</code> by exactly one panel\'s height instead.',
+      'Nothing animates <code>height</code>. The frame has a fixed size; sections below the open one are pushed down with <code>translateY</code> by exactly one panel and its gap (76 units) instead.',
       '<code>~</code> (general sibling) plus <code>:checked</code> lets one radio style both its own section <i>and</i> every section after it, all from CSS alone.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the accordion is the same share of a gallery card, the editor and a recording canvas. The widget is its own control, so it fills the model box and has no control row under it.',
     ],

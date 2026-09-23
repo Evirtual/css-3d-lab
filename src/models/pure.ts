@@ -16,7 +16,7 @@ export const pureDemos: Demo[] = [
     description: 'Hover, tap or focus to flip. The back face is hidden until it turns toward you.',
     category: 'css',
     tags: ['hover'],
-    technique: ['backface-visibility: hidden', 'transition', ':hover / :focus-visible'],
+    technique: ['backface-visibility: hidden', 'transition', ':hover / :focus'],
   },
   {
     id: 'carousel',
@@ -61,7 +61,7 @@ export const pureDemos: Demo[] = [
   {
     id: 'orbit',
     title: 'Atom orbits',
-    description: 'Three rings tilted into different planes, each spinning inside its own plane.',
+    description: 'Three rings tilted into different planes, each with an electron going round inside its own plane.',
     category: 'css',
     tags: ['loop'],
     technique: ['preserve-3d', 'static tilt wrapper + spinning child', 'own tilt and duration per ring'],

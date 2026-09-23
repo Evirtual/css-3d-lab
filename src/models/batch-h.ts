@@ -30,7 +30,7 @@ export const demosH: Demo[] = [
       'Five thin star plates, each a front and a gold back with an edge between them. Radio inputs and labels choose a rating, and every star up to it flips over, one after another.',
     category: 'css',
     tags: ['controls', 'form-hack', 'stars'],
-    technique: ['radio:nth-of-type(n):checked ~ label:nth-child(-n + n)', 'clip-path star faces, stacked edge layers', 'rotateY(180deg) + backface-visibility', 'transition-delay from --i'],
+    technique: ['#star-n:checked ~ label:nth-child(-n + n)', 'clip-path star faces, stacked edge layers', 'rotateY(180deg) + backface-visibility', 'transition-delay from --i'],
   },
   {
     id: 'toggle',

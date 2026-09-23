@@ -134,7 +134,7 @@ ${CUBE_FACES}
       'Every panel sits in the same spot, then gets <code>rotateY(n × 360° / count)</code> followed by <code>translateZ(radius)</code>.',
       'Order matters: rotate first, <i>then</i> translate — so each panel moves outward along its own rotated axis.',
       'Radius for a closed ring: <code>(width / 2) / tan(180° / count)</code>. For 8 panels 80 units wide that is ≈ 97 units; add a little for gaps.',
-      'Spin the ring, and tilt a wrapper so you look slightly down on it.',
+      'One animation on the ring does both: it spins a full turn and holds <code>rotateX(-14deg)</code> throughout, so you look slightly down on it.',
       'Those units are one base unit, <code>--u</code>, tied to the canvas: the panel, the radius and the perspective are all multiples of it, so the ring is the same share of a gallery card, the editor and a recording canvas. Only the radius decides the width, so it is what the band is sized against.',
     ],
     html: `<div class="scene">

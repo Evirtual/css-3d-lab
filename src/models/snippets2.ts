@@ -1627,7 +1627,7 @@ document.querySelector('button').addEventListener('click', () => {
       'The card that left must not glide back to the bottom of the deck either: from where it was thrown, that path runs straight through the cards still in the deck. So it is <b>parked</b> first (<code>.is-parked</code>: no transition, still at <code>scale(0)</code>), jumps to the back unseen, and only then, with the class taken off after a reflow, grows back in there.',
       'The other cards glide forward purely because their <code>--p</code> changed.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the deck is the same share of a gallery card, the editor and a recording canvas.',
-      'The band has to hold the throw, not just the deck: the card in flight is the widest this model ever gets. It shrinks as it goes, so it can travel 60% of a card to the right and still end up inside, and the scene is padded on the right by the amount it carries the card, which puts the deck <i>and</i> its flight path in the middle rather than the shut deck on its own.',
+      'The band has to hold the throw, not just the deck: the card in flight is the widest this model ever gets. It shrinks as it goes, so it can travel 60% of a card to the right and still end up inside, and the scene is padded on the right by enough to split the difference, which puts the deck <i>and</i> its flight path in the middle rather than the shut deck on its own.',
     ],
     html: `<div class="scene">
   <div class="stack" role="button" tabindex="0" aria-label="Next card">

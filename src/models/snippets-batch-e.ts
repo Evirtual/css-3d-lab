@@ -725,7 +725,7 @@ ${lines(8, (i) => `<b style="--i:${i};--c:${[TEAL, PINK, AMBER, VIOLET][i % 4]}"
 
   island: {
     how: [
-      'The land is a 4 × 4 grid tilted to an isometric view with <code>rotateX(58deg) rotateZ(45deg)</code>. Each block gets <code>--x/--y</code> (cells), <code>--z</code> (top height) and <code>--h</code> (wall length).',
+      'The land is a 4 × 4 grid tilted to an isometric view with <code>rotateX(58deg)</code> and a <code>rotateZ</code> that sways between 38° and 52°. Each block gets <code>--x/--y</code> (cells), <code>--z</code> (top height) and <code>--h</code> (wall length).',
       'A block is <b>one element</b>: the element is the top face, lifted with <code>translateZ</code>. <code>::before</code> folds down from its bottom edge with <code>rotateX(-90deg)</code>, <code>::after</code> from its right edge with <code>rotateY(90deg)</code>. Only the two walls that face the camera exist.',
       'The same block makes everything: grass columns, the stepped rock underside (tops at z ≤ 0, walls hanging below), tree trunks and blossoms. Only the colours change.',
       'Floating is two animations with the same timing: the land bobs and sways, while a flat glow underneath shrinks and fades when the land is high.',
