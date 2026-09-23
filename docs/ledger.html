@@ -543,7 +543,6 @@ tbody tr.row { cursor: pointer; transition: background 0.15s; }
 tbody tr.row:hover > td { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, transparent); }
 tbody tr.row:hover > td.model { box-shadow: inset 3px 0 0 var(--gc, var(--accent)); }
 tbody tr.row[aria-expanded="true"] > td { background: color-mix(in srgb, var(--gc, var(--accent)) 11%, transparent); }
-tbody tr.row[aria-expanded="true"] > td.model { box-shadow: inset 3px 0 0 var(--gc, var(--accent)); }
 tbody tr.row:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
 td.model b { font-weight: 750; letter-spacing: -0.005em; }
 td.model code { font-family: var(--mono); font-size: 12px; color: color-mix(in srgb, var(--muted) 82%, var(--text)); }
@@ -558,9 +557,49 @@ tr.detail > td { background: color-mix(in srgb, var(--bg) 55%, transparent); pad
 .commits li { padding: 6px 0; border-bottom: 1px dashed var(--border); }
 .tag { display: inline-block; font-size: 10.5px; font-weight: 600; border: 1px solid var(--border-strong); border-radius: 999px; padding: 0 7px; margin-left: 4px; color: var(--muted); }
 .tag.strong { border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--accent); }
-.checkgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
-.check { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface); }
-.check > b { display: block; margin-bottom: 4px; }
+/* ---------- an open row's panel: the facts first, the long lists folded ----------
+   Every check used to print the whole run's argument list -- 135 ids as chips, in every card -- which
+   buried the one thing the card is for. Nothing is gone: the ids are behind a disclosure, and the card
+   scrolls inside itself rather than growing the page. */
+.checkgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; align-items: stretch; }
+.check { display: flex; flex-direction: column; gap: 5px; min-width: 0; max-height: 190px; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface); }
+.check__h { position: sticky; top: -10px; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: -10px -12px 0; padding: 10px 12px 5px; background: var(--surface-solid); }
+.check__h b { font-weight: 700; }
+.check__sum { margin: 0; font-size: 13.5px; overflow-wrap: anywhere; }
+.check__stale { margin: 0; padding: 5px 8px; border-left: 3px solid var(--warm); border-radius: 6px; background: color-mix(in srgb, var(--warm) 10%, transparent); font-size: 12.5px; }
+.check__list { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); }
+.check__list li + li { margin-top: 3px; }
+.check__note { margin: 0; font-size: 12px; }
+/* the two lines that date the result, pushed to the foot of the card so every card's foot lines up */
+.check__when { margin: auto 0 0; padding-top: 5px; border-top: 1px dashed var(--border); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.check__when code { font-size: 11px; }
+.check__how { margin: 0; font-size: 12px; overflow-wrap: anywhere; }
+.check__how code { font-size: 11px; }
+.argfold { font-size: 12px; }
+.argfold > summary { color: var(--muted); cursor: pointer; border-radius: 6px; padding: 1px 2px; }
+.argfold > summary:hover { color: var(--accent-2); }
+.argfold .qids { margin-top: 5px; max-height: 120px; overflow: auto; }
+.argfold .mid { font-size: 11px; }
+/* the model's own header: one line of who it is, one of the hashes, each truncated with a copy button */
+.mdet { display: grid; gap: 4px; margin-bottom: 10px; }
+.mdet__top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }
+.mdet__t { font-size: 16px; font-weight: 750; letter-spacing: -0.01em; }
+.mdet__id { font-family: var(--mono); font-size: 12px; color: var(--muted); background: none; border: 0; padding: 0; }
+.mdet__ids { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12px; color: var(--muted); }
+.hsh { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.hsh code { font-size: 11.5px; }
+.copyb { display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 7px; background: none; color: var(--muted); cursor: pointer; }
+.copyb:hover { color: var(--text); border-color: var(--border-strong); }
+.copyb.is-done { color: var(--accent-2); border-color: var(--accent-2); }
+.copyb.is-nope { color: var(--hot); border-color: var(--hot); }
+.mdet__miss { margin: 2px 0 0; font-size: 13px; color: var(--warm); }
+/* one column of eight cards is longer than any phone, so there the whole grid scrolls once instead of
+   each card scrolling inside a page that scrolls too */
+@media (max-width: 760px) {
+  .checkgrid { max-height: 68vh; overflow: auto; overscroll-behavior: contain; }
+  .check { max-height: none; overflow: visible; }
+  .check__h { position: static; margin: 0; padding: 0; background: none; }
+}
 ul.missing { margin: 4px 0; padding-left: 20px; }
 
 /* ---------- the lead's record: set apart, never mistaken for the measured table ---------- */
@@ -700,7 +739,31 @@ table.mini code { font-size: 12px; }
 #tbl td.model, #tbl th.model { position: sticky; left: 0; z-index: 1; background: var(--surface-solid); width: 100%; max-width: 0; }
 #tbl thead th.model { z-index: 4; }
 #tbl tr.row:hover > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, var(--surface-solid)); }
-#tbl tr.row[aria-expanded="true"] > td.model { background: color-mix(in srgb, var(--accent) 9%, var(--surface-solid)); }
+#tbl tr.row[aria-expanded="true"] > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 11%, var(--surface-solid)); }
+/* ---------- the open row's frame ----------
+   A frame round a table row cannot be one border: the model cell is sticky, so it is painted over its
+   neighbours and any single outline is cut where it begins. Each cell draws its own share instead --
+   top and bottom everywhere, the left end on the model cell, the right end on the last -- as an INSET
+   shadow, so it lands on top of the sticky cell's own background rather than under it. Only the two
+   true ends are rounded; the joins between cells stay square, so the frame reads as one line. */
+#tbl tr.row[aria-expanded="true"] > td {
+  --fr: color-mix(in srgb, var(--gc, var(--accent)) 72%, transparent);
+  box-shadow: inset 0 2px 0 var(--fr), inset 0 -2px 0 var(--fr);
+}
+#tbl tr.row[aria-expanded="true"] > td.model {
+  border-start-start-radius: 11px;
+  box-shadow: inset 3px 0 0 var(--fr), inset 0 2px 0 var(--fr), inset 0 -2px 0 var(--fr);
+}
+#tbl tr.row[aria-expanded="true"] > td:last-child {
+  border-start-end-radius: 11px;
+  box-shadow: inset -2px 0 0 var(--fr), inset 0 2px 0 var(--fr), inset 0 -2px 0 var(--fr);
+}
+/* the panel hangs off the bottom of that frame, so the two read as one card */
+#tbl tr.row[aria-expanded="true"] + tr.detail > td {
+  --fr: color-mix(in srgb, var(--gc, var(--accent)) 72%, transparent);
+  border-inline: 2px solid var(--fr); border-bottom: 2px solid var(--fr);
+  border-end-start-radius: 11px; border-end-end-radius: 11px;
+}
 #tbl td.st, #tbl th.st, #tbl td.last, #tbl th.last, #tbl td.ncom, #tbl th.ncom, #tbl td.rvw, #tbl th.rvw { width: 1%; white-space: nowrap; }
 .mt { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
 .mt b { overflow: hidden; text-overflow: ellipsis; min-width: 0; font-weight: 700; }
@@ -1732,6 +1795,18 @@ table.mini code { font-size: 12px; }
    */
   const HASH = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>';
   const XICON = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+  const COPYICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  /** Copy a full hash. The clipboard can be refused (no permission, an insecure origin), so the button
+      says which of the two happened rather than pretending it worked. */
+  async function copyHash(btn) {
+    const text = btn.dataset.copy ?? '';
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch { ok = false; }
+    btn.classList.toggle('is-done', ok);
+    btn.classList.toggle('is-nope', !ok);
+    btn.setAttribute('data-tiptext', ok ? `Copied ${text}` : `Could not copy: ${text}`);
+    setTimeout(() => { btn.classList.remove('is-done', 'is-nope'); btn.setAttribute('data-tiptext', text); }, 1600);
+  }
   function renderFilterChips() {
     const n = L.models.length;
     // short labels that never break; the bucket's full name and definition are in the tooltip
@@ -1937,6 +2012,8 @@ table.mini code { font-size: 12px; }
   $('rows').addEventListener('click', (e) => {
     const bad = e.target.closest('[data-show-bad]');
     if (bad) { e.stopPropagation(); showBad(bad.dataset.showBad); return; }
+    const cp = e.target.closest('[data-copy]');
+    if (cp) { e.stopPropagation(); copyHash(cp); return; }
     const b = e.target.closest('[data-grp]');
     if (!b) return;
     e.stopPropagation();
@@ -1990,7 +2067,7 @@ table.mini code { font-size: 12px; }
       for (const m of g.models) {
         if (budget <= 0) { cut++; continue; }
         budget--; drawn++;
-        html += modelRow(m, flat) + (open.has(m.id) ? `<tr class="detail"><td colspan="${colCount()}">${detail(m)}</td></tr>` : '');
+        html += modelRow(m, flat) + (open.has(m.id) ? `<tr class="detail" style="--gc:${gcFor(m.group ?? '')}"><td colspan="${colCount()}">${detail(m)}</td></tr>` : '');
       }
     }
     $('rows').innerHTML = html || `<tr class="empty"><td colspan="${colCount()}" class="muted">No model matches.${hidden ? ' Every model is hidden by the filters above.' : ''}</td></tr>`;
@@ -2021,23 +2098,53 @@ table.mini code { font-size: 12px; }
     justApproved = new Set();
   }
 
+  /** A hash short enough to read, with the whole thing one click away. Nothing is lost, only folded. */
+  const hashBit = (label, full, note) => full
+    ? `<span class="hsh">${esc(label)} <code>${esc(String(full).slice(0, 7))}</code><button type="button" class="copyb" data-copy="${esc(full)}" aria-label="${esc(`Copy the full ${label} ${full}`)}" data-tip data-tiptext="${esc(`${full}${note ? `. ${note}` : ''}`)}">${COPYICON}</button></span>`
+    : `<span class="hsh">${esc(label)} <b class="muted">none found</b></span>`;
+  /** What a run was told to do, in one line: the check, its flags, and how many models it covered.
+      The ids themselves are the long part, so they fold away behind a disclosure rather than going. */
+  function howItRan(name, r, id) {
+    const args = r.args ?? [];
+    if (!args.length) return '<p class="check__how muted">How it ran: not recorded.</p>';
+    const flags = args.filter((a) => String(a).startsWith('-'));
+    const rest = args.filter((a) => !String(a).startsWith('-') && !String(a).startsWith('.') && !String(a).includes('/'));
+    const paths = args.filter((a) => !String(a).startsWith('-') && (String(a).startsWith('.') || String(a).includes('/')));
+    const over = rest.length ? `over ${rest.length} model${rest.length === 1 ? '' : 's'}` : '';
+    return `<p class="check__how muted">How it ran: <code>${esc(GATE_NAME[name] ?? name)}</code>`
+      + (flags.length ? ` <code>${esc(flags.join(' '))}</code>` : '')
+      + (over ? ` · ${esc(over)}` : '') + '</p>'
+      + (rest.length || paths.length
+        ? `<details class="argfold"><summary>the full argument list (${args.length})</summary><div class="qids">${
+            args.map((a) => `<code class="mid${String(a).startsWith('-') || String(a).includes('/') ? ' not-id' : ''}">${esc(a)}</code>`).join('')}</div></details>`
+        : '');
+  }
   function detail(m) {
     const parts = [];
-    parts.push(m.approved ? '<p><b>Approved.</b> All four conditions hold.</p>'
-      : `<p><b>Not approved.</b> Missing:</p><ul class="missing">${m.missing.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`);
-    parts.push(`<p class="muted">Snippet: ${m.snippet ? `<code>${esc(m.snippet.file)}:${esc(m.snippet.line)}</code>${m.snippet.foundBy !== 'grep' ? ` (${esc(m.snippet.foundBy)})` : ''}` : 'not found'}
-      · converting commit (the one that first set --u in vmin): ${m.convertingCommit ? `<code>${esc(m.convertingCommit)}</code>` : '<b>none found</b>'}
-      · source fingerprint <code>${esc(m.fingerprint)}</code></p>`);
+    /* the model's own header: title, id, group and verdict on one line, the two hashes truncated under
+       it with a copy button each, and where the snippet was found. */
+    parts.push(`<header class="mdet">
+      <div class="mdet__top"><b class="mdet__t">${esc(m.title ?? m.id)}</b> <code class="mdet__id">${esc(m.id)}</code>
+        ${m.groupLabel ? `<span class="gchip">${esc(m.groupLabel)}</span>` : ''}
+        ${m.approved ? '<span class="chip s-ok">Approved</span>' : '<span class="chip s-conv">Not approved</span>'}</div>
+      <div class="mdet__ids">${hashBit('fingerprint', m.fingerprint, 'the source this model’s results are judged against')}${
+        hashBit('converting commit', m.convertingCommit, 'the commit that first set --u in vmin')}<span class="hsh">snippet ${
+        m.snippet ? `<code>${esc(m.snippet.file)}:${esc(m.snippet.line)}</code>${m.snippet.foundBy !== 'grep' ? ` <span class="muted">(${esc(m.snippet.foundBy)})</span>` : ''}` : '<b class="muted">not found</b>'}</span></div>
+      ${m.approved ? '' : `<p class="mdet__miss"><b>Missing:</b> ${m.missing.map((x) => esc(x)).join(' · ')}</p>`}
+    </header>`);
     for (const n of m.notes) parts.push(`<div class="notice">${esc(n)}</div>`);
 
     parts.push('<h3>Checks: last known result</h3><div class="checkgrid">' + Object.entries(m.checks).map(([name, r]) => {
-      if (r.status === 'never') return `<div class="check"><b>${esc(CHECK_NAMES[name] ?? name)}</b>${checkChip(r)}<p class="muted">No captured run has reported this model.</p></div>`;
-      return `<div class="check"><b>${esc(CHECK_NAMES[name] ?? name)}</b>${checkChip(r)} <span class="muted">${esc(r.summary)}</span>
-        <p class="muted" style="font-size:13px">Ran ${when(r.ranAt)} ${r.commit ? `at <code>${esc(r.commit)}</code>` : '(HEAD not recorded)'}${r.args?.length ? `, args <code>${esc(r.args.join(' '))}</code>` : ''}</p>
-        ${r.stale ? `<div class="notice">Stale: ${esc(r.staleWhy.join('; '))}.</div>` : ''}
-        ${r.flags?.length ? `<ul class="missing" style="font-size:13px">${r.flags.map((f) => `<li>${esc(f.flag)} ${f.resolved ? `<span class="chip s-chk">false alarm</span> <span class="muted">${esc(f.by)}: ${esc(f.reason)}</span>` : '<span class="chip s-warn">open</span>'}</li>`).join('')}</ul>`
-          : r.detail?.length ? `<ul class="missing" style="font-size:13px">${r.detail.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}
-        ${name === 'exports' && r.status !== 'never' ? '<p class="muted" style="font-size:12.5px">This verdict is for the default settings only. Other settings, if this run made any, are in the export matrix under Docs and release readiness.</p>' : ''}</div>`;
+      const head = `<div class="check__h"><b>${esc(CHECK_NAMES[name] ?? name)}</b>${checkChip(r)}</div>`;
+      if (r.status === 'never') return `<article class="check">${head}<p class="muted">No captured run has reported this model.</p></article>`;
+      return `<article class="check">${head}
+        <p class="check__sum">${esc(r.summary)}</p>
+        ${r.stale ? `<p class="check__stale"><b>Stale.</b> ${esc(r.staleWhy.join('; '))}.</p>` : ''}
+        ${r.flags?.length ? `<ul class="missing check__list">${r.flags.map((f) => `<li>${esc(f.flag)} ${f.resolved ? `<span class="chip s-chk">false alarm</span> <span class="muted">${esc(f.by)}: ${esc(f.reason)}</span>` : '<span class="chip s-warn">open</span>'}</li>`).join('')}</ul>`
+          : r.detail?.length ? `<ul class="missing check__list">${r.detail.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}
+        ${name === 'exports' ? '<p class="muted check__note">This verdict is for the default settings only. Other settings, if this run made any, are in the export matrix under Docs and release readiness.</p>' : ''}
+        <p class="check__when">Ran ${agoSpan(r.ranAt)}${r.ranAt ? ` <span class="muted" data-tip data-tiptext="${esc(new Date(r.ranAt).toLocaleString())}">(${esc(String(r.ranAt).slice(0, 16).replace('T', ' '))})</span>` : ''} at ${r.commit ? `<code>${esc(r.commit)}</code>` : '<span class="muted">a HEAD it did not record</span>'}</p>
+        ${howItRan(name, r, m.id)}</article>`;
     }).join('') + '</div>');
 
     const rv = m.reviews ?? [];
