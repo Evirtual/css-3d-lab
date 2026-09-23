@@ -1601,11 +1601,14 @@ table.mini code { font-size: 12px; }
   background: color-mix(in srgb, var(--gc, var(--accent)) 6%, var(--surface-solid));
 }
 #tbl td.st, #tbl th.st, #tbl td.last, #tbl th.last, #tbl td.ncom, #tbl th.ncom, #tbl td.rvw, #tbl th.rvw { width: 1%; white-space: nowrap; }
-/* Status is a column of one pill each. The column is only as wide as its widest thing, so whichever of
-   the word and the pill is narrower was left floating against a left-aligned edge. Both are centred on
-   the column now, which is the only way the two can line up whichever of them is wider. */
-#tbl th.st, #tbl td.st { text-align: center; }
-#tbl th.st .colh { margin-inline: 0; }
+/* Every column but the model's is only as wide as its widest thing, so whichever of the head and the
+   cell below it is narrower was left floating against a left-aligned edge. All of them are centred on
+   their column, which is the only way a head and its cells line up whichever of them is wider. The
+   model cell is the one that stays left: it is a sentence, not a value. */
+#tbl th.st, #tbl td.st,
+#tbl th.last, #tbl td.last,
+#tbl th.ncom, #tbl td.ncom { text-align: center; }
+#tbl th.st .colh, #tbl th.last .colh, #tbl th.ncom .colh { margin-inline: 0; }
 .mt { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
 .mt b { overflow: hidden; text-overflow: ellipsis; min-width: 0; font-weight: 700; }
 .mt code { flex: none; font-size: 11.5px; color: var(--muted); background: none; border: 0; padding: 0; }
@@ -1621,7 +1624,11 @@ table.mini code { font-size: 12px; }
 #tbl thead th.c { vertical-align: bottom; padding-top: 6px; padding-bottom: 6px; }
 /* the rotated label and the help icon under it are one stack, centred over the marks below them */
 #tbl thead th.c > * { display: block; margin-inline: auto; }
-#tbl thead th.c .colh { writing-mode: vertical-rl; rotate: 180deg; margin: 0 auto; padding: 4px 2px; }
+/* Reviews is not a sortable head, so it is a span rather than a button -- but it stands in the same
+   band as the checks, so it takes the same rotation, the same padding and the same box. Its type is
+   the header row's own, as theirs is, so the two are the same size, spacing and baseline. */
+#tbl thead th.c .colh, #tbl thead th.c .colv { writing-mode: vertical-rl; rotate: 180deg; margin: 0 auto; padding: 4px 2px; }
+.colv { border-radius: 6px; font: inherit; letter-spacing: inherit; text-transform: inherit; }
 #tbl thead th.c .help { margin: 4px 0 0; }
 #tbl thead th.c br { display: none; }
 /* a check running now: a small pulsing count under its name, the rest in the tooltip */
@@ -1930,6 +1937,19 @@ table.mini code { font-size: 12px; }
     return `${Math.round(s / 86400)} days ago`;
   };
   const ago = (iso) => fmtAge(age(iso));
+  /** The same age, at the width a table column can spare: "18m ago", "5h ago", "2d ago". The exact
+      local date and time is never dropped -- it moves into the tooltip beside the commit it belongs
+      to -- so the short form is a convenience and not the only place the moment is written. */
+  const fmtAgeShort = (s) => {
+    if (s == null) return 'unknown';
+    if (s < -5) return 'ahead';
+    s = Math.max(0, s);
+    if (s < 60) return 'just now';
+    if (s < 5400) return `${Math.round(s / 60)}m ago`;
+    if (s < 172800) return `${Math.round(s / 3600)}h ago`;
+    if (s < 5184000) return `${Math.round(s / 86400)}d ago`;
+    return `${Math.round(s / 2592000)}mo ago`;
+  };
   /** A live "N s ago": the one-second tick rewrites every [data-ago]. */
   const agoSpan = (iso) => `<span data-ago="${esc(iso ?? '')}">${esc(ago(iso))}</span>`;
   const when = (iso) => iso ? `${esc(new Date(iso).toLocaleString())} (${agoSpan(iso)})` : 'unknown';
@@ -2893,7 +2913,7 @@ table.mini code { font-size: 12px; }
       const note = NOTES.find((n) => n.col === k); // why the column reads as it does, even after the note is dismissed
       const title = CHECK_NAMES[k] ?? k;
       return `<th class="c" scope="col"><button type="button" class="colh" data-def="${esc(k)}" data-tip data-tiptext="${esc(`${title}. Click for its definition.`)}" aria-label="${esc(`${title}: open its definition`)}">${esc(label)}</button>${note ? helpIcon(`col-${k}`, `About the ${label} column`, note.html) : ''}${p ? `<span class="hrun${p.alive === false ? ' is-gone' : ''}" role="img" aria-label="${esc(`${title} ${p.alive === false ? 'stopped without finishing' : 'is running'}: ${p.done} of ${p.total ?? '?'}`)}" data-tip data-tiptext="${esc(`${title} ${p.alive === false ? 'stopped without finishing' : 'is running'}: ${p.done} of ${p.total ?? '?'} done. “Running now”, above, has the details.`)}">${esc(p.done)}</span>` : ''}</th>`;
-    }).join('')}<th class="rvw c" scope="col"><span data-tip data-tiptext="Reviews: V is the visual review, T the text review">Reviews</span></th><th class="last" scope="col">Last commit</th><th class="num ncom" scope="col">Commits</th>`;
+    }).join('')}<th class="rvw c" scope="col"><span class="colv" data-tip data-tiptext="Reviews: V is the visual review, T the text review">Reviews</span></th><th class="last" scope="col">Last commit</th><th class="num ncom" scope="col">Commits</th>`;
     // rewritten only when it changes, so an open tooltip is not pulled out from under the reader
     if ($('thead').dataset.html !== theadHtml) { $('thead').dataset.html = theadHtml; $('thead').innerHTML = theadHtml; stickyOffsets(); }
 
@@ -3203,7 +3223,7 @@ table.mini code { font-size: 12px; }
         <td class="st">${chipFor(m.status, justApproved.has(m.id))}</td>
         ${COLS.map(([k, label]) => `<td class="c" data-label="${esc(label)}">${checkMark(k, m)}</td>`).join('')}
         <td class="rvw c" data-label="Reviews"><span class="rv">${reviewMark(m, 'visual')}${reviewMark(m, 'text')}</span></td>
-        <td class="num last">${last ? `<span data-tip data-tiptext="${esc(`${last.hash}: ${last.subject}`)}">${esc(last.date.slice(0, 10))}</span>` : '<span class="muted">none found</span>'}</td>
+        <td class="num last">${last ? `<span data-tip data-tiptext="${esc(`${new Date(last.date).toLocaleString()} · ${last.hash}: ${last.subject}`)}" data-ago-short="${esc(last.date)}">${esc(fmtAgeShort(age(last.date)))}</span>` : '<span class="muted">none found</span>'}</td>
         <td class="num ncom">${m.commits.length}</td></tr>`;
   }
   $('rows').addEventListener('click', (e) => {
@@ -3811,6 +3831,8 @@ table.mini code { font-size: 12px; }
   function tickAges() {
     if (document.hidden) return;
     document.querySelectorAll('[data-ago]').forEach((el) => { const t = ago(el.dataset.ago); if (el.textContent !== t) el.textContent = t; });
+    // the same tick keeps the table's commit ages honest; nothing is written unless the words change
+    document.querySelectorAll('[data-ago-short]').forEach((el) => { const t = fmtAgeShort(age(el.dataset.agoShort)); if (el.textContent !== t) el.textContent = t; });
     renderLive();
   }
 
