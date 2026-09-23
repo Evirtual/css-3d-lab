@@ -174,7 +174,7 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
   transform: rotateY(90deg) scaleX(calc((2 + var(--v) * 38) / 40));
 }
 
-/* the roof, glass too, lifted by the move; the labels sit on it, top left (the corner least hidden) */
+/* the roof, lifted by the move; the labels sit on it, top left (the corner least hidden) */
 .tile i {
   position: absolute;
   inset: calc(-1 * var(--u));
@@ -224,7 +224,12 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
 .tile.sm span { font-size: calc(9 * var(--u)); }
 .tile.sm small { display: none; } /* the smallest tiles only have room for the name */
 .tile.md span { font-size: calc(12 * var(--u)); }
-.tile.lg i { padding: calc(6 * var(--u)) calc(7 * var(--u)); }
+/* A neighbour with a bigger move has a higher roof, and a higher roof is drawn in front. A label
+   two lines deep reaches down into where that roof comes across, and the second line — the number —
+   was cut in half by it. So the number stays only on the two biggest tiles, and there it sits on
+   the same line as the name, in the top strip no neighbour's roof reaches. */
+.tile.md small { display: none; }
+.tile.lg i { grid-auto-flow: column; align-items: baseline; gap: calc(5 * var(--u)); padding: calc(4 * var(--u)) calc(7 * var(--u)); }
 .tile.lg span { font-size: calc(20 * var(--u)); }
 .tile.lg small { font-size: calc(12 * var(--u)); }
 
@@ -341,7 +346,7 @@ const pct = (v) => \`\${v > 0 ? '+' : v < 0 ? '\\u2212' : ''}\${Math.abs(v).toFi
 const els = tiles.map((t, i) => {
   const tile = document.createElement('button');
   tile.type = 'button';
-  // label size by footprint: a big name, a name + %, or only the name
+  // label size by footprint: the two biggest carry the name and the %, the rest only the name
   tile.className = 'tile ' + (t.w >= 70 && t.h >= 46 ? 'lg' : t.w >= 38 && t.h >= 26 ? 'md' : 'sm');
   tile.style.cssText = \`--i:\${i}; --x:\${(t.x / W) * 100}; --y:\${(t.y / H) * 100}; --w:\${(t.w / W) * 100}; --h:\${(t.h / H) * 100}\`;
   const roof = document.createElement('i');
