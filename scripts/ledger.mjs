@@ -606,7 +606,14 @@ const models = demos.map((d) => {
   for (const g of GATES) {
     const k = gates[g.key].kind, c = checks[g.key];
     if (k === 'never') missing.push(c.status === 'untested' && g.key === 'exports' ? `check-exports ran on it, but its run left out the default settings, so there is no default-settings verdict` : `the ${g.label} has never reported this model`);
-    else if (k === 'stale-pass') missing.push(`the ${g.label} ${g.key === 'motion' && c.status === 'flagged' ? 'was cleared' : 'passed'}, but on source that has changed since`);
+    else if (k === 'stale-pass') {
+      // Why it is stale, in the row's own words: a result can be stale because the model changed
+      // under it, or because the check's rule did, and saying "source that has changed" for a rule
+      // change sends a reader looking for a change to the model that is not there.
+      const ruled = (Array.isArray(c.staleWhy) ? c.staleWhy : []).map((w) => /^rule changed \(([^)]+)\)/.exec(String(w))).find(Boolean);
+      const why = ruled ? `under an older version of the check's rule (${ruled[1]}), not the one it is held to now` : 'on source that has changed since';
+      missing.push(`the ${g.label} ${g.key === 'motion' && c.status === 'flagged' ? 'was cleared' : 'passed'}, but ${why}`);
+    }
     else if (k === 'flagged') missing.push(`the ${g.label} has ${c.openFlags ?? 'some'} open flag(s) no fresh visual review marks as a false alarm; a person has to look`);
     else if (k === 'broke') missing.push(`the ${g.label} did not run on it: its test crashed or timed out before judging the model (${c.summary || c.status}), so the model was never tested; it needs a re-run`);
     else if (k === 'failed') missing.push(`the ${g.label}'s last result is "${c.status}"`);

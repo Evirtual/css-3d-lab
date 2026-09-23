@@ -5003,5 +5003,33 @@
     "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
    }
   }
+ },
+ {
+  "model": "confetti",
+  "kind": "visual",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T11:37:29Z",
+  "commit": "3da1614733f6cc773f454f47f3b2f6de21ca340f",
+  "notes": "Rebuilt as a full-canvas scene (88b86f4, 107c1f9, 622b45a, 5b88f6d) and looked at again at 1280×800: the card, the model page, the editing stage, full screen and both stages. At rest the 24 written-in pieces lie all over the canvas, edge to edge, not in a ring round the words, so a paused card is a scene and not a caption (D1/D7 are the same picture as D4, the rest pose after a burst — nothing is left hanging). A click makes a tight cloud at the point at ~140ms that is spread across the whole canvas by ~450ms and gone by ~1.3s: it reads as a burst, not as a shower. The burst starts where the pointer did, corners included — clicked at 1.5%,97% the pieces carry --ox 1.33 / --oy 97.25 and the cloud is in that corner; the same at 98.5%,97% and at 50%,98.5%. Enter throws from the middle and lights the caption teal. \"click anywhere\" is the stage's own ink and reads on both stages, and in full screen it scales with the canvas while the pieces stay the same share of it. 26 clicks in 1.5s: the pool holds at 108 pieces, never more, and settles back to the rest pose; with Pause on, 8 clicks and an Enter changed nothing at all (pieces, .popped and the flying count all unmoved), which is what its how promises.",
+  "motionFlagsResolved": [
+   {
+    "flag": "click div.party \"Throw confetti\": its hit area is mostly over empty canvas (78 of 81 reachable points draw nothing)",
+    "reason": "A false alarm, and for this model the flagged shape is the design. confetti is a full-canvas scene (VIEW-CONTRACT.md): its description is \"click anywhere on the canvas\", so the whole canvas IS the hit target (.party is inset: 0) and most of it is meant to be empty between the pieces. I clicked eleven points that the flag counts as drawing nothing — the middle, both side edges, the bottom middle, both bottom corners, and points under the stage's own switches — and every one threw a burst from that very point (--ox / --oy follow the click to within 0.3% of the canvas). Nothing is unreachable and nothing is dead; the check is counting backdrop inside a box that is supposed to be backdrop."
+   }
+  ],
+  "motion": "The 1 current motion flag was ruled by clicking the flagged empty points by hand at 1280×800 and watching what each did: a false alarm.",
+  "fingerprints": {
+   "kind": "visual",
+   "snippet": "d2d76fe18a25",
+   "play": "f450d41e1fed",
+   "paths": {
+    "src/models/snippet-utils.ts (RESIZE_SNAP, standaloneDoc)": "336c2cd51dee",
+    "src/preview.ts": "a008241273f7",
+    "src/embed.ts": "8072bc3b9d9e",
+    "src/fit.ts": "98e379396fe5",
+    "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
+   }
+  }
  }
 ]

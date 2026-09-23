@@ -3814,5 +3814,27 @@
     "category": "93f8bb0eb2c6"
    }
   }
+ },
+ {
+  "model": "confetti",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T11:37:29Z",
+  "commit": "3da1614733f6cc773f454f47f3b2f6de21ca340f",
+  "notes": "description, how, technique and tags read against the rebuilt html/css/js. The description's \"bursts from that very point\" is now true of the code (from() turns the pointer into --ox / --oy, per cent of the canvas) and I watched it happen at the corners. The how matches line for line: 36 pieces as 18 mirrored pairs, one @keyframes fly, --z the depth that grows or shrinks a piece, a pool of 108 (three bursts) thrown again and again with the class off, one reflow, then on, nothing waiting on animationend, the 24 written-in pieces and the .popped hand-over with its 1500ms timer, container-type: size so 1cqw / 1cqh are one per cent of the canvas, and a click on a held stage throwing nothing (I confirmed that one on the stage with Pause on). Tags generated + pointer match the JS-made pieces and the pointerdown / keydown pair. One thing did NOT match and is fixed in this commit: the first technique chip said \"random --x / --y / --z / --spin per piece, in per cent of the canvas\", but --spin is degrees (rand(360, 1080) + 'deg') and --z is depth in the base unit --u; it now names only --x and --y as per cent.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "420927d4b687",
+   "snippet": "d2d76fe18a25",
+   "textParts": {
+    "title": "e102bd494d46",
+    "description": "55e02817abc1",
+    "how": "0a28af10da32",
+    "technique": "3bad3ee10730",
+    "tags": "387fe19caed4",
+    "category": "93f8bb0eb2c6"
+   }
+  }
  }
 ]
