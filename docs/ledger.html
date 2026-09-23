@@ -266,13 +266,13 @@ button, input { font: inherit; color: inherit; }
   /* the two grounds: the sky the words sit on, and the deck the wave and the floor live on */
   --sw-sky-base: #06070f;
   --sw-deck: #0a0722;
-  /* per stage: the stage's colour at the top of its panel, level with the words, and at the horizon */
-  --sw-a1: 18%; --sw-b1: 40%; --sw-c1: 70%;   /* violet */
-  --sw-a2: 16%; --sw-b2: 34%; --sw-c2: 62%;   /* pink   */
-  --sw-a3: 14%; --sw-b3: 30%; --sw-c3: 52%;   /* amber  */
+  /* one flat field per stage: how much of that stage's colour stands over the one base, and nothing
+     else. Three numbers, not one, because the three hues are nowhere near equally bright. */
+  --sw-f1: 52%;   /* violet */
+  --sw-f2: 44%;   /* pink   */
+  --sw-f3: 38%;   /* amber  */
   --sw-lift: 0%;       /* hover and select raise the whole ramp by one step, and only by this */
-  --sw-sky-up: 10%;
-  --sw-rim: 26%;
+  --sw-sky-up: 7%;
   /* the wave: a bright core over two wider, fainter strokes. Three flat strokes, not a blur filter --
      a soft edge that costs one path each instead of a filter pass over the strip every frame. */
   --sw-core-mix: #ffffff;
@@ -282,7 +282,7 @@ button, input { font: inherit; color: inherit; }
   --sw-halo-b: 0.15;   /* the outer one */
   /* the floor. Cyan, as the lab's own synthwave floor has it (models/grid): one colour under all three
      stages, because the floor is the ground the whole strip stands on, not a per-stage reading. */
-  --sw-grid: color-mix(in srgb, var(--accent-2) 54%, transparent);
+  --sw-grid: color-mix(in srgb, var(--accent-2) 76%, transparent);
   --sw-cell: 22px;
   --sw-sun-1: color-mix(in srgb, var(--warm) 92%, var(--sw-deck));
   --sw-sun-2: color-mix(in srgb, var(--hot) 74%, var(--sw-deck));
@@ -298,27 +298,23 @@ button, input { font: inherit; color: inherit; }
   --step-ink-2: #272c4c;
   --sw-sky-base: #ffffff;
   --sw-deck: #120e2c;
-  --sw-a1: 10%; --sw-b1: 22%; --sw-c1: 42%;
-  --sw-a2: 10%; --sw-b2: 22%; --sw-c2: 46%;
-  --sw-a3: 10%; --sw-b3: 22%; --sw-c3: 44%;
-  --sw-sky-up: 8%; --sw-rim: 20%;
+  --sw-f1: 26%; --sw-f2: 26%; --sw-f3: 30%;
+  --sw-sky-up: 8%;
   --sw-core-mix: #241d47; --sw-core: 62%;
   --sw-halo-c: color-mix(in srgb, var(--c) 70%, #241d47);
   --sw-halo-a: 0.34; --sw-halo-b: 0.18;
-  --sw-grid: color-mix(in srgb, var(--accent-2) 58%, transparent);
+  --sw-grid: color-mix(in srgb, var(--accent-2) 72%, transparent);
 } }
 :root[data-theme="light"] {
   --step-ink-2: #272c4c;
   --sw-sky-base: #ffffff;
   --sw-deck: #120e2c;
-  --sw-a1: 10%; --sw-b1: 22%; --sw-c1: 42%;
-  --sw-a2: 10%; --sw-b2: 22%; --sw-c2: 46%;
-  --sw-a3: 10%; --sw-b3: 22%; --sw-c3: 44%;
-  --sw-sky-up: 8%; --sw-rim: 20%;
+  --sw-f1: 26%; --sw-f2: 26%; --sw-f3: 30%;
+  --sw-sky-up: 8%;
   --sw-core-mix: #241d47; --sw-core: 62%;
   --sw-halo-c: color-mix(in srgb, var(--c) 70%, #241d47);
   --sw-halo-a: 0.34; --sw-halo-b: 0.18;
-  --sw-grid: color-mix(in srgb, var(--accent-2) 58%, transparent);
+  --sw-grid: color-mix(in srgb, var(--accent-2) 72%, transparent);
 }
 
 .flowwrap { --notch: 26px; --tipx: 6px; --tipy: 9px; --deck: 28px; margin-top: 16px; position: relative; }
@@ -329,16 +325,27 @@ button, input { font: inherit; color: inherit; }
    buttons take the pointer, and each button is clipped to its own chevron, so the hit area is the shape */
 .flow, .flow__li { pointer-events: none; }
 .step { pointer-events: auto; }
-/* the one ramp every word sits on, built from that stage's own three caps and nothing else */
-.step, .scene__sky {
-  --sky: linear-gradient(180deg,
-    color-mix(in srgb, var(--c) calc(var(--sw-a) + var(--sw-lift)), var(--sw-sky-base)) 0%,
-    color-mix(in srgb, var(--c) calc(var(--sw-b) + var(--sw-lift)), var(--sw-sky-base)) 60%,
-    color-mix(in srgb, var(--c) calc(var(--sw-c) + var(--sw-lift)), var(--sw-sky-base)) 100%);
+/* The one colour every word sits on. Flat: no vertical gradient anywhere on the field, so nothing
+   darkens under a word and nothing goes muddy where the field meets the floor. The only gradient is
+   sideways, and only near a chevron: each field travels halfway to its neighbour's colour at the join
+   it shares with it, so the three read as one strip ramping violet to pink to amber rather than three
+   painted boxes. Both ends of every ramp are colours measured at their own cap, so every pixel of a
+   ramp is between two that clear 4.5:1 and no word can land on anything that does not. */
+.step, .flow__scene {
+  --flat: color-mix(in srgb, var(--c) calc(var(--sw-f) + var(--sw-lift)), var(--sw-sky-base));
+  --sky: var(--flat);
+  /* the whole strip in one gradient: a plateau over each arrow's words, the change across each gate.
+     The two changes are centred on the chevron tips, which sit at 34.7% and 67.4% of the strip over
+     every width this layout runs at. Both ends of a change are a colour measured at its own cap, so
+     every pixel between them clears 4.5:1 too and a word may sit anywhere along one. */
+  --ramp: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) calc(var(--sw-f1) + var(--sw-lift)), var(--sw-sky-base)) 0 25.7%,
+    color-mix(in srgb, var(--hot) calc(var(--sw-f2) + var(--sw-lift)), var(--sw-sky-base)) 43.7% 58.4%,
+    color-mix(in srgb, var(--warm) calc(var(--sw-f3) + var(--sw-lift)), var(--sw-sky-base)) 76.4% 100%);
 }
 /* the notch of one tab is the exact negative of the tip before it, so they interlock with no seam */
 .step {
-  --c: var(--muted); --sw-a: var(--sw-a1); --sw-b: var(--sw-b1); --sw-c: var(--sw-c1);
+  --c: var(--muted); --sw-f: var(--sw-f1);
   position: relative; display: block; width: 100%; padding: 0; border: 0; background: none;
   color: var(--text); font: inherit; text-align: left; cursor: pointer;
   /* on the button itself: the pointer then hits the chevron, not the box around it */
@@ -348,16 +355,16 @@ button, input { font: inherit; color: inherit; }
 }
 /* which stage is which hue, and the three caps its ramp is allowed: declared after .step so a stage's
    own colour wins over the fallback, and shared with the scene's sky panels so both draw one ramp */
-.step--1, .scene__sky.s1 { --c: var(--accent); --sw-a: var(--sw-a1); --sw-b: var(--sw-b1); --sw-c: var(--sw-c1); }
-.step--2, .scene__sky.s2 { --c: var(--hot); --sw-a: var(--sw-a2); --sw-b: var(--sw-b2); --sw-c: var(--sw-c2); }
-.step--3, .scene__sky.s3 { --c: var(--warm); --sw-a: var(--sw-a3); --sw-b: var(--sw-b3); --sw-c: var(--sw-c3); }
+.step--1 { --c: var(--accent); --sw-f: var(--sw-f1); }
+.step--2 { --c: var(--hot); --sw-f: var(--sw-f2); }
+.step--3 { --c: var(--warm); --sw-f: var(--sw-f3); }
 .step--1 { clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
 /* the panel: the stage's sky, a glow along the top rim, and a hairline of its own colour along the base */
 .step__body {
   position: relative; display: block; height: 128px; overflow: hidden;
   background:
     linear-gradient(to top, color-mix(in srgb, var(--c) 40%, transparent) 0 3px, transparent 3px),
-    radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
+    linear-gradient(var(--tint), var(--tint)),
     var(--sky);
 }
 
@@ -370,38 +377,20 @@ button, input { font: inherit; color: inherit; }
 .flow__scene { display: none; }
 @media (min-width: 901px) {
   .flow { position: relative; z-index: 1; }
-  .step { --sky: transparent; }                 /* the scene paints the sky, on its own panels */
+  .step { --sky: transparent; }                 /* the scene paints the field, for all three at once */
   .step__wrap { display: none; }                /* and the floor and the wave, for all three at once */
   .flow__scene {
     display: block; position: absolute; inset: 0; pointer-events: none;
     --tabw: calc((100% + 2 * var(--notch)) / 3);
     /* the outline of the three interlocking chevrons together: a flat left end, one tip on the right */
     clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%);
+    /* ONE field for the whole strip, in the strip's own coordinates: flat violet across the first
+       arrow's words, flat pink across the second's, flat amber across the third's, and the change from
+       one to the next happening at the chevron between them. Painted here rather than once per arrow,
+       because a gradient written per panel meets its neighbour part-way along its own ramp and leaves
+       a step at the join -- which is what the first cut of this did. */
+    background: var(--ramp);
   }
-  .scene__sky {
-    position: absolute; top: 0; bottom: 0; width: var(--tabw);
-    left: calc(var(--i) * (var(--tabw) - var(--notch)));
-    background: var(--sky);
-    clip-path: polygon(0 0,
-      calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
-      0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
-  }
-  .scene__sky.s1 {
-    clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
-  /* the selected stage's sky is a step richer, exactly as its own panel would have been */
-  .flow__scene[data-sel="0"] .scene__sky.s1,
-  .flow__scene[data-sel="1"] .scene__sky.s2,
-  .flow__scene[data-sel="2"] .scene__sky.s3 { --sw-lift: var(--sw-sky-up); }
-  /* one sky does not stop dead at a chevron: each carries a little of its neighbour across the join */
-  .scene__blend {
-    position: absolute; top: 0; bottom: 0; width: 120px; opacity: 0.5;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 42%, #000 58%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 42%, #000 58%, transparent);
-  }
-  .scene__blend.j1 { left: calc(var(--tabw) - var(--notch) - 60px);
-    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) var(--sw-b1), var(--sw-sky-base)), color-mix(in srgb, var(--hot) var(--sw-b2), var(--sw-sky-base))); }
-  .scene__blend.j2 { left: calc(2 * (var(--tabw) - var(--notch)) - 60px);
-    background: linear-gradient(90deg, color-mix(in srgb, var(--hot) var(--sw-b2), var(--sw-sky-base)), color-mix(in srgb, var(--warm) var(--sw-b3), var(--sw-sky-base))); }
 }
 /* ---------- the floor ----------
    The lab's own synthwave floor (models/grid), turned side on: one plane laid down with rotateX under a
@@ -412,7 +401,6 @@ button, input { font: inherit; color: inherit; }
 .sw__deck {
   position: absolute; left: 0; right: 0; bottom: 0; height: var(--deck); overflow: hidden;
   perspective: 58px; perspective-origin: 50% 0%;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--sw-deck) 22%, transparent) 0%, color-mix(in srgb, var(--sw-deck) 80%, transparent) 34%, var(--sw-deck) 100%);
 }
 .sw__deck i {
   position: absolute; left: -70%; right: -70%; top: 0; height: 190px;
@@ -524,15 +512,16 @@ button, input { font: inherit; color: inherit; }
 .step__sub { font-size: 11.5px; line-height: 1.3; color: var(--step-ink-2); }
 /* hover and select move the one number the sky ramp is built from, so the words never leave the
    measured range: every tone behind them is still a mix of that stage's colour over the one base */
-.step:hover { --sw-lift: 5%; }
-.step[aria-selected="true"] { --sw-lift: var(--sw-sky-up); }
+.step { --tint: transparent; }
+.step:hover { --sw-lift: 5%; --tint: color-mix(in srgb, var(--c) 9%, transparent); }
+.step[aria-selected="true"] { --sw-lift: var(--sw-sky-up); --tint: color-mix(in srgb, var(--c) 15%, transparent); }
 /* the selected one is marked five ways: a solid bar along its base and its top, a brighter sky, a
    full-strength label with its colour beside it, its stretch of the wave at full strength, and the
    panel below it taking its colour */
 .step[aria-selected="true"] .step__body { background:
     linear-gradient(to top, var(--c) 0 5px, transparent 5px),
     linear-gradient(to bottom, var(--c) 0 2px, transparent 2px),
-    radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
+    linear-gradient(var(--tint), var(--tint)),
     var(--sky); }
 .step[aria-selected="true"] .step__label { color: var(--text); }
 .step[aria-selected="true"] .step__label::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 2px; background: var(--c); vertical-align: 0.5px; }
@@ -568,11 +557,11 @@ button, input { font: inherit; color: inherit; }
   .step--1 { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch))); }
   .step__body { height: 100px; background:
       linear-gradient(to right, color-mix(in srgb, var(--c) 40%, transparent) 0 3px, transparent 3px),
-      radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
+      linear-gradient(var(--tint), var(--tint)),
       var(--sky); }
   .step[aria-selected="true"] .step__body { background:
       linear-gradient(to right, var(--c) 0 5px, transparent 5px),
-      radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
+      linear-gradient(var(--tint), var(--tint)),
       var(--sky); }
   /* one stage's own scene, inside its own panel: one stretch of wave, no window to cross */
   .step__wrap { position: absolute; inset: 0; pointer-events: none; }
@@ -580,8 +569,7 @@ button, input { font: inherit; color: inherit; }
   .sw__deck { perspective: 150px; }
   .sw__deck i { --sw-cell: 17px; transform: rotateX(78deg); animation-name: swrunN; }
   .step--3 .step__wrap .sw__deck { background-image:
-      radial-gradient(60% 150% at 50% 100%, color-mix(in srgb, var(--warm) calc(14% + 26% * var(--ch, 0)), transparent), transparent 70%),
-      linear-gradient(180deg, color-mix(in srgb, var(--sw-deck) 22%, transparent) 0%, color-mix(in srgb, var(--sw-deck) 80%, transparent) 34%, var(--sw-deck) 100%); }
+      radial-gradient(60% 150% at 50% 100%, color-mix(in srgb, var(--warm) calc(14% + 26% * var(--ch, 0)), transparent), transparent 70%); }
   .step__wrap .wv { opacity: 0.9; -webkit-mask-image: none; mask-image: none; }
   .step--1 .step__wrap .wv { --c: var(--accent); }
   .step--2 .step__wrap .wv { --c: var(--hot); }
@@ -1081,7 +1069,7 @@ button, input { font: inherit; color: inherit; }
    does not undo it. */
 .stagebox__head { flex-wrap: nowrap; }
 .stagebox__ttl { flex: 1 1 auto; min-width: 0; }
-.stagebox__acts { flex: none; display: flex; align-items: center; gap: 8px; order: 2; }
+.stagebox__acts { flex: none; display: flex; align-items: stretch; gap: 8px; order: 2; }
 .stagetog { order: 3; }
 /* Narrow, the "show these in the table" button needs a line of its own. The toggle does not go with it:
    it stays on the title row, at its right end, so it sits the same distance from the top of the box
@@ -1092,9 +1080,15 @@ button, input { font: inherit; color: inherit; }
   .stagetog { order: 2; }
   .stagebox__acts { order: 3; flex: 1 1 100%; }
 }
-.stagetog { flex: none; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--muted); cursor: pointer; transition: rotate 0.15s; }
-.stagetog:hover { color: var(--text); border-color: var(--border-strong); }
-.stagetog[aria-expanded="true"] { rotate: 90deg; }
+/* The toggle is the same button as the one beside it, made square: the same border, the same rounding,
+   the same glass. Its height is not a number here -- it stretches to the row, so it is exactly as tall
+   as "Show these ... in the table" however that button's type is set, and its width follows its height. */
+.stagetog { flex: none; align-self: stretch; display: grid; place-items: center; aspect-ratio: 1; min-height: 30px; padding: 0; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--surface); color: var(--muted); cursor: pointer; transition: rotate 0.15s, border-color 0.2s; }
+.stagetog:hover { color: var(--text); border-color: var(--accent); }
+/* An accordion points the way its content will move: down while it is closed (press and the panel
+   comes down), up while it is open (press and it goes back up). One icon turned, never two swapped. */
+.stagetog { rotate: 90deg; }
+.stagetog[aria-expanded="true"] { rotate: -90deg; }
 .stagebox__brief { display: none; margin: 2px 0 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .stagebox.is-folded .stagebox__means { display: none; }
 .stagebox.is-folded .stagebox__brief { display: block; }
@@ -1319,7 +1313,8 @@ tr.detail > td { background: color-mix(in srgb, var(--bg) 55%, transparent); pad
 .ck__sum { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; color: var(--muted); }
 .ck.is-open .ck__sum { white-space: normal; color: var(--text); }
 .ck__chev { display: grid; place-items: center; color: var(--muted); transition: rotate 0.15s; }
-.ck.is-open .ck__chev { rotate: 90deg; }
+.ck__chev { rotate: 90deg; }
+.ck.is-open .ck__chev { rotate: -90deg; }
 .ck__body { display: grid; gap: 6px; padding: 2px 12px 11px 42px; }
 .ck__body[hidden] { display: none; }
 .ck__stale { margin: 0; padding: 5px 8px; border-left: 3px solid var(--warm); border-radius: 6px; background: color-mix(in srgb, var(--warm) 10%, transparent); font-size: 12.5px; }
@@ -1637,7 +1632,8 @@ table.mini code { font-size: 12px; }
 .grow__btn { display: inline-flex; align-items: center; gap: 8px; padding: 2px 6px 2px 2px; border: 0; border-radius: 8px; background: none; color: var(--text); font: 700 13px/1.3 var(--font); cursor: pointer; white-space: nowrap; }
 .grow__btn:hover { background: color-mix(in srgb, var(--gc, var(--accent)) 16%, transparent); }
 .grow__btn svg { width: 16px; height: 16px; transition: rotate 0.2s; }
-.grow__btn[aria-expanded="false"] svg { rotate: -90deg; }
+/* this one is drawn pointing down already, so it is the open group that turns it the other way up */
+.grow__btn[aria-expanded="true"] svg { rotate: 180deg; }
 .grow__btn .n { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
 .grow__bar { display: flex; flex: 0 1 140px; min-width: 70px; height: 8px; gap: 1px; border-radius: 999px; overflow: hidden; background: var(--track); }
 .grow__bar i { display: block; height: 100%; }
@@ -1695,7 +1691,8 @@ table.mini code { font-size: 12px; }
 .sstog { display: inline-flex; align-items: center; gap: 5px; padding: 1px 9px 1px 6px; border: 1px solid var(--border); border-radius: 999px; background: none; color: var(--muted); font: 600 11.5px/1.5 var(--font); cursor: pointer; }
 .sstog:hover { color: var(--accent-2); border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); }
 .sstog svg { transition: transform 0.15s; }
-.sstog[aria-expanded="true"] svg { transform: rotate(90deg); }
+.sstog svg { transform: rotate(90deg); }
+.sstog[aria-expanded="true"] svg { transform: rotate(-90deg); }
 .sstog[aria-expanded="true"] { color: var(--text); border-color: var(--border-strong); }
 @media (prefers-reduced-motion: reduce) { .sstog svg { transition: none; } }
 .substeps { grid-column: 1 / -1; margin: 8px 0 2px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--surface-solid) 70%, transparent); }
@@ -2411,12 +2408,10 @@ table.mini code { font-size: 12px; }
     + ['h3', 'h2', 'h1'].map((c) => `<path class="${c}" d="${sinePath(o, amp, o.per, 0)}"/>`).join('')
     + `<path class="hm" d="${sinePath(o, amp / 3, o.per / 2, o.per / 4)}"/>`
     + '</svg></div></div>';
-  /* The whole scene: three skies, one deck, one floor, one sun and one wave in three stretches. It sits
+  /* The whole scene: one field, one floor, one sun and one wave in three stretches. It sits
      under the buttons and takes no pointer events, so the arrows are still tabs. */
   function synthScene(amps, sel) {
-    const sky = [0, 1, 2].map((i) => `<div class="scene__sky s${i + 1}" style="--i:${i}"></div>`).join('');
     return `<div class="flow__scene" aria-hidden="true" data-sel="${sel}">
-      ${sky}<div class="scene__blend j1"></div><div class="scene__blend j2"></div>
       <div class="sw__deck"><i></i></div><div class="sw__horizon"></div><div class="sw__sun"><i></i></div>
       <div class="sw__wave">${amps.map((a, i) => waveLayer(WV, i + 1, a)).join('')}</div></div>`;
   }
