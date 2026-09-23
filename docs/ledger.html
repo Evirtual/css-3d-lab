@@ -166,63 +166,111 @@ button, input { font: inherit; color: inherit; }
   --k-broke: repeating-linear-gradient(135deg, var(--accent) 0 3px, color-mix(in srgb, var(--accent) 30%, transparent) 3px 6px);
   --k-never: var(--never);
 }
-/* ---------- the four buckets as one arrow, built like the site's models: a lit top face, a darker side ---------- */
-.flowwrap { --notch: 24px; --depth: 26px; margin-top: 14px; perspective: 2600px; perspective-origin: 50% 30%; }
-.flow { list-style: none; margin: 0; padding: 8px 4px calc(var(--depth) + 14px); display: flex; transform-style: preserve-3d; transform: rotateX(22deg); transform-origin: 50% 50%; }
-.flow__li { position: relative; flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1 + 8px); transform-style: preserve-3d; }
+/* ---------- the three stages as chevron tabs: each is a glass, and its models are the liquid in it ----------
+   The level is that stage's share of every model, so the three levels add up to one full glass. Every
+   colour the text sits on (the empty glass, the liquid, the wave crest) is a named mix of that stage's
+   colour, chosen so the label, the count and the one-line description clear 4.5:1 on both themes. */
+:root { --step-ink-2: #d6dbf0; --glass-lo: 8%; --glass-hi: 13%; --liq-lo: 24%; --liq-hi: 30%; --crest-lo: 29%; --crest-hi: 34%; --glass-base: var(--surface-solid); --liq-base: var(--surface-solid); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --step-ink-2: #3d4468; --glass-lo: 7%; --glass-hi: 12%; --liq-lo: 20%; --liq-hi: 27%; --crest-lo: 30%; --crest-hi: 38%; } }
+:root[data-theme="light"] { --step-ink-2: #3d4468; --glass-lo: 7%; --glass-hi: 12%; --liq-lo: 20%; --liq-hi: 27%; --crest-lo: 30%; --crest-hi: 38%; }
+
+.flowwrap { --notch: 26px; --tipx: 6px; --tipy: 9px; --wave: 16px; margin-top: 16px; }
+.flow { list-style: none; margin: 0; padding: 0; display: flex; }
+.flow__li { position: relative; flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1); }
 .flow__li:first-child { margin-left: 0; }
-/* the tilted list is coplanar with a step that is not raised, and could win its hit test: only the steps take the pointer */
+/* the list items overlap, so a click in the overlap would land on the later one's empty box: only the
+   buttons take the pointer, and each button is clipped to its own chevron, so the hit area is the shape */
 .flow, .flow__li { pointer-events: none; }
 .step { pointer-events: auto; }
-.step { --c: var(--muted); position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; transform-style: preserve-3d; transition: transform 0.25s ease; }
-.step--1 { --c: var(--accent); }
+/* the notch of one tab is the exact negative of the tip before it, so they interlock with no seam */
+.step {
+  --c: var(--muted); --lv: 0;
+  --glass: color-mix(in srgb, var(--c) var(--glass-lo), var(--glass-base));
+  --liq: color-mix(in srgb, var(--c) var(--liq-lo), var(--liq-base));
+  --crest: color-mix(in srgb, var(--c) var(--crest-lo), var(--liq-base));
+  position: relative; display: block; width: 100%; padding: 0; border: 0; background: none;
+  color: var(--text); font: inherit; text-align: left; cursor: pointer;
+  /* on the button itself: the pointer then hits the chevron, not the box around it */
+  clip-path: polygon(0 0,
+    calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
+    0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
+}
+.step--1 { --c: var(--accent); clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
 .step--2 { --c: var(--accent-2); }
 .step--3 { --c: var(--hot); }
-.step__body { position: relative; display: block; height: 122px; transform-style: preserve-3d; }
-.step__top, .step__side { position: absolute; left: 0; right: 0; }
-.step__top { top: 0; bottom: 0; overflow: hidden; background: color-mix(in srgb, var(--c) 16%, var(--surface-solid));
-  clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%, var(--notch) 50%); }
-.step--1 .step__top { clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%); }
-.step--3 .step__top { clip-path: polygon(0 0, calc(100% - var(--notch) * 2) 0, 100% 50%, calc(100% - var(--notch) * 2) 100%, 0 100%, var(--notch) 50%); }
-/* the extrusion: hangs from the front edge and folds back under the top face */
-.step__side { top: 100%; height: var(--depth); left: var(--notch); right: var(--notch); transform-origin: 50% 0; transform: rotateX(-90deg); background: color-mix(in srgb, var(--c) 42%, #03040a); }
-.step--1 .step__side { left: 0; }
-.step--3 .step__side { right: calc(var(--notch) * 2); }
-.step__fill { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--full) * 100%); background: color-mix(in srgb, var(--c) 22%, transparent); }
+/* the glass: the stage's colour at its faintest, a sheen along the top edge, a rim along the base */
+.step__body {
+  position: relative; display: block; height: 128px; overflow: hidden;
+  background:
+    linear-gradient(to top, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
+    linear-gradient(180deg, color-mix(in srgb, #fff 7%, transparent), transparent 38%),
+    var(--glass);
+  transition: background-color 0.2s;
+}
+/* the liquid: a full-height block pushed down, so only its top --lv shows; its surface is the wave */
+.step__liquid {
+  position: absolute; inset: 0; padding-top: var(--wave);
+  background: var(--liq); background-clip: content-box;
+  transform: translateY(calc((1 - var(--lv)) * 100%));
+  transition: transform 0.75s cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+.step__wave { position: absolute; top: 0; left: 0; width: 100%; height: var(--wave); display: block; }
+.step__wave .w1 { fill: var(--liq); stroke: var(--crest); stroke-width: 1.4; animation: stepwave 11s linear infinite; }
+.step__wave .w2 { fill: var(--crest); opacity: 0.55; animation: stepwave 17s linear infinite reverse; }
+@keyframes stepwave { from { transform: translateX(0); } to { transform: translateX(-120px); } }
 .step__text { position: relative; display: grid; align-content: center; height: 100%; padding: 8px calc(var(--notch) + 10px) 8px calc(var(--notch) + 14px); }
 .step--1 .step__text { padding-left: 16px; }
-.step--3 .step__text { padding-right: calc(var(--notch) * 2 + 8px); }
-.step__label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); line-height: 1.25; }
-.step__n { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--c); }
-.step--3 .step__n { width: fit-content; background: var(--st-ok); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.step__sub { font-size: 11.5px; line-height: 1.3; color: var(--muted); }
-/* where the work is: raised, and lit more strongly */
-.step.has-work { transform: translateZ(12px); }
-.step.has-work .step__top { background: color-mix(in srgb, var(--c) 30%, var(--surface-solid)); }
-.step--4.has-work .step__top { background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 45%, var(--surface-solid)), color-mix(in srgb, var(--hot) 45%, var(--surface-solid))); }
-.step:hover { transform: translateZ(18px); }
-.step[aria-selected="true"] { transform: translateZ(22px); }
-.step[aria-selected="true"] .step__top { box-shadow: inset 0 -4px 0 var(--c); }
+.step__label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--step-ink-2); line-height: 1.25; }
+.step__n { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--c) 35%, var(--text)); }
+.step__sub { font-size: 11.5px; line-height: 1.3; color: var(--step-ink-2); }
+/* hover and select both brighten the same three mixes, so the text never leaves the measured range */
+.step:hover { --glass: color-mix(in srgb, var(--c) var(--glass-hi), var(--glass-base)); }
+.step[aria-selected="true"] {
+  --glass: color-mix(in srgb, var(--c) var(--glass-hi), var(--glass-base));
+  --liq: color-mix(in srgb, var(--c) var(--liq-hi), var(--liq-base));
+  --crest: color-mix(in srgb, var(--c) var(--crest-hi), var(--liq-base));
+}
+/* the selected one is marked four ways: a solid base bar, brighter glass and liquid, a full-strength
+   label, and the panel below it taking its colour */
+.step[aria-selected="true"] .step__body { background:
+    linear-gradient(to top, var(--c) 0 5px, transparent 5px),
+    linear-gradient(to bottom, var(--c) 0 2px, transparent 2px),
+    linear-gradient(180deg, color-mix(in srgb, #fff 9%, transparent), transparent 38%),
+    var(--glass); }
 .step[aria-selected="true"] .step__label { color: var(--text); }
+.step[aria-selected="true"] .step__label::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 2px; background: var(--c); vertical-align: 0.5px; }
 .step:focus-visible { outline: none; }
 .step:focus-visible .step__label { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 4px; }
 .flow__hint { margin: 0; font-size: 13px; }
 .flow__bd { margin-top: 4px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 
-@media (prefers-reduced-motion: reduce) { .step { transition: none; } }
-/* narrow screens and phones: the arrow runs top to bottom, flat, each step pointing down into the next */
+/* no waving, and the level jumps to where it belongs */
+@media (prefers-reduced-motion: reduce) {
+  .step__liquid { transition: none; }
+  .step__wave .w1, .step__wave .w2 { animation: none; }
+  .step__body { transition: none; }
+}
+/* narrow screens and phones: the arrow runs top to bottom, each stage pointing down into the next */
 @media (max-width: 900px) {
-  .flowwrap { perspective: none; --notch: 14px; }
-  .flow { flex-direction: column; transform: none; padding: 0 0 6px; }
-  .flow__li { margin: calc(var(--notch) * -1 + 4px) 0 0; }
+  .flowwrap { --notch: 14px; --tipx: 5px; --tipy: 10px; }
+  .flow { flex-direction: column; }
+  .flow__li { margin: calc(var(--notch) * -1) 0 0; }
   .flow__li:first-child { margin-top: 0; }
-  .step, .step.has-work, .step:hover, .step[aria-selected="true"] { transform: none; }
-  .step__body { height: 86px; }
-  .step__top, .step--1 .step__top, .step--4 .step__top { clip-path: polygon(0 0, 50% var(--notch), 100% 0, 100% calc(100% - var(--notch)), 50% 100%, 0 calc(100% - var(--notch))); }
-  .step--1 .step__top { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), 50% 100%, 0 calc(100% - var(--notch))); }
-  .step__side { display: none; }
-  .step__text, .step--1 .step__text, .step--4 .step__text { padding: calc(var(--notch) + 2px) 16px calc(var(--notch) + 2px); grid-template-columns: 1fr auto; align-items: center; column-gap: 12px; }
-  .step--1 .step__text { padding-top: 10px; }
+  .step, .step--1 {
+    clip-path: polygon(0 0,
+      calc(50% - var(--tipy)) calc(var(--notch) - var(--tipx)), 50% var(--notch), calc(50% + var(--tipy)) calc(var(--notch) - var(--tipx)),
+      100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch)));
+  }
+  .step--1 { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch))); }
+  .step__body { height: 92px; background:
+      linear-gradient(to right, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
+      linear-gradient(180deg, color-mix(in srgb, #fff 7%, transparent), transparent 38%),
+      var(--glass); }
+  .step[aria-selected="true"] .step__body { background:
+      linear-gradient(to right, var(--c) 0 5px, transparent 5px),
+      linear-gradient(180deg, color-mix(in srgb, #fff 9%, transparent), transparent 38%),
+      var(--glass); }
+  .step__text, .step--1 .step__text { padding: calc(var(--notch) + 4px) 16px calc(var(--notch) + 4px) 20px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; }
   .step__label { grid-column: 1; }
   .step__n { grid-column: 2; grid-row: 1 / span 2; font-size: 26px; }
   .step__sub { grid-column: 1; }
@@ -1068,6 +1116,13 @@ table.mini code { font-size: 12px; }
     renderOverview();
     if (focus) $('stats').querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
   }
+  /* the liquid's surface: two sine waves of the same period, drawn wide enough that sliding one period
+     left or right never runs out of wave. The back one is lighter and slower, so the two drift apart. */
+  const WAVE = '<svg class="step__wave" viewBox="0 0 240 16" preserveAspectRatio="none" aria-hidden="true" focusable="false">'
+    + '<path class="w2" d="M-210 6 Q-180 3 -150 6 T-90 6 T-30 6 T30 6 T90 6 T150 6 T210 6 T270 6 T330 6 T390 6 T450 6 T510 6 V30 H-210 Z"/>'
+    + '<path class="w1" d="M-240 9 Q-210 4 -180 9 T-120 9 T-60 9 T0 9 T60 9 T120 9 T180 9 T240 9 T300 9 T360 9 T420 9 T480 9 V30 H-240 Z"/></svg>';
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
+  const shownLv = new Map(); // the level each glass is showing now, so only a real change animates
   function renderStats(buckets) {
     const total = buckets.reduce((s, b) => s + b.count, 0) || 1;
     pickStage(buckets);
@@ -1075,14 +1130,19 @@ table.mini code { font-size: 12px; }
       const on = stage === b.key;
       const rule = b.means && b.means.length <= 140 ? b.means : null;
       const name = STEP_SHORT[b.key] ?? b.label;
-      return `<li class="flow__li" role="presentation">${rule ? `<span id="step-rule-${i}" class="visually-hidden">${esc(rule)}.</span>` : ''}<button type="button" role="tab" id="stage-tab-${i}" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-stage="${esc(b.key)}" aria-selected="${on}" aria-controls="ov-stage" tabindex="${on ? 0 : -1}"${rule ? ` data-tip aria-describedby="step-rule-${i}"` : ''}
-          aria-label="${esc(`${name}: ${b.count} of ${total} models`)}">
+      const lv = b.count / total; // the level is this stage's share of every model, nothing else
+      const from = shownLv.has(b.key) ? shownLv.get(b.key) : 0;
+      return `<li class="flow__li" role="presentation">${rule ? `<span id="step-rule-${i}" class="visually-hidden">${esc(rule)}.</span>` : ''}<button type="button" role="tab" id="stage-tab-${i}" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-stage="${esc(b.key)}" data-lv="${lv}" style="--lv:${from}" aria-selected="${on}" aria-controls="ov-stage" tabindex="${on ? 0 : -1}"${rule ? ` data-tip aria-describedby="step-rule-${i}"` : ''}
+          aria-label="${esc(`${name}: ${b.count} of ${total} models, ${Math.round(lv * 100)}% of the glass`)}">
         <span class="step__body" aria-hidden="true">
-          <span class="step__top"><span class="step__fill" style="--full:${b.count / total}"></span>
-            <span class="step__text"><span class="step__label">${esc(name)}</span><span class="step__n">${b.count}</span><span class="step__sub">${esc(STEP_SUB[b.key] ?? '')}</span></span></span>
-          <span class="step__side"></span>
+          <span class="step__liquid">${WAVE}</span>
+          <span class="step__text"><span class="step__label">${esc(name)}</span><span class="step__n">${b.count}</span><span class="step__sub">${esc(STEP_SUB[b.key] ?? '')}</span></span>
         </span></button></li>`;
     }).join('')}</ol>`;
+    // the level rises from where it was; a redraw on select starts where it already is, so nothing moves
+    const settle = () => { for (const el of $('stats').querySelectorAll('.step')) { el.style.setProperty('--lv', el.dataset.lv); shownLv.set(el.dataset.stage, +el.dataset.lv); } };
+    if (REDUCED.matches) settle();
+    else requestAnimationFrame(() => requestAnimationFrame(settle));
   }
   function renderOverview() {
     const c = L.counts, n = c.models;
