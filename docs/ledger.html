@@ -268,9 +268,9 @@ button, input { font: inherit; color: inherit; }
   --sw-deck: #0a0722;
   /* one flat field per stage: how much of that stage's colour stands over the one base, and nothing
      else. Three numbers, not one, because the three hues are nowhere near equally bright. */
-  --sw-f1: 52%;   /* violet */
-  --sw-f2: 44%;   /* pink   */
-  --sw-f3: 38%;   /* amber  */
+  --sw-f1: 50%;   /* violet */
+  --sw-f2: 42%;   /* pink   */
+  --sw-f3: 34%;   /* amber  */
   --sw-lift: 0%;       /* hover and select raise the whole ramp by one step, and only by this */
   --sw-sky-up: 7%;
   /* the wave: a bright core over two wider, fainter strokes. Three flat strokes, not a blur filter --
@@ -317,7 +317,11 @@ button, input { font: inherit; color: inherit; }
   --sw-grid: color-mix(in srgb, var(--accent-2) 72%, transparent);
 }
 
-.flowwrap { --notch: 26px; --tipx: 6px; --tipy: 9px; --deck: 28px; margin-top: 16px; position: relative; }
+/* --notch is the only number the arrow's shape has: how far the point stands out from the edge, which
+   is also how deep the notch is cut into the next arrow. One angle from the top edge to the point and
+   the same one back to the bottom, and the notch is that angle's exact negative, so the three
+   interlock with nothing to line up by eye. */
+.flowwrap { --notch: 26px; --deck: 28px; margin-top: 16px; position: relative; }
 .flow { list-style: none; margin: 0; padding: 0; display: flex; }
 .flow__li { position: relative; flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1); }
 .flow__li:first-child { margin-left: 0; }
@@ -349,16 +353,14 @@ button, input { font: inherit; color: inherit; }
   position: relative; display: block; width: 100%; padding: 0; border: 0; background: none;
   color: var(--text); font: inherit; text-align: left; cursor: pointer;
   /* on the button itself: the pointer then hits the chevron, not the box around it */
-  clip-path: polygon(0 0,
-    calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
-    0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
+  clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%, var(--notch) 50%);
 }
 /* which stage is which hue, and the three caps its ramp is allowed: declared after .step so a stage's
    own colour wins over the fallback, and shared with the scene's sky panels so both draw one ramp */
 .step--1 { --c: var(--accent); --sw-f: var(--sw-f1); }
 .step--2 { --c: var(--hot); --sw-f: var(--sw-f2); }
 .step--3 { --c: var(--warm); --sw-f: var(--sw-f3); }
-.step--1 { clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
+.step--1 { clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%); }
 /* the panel: the stage's sky, a glow along the top rim, and a hairline of its own colour along the base */
 .step__body {
   position: relative; display: block; height: 128px; overflow: hidden;
@@ -382,8 +384,9 @@ button, input { font: inherit; color: inherit; }
   .flow__scene {
     display: block; position: absolute; inset: 0; pointer-events: none;
     --tabw: calc((100% + 2 * var(--notch)) / 3);
-    /* the outline of the three interlocking chevrons together: a flat left end, one tip on the right */
-    clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%);
+    /* the outline of the three interlocking arrows together: a flat left end, one point on the right.
+       Everything the scene draws is inside it, so nothing -- wave, floor or sun -- passes the point. */
+    clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%);
     /* ONE field for the whole strip, in the strip's own coordinates: flat violet across the first
        arrow's words, flat pink across the second's, flat amber across the third's, and the change from
        one to the next happening at the chevron between them. Painted here rather than once per arrow,
@@ -545,16 +548,12 @@ button, input { font: inherit; color: inherit; }
    wider cell. The sun does not come with them: 100px of arrow has no sky to stand it in, and at this
    width it would land on the count, so the Approved arrow points down into its warm light instead. */
 @media (max-width: 900px) {
-  .flowwrap { --notch: 14px; --tipx: 5px; --tipy: 10px; --deck: 28px; }
+  .flowwrap { --notch: 16px; --deck: 28px; }
   .flow { flex-direction: column; }
   .flow__li { margin: calc(var(--notch) * -1) 0 0; }
   .flow__li:first-child { margin-top: 0; }
-  .step, .step--1 {
-    clip-path: polygon(0 0,
-      calc(50% - var(--tipy)) calc(var(--notch) - var(--tipx)), 50% var(--notch), calc(50% + var(--tipy)) calc(var(--notch) - var(--tipx)),
-      100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch)));
-  }
-  .step--1 { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch))); }
+  .step, .step--1 { clip-path: polygon(0 0, 50% var(--notch), 100% 0, 100% calc(100% - var(--notch)), 50% 100%, 0 calc(100% - var(--notch))); }
+  .step--1 { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), 50% 100%, 0 calc(100% - var(--notch))); }
   .step__body { height: 100px; background:
       linear-gradient(to right, color-mix(in srgb, var(--c) 40%, transparent) 0 3px, transparent 3px),
       linear-gradient(var(--tint), var(--tint)),
@@ -1069,7 +1068,7 @@ button, input { font: inherit; color: inherit; }
    does not undo it. */
 .stagebox__head { flex-wrap: nowrap; }
 .stagebox__ttl { flex: 1 1 auto; min-width: 0; }
-.stagebox__acts { flex: none; display: flex; align-items: stretch; gap: 8px; order: 2; }
+.stagebox__acts { flex: none; display: flex; align-items: center; gap: 8px; order: 2; }
 .stagetog { order: 3; }
 /* Narrow, the "show these in the table" button needs a line of its own. The toggle does not go with it:
    it stays on the title row, at its right end, so it sits the same distance from the top of the box
@@ -1083,8 +1082,17 @@ button, input { font: inherit; color: inherit; }
 /* The toggle is the same button as the one beside it, made square: the same border, the same rounding,
    the same glass. Its height is not a number here -- it stretches to the row, so it is exactly as tall
    as "Show these ... in the table" however that button's type is set, and its width follows its height. */
-.stagetog { flex: none; align-self: stretch; display: grid; place-items: center; aspect-ratio: 1; min-height: 30px; padding: 0; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--surface); color: var(--muted); cursor: pointer; transition: rotate 0.15s, border-color 0.2s; }
-.stagetog:hover { color: var(--text); border-color: var(--accent); }
+/* ---------- one chevron button, wherever the page needs one ----------
+   Its size is not a number: it is the type of the button it stands beside -- the same font size, line
+   height and padding as a .btn set small -- so a chevron and a worded button in one row are exactly as
+   tall as each other, and stay so if the type changes. */
+.stagetog, .leadedge, .scrollrow__arrow {
+  font-size: 12.5px; width: calc(1.55em + 12px); height: calc(1.55em + 12px); padding: 0;
+  border: 1px solid var(--border-strong); border-radius: 999px;
+  background: var(--surface); color: var(--muted); cursor: pointer;
+}
+.stagetog:hover, .leadedge:hover, .scrollrow__arrow:hover { color: var(--text); border-color: var(--accent); }
+.stagetog { flex: none; align-self: flex-start; margin-left: -8px; display: grid; place-items: center; transition: rotate 0.15s, border-color 0.2s; }
 /* An accordion points the way its content will move: down while it is closed (press and the panel
    comes down), up while it is open (press and it goes back up). One icon turned, never two swapped. */
 .stagetog { rotate: 90deg; }
@@ -1232,8 +1240,8 @@ button, input { font: inherit; color: inherit; }
 .can-next .scrollrow__track { mask: linear-gradient(90deg, #000 calc(100% - 48px), transparent); }
 .can-prev .scrollrow__track { mask: linear-gradient(90deg, transparent, #000 48px); }
 .can-prev.can-next .scrollrow__track { mask: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
-.scrollrow__arrow { position: absolute; top: 50%; z-index: 1; display: none; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid var(--border-strong); border-radius: 50%; translate: 0 -50%; background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
-.scrollrow__arrow:hover { border-color: var(--accent); }
+/* the arrows stand over the row they scroll, so theirs is the one background that must be solid */
+.scrollrow__arrow { position: absolute; top: 50%; z-index: 1; display: none; place-items: center; translate: 0 -50%; background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow); }
 .scrollrow__arrow--prev { left: -2px; }
 .scrollrow__arrow--next { right: -2px; }
 @media (hover: hover) { .can-prev .scrollrow__arrow--prev, .can-next .scrollrow__arrow--next { display: grid; } }
@@ -1394,8 +1402,7 @@ table.mini code { font-size: 12px; }
    edge, so the same handle ends up resting against the side of the screen. */
 /* The control that sends it away sits in the panel's own title row, at its right end: a small icon
    button, the chevron pointing the way the panel goes. */
-.leadedge { flex: none; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 1px solid var(--border-strong); border-radius: 9px; background: none; color: var(--muted); cursor: pointer; }
-.leadedge:hover { color: var(--text); border-color: var(--accent); }
+.leadedge { flex: none; display: grid; place-items: center; }
 .leadedge[hidden] { display: none; }
 /* The control that brings it back: fixed to the window's right edge, vertically centred, and on screen
    only while the record is away -- the script hides it the instant the panel starts coming back. */
