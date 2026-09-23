@@ -1,1726 +1,3796 @@
 [
-  {
-    "model": "accordion",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:53:10+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "activity",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T15:07:36+07:00",
-    "reviewedAtBasis": "time of its own review commit",
-    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
-  },
-  {
-    "model": "bars",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:01:05+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "da885cd583800813bc9fc896a70bb2c9a41252a2"
-  },
-  {
-    "model": "blockstack",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:59:50+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "c017187526cdb9d57ce0eb6ec124aba580f038b0"
-  },
-  {
-    "model": "book",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:53:10+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "boxslider",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:52:23+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "966dba3c261631b7d1356387ea9983851db2cf9f"
-  },
-  {
-    "model": "browser",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:47:49+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "dfcb2f7a49a6a8aab22f996e87da9be4c8ac576b"
-  },
-  {
-    "model": "button",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "can",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:45:15+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "candles",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:05:54+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
-  },
-  {
-    "model": "cardfan",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:52:43+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "bbf25cdd390daee4f3493926d75fe66d45f2a685"
-  },
-  {
-    "model": "cardstack",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:52:43+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "carousel",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:52:23+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "chartpanel",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:48:50+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "bbd63e65cf7970e89a54af9d6ca741e8d3d42f69"
-  },
-  {
-    "model": "check",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "clock",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:01:20+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "45d0cbddc540a4ce4f2679ea36cb8007a507665b"
-  },
-  {
-    "model": "coin",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:49:20+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "cone",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:03+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "coverflow",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:48:34+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "cube",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:49:20+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "cubegrid",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:51:03+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "40263edb50f2ef67a5eab4a677626f969ccdb0ed"
-  },
-  {
-    "model": "cubeloader",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:58:27+07:00",
-    "reviewedAtBasis": "time of its own review commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "cubenav",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:48:34+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "45471a3ba3990ebd71fd43d38bce0288adb230b8"
-  },
-  {
-    "model": "cylinder",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:49:20+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "diamond",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:47:19+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "dice",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:45:15+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "94e51c7f68228e5a4d54bfe4d194d8900b013d72"
-  },
-  {
-    "model": "door",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:00:12+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "a97b9143141f2523e1f4e578fb0dd7f71fb25c1a"
-  },
-  {
-    "model": "dotorbit",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:59:16+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "7331a1d47d93fc121da7e2e7a6944d5b100d8b7b"
-  },
-  {
-    "model": "equalizer",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:46:11+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "befde9276b2832515356be2b919fb1c44d6e1f0f"
-  },
-  {
-    "model": "explode",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:49:40+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "f08e9957dbc0180291a9a03e9ced2ec3e1f2b0cb"
-  },
-  {
-    "model": "flaptext",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:45:15+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "flip",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:52:23+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "flipgrid",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:53:10+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "flipper",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:53:10+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "b97f70615cad8d72bfd4e4d30cf2ad946b7cf340"
-  },
-  {
-    "model": "funnel",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T15:07:36+07:00",
-    "reviewedAtBasis": "time of its own review commit",
-    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
-  },
-  {
-    "model": "gauge",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T15:03:41+07:00",
-    "reviewedAtBasis": "time of its own review commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "globe",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:49:20+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "gyro",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:53:24+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "7058d8db4c3468a3933d5117161c6f26b0e59d86"
-  },
-  {
-    "model": "heatmap",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:04:36+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "62d5f68ef7da1e3e99133c5a0368ed2f73d03110"
-  },
-  {
-    "model": "helix",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:53:57+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "9408d668f4c59f2a58bf2ee59b286b4291a4eaf5"
-  },
-  {
-    "model": "isotiles",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:00:46+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "d4c3f68c91090db53861a9d5328e90fa41d71cb2"
-  },
-  {
-    "model": "laptop",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:00:32+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "66a1cc475cffe873b531d9cbafd8c1e30d8487e4"
-  },
-  {
-    "model": "lattice",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "needsRereview": "--u is 50px, not a canvas unit: not really converted; re-review when it is"
-  },
-  {
-    "model": "layers",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:49:20+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "e7fe750764de9765c61ccf8be8c32ae2f9b6277a"
-  },
-  {
-    "model": "layertext",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "lit",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "logo3d",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:47:19+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "86654f5c97442b878c9fc127f6527fcd4710a184"
-  },
-  {
-    "model": "magnet",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:47:33+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "cf74ef4913f1838218ecb9e86794864281bad966"
-  },
-  {
-    "model": "neonbars",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:46:11+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "octa",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:50:15+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "orbit",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:49:20+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "package",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:45:15+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "paycard",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:44:24+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "bbfa88349df9fc00ab468472e0ae93e432778b6f"
-  },
-  {
-    "model": "phone",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:44:24+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "pie",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T15:03:05+07:00",
-    "reviewedAtBasis": "time of its own review commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "playground",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:02:19+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "31fecaed34d1d642d2144b0d227f97a6eefb9801"
-  },
-  {
-    "model": "polaroid",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:48:34+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "prism",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:50:15+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "pyramid",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:49:20+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "radar",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:07:36+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5",
-    "fixCommit": "4ef3b78e1a351fc6d49ab9d8c990c42fefab5e87"
-  },
-  {
-    "model": "radio",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:49:40+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "rating",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:52:23+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "rings",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:58:27+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "bed874023b7666cc71c5ef091eb414b91718105d"
-  },
-  {
-    "model": "ripple",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:58:12+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "6ff37ef12cc567e3c46ebece55aea7b06a70241a"
-  },
-  {
-    "model": "rollbutton",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "rubik",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:44:24+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "scatter",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T15:03:33+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "1de4487083e4962428a50f80ca8232c495621bac"
-  },
-  {
-    "model": "shadowtext",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:48:06+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "ae457b5128b5e6de5e84c8415e06afd85b756c17"
-  },
-  {
-    "model": "sphere",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:50:15+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "a7ace0e1df66b53e842c2db7909dfb252477f4d5"
-  },
-  {
-    "model": "stackbars",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T15:08:37+07:00",
-    "reviewedAtBasis": "time of its own review commit",
-    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
-  },
-  {
-    "model": "stairs",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:03+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "swipe",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:46:55+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "efb6cea24fa121599af6b682b2f1e903e16773e2"
-  },
-  {
-    "model": "switch",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "text",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "textring",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "needsRereview": "being re-converted in the working tree (radius 52, 9 characters); re-review when that lands"
-  },
-  {
-    "model": "tiles",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:57:22+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "46056f38837dce8059f6127cd181367fe284cdda"
-  },
-  {
-    "model": "tilt",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "d1b8a079b3d0bc42b0cce7639cbfa3a41cdb689c"
-  },
-  {
-    "model": "timeline",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T15:03:50+07:00",
-    "reviewedAtBasis": "time of its own review commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "toggle",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:52:23+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "torus",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:48:34+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "treemap",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T15:08:37+07:00",
-    "reviewedAtBasis": "time of its own review commit",
-    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
-  },
-  {
-    "model": "turntable",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:45:36+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "487157d71254747d1a93ba859e0e4fdf1e13cd49"
-  },
-  {
-    "model": "vinyl",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:46:55+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "watch",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:48:06+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "waterfall",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T15:08:37+07:00",
-    "reviewedAtBasis": "time of its own review commit",
-    "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
-  },
-  {
-    "model": "wavegrid",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-21T14:53:44+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
-    "fixCommit": "f564e0432acfcb39661e2e5e5e1adae6604be943"
-  },
-  {
-    "model": "waveletters",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:51:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "wordcube",
-    "kind": "text",
-    "reviewer": "text-review agent",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T14:45:36+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
-  },
-  {
-    "model": "solar",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "city",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "hovercards",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "ferris",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "pricing",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "island",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "badge",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "crawl",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "drag",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "tags: added 'drag' (drag-to-rotate had only 'pointer', which means follows-the-pointer; override in interaction.ts hid it)"
-  },
-  {
-    "model": "scrollspin",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "net",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "how: said the cube turns only while shut; keyframes turn it 8%->92%, through the fold and unfold"
-  },
-  {
-    "model": "tetra",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "hourglass",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "crystal",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "how: said four numbers in the style attribute place each crystal; three do (--az, --off, --tilt)"
-  },
-  {
-    "model": "planet",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "headphones",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "perfume",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "businesscard",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "how: said the print is lifted translateZ(2-6 units); the text lines go down to 1.5"
-  },
-  {
-    "model": "camera",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "how: said button and dial discs are stacked 1.5 units apart; the dial's two are 3 apart"
-  },
-  {
-    "model": "coffeecup",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "how: gave the geometric strip widths only; the code draws each 1.2 units wider so neighbours overlap"
-  },
-  {
-    "model": "foldtext",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "how: called every panel's shading dark; the middle panel's is a light sheen"
-  },
-  {
-    "model": "anaglyph",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "how: said the live transition is linear; it is 0.12s ease-out"
-  },
-  {
-    "model": "cubeletters",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "dropdown",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "zones",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "tags: removed 'form-hack', which gave it a Click badge and a click in the checks though nothing in it is clicked"
-  },
-  {
-    "model": "tabs",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "radial",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "how: said each item travels its own arc; only r changes, so it moves straight out along its spoke"
-  },
-  {
-    "model": "keycaps",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "greeting",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "tiltgallery",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "bookshelf",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "grid",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "tunnel",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "starfield",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "parallax",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "sign",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "fold",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "confetti",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "room",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "road",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "snow",
-    "kind": "text",
-    "reviewer": "visual re-review agent 3 (the visual reviewer, independent of the ca4fc84 fix)",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-21T18:27:17Z",
-    "reviewedAtBasis": "time the review was recorded",
-    "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
-    "notes": "Read against the snippet at ca4fc84 (src/models/snippets-batch-e.ts) and the demo entry (src/models/batch-e.ts). Description: JS makes forty flakes once, each with random depth, speed (--t) and drift, one CSS animation (fall) does the falling and perspective makes near flakes big and fast: all true. How: the per-flake properties (--x, --z, --s, --o, --drift, --t, --d) and that JS does nothing after; the fall from -53cqh to 185cqh at the flake's own translateZ, the night a size container (container-type: size) so cqh/cqw are shares of the canvas; drift as --drift x 0.33cqw, \"a plain number which CSS counts in shares of the canvas width\"; depth and size as plain numbers times --u; negative delays so it is snowing on the first frame; trees at translateZ -240/-140/-20 units in the same preserve-3d world hiding far flakes; the night inset: 0 in percentages. The claim that a flake placed in shares stays at the same share on every canvas shape was confirmed by eye and measure (seeded, 1:1 vs 16:9 vs 9:16, offsets under 0.5% of the canvas). Technique chips and tags (generated, loop, particles, scene, weather) fit. No change needed."
-  },
-  {
-    "model": "map",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "windmill",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "rocket",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562",
-    "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
-    "finding": "how: said the frame is 200 x 132 units; .launch is 190 wide"
-  },
-  {
-    "model": "lighthouse",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:40:56+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it",
-    "commit": "16b78b225cc24efb6389933240d5c91305b05562"
-  },
-  {
-    "model": "package",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "dice",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "wordcube",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "turntable",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "neonbars",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "magnet",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "browser",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "coverflow",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "torus",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "cubenav",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "coin",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "explode",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "radio",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "lattice",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "layertext",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "lit",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "waveletters",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "textring",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "rollbutton",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "toggle",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "boxslider",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "cardstack",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "cardfan",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "flipgrid",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "accordion",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "flipper",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "gyro",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "wavegrid",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "cubeloader",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "rings",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "dotorbit",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "blockstack",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "door",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "bars",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "clock",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "gauge",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "timeline",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "funnel",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "candles",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "waterfall",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "treemap",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "radar",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "activity",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
-  },
-  {
-    "model": "button",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
-    "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
-    "finding": "tags: 'hover' became 'controls'; the button answers a press (:active) and nothing on hover, so the badge said Hover for a thing you click"
-  },
-  {
-    "model": "book",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
-    "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
-    "finding": "technique: 'var() end angle in @keyframes' and 'staggered delays' no longer match the code; the book opens by slices of one @property --open"
-  },
-  {
-    "model": "chartpanel",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fixed",
-    "reviewedAt": "2026-09-22T00:52:54+07:00",
-    "reviewedAtBasis": "time of the fix commit",
-    "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
-    "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
-    "finding": "technique: the layer chip said translateZ 0 / 8 / 16 / 22 units; the code now floats them at 5 / 10 / 14"
-  },
-  {
-    "model": "shapeshift",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T01:06:43+07:00",
-    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
-    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
-  },
-  {
-    "model": "playground",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T01:06:43+07:00",
-    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
-    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
-  },
-  {
-    "model": "heatmap",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T01:06:43+07:00",
-    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
-    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
-  },
-  {
-    "model": "stepper",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T01:06:43+07:00",
-    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
-    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
-  },
-  {
-    "model": "stackbars",
-    "kind": "text",
-    "reviewer": "text-review agent, second pass",
-    "verdict": "fine",
-    "reviewedAt": "2026-09-22T01:06:43+07:00",
-    "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
-    "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+ {
+  "model": "accordion",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:53:10+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "activity",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T15:07:36+07:00",
+  "reviewedAtBasis": "time of its own review commit",
+  "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+ },
+ {
+  "model": "bars",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:01:05+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "da885cd583800813bc9fc896a70bb2c9a41252a2"
+ },
+ {
+  "model": "blockstack",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:59:50+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "c017187526cdb9d57ce0eb6ec124aba580f038b0"
+ },
+ {
+  "model": "book",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:53:10+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "boxslider",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:52:23+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "966dba3c261631b7d1356387ea9983851db2cf9f"
+ },
+ {
+  "model": "browser",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:47:49+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "dfcb2f7a49a6a8aab22f996e87da9be4c8ac576b"
+ },
+ {
+  "model": "button",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "can",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:45:15+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "candles",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:05:54+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+ },
+ {
+  "model": "cardfan",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:52:43+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "bbf25cdd390daee4f3493926d75fe66d45f2a685"
+ },
+ {
+  "model": "cardstack",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:52:43+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "carousel",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:52:23+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "chartpanel",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:48:50+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "bbd63e65cf7970e89a54af9d6ca741e8d3d42f69"
+ },
+ {
+  "model": "check",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "clock",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:01:20+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "45d0cbddc540a4ce4f2679ea36cb8007a507665b"
+ },
+ {
+  "model": "coin",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:49:20+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "cone",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:03+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "coverflow",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:48:34+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "cube",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:49:20+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "cubegrid",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:51:03+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "40263edb50f2ef67a5eab4a677626f969ccdb0ed"
+ },
+ {
+  "model": "cubeloader",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:58:27+07:00",
+  "reviewedAtBasis": "time of its own review commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "cubenav",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:48:34+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "45471a3ba3990ebd71fd43d38bce0288adb230b8"
+ },
+ {
+  "model": "cylinder",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:49:20+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "diamond",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:47:19+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "dice",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:45:15+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "94e51c7f68228e5a4d54bfe4d194d8900b013d72"
+ },
+ {
+  "model": "door",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:00:12+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "a97b9143141f2523e1f4e578fb0dd7f71fb25c1a"
+ },
+ {
+  "model": "dotorbit",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:59:16+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "7331a1d47d93fc121da7e2e7a6944d5b100d8b7b"
+ },
+ {
+  "model": "equalizer",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:46:11+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "befde9276b2832515356be2b919fb1c44d6e1f0f"
+ },
+ {
+  "model": "explode",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:49:40+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "f08e9957dbc0180291a9a03e9ced2ec3e1f2b0cb"
+ },
+ {
+  "model": "flaptext",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:45:15+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "flip",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:52:23+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "flipgrid",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:53:10+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "flipper",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:53:10+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "b97f70615cad8d72bfd4e4d30cf2ad946b7cf340"
+ },
+ {
+  "model": "funnel",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T15:07:36+07:00",
+  "reviewedAtBasis": "time of its own review commit",
+  "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+ },
+ {
+  "model": "gauge",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T15:03:41+07:00",
+  "reviewedAtBasis": "time of its own review commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "globe",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:49:20+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "gyro",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:53:24+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "7058d8db4c3468a3933d5117161c6f26b0e59d86"
+ },
+ {
+  "model": "heatmap",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:04:36+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "62d5f68ef7da1e3e99133c5a0368ed2f73d03110"
+ },
+ {
+  "model": "helix",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:53:57+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "9408d668f4c59f2a58bf2ee59b286b4291a4eaf5"
+ },
+ {
+  "model": "isotiles",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:00:46+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "d4c3f68c91090db53861a9d5328e90fa41d71cb2"
+ },
+ {
+  "model": "laptop",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:00:32+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "66a1cc475cffe873b531d9cbafd8c1e30d8487e4"
+ },
+ {
+  "model": "lattice",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "needsRereview": "--u is 50px, not a canvas unit: not really converted; re-review when it is"
+ },
+ {
+  "model": "layers",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:49:20+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "e7fe750764de9765c61ccf8be8c32ae2f9b6277a"
+ },
+ {
+  "model": "layertext",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "lit",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "logo3d",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:47:19+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "86654f5c97442b878c9fc127f6527fcd4710a184"
+ },
+ {
+  "model": "magnet",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:47:33+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "cf74ef4913f1838218ecb9e86794864281bad966"
+ },
+ {
+  "model": "neonbars",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:46:11+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "octa",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:50:15+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "orbit",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:49:20+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "package",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:45:15+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "paycard",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:44:24+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "bbfa88349df9fc00ab468472e0ae93e432778b6f"
+ },
+ {
+  "model": "phone",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:44:24+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "pie",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T15:03:05+07:00",
+  "reviewedAtBasis": "time of its own review commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "playground",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:02:19+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "31fecaed34d1d642d2144b0d227f97a6eefb9801"
+ },
+ {
+  "model": "polaroid",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:48:34+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "prism",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:50:15+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "pyramid",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:49:20+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "radar",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:07:36+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5",
+  "fixCommit": "4ef3b78e1a351fc6d49ab9d8c990c42fefab5e87"
+ },
+ {
+  "model": "radio",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:49:40+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "rating",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:52:23+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "rings",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:58:27+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "bed874023b7666cc71c5ef091eb414b91718105d"
+ },
+ {
+  "model": "ripple",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:58:12+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "6ff37ef12cc567e3c46ebece55aea7b06a70241a"
+ },
+ {
+  "model": "rollbutton",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "rubik",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:44:24+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "scatter",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T15:03:33+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "1de4487083e4962428a50f80ca8232c495621bac"
+ },
+ {
+  "model": "shadowtext",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:48:06+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "ae457b5128b5e6de5e84c8415e06afd85b756c17"
+ },
+ {
+  "model": "sphere",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:50:15+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "a7ace0e1df66b53e842c2db7909dfb252477f4d5"
+ },
+ {
+  "model": "stackbars",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T15:08:37+07:00",
+  "reviewedAtBasis": "time of its own review commit",
+  "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+ },
+ {
+  "model": "stairs",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:03+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "swipe",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:46:55+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "efb6cea24fa121599af6b682b2f1e903e16773e2"
+ },
+ {
+  "model": "switch",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "text",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "textring",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "needsRereview": "being re-converted in the working tree (radius 52, 9 characters); re-review when that lands"
+ },
+ {
+  "model": "tiles",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:57:22+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "46056f38837dce8059f6127cd181367fe284cdda"
+ },
+ {
+  "model": "tilt",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "d1b8a079b3d0bc42b0cce7639cbfa3a41cdb689c"
+ },
+ {
+  "model": "timeline",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T15:03:50+07:00",
+  "reviewedAtBasis": "time of its own review commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "toggle",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:52:23+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "torus",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:48:34+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "treemap",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T15:08:37+07:00",
+  "reviewedAtBasis": "time of its own review commit",
+  "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+ },
+ {
+  "model": "turntable",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:45:36+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "487157d71254747d1a93ba859e0e4fdf1e13cd49"
+ },
+ {
+  "model": "vinyl",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:46:55+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "watch",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:48:06+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "waterfall",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T15:08:37+07:00",
+  "reviewedAtBasis": "time of its own review commit",
+  "commit": "52a9a8be4a4a1134a4d7b5e3013f645129315ba5"
+ },
+ {
+  "model": "wavegrid",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-21T14:53:44+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f",
+  "fixCommit": "f564e0432acfcb39661e2e5e5e1adae6604be943"
+ },
+ {
+  "model": "waveletters",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:51:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "wordcube",
+  "kind": "text",
+  "reviewer": "text-review agent",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T14:45:36+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "d463e61a3741dedfe36cb052ac28ea4d5cc83a6f"
+ },
+ {
+  "model": "solar",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "city",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "hovercards",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "ferris",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "pricing",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "island",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "badge",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "crawl",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "drag",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "tags: added 'drag' (drag-to-rotate had only 'pointer', which means follows-the-pointer; override in interaction.ts hid it)"
+ },
+ {
+  "model": "scrollspin",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "net",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "how: said the cube turns only while shut; keyframes turn it 8%->92%, through the fold and unfold"
+ },
+ {
+  "model": "tetra",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "hourglass",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "crystal",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "how: said four numbers in the style attribute place each crystal; three do (--az, --off, --tilt)"
+ },
+ {
+  "model": "planet",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "headphones",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "perfume",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "businesscard",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "how: said the print is lifted translateZ(2-6 units); the text lines go down to 1.5"
+ },
+ {
+  "model": "camera",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "how: said button and dial discs are stacked 1.5 units apart; the dial's two are 3 apart"
+ },
+ {
+  "model": "coffeecup",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "how: gave the geometric strip widths only; the code draws each 1.2 units wider so neighbours overlap"
+ },
+ {
+  "model": "foldtext",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "how: called every panel's shading dark; the middle panel's is a light sheen"
+ },
+ {
+  "model": "anaglyph",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "how: said the live transition is linear; it is 0.12s ease-out"
+ },
+ {
+  "model": "cubeletters",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "dropdown",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "zones",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "tags: removed 'form-hack', which gave it a Click badge and a click in the checks though nothing in it is clicked"
+ },
+ {
+  "model": "tabs",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "radial",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "how: said each item travels its own arc; only r changes, so it moves straight out along its spoke"
+ },
+ {
+  "model": "keycaps",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "greeting",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "tiltgallery",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "bookshelf",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "grid",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "tunnel",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "starfield",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "parallax",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "sign",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "fold",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "confetti",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "room",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "road",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "snow",
+  "kind": "text",
+  "reviewer": "visual re-review agent 3 (the visual reviewer, independent of the ca4fc84 fix)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-21T18:27:17Z",
+  "reviewedAtBasis": "time the review was recorded",
+  "commit": "00ed5b891e17554dc14d78cd6523ffe1453e1ba7",
+  "notes": "Read against the snippet at ca4fc84 (src/models/snippets-batch-e.ts) and the demo entry (src/models/batch-e.ts). Description: JS makes forty flakes once, each with random depth, speed (--t) and drift, one CSS animation (fall) does the falling and perspective makes near flakes big and fast: all true. How: the per-flake properties (--x, --z, --s, --o, --drift, --t, --d) and that JS does nothing after; the fall from -53cqh to 185cqh at the flake's own translateZ, the night a size container (container-type: size) so cqh/cqw are shares of the canvas; drift as --drift x 0.33cqw, \"a plain number which CSS counts in shares of the canvas width\"; depth and size as plain numbers times --u; negative delays so it is snowing on the first frame; trees at translateZ -240/-140/-20 units in the same preserve-3d world hiding far flakes; the night inset: 0 in percentages. The claim that a flake placed in shares stays at the same share on every canvas shape was confirmed by eye and measure (seeded, 1:1 vs 16:9 vs 9:16, offsets under 0.5% of the canvas). Technique chips and tags (generated, loop, particles, scene, weather) fit. No change needed."
+ },
+ {
+  "model": "map",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "windmill",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "rocket",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562",
+  "fixCommit": "2d0fff59ad779c5a903260ed0de7ca290d50d989",
+  "finding": "how: said the frame is 200 x 132 units; .launch is 190 wide"
+ },
+ {
+  "model": "lighthouse",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:40:56+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it",
+  "commit": "16b78b225cc24efb6389933240d5c91305b05562"
+ },
+ {
+  "model": "package",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "dice",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "wordcube",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "turntable",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "neonbars",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "magnet",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "browser",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "coverflow",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "torus",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "cubenav",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "coin",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "explode",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "radio",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "lattice",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "layertext",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "lit",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "waveletters",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "textring",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "rollbutton",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "toggle",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "boxslider",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "cardstack",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "cardfan",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "flipgrid",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "accordion",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "flipper",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "gyro",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "wavegrid",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "cubeloader",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "rings",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "dotorbit",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "blockstack",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "door",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "bars",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "clock",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "gauge",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "timeline",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "funnel",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "candles",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "waterfall",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "treemap",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "radar",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "activity",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "upper bound: time of my next commit after reading it; read as the changes since its last text review plus the current text",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc"
+ },
+ {
+  "model": "button",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
+  "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
+  "finding": "tags: 'hover' became 'controls'; the button answers a press (:active) and nothing on hover, so the badge said Hover for a thing you click"
+ },
+ {
+  "model": "book",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
+  "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
+  "finding": "technique: 'var() end angle in @keyframes' and 'staggered delays' no longer match the code; the book opens by slices of one @property --open"
+ },
+ {
+  "model": "chartpanel",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-22T00:52:54+07:00",
+  "reviewedAtBasis": "time of the fix commit",
+  "commit": "5591986c8537c00fac3b6ebfa88749ac725c80cc",
+  "fixCommit": "6a20d63a96180e3ae1db03ae5976758babdbf697",
+  "finding": "technique: the layer chip said translateZ 0 / 8 / 16 / 22 units; the code now floats them at 5 / 10 / 14"
+ },
+ {
+  "model": "shapeshift",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T01:06:43+07:00",
+  "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+  "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+ },
+ {
+  "model": "playground",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T01:06:43+07:00",
+  "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+  "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+ },
+ {
+  "model": "heatmap",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T01:06:43+07:00",
+  "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+  "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+ },
+ {
+  "model": "stepper",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T01:06:43+07:00",
+  "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+  "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+ },
+ {
+  "model": "stackbars",
+  "kind": "text",
+  "reviewer": "text-review agent, second pass",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-22T01:06:43+07:00",
+  "reviewedAtBasis": "time the review was recorded, after the fixer's commits",
+  "commit": "b3fa002d50c031aeb52913cc882672461e656946"
+ },
+ {
+  "model": "phone",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (slab count/spacing, ±depth/2 faces, wall insets, alternate easing), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "662b08d84a98",
+   "snippet": "6bf58b788964",
+   "textParts": {
+    "title": "c386ac7bcb53",
+    "description": "5bd287b6f080",
+    "how": "4c30266c93a2",
+    "technique": "096033fc4720",
+    "tags": "d947c29eb005",
+    "category": "2f84417a9e73"
+   }
   }
+ },
+ {
+  "model": "paycard",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (four custom properties, @property numbers, 14-unit lift, live/rest durations), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "9516e4bf3fa2",
+   "snippet": "b6cff4ae65e3",
+   "textParts": {
+    "title": "c07f426bda6c",
+    "description": "b68506f13133",
+    "how": "abccfb896fd3",
+    "technique": "e83ccbb3c25b",
+    "tags": "a3e5b72d3af8",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "solar",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (56° tilt, -16° roll, counter-rotation, 196-unit widest orbit, ring clip-path halves), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "094125f22a7f",
+   "snippet": "17e55d2dee09",
+   "textParts": {
+    "title": "7feec596b8c2",
+    "description": "965134d7eb47",
+    "how": "d81b7ed8b8a5",
+    "technique": "1e04ae215395",
+    "tags": "213b292090b8",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "flaptext",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (four leaves, attr(data-c), class restart, 45ms stagger, 21 x 34 cell), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "3d6e094abbc0",
+   "snippet": "99f78a07e2d0",
+   "textParts": {
+    "title": "a47e069cf657",
+    "description": "9415677ac8f7",
+    "how": "179b0e4a5dd9",
+    "technique": "7049cd9ce771",
+    "tags": "47e9890a5579",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "package",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (four walls + base at half the wall height, lid hinge -90/-32deg, swapped 0.3s delays, 26-unit sink), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "a0a243c70d7d",
+   "snippet": "f0c215690979",
+   "textParts": {
+    "title": "731f19e14515",
+    "description": "4f4cf43d8b0f",
+    "how": "f21607d28760",
+    "technique": "ecb0e1126644",
+    "tags": "bb82d57f6e10",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "city",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (16 buildings, 58/45deg, wall pseudo-elements, 172-unit ground, 17-unit em), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "040d9ed1c3d7",
+   "snippet": "f2ca3516b0b4",
+   "textParts": {
+    "title": "cc31ecdcdd9c",
+    "description": "1641c6bbc498",
+    "how": "37b93d821fa4",
+    "technique": "4225e96b56c7",
+    "tags": "075cea55e3d9",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "hovercards",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (three slots, one variable-fed transform, :has(), per-card translateZ), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "e3b4e12f2ea1",
+   "snippet": "654133a581d5",
+   "textParts": {
+    "title": "72347fb8da76",
+    "description": "f8973f900e86",
+    "how": "b61abb9a4802",
+    "technique": "13d7c1c97300",
+    "tags": "0de01a5556bf",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "can",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (20 strips at 18deg, 34.7-unit radius, 220-unit lap, -0.4s per strip, laid-flat discs), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "cf520cfcbfca",
+   "snippet": "5f44576debf3",
+   "textParts": {
+    "title": "911fe703cce5",
+    "description": "88115a4661f4",
+    "how": "e75c2338ec3d",
+    "technique": "030bb18f26fd",
+    "tags": "ac06bc5b0e9b",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "neonbars",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how (--v per bar, lid translateY, 60ms stagger, tidy scale step, 40-unit tooltip lift), technique, tags",
+  "finding": "the last technique chip said \"dark faces\", but the bar faces are translucent tints of the bar colour (color-mix(... 58%, transparent)) on a stage that can be light or dark, and how step 4 calls them \"see-through glass faces\". Changed the chip to \"see-through faces, bright edge + inset glow: the neon look\".",
+  "fingerprints": {
+   "kind": "text",
+   "text": "e2de7b23996e",
+   "snippet": "45a39799f713",
+   "textParts": {
+    "title": "0246176f212a",
+    "description": "3d63d4e939aa",
+    "how": "4758e2845be6",
+    "technique": "c4aa1b041942",
+    "tags": "0d743738a187",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "equalizer",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (seven bars, scaleY walls, lid drop = 1 - level at every stop, shared stops), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "af31cf6a32ff",
+   "snippet": "1b72df69923d",
+   "textParts": {
+    "title": "c4818df9d691",
+    "description": "788908484994",
+    "how": "fcd032fb9dee",
+    "technique": "b1915cf29062",
+    "tags": "cdc6174cdfaa",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "vinyl",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (-3/0/+3 sandwich, 66-unit slide, paused animation-play-state, groove/reflection gradients), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "29dd7169331a",
+   "snippet": "2ec33d8acb70",
+   "textParts": {
+    "title": "eef78df9c6e5",
+    "description": "e19c54b1a295",
+    "how": "1b3c5364aafb",
+    "technique": "d9a4263c8a94",
+    "tags": "9e80fec76ce4",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "logo3d",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (evenodd clip-path, 14 layers 2 units apart, shade alpha 0.6 - i*0.033, shine translateX), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "de47170375ef",
+   "snippet": "5a9eb62ac166",
+   "textParts": {
+    "title": "b2622e83136b",
+    "description": "d08256ec0e3a",
+    "how": "acd81c311127",
+    "technique": "4419ba37f072",
+    "tags": "653a79e5945c",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "magnet",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (--mx/--my, one transform, 30-unit label lift, 0.14s live vs springy release, 150 x 112 tile), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "8fc49e09e18f",
+   "snippet": "57067f4f449d",
+   "textParts": {
+    "title": "785de02577d9",
+    "description": "cff1d2ee917d",
+    "how": "5dd4072a1d7c",
+    "technique": "4fae18bc0986",
+    "tags": "4e2ff2ce55bb",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "ferris",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (rotate/translateY(-68)/rotate-back, counter-spin, two rims at +/-7, 200 x 188 ride), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "2d4139b6ddf8",
+   "snippet": "59f6b856e84d",
+   "textParts": {
+    "title": "52214f45828e",
+    "description": "0bb02f0cd437",
+    "how": "a6277fcfca71",
+    "technique": "60d45261acd3",
+    "tags": "832c9dfd5b6c",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "pricing",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (three static columns, arc rotateY, translateZ emphasis, --ry: 0 on the active card), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "21e81a40df27",
+   "snippet": "570d23c0897d",
+   "textParts": {
+    "title": "d42d542ca977",
+    "description": "158625a97bcb",
+    "how": "2e0da6a039c4",
+    "technique": "8cb51764e0e8",
+    "tags": "1ef6829201bc",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "browser",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (55/-38deg isometric, --z per layer, --k 0.45 to 1, --z x 2ms delay, static hit area), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "861997ab8264",
+   "snippet": "c6253f2ad0e2",
+   "textParts": {
+    "title": "8490ac171151",
+    "description": "abd6ae330ab4",
+    "how": "d247fea8b711",
+    "technique": "4ee05ad64dc7",
+    "tags": "f5ce597d8698",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "watch",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (three angles + two integers, growing angles, counter-reset, seven slabs 1.5 apart, faces at +/-5), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "88bea1d1de0e",
+   "snippet": "db0573a697bb",
+   "textParts": {
+    "title": "8a6483fb5eb8",
+    "description": "137a4efeb90a",
+    "how": "d8837e821e2b",
+    "technique": "b9a8612689c7",
+    "tags": "19b4adfba994",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "polaroid",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (24deg table, per-slot scatter variables, matching transform lists, -24deg counter-tilt, contact shadow), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "10a231a46d4e",
+   "snippet": "e916433a4f86",
+   "textParts": {
+    "title": "2ea82708e697",
+    "description": "e5a3ce407830",
+    "how": "da54163621d0",
+    "technique": "e551b55de3fb",
+    "tags": "e39ac2e01267",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "island",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how (isometric angles, per-block variables, one-element blocks, 28-unit cell and 14-unit step), technique, tags",
+  "finding": "how step 1 said the land is tilted with \"rotateX(58deg) rotateZ(45deg)\", but there is no rotateZ(45deg) in the CSS: the bob keyframes sway it from rotateZ(38deg) to rotateZ(52deg). Changed it to \"rotateX(58deg) and a rotateZ that sways between 38° and 52°\".",
+  "fingerprints": {
+   "kind": "text",
+   "text": "09770524d2dc",
+   "snippet": "f6aacd26aad5",
+   "textParts": {
+    "title": "1184e2d62758",
+    "description": "3d94a57e6e9c",
+    "how": "cc5a50307d5a",
+    "technique": "7fa2fb95027b",
+    "tags": "7b83383c6cdb",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "coverflow",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (--o/--abs/--sign, calc placement, z-index by distance, two covers either side, seven covers), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "dde8edabc15b",
+   "snippet": "1915e20ac187",
+   "textParts": {
+    "title": "635658db6d9b",
+    "description": "81f2a16d679b",
+    "how": "1190b2b47e8c",
+    "technique": "dfb2cf9fb685",
+    "tags": "eb5aa6da4cdf",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "torus",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (24 cross-sections, rotateY(i x 15deg) translateX(56), tube radius vs thickness, cos() colour), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "f81fa305a3ce",
+   "snippet": "cd25a353cee9",
+   "textParts": {
+    "title": "0c2d41fb1418",
+    "description": "4ff21de9411e",
+    "how": "8815543fac79",
+    "technique": "8aee47ae5c18",
+    "tags": "8458182f0ec2",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "cube",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (perspective on the parent, preserve-3d, six faces at half the 120-unit side), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "c9c281f15de3",
+   "snippet": "e9d09606784b",
+   "textParts": {
+    "title": "50a8175a58ec",
+    "description": "d849497b5e58",
+    "how": "068956c612b8",
+    "technique": "7100e97dfc9d",
+    "tags": "6f6f0d560728",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "cylinder",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (24 strips, 2r x tan(180/24) = 22 units, rotateY/translateZ, rotateX(90deg) rings moved with translate), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "417bf67ad037",
+   "snippet": "69a562fea5d1",
+   "textParts": {
+    "title": "817b354dc01a",
+    "description": "3ed5369ee0c5",
+    "how": "9e72d3ad5376",
+    "technique": "8efffdd74185",
+    "tags": "8458182f0ec2",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "orbit",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how (plane/arm split, dot on the arm, square-box argument, rotateY-then-rotateX tilts, 200-unit rings), technique, tags",
+  "finding": "the description said the three rings were \"each spinning inside its own plane\", but no ring ever moves: only the empty .arm animates rotateZ, which is the whole point of how steps 2, 3 and 5 (the ring's square box must stay still). Changed it to \"each with an electron going round inside its own plane\".",
+  "fingerprints": {
+   "kind": "text",
+   "text": "f6c481510f84",
+   "snippet": "9b67abef6c1d",
+   "textParts": {
+    "title": "b0e8d2e66ad1",
+    "description": "2b1213b6b8fd",
+    "how": "19b6d7ea018f",
+    "technique": "28438f3e312d",
+    "tags": "6f6f0d560728",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "explode",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (translateZ(var(--d)), 64 at rest and 108 on hover against a 110-unit side, static wrapper), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "00b35e6bf620",
+   "snippet": "465d0fe3e06e",
+   "textParts": {
+    "title": "b1b22621ef9e",
+    "description": "1571a9287461",
+    "how": "77e44f247f54",
+    "technique": "a5b3d75c16b1",
+    "tags": "c83b323ddc8e",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "radio",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (hidden real radios, label-for buttons, checked ~ sibling rules for cube/caption/pill, focus ring pass-through), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "92dc36fc2ec8",
+   "snippet": "b7891452b6f3",
+   "textParts": {
+    "title": "e477b0d440b5",
+    "description": "b2e993cbde56",
+    "how": "f1147a54a701",
+    "technique": "8db147cdf638",
+    "tags": "8e2b2a026da6",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "drag",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (rotateX/rotateY from two angles, setPointerCapture, touch-action, 0.95 inertia, body-diagonal sizing), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "c8b4b334a364",
+   "snippet": "eb33276f3cf4",
+   "textParts": {
+    "title": "247448dbfcbb",
+    "description": "0653a68cea77",
+    "how": "30ad27cdcde6",
+    "technique": "06fbfdd56ce9",
+    "tags": "0756668686ac",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "scrollspin",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (--p from scrollTop, 720deg mapping, absolute scroller + sticky + 300% spacer, scroll() note), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "7dfc7387ae26",
+   "snippet": "90002fb00c72",
+   "textParts": {
+    "title": "728705a33a9a",
+    "description": "5a671cd5c35b",
+    "how": "24aec19606db",
+    "technique": "013d6e1190a3",
+    "tags": "843771ec37ce",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "cone",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (16 triangles, 19.89-unit base, 24.44deg lean = atan(50/110), 120.83-unit slant, rocking wrapper), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "8d9b311ffa88",
+   "snippet": "bfc0eb9cc41f",
+   "textParts": {
+    "title": "90bd7b949241",
+    "description": "312a804a046b",
+    "how": "42093139a172",
+    "technique": "464c502236b9",
+    "tags": "8458182f0ec2",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "stairs",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (rotateX(90deg) slab, -5-unit pole origin, 30deg + 8-unit step, ten strips incl. three facets per corner, crossed planes), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "e501b08f0358",
+   "snippet": "01edab6334fa",
+   "textParts": {
+    "title": "ab7c4f32e880",
+    "description": "bf16797e4eaa",
+    "how": "ccd460c79b4a",
+    "technique": "070327895037",
+    "tags": "8458182f0ec2",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "cubegrid",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (rotateZ(-45)/rotateX(58) floor, top + two folded sides, --d = row + column, 36-unit cube lifted 44), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "4601975b886c",
+   "snippet": "e12f2469671d",
+   "textParts": {
+    "title": "c4ad0fd555bc",
+    "description": "7cfb87e526b5",
+    "how": "0a94156df1b1",
+    "technique": "16834264caea",
+    "tags": "ac8d9d2d1f3b",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "shapeshift",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (apothem/side from cos/sin, rotateY(i x 1turn/n), generated cap clip-path, @starting-style .grow, --pos), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "f6e420727169",
+   "snippet": "15f4221d8a05",
+   "textParts": {
+    "title": "35df00b7f4d5",
+    "description": "e1a45393528f",
+    "how": "a1f705d1fefb",
+    "technique": "636892cd4447",
+    "tags": "957372c76ab5",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "headphones",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (12 band strips at translateY(-58), cup cylinder laid down with rotateZ(90deg), cos/sin shading, --spin x --k), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "2ca778730ecf",
+   "snippet": "c9c5135d230d",
+   "textParts": {
+    "title": "453cce215f7a",
+    "description": "a1d145c20d9f",
+    "how": "656c6cb6cd7b",
+    "technique": "bfef140092a4",
+    "tags": "7827cab04900",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "perfume",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (eight faces at 45deg, (w-d)/2/sqrt2 corner slide, --w/--d/--c/--h, clipped octagons, glint in the clipped front face), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "481d03f0b11d",
+   "snippet": "9c3b8987f0b5",
+   "textParts": {
+    "title": "332fcf623f98",
+    "description": "5ecfaa39505d",
+    "how": "682b40edbd15",
+    "technique": "7e77188b46c3",
+    "tags": "3855719003ce",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "businesscard",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (faces at +/-2 units, four slabs 1 unit apart + four walls, print lifted 1.5-6 units, sway vs flip on separate elements), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "4783eaa9275b",
+   "snippet": "589d59501641",
+   "textParts": {
+    "title": "b852a6008b87",
+    "description": "f3846201cd91",
+    "how": "ddcd97ec5f31",
+    "technique": "b970228c2ba8",
+    "tags": "cce356dbd4b8",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "text",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (eight hard text-shadows one unit apart, darkening stack, one blurred drop shadow, rotateY rock), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "dbf372c4d44d",
+   "snippet": "b326ce46571b",
+   "textParts": {
+    "title": "e3a035e90584",
+    "description": "b11f8a496a3d",
+    "how": "2df4f8b5ee25",
+    "technique": "c30b4b68fcfc",
+    "tags": "119880d284dd",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "lit",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (offsets as calc(var(--dx) * N * --u), opposite-direction numbers from JS, working defaults, wide marking), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "28ce88ec2787",
+   "snippet": "911f210430ce",
+   "textParts": {
+    "title": "678a1802bb66",
+    "description": "e5432ffe4b70",
+    "how": "bd8767b767f0",
+    "technique": "31fdad8349a7",
+    "tags": "9ebbe00b97e8",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "waveletters",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (inline-block spans, lift + 360deg flip, attr(data-c) backface, 0.12s stagger, --i carrying into 3D), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "df430f6aff8c",
+   "snippet": "5f0523797f51",
+   "textParts": {
+    "title": "548fe741b470",
+    "description": "84c7e362f10b",
+    "how": "df3add1625ee",
+    "technique": "0b747e5e0582",
+    "tags": "bc6cb416032b",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "textring",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (nine characters of the ring word, 52-unit radius vs 36 x 64 cell, backface hidden, rotateX(90deg) rim, -40deg start), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "8af04081fd48",
+   "snippet": "9e874405bfc3",
+   "textParts": {
+    "title": "8fc9f6b9c781",
+    "description": "21baa1a9952e",
+    "how": "0ee7b90bb404",
+    "technique": "f0814696dc08",
+    "tags": "21b489136626",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "foldtext",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (52deg middle and -104deg neighbours, preserve-3d hinges, --i x -100% sheet, opacity shading, transform: none), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "59bf4dd3e70d",
+   "snippet": "c07c78c4ea8f",
+   "textParts": {
+    "title": "1709e22a26c2",
+    "description": "15a202d39d5b",
+    "how": "15a9267ebb8c",
+    "technique": "66da22568c67",
+    "tags": "dd98918606e7",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "anaglyph",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (screen-blended red/cyan copies, deliberately flat card, four custom properties as plain numbers, 0.12s live), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "00e37539e142",
+   "snippet": "ce7fb90adc52",
+   "textParts": {
+    "title": "d21d82ff61f1",
+    "description": "0776dcf085c6",
+    "how": "54d3f7b7c55e",
+    "technique": "aba94c7009bc",
+    "tags": "23c3e25ae4aa",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "cubeletters",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (rotateX(n x -90deg) faces spelling CUBE/ROLL, hold-turn keyframes to 360deg, 0.13s stagger, backing plates), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "937f68d5b40c",
+   "snippet": "7b1ccd0f2a5d",
+   "textParts": {
+    "title": "61c134ca4a99",
+    "description": "e3c457603019",
+    "how": "17b6f734aee2",
+    "technique": "53fc572aa2d1",
+    "tags": "3114e8239114",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "button",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (box-shadow stack every 4 units, static button + span cap, 32-unit press matching the stack, 80ms, rotateX(30deg)), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "465b641c9d45",
+   "snippet": "11447b985fd4",
+   "textParts": {
+    "title": "2533792a2ca9",
+    "description": "cb84023327cb",
+    "how": "04f1ddff3481",
+    "technique": "a3f45bbfaa7f",
+    "tags": "0cac0039ef58",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "switch",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (real checkbox, clip-path hiding, checked + .rocker at -22/22deg, wrapping label), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "516b47a7a85b",
+   "snippet": "3bd8c0667fb3",
+   "textParts": {
+    "title": "a5dee7da7c89",
+    "description": "12b14b336f3a",
+    "how": "ea33e41a306a",
+    "technique": "9a93848edc92",
+    "tags": "ea5bb3c1b967",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "dropdown",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (rotateX(-90deg) with origin top, -42-unit margin, 80ms opening delay, reversed closing delay), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "5c60da901bab",
+   "snippet": "8ae5393bd374",
+   "textParts": {
+    "title": "d72ba48da8c7",
+    "description": "c9b2aeec3805",
+    "how": "a33b437a4289",
+    "technique": "3cc68069b45c",
+    "tags": "3b53f68aec0d",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "zones",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (3 x 3 zone grid, zone:hover ~ .card rules, pointer-events: none card, canvas-filling zones), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "ded01ff3c346",
+   "snippet": "49948b47d7a3",
+   "textParts": {
+    "title": "81829113daf7",
+    "description": "7312c9e51fc7",
+    "how": "56590eaeb1a7",
+    "technique": "ebdc64172bac",
+    "tags": "a471f475b34b",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "tilt",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how (--rx/--ry/--mx/--my from JS, glare gradient centre, translateZ children, is-live shortening), technique, tags",
+  "fingerprints": {
+   "kind": "text",
+   "text": "79c1d994071b",
+   "snippet": "fd0e3831a5f7",
+   "textParts": {
+    "title": "f01d480c7bf8",
+    "description": "fa71dc50cf8b",
+    "how": "88cad74c60af",
+    "technique": "8416b0af605d",
+    "tags": "8a53386cd89f",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "check",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: the six faces, the bottom-face tick, rotateX(90deg) on :checked, perspective 160 units and the scaleX strike-through all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "eb8578cb6069",
+   "snippet": "d3a54b6f807c",
+   "textParts": {
+    "title": "f71a318e32b3",
+    "description": "b6da097cab82",
+    "how": "e413f3983bdf",
+    "technique": "feff92c62a35",
+    "tags": "2b062399e316",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "tabs",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: four faces, rotateX(n x -90deg) translateZ(46), translateZ(-46), --step = n - 1 and backface-visibility all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "4455401447c6",
+   "snippet": "f62e41ee0fbd",
+   "textParts": {
+    "title": "3ad1b52a7549",
+    "description": "3468dac7376d",
+    "how": "1462527561f5",
+    "technique": "46143398aee1",
+    "tags": "2b062399e316",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "radial",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: five items, 72deg spokes, scale(0.4) to 1, r 0 to 70 units, the reversed (4 - --i) close delay and visibility/pointer-events all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "fd2e56fb16ef",
+   "snippet": "da209c7478fb",
+   "textParts": {
+    "title": "f34a4a2c9ac1",
+    "description": "2a2a0d03bc89",
+    "how": "745cc92a6cc2",
+    "technique": "b02fbed51541",
+    "tags": "f552b7cadb4d",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "keycaps",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: rotateX(54deg) rotateZ(-30deg), the 65.2deg trapezoid sides, the 14.32-unit slant, translateY(-22)/rotate/translateY(22), the cap sinking 7 units and the two glow layers all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "23f31b2376f5",
+   "snippet": "eb2ca7854d56",
+   "textParts": {
+    "title": "9dc50f47e225",
+    "description": "59b4b5b20ebe",
+    "how": "e3a0b95fe159",
+    "technique": "7f4a95eebf94",
+    "tags": "0488b200cca7",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "stepper",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: face n at rotateX(n x -90deg), --a never wrapped, faces[step mod 4] written before --a changes, aria-disabled and the nudge wrapper all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "75fab5fc1bfe",
+   "snippet": "6b90fd73d800",
+   "textParts": {
+    "title": "ef25d560aeb4",
+    "description": "f1d915cfc6b3",
+    "how": "c264081f77c9",
+    "technique": "2c80264fdc81",
+    "tags": "6d851a26b59a",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "rating",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how, technique and tags against the HTML/CSS: the five stacked star layers, the rotateY(180deg) back at translateZ(2), the 90ms and reverse 60ms delays and the burst ring.",
+  "finding": "the technique chip named a selector the CSS does not use, \"radio:nth-of-type(n):checked ~ label:nth-child(-n + n)\"; the rules are id-based, so it now reads \"#star-n:checked ~ label:nth-child(-n + n)\".",
+  "fingerprints": {
+   "kind": "text",
+   "text": "70001fb0b95e",
+   "snippet": "01d14c4225ad",
+   "textParts": {
+    "title": "42d0d2154acc",
+    "description": "1285d67e90da",
+    "how": "e3e1fab25adc",
+    "technique": "974474807335",
+    "tags": "9dea72ae79e1",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "toggle",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: five pill layers 2.4 units apart, transform-origin 100% 50% -17 units, rotateY(90deg), the moon on face 4 (the left face) and the cross-faded Off/On words all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "a613dfe1e603",
+   "snippet": "f4e76ad7e134",
+   "textParts": {
+    "title": "057daf5aea8e",
+    "description": "5b7f696dcd59",
+    "how": "bcb259e4c74b",
+    "technique": "ca42b170443a",
+    "tags": "595d22824898",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "flip",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how, technique and tags against the HTML/CSS: two faces, the rotateY(180deg) back, backface-visibility and tabindex=\"0\".",
+  "finding": "the technique chip said \":hover / :focus-visible\" but the CSS (and the how step) use plain :focus; changed to \":hover / :focus\".",
+  "fingerprints": {
+   "kind": "text",
+   "text": "31cfedf3b2f5",
+   "snippet": "d29216523bd8",
+   "textParts": {
+    "title": "21c7d152cd2f",
+    "description": "997808d3118b",
+    "how": "f53d20c0d1e5",
+    "technique": "2462bc748246",
+    "tags": "a471f475b34b",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "carousel",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how, technique and tags against the HTML/CSS: eight panels, rotate then translate, the tan() radius and the 115-unit radius with gaps.",
+  "finding": "a how step said \"tilt a wrapper so you look slightly down on it\", but there is no tilted wrapper: the rotateX(-14deg) is held inside the ring’s own keyframes. Rewritten to say one animation on the ring does both.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "82fe52556157",
+   "snippet": "6eb4bc450101",
+   "textParts": {
+    "title": "b554c88082b3",
+    "description": "51f008a12c49",
+    "how": "5f37431b3077",
+    "technique": "ca6a11262e2f",
+    "tags": "6f6f0d560728",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "cardstack",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: --p driving offset, depth, opacity and z-index, transitionend, the scale(0) exit, .is-parked with no transition and the reflow.",
+  "finding": "the last how step claimed the scene is \"padded on the right by the amount it carries the card\"; the padding is 30 units against a 126-unit throw, and the CSS says it splits the difference. Reworded to \"padded on the right by enough to split the difference\".",
+  "fingerprints": {
+   "kind": "text",
+   "text": "7fdaf8ab0528",
+   "snippet": "929884e74d69",
+   "textParts": {
+    "title": "2a7e4be733da",
+    "description": "f3731509ac7b",
+    "how": "52df4ea5b65f",
+    "technique": "1bf47a1de14a",
+    "tags": "eb5aa6da4cdf",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "accordion",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how, technique and tags against the HTML/CSS: the hidden radios, transform-origin: top center with rotateX(-90deg), the ~ rules and the fixed frame.",
+  "finding": "a how step said sections are pushed down \"by exactly one panel’s height\"; the CSS moves them 76 units, the 71-unit panel plus its 5-unit gap. Now \"by exactly one panel and its gap (76 units)\".",
+  "fingerprints": {
+   "kind": "text",
+   "text": "0bd6b93b9d48",
+   "snippet": "715fb779d05c",
+   "textParts": {
+    "title": "10d91de35cc8",
+    "description": "c42fe358e924",
+    "how": "e5250d0e590e",
+    "technique": "a0c454d90102",
+    "tags": "a7e6dd476d56",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "greeting",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: --open -96deg/-166deg with --x0 14/2 units matching 16 x cot(half the angle), the 16-unit floating layer, the mirrored mask and --shift -34 to 0 all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "f86c2607aebf",
+   "snippet": "2722f72b03be",
+   "textParts": {
+    "title": "bc827c87da97",
+    "description": "17dde904fecc",
+    "how": "84dbf9963ff2",
+    "technique": "c6d25887f7b9",
+    "tags": "e5e926bb1d68",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "tiltgallery",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: six photos, the smoothstep lift, translateZ(--lift x 42 units), the static wrapper JS measures against and the 0.14s / 0.7s durations all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "5003ab2daf7f",
+   "snippet": "4141dad5517a",
+   "textParts": {
+    "title": "a16b3b5267d4",
+    "description": "cbd3a04c821c",
+    "how": "d10df62ff2df",
+    "technique": "0a85336cb3a5",
+    "tags": "21233267ee04",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "bookshelf",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how, technique and tags against the HTML/CSS: five books, four faces, transform-origin 50% 50% -36 units (half of 72), the :has() last-hovered rule and the split slide-then-turn timings.",
+  "finding": "the technique chip said \"translateZ + rotateY to pull out\", but the CSS uses the separate translate and rotate properties, which the how step depends on; changed to \"separate translate / rotate properties to pull out\".",
+  "fingerprints": {
+   "kind": "text",
+   "text": "ac437614bf66",
+   "snippet": "51157a5254b0",
+   "textParts": {
+    "title": "0d88689cdf32",
+    "description": "7e2f02a47960",
+    "how": "2dd5e1e0aa5a",
+    "technique": "24604b386dce",
+    "tags": "eedf4bf663d4",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "flipper",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the CSS: the four 90deg steps of rotateX/rotateY, perspective() first in every keyframe and the 260-unit distance all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "199afadcd719",
+   "snippet": "e5ff889f2d7c",
+   "textParts": {
+    "title": "976849820505",
+    "description": "af75bfb7a316",
+    "how": "b1f552bd1e7b",
+    "technique": "eae380da2cc1",
+    "tags": "6339f685f85b",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "gyro",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how, technique and tags against the HTML/CSS: three nested rings, 6s/4s/2.6s, the four crossed core discs and preserve-3d at every level.",
+  "finding": "the description said each ring spins \"on a different axis\", but the outer and inner rings both run gyro-x (X) and only the middle one runs Y; changed to \"on a single axis\".",
+  "fingerprints": {
+   "kind": "text",
+   "text": "c1bc7c529836",
+   "snippet": "8174d8b4a8d7",
+   "textParts": {
+    "title": "6e029883c1d4",
+    "description": "ff353444daae",
+    "how": "c5edf17037b4",
+    "technique": "1ea71a774936",
+    "tags": "6339f685f85b",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "helix",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: twelve rungs 120 units wide and 12 apart, the negative per-rung delay and the reversed billboard animation all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "b486d9e7f705",
+   "snippet": "5dc520436191",
+   "textParts": {
+    "title": "456c5cbda2f4",
+    "description": "638f4ddf1302",
+    "how": "602657881b5e",
+    "technique": "1cc1bdc9579e",
+    "tags": "6f6f0d560728",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "tiles",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: the 4x4 grid, 48-unit tiles 8 apart, the -14 unit sink and animation-delay = --d x 0.13s with --d = row + column.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "8c277cbdff4a",
+   "snippet": "3c9642feb7ba",
+   "textParts": {
+    "title": "1386273712db",
+    "description": "ae55855a4e4d",
+    "how": "f4734f05b94a",
+    "technique": "fd6c867b1313",
+    "tags": "6f6f0d560728",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "ripple",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: 7 x 5 tiles of 42 units, transition-delay --d x 70ms, the delays written before the attribute toggles, and the pointer-events split.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "ea08a4b2ed5f",
+   "snippet": "e148c26a49ba",
+   "textParts": {
+    "title": "5121b438c6ca",
+    "description": "0f2f1a95254e",
+    "how": "4179a328f975",
+    "technique": "8873553207d7",
+    "tags": "0c573ac9d094",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "rings",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: three rings of 132/100/68 units, tilts 0/90/45, spins 720/-720/1080deg and the plain radial-gradient core all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "d69159888176",
+   "snippet": "b9117fd79e15",
+   "textParts": {
+    "title": "7b654006b77b",
+    "description": "e3cd42ad666e",
+    "how": "49b2b985eb5f",
+    "technique": "ff7d86be228c",
+    "tags": "41f78a953eed",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "grid",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: rotateX(80deg) from transform-origin top, the one-cell transform loop, the mask fade and the sun standing on the horizon with clip-path plus mask.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "673316cbe4c5",
+   "snippet": "afb5d0dc9f2d",
+   "textParts": {
+    "title": "1c9f96faa943",
+    "description": "0477784c3d82",
+    "how": "7ee1a2660aff",
+    "technique": "dc8989880399",
+    "tags": "6f6f0d560728",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "tunnel",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: ten frames, -1400 to 200 units, perspective 320 (2.7x at z = 200) and -0.4s per frame all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "ec682253c7c1",
+   "snippet": "2c1c1b47eb59",
+   "textParts": {
+    "title": "000994c5e319",
+    "description": "182d0defba8a",
+    "how": "270d21f314a2",
+    "technique": "8b4e9d25d3ab",
+    "tags": "6f6f0d560728",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "starfield",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: three one-element layers, box-shadow stars, font-size: var(--u) so the offsets are in em, and the staggered -1s / -2s delays.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "342f417ac7dd",
+   "snippet": "10048a33cff6",
+   "textParts": {
+    "title": "1e845416f3fe",
+    "description": "91d8d382125c",
+    "how": "502ca1ee2e32",
+    "technique": "8ed9a5e46f49",
+    "tags": "a3c8ad9a2697",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "parallax",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: depths -300/-160/-40/+70, the (p + d) / p scales 1.6/1.32/1.08, the inset: -20% layers and the trees at 23-31% and 66.5-74.5% all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "b5e2256cf84a",
+   "snippet": "19e77124a3f4",
+   "textParts": {
+    "title": "91de50472b87",
+    "description": "8f040d4147d3",
+    "how": "edcdaf356349",
+    "technique": "571c4eba201e",
+    "tags": "8a53386cd89f",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "door",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the CSS: transform-origin: left, perspective-origin: 120% 50%, the frame’s own background as the light, :focus and the 150 x 250 unit frame.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "df4e36831f15",
+   "snippet": "9f355f0f812e",
+   "textParts": {
+    "title": "478d47b06dda",
+    "description": "158c3ef6dd88",
+    "how": "521947cd1070",
+    "technique": "9f7be6010d1f",
+    "tags": "a471f475b34b",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "fold",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: four nested panels of 60 x 170 units, the left: 100% hinges, the alternating 150deg folds and the slide/dip pair.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "317dd3cfb6a8",
+   "snippet": "b4db1d3f80e7",
+   "textParts": {
+    "title": "16a57586c7ab",
+    "description": "3d2ceae8dd52",
+    "how": "7081d117aa31",
+    "technique": "283d500f477a",
+    "tags": "6f6f0d560728",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "isotiles",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: the 5 x 5 cells of 46 units, plates rising 46, 1.4s out and 0.08s in, and the static cell with only its ::before moving.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "c9c8f2a9eaa2",
+   "snippet": "c973c94f3289",
+   "textParts": {
+    "title": "785612cb3085",
+    "description": "afa3b1664dfd",
+    "how": "fe55ed08526d",
+    "technique": "7fa3c7228f10",
+    "tags": "a471f475b34b",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "confetti",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: 36 pieces per burst as 18 mirrored pairs, MAX 108 = three bursts, animationend removal, the 24 waiting pieces and the .popped hand-over all match.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "81d391725773",
+   "snippet": "e394b6183815",
+   "textParts": {
+    "title": "e102bd494d46",
+    "description": "cee50608d1cd",
+    "how": "8e035b468e0d",
+    "technique": "fb409daa4807",
+    "tags": "387fe19caed4",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "room",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: five faces (three walls, floor, ceiling), folds starting at 110 units and running 460 deep, transform-origin z = 300 = the perspective, and the window, poster, door, rug and lamp children.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "e5e3e6c1a77f",
+   "snippet": "31dcc8fea94f",
+   "textParts": {
+    "title": "40b489d06f7f",
+    "description": "298c1114f9c9",
+    "how": "c7a093e13692",
+    "technique": "ea0baa2236fd",
+    "tags": "7a89f8e3cb87",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "map",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: rotateX(54deg) rotateZ(-14deg) undone as rotateZ(14deg) rotateX(-54deg) about 50% 100%, the 190 x 150 unit map, the 26-unit pin and the --i x 0.8s stagger.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "f8cdbffc4569",
+   "snippet": "c390dc8fea5b",
+   "textParts": {
+    "title": "0101645edc0c",
+    "description": "50cbd7bd4ebd",
+    "how": "1ee509e8b2e8",
+    "technique": "03312abf641e",
+    "tags": "132c142e8f95",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "windmill",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: the 150-unit grass block, the 92-high tower of trapezoids 48 wide at the base and 30 at the top leaning atan(9/92) = 5.59deg over a 92.44-unit side, the four 90deg sails and the baked --d shading.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "c36b04b59776",
+   "snippet": "91c662b88b56",
+   "textParts": {
+    "title": "45cc86f2bfdb",
+    "description": "917f478e6ed1",
+    "how": "bdd0f265d293",
+    "technique": "8a4cafc67060",
+    "tags": "0362e4f92d0a",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "rocket",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: ten strips at rotateY(n x 36deg) translateZ(13), the nose leaning atan(13/30), the 10s timeline (6%, 13%, 54%, 70%), the mask on the flat .sky wrapper and the 28deg sway.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "b3d4b207b208",
+   "snippet": "22130d727d42",
+   "textParts": {
+    "title": "cf5cc1af04c8",
+    "description": "4eb5127cd2c7",
+    "how": "8714787b0daf",
+    "technique": "01267426c249",
+    "tags": "a58f1795210d",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "bars",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS: three faces per bar, scaleY from the bottom, the lid sliding by --h - 14 units and the 14 / --hn short-state scale.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "5fa181424eac",
+   "snippet": "e5797d1cc954",
+   "textParts": {
+    "title": "c426ab690bdb",
+    "description": "9e874b9b54ae",
+    "how": "e07fa662da58",
+    "technique": "e5c0fb637221",
+    "tags": "6f6f0d560728",
+    "category": "2f84417a9e73"
+   }
+  }
+ },
+ {
+  "model": "clock",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: four halves per card, rotateX(0 to -180deg), the animationend settle, the reflow restart and the HH : MM : SS line that earns the wide tag.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "0f0f8e52a16c",
+   "snippet": "e9f0daaf082b",
+   "textParts": {
+    "title": "4ab87d3d15c4",
+    "description": "09e215dc9847",
+    "how": "d10c2fcfd35b",
+    "technique": "760f3152f13d",
+    "tags": "115e44d1b7cd",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "playground",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: the 150-1200 perspective range against a 120-unit box, the 400 default, perspective on the parent and the --pos fill the JS writes.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "85ef5ea92eae",
+   "snippet": "0827e199b0a4",
+   "textParts": {
+    "title": "29343785bdca",
+    "description": "773d10dc81ea",
+    "how": "709bcd075479",
+    "technique": "5901a284d0af",
+    "tags": "eb5aa6da4cdf",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "scatter",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: the tilt, spin and cube nesting, the translate property per point, the static inverse plus the animated rotate property at the same 28s, and pointer capture with touch-action: none.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "a0ba59741dd1",
+   "snippet": "00be14d00a46",
+   "textParts": {
+    "title": "eae85ba36601",
+    "description": "fb9a16045d09",
+    "how": "4232c1690f96",
+    "technique": "58918a2be6bf",
+    "tags": "182f917819ed",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "gauge",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: -120deg + value x 2.4deg, the cubic-bezier(0.3, 1.6, 0.45, 1) overshoot, six discs 2.5 units apart, four needle layers 1.3 apart, the glass at 12 units and the two intersected tick masks.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "6777bf0baa4e",
+   "snippet": "af5915b921b3",
+   "textParts": {
+    "title": "ab1d6bfb351d",
+    "description": "9e453877400b",
+    "how": "8055e853dccc",
+    "technique": "278f1bb8edfd",
+    "tags": "56fe85fc1958",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "timeline",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: five cards, -110 units per step, the track’s --a drive, the 22-unit dash period dividing the 110 step and the marker’s 1 - min(|d|, 1).",
+  "finding": "the how step gave the opacity as \"clamp(0, min(1 - d x 0.2, 1 + d x 4), 1)\"; the CSS is clamp(0, 1 + d x 4, 1), and the fading with distance is now filter: brightness(clamp(0.8, 1 - d x 0.1, 1)). The step now names both, and why the brightness never drops under 0.8.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "5a4d092da973",
+   "snippet": "5fbb5dfbd209",
+   "textParts": {
+    "title": "75f2fe4f1fd1",
+    "description": "fe91f06af05a",
+    "how": "2fd669b7ea39",
+    "technique": "8f2c6443eb6e",
+    "tags": "8b213c01cb89",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "heatmap",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: the 5-weekday by 4-week JSON, --v = value / max, the roof at translateZ(--v x 52), the walls at rotateX(-90deg) and rotateY(90deg), the pink-to-teal color-mix and the button-as-roof hit target.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "02da6587f95f",
+   "snippet": "e43b1e240e46",
+   "textParts": {
+    "title": "1b1e0127e919",
+    "description": "6bebf1d125ff",
+    "how": "965ad814ca85",
+    "technique": "4d1084f2f2e0",
+    "tags": "760c2a6116b6",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "stackbars",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: --base then scaleY(--v), the shared non-overshooting timing, the .is-top lid, the .float twin layer, --tx / --ty and the 150ms grace timer.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "9cc3590654f4",
+   "snippet": "dbd88c52b42a",
+   "textParts": {
+    "title": "a14e70e5a58c",
+    "description": "68579df23d45",
+    "how": "0de549a2d1d2",
+    "technique": "9065c0d4b2aa",
+    "tags": "a7f00c5addd7",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "funnel",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: --v = value / first stage, scaleX on the front and lid with the side riding out by --v x 66 (half of 132), the nested oklch ramp, translateZ(40) and the 150ms hide.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "04cfc2a2cb8e",
+   "snippet": "f5427080577f",
+   "textParts": {
+    "title": "620b1e3ee9a6",
+    "description": "1ac9c4a6e2ba",
+    "how": "738e82adbc00",
+    "technique": "9a14f841a58c",
+    "tags": "0d743738a187",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "candles",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: the four fractions, wick and body translateY/scaleY, the ::before side and ::after lid, slot = 180 / --n with scale3d(1, 0, 0) for days out of range, --side, and the 11 and 10 unit text at 0.36vmin = 4 and 3.6vmin.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "1bb9ec9ff97e",
+   "snippet": "514733ac5dd9",
+   "textParts": {
+    "title": "ed845bd35350",
+    "description": "a301d49d57a9",
+    "how": "909dba95a589",
+    "technique": "7a382e2a4779",
+    "tags": "27770bf48f73",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "waterfall",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: --b, --v and --e from the running total, translateY before scaleY, the ::after connector riding at --e, the still full-height column and the 40-unit, 150ms tooltip.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "af9ecfcb8981",
+   "snippet": "369b9b071672",
+   "textParts": {
+    "title": "d7c63af4c0df",
+    "description": "f4d72026b4e1",
+    "how": "fc908bdd8201",
+    "technique": "cccf3d119a27",
+    "tags": "27770bf48f73",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "treemap",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fixed",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "fixCommit": "01ebaed",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: the squarified layout in %, the roof at translateZ(2 + --v x 38), walls scaled by the same fraction, the 45ms ripple and the 150ms grace timer.",
+  "finding": "the colour how step said all the faces are glass, \"the colour mixed with transparent (roof 80%, walls about 60%)\"; the roof is now color-mix(var(--c) 80%, #0b0d18), opaque over the chart’s own dark so its light words read on a light stage. The step now says walls glass, roof over the dark, and why.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "73d6a1211abc",
+   "snippet": "fb7608f00c7c",
+   "textParts": {
+    "title": "6c82037dce85",
+    "description": "2fca2fa9dec3",
+    "how": "58c118544d7d",
+    "technique": "3431bef561b3",
+    "tags": "17ccdab95596",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "radar",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: six axes, two series, the plate at rotateX(50deg) rotateZ(-12deg) undone as rotateZ(12deg) rotateX(-50deg), the layers at --z 10 and 22, and the redrawn wide-stroke glow with no blur filter.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "da8c9e097ee3",
+   "snippet": "4ba900c3495c",
+   "textParts": {
+    "title": "923a83a42e66",
+    "description": "1f29613b5bb5",
+    "how": "474019e48e0b",
+    "technique": "e54ccd94b76f",
+    "tags": "7326cd5abf68",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ },
+ {
+  "model": "activity",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T01:36:18Z",
+  "commit": "01ebaedfd0091ac08b92f43721600ca9658b7534",
+  "notes": "description, how, technique and tags against the HTML/CSS/JS: --p = value / goal, the conic-gradient cut by a 16-unit radial mask, @property --p with transition: --p 1.1s, three arc layers 2 units apart, the track 6 units back and rotate(--p x 1turn) for the tip.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "5a1f59ee4874",
+   "snippet": "13d406174362",
+   "textParts": {
+    "title": "130bb573259f",
+    "description": "5d8904a5640f",
+    "how": "05c95281f4ed",
+    "technique": "655965267f50",
+    "tags": "0d743738a187",
+    "category": "93f8bb0eb2c6"
+   }
+  }
+ }
 ]
