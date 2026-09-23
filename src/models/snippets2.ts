@@ -2048,7 +2048,7 @@ for (let row = 0; row < N; row++) {
       'On click, JS creates 36 particles in the middle of the canvas. Each gets a random vector in custom properties: <code>--x</code>, <code>--y</code>, <code>--z</code>, <code>--spin</code>, <code>--hue</code>. The vectors come in mirrored pairs, one to the left and one to the right, so the burst is always balanced.',
       'There is only <b>one</b> keyframe rule. It reads those variables, so every particle flies somewhere different.',
       '<code>--z</code> is what makes it 3D: particles coming toward the camera grow, the others shrink away.',
-      'Each particle removes itself on <code>animationend</code>, and at most three bursts (108 pieces) are ever in flight: a click past that first removes the oldest. A paused stage never ends an animation, so without the cap every click would add its pieces for good, and fast clicking would pile up 3D layers until the page froze.',
+      'Nothing is left lying about, and nothing waits on an event that may never come. A particle removes itself on <code>animationend</code>; its burst is swept anyway a moment after its flight is over by the clock; and at most three bursts (108 pieces) are ever in the air, the oldest making way for the newest. A stage that holds its animations — the Pause switch, the export dialog\'s held pose, a print — would never end one, so a click there throws nothing at all: the model asks a piece whether its animation is <code>paused</code> and leaves the stage exactly as it is.',
       'At rest, twenty-four pieces wait round the words, written into the HTML with their place and tilt in <code>--x</code>, <code>--y</code>, <code>--r</code>, so a paused card shows confetti and not just a caption. A click adds <code>.popped</code>: they flick outward, shrink and fade as the burst takes over, and a timer takes the class off again. Their resting rule jumps <code>transform</code> back at once but fades <code>opacity</code> in slowly, so they reappear in place instead of flying back.',
       'The whole canvas is the click target (<code>inset: 0</code>), but the burst always starts from the words in the middle, so it stays inside the frame wherever you click. JS writes the vector as plain numbers and the keyframe multiplies them by one base unit, <code>--u</code>, tied to the canvas, so the burst is the same share of a gallery card and a full screen.',
     ],
@@ -2162,11 +2162,28 @@ for (let row = 0; row < N; row++) {
 }`,
     js: `const party = document.querySelector('.party');
 const rand = (min, max) => min + Math.random() * (max - min);
-const MAX = 108; // pieces in flight at once: three bursts
+const MAX = 108;   // pieces in flight at once: three bursts
+const FLIGHT = 1300; // how long one flies, as the CSS says
+
+/**
+ * Whether the stage this runs on is holding its animations (the site's Pause, the export
+ * dialog's held pose, a print). A piece made now would hang in the air for good: it would
+ * never fly and never reach animationend. Asked of a real piece, so it is the CSS that
+ * answers, whatever pauses it.
+ */
+function held() {
+  const probe = document.createElement('i');
+  party.append(probe);
+  const state = getComputedStyle(probe).animationPlayState;
+  probe.remove();
+  return state === 'paused';
+}
 
 let settle;
 
 function burst() {
+  if (held()) return; // a paused stage stays exactly as it is, click or no click
+
   // the pieces waiting round the words go with the burst, and come back once it has fallen
   party.classList.add('popped');
   clearTimeout(settle);
@@ -2177,10 +2194,12 @@ function burst() {
   // reading as a mirror image. Each height is drawn from its own eighteenth of the range, so
   // the burst always reaches as high and as low: -520 to 120, which the 200 of gravity turns
   // into -320 to 320, a burst centred on the words.
+  const mine = [];
   for (let i = 0; i < 18; i++) {
     const x = rand(0, 340), y = -520 + (i + rand(0.2, 0.8)) * 640 / 18, z = rand(-100, 100);
     for (const side of [-1, 1]) {
       const p = document.createElement('i');
+      mine.push(p);
       // plain numbers: the CSS multiplies them by --u, so the burst scales with the canvas
       p.style.setProperty('--x', side * x + rand(-30, 30));
       p.style.setProperty('--y', y + rand(-15, 15));
@@ -2191,8 +2210,11 @@ function burst() {
       party.append(p);
     }
   }
-  // at most three bursts in flight: the oldest pieces make way. A paused stage never ends an
-  // animation, so without this every click would add 36 pieces for good
+  // Nothing here waits on an event that may never come: this burst is swept once its flight is
+  // over by the clock, whatever happened to the animation meanwhile...
+  setTimeout(() => { for (const p of mine) p.remove(); }, FLIGHT + 300);
+  // ...and at most three bursts are ever in the air, so even a stage that stops everything
+  // mid-flight cannot pile them up: the oldest pieces make way for the newest.
   const flying = party.querySelectorAll(':scope > i');
   for (let k = 0; k < flying.length - MAX; k++) flying[k].remove();
 }
