@@ -41,6 +41,11 @@
   --grid: rgb(140 150 220 / 0.036);
   --text: #eceefb; --muted: #949bc0;
   --accent: #8b6cff; --accent-2: #2ee6d6; --hot: #ff4d9d; --warm: #ffb547;
+  /* The one green this page adds to the site's violet/teal/pink/amber: Approved reads as done, not as
+     danger. Written in OKLCH so it sits in the same lightness and chroma family as the site's teal and
+     violet rather than as a saturated sRGB spring green, and its hue leans toward that teal. One token:
+     putting the arrow back to pink is this line. */
+  --good: oklch(0.82 0.128 166);
   --code-bg: #0a0c18;
   --shadow: 0 20px 50px -20px rgb(0 0 0 / 0.7);
   --radius: 18px;
@@ -55,7 +60,7 @@
     --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
     --grid: rgb(40 50 120 / 0.034);
     --text: #14172b; --muted: #5a6188;
-    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00;
+    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166);
     --code-bg: #e8eafa;
     --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
     color-scheme: light;
@@ -67,7 +72,7 @@
   --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
   --grid: rgb(40 50 120 / 0.034);
   --text: #14172b; --muted: #5a6188;
-  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00;
+  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166);
   --code-bg: #e8eafa;
   --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
   color-scheme: light;
@@ -77,7 +82,17 @@
   --st-none: var(--muted);
   --st-conv: var(--accent);
   --st-chk: var(--accent-2);
-  --st-ok: linear-gradient(120deg, var(--accent), var(--hot));
+  /* The site's own violet-to-pink, which is what "approved" has always worn here and what the pressed
+     tabs, groups and filter chips wear beside it. Both ends are taken down toward one near-black plum,
+     because white on the raw brand gradient measures 3.1:1 over the pink end -- nowhere near enough for
+     a label. At these two mixes the worst pixel under the word, gloss and specular included, clears 4.5.
+     Raising either percentage, or the 6%/5%/9% whites below, lowers that number. */
+  --ok-deep: #17041f;
+  --st-ok: linear-gradient(120deg, color-mix(in srgb, var(--accent) 74%, var(--ok-deep)), color-mix(in srgb, var(--hot) 66%, var(--ok-deep)));
+  /* the tick is the one green on the pill, the same family as the Approved arrow, on a green-white disc
+     so it reads as green rather than as a hole in the pink */
+  --ok-tick: color-mix(in srgb, var(--good, oklch(0.62 0.13 166)) 70%, #04231a);
+  --ok-tick-bg: color-mix(in srgb, var(--good, oklch(0.62 0.13 166)) 16%, #fff);
   --st-bad: var(--hot);
   --st-warn: var(--warm);
 }
@@ -113,16 +128,25 @@ button, input { font: inherit; color: inherit; }
 
 /* ---------- hero: the stage's dotted backdrop ---------- */
 .hero {
-  position: relative; border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 24px 22px; overflow: hidden;
+  position: relative; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px 12px; overflow: hidden;
   background:
     radial-gradient(color-mix(in srgb, var(--border-strong) 45%, transparent) 1.1px, transparent 1.9px) 0 0 / 18px 18px,
     color-mix(in srgb, var(--bg) 70%, transparent);
   box-shadow: var(--shadow);
 }
-.hero .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: flex-start; }
-.hero .meta { margin-top: 10px; color: var(--muted); font-size: 14px; max-width: 72ch; }
-.live { margin-top: 10px; font-size: 13px; font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
-.live > span { white-space: nowrap; }
+/* one row: the chip, the title, the buttons. The title gives up the space, not the buttons. */
+.hero .top { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px 14px; align-items: center; }
+.hero .top .eyebrow { margin-bottom: 0; }
+.hero h1 { margin-right: auto; font-size: clamp(19px, 2.2vw, 26px); }
+/* one muted line under it: what was built, how old it is, and whether anything is still watching.
+   Short while everything is fine; the plain words come back the moment something is not. */
+.statusline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; margin-top: 8px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.statusline .meta, .statusline .live { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
+.statusline .live { align-items: center; }
+.statusline > span > span, .statusline > span > b { white-space: nowrap; }
+.statusline .sep { opacity: 0.55; }
+.statusline [data-tip] { cursor: help; border-bottom: 1px dotted color-mix(in srgb, var(--muted) 55%, transparent); }
+.statusline .stale { color: var(--warm); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--muted); vertical-align: 0; }
 .dot.on { background: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 22%, transparent); }
 .dot.off { background: var(--hot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--hot) 22%, transparent); }
@@ -142,7 +166,40 @@ button, input { font: inherit; color: inherit; }
 .s-chk { --c: var(--st-chk); }
 .s-bad { --c: var(--st-bad); }
 .s-warn { --c: var(--st-warn); }
-.s-ok { color: #fff; background: var(--st-ok); border-color: transparent; }
+/* the one pill made of glass: a lit top rim, a shaded bottom one, and the label sunk a little below the
+   surface. Every white in here is measured -- see --st-ok for what each percentage costs. */
+.s-ok {
+  position: relative; overflow: hidden; color: #fff; font-weight: 800; border-color: transparent;
+  display: inline-flex; align-items: center; gap: 5px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #fff 6%, transparent) 0 46%, transparent 46%),
+    var(--st-ok);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.30),      /* the lit top edge */
+    inset 0 -1px 0 rgb(0 0 0 / 0.45),           /* and the shaded bottom one */
+    inset 0 3px 6px -4px rgb(0 0 0 / 0.55),     /* the label sits below the surface */
+    0 0 0 1px color-mix(in srgb, var(--hot) 24%, transparent),
+    0 2px 7px -3px color-mix(in srgb, var(--hot) 52%, transparent);  /* a faint glow in the brand pink */
+}
+/* the tick: green, so the pill and the green Approved arrow read as the same verdict */
+.s-ok::before {
+  content: '✓'; flex: none; display: grid; place-items: center; width: 13px; height: 13px;
+  border-radius: 50%; background: var(--ok-tick-bg); color: var(--ok-tick);
+  font-size: 9px; font-weight: 900; line-height: 1; text-indent: 0;
+}
+/* the specular: one gradient moved by transform, no filter. Each row carries its own delay, so a page
+   of approved pills never sweeps in unison. */
+.s-ok::after {
+  content: ''; position: absolute; inset: 0; --sweep-w: 5%;
+  background: linear-gradient(104deg, transparent 38%, color-mix(in srgb, #fff var(--sweep-w), transparent) 50%, transparent 62%);
+  transform: translateX(-165%); animation: oksheen 9s ease-in-out infinite; animation-delay: var(--sweep-d, 0s);
+}
+/* a win gets one brighter, faster crossing -- 9% is the most white that still leaves the label at 4.5:1 */
+.s-ok.won::after { --sweep-w: 9%; animation: oksheen 0.8s ease-out; }
+@keyframes oksheen { 0%, 79% { transform: translateX(-165%); } 100% { transform: translateX(165%); } }
+/* quiet at rest. One sweep and one settle on the refresh that turned this model approved, never a loop. */
+.s-ok.won { animation: okpop 0.6s cubic-bezier(0.22, 1.3, 0.3, 1); }
+@keyframes okpop { 0% { transform: scale(1); } 38% { transform: scale(1.12); } 100% { transform: scale(1); } }
 
 /* ---------- panels ---------- */
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-top: 18px; box-shadow: var(--shadow); }
@@ -169,10 +226,55 @@ button, input { font: inherit; color: inherit; }
 /* ---------- the three stages as chevron tabs: each is a glass, and its models are the liquid in it ----------
    The level is that stage's share of every model, so the three levels add up to one full glass. Every
    colour the text sits on (the empty glass, the liquid, the wave crest) is a named mix of that stage's
-   colour, chosen so the label, the count and the one-line description clear 4.5:1 on both themes. */
-:root { --step-ink-2: #d6dbf0; --glass-lo: 8%; --glass-hi: 13%; --liq-lo: 24%; --liq-hi: 30%; --crest-lo: 29%; --crest-hi: 34%; --glass-base: var(--surface-solid); --liq-base: var(--surface-solid); }
-@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --step-ink-2: #3d4468; --glass-lo: 7%; --glass-hi: 12%; --liq-lo: 20%; --liq-hi: 27%; --crest-lo: 30%; --crest-hi: 38%; } }
-:root[data-theme="light"] { --step-ink-2: #3d4468; --glass-lo: 7%; --glass-hi: 12%; --liq-lo: 20%; --liq-hi: 27%; --crest-lo: 30%; --crest-hi: 38%; }
+   colour, chosen so the label, the count and the one-line description clear 4.5:1 on both themes.
+   The share is per stage because the three hues are nowhere near equally bright: at one shared
+   percentage the violet would be a shadow and the teal would wash the text out. These numbers are the
+   measured caps -- raising one lowers the contrast over that stage's fill. */
+:root {
+  --step-ink-2: #e9ecfd;
+  --glass-lo: 8%; --glass-hi: 13%; --rim: 15%;
+  --lq-1: 50%; --lq-2: 25%; --lq-3: 22%;   /* colour in the fill at the surface, per stage */
+  --lq-up: 7%;                              /* the selected glass is one step richer */
+  --lq-dp: -12%;                            /* dark: the fill darkens with depth */
+  --lq-cr: 14%;                             /* dark: the crest is lighter than the surface */
+  --glass-base: var(--surface-solid); --liq-base: #0a0d1e;
+  /* The sky is one ramp on all three tabs: the stage's own colour over one base, a little of it high up
+     and more toward the horizon. Only the two percentages move, so the three read as one family at three
+     times of day. No tab introduces a hue of its own: the only accents are the site's amber (the sun)
+     and its violet (the lightning). The text sits on all of it, so every tone stays inside the same
+     measured range as the fill -- in dark, nothing past about 0.12 relative luminance. That is why the
+     sun is an ember rather than a white disc; against a sky at 0.01 it still reads as a sun. */
+  --sk-a1: 7%;  --sk-b1: 19%;   /* storm:  dim and cool */
+  --sk-a2: 11%; --sk-b2: 26%;   /* calm:   bright and even */
+  --sk-a3: 8%;  --sk-b3: 22%;   /* sunset: warm and low */
+  --sky-base: #06070f;
+  --sun: color-mix(in srgb, var(--warm) 44%, var(--sky-base));
+  --bolt: color-mix(in srgb, var(--accent) 62%, #ffffff);
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --step-ink-2: #272c4c; --glass-lo: 7%; --glass-hi: 12%; --rim: 13%;
+  --lq-1: 46%; --lq-2: 56%; --lq-3: 54%; --lq-up: 6%;
+  --lq-dp: 12%;                             /* light: the fill deepens with depth */
+  --lq-cr: -16%;                            /* light: the crest is paler than the surface */
+  --liq-base: #ffffff;
+  --sk-a1: 50%; --sk-b1: 33%;
+  --sk-a2: 22%; --sk-b2: 8%;
+  --sk-a3: 34%; --sk-b3: 13%;
+  --sky-base: #ffffff;
+  --sun: color-mix(in srgb, var(--warm) 62%, var(--sky-base));
+  --bolt: color-mix(in srgb, var(--accent) 30%, #ffffff);
+} }
+:root[data-theme="light"] {
+  --step-ink-2: #272c4c; --glass-lo: 7%; --glass-hi: 12%; --rim: 13%;
+  --lq-1: 46%; --lq-2: 56%; --lq-3: 54%; --lq-up: 6%;
+  --lq-dp: 12%; --lq-cr: -16%; --liq-base: #ffffff;
+  --sk-a1: 50%; --sk-b1: 33%;
+  --sk-a2: 22%; --sk-b2: 8%;
+  --sk-a3: 34%; --sk-b3: 13%;
+  --sky-base: #ffffff;
+  --sun: color-mix(in srgb, var(--warm) 62%, var(--sky-base));
+  --bolt: color-mix(in srgb, var(--accent) 30%, #ffffff);
+}
 
 .flowwrap { --notch: 26px; --tipx: 6px; --tipy: 9px; --wave: 16px; margin-top: 16px; }
 .flow { list-style: none; margin: 0; padding: 0; display: flex; }
@@ -184,10 +286,14 @@ button, input { font: inherit; color: inherit; }
 .step { pointer-events: auto; }
 /* the notch of one tab is the exact negative of the tip before it, so they interlock with no seam */
 .step {
-  --c: var(--muted); --lv: 0;
-  --glass: color-mix(in srgb, var(--c) var(--glass-lo), var(--glass-base));
-  --liq: color-mix(in srgb, var(--c) var(--liq-lo), var(--liq-base));
-  --crest: color-mix(in srgb, var(--c) var(--crest-lo), var(--liq-base));
+  --c: var(--muted); --lv: 0; --lqp: 40%;
+  --lq: var(--lqp);
+  --wash: color-mix(in srgb, var(--c) var(--glass-lo), transparent);
+  /* the fill is three named mixes of one percentage: the surface, the same colour deeper down, and the
+     crest line where the wave meets the empty glass */
+  --liq: color-mix(in srgb, var(--c) var(--lq), var(--liq-base));
+  --liq-deep: color-mix(in srgb, var(--c) calc(var(--lq) + var(--lq-dp)), var(--liq-base));
+  --crest: color-mix(in srgb, var(--c) calc(var(--lq) + var(--lq-cr)), var(--liq-base));
   position: relative; display: block; width: 100%; padding: 0; border: 0; background: none;
   color: var(--text); font: inherit; text-align: left; cursor: pointer;
   /* on the button itself: the pointer then hits the chevron, not the box around it */
@@ -195,48 +301,177 @@ button, input { font: inherit; color: inherit; }
     calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
     0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
 }
-.step--1 { --c: var(--accent); clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
-.step--2 { --c: var(--accent-2); }
-.step--3 { --c: var(--hot); }
-/* the glass: the stage's colour at its faintest, a sheen along the top edge, a rim along the base */
+.step {
+  --sky: linear-gradient(180deg,
+    color-mix(in srgb, var(--c) var(--sk-a), var(--sky-base)) 0%,
+    color-mix(in srgb, var(--c) calc((var(--sk-a) + var(--sk-b)) / 2), var(--sky-base)) 56%,
+    color-mix(in srgb, var(--c) var(--sk-b), var(--sky-base)) 100%);
+}
+.step--1 { --sk-a: var(--sk-a1); --sk-b: var(--sk-b1); }
+.step--2 { --sk-a: var(--sk-a2); --sk-b: var(--sk-b2); }
+.step--3 { --sk-a: var(--sk-a3); --sk-b: var(--sk-b3); }
+.step--1 { --c: var(--accent); --lqp: var(--lq-1); clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
+.step--2 { --c: var(--accent-2); --lqp: var(--lq-2); }
+.step--3 { --c: var(--good); --lqp: var(--lq-3); }
+/* Approved -- sunset: the light at the surface is warm, so the crest carries a little amber and the
+   colour fades from that into the green below. Ten per cent, not more: the sweep measured 3.5:1 behind
+   the count at twenty-six, because amber is far brighter than this green. */
+.step--3 { --crest: color-mix(in srgb, var(--warm) 10%, color-mix(in srgb, var(--c) calc(var(--lq) + var(--lq-cr)), var(--liq-base))); }
+/* the glass: the stage's colour at its faintest, a sheen and a glow along the top rim, a rim along the
+   base. All of it is under the liquid, so it is what an empty stage shows. */
 .step__body {
   position: relative; display: block; height: 128px; overflow: hidden;
   background:
     linear-gradient(to top, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
+    radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--rim), transparent), transparent 76%),
     linear-gradient(180deg, color-mix(in srgb, #fff 7%, transparent), transparent 38%),
-    var(--glass);
-  transition: background-color 0.2s;
+    linear-gradient(var(--wash), var(--wash)),
+    var(--sky);
 }
-/* the liquid: a full-height block pushed down, so only its top --lv shows; its surface is the wave */
+/* the liquid: a full-height block pushed down, so only its top --lv shows; its surface is the wave.
+   Under the wave the crest line, a sheen just below it, then the colour sinking toward the bottom.
+   Nothing drawn in here is lighter than --crest (dark) or darker than --liq-deep (light): that is what
+   keeps the worst pixel behind the text inside the measured range, bubbles and meniscus included. */
 .step__liquid {
   position: absolute; inset: 0; padding-top: var(--wave);
-  background: var(--liq); background-clip: content-box;
+  background: linear-gradient(180deg, var(--liq) 0 30px, var(--liq-deep) 100%);
+  background-clip: content-box;
   transform: translateY(calc((1 - var(--lv)) * 100%));
-  transition: transform 0.75s cubic-bezier(0.22, 0.9, 0.24, 1);
+  /* the level does not slide into place: it overshoots a little and settles */
+  transition: transform 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
 }
+/* The meniscus: the liquid climbs the glass wall, brightest at the wall and fading inward and down.
+   A chevron has no vertical walls -- its sides are the notch and the tip -- so on the wide layout this
+   is drawn only on the first tab's flat left edge. Anywhere else it would be a bright band standing in
+   open water. The narrow layout stacks the tabs, where both walls really are vertical, and gets both. */
+.step__liquid::before {
+  content: ''; position: absolute; top: calc(var(--wave) - 3px); left: 0; right: 0; height: 30px;
+  background: linear-gradient(90deg, var(--crest), transparent 15px), linear-gradient(270deg, var(--crest), transparent 15px);
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent);
+  opacity: 0.6; display: none;
+}
+.step--1 .step__liquid::before { display: block; background: linear-gradient(90deg, var(--crest), transparent 15px); }
+/* a few slow bubbles, hung under the surface so they only show where there is depth to rise through */
+.step__liquid .b { position: absolute; border-radius: 50%; background: color-mix(in srgb, var(--crest) 70%, transparent); animation: steprise 10s linear infinite; }
+.step__liquid .b1 { left: 21%; top: calc(var(--wave) + 52px); width: 5px; height: 5px; --climb: 52px; animation-duration: 9.5s; animation-delay: -2.2s; }
+.step__liquid .b2 { left: 57%; top: calc(var(--wave) + 34px); width: 3px; height: 3px; --climb: 34px; animation-duration: 13s; animation-delay: -7.4s; }
+.step__liquid .b3 { left: 78%; top: calc(var(--wave) + 22px); width: 4px; height: 4px; --climb: 22px; animation-duration: 7.5s; animation-delay: -4.1s; }
+@keyframes steprise {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  18% { opacity: 0.8; }
+  82% { opacity: 0.55; }
+  100% { transform: translateY(calc(var(--climb) * -1)) scale(1); opacity: 0; }
+}
+/* A little life in the deep end. The lane is its own box so it can be clipped to the fill from the top:
+   it starts below the lowest line of text at both sizes, so nothing ever swims over a word, and a
+   shallow glass hides the swimmers entirely. Every shape is a mix between --liq and --crest, so none of
+   them can move the worst pixel behind the text either way. One constant in the script turns it all off.
+   CSS has no randomness, so "rare" is two long crossings on coprime cycles (97s and 151s): they drift
+   against each other for hours instead of landing on a beat. */
+.step__sea {
+  position: absolute; inset: 0; overflow: hidden; --swim: 680px; --lane: 97px;
+  clip-path: inset(calc((1 - var(--lv)) * 100%) 0 0 0);
+  transition: clip-path 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
+}
+.step__sea svg { position: absolute; top: var(--lane); fill: color-mix(in srgb, var(--crest) var(--tint), var(--liq)); }
+/* every sprite is drawn facing left, so the ones heading right carry the mirror in their own keyframes */
+.step__sea .swimL { right: -70px; }
+.step__sea .swimR { left: -70px; }
+@keyframes stepdriftL { 0%, 4% { transform: translateX(0); } 100% { transform: translateX(calc(var(--swim) * -1)); } }
+@keyframes stepdriftR { 0%, 4% { transform: translateX(0) scaleX(-1); } 100% { transform: translateX(var(--swim)) scaleX(-1); } }
+@keyframes steppassL { 0%, 78% { transform: translateX(0); } 100% { transform: translateX(calc(var(--swim) * -1)); } }
+@keyframes steppassR { 0%, 78% { transform: translateX(0) scaleX(-1); } 100% { transform: translateX(var(--swim)) scaleX(-1); } }
+/* the big ones come first, so they pass behind the small fish, fainter and slower */
+.step__sea .big1 { top: calc(var(--lane) - 1px); --tint: 24%; opacity: 0.2; animation: steppassL 97s linear infinite; animation-delay: -41s; }
+.step__sea .big2 { top: calc(var(--lane) + 2px); --tint: 30%; opacity: 0.17; animation: steppassR 151s linear infinite; animation-delay: -104s; }
+.step__sea .f1 { --tint: 46%; opacity: 0.42; animation: stepdriftR 31s linear infinite; animation-delay: -7s; }
+.step__sea .f2 { top: calc(var(--lane) + 10px); --tint: 64%; opacity: 0.34; animation: stepdriftL 43s linear infinite; animation-delay: -19s; }
+.step__sea .f3 { top: calc(var(--lane) + 17px); --tint: 32%; opacity: 0.4; animation: stepdriftR 57s linear infinite; animation-delay: -34s; }
+.step__sea .f4 { top: calc(var(--lane) + 4px); --tint: 54%; opacity: 0.26; animation: stepdriftL 67s linear infinite; animation-delay: -52s; }
 .step__wave { position: absolute; top: 0; left: 0; width: 100%; height: var(--wave); display: block; }
-.step__wave .w1 { fill: var(--liq); stroke: var(--crest); stroke-width: 1.4; animation: stepwave 11s linear infinite; }
-.step__wave .w2 { fill: var(--crest); opacity: 0.55; animation: stepwave 17s linear infinite reverse; }
+/* three waves: different lengths, speeds, directions and weights, so the surface never reads as one
+   repeating sine. Each slide is a whole number of that wave's periods, so every loop lands where it started. */
+/* the sheen is a wide, soft stroke along the surface; the crest is a crisp one over it. Both fill with
+   --liq, which is exactly what the fill starts at, so the wave band and the fill meet seamlessly. */
+.step__wave .w1g { fill: var(--liq); stroke: var(--crest); stroke-width: 8; opacity: 0.32; animation: stepwave 11s linear infinite; }
+.step__wave .w1 { fill: var(--liq); stroke: var(--crest); stroke-width: 2; animation: stepwave 11s linear infinite; }
+.step__wave .w2 { fill: var(--crest); opacity: 0.5; animation: stepwave 19s linear infinite reverse; }
+.step__wave .w3 { fill: var(--crest); opacity: 0.28; animation: stepwave 7s linear infinite; }
 @keyframes stepwave { from { transform: translateX(0); } to { transform: translateX(-120px); } }
+/* when the level changes, the surface swells once and settles, instead of arriving flat */
+.step.is-pour .step__wave { transform-origin: 50% 100%; animation: stepslosh 0.95s cubic-bezier(0.3, 0.9, 0.3, 1); }
+@keyframes stepslosh { 0% { transform: scaleY(2.1); } 45% { transform: scaleY(0.65); } 74% { transform: scaleY(1.2); } 100% { transform: scaleY(1); } }
+/* ---------- the weather: each stage gets its own mood, one element per tab ----------
+   Everything drawn here is --crest at some alpha, and that is the whole contrast argument: --crest is
+   already the lightest thing the fill paints in dark and the palest in light, so no weather layer can
+   push the worst pixel behind the text past what the fill was measured at. The storm's cooler, dimmer
+   cast is deliberately missing: darkening the glass is the one move that fails in the light theme, where
+   the text is dark, so the storm reads through its rain and its flash instead.
+   Approved has no layer at all -- its sunset is a warm shift of --crest itself, further down. */
+.step__sky { position: absolute; inset: 0; pointer-events: none; }
+.step__sky::before, .step__sky::after { content: ''; position: absolute; inset: 0; }
+/* To check -- a storm: rain across the glass, and roughly every 37s the water lights once, softly */
+.step--1 .step__sky::before {
+  top: -60px; bottom: -60px;
+  background: repeating-linear-gradient(74deg, color-mix(in srgb, var(--crest) 62%, transparent) 0 1px, transparent 1px 13px);
+  -webkit-mask-image: repeating-linear-gradient(164deg, #000 0 10px, transparent 10px 34px);
+  mask-image: repeating-linear-gradient(164deg, #000 0 10px, transparent 10px 34px);
+  opacity: 0.5; animation: steprain 0.9s linear infinite;
+}
+/* 47.17px down is exactly one stripe along the 74deg axis, so the rain never seams */
+@keyframes steprain { from { transform: translateY(0); } to { transform: translateY(47.17px); } }
+/* the bolt lights the sky only: over the fill a flash this bright would break the text's contrast */
+.step--1 .step__sky::after {
+  bottom: calc(var(--lv) * 100%);
+  background: linear-gradient(180deg, var(--bolt), color-mix(in srgb, var(--bolt) 34%, transparent) 62%, transparent);
+  opacity: 0; animation: stepflash 37s linear infinite;
+  transition: bottom 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
+}
+/* one slow rise and fall a little over a second, once every 37 seconds: distant, never a strobe */
+@keyframes stepflash { 0%, 95.6% { opacity: 0; } 97.2% { opacity: 0.4; } 99.2%, 100% { opacity: 0; } }
+/* Awaiting review -- a calm day: soft rays through the water only, and a gentler, slower surface */
+.step--2 .step__sky::before {
+  clip-path: inset(calc((1 - var(--lv)) * 100%) 0 0 0);
+  background: repeating-linear-gradient(100deg, color-mix(in srgb, var(--crest) 40%, transparent) 0 7px, transparent 7px 56px);
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 88%); mask-image: linear-gradient(180deg, #000, transparent 88%);
+  opacity: 0.62; animation: steprays 26s ease-in-out infinite alternate;
+}
+@keyframes steprays { from { transform: translateX(-18px); } to { transform: translateX(18px); } }
+.step--2 .step__wave { scale: 1 0.7; transform-origin: 50% 100%; }
+/* Approved -- sunset: the sun sits on the water line, so its box ends where the liquid starts and a full
+   glass has no sky left to put it in. Ember, not white: see the note on the sky tokens. */
+.step--3 .step__sky::after {
+  bottom: calc(var(--lv) * 100%);
+  background:
+    radial-gradient(30px 30px at 76% 100%, var(--sun) 0 34%, color-mix(in srgb, var(--sun) 52%, transparent) 48%, transparent 72%),
+    radial-gradient(70% 46% at 76% 100%, color-mix(in srgb, var(--sun) 34%, transparent), transparent 70%),
+    linear-gradient(180deg, transparent 46%, color-mix(in srgb, var(--sun) 20%, transparent));
+  transition: bottom 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
+}
+.step--2 .step__wave .w1 { animation-duration: 17s; }
+.step--2 .step__wave .w2 { animation-duration: 29s; }
+.step--2 .step__wave .w3 { animation-duration: 12s; }
 .step__text { position: relative; display: grid; align-content: center; height: 100%; padding: 8px calc(var(--notch) + 10px) 8px calc(var(--notch) + 14px); }
 .step--1 .step__text { padding-left: 16px; }
 .step__label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--step-ink-2); line-height: 1.25; }
-.step__n { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--c) 35%, var(--text)); }
+.step__n { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--c) 14%, var(--text)); }
 .step__sub { font-size: 11.5px; line-height: 1.3; color: var(--step-ink-2); }
-/* hover and select both brighten the same three mixes, so the text never leaves the measured range */
-.step:hover { --glass: color-mix(in srgb, var(--c) var(--glass-hi), var(--glass-base)); }
+/* hover and select move the one percentage the three mixes are built from, so the text never leaves
+   the measured range */
+.step:hover { --wash: color-mix(in srgb, var(--c) var(--glass-hi), transparent); }
 .step[aria-selected="true"] {
-  --glass: color-mix(in srgb, var(--c) var(--glass-hi), var(--glass-base));
-  --liq: color-mix(in srgb, var(--c) var(--liq-hi), var(--liq-base));
-  --crest: color-mix(in srgb, var(--c) var(--crest-hi), var(--liq-base));
+  --wash: color-mix(in srgb, var(--c) var(--glass-hi), transparent);
+  --lq: calc(var(--lqp) + var(--lq-up));
 }
 /* the selected one is marked four ways: a solid base bar, brighter glass and liquid, a full-strength
    label, and the panel below it taking its colour */
 .step[aria-selected="true"] .step__body { background:
     linear-gradient(to top, var(--c) 0 5px, transparent 5px),
     linear-gradient(to bottom, var(--c) 0 2px, transparent 2px),
+    radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--rim), transparent), transparent 76%),
     linear-gradient(180deg, color-mix(in srgb, #fff 9%, transparent), transparent 38%),
-    var(--glass); }
+    linear-gradient(var(--wash), var(--wash)),
+    var(--sky); }
 .step[aria-selected="true"] .step__label { color: var(--text); }
 .step[aria-selected="true"] .step__label::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 2px; background: var(--c); vertical-align: 0.5px; }
 .step:focus-visible { outline: none; }
@@ -247,7 +482,11 @@ button, input { font: inherit; color: inherit; }
 /* no waving, and the level jumps to where it belongs */
 @media (prefers-reduced-motion: reduce) {
   .step__liquid { transition: none; }
-  .step__wave .w1, .step__wave .w2 { animation: none; }
+  .step__wave .w1, .step__wave .w1g, .step__wave .w2, .step__wave .w3 { animation: none; }
+  .step.is-pour .step__wave { animation: none; }
+  .step__liquid .b, .step__sea { display: none; }
+  .step__sea, .step__sea svg[class], .step__sky::before, .step__sky::after { animation: none; transition: none; }
+  .step--3 .step__sky::after { transition: none; }
   .step__body { transition: none; }
 }
 /* narrow screens and phones: the arrow runs top to bottom, each stage pointing down into the next */
@@ -264,12 +503,20 @@ button, input { font: inherit; color: inherit; }
   .step--1 { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch))); }
   .step__body { height: 92px; background:
       linear-gradient(to right, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
+      radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--rim), transparent), transparent 76%),
       linear-gradient(180deg, color-mix(in srgb, #fff 7%, transparent), transparent 38%),
-      var(--glass); }
+      linear-gradient(var(--wash), var(--wash)),
+      var(--sky); }
   .step[aria-selected="true"] .step__body { background:
       linear-gradient(to right, var(--c) 0 5px, transparent 5px),
+      radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--rim), transparent), transparent 76%),
       linear-gradient(180deg, color-mix(in srgb, #fff 9%, transparent), transparent 38%),
-      var(--glass); }
+      linear-gradient(var(--wash), var(--wash)),
+      var(--sky); }
+  .step__liquid::before, .step--1 .step__liquid::before { display: block; background: linear-gradient(90deg, var(--crest), transparent 15px), linear-gradient(270deg, var(--crest), transparent 15px); }
+  /* 92px of glass is not enough water to hide the big ones, and a crowd would read as noise */
+  .step__sea { --swim: 460px; --lane: 62px; }
+  .step__sea .big1, .step__sea .big2, .step__sea .f4 { display: none; }
   .step__text, .step--1 .step__text { padding: calc(var(--notch) + 4px) 16px calc(var(--notch) + 4px) 20px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; }
   .step__label { grid-column: 1; }
   .step__n { grid-column: 2; grid-row: 1 / span 2; font-size: 26px; }
@@ -484,12 +731,18 @@ table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
 th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; white-space: nowrap; }
 th .chip { margin-left: 4px; vertical-align: 1px; }
+/* a hairline zebra so the eye can follow a long row across, under everything else the row paints */
+tbody tr.row:nth-of-type(even) > td { background: color-mix(in srgb, var(--muted) 5%, transparent); }
 tbody tr.row { cursor: pointer; transition: background 0.15s; }
-tbody tr.row:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
-tbody tr.row[aria-expanded="true"] { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+/* hover and open take the group's own colour, and mark the row on its left edge rather than filling it */
+tbody tr.row:hover > td { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, transparent); }
+tbody tr.row:hover > td.model { box-shadow: inset 3px 0 0 var(--gc, var(--accent)); }
+tbody tr.row[aria-expanded="true"] > td { background: color-mix(in srgb, var(--gc, var(--accent)) 11%, transparent); }
+tbody tr.row[aria-expanded="true"] > td.model { box-shadow: inset 3px 0 0 var(--gc, var(--accent)); }
 tbody tr.row:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
-td.model b { font-weight: 700; }
-td.model .grp { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); opacity: 0.85; }
+td.model b { font-weight: 750; letter-spacing: -0.005em; }
+td.model code { font-family: var(--mono); font-size: 12px; color: color-mix(in srgb, var(--muted) 82%, var(--text)); }
+td.model .grp { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: color-mix(in srgb, var(--gc, var(--accent)) 62%, var(--text)); opacity: 0.9; }
 td.model code { background: none; border: 0; padding: 0; }
 tr.detail > td { background: color-mix(in srgb, var(--bg) 55%, transparent); padding: 14px 16px 18px; }
 .num { font-variant-numeric: tabular-nums; }
@@ -578,11 +831,13 @@ table.mini code { font-size: 12px; }
 .loadbox { margin-top: 12px; }
 
 @media (max-width: 640px) {
-  .hero { padding: 20px 16px 18px; }
+  .hero { padding: 12px 14px 10px; }
+  .hero__btns { justify-content: flex-start; }
+  .hero__btns .btn { padding: 5px 10px; font-size: 12px; }
   .panel { padding: 16px 14px; }
   th, td { padding: 8px 6px; }
 }
-@media (prefers-reduced-motion: reduce) { .flash > td { animation: none; } .progress .track span { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .flash > td { animation: none; } .progress .track span { transition: none; } .s-ok.won, .s-ok::after { animation: none; } .row.flash .mk { animation: none; } }
 
 /* ---------- the status tabs: short labels that never break, a count badge, sideways scroll when tight ---------- */
 .tabs { gap: 2px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
@@ -597,7 +852,13 @@ table.mini code { font-size: 12px; }
 .groups, .chips { padding: 3px 8px; }
 
 /* ---------- status marks: one small mark per check, the words in the tooltip and for screen readers ---------- */
-.mk { --c: var(--muted); display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font: 800 11px/1 var(--font); color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); border: 1.5px solid color-mix(in srgb, var(--c) 70%, transparent); cursor: default; flex: none; }
+/* a fixed review reads as a pass with a note on it: the dot is the difference, not the colour */
+.mk--fixed { position: relative; }
+.mk--fixed::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1.5px var(--surface-solid); }
+.mk:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent); }
+.row.flash .mk { animation: mkin 0.5s ease-out; }
+@keyframes mkin { from { transform: scale(0.72); opacity: 0.2; } to { transform: scale(1); opacity: 1; } }
+.mk { --c: var(--muted); display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font: 800 11px/1 var(--font); color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); border: 1.5px solid color-mix(in srgb, var(--c) 70%, transparent); cursor: default; flex: none; }
 .mk--pass { --c: var(--st-chk); background: var(--st-chk); color: var(--bg); border-color: transparent; }
 .mk--cleared { --c: var(--st-chk); }
 .mk--stale { --c: var(--st-warn); border-style: dashed; }
@@ -612,11 +873,16 @@ table.mini code { font-size: 12px; }
 .mk--letter { font-size: 10.5px; line-height: 1; }
 .mk svg { display: block; }
 .marks-legend .mk svg { width: 10px; height: 10px; }
-.marks-legend { display: flex; flex-wrap: nowrap; gap: 4px 12px; align-items: center; font-size: 12px; color: var(--muted); flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; } /* one row; scrolls sideways on narrow screens */
-.marks-legend::-webkit-scrollbar { display: none; }
+/* one row, in the same scroller the groups and tags rows use: it fades and shows an arrow where there
+   is more, it takes focus so the keyboard can reach the far end, and no label is ever cut mid-word */
+.marks-legend { display: flex; flex-wrap: nowrap; gap: 4px 12px; align-items: center; font-size: 12px; color: var(--muted); padding: 1px 0; }
+.marks-legend:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 6px; }
 .marks-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .marks-legend .mk { display: inline-grid; place-items: center; gap: 0; width: 18px; height: 18px; font-size: 10px; } /* the legend's `span` rule would make it a left-packed flex row */
-.tbltools { display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin: 8px 0 0; } /* inside the sticky filter bar, so the key stays in view while the table scrolls */
+/* what is shown on the left, the two folding buttons on the right: one row instead of two */
+.chiprow { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 16px; margin: 8px 0 0; }
+.chiprow .fchip { min-width: 0; }
+.chiprow .tbltools__acts { margin-left: auto; }
 .tbltools__acts { display: flex; gap: 8px; flex: none; }
 .tbltools__acts .btn { padding: 4px 12px; font-size: 12.5px; }
 
@@ -628,13 +894,14 @@ table.mini code { font-size: 12px; }
 #tbl th.c, #tbl td.c { width: 1%; text-align: center; white-space: nowrap; }
 #tbl td.model, #tbl th.model { position: sticky; left: 0; z-index: 1; background: var(--surface-solid); width: 100%; max-width: 0; }
 #tbl thead th.model { z-index: 4; }
-#tbl tr.row:hover > td.model { background: color-mix(in srgb, var(--accent) 7%, var(--surface-solid)); }
+#tbl tr.row:hover > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, var(--surface-solid)); }
 #tbl tr.row[aria-expanded="true"] > td.model { background: color-mix(in srgb, var(--accent) 9%, var(--surface-solid)); }
 #tbl td.st, #tbl th.st, #tbl td.last, #tbl th.last, #tbl td.ncom, #tbl th.ncom, #tbl td.rvw, #tbl th.rvw { width: 1%; white-space: nowrap; }
 .mt { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
 .mt b { overflow: hidden; text-overflow: ellipsis; min-width: 0; font-weight: 700; }
 .mt code { flex: none; font-size: 11.5px; color: var(--muted); background: none; border: 0; padding: 0; }
-.gchip { flex: none; align-self: center; padding: 0 7px; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 10.5px; font-weight: 700; color: var(--accent); letter-spacing: 0.02em; }
+.gchip { flex: none; align-self: center; padding: 0 7px; border: 1px solid color-mix(in srgb, var(--gc, var(--accent)) 45%, transparent); border-radius: 999px; font-size: 10.5px; font-weight: 700; color: color-mix(in srgb, var(--gc, var(--accent)) 60%, var(--text)); letter-spacing: 0.02em; }
+.gchip::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: var(--gc, var(--accent)); vertical-align: 0; }
 .colh { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
 .colh:hover { color: var(--text); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .colh .chip { margin-left: 2px; }
@@ -651,10 +918,10 @@ table.mini code { font-size: 12px; }
 .last small { display: block; }
 .rvw .rv { gap: 4px; flex-wrap: nowrap; }
 /* a thin section row per group, sticky under the header while its rows scroll past */
-#tbl tr.grow > th { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px)); z-index: 2; padding: 0; background: color-mix(in srgb, var(--accent) 8%, var(--surface-solid)); border-bottom: 1px solid var(--border-strong); text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); white-space: normal; }
+#tbl tr.grow > th { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px)); z-index: 2; padding: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--gc, var(--accent)) 17%, var(--surface-solid)), color-mix(in srgb, var(--gc, var(--accent)) 5%, var(--surface-solid)) 62%, var(--surface-solid)); box-shadow: inset 4px 0 0 var(--gc, var(--accent)); border-bottom: 1px solid var(--border-strong); text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); white-space: normal; }
 .grow__in { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 6px 8px; }
 .grow__btn { display: inline-flex; align-items: center; gap: 8px; padding: 2px 6px 2px 2px; border: 0; border-radius: 8px; background: none; color: var(--text); font: 700 13px/1.3 var(--font); cursor: pointer; white-space: nowrap; }
-.grow__btn:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.grow__btn:hover { background: color-mix(in srgb, var(--gc, var(--accent)) 16%, transparent); }
 .grow__btn svg { width: 16px; height: 16px; transition: rotate 0.2s; }
 .grow__btn[aria-expanded="false"] svg { rotate: -90deg; }
 .grow__btn .n { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -663,6 +930,9 @@ table.mini code { font-size: 12px; }
 .grow__meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .grow__probs { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .grow__probs .chip { text-transform: none; letter-spacing: 0; font-size: 11px; }
+.chip--act { cursor: pointer; font: inherit; }
+.chip--act:hover { box-shadow: 0 0 0 2px color-mix(in srgb, var(--hot) 40%, transparent); }
+.chip__aside { font-weight: 600; opacity: 0.85; }
 @media (prefers-reduced-motion: reduce) { .mk.is-running { animation: none; } .grow__btn svg { transition: none; } }
 /* narrower models panel: the last-commit columns give way first (each row's detail lists its commits) */
 @container models (max-width: 960px) { #tbl .last, #tbl .ncom { display: none; } }
@@ -673,6 +943,8 @@ table.mini code { font-size: 12px; }
   #tbl tr.row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 10px 8px; border-bottom: 1px solid var(--border); }
   #tbl tr.row > td { display: block; padding: 0; border: 0; width: auto; max-width: none; position: static; background: none; }
   #tbl tr.row > td.model { flex: 1 1 100%; }
+  .gchip { width: 13px; height: 13px; padding: 0; overflow: hidden; text-indent: 100%; border: 0; }
+  .gchip::before { margin: 3px 0 0 3px; }
   #tbl tr.row > td.c, #tbl tr.row > td.rvw { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px 2px 4px; border: 1px solid var(--border); border-radius: 999px; }
   #tbl tr.row > td.c::before, #tbl tr.row > td.rvw::before { content: attr(data-label); order: 2; font-size: 11.5px; font-weight: 600; color: var(--muted); }
   #tbl tr.row > td.last, #tbl tr.row > td.ncom { display: none; }
@@ -744,18 +1016,15 @@ table.mini code { font-size: 12px; }
 <main>
   <header class="hero">
     <div class="top">
-      <div>
-        <span class="eyebrow">CSS 3D Lab · progress</span>
-        <h1>View-contract <span>ledger</span></h1>
-      </div>
+      <span class="eyebrow">CSS 3D Lab · progress</span>
+      <h1>View-contract <span>ledger</span></h1>
       <div class="hero__btns">
         <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" hidden>What’s holding models back</button>
         <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" hidden>Release checklist</button>
         <button class="btn" id="theme" type="button">Theme: auto</button>
       </div>
     </div>
-    <p class="meta" id="meta">Loading ledger.json…</p>
-    <p class="live" id="live"></p>
+    <p class="statusline"><span class="meta" id="meta">Loading ledger.json…</span><span class="live" id="live"></span></p>
   </header>
   <div id="livenote" aria-live="polite"></div>
   <div id="notices"></div>
@@ -806,9 +1075,13 @@ table.mini code { font-size: 12px; }
         <div class="scrollrow__track"><div id="f-tags" class="chips" role="group" aria-label="Tags"></div></div>
         <button class="scrollrow__arrow scrollrow__arrow--next" type="button" aria-label="Scroll tags right" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
-      <div class="fchip" id="fchip" hidden></div>
-      <div class="tbltools">
-        <div class="marks-legend" id="marklegend" aria-label="What the marks mean"></div>
+      <div class="scrollrow" id="legend-row">
+        <button class="scrollrow__arrow scrollrow__arrow--prev" type="button" aria-label="Scroll the key left" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+        <div class="scrollrow__track"><div class="marks-legend" id="marklegend" aria-label="What the marks mean" tabindex="0"></div></div>
+        <button class="scrollrow__arrow scrollrow__arrow--next" type="button" aria-label="Scroll the key right" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+      <div class="chiprow">
+        <div class="fchip" id="fchip" hidden></div>
         <div class="tbltools__acts" id="grp-acts"><button type="button" class="btn" id="expand-all">Expand all</button><button type="button" class="btn" id="collapse-all">Collapse all</button></div>
       </div>
     </div>
@@ -894,7 +1167,7 @@ table.mini code { font-size: 12px; }
     { key: 'approved', short: 'Approved', long: 'approved', cls: 's-ok', color: 'var(--st-ok)' },
   ];
   /** The overall status as one compact pill; the bucket's full name is in the tooltip. */
-  const chipFor = (s) => { const x = STATUS.find((y) => y.key === s); return `<span class="chip ${x?.cls ?? 's-none'}" data-tip data-tiptext="${esc(x ? `Status: ${x.long}` : s)}">${esc(x?.short ?? s)}</span>`; };
+  const chipFor = (s, won = false) => { const x = STATUS.find((y) => y.key === s); return `<span class="chip ${x?.cls ?? 's-none'}${won ? ' won' : ''}" data-tip data-tiptext="${esc(x ? `Status: ${x.long}` : s)}">${esc(x?.short ?? s)}</span>`; };
 
   /** Seconds since an ISO time, or null. */
   const age = (iso) => { const t = iso ? Date.parse(iso) : NaN; return Number.isFinite(t) ? (Date.now() - t) / 1000 : null; };
@@ -1086,14 +1359,18 @@ table.mini code { font-size: 12px; }
     const fresh = list.find((r) => !r.stale);
     if (!fresh) return markHtml('stale', `${kind} review: stale`, `${kind} review: stale. ${list[0].staleWhy}.`, L1, ' mk--letter');
     const v = fresh.verdict ?? 'marked';
-    const cls = v === 'problem' ? 'fail' : v === 'fixed' ? 'conv' : 'pass';
+    // "fixed" is a pass: it was drawn violet, which read next to the green ones as if it were unfinished.
+    // Same green, and the difference is carried by a dot on the mark, not by a hue nobody can name.
+    const cls = v === 'problem' ? 'fail' : 'pass';
     const who = fresh.source === 'log' ? `${fresh.reviewer}, ${String(fresh.reviewedAt).slice(0, 10)}` : `commit ${fresh.commit}: ${fresh.subject}`;
-    return markHtml(cls, `${kind} review: ${v}`, `${kind} review: ${v}. ${who}.`, L1, ' mk--letter');
+    return markHtml(cls, `${kind} review: ${v}`, `${kind} review: ${v}. ${who}.`, L1, ` mk--letter${v === 'fixed' ? ' mk--fixed' : ''}`);
   }
   function renderMarkLegend() {
     const items = [['pass', 'pass'], ['cleared', 'flags cleared'], ['stale', 'passed on older code'], ['flag', 'open flags'], ['fail', 'failed'], ['broke', "didn't run (test crashed)"], ['never', 'not run yet']];
     $('marklegend').innerHTML = items.map(([k, w]) => `<span><span class="mk mk--${k}" aria-hidden="true">${MARKS[k][0]}</span>${esc(w)}</span>`).join('')
-      + `<span><span class="mk mk--pass is-running" aria-hidden="true">${GLYPH.tick}</span>running on it now</span><span><span class="mk mk--pass mk--letter" aria-hidden="true">V</span><span class="mk mk--pass mk--letter" aria-hidden="true">T</span>visual and text review</span>`;
+      + `<span><span class="mk mk--pass is-running" aria-hidden="true">${GLYPH.tick}</span>running on it now</span>`
+      + `<span><span class="mk mk--pass mk--letter" aria-hidden="true">V</span><span class="mk mk--pass mk--letter" aria-hidden="true">T</span>visual and text review: fine</span>`
+      + `<span><span class="mk mk--pass mk--letter mk--fixed" aria-hidden="true">V</span>a problem, since fixed</span>`;
   }
 
   /* ---------- state ---------- */
@@ -1113,6 +1390,15 @@ table.mini code { font-size: 12px; }
   const saveView = () => { try { sessionStorage.setItem('ledger-view', JSON.stringify({ filter, group, tags: [...tags], query, open: [...open], limit, tagsOpen, blk })); } catch {} };
   let prevSig = null; // model id → what its row shows, to mark rows that changed on a refresh
   let flash = new Set();
+  // which models crossed into approved on the last refresh, so only those pills take the sweep
+  let justApproved = new Set(), wasStatus = new Map();
+
+  /* One colour per group, taken from the site's palette and picked by the group's key, so a group keeps
+     its colour as the list is filtered and re-sorted. It is used for fills, dots and edges only: the
+     amber and the pink are too light in one theme or the other to carry small text, so anything written
+     in a group's colour is mixed toward --text first. */
+  const GROUP_C = ['var(--accent)', 'var(--accent-2)', 'var(--good)', 'var(--warm)', 'var(--hot)'];
+  const gcFor = (key) => { let h = 0; for (const ch of String(key)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return GROUP_C[h % GROUP_C.length]; };
 
   const rowSig = (m) => JSON.stringify([m.status, ...COLS.map(([k]) => [m.checks[k]?.status, m.checks[k]?.stale, m.checks[k]?.ranAt]), m.commits.length, (m.reviews ?? []).map((r) => [r.kind, r.verdict, r.stale])]);
 
@@ -1221,7 +1507,7 @@ table.mini code { font-size: 12px; }
      that stage's detail. Selecting one does not filter the table; its panel has a button that does. */
   const STEP_SHORT = { 'to check': 'To check', checked: 'Awaiting review', approved: 'Approved' };
   const STEP_SUB = { 'to check': 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
-  const STAGE_C = ['var(--accent)', 'var(--accent-2)', 'var(--hot)'];
+  const STAGE_C = ['var(--accent)', 'var(--accent-2)', 'var(--good)'];
   let stage = null; // the selected tab's state key; remembered per viewer
   try { stage = localStorage.getItem('ledger-stage'); } catch {}
   /** The selected stage: the remembered one if it still exists, else the first with models in it. */
@@ -1235,11 +1521,37 @@ table.mini code { font-size: 12px; }
     renderOverview();
     if (focus) $('stats').querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
   }
-  /* the liquid's surface: two sine waves of the same period, drawn wide enough that sliding one period
-     left or right never runs out of wave. The back one is lighter and slower, so the two drift apart. */
+  /* The liquid's surface is three waves, not one: different lengths, weights and speeds, so it never
+     reads as a repeating sine. Each is drawn from -240 to 500 -- wide enough that the 120px slide never
+     runs out of wave -- and every period divides that slide, so each loop lands where it started.
+     Built once, at load; nothing here runs per frame. */
+  const wavePath = (y, h, a, up) => { // y: the flat line, h: half a period, a: how far it swings
+    let d = `M-240 ${y}`;
+    for (let x = -240; x < 500; x += h) { d += ` Q${x + h / 2} ${up ? y - a : y + a} ${x + h} ${y}`; up = !up; }
+    return `${d} V30 H-240 Z`;
+  };
   const WAVE = '<svg class="step__wave" viewBox="0 0 240 16" preserveAspectRatio="none" aria-hidden="true" focusable="false">'
-    + '<path class="w2" d="M-210 6 Q-180 3 -150 6 T-90 6 T-30 6 T30 6 T90 6 T150 6 T210 6 T270 6 T330 6 T390 6 T450 6 T510 6 V30 H-210 Z"/>'
-    + '<path class="w1" d="M-240 9 Q-210 4 -180 9 T-120 9 T-60 9 T0 9 T60 9 T120 9 T180 9 T240 9 T300 9 T360 9 T420 9 T480 9 V30 H-240 Z"/></svg>';
+    + `<path class="w2" d="${wavePath(7, 60, 3.4, true)}"/>`
+    + `<path class="w3" d="${wavePath(11.5, 20, 2.2, false)}"/>`
+    + `<path class="w1g" d="${wavePath(9, 30, 5, true)}"/>`
+    + `<path class="w1" d="${wavePath(9, 30, 5, true)}"/></svg>`;
+  const LIQUID = '<i class="b b1"></i><i class="b b2"></i><i class="b b3"></i>' + WAVE;
+  /* The deep end of each glass, below the last line of text: four small fish of three shapes drifting at
+     their own depths and speeds, and behind them a whale and a dolphin that cross only now and then.
+     Every shape is drawn facing left; the CSS mirrors the ones heading right. Set SEA to false and the
+     markup goes with it. Silhouettes in the liquid's own colours, never a bright cartoon. */
+  const SEA = true;
+  const SHAPE = { // each one faces left: head at the low x, tail at the high x
+    a: [18, 10, 'M2 5C4 1.6 10 1.6 12.6 5 10 8.4 4 8.4 2 5Z M12.6 5 17 2.3 17 7.7Z'],
+    b: [14, 8, 'M1 4C2.6 1.3 7.4 1.3 9.5 4 7.4 6.7 2.6 6.7 1 4Z M9.5 4 13.5 1.6 13.5 6.4Z'],
+    c: [22, 9, 'M1.5 4.5C4 1.8 12 1.8 16 4.5 12 7.2 4 7.2 1.5 4.5Z M16 4.5 21 1.8 21 7.2Z M9 2.4 10.6 0.5 12 2.6Z'],
+    whale: [56, 22, 'M2 12.5C8 5 21 2 33 4.6 40 6.1 45 8.8 48 12.1 44 15.7 37 18.6 28 18.6 17 18.6 6 16.4 2 12.5Z M48 12.1C50.6 9.7 53 7.9 56 6.7 55 10.3 55 13.9 56 17.5 53 16.3 50.6 14.5 48 12.1Z'],
+    dolphin: [48, 18, 'M2 10C8 4 20 2 30 3.6 37 4.8 42 7 45 10 41 13.6 34 16 26 16 16 16 6 14 2 10Z M24 3.6 27 0.5 30 4Z M45 10 48 6.6 48 13.4Z'],
+  };
+  const swimmer = (shape, cls) => { const [w, h, d] = SHAPE[shape]; return `<svg class="${cls}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true" focusable="false"><path d="${d}"/></svg>`; };
+  const WEATHER = true;
+  const SKY = WEATHER ? '<span class="step__sky" aria-hidden="true"></span>' : '';
+  const SEALIFE = SEA ? `<span class="step__sea" aria-hidden="true">${swimmer('whale', 'big1 swimL')}${swimmer('dolphin', 'big2 swimR')}${swimmer('a', 'f1 swimR')}${swimmer('b', 'f2 swimL')}${swimmer('c', 'f3 swimR')}${swimmer('b', 'f4 swimL')}</span>` : '';
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
   const shownLv = new Map(); // the level each glass is showing now, so only a real change animates
   function renderStats(buckets) {
@@ -1254,12 +1566,20 @@ table.mini code { font-size: 12px; }
       return `<li class="flow__li" role="presentation">${rule ? `<span id="step-rule-${i}" class="visually-hidden">${esc(rule)}.</span>` : ''}<button type="button" role="tab" id="stage-tab-${i}" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-stage="${esc(b.key)}" data-lv="${lv}" style="--lv:${from}" aria-selected="${on}" aria-controls="ov-stage" tabindex="${on ? 0 : -1}"${rule ? ` data-tip aria-describedby="step-rule-${i}"` : ''}
           aria-label="${esc(`${name}: ${b.count} of ${total} models, ${Math.round(lv * 100)}% of the glass`)}">
         <span class="step__body" aria-hidden="true">
-          <span class="step__liquid">${WAVE}</span>
+          <span class="step__liquid">${LIQUID}</span>${SEALIFE}${SKY}
           <span class="step__text"><span class="step__label">${esc(name)}</span><span class="step__n">${b.count}</span><span class="step__sub">${esc(STEP_SUB[b.key] ?? '')}</span></span>
         </span></button></li>`;
     }).join('')}</ol>`;
     // the level rises from where it was; a redraw on select starts where it already is, so nothing moves
-    const settle = () => { for (const el of $('stats').querySelectorAll('.step')) { el.style.setProperty('--lv', el.dataset.lv); shownLv.set(el.dataset.stage, +el.dataset.lv); } };
+    const settle = () => {
+      for (const el of $('stats').querySelectorAll('.step')) {
+        const to = +el.dataset.lv, was = shownLv.get(el.dataset.stage);
+        el.style.setProperty('--lv', el.dataset.lv);
+        shownLv.set(el.dataset.stage, to);
+        // one swell when the level actually moves; a redraw at the same level leaves the surface alone
+        if (!REDUCED.matches && was !== to) { el.classList.add('is-pour'); setTimeout(() => el.classList.remove('is-pour'), 1000); }
+      }
+    };
     if (REDUCED.matches) settle();
     else requestAnimationFrame(() => requestAnimationFrame(settle));
   }
@@ -1597,7 +1917,10 @@ table.mini code { font-size: 12px; }
     syncChecks(L.checkList);
     const c = L.counts, n = c.models;
     const by = L.build?.by ? ` by <code>${esc(L.build.by)}</code>${L.build.reason ? ` (${esc(L.build.reason)})` : ''}` : '';
-    $('meta').innerHTML = `Built ${when(L.generatedAt)}${by} at HEAD <code>${esc(L.head)}</code>. Every status below is read from git, the model files and the captured checks.`;
+    const built = L.generatedAt ? new Date(L.generatedAt).toLocaleString() : 'an unknown time';
+    const full = `Built ${built}${L.build?.by ? ` by ${L.build.by}${L.build.reason ? ` (${L.build.reason})` : ''}` : ''} at HEAD ${L.head}. Every status below is read from git, the model files and the captured checks.`;
+    // short while it is fresh; the age is the fact, so it is never rounded away
+    $('meta').innerHTML = `<span tabindex="0" data-tip data-tiptext="${esc(full)}">HEAD <code>${esc(L.head)}</code></span><span class="sep">·</span><span>built ${agoSpan(L.generatedAt)}</span>`;
 
     const notes = [];
     for (const [name, src] of Object.entries(L.sources.checks)) if (/never been captured/.test(src)) notes.push({ key: `never:${name}`, col: name, html: `<b>${esc(CHECK_NAMES[name] ?? name)}</b> has no result file: its column says “not run yet” for every model because no run was captured, not because models failed. Capture one with <code>npm run capture -- ${esc(name)}</code>.` });
@@ -1742,6 +2065,7 @@ table.mini code { font-size: 12px; }
   // the filter bar can change height as it sticks (its chips rewrap) without a resize: re-measure on scroll, once a frame
   { let last = 0; addEventListener('scroll', () => { const t = performance.now(); if (t - last > 100) { last = t; stickyOffsets(); } }, { passive: true }); }
   const tagsScroll = scrollRow($('tags-row'));
+  const legendScroll = scrollRow($('legend-row'));
   $('filters').addEventListener('click', onFilterClick);
   $('q').addEventListener('input', () => { if (!L) return; query = $('q').value; limit = PAGE; saveView(); renderFilterChips(); renderRows(); });
   document.addEventListener('keydown', (e) => {
@@ -1749,6 +2073,24 @@ table.mini code { font-size: 12px; }
   });
 
   let moreObserver = null;
+
+  const badKey = (k) => `bad:${k}`;
+  /** The ad-hoc "this check failed or flagged" filter is built from the models, not from ledger.json's
+      blockers, so it has to be rebuilt on every render -- including after a reload that remembered it. */
+  function ensureBad() {
+    if (!blk?.startsWith('bad:')) return;
+    const k = blk.slice(4);
+    if (!COLS.some(([c]) => c === k)) { blk = null; return; }
+    BLK.set(blk, { ids: new Set(L.models.filter((m) => problemsOf(m).includes(k)).map((m) => m.id)), chip: `${CHECK_NAMES[k] ?? k}: failed or flagged` });
+  }
+  /** Show exactly the models a check failed or flagged, whatever the filter was: the chip's promise. */
+  function showBad(k) {
+    filter = 'all'; group = 'all'; tags.clear(); query = ''; $('q').value = '';
+    blk = badKey(k); ensureBad();
+    limit = Math.max(PAGE, L.models.length);
+    saveView(); renderFilterChips(); renderRows(); renderOverview();
+    $('tbl-h').closest('section').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
 
   /* ---------- group sections: folded or open, remembered per viewer ---------- */
   const FLAT_BELOW = 12; // a filter that leaves this many models or fewer shows them as one flat list
@@ -1783,18 +2125,26 @@ table.mini code { font-size: 12px; }
     const ap = count('approved'), ch = count('checked'), cv = count('to check');
     const seg = (x, c, w) => x ? `<i style="flex-grow:${x};background:${c}" title="${esc(`${x} ${w}`)}"></i>` : '';
     // the problems inside, per check: shown on the row whether it is open or folded
+    /* The chips count the whole group, which is the honest number, but the rows under them are whatever
+       the filter left. When those differ the chip said "1" over a list with nothing wrong in it, which
+       reads as a bug. It now says how many of them the filter is hiding, and clicking it shows exactly
+       those models: the filter is cleared and a chip above the table says what is on screen. */
+    const hid = (n2, shown) => (n2 > shown ? ` <span class="chip__aside">· ${n2 - shown} hidden by filter</span>` : '');
+    const ofGroup = 'Counted over the whole group; the list below is filtered.';
     const probs = COLS.map(([k, label]) => {
       const bad = g.all.filter((m) => problemsOf(m).includes(k)).length;
-      return bad ? `<span class="chip s-bad" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]}: ${bad} model${bad === 1 ? '' : 's'} in this group failed or flagged`)}">✗ ${esc(label)} ${bad}</span>` : '';
+      const shown = g.models.filter((m) => problemsOf(m).includes(k)).length;
+      return bad ? `<button type="button" class="chip s-bad chip--act" data-show-bad="${esc(k)}" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]}: ${bad} model${bad === 1 ? '' : 's'} in this group failed or flagged. ${ofGroup} Click to show exactly those models.`)}">✗ ${esc(label)} ${bad}${hid(bad, shown)}</button>` : '';
     }).join('') + COLS.map(([k, label]) => {
       const nr = g.all.filter((m) => brokeOf(m).includes(k)).length;
-      return nr ? `<span class="chip s-conv" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]}: the test crashed on ${nr} model${nr === 1 ? '' : 's'} in this group, so ${nr === 1 ? 'it was' : 'they were'} never judged`)}">${esc(label)} didn't run ${nr}</span>` : '';
+      const shown = g.models.filter((m) => brokeOf(m).includes(k)).length;
+      return nr ? `<span class="chip s-conv" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]}: the test crashed on ${nr} model${nr === 1 ? '' : 's'} in this group, so ${nr === 1 ? 'it was' : 'they were'} never judged. ${ofGroup}`)}">${esc(label)} didn't run ${nr}${hid(nr, shown)}</span>` : '';
     }).join('') + COLS.map(([k, label]) => {
       const on = g.all.filter((m) => runningOn(m).includes(k)).length;
       return on ? `<span class="chip s-chk" data-tip data-tiptext="${esc(`${CHECK_NAMES[k]} is running on a model in this group now`)}">running ${esc(label)}</span>` : '';
     }).join('');
     const shownNote = g.models.length !== n ? `, ${g.models.length} match` : '';
-    return `<tr class="grow"><th colspan="${colCount()}" scope="rowgroup"><div class="grow__in">
+    return `<tr class="grow" style="--gc:${gcFor(g.key)}"><th colspan="${colCount()}" scope="rowgroup"><div class="grow__in">
       <button type="button" class="grow__btn" data-grp="${esc(g.key)}" aria-expanded="${opened}">${CHEVRON}${esc(g.label)} <span class="n">· ${n}${shownNote}</span></button>
       <span class="grow__bar" role="img" aria-label="${esc(`${ap} approved, ${ch} awaiting review, ${cv} to check, of ${n}`)}">${seg(ap, 'var(--st-ok)', 'approved')}${seg(ch, 'var(--st-chk)', 'awaiting review')}${seg(cv, 'var(--st-conv)', 'to check')}</span>
       <span class="grow__meta">${ap} approved · ${ch} awaiting review · ${cv} to check</span>
@@ -1804,15 +2154,18 @@ table.mini code { font-size: 12px; }
     const last = m.commits.find((x) => x.matchedBy.includes('diff')) ?? m.commits[0];
     const glabel = m.groupLabel ?? m.group ?? '';
     const short = glabel.split(/\s*[&,]\s*|\s+/)[0];
-    return `<tr class="row${flash.has(m.id) ? ' flash' : ''}" tabindex="0" data-id="${esc(m.id)}" aria-expanded="${open.has(m.id)}">
+    let sd = 0; for (const ch of m.id) sd = (sd * 31 + ch.charCodeAt(0)) >>> 0; // the row's own place in the sweep
+    return `<tr class="row${flash.has(m.id) ? ' flash' : ''}" style="--gc:${gcFor(m.group ?? '')};--sweep-d:-${sd % 9}s" tabindex="0" data-id="${esc(m.id)}" aria-expanded="${open.has(m.id)}">
         <td class="model"><div class="mt"><b data-tip data-tiptext="${esc(`${m.title} (${m.id}), group: ${glabel || 'none'}`)}">${esc(m.title)}</b><code>${esc(m.id)}</code>${flat && glabel ? `<span class="gchip" data-tip data-tiptext="${esc(`Group: ${glabel}`)}" aria-label="${esc(`group: ${glabel}`)}">${esc(short)}</span>` : ''}</div></td>
-        <td class="st">${chipFor(m.status)}</td>
+        <td class="st">${chipFor(m.status, justApproved.has(m.id))}</td>
         ${COLS.map(([k, label]) => `<td class="c" data-label="${esc(label)}">${checkMark(k, m)}</td>`).join('')}
         <td class="rvw c" data-label="Reviews"><span class="rv">${reviewMark(m, 'visual')}${reviewMark(m, 'text')}</span></td>
         <td class="num last">${last ? `<span data-tip data-tiptext="${esc(`${last.hash}: ${last.subject}`)}">${esc(last.date.slice(0, 10))}</span>` : '<span class="muted">none found</span>'}</td>
         <td class="num ncom">${m.commits.length}</td></tr>`;
   }
   $('rows').addEventListener('click', (e) => {
+    const bad = e.target.closest('[data-show-bad]');
+    if (bad) { e.stopPropagation(); showBad(bad.dataset.showBad); return; }
     const b = e.target.closest('[data-grp]');
     if (!b) return;
     e.stopPropagation();
@@ -1832,6 +2185,7 @@ table.mini code { font-size: 12px; }
   $('showing').addEventListener('click', (e) => { if (e.target.closest('[data-expand-all]')) setAll(true); });
 
   function renderRows() {
+    ensureBad();
     const f = view();
     const matching = L.models.filter((m) => passes(m, f));
     const total = L.models.length;
@@ -1893,6 +2247,7 @@ table.mini code { font-size: 12px; }
       }
     }
     flash = new Set(); // a row flashes once, on the refresh that changed it
+    justApproved = new Set();
   }
 
   function detail(m) {
@@ -2233,9 +2588,11 @@ table.mini code { font-size: 12px; }
       none: 'No watcher has run',
       unknown: 'Watcher state unknown',
     }[w.kind];
-    $('live').innerHTML = `<span><i class="dot ${dot}"></i>${esc(wText)}</span>
-      <span>Ledger updated <b>${esc(fmtAge(dataAge))}</b></span>
-      <span class="muted">Page checked ${esc(lastFetchAt ? fmtAge((Date.now() - lastFetchAt) / 1000) : 'never')}${document.hidden ? ' (paused while the tab is hidden)' : `, every ${POLL_MS / 1000} s`}</span>`;
+    const checked = `Page checked ${lastFetchAt ? fmtAge((Date.now() - lastFetchAt) / 1000) : 'never'}${document.hidden ? ' (paused while the tab is hidden)' : `, every ${POLL_MS / 1000} s`}. Ledger updated ${fmtAge(dataAge)}.`;
+    // "watcher live" is the only state short enough to shorten: every other one says what is wrong
+    const short = w.kind === 'alive' ? 'watcher live' : wText;
+    $('live').innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span>`
+      + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge))}</span>` : '');
 
     // the plain-words notice: minute granularity, rewritten only when it changes (it is aria-live)
     const min = (s) => `${Math.max(1, Math.round(s / 60))} min`;
@@ -2305,6 +2662,8 @@ table.mini code { font-size: 12px; }
         try {
           const next = JSON.parse(l.value);
           if (L && prevSig) for (const m of next.models) if (prevSig.get(m.id) !== rowSig(m)) flash.add(m.id);
+          if (L) for (const m of next.models) { const was = wasStatus.get(m.id); if (was && was !== 'approved' && m.status === 'approved') justApproved.add(m.id); }
+          wasStatus = new Map(next.models.map((m) => [m.id, m.status]));
           prevSig = new Map(next.models.map((m) => [m.id, rowSig(m)]));
           L = next; raw.l = l.value; changedL = true; parseFails['ledger.json'] = 0;
         } catch { parseFail('ledger.json', errs); }
