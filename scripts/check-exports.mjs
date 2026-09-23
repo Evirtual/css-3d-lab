@@ -12,7 +12,8 @@
  *             dialog's canvas, as fractions of the canvas (and a downscaled picture difference).
  *             A scene that paints the whole canvas (starfield, grid, room…) has the canvas as its
  *             box, so its file must fill the frame and its picture must line up with the canvas's,
- *             tile by tile (FULL_CANVAS, align())
+ *             tile by tile (FULL_CANVAS, align()). An edge the two disagree about only where the
+ *             ink is a hairline is a reading, not a mismatch: see hairline()
  *   slider    at 70% the file is the canvas; asked for 25/50/100%, the dialog gives min(asked, the
  *             model's top end — its range's max, which its hint must name), the model is scaled
  *             by that / 0.7 and stays centred, on screen and in the file, and above 70% the file
@@ -99,6 +100,12 @@ const INK = 28; // levels (0-255) from the backdrop that count as the model
 // scaling is judged on this footprint (see screen())
 const FAINT = 6;
 const TOL = 0.015; // a box edge may be this share of the side off before it is a mismatch
+// The FIRM box: how thick a column or row of ink has to be, as a share of the side, to set a box
+// edge on its own. Thinner than this the two drawings disagree (see hairline()).
+const FIRM = 0.01;
+// How far out from the firm box a hairline may reach and still be read as one, as a share of the
+// side. Past this, ink the file has lost is too much of the picture to excuse, however thin it is.
+const HAIR = 0.05;
 const PIC_TOL = 6; // mean luminance difference (0-255) between screen and file, downscaled
 const LIVE_MS = 1200; // a live take for the size matrix
 const MAKE_MS = 20 * 60_000; // how long to wait for one export to come back (see make())
@@ -194,6 +201,9 @@ window.__px = {
   },
   // the model's box: pixels (composited over bg) more than INK from bg, ignoring stray pixels
   // ref: a second picture of the same size to compare against pixel by pixel instead of bg
+  // Also the FIRM box: the same edges found where the ink is at least FIRM of the side thick, so
+  // a hairline tail — ink one canvas pixel thick, which two drawings of the same pose at two
+  // resolutions do not agree about (see hairline()) — does not set it.
   box(img, bg, ink = ${INK}, ref = null) {
     const { width: w, height: h, data: d } = img, e = ref?.data;
     const rows = new Uint32Array(h), cols = new Uint32Array(w);
@@ -204,14 +214,19 @@ window.__px = {
       const off = e ? Math.max(Math.abs(r - e[i]), Math.abs(g - e[i + 1]), Math.abs(b - e[i + 2])) : Math.max(Math.abs(r - bg[0]), Math.abs(g - bg[1]), Math.abs(b - bg[2]));
       if (off > ink) { rows[y]++; cols[x]++; count++; }
     }
-    const minR = Math.max(1, Math.round(w / 400)), minC = Math.max(1, Math.round(h / 400));
-    let l = 0, r = w - 1, t = 0, b = h - 1;
-    while (l < w && cols[l] < minC) l++;
-    while (r >= 0 && cols[r] < minC) r--;
-    while (t < h && rows[t] < minR) t++;
-    while (b >= 0 && rows[b] < minR) b--;
-    if (l > r || t > b) return null;
-    return { l: l / w, t: t / h, r: (r + 1) / w, b: (b + 1) / h, share: count / (w * h), w, h };
+    const edges = (minC, minR) => {
+      let l = 0, r = w - 1, t = 0, b = h - 1;
+      while (l < w && cols[l] < minC) l++;
+      while (r >= 0 && cols[r] < minC) r--;
+      while (t < h && rows[t] < minR) t++;
+      while (b >= 0 && rows[b] < minR) b--;
+      if (l > r || t > b) return null;
+      return { l: l / w, t: t / h, r: (r + 1) / w, b: (b + 1) / h };
+    };
+    const plain = edges(Math.max(1, Math.round(h / 400)), Math.max(1, Math.round(w / 400)));
+    if (!plain) return null;
+    const firm = edges(Math.max(2, Math.round(h * ${FIRM})), Math.max(2, Math.round(w * ${FIRM})));
+    return { ...plain, firm, share: count / (w * h), w, h };
   },
   // alpha: how much of the picture is see-through, and the corners' most opaque pixel
   alpha(img) {
@@ -342,6 +357,39 @@ function look(model, check, what, detail, why) {
 }
 /** Largest distance between two boxes' edges, as a share of the side. */
 const boxGap = (a, b) => (a && b ? Math.max(Math.abs(a.l - b.l), Math.abs(a.r - b.r), Math.abs(a.t - b.t), Math.abs(a.b - b.b)) : Infinity);
+
+/**
+ * Whether two boxes disagree only about a hairline, and so cannot be told apart at these two
+ * resolutions.
+ *
+ * The canvas is a few hundred pixels; the file is drawn at up to 3200. The SAME edge is then drawn
+ * twice at sizes that differ five- or tenfold, and where the model's ink runs out in a thin fading
+ * tail — one canvas pixel thick — the two drawings do not agree about where it ends. On the canvas
+ * that tail lands in whole pixels dark enough to be ink; in the file the same tail is spread over
+ * five pixels at partial coverage, some of which fall under the ink threshold, and the column of
+ * ink is then too thin to count. Neither reading is wrong, and nothing is missing from the file:
+ * the difference is what a box measure can say about ink that thin.
+ *
+ * So the box edges are judged again on the FIRM box — the edges where the ink is at least FIRM of
+ * the side thick, which both resolutions draw the same way. When the firm boxes agree and the
+ * whole disagreement lies within HAIR of them, the gap is a hairline, and the check says so as a
+ * reading for a person instead of failing the model. Anything thicker, or further out, still fails.
+ *
+ * Returns the sentence to print, or null when this is not a hairline.
+ */
+function hairline(fileBox, scrBox) {
+  const a = fileBox?.firm, b = scrBox?.firm;
+  if (!a || !b) return { ok: false, why: 'neither picture has a firm box' };
+  const firmGap = boxGap(a, b);
+  const out = Math.max(
+    Math.abs(fileBox.l - a.l), Math.abs(scrBox.l - b.l), Math.abs(fileBox.r - a.r), Math.abs(scrBox.r - b.r),
+    Math.abs(fileBox.t - a.t), Math.abs(scrBox.t - b.t), Math.abs(fileBox.b - a.b), Math.abs(scrBox.b - b.b),
+  );
+  const firm = `where the ink is at least ${pc(FIRM)}% of the side thick, file ${boxText(a)} vs screen ${boxText(b)} (${pc(firmGap)}% apart), the tail past it reaching ${pc(out)}%`;
+  if (!(firmGap <= TOL)) return { ok: false, why: `the firm edges disagree too: ${firm}` };
+  if (!(out <= HAIR)) return { ok: false, why: `the tail is longer than ${pc(HAIR)}% of the side: ${firm}` };
+  return { ok: true, why: `${firm}. The firm edges agree, so the whole disagreement is in a tail thinner than 1% of the side, which a canvas of a few hundred pixels and a file of a thousand or more do not draw the same way — nothing is missing from the file` };
+}
 
 /* ---------------- driving the dialog ---------------- */
 let page;
@@ -666,7 +714,12 @@ async function checkImages(id) {
       if (Math.abs(aspect / want - 1) > 2 / Math.min(file.width, file.height) + 0.001) miss(id, 'dims', `image ${shape} ${size}`, `file aspect ${aspect.toFixed(4)}, shape ${want.toFixed(4)}`, 'app');
       if (file.drawn?.width && Math.max(file.drawn.width / file.width, file.drawn.height / file.height) < 0.999) miss(id, 'detail', `image ${shape} ${size}`, `drawn at ${file.drawn.width}×${file.drawn.height} and stretched up to ${file.width}×${file.height} (${(file.width / file.drawn.width).toFixed(2)}×): the file has fewer real pixels than it says`, 'app');
       if (only.has('picture')) {
-        if (!(gap <= TOL)) miss(id, 'picture', `image ${shape} ${size}`, `model on screen ${boxText(scr.box)}, in the file ${boxText(m.box)} (worst edge ${pc(gap)}% off)`, scr.moving > 0.002 ? 'model (still moving after the freeze — its script, or a transition started since — so screen and file are different moments)' : 'app');
+        if (!(gap <= TOL)) {
+          const hair = hairline(m.box, scr.box);
+          const what = `model on screen ${boxText(scr.box)}, in the file ${boxText(m.box)} (worst edge ${pc(gap)}% off)`;
+          if (hair.ok) look(id, 'picture', `image ${shape} ${size}`, what, hair.why);
+          else miss(id, 'picture', `image ${shape} ${size}`, `${what}; ${hair.why}`, scr.moving > 0.002 ? 'model (still moving after the freeze — its script, or a transition started since — so screen and file are different moments)' : 'app');
+        }
         if (m.like > PIC_TOL) miss(id, 'picture', `image ${shape} ${size}`, `downscaled picture differs from the canvas by ${m.like.toFixed(1)} levels on average`, scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app');
         if (m.align) {
           entry.files[size].align = m.align;
@@ -865,7 +918,12 @@ async function checkVideos(id) {
         if (!said || said.width !== file.width || said.height !== file.height) miss(id, 'dims', `video ${shape} ${q}p`, `caption says ${file.caption}, file is ${file.width}×${file.height}`, 'app');
         if (Math.min(file.width, file.height) !== q) miss(id, 'dims', `video ${shape} ${q}p`, `short side ${Math.min(file.width, file.height)}`, 'app');
         if (Math.abs(file.width / file.height / want - 1) > 0.01) miss(id, 'dims', `video ${shape} ${q}p`, `aspect ${(file.width / file.height).toFixed(3)}, shape ${want.toFixed(3)}`, 'app');
-        if (only.has('picture') && !(gap <= TOL * 1.5)) miss(id, 'picture', `video ${shape} ${q}p`, `frame 0 ${boxText(f0)} vs screen ${boxText(scr.box)} (${pc(gap)}% off)`, scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app');
+        if (only.has('picture') && !(gap <= TOL * 1.5)) {
+          const hair = hairline(f0, scr.box);
+          const what = `frame 0 ${boxText(f0)} vs screen ${boxText(scr.box)} (${pc(gap)}% off)`;
+          if (hair.ok) look(id, 'picture', `video ${shape} ${q}p`, what, hair.why);
+          else miss(id, 'picture', `video ${shape} ${q}p`, `${what}; ${hair.why}`, scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app');
+        }
         if (vid.align) {
           judgeAlign(vid.align, { id, what: `video ${shape} ${q}p frame 0`, fault: scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app', indent: '         ' });
         }
@@ -941,7 +999,12 @@ async function checkVideos(id) {
         if (joins) miss(id, 'drift', shape, `last frame's box ${boxText(last)} does not return to the first ${boxText(first)}`, 'app or model');
         else look(id, 'drift', shape, `last frame's box ${boxText(last)} does not return to the first ${boxText(first)}`, `the app says so itself: "${String(file.note ?? '').replace(/ This is the file\.$/, '')}"`);
       }
-      if (only.has('picture') && !(gap0 <= TOL * 1.5)) miss(id, 'picture', `video ${shape} ${live ? 'live' : 'loop'} frame 0`, `${boxText(vid.frames[0]?.box)} vs screen ${boxText(scr.box)}`, 'app');
+      if (only.has('picture') && !(gap0 <= TOL * 1.5)) {
+        const hair = hairline(vid.frames[0]?.box, scr.box);
+        const what = `${boxText(vid.frames[0]?.box)} vs screen ${boxText(scr.box)} (${pc(gap0)}% off)`;
+        if (hair.ok) look(id, 'picture', `video ${shape} ${live ? 'live' : 'loop'} frame 0`, what, hair.why);
+        else miss(id, 'picture', `video ${shape} ${live ? 'live' : 'loop'} frame 0`, `${what}; ${hair.why}`, 'app');
+      }
       if (vid.align) {
         judgeAlign(vid.align, { id, what: `video ${shape} ${live ? 'live' : 'loop'} frame 0`, fault: 'app', indent: '      ' });
       }

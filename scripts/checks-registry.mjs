@@ -96,7 +96,7 @@ export const REGISTRY = [
   },
   {
     key: 'exports', script: 'check-exports.mjs', scope: 'model', name: 'exports', short: 'Export',
-    ruleVersion: 6,
+    ruleVersion: 7,
     rules: [
       { v: 1, from: null, what: 'as first recorded' },
       { v: 2, from: null, what: 'a full-canvas scene\'s clear PNG is not held to the see-through test (it paints the canvas by design); the slider\'s scaling is judged to 4% or 2 px at each edge, whichever is more' },
@@ -104,6 +104,7 @@ export const REGISTRY = [
       { v: 4, from: null, what: 'the per-model run films drift as two seconds of the held model, live at 480p, which must come back as 60 frames of the same picture; the full-length drift (the model\'s whole turn as a loop, decoded frame by frame) stays on the sample run. A size the dialog shows disabled — one this browser cannot encode, or one the app holds back ("coming later") — is not asked for and is listed as not testable here' },
       { v: 5, from: null, what: 'a live take that changes is the app\'s fault only when the canvas itself stood still: the check shoots the screen before the take and again after it, and a model that does not stand still while its animations are held (flaptext starts a flap-land from its script, the clock ticks on a timer) has its changing file read as its own doing, not the recorder\'s' },
       { v: 6, from: null, what: 'a picture\'s corner may be what the canvas itself has there, not only the stage\'s backdrop: a model may paint its own corner (confetti\'s pieces lie all over the canvas), and the test fails only when the file\'s corner is neither the backdrop nor what the canvas shows there' },
+      { v: 7, from: null, what: 'a box edge the canvas and the file disagree about ONLY where the ink is a hairline is a reading for a person, not a mismatch: the same edge is drawn twice at sizes that differ five- or tenfold, and a thin fading tail lands in whole ink pixels on a canvas of a few hundred while the file spreads it over five at partial coverage, too thin to count. The edges are judged again where the ink is at least 1% of the side thick — which both draw the same way — and the gap is excused only when those firm edges agree and the whole disagreement lies within 5% of them. layertext\'s 1080p frame 0, "2.4% short on the right", is that hairline: the pink tail off its stacked letters is in the file too, out past where the screen\'s box ends' },
     ],
     title: 'Export at default settings (check-exports)', label: 'export check at default settings (check-exports)',
     rule: 'cleared when its verdict at the export dialog\'s default settings (image 1:1 at 1600 px PNG, video 9:16 at 1080p, a loop) is a pass on the current code; a run that left the defaults out counts as never run, and the full settings matrix is a sample that does not gate. The drift readings it prints for a person ("look:") are not part of the verdict',
