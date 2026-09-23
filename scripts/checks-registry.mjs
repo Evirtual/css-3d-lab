@@ -96,13 +96,14 @@ export const REGISTRY = [
   },
   {
     key: 'exports', script: 'check-exports.mjs', scope: 'model', name: 'exports', short: 'Export',
-    ruleVersion: 5,
+    ruleVersion: 6,
     rules: [
       { v: 1, from: null, what: 'as first recorded' },
       { v: 2, from: null, what: 'a full-canvas scene\'s clear PNG is not held to the see-through test (it paints the canvas by design); the slider\'s scaling is judged to 4% or 2 px at each edge, whichever is more' },
       { v: 3, from: null, what: 'the drift test fails only on what a file can be held to on its own: the model missing from the first frame or from more than a twentieth of them, a file the app says joins up whose last frame is not its first, and a live take of a model that was standing still. How far the box steps between frames, and how much the picture changes, are printed as readings for a person ("look:") and fail nothing: a recording of the model\'s own loop is its own timeline drawn again, and the same frames are flagged at 1:1, 16:9 and 9:16, so the file alone cannot tell fast motion from a stutter' },
       { v: 4, from: null, what: 'the per-model run films drift as two seconds of the held model, live at 480p, which must come back as 60 frames of the same picture; the full-length drift (the model\'s whole turn as a loop, decoded frame by frame) stays on the sample run. A size the dialog shows disabled — one this browser cannot encode, or one the app holds back ("coming later") — is not asked for and is listed as not testable here' },
       { v: 5, from: null, what: 'a live take that changes is the app\'s fault only when the canvas itself stood still: the check shoots the screen before the take and again after it, and a model that does not stand still while its animations are held (flaptext starts a flap-land from its script, the clock ticks on a timer) has its changing file read as its own doing, not the recorder\'s' },
+      { v: 6, from: null, what: 'a picture\'s corner may be what the canvas itself has there, not only the stage\'s backdrop: a model may paint its own corner (confetti\'s pieces lie all over the canvas), and the test fails only when the file\'s corner is neither the backdrop nor what the canvas shows there' },
     ],
     title: 'Export at default settings (check-exports)', label: 'export check at default settings (check-exports)',
     rule: 'cleared when its verdict at the export dialog\'s default settings (image 1:1 at 1600 px PNG, video 9:16 at 1080p, a loop) is a pass on the current code; a run that left the defaults out counts as never run, and the full settings matrix is a sample that does not gate. The drift readings it prints for a person ("look:") are not part of the verdict',

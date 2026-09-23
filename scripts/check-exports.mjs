@@ -766,6 +766,9 @@ async function checkImages(id) {
     await settle();
     await freeze();
     const scr = await screen();
+    // the canvas's own top-left corner, read exactly as a file's is: what the stage looks like
+    // there, which is the backdrop unless the model itself paints that corner
+    const scrCorner = await lab.evaluate(async (png) => (await __px.alpha(await __px.decode(__px.fromB64(png)))).cornerRGB[0], scr.png);
     row.formats = {};
     for (const picture of formatPictures) {
       await pick('picture', picture);
@@ -786,7 +789,13 @@ async function checkImages(id) {
       } else {
         if (sig !== (picture === 'jpeg' ? 'jpeg' : 'png')) miss(id, 'formats', picture, `file is ${sig}`, 'app');
         if (m.alpha.opaque < 0.999) miss(id, 'formats', picture, `only ${pc(m.alpha.opaque)}% opaque: the backdrop is missing`, 'app');
-        if (offBg > (picture === 'jpeg' ? 8 : 3) && !FULL_CANVAS(scr.box)) miss(id, 'formats', picture, `corner is ${corner.slice(0, 3).join(',')}, the stage is ${scr.bg.join(',')}`, 'app');
+        // The file's corner must be the stage's backdrop — or what the canvas itself has there,
+        // since a model may paint its own corner (confetti's pieces lie all over the canvas, and
+        // a scene that paints it edge to edge is exempt already). Failing it needs both to differ:
+        // then the file's backdrop is neither the stage's nor the canvas's.
+        const offScreen = Math.max(...[0, 1, 2].map((k) => Math.abs(corner[k] - scrCorner[k])));
+        const slack = picture === 'jpeg' ? 8 : 3;
+        if (offBg > slack && offScreen > slack && !FULL_CANVAS(scr.box)) miss(id, 'formats', picture, `corner is ${corner.slice(0, 3).join(',')}, the stage is ${scr.bg.join(',')} and the canvas has ${scrCorner.slice(0, 3).join(',')} there`, 'app');
       }
       await back();
     }
