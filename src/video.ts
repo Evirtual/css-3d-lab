@@ -24,7 +24,7 @@ import {
 import type { PrintSetup } from './models/snippet-utils';
 import { fileName, shapeTag } from './file-name';
 import { showThanks } from './thanks';
-import { fillsCanvas, MIN_FILL, watchFillLimit } from './fill-limit';
+import { fillsCanvas, freshFillLimit, MIN_FILL, refreshFillLimit, watchFillLimit } from './fill-limit';
 
 /**
  * One dialog with three tabs — Video, Image, Print.
@@ -347,6 +347,9 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   const follow = (): void => {
     unfollow?.();
     unfollow = stage ? watchFillLimit(stage, onFillTop) : null;
+    // the dialog has just taken the stage and its slider is about to be drawn: measure now, so the
+    // slider opens on this model's real top end rather than on 100% (fill-limit.ts)
+    if (stage) refreshFillLimit(stage);
   };
 
   const unmount = (): void => {
@@ -860,12 +863,26 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   };
 
   /* ---------- events ---------- */
+  // taking hold of the slider is when the model is measured (fill-limit.ts, WHEN IT IS MEASURED)
+  const grabZoom = (e: Event): void => {
+    if (!dialog?.open || busy || !stage) return;
+    if (!(e.target as HTMLElement | null)?.closest?.('[data-zoom]')) return;
+    refreshFillLimit(stage);
+  };
+  document.addEventListener('pointerdown', grabZoom, { passive: true, capture: true });
+  document.addEventListener('focusin', grabZoom, { capture: true });
+
   document.addEventListener('input', (e) => {
     const slider = (e.target as HTMLElement).closest<HTMLInputElement>('[data-zoom]');
     if (!slider || busy || !dialog?.open) return;
-    chosen().fill = Number(slider.value) / 100;
+    // a value is never applied without a measurement it is held to: if what was measured can no
+    // longer be trusted (a new model, a new frame shape) it is taken again here, first
+    if (stage) freshFillLimit(stage);
+    const value = Math.min(Number(slider.value), zoomTop());
+    if (Number(slider.value) !== value) slider.value = String(value);
+    chosen().fill = value / 100;
     const out = el<HTMLElement>('[data-zoom-out]');
-    if (out) out.textContent = `${slider.value}%`;
+    if (out) out.textContent = `${value}%`;
     slider.style.setProperty('--done', zoomDone());
     fit();
   });

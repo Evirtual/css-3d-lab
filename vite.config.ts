@@ -51,6 +51,22 @@ function allModelsLinks(): Plugin {
 export default defineConfig({
   base: './',
   plugins: [allModelsLinks()],
+  server: {
+    watch: {
+      /**
+       * What the checks write while you work, which is not source. A check run writes its results
+       * into the repository as it goes — docs/checks/*.json per check, docs/ledger*.json for the
+       * ledger and its watch, .media-tmp for the frames it is decoding — and the dev server, which
+       * watches everything under the project, answered each write with a full page reload. So a
+       * check running in another window kept reloading the page being worked on, losing the pose,
+       * the editor's caret and any unsaved edit. These are results, never imported by anything the
+       * browser loads, so nothing on the page can go stale by not watching them. The trailing `*`
+       * on the ledger's name takes in the `ledger.json.1234.tmp` siblings it writes through.
+       * Vite keeps its own ignores (.git, node_modules) and adds these.
+       */
+      ignored: ['**/docs/checks/**', '**/docs/ledger*.json*', '**/.media-tmp/**'],
+    },
+  },
   build: {
     rollupOptions: {
       input: { main: resolve(root, 'index.html'), ...generatedPages() },

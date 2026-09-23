@@ -1,4 +1,4 @@
-import { fillLimitOf, fillsCanvas, MIN_FILL, NATURAL_FILL, sampleFillLimit, watchFillLimit } from './fill-limit';
+import { fillLimitOf, fillsCanvas, freshFillLimit, MIN_FILL, NATURAL_FILL, refreshFillLimit, sampleFillLimit, watchFillLimit } from './fill-limit';
 
 /**
  * "View zoom": the model shown bigger or smaller on the large stage — the model page, the home
@@ -130,13 +130,32 @@ export function initViewZoom(root: ParentNode = document): void {
 }
 
 if (typeof document !== 'undefined') {
+  // Taking hold of the control is when the model is measured (fill-limit.ts, WHEN IT IS MEASURED):
+  // one measurement as the hand lands, so the first step it takes is already held to the model as
+  // it is now, and nothing is measured while it is only being looked at.
+  const grab = (e: Event): void => {
+    const range = (e.target as HTMLElement | null)?.closest?.<HTMLInputElement>('input[data-view-zoom]');
+    const wrap = range?.closest<HTMLElement>('.stage-wrap');
+    const stage = wrap && stageOf(wrap);
+    if (!wrap || !stage) return;
+    refreshFillLimit(stage);
+    refresh(wrap);
+  };
+  document.addEventListener('pointerdown', grab, { passive: true, capture: true });
+  document.addEventListener('focusin', grab, { capture: true });
+
   document.addEventListener('input', (e) => {
     const target = e.target as HTMLElement;
     const range = target.closest<HTMLInputElement>('input[data-view-zoom]');
     const wrap = range?.closest<HTMLElement>('.stage-wrap');
     if (range && wrap) {
       const maker = makerSlider(wrap);
-      if (!maker) return setViewZoom(wrap, Number(range.value));
+      if (!maker) {
+        // the value is never applied without a measurement it is held to
+        const stage = stageOf(wrap);
+        if (stage) freshFillLimit(stage);
+        return setViewZoom(wrap, Number(range.value));
+      }
       // the dialog's stage: move the dialog's own slider, which does the rest (video.ts)
       maker.value = range.value;
       maker.dispatchEvent(new Event('input', { bubbles: true }));
