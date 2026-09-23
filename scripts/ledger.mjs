@@ -669,11 +669,15 @@ const ledger = {
   checkList: forPage(ROOT).map((c) => {
     const run = running[c.key] ? { done: running[c.key].done ?? 0, total: running[c.key].total ?? null, alive: running[c.key].alive } : null;
     const captured = Boolean(checkFiles[c.key]);
+    // what each recorded result said about the check's declared sub-steps, as scripts/capture-check.mjs
+    // summed it into the result file. Null when that file predates sub-steps: the page says so rather
+    // than draw an empty list as if nothing had been covered.
+    const stepTotals = checkFiles[c.key]?.steps ?? null;
     if (c.scope === 'model') {
       // one segment per gate kind: a crashed test (broke) and an open flag are never counted as failed
       const tally = { pass: 0, stale: 0, flag: 0, fail: 0, broke: 0, never: 0 };
       for (const m of models) { const k = m.gates[c.key]?.kind; tally[k == null ? 'pass' : { 'stale-pass': 'stale', flagged: 'flag', failed: 'fail', broke: 'broke', never: 'never' }[k] ?? 'never']++; }
-      return { ...c, unit: 'models', total: models.length, tally, captured, running: run };
+      return { ...c, unit: 'models', total: models.length, tally, captured, running: run, stepTotals };
     }
     // a site check: its result file's entries are pages
     const byPath = Object.entries(checkFiles[c.key]?.models ?? {});
@@ -689,7 +693,7 @@ const ledger = {
     // passes whose findings the check lists rather than fails (check-seo's WAIVED and OWN-TEXT)
     const listed = pages.filter((x) => x.status === 'pass' && x.listed).length;
     const lastRun = checkFiles[c.key]?.runs?.[0] ?? null;
-    return { ...c, unit: 'pages', total, tally, listed, kinds, captured, running: run, lastRun: lastRun ? { finishedAt: lastRun.finishedAt, commit: lastRun.commit, summaryLine: lastRun.summaryLine } : null };
+    return { ...c, unit: 'pages', total, tally, listed, kinds, captured, running: run, stepTotals, lastRun: lastRun ? { finishedAt: lastRun.finishedAt, commit: lastRun.commit, summaryLine: lastRun.summaryLine } : null };
   }),
   readiness,
   exportsMatrix: (() => {

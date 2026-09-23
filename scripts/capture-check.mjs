@@ -64,6 +64,26 @@
  * `done` counts the models it has started measuring and no result is written until the end.
  * The final write clears `running`. If the wrapper dies without it, `progress.pid` lets a reader
  * see the run is gone.
+ *
+ * SUB-STEPS. Each check declares what it covers, part by part, in scripts/checks-registry.mjs
+ * (`steps`). STEP_READERS below reads each recorded result's own lines and says which of those
+ * parts that result speaks to and how each came out: pass, fail, flag (motion's "look at this"),
+ * listed (a finding check-seo lists rather than fails), or skipped with the reason it was skipped
+ * ("the model has no hover target", "this run was --defaults"). A part no line speaks to is left
+ * out, and counted "not recorded" — never as a pass. The counts are summed over every result in the
+ * file, this run's and the ones it kept, and written under `steps`:
+ *
+ *   steps: { entries, updatedAt, totals: { <step>: { pass, fail, flag, listed, skip, skipped: {…} } },
+ *            unattributed: { <step-less line>: n } }
+ *
+ * One block per check, not a row per model: the counts, and each skip reason once with its count.
+ * `npm run capture -- <check> --steps` re-reads docs/checks/<check>.json and writes that block from
+ * the lines already recorded there, without running the check: the same reading, no browser.
+ *
+ * While a run goes, `progress.steps` says what THIS run covers and what it leaves out, worked out
+ * from the arguments the check was given, and `progress.step` is the latest sub-step its output has
+ * named, with `progress.stepFrom` saying how that was known. A check that names none leaves both
+ * null rather than guess, and the ledger says so.
  */
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
@@ -71,7 +91,7 @@ import { join } from 'node:path';
 import { fingerprints, ROOT, workingSources } from './model-sources.mjs';
 import { fingerprintsNow, recordFor } from './fingerprint.mjs';
 import { DEFAULTS, DEFAULTS_TEXT, isDefault } from './export-defaults.mjs';
-import { REGISTRY, pagesFor, ruleVersionOf } from './checks-registry.mjs';
+import { REGISTRY, pagesFor, ruleVersionOf, stepsOf } from './checks-registry.mjs';
 
 const CHECKS = Object.fromEntries(REGISTRY.map((c) => [c.key, c.script]));
 const [check, ...rest] = process.argv.slice(2);
@@ -291,6 +311,234 @@ function finishStages(text) {
   return true;
 }
 
+/* ---------- the sub-steps: what each recorded result says about the parts the check covers ---------- */
+/**
+ * A reader gets one recorded entry (status, summary, detail, and whatever the check's own parser
+ * put beside them) and returns a map of the check's declared step keys to a state:
+ *   'pass' | 'fail' | 'flag' | 'listed' | { skip: '<why it was not covered>' }
+ * A step the entry says nothing about is left out of the map, and counted "not recorded".
+ * `_unattributed` holds lines the reader could not place, so a failure is never quietly dropped.
+ */
+const SKIP = (why) => ({ skip: why });
+/** Puts each line under the first step whose test matches; the rest come back as unattributed. */
+function place(lines, rules) {
+  const hit = new Set(), loose = [];
+  for (const line of lines) {
+    const r = rules.find(([, re]) => re.test(line));
+    if (r) hit.add(r[0]); else loose.push(line);
+  }
+  return { hit, loose };
+}
+/** Every step of `keys` that no line hit passes; the ones that were hit take `bad`. */
+const spread = (keys, hit, bad = 'fail') => Object.fromEntries(keys.map((k) => [k, hit.has(k) ? bad : 'pass']));
+
+const STEP_READERS = {
+  // check-models prints every violation on the model's own line, joined with "; ", so a part no
+  // part of that line names was measured and held
+  models(e) {
+    if (e.status !== 'pass' && e.status !== 'fail') return {};
+    const parts = String(e.summary ?? '').split('; ').map((s) => s.trim()).filter(Boolean);
+    if (parts.some((p) => /^(never appeared|could not be judged|could not measure|page error)/.test(p))) return { _unattributed: parts };
+    const own = parts.filter((p) => !/^(at rest|open):/.test(p));
+    const { hit, loose } = place(own.filter((p) => e.status === 'fail'), [
+      ['unit', /base unit --u/], ['ink', /no solid ink|nothing drawn|claims the canvas but leaves a gap/],
+      ['size', /vmin tall, (over|under)/], ['width', /vmin wide, (over|under)/],
+      ['centred', /off centre/], ['edges', /reaches the canvas edge|of a top corner/],
+    ]);
+    const out = spread(['unit', 'ink', 'size', 'width', 'centred', 'edges'], hit);
+    const restBad = parts.some((p) => /^at rest:/.test(p));
+    if (restBad) out.rest = 'fail';
+    else if (/at rest /.test(e.summary ?? '')) out.rest = 'pass';
+    const expands = /expands/.test(e.summary ?? '');
+    if (parts.some((p) => /^open:/.test(p) || /marked expands, but nothing opens it/.test(p))) out.open = 'fail';
+    else if (expands) out.open = 'pass';
+    else out.open = SKIP('the model is not marked "expands": it has nothing to open');
+    return { ...out, _unattributed: loose.filter((p) => !/vmin|with controls|sized by width|rests small by design/.test(p)) };
+  },
+  // check-stages compares every surface against the model page; a disagreement line starts with the
+  // surface's own name, so a surface no line names agreed
+  stages(e) {
+    if (e.status !== 'pass' && e.status !== 'fail') return {};
+    const lines = (e.detail ?? []).filter((l) => !/^biggest movement:/.test(l));
+    if (lines.some((l) => /^the model page could not be measured/.test(l))) return { _unattributed: lines };
+    const { hit, loose } = place(lines, [
+      ['card', /^card:/], ['viewer', /^viewer:/], ['edit', /^edit-(live|reset|saved):/],
+      ['large', /^large:/], ['fullscreen', /^fullscreen:/], ['shapes', /^(1:1|4:3|3:2|16:9|9:16):/], ['files', /^file(-400)?:/],
+    ]);
+    return { page: 'pass', ...spread(['card', 'viewer', 'edit', 'large', 'fullscreen', 'shapes', 'files'], hit), _unattributed: loose };
+  },
+  // check-motion says how many hover targets, controls and focus targets it found, and each flag
+  // line starts with the action that raised it. A flag is not a failure: the ledger keeps it apart.
+  motion(e) {
+    if (e.status === 'broke') return {};
+    const m = /^(\d+) hover, (\d+) controls, (\d+) focus/.exec(e.summary ?? '');
+    if (!m) return {};
+    const { hit, loose } = place(e.detail ?? [], [
+      ['loop', /^loop\b/], ['hover', /^(hover|leave)\b/], ['controls', /^click\b/], ['focus', /^(focus|blur)\b/],
+    ]);
+    const had = { hover: +m[1], controls: +m[2], focus: +m[3] };
+    const out = { loop: hit.has('loop') ? 'flag' : 'pass' };
+    for (const k of ['hover', 'controls', 'focus']) {
+      out[k] = had[k] ? (hit.has(k) ? 'flag' : 'pass')
+        : SKIP(`the model has no ${k === 'controls' ? 'control' : `${k} target`}: there was nothing to film`);
+    }
+    return { ...out, _unattributed: loose };
+  },
+  // check-exports' mismatch lines read "<check> <what>: <detail>"; capture-check has already kept
+  // only the ones about the default settings in `detail`, and the rest under `matrix`
+  exports(e) {
+    const def = ['image', 'video', 'drift', 'formats'];
+    if (e.status === 'untested') return Object.fromEntries([...def, 'matrix'].map((k) => [k, SKIP(e.summary || 'this run did not make the default settings')]));
+    if (e.status !== 'pass' && e.status !== 'fail') return {}; // 'error': a tab could not be run, so nothing was measured
+    const { hit, loose } = place(e.detail ?? [], [
+      ['drift', /^drift |(live|loop) frame 0:/], ['formats', /^formats /],
+      ['image', /^\w+ image 1:1/], ['video', /^\w+ video 9:16 1080p/],
+    ]);
+    const out = spread(def, hit);
+    const mx = e.matrix;
+    out.matrix = !mx ? SKIP('this result recorded nothing about the settings matrix')
+      : mx.defaultsOnly ? SKIP('this run was --defaults: it made the default settings and nothing else')
+      : (mx.mismatches ?? []).length ? 'fail' : 'pass';
+    return { ...out, _unattributed: loose };
+  },
+  // check-media prints each reason a share preview fails, indented under the model
+  media(e) {
+    if (e.status !== 'pass' && e.status !== 'fail') return {};
+    const { hit, loose } = place(e.detail ?? [], [
+      ['file', /^no image|is not a JPEG|^the image is \d+ × \d+|decodes as/],
+      ['headline', /headline|text panel/],
+      ['tags', /^(og:|twitter:|no model page at)|og:title|og:description|og:url|og:image|twitter:card|the page's <title>|meta description/],
+      ['render', /did not render|had errors|has no scene|runs different model code|fonts were|not loaded|still running|unfinished at the shot|is not the page as it renders now|is not the model as it renders now/],
+      ['frame', /blank|nothing drawn|no solid ink|leaves a gap|vmin tall in the image|vmin wide in the image|reaches \d+px into/],
+    ]);
+    return { ...spread(['file', 'tags', 'render', 'frame', 'headline'], hit), _unattributed: loose };
+  },
+  // check-access' pass line says what it found: whether the model moves, how many controls it named,
+  // how many tab stops it reached. A failure names the part it broke.
+  access(e) {
+    if (e.status !== 'pass' && e.status !== 'fail') return {};
+    const { hit, loose } = place(e.detail ?? [], [
+      ['pause', /keeps moving while paused/], ['resume', /not after it was un-paused/],
+      ['names', /has no accessible name|hidden from screen readers|could not be found in the DOM/],
+      ['focus', /focus does not show/],
+      ['keyboard', /Tab never reaches|answers the mouse|cannot be focused|give it tabindex|no :focus/],
+    ]);
+    const out = spread(['pause', 'resume', 'names', 'keyboard', 'focus'], hit);
+    const m = /(stops when paused, starts again|still on its own, still when paused); (\d+)\/(\d+) named; (\d+) tab stop/.exec(e.summary ?? '');
+    if (m) {
+      if (!hit.has('resume') && m[1].startsWith('still on its own')) out.resume = SKIP('the model does not move on its own: there was nothing to start again');
+      if (!hit.has('names') && m[3] === '0') out.names = SKIP('the model draws nothing a visitor can focus or operate');
+      if (!+m[4]) {
+        if (!hit.has('focus')) out.focus = SKIP('the model has no tab stop: there was no focus to show');
+        if (!hit.has('keyboard')) out.keyboard = SKIP('the model has no tab stop and nothing a mouse can use');
+      }
+    }
+    return { ...out, _unattributed: loose };
+  },
+  boxsizing(e) {
+    if (e.status !== 'pass' && e.status !== 'fail') return {};
+    if (/could not be checked/.test(e.summary ?? '')) return { _unattributed: [e.summary] };
+    const { hit, loose } = place(e.detail ?? [], [
+      ['mark', /boxSizing mark must read|marked content-box by design, but draws the same/],
+      ['rest', /draws differently when the page makes every box border-box/],
+    ]);
+    const said = /\(([^)]*)\)/.exec(e.summary ?? '')?.[1] ?? '';
+    const out = { mark: hit.has('mark') ? 'fail' : 'pass' };
+    // the pass line prints both readings; a difference is reported as one number over both states
+    out.rest = hit.has('rest') ? 'fail' : /rest /.test(said) || e.status === 'pass' ? 'pass' : 'fail';
+    out.hover = hit.has('rest') ? 'fail' : /hover /.test(said) ? 'pass' : e.status === 'pass' ? 'pass' : 'fail';
+    return { ...out, _unattributed: loose.filter((l) => !/^page error:/.test(l)) };
+  },
+  // check-contrast's failing lines end "…, <stage> stage, <state>"; its pass line says how many
+  // texts it read and that they reached AA on both stages
+  contrast(e) {
+    if (e.status !== 'pass' && e.status !== 'fail') return {};
+    if (/could not be checked/.test(e.summary ?? '')) return { _unattributed: [e.summary] };
+    const bad = (e.detail ?? []).filter((l) => !/^page error:/.test(l));
+    const out = {};
+    if (/^no text/.test(e.summary ?? '')) {
+      const why = 'the model draws no text';
+      return { texts: SKIP(why), dark: SKIP(why), light: SKIP(why), surfaces: SKIP(why), disabled: SKIP(why) };
+    }
+    out.texts = bad.length ? 'fail' : 'pass';
+    out.dark = bad.some((l) => /\bdark stage\b/.test(l)) ? 'fail' : 'pass';
+    out.light = bad.some((l) => /\blight stage\b/.test(l)) ? 'fail' : 'pass';
+    out.surfaces = bad.length ? 'fail' : 'pass';
+    out.disabled = /disabled text\(s\) exempt/.test(e.summary ?? '') ? 'listed' : SKIP('the model has no text in a disabled control');
+    return { ...out, _unattributed: (e.detail ?? []).filter((l) => /^page error:/.test(l)) };
+  },
+  // a site check: each entry is a page. Its line names only the rules that found something on it,
+  // so every other rule is "no finding" — not proof that the rule applies to that page.
+  seo(e) {
+    const keys = stepsOf('seo').map((s) => s.key);
+    const { hit, loose } = place(e.detail ?? [], keys.map((k) => [k, new RegExp(`^${k === 'robots' ? 'robots\\.txt' : k.replace(/[-.]/g, '\\$&')}:`)]));
+    const listed = new Set(/^listed, not failed: ([^(]*)/.exec(e.summary ?? '')?.[1].split(',').map((s) => s.trim()).filter(Boolean) ?? []);
+    const out = {};
+    for (const k of keys) out[k] = hit.has(k) ? 'fail' : listed.has(k === 'robots' ? 'robots.txt' : k) ? 'listed' : 'pass';
+    return { ...out, _unattributed: loose };
+  },
+};
+
+/** Sums every recorded result's sub-steps into one small block: counts, and each skip reason once. */
+function summarizeSteps(models) {
+  const declared = stepsOf(check);
+  const read = STEP_READERS[check];
+  if (!declared.length || !read) return null;
+  const totals = Object.fromEntries(declared.map((s) => [s.key, { pass: 0, fail: 0, flag: 0, listed: 0, skip: 0, skipped: {} }]));
+  const unattributed = {};
+  let entries = 0;
+  for (const e of Object.values(models ?? {})) {
+    entries++;
+    let got;
+    try { got = read(e) ?? {}; } catch { got = {}; }
+    for (const line of got._unattributed ?? []) unattributed[String(line).slice(0, 120)] = (unattributed[String(line).slice(0, 120)] ?? 0) + 1;
+    for (const s of declared) {
+      const v = got[s.key];
+      if (v == null) continue;
+      const t = totals[s.key];
+      if (typeof v === 'string') t[v] = (t[v] ?? 0) + 1;
+      else if (v?.skip) { t.skip++; t.skipped[v.skip] = (t.skipped[v.skip] ?? 0) + 1; }
+    }
+  }
+  for (const t of Object.values(totals)) t.notRecorded = entries - t.pass - t.fail - t.flag - t.listed - t.skip;
+  return { entries, updatedAt: now(), from: 'the lines each result recorded, read by scripts/capture-check.mjs (STEP_READERS)', totals, unattributed };
+}
+
+/**
+ * What THIS run covers, part by part, from the arguments the check was given: the parts it leaves
+ * out are named with the reason, so a run that made only the defaults does not read as one that
+ * tried the whole matrix and passed.
+ */
+function stepsThisRun() {
+  const declared = stepsOf(check);
+  if (!declared.length) return null;
+  const out = {};
+  for (const s of declared) out[s.key] = { in: true };
+  if (check === 'exports') {
+    const cov = exportsCovered();
+    if (!cov.covered) for (const k of ['image', 'video', 'drift', 'formats']) out[k] = { in: false, why: cov.why.join('; ') };
+    if (defaultsOnly) out.matrix = { in: false, why: '--defaults: this run makes the default settings and nothing else' };
+    else if (args.includes('--quick')) out.matrix = { in: false, why: '--quick: 800 px, 480p and 2160p only, drift at 1:1' };
+    const at = args.indexOf('--only');
+    if (at >= 0) {
+      const only = new Set(String(args[at + 1]).split(','));
+      for (const [k, need] of [['image', 'dims'], ['video', 'dims'], ['drift', 'drift'], ['formats', 'formats']]) {
+        if (!only.has(need)) out[k] = { in: false, why: `--only ${args[at + 1]}: this run does not run the ${need} check` };
+      }
+    }
+  }
+  return out;
+}
+/** The latest sub-step the check's own output has named, or null when it names none. */
+let liveStep = null, liveStepFrom = null;
+function noteStep(line) {
+  if (check !== 'exports') return;
+  const m = /^\s+MISMATCH (\S+) (\S+)/.exec(line);
+  if (!m) return;
+  const k = m[1] === 'drift' ? 'drift' : m[1] === 'formats' ? 'formats' : /^image/.test(m[2]) ? 'image' : /^video/.test(m[2]) ? 'video' : null;
+  if (k) { liveStep = k; liveStepFrom = 'the latest MISMATCH line it printed'; }
+}
+
 /* ---------- what the run will go through (for progress only; the check decides for itself) ---------- */
 function expectedTotal() {
   const named = args.filter((a, i) => !a.startsWith('-') && !(i > 0 && ['--tol', '--size', '--frames', '--only', '--json', '--dist', '--keep'].includes(args[i - 1])));
@@ -392,9 +640,14 @@ function writeProgress() {
       counts: check === 'stages' ? 'models started (check-stages gives its verdicts only at the end)' : 'models reported',
       ...expected,
       last: current ?? done.at(-1)?.[0] ?? null,
+      // what this run covers of the check's declared sub-steps, and the latest one its output named
+      steps: stepsThisRun(),
+      step: liveStep,
+      stepFrom: liveStep ? liveStepFrom : null,
       updatedAt: now(),
     },
     models,
+    steps: summarizeSteps(models),
     runs: o.runs ?? [],
   });
 }
@@ -410,6 +663,26 @@ function progressSoon() {
   }, wait);
 }
 
+/* ---------- --steps: read the file again, without running the check ---------- */
+if (args.includes('--steps')) {
+  // a run in progress owns the file: writing over it would drop its `running` flag and its progress
+  try {
+    if (existsSync(file) && JSON.parse(readFileSync(file, 'utf8')).running) {
+      console.error(`capture-check: docs/checks/${check}.json says a run is in progress; it writes its own sub-step counts as it goes. Try again when it has finished.`);
+      process.exit(2);
+    }
+  } catch {}
+  const o = readOld();
+  const steps = summarizeSteps(o.models ?? {});
+  if (!steps) { console.error(`capture-check: ${check} declares no sub-steps in scripts/checks-registry.mjs, so there is nothing to sum.`); process.exit(2); }
+  writeOut({ ...o, running: false, steps });
+  const lines = Object.entries(steps.totals).map(([k, t]) => `  ${k.padEnd(14)} ${t.pass} pass, ${t.fail} fail${t.flag ? `, ${t.flag} flagged` : ''}${t.listed ? `, ${t.listed} listed` : ''}${t.skip ? `, ${t.skip} skipped` : ''}${t.notRecorded ? `, ${t.notRecorded} not recorded` : ''}`);
+  console.error(`capture-check: read the sub-steps of ${steps.entries} recorded result(s) in docs/checks/${check}.json; the check was not run.\n${lines.join('\n')}`);
+  const loose = Object.entries(steps.unattributed);
+  if (loose.length) console.error(`  ${loose.length} line(s) could not be placed under a sub-step, and are counted apart: ${loose.slice(0, 3).map(([l, n]) => `"${l}" ×${n}`).join('; ')}`);
+  process.exit(0);
+}
+
 /* ---------- run it ---------- */
 const child = spawn(process.execPath, [join('scripts', CHECKS[check]), ...args], { cwd: ROOT, stdio: ['inherit', 'pipe', 'pipe'] });
 let all = '';
@@ -421,7 +694,7 @@ child.stdout.on('data', (chunk) => {
   partial += text;
   const lines = partial.split(/\r?\n/);
   partial = lines.pop();
-  for (const line of lines) parsers[check](line.replace(/^\.+/, '')); // check-models prints a dot per quiet pass, with no newline
+  for (const line of lines) { const l = line.replace(/^\.+/, ''); parsers[check](l); noteStep(l); } // check-models prints a dot per quiet pass, with no newline
   const seen = `${Object.keys(results).length}:${Object.values(results).reduce((n, r) => n + r.detail.length, 0)}`;
   if (seen !== lastSeen) { lastSeen = seen; progressSoon(); }
 });
@@ -457,6 +730,8 @@ child.on('close', (code, signal) => {
     updatedAt: finishedAt,
     running: false,
     models,
+    // the sub-steps every result in this file speaks to, summed (see the header)
+    steps: summarizeSteps(models),
     runs: [run, ...(o.runs ?? [])].slice(0, 30),
   };
   writeOut(out);

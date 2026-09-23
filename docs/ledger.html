@@ -692,6 +692,41 @@ table.mini code { font-size: 12px; }
 .ckbars .bdbar.is-running { background-image: repeating-linear-gradient(135deg, color-mix(in srgb, var(--accent-2) 22%, transparent) 0 6px, transparent 6px 12px); background-size: 17px 17px; animation: ckrun 1s linear infinite; }
 @keyframes ckrun { to { background-position: 17px 0; } }
 @media (prefers-reduced-motion: reduce) { .ckbars .bdbar.is-running { animation: none; } }
+
+/* ---------- a check's sub-steps: what it covers, part by part, behind a disclosure ---------- */
+.sstog { display: inline-flex; align-items: center; gap: 5px; padding: 1px 9px 1px 6px; border: 1px solid var(--border); border-radius: 999px; background: none; color: var(--muted); font: 600 11.5px/1.5 var(--font); cursor: pointer; }
+.sstog:hover { color: var(--accent-2); border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); }
+.sstog svg { transition: transform 0.15s; }
+.sstog[aria-expanded="true"] svg { transform: rotate(90deg); }
+.sstog[aria-expanded="true"] { color: var(--text); border-color: var(--border-strong); }
+@media (prefers-reduced-motion: reduce) { .sstog svg { transition: none; } }
+.substeps { grid-column: 1 / -1; margin: 8px 0 2px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--surface-solid) 70%, transparent); }
+.substeps > p { margin: 0 0 8px; font-size: 12.5px; color: var(--muted); }
+.substeps ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; counter-reset: ss; }
+/* .ss on the row, and named in every rule: the check bars live inside `.bd li`, whose own grid
+   would otherwise win on specificity and drop each part's words into a 4ch-wide column */
+.substeps ol > li.ss { display: grid; grid-template-columns: 1.7em minmax(0, 1fr); gap: 2px 8px; align-items: start; padding: 0; border-top: 0; font-size: 13px; }
+.substeps ol > li.ss + li.ss { padding-top: 7px; border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+.substeps ol > li.ss::before { counter-increment: ss; content: counter(ss); grid-row: 1 / span 3; align-self: start; justify-self: start; min-width: 1.5em; padding: 1px 0; border-radius: 6px; background: var(--track); color: var(--muted); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
+.ss__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 8px; }
+.ss__name { font-weight: 650; color: var(--text); overflow-wrap: anywhere; }
+.ss__counts { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px 6px; }
+.ss__c { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ss__c i { width: 8px; height: 8px; border-radius: 50%; }
+.ss__c b { color: var(--text); font-weight: 700; }
+.ss__proves { font-size: 12px; color: var(--muted); }
+.ss__why { font-size: 12px; color: var(--muted); }
+.ss__why b { color: var(--text); font-weight: 650; }
+.ss__none { font-size: 12px; color: var(--hot); font-weight: 600; }
+.substeps li.ss.is-now .ss__name { color: var(--accent-2); }
+.ss__now { display: inline-block; padding: 0 7px; border-radius: 999px; background: color-mix(in srgb, var(--accent-2) 22%, transparent); color: var(--text); font-size: 11px; font-weight: 700; }
+.substeps footer { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); }
+/* a run's row re-orders its parts on a narrow screen; the panel stays under all of them */
+.run .substeps { order: 6; }
+#runnow .substeps { font-size: 14px; }
+#runnow .substeps ol > li.ss { font-size: 14px; }
+#runnow .sstog { font-size: 13px; }
+@media (max-width: 600px) { .substeps { padding: 9px 10px; } .substeps ol > li.ss { grid-template-columns: 1.5em minmax(0, 1fr); } }
 .defs dt:target, .defs dt.is-lit { color: var(--accent-2); }
 .ovsub--run { margin-top: 14px; }
 #runnow:not(:empty) { margin-bottom: 14px; }
@@ -912,6 +947,90 @@ table.mini code { font-size: 12px; }
     GATE_NAME = Object.fromEntries(CHECK_LIST.map((c) => [c.key, c.name]));
   }
   syncChecks(null);
+
+  /* ---------- a check's sub-steps: what it covers, part by part ---------- */
+  /* The list of parts is the check's own declaration (ledger.json checkList `steps`, from
+     scripts/checks-registry.mjs). Where each part stands is `stepTotals`, which
+     scripts/capture-check.mjs read back out of the lines every recorded result kept. Nothing here
+     fills a gap: a part no result speaks to says so, and a part the check does not judge yet says
+     "not implemented yet". */
+  /** Which blocks are open, remembered per visitor. Browser storage can be blocked or empty, so every touch is guarded. */
+  const SS_KEY = 'ledger.substeps.open';
+  let ssOpen = (() => { try { return JSON.parse(localStorage.getItem(SS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
+  const ssSave = () => { try { localStorage.setItem(SS_KEY, JSON.stringify(ssOpen)); } catch {} };
+  /** A run's parts start open, so what it is doing now is in sight; a check bar's start closed. */
+  const ssDefault = (id) => id.startsWith('run:');
+  /** Open, if this visitor has said so before; otherwise the block's own default. */
+  const ssIsOpen = (id, dflt = ssDefault(id)) => (typeof ssOpen?.[id] === 'boolean' ? ssOpen[id] : dflt);
+  const SS_STATES = [['pass', 'pass', 'var(--k-pass)'], ['fail', 'fail', 'var(--k-fail)'], ['flag', 'flagged', 'var(--k-flag)'],
+    ['listed', 'listed, not failed', 'var(--st-conv)'], ['skip', 'skipped', 'var(--k-never)'], ['notRecorded', 'not recorded', 'var(--k-broke)']];
+  const ssChevron = '<svg viewBox="0 0 12 12" width="9" height="9" aria-hidden="true" focusable="false"><path d="M4.5 2 8.5 6l-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  /* No data-tip here: the page's tooltip writes aria-expanded on whatever it points at, which on a
+     disclosure would both fight this button's own state and tell a screen reader the wrong thing. */
+  const ssToggle = (id, label, open) => `<button type="button" class="sstog" data-ss="${esc(id)}" aria-expanded="${open}" aria-controls="ss-${esc(id)}">${ssChevron}${esc(label)}</button>`;
+  /**
+   * The open panel. `c` is a checkList entry; `run` its progress record when one is going, whose
+   * `steps` say what THIS run covers and whose `step` is the latest part its output named.
+   * The one panel there is: "Running now" and the check bars both draw this, off the same
+   * checkList entry and the same `running` record, so a check reads the same while it runs and
+   * after. They differ in one thing only: a run's panel starts open, a bar's starts closed.
+   */
+  function ssPanel(c, id, run) {
+    const steps = c.steps ?? [];
+    const file = `docs/checks/${c.key}.json`;
+    const box = (inner) => `<div class="substeps" id="ss-${esc(id)}">${inner}</div>`;
+    if (!steps.length) return box(`<p><b>Not listed yet.</b> ${esc(c.title)} does not say what it covers in <code>scripts/checks-registry.mjs</code>, so there is nothing to show here.</p>`);
+    const t = c.stepTotals;
+    const passWord = c.scope === 'site' ? 'no finding' : 'pass';
+    let head = '';
+    if (run) {
+      const named = run.step ? steps.find((s) => s.key === run.step) : null;
+      head = named
+        ? `<p><span class="ss__now">Running now</span> <b>${esc(named.label)}</b> <span class="muted">· ${esc(run.stepFrom ?? 'from the check\'s own output')}</span></p>`
+        : `<p><span class="ss__now">Running now</span> ${run.last ? `${c.unit === 'pages' ? 'page' : 'model'} <code>${esc(run.last)}</code>. ` : ''}This check does not say which part it is on while it runs, so the list below is what the run covers, not where it has got to.</p>`;
+    }
+    if (!t) head += `<p><b>No sub-step results recorded yet.</b> <code>${esc(file)}</code> was written before the checks read their own parts back${c.captured ? '' : ', and this check has never been captured'}. The list below is what it covers; the counts appear once it runs again (or after <code>npm run capture -- ${esc(c.key)} --steps</code>, which re-reads the file without running the check).</p>`;
+    const rows = steps.map((s) => {
+      const mine = t?.totals?.[s.key];
+      const inRun = run?.steps?.[s.key];
+      const now = Boolean(run && run.step === s.key);
+      const bits = [];
+      if (s.implemented === false) bits.push('<span class="ss__none">not implemented yet</span>');
+      else if (mine) {
+        const any = SS_STATES.some(([k]) => mine[k] > 0);
+        if (!any) bits.push(`<span class="ss__none">not recorded yet</span>`);
+        else bits.push(`<span class="ss__counts">${SS_STATES.filter(([k]) => mine[k] > 0).map(([k, label, col]) =>
+          `<span class="ss__c"><i style="background:${col}"></i>${esc(k === 'pass' ? passWord : label)} <b>${mine[k]}</b></span>`).join('')}</span>`);
+      }
+      const why = [];
+      for (const [reason, n] of Object.entries(mine?.skipped ?? {}).sort((a, b) => b[1] - a[1]).slice(0, 3)) {
+        why.push(`<span class="ss__why"><b>${n} skipped:</b> ${esc(reason)}</span>`);
+      }
+      if (inRun && inRun.in === false) why.push(`<span class="ss__why"><b>left out of this run:</b> ${esc(inRun.why ?? 'the arguments it was given do not make it')}</span>`);
+      else if (inRun) why.push('<span class="ss__why">in this run</span>');
+      return `<li class="ss${now ? ' is-now' : ''}"><div class="ss__head"><span class="ss__name">${esc(s.label)}</span>${bits.join('')}${now ? '<span class="ss__now">on this now</span>' : ''}</div>
+        <span class="ss__proves">${esc(s.proves ?? '')}</span>${why.length ? `<span class="ss__counts">${why.join('')}</span>` : ''}</li>`;
+    }).join('');
+    const loose = Object.entries(t?.unattributed ?? {});
+    const foot = t
+      ? `<footer>Over the <b>${t.entries}</b> ${c.unit === 'pages' ? 'page' : 'model'} result${t.entries === 1 ? '' : 's'} recorded in <code>${esc(file)}</code> — every result the file holds, not only the ${esc(c.unit === 'pages' ? 'pages' : 'models')} the bar above counts. Read from each result's own lines; a part no line speaks to is counted “not recorded”, never as a pass.${loose.length ? ` ${loose.reduce((n, x) => n + x[1], 0)} line(s) could not be placed under a part and are counted under none of them.` : ''}${c.scope === 'site' ? ' A rule’s “no finding” count is pages the run reported nothing under it — not proof the rule applies to each of them.' : ''}</footer>`
+      : '';
+    return box(`${head}<ol>${rows}</ol>${foot}`);
+  }
+  /** Clicking a disclosure remembers the choice and redraws the block it belongs to. */
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest?.('[data-ss]');
+    if (!b || !L) return;
+    e.stopPropagation();
+    const id = b.dataset.ss;
+    // read the state from what was remembered, never off the button: the page's tooltip writes
+    // aria-expanded on hover, so the attribute is not this disclosure's alone
+    ssOpen[id] = !ssIsOpen(id);
+    ssSave();
+    if (id.startsWith('run:')) renderRunning(); else { renderStage(); renderCheckBars(); }
+    document.querySelector(`[data-ss="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+  });
+
   /** How many table columns there are, for a row that spans them all. */
   const colCount = () => 5 + COLS.length;
   const checkChip = (r) => {
@@ -1209,6 +1328,9 @@ table.mini code { font-size: 12px; }
       const e = etaOf(p);
       const ids = idsOfRun(p), done = doneInRun(key, p);
       const opened = openRuns.has(key);
+      // a run's own parts: open unless this visitor has closed them, so what it is doing is in sight
+      const c = CHECK_LIST.find((x) => x.key === key) ?? { key, short, title, steps: [], unit: 'models' };
+      const ssN = (c.steps ?? []).length, ssId = `run:${key}`, ssSeen = ssN > 0 && ssIsOpen(ssId);
       return `<li class="run${gone ? ' gone' : ''}">
         <span class="run__name" data-tip data-tiptext="${esc(title)}">${esc(short)}${gone ? ' · stopped' : ''}</span>
         <span class="run__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? '?'}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><span style="width:${pct}%"></span></span>
@@ -1221,7 +1343,9 @@ table.mini code { font-size: 12px; }
           ${p.last ? `<span>latest <code>${esc(p.last)}</code></span>` : ''}
           ${p.totalIsEstimate ? `<span>the total is an estimate: ${esc(p.totalFrom)}</span>` : ''}
           ${ids.length ? `<button type="button" class="linkish" data-runids="${esc(key)}" aria-expanded="${opened}">${opened ? 'hide models' : `show models (${ids.length})`}</button>` : ''}
+          ${ssN ? ssToggle(ssId, ssSeen ? 'hide what it is covering' : `what it is covering (${ssN})`, ssSeen) : ''}
         </span>
+        ${ssSeen ? ssPanel(c, ssId, p) : ''}
         ${opened ? `<div class="run__ids"><div class="qids">${ids.map((id) => `<span class="mid${done.has(id) ? ' is-done' : ''}" title="${done.has(id) ? 'reported in this run' : 'not reported in this run yet'}">${esc(id)}</span>`).join('')}</div>
           <p class="run__meta" style="margin:6px 0 0">${done.size} reported in this run (dimmed), ${ids.length - done.size} still to go${p.args?.some((a) => a.startsWith('-')) ? `; flags <code>${esc(p.args.filter((a) => a.startsWith('-')).join(' '))}</code>` : ''}.</p></div>` : ''}
       </li>`;
@@ -1878,8 +2002,19 @@ table.mini code { font-size: 12px; }
         ? `<button type="button" class="pillbtn" data-blk="${esc(x.blk)}" aria-pressed="${blk === x.blk}" data-tip data-tiptext="${esc(`${c.short}: ${x.n} ${x.label}. Click to show only these in the table.`)}"><i class="sw" style="background:${x.c};width:8px;height:8px;border-radius:50%"></i>${esc(x.label)} <b>${x.n}</b></button>`
         : `<span class="bdpill"><i style="background:${x.c}"></i>${esc(x.label)} <b>${x.n}</b></span>`)).join('');
       const bar = segBar(segs, total).replace('class="bdbar"', `class="bdbar${run && run.alive !== false ? ' is-running' : ''}"`);
+      // what the check covers, part by part: closed by default, opened one bar at a time. Its counts
+      // are over every result the check's file holds, which a bar drawn over one stage's models is
+      // not, so the panel's footer says exactly what it counted.
+      const nSteps = (c.steps ?? []).length;
+      const ssId = `bar:${c.key}`;
+      const ssShown = nSteps > 0;
+      const ssOpened = ssShown && ssIsOpen(ssId);
+      const ssBtn = ssShown ? ssToggle(ssId, ssOpened ? 'hide what it covers' : `what it covers (${nSteps})`, ssOpened) : '';
+      // the same panel "Running now" draws, off the same record: while this check runs it says so
+      // here too, and when the run ends the counts it left stay
+      const ssRun = L.running?.[c.key] ?? null;
       return `<li><button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
-        <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}</span>${pills}</span></li>`;
+        <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}</span>${pills}${ssBtn}</span>${ssOpened ? ssPanel(c, ssId, ssRun) : ''}</li>`;
     }).join('')}</ul>`;
   }
   function renderCheckBars() {
