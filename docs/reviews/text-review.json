@@ -3792,5 +3792,27 @@
     "category": "93f8bb0eb2c6"
    }
   }
+ },
+ {
+  "model": "treemap",
+  "kind": "text",
+  "reviewer": "final review (independent reviewer)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-23T02:47:21Z",
+  "commit": "852a0fa22c100f129ced3e4d5d48847bf6d4c8ed",
+  "notes": "Read again after 82aa2de changed which tiles carry a percentage: description, how, technique and tags all still describe the code. The how already says the numbers are printed in the read-out on hover, tap or focus, and step 5 now describes the opaque roof over the chart's own dark, which is what the CSS does.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "73d6a1211abc",
+   "snippet": "24e1f2547e69",
+   "textParts": {
+    "title": "6c82037dce85",
+    "description": "2fca2fa9dec3",
+    "how": "58c118544d7d",
+    "technique": "3431bef561b3",
+    "tags": "17ccdab95596",
+    "category": "93f8bb0eb2c6"
+   }
+  }
  }
 ]
