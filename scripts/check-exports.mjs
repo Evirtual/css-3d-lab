@@ -134,7 +134,7 @@ const external = await serviceAnswers();
 if (!external) service = await exportServer(8787);
 if (!(await serviceAnswers())) { console.error('The export service does not answer on 127.0.0.1:8787.'); process.exit(2); }
 console.log(`export service: ${external ? 'already running on 127.0.0.1:8787 (used as is)' : 'started in this process'}`);
-console.log(`settings: ${defaultsOnly ? `the defaults only (image ${D.image.shape} at ${D.image.size} px ${D.image.picture}, format ${formatPictures.join('/')} at ${D.formats.size} px; video ${D.video.shape} at ${D.video.quality}p, drift ${driftShapes.join('/')} at ${D.drift.quality}p)` : quick ? 'quick (800 px, 480p and 2160p, drift at 1:1)' : `every shape, size (${sizes.join(', ')} px) and quality (${qualities.join(', ')}p), the slider and every format`}; checks: ${[...only].filter((k) => !(defaultsOnly && k === 'slider')).join(', ')}`);
+console.log(`settings: ${defaultsOnly ? `the defaults only (image ${D.image.shape} at ${D.image.size} px ${D.image.picture}, format ${formatPictures.join('/')} at ${D.formats.size} px; video ${D.video.shape} at ${D.video.quality}p, drift ${driftShapes.join('/')} at ${D.drift.quality}p, two seconds of the held model filmed live; the full-length loop drift stays on the sample run)` : quick ? 'quick (800 px, 480p and 2160p, drift at 1:1)' : `every shape, size (${sizes.join(', ')} px) and quality (${qualities.join(', ')}p), the slider and every format`}; checks: ${[...only].filter((k) => !(defaultsOnly && k === 'slider')).join(', ')}`);
 
 // A cache of its own, so two runs side by side (or another agent's dev server) do not fight over
 // node_modules/.vite while its dependencies are being optimised.
@@ -809,9 +809,12 @@ async function checkVideos(id) {
       vp9alpha: await ask('vp09.00.10.08', 480, 854, 'keep'),
       h264: { '2160x3840': await own(2160, 3840), '2160x2160': await own(2160, 2160), '3840x2160': await own(3840, 2160), '1080x1920': await own(1080, 1920) },
       fourK: !document.querySelector('.maker [data-pick="quality"][data-value="2160"]')?.hasAttribute('data-off'),
+      // the sizes the dialog shows but does not offer (data-off: "coming later", or too big for
+      // the render service): no file can be asked for at those, and the app says which they are
+      off: [...document.querySelectorAll('.maker [data-pick="quality"][data-off]')].map((c) => ({ quality: Number(c.dataset.value), why: (c.textContent || '').replace(/\s+/g, ' ').trim() })),
     };
   });
-  say(`  video tab: ${animations} animations; own loop ${env.loop}s (${env.loopChip ? 'offered' : 'not offered'}); WebM clear chip ${env.clearChip ? 'enabled' : 'disabled'}; VP9+alpha encodable here: ${env.vp9alpha}; H.264 the app asks for, and encodable here: ${Object.entries(env.h264).map(([k, v]) => `${k} ${v}`).join(', ')}; 4K chip ${env.fourK ? 'offered' : 'not offered'}`);
+  say(`  video tab: ${animations} animations; own loop ${env.loop}s (${env.loopChip ? 'offered' : 'not offered'}); WebM clear chip ${env.clearChip ? 'enabled' : 'disabled'}; VP9+alpha encodable here: ${env.vp9alpha}; H.264 the app asks for, and encodable here: ${Object.entries(env.h264).map(([k, v]) => `${k} ${v}`).join(', ')}; 4K chip ${env.fourK ? 'offered' : 'not offered'}${env.off.length ? `; sizes the dialog shows disabled, so no file is asked for: ${env.off.map((o) => `${o.quality}p ("${o.why}")`).join(', ')}` : ''}`);
   const row = { id, kind: 'video', env, shapes: {} };
   results.push(row);
 
@@ -828,9 +831,12 @@ async function checkVideos(id) {
     if (only.has('dims') || only.has('picture')) {
       for (const q of qualities) {
         await pick('motion', 'live');
-        // a quality this browser cannot encode is shown but not offered: nothing to make, and not a fault
-        if (await dlg((v) => document.querySelector(`.maker [data-pick="quality"][data-value="${v}"]`)?.hasAttribute("data-off"), q)) {
-          untestable.push(`${id}: ${q}p video — the dialog says this browser cannot encode it and does not offer it`);
+        // A size the dialog shows but does not offer — one this browser cannot encode, or one the
+        // app is holding back ("coming later") — has no file to ask for, and that is not a fault.
+        // Which sizes those are is read from the dialog itself, so the app says it once.
+        const off = env.off.find((o) => o.quality === q);
+        if (off) {
+          untestable.push(`${id}: ${q}p video — the dialog shows it disabled ("${off.why}"), so no file is asked for`);
           continue;
         }
         await pick('quality', q);
@@ -860,7 +866,11 @@ async function checkVideos(id) {
 
     if (only.has('drift') && driftShapes.includes(shape)) {
       await pick('quality', D.drift.quality);
-      const live = !env.loopChip;
+      // The per-model run (--defaults) films the held model live for two seconds: 60 frames the
+      // recorder must draw all alike, which is the drift a file can be held to on its own, and
+      // about a minute a model instead of the five a 900-frame loop takes. The full-length loop
+      // drift — the model's whole turn, decoded frame by frame — stays on the sample run.
+      const live = !env.loopChip || defaultsOnly;
       await pick('motion', live ? 'live' : 'loop');
       await freeze();
       const file = live ? await (async () => {
@@ -900,9 +910,14 @@ async function checkVideos(id) {
       else if (missing) look(id, 'drift', shape, `${missing} of ${vid.n} frames have no model in them (${blank.slice(0, 10).join(', ')}${blank.length > 10 ? '…' : ''})`, 'a scene may empty the canvas for a moment by design — the rocket leaves the frame before the next one is on the pad, and its blanks repeat with its 10s turn');
       if (jumpAt.length) look(id, 'drift', shape, `the model's box jumps at frame${jumpAt.length > 1 ? 's' : ''} ${jumpAt.slice(0, 12).join(', ')}${jumpAt.length > 12 ? '…' : ''}`, `a step over ${pc(Math.max(0.01, Math.max(4 * med.c, 4 * med.s)))}% of the canvas, which fast motion of the model's own looks exactly like`);
       if (spikeAt.length) look(id, 'drift', shape, `change spikes at frame${spikeAt.length > 1 ? 's' : ''} ${spikeAt.slice(0, 12).join(', ')}${spikeAt.length > 12 ? '…' : ''} (over 3× the median ${med.d.toFixed(2)})`, 'the same: how much the picture changes from frame to frame is the model moving');
-      if (live && worst.d > 0.5) {
-        if (scr.moving > 0.002) look(id, 'drift', shape, `an untouched model changes by up to ${worst.d.toFixed(2)} a frame`, 'it was still moving when the take began (its own script), so a live take of it does change');
-        else miss(id, 'drift', shape, `an untouched model changes by up to ${worst.d.toFixed(2)} a frame`, 'app');
+      // A live take is of a model held still, so every frame of it must be the same picture in the
+      // same place: what changes between the first frame and any other is the recorder's doing, and
+      // a slow creep (a fraction of a pixel a frame) shows here even though no single step does.
+      const crept = Math.max(0, ...boxes.map((b) => boxGap(boxes[0], b)));
+      if (live && (worst.d > 0.5 || crept > 0.005)) {
+        const what = `an untouched model changes by up to ${worst.d.toFixed(2)} a frame, and its box wanders ${pc(crept)}% of the canvas from the first frame`;
+        if (scr.moving > 0.002) look(id, 'drift', shape, what, 'it was still moving when the take began (its own script), so a live take of it does change');
+        else miss(id, 'drift', shape, what, 'app');
       }
       // The app says whether the file joins up: a model whose turn is longer than the dialog
       // records (rings takes 277s, the file is 30s) is cut, and its last frame is not its first.
@@ -911,9 +926,9 @@ async function checkVideos(id) {
         if (joins) miss(id, 'drift', shape, `last frame's box ${boxText(last)} does not return to the first ${boxText(first)}`, 'app or model');
         else look(id, 'drift', shape, `last frame's box ${boxText(last)} does not return to the first ${boxText(first)}`, `the app says so itself: "${String(file.note ?? '').replace(/ This is the file\.$/, '')}"`);
       }
-      if (only.has('picture') && !(gap0 <= TOL * 1.5)) miss(id, 'picture', `video ${shape} loop frame 0`, `${boxText(vid.frames[0]?.box)} vs screen ${boxText(scr.box)}`, 'app');
+      if (only.has('picture') && !(gap0 <= TOL * 1.5)) miss(id, 'picture', `video ${shape} ${live ? 'live' : 'loop'} frame 0`, `${boxText(vid.frames[0]?.box)} vs screen ${boxText(scr.box)}`, 'app');
       if (vid.align) {
-        judgeAlign(vid.align, { id, what: `video ${shape} loop frame 0`, fault: 'app', indent: '      ' });
+        judgeAlign(vid.align, { id, what: `video ${shape} ${live ? 'live' : 'loop'} frame 0`, fault: 'app', indent: '      ' });
       }
       await back();
     }
