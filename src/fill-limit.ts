@@ -39,6 +39,8 @@ export const MAX_FILL = 100;
 const STEP = 5;
 const PAD = 0.04; // of the canvas's short side, on every side
 const FULL = 0.95; // a drawing that covers this much of the canvas both ways fills it
+const AHEAD_MS = 200; // least time between two looks ahead (aheadSoon)
+const SCAN_MS = 200;  // least time between two reads of what paints (sample)
 
 type Box = { l: number; t: number; r: number; b: number }; // reach from the middle, at 70%
 
@@ -50,6 +52,11 @@ class Limit {
   private pending = false;
   private fresh = false;
   private timer = 0;
+  // One look ahead, and one re-scan of what paints, at a time: see aheadSoon() and sample()
+  private aheadTimer = 0;
+  private aheadAt = 0;
+  private scanTimer = 0;
+  private scanAt = 0;
   private detach: (() => void)[] = [];
   private frameWatch?: MutationObserver;
   /** The model follows the pointer: its limit holds wherever the pointer is. */
@@ -80,6 +87,8 @@ class Limit {
     this.frameWatch?.disconnect();
     for (const off of this.detach.splice(0)) off();
     window.clearTimeout(this.timer);
+    window.clearTimeout(this.aheadTimer);
+    window.clearTimeout(this.scanTimer);
   }
 
   private attach(): void {
@@ -119,7 +128,7 @@ class Limit {
     for (const type of ['pointermove', 'wheel', 'scroll']) on(type, () => this.sampleNextFrame(false));
     for (const type of ['pointerover', 'pointerout', 'pointerdown', 'pointerup', 'click', 'keydown', 'focusin', 'input', 'change']) on(type, () => this.sampleNextFrame(true));
     // a hover, a lid opening: where it is going is measured now, before it gets there
-    for (const type of ['transitionrun', 'animationstart', 'transitionend', 'animationend']) on(type, () => this.ahead());
+    for (const type of ['transitionrun', 'animationstart', 'transitionend', 'animationend']) on(type, () => this.aheadSoon());
     this.restart();
   }
 
@@ -276,6 +285,25 @@ class Limit {
     this.update();
   }
 
+  /**
+   * One look ahead at a time, and at most five a second. A model can start dozens of animations at
+   * once — confetti throws 36 pieces at a click, each an animationstart and later an animationend —
+   * and every one of them would be a whole look ahead: every element in the scene read again, then
+   * every running animation seeked twelve times and measured. Thirty clicks in a second made the
+   * model page and the export dialog stop for seconds at a time (the gallery cards, which have no
+   * limit watcher, stayed smooth). The last of a flurry is the one worth looking at, so a flurry
+   * costs one look, taken when it has died down.
+   */
+  private aheadSoon(): void {
+    if (!this.seen || this.aheadTimer) return;
+    const wait = Math.max(0, AHEAD_MS - (performance.now() - this.aheadAt));
+    this.aheadTimer = window.setTimeout(() => {
+      this.aheadTimer = 0;
+      this.aheadAt = performance.now();
+      this.ahead();
+    }, wait);
+  }
+
   private sampleNextFrame(fresh: boolean): void {
     if (!this.seen) return;
     this.fresh ||= fresh;
@@ -290,8 +318,21 @@ class Limit {
   /** Measure the pose now (a script's own motion is looked at by the caller now and then). */
   sample(fresh = false): void {
     if (!this.doc || !this.seen) return;
-    if (this.fresh || fresh) this.painters = paintersOf(this.doc);
-    this.fresh = false;
+    // Reading what paints means the computed style of every element in the scene, so it is the
+    // expensive half of a sample: a model that answers a click by making elements would have the
+    // page doing it on every frame while someone clicks fast. At most five a second, with the
+    // last of a flurry taken when it has died down; the cheap half, the boxes, still runs now.
+    if (this.fresh || fresh) {
+      const now = performance.now();
+      if (now - this.scanAt >= SCAN_MS) {
+        this.painters = paintersOf(this.doc);
+        this.scanAt = now;
+        this.fresh = false;
+      } else {
+        this.fresh = true;
+        if (!this.scanTimer) this.scanTimer = window.setTimeout(() => { this.scanTimer = 0; this.sample(); }, SCAN_MS - (now - this.scanAt));
+      }
+    }
     this.take();
     this.update();
   }
