@@ -2050,7 +2050,7 @@ for (let row = 0; row < N; row++) {
       '<code>--z</code> is what makes it 3D: particles coming toward the camera grow, the others shrink away.',
       'The pieces are made <b>once</b> and thrown again and again: three bursts\' worth (108) exist at all, and each click gives the next 36 of them new numbers and restarts their flight with <code>cancel()</code> then <code>play()</code>. Clicking as fast as a finger can is then only new values on elements that are already there — nothing is made or unmade while the page is drawing, nothing waits on <code>animationend</code>, and a piece a stage froze in mid-air is simply thrown afresh. A stage that holds its animations — the Pause switch, the export dialog\'s held pose, a print — would hold a throw where it started, so a click there throws nothing at all: the model asks a piece whether its animation reads as <code>paused</code>, and leaves the stage exactly as it is.',
       'At rest, twenty-four pieces lie all over the canvas, written into the HTML with their place and tilt in <code>--x</code>, <code>--y</code>, <code>--r</code> — the place a per cent of the canvas across and down — so a paused card shows confetti and not just a caption, and the scene covers the canvas as a full-canvas model must. A click adds <code>.popped</code>: each piece flicks outward, away from the middle its own place points away from, shrinking and fading as the burst takes over, and a timer takes the class off again. Their resting rule jumps <code>transform</code> back at once but fades <code>opacity</code> in slowly, so they reappear in place instead of flying back.',
-      'This is a <b>full-canvas</b> scene (VIEW-CONTRACT.md): "click anywhere" is the whole canvas, so the whole canvas is the click target (<code>inset: 0</code>), the pieces lie over all of it, and a burst flies out to its edges. Places and flights are shares of the canvas — <code>container-type: size</code> makes <code>1cqw</code> and <code>1cqh</code> one per cent of it across and down — so the scene covers a gallery card, a tall 9:16 export and a full screen alike; only a piece\'s own size is in the base unit <code>--u</code>. The burst still starts from the middle, where the words are, wherever the click lands.',
+      'This is a <b>full-canvas</b> scene (VIEW-CONTRACT.md): "click anywhere" is the whole canvas, so the whole canvas is the click target (<code>inset: 0</code>), the pieces lie over all of it, and a burst flies out to its edges. Places and flights are shares of the canvas — <code>container-type: size</code> makes <code>1cqw</code> and <code>1cqh</code> one per cent of it across and down — so the scene covers a gallery card, a tall 9:16 export and a full screen alike; only a piece\'s own size is in the base unit <code>--u</code>. A burst starts where the click or the tap did: JS turns the point into <code>--ox</code> / <code>--oy</code>, per cent of the canvas across and down, so it lands under the pointer however the stage has scaled the frame, and a keyboard throw (Enter or Space) bursts from the middle.',
     ],
     html: `<div class="party" role="button" tabindex="0" aria-label="Throw confetti">
   <span class="waiting" aria-hidden="true">
@@ -2132,12 +2132,12 @@ for (let row = 0; row < N; row++) {
   transition: transform 0.35s ease-out, opacity 0.3s linear;
 }
 
-/* every burst starts from the middle, where the words are, and flies out across the whole
-   canvas, wherever the click lands */
+/* a burst starts where the click did — JS writes the point as --ox / --oy, per cent of the canvas
+   across and down (the middle when the keyboard threw it) — and flies out across the canvas */
 .party i {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  left: calc(var(--ox, 50) * 1cqw);
+  top: calc(var(--oy, 50) * 1cqh);
   width: calc(30 * var(--u));
   height: calc(42 * var(--u));
   margin: calc(-21 * var(--u)) 0 0 calc(-15 * var(--u));
@@ -2145,7 +2145,7 @@ for (let row = 0; row < N; row++) {
   background: hsl(var(--hue) 90% 62%);
   pointer-events: none;
   /* a piece waiting to be thrown is not on screen: the pieces are made once and thrown again and
-     again, so between throws they sit here, invisible, at the middle */
+     again, so between throws they wait here, invisible */
   opacity: 0;
 }
 
@@ -2206,8 +2206,21 @@ const pieces = [];
 let next = 0;
 let settle;
 
-function burst() {
+/**
+ * Where a burst starts, as per cent of the canvas: the point the pointer is on, or the middle
+ * when the keyboard threw it. A ratio of the canvas, not pixels, so it lands under the pointer
+ * however the stage has scaled the frame.
+ */
+function from(point) {
+  const root = document.documentElement;
+  if (!point) return { ox: 50, oy: 50 };
+  const clamp = (v) => Math.round(Math.max(0, Math.min(100, v)) * 100) / 100;
+  return { ox: clamp((point.clientX / root.clientWidth) * 100), oy: clamp((point.clientY / root.clientHeight) * 100) };
+}
+
+function burst(point) {
   if (held()) return; // a paused stage stays exactly as it is, click or no click
+  const { ox, oy } = from(point);
 
   // the pieces waiting round the words go with the burst, and come back once it has fallen
   party.classList.add('popped');
@@ -2246,12 +2259,15 @@ function burst() {
       p.style.setProperty('--z', z);
       p.style.setProperty('--spin', rand(360, 1080) + 'deg');
       p.style.setProperty('--hue', rand(0, 360));
+      // where this burst started: the CSS puts the piece there before it flies
+      p.style.setProperty('--ox', ox);
+      p.style.setProperty('--oy', oy);
       p.classList.add('fly');
     }
   }
 }
 
-party.addEventListener('pointerdown', burst);
+party.addEventListener('pointerdown', (e) => burst(e));
 // it is a button to the keyboard too: Enter or Space throws it
 party.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter' && e.key !== ' ') return;
