@@ -22,6 +22,7 @@ import {
   type Recording,
 } from './record';
 import type { PrintSetup } from './models/snippet-utils';
+import { fileName, shapeTag } from './file-name';
 import { showThanks } from './thanks';
 import { fillsCanvas, MIN_FILL, watchFillLimit } from './fill-limit';
 
@@ -716,7 +717,9 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     try {
       mine.blob = await captureImage(stage, shot(chosen().size, format()));
       mine.url = URL.createObjectURL(mine.blob);
-      mine.name = `css-3d-lab-${mine.id}.${format() === 'jpeg' ? 'jpg' : 'png'}`;
+      // the name carries every choice that changed this picture: its shape, its size, and whether
+      // the backdrop was left out — so the next one, taken at other settings, sits beside it
+      mine.name = fileName(mine.id, format() === 'jpeg' ? 'jpg' : 'png', shapeTag(chosen().imageRatio), `${chosen().size}px`, clear() && 'clear');
       const bitmap = await createImageBitmap(mine.blob);
       mine.detail = `${bitmap.width} × ${bitmap.height}, ${format().toUpperCase()}.`;
       bitmap.close();
@@ -785,7 +788,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       mine.blob = made.blob;
       mine.url = URL.createObjectURL(made.blob);
       mine.progress = 1;
-      mine.name = `css-3d-lab-${mine.id}-${chosen().ratio.replace(':', 'x')}.${made.extension}`;
+      mine.name = fileName(mine.id, made.extension, shapeTag(chosen().ratio), `${chosen().quality}p`, live && 'live', clear() && 'clear');
       mine.detail = live
         ? `${made.width} × ${made.height}, ${made.seconds.toFixed(1)}s filmed live.`
         : made.loops

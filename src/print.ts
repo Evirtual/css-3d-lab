@@ -1,4 +1,5 @@
 import type { LiveEdit } from './live-edit';
+import { slug } from './file-name';
 import type { PrintLook, PrintSetup } from './models/snippet-utils';
 
 /**
@@ -108,6 +109,9 @@ export function printModel(live: LiveEdit, stage?: HTMLElement | null, setup?: P
   frame.addEventListener('load', () => {
     const win = frame.contentWindow;
     if (!win) return frame.remove();
+    // "Save as PDF" names the file after the document it is printing, so the sheet is titled like
+    // every other file the site hands out rather than "CSS 3D Lab" for every model alike.
+    win.document.title = `css-3d-lab-${slug(live.id)}`;
     win.addEventListener('afterprint', () => frame.remove());
     // a moment for fonts and the model's own script, then the dialog
     setTimeout(() => {
