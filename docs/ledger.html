@@ -1866,9 +1866,11 @@ table.mini code { font-size: 12px; }
       const run = c.running;
       const ran = total - (t.never ?? 0);
       const unit = c.unit === 'pages' ? 'pages' : 'models';
-      // a site check's pages by kind, public first: "145 public · 136 embeds · 135 redirects"
+      // a site check's pages by kind, public first, every group saying its own pass count — a group
+      // that passes whole said only its size before ("145 public (9 pass) · 136 embeds"), which read
+      // as if the embeds were the failing ones: "9 of 145 public · 136 of 136 embeds · 135 of 135 redirects"
       const KIND_ORDER = ['public', 'embeds', 'redirects'];
-      const kinds = c.kinds ? KIND_ORDER.filter((k) => c.kinds[k]).map((k) => `${c.kinds[k].pages} ${k}${c.kinds[k].pass === c.kinds[k].pages ? '' : ` (${c.kinds[k].pass} pass)`}`).join(' · ') : '';
+      const kinds = c.kinds ? KIND_ORDER.filter((k) => c.kinds[k]).map((k) => `${c.kinds[k].pass} of ${c.kinds[k].pages} ${k}`).join(' · ') : '';
       const status = !c.captured && !run ? `not run yet (0 of ${total} ${unit})` : `${t.pass} of ${total} ${unit} pass${kinds ? ` (${kinds})` : ''}${c.listed ? ` · ${c.listed} of them with listed findings (waived or the model's own text, not failed)` : ''}${c.lastRun?.finishedAt ? ` · last run ${new Date(c.lastRun.finishedAt).toLocaleString()}${c.lastRun.commit ? ` at ${c.lastRun.commit}` : ''}` : ''}`;
       const runChip = run ? `<span class="chip ${run.alive === false ? 's-bad' : 's-chk'}">${run.alive === false ? 'stopped' : 'running'} ${esc(run.done)} of ${run.total ?? '?'}</span>` : '';
       // a segment a blocker covers is a button: it filters the table to those models, as the blocker does

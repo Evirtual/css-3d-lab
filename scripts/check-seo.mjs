@@ -69,11 +69,18 @@ const DIST = resolve(ROOT, distAt >= 0 ? args[distAt + 1] : 'dist');
 
 /**
  * What a page may load up front, gzipped (zlib's default level, what most static hosts serve).
- * Set a little above what this measured on 2026-09-22, after 2b171f9 removed the old
- * implementation: the heaviest model page 265.5 KB and the home page 270.4 KB (KB = 1024 bytes),
- * so a real growth fails and noise does not.
+ * Set a little above what this measures, so a real growth fails and noise does not. Re-measure and
+ * re-set it when growth is accepted, and record what spent the headroom:
+ *  - 2026-09-22, after 2b171f9 removed the old implementation: model 265.5 KB, home 270.4 KB
+ *    (KB = 1024 bytes), budget 275 / 280 — about 9.5 KB of headroom.
+ *  - 2026-09-23: model 278.7 KB, home 283.6 KB, both over. The day between them spent 13.2 KB:
+ *    3.4 KB of it the View zoom control and its fill-limit math (448ff46, ac16ecd, e5ab944,
+ *    517a4c1 — measured by building with src/view-zoom.ts and src/fill-limit.ts stubbed out), the
+ *    other 9.8 KB some sixty reviewed model edits in the models chunk and its CSS. Nothing is
+ *    wrong with the pages: this is accepted work, so the budget moves up with the same headroom.
+ *    Stubbing the whole View zoom feature would still leave both pages over the old number.
  */
-const WEIGHT_BUDGET = { model: 275 * 1024, home: 280 * 1024 };
+const WEIGHT_BUDGET = { model: 288 * 1024, home: 293 * 1024 };
 
 /**
  * Findings shown to the user and waiting on their decision. Key: `<page> <rule>`.
