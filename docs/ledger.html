@@ -191,6 +191,14 @@ button, input { font: inherit; color: inherit; }
 }
 /* a win gets one stronger, faster crossing -- still the tag's own violet, so the ink never loses ground */
 .s-ok.won::after { --sweep-w: 26%; animation: oksheen 0.8s ease-out; }
+/* ---------- nothing animates that nobody can see ----------
+   Two classes the script sets from an IntersectionObserver. Off-screen the stage strip and the resting
+   sweeps are paused, not removed: play-state only, so they carry on exactly where they were when they
+   come back. And a table drawn in full is a hundred and thirty-odd pills each running their own
+   gradient: past a page of rows the resting sweep is dropped altogether and only a win still crosses. */
+:root.strip-away .flowwrap *, :root.strip-away .flowwrap *::before, :root.strip-away .flowwrap *::after { animation-play-state: paused; }
+:root.table-away #rows .s-ok::after { animation-play-state: paused; }
+#rows.many .s-ok:not(.won)::after { animation: none; }
 @keyframes oksheen { 0%, 79% { transform: translateX(-165%); } 100% { transform: translateX(165%); } }
 /* quiet at rest. One sweep and one settle on the refresh that turned this model approved, never a loop. */
 .s-ok.won { animation: okpop 0.6s cubic-bezier(0.22, 1.3, 0.3, 1); }
@@ -687,12 +695,15 @@ button, input { font: inherit; color: inherit; }
    The bar used to sit at 0 while the record sat at 16px, so the two columns were a card's corner out of
    line the moment the page scrolled. The script measures this rather than assuming it. */
 :root { --stick-top: 16px; }
+/* Below the split there is no second column to line up with, so the bar rests flush and there is no
+   strip above it for rows to show through. */
+@media (max-width: 1099px) { :root { --stick-top: 0px; } }
 .fbar { position: sticky; top: var(--stick-top); z-index: 5; margin: 12px -6px 10px; padding: 14px 14px 10px; }
-.fbar::before { content: ''; position: absolute; inset: 0; z-index: -1; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); backdrop-filter: blur(18px) saturate(1.4); box-shadow: var(--shadow); }
+.fbar::before { content: ''; position: absolute; inset: 0; z-index: -1; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--surface-solid) 88%, transparent); backdrop-filter: blur(18px) saturate(1.4); box-shadow: var(--shadow); }
 /* Once the bar is resting, the strip above it is a window onto the rows sliding past. It takes the bar's
    own glass, so what shows there is blurred exactly as the bar blurs it, and it is drawn only while the
    bar is actually stuck -- at rest the bar sits below a heading, where a band of glass would be a smear. */
-.fbar.is-stuck::after { content: ''; position: absolute; inset: calc(var(--stick-top) * -1) 0 auto; height: var(--stick-top); z-index: -1; background: var(--surface); backdrop-filter: blur(18px) saturate(1.4); }
+.fbar.is-stuck::after { content: ''; position: absolute; inset: calc(var(--stick-top) * -1) 0 auto; height: var(--stick-top); z-index: -1; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(18px) saturate(1.4); }
 .fbar__row { display: flex; flex-wrap: wrap; gap: 10px; }
 .fbar__controls { display: flex; flex: 0 1 auto; gap: 10px; min-width: 0; }
 .search { position: relative; flex: 1 1 260px; }
@@ -824,18 +835,9 @@ tr.detail > td { background: color-mix(in srgb, var(--bg) 55%, transparent); pad
 .argfold > summary:hover { color: var(--accent-2); }
 .argfold .qids { margin-top: 5px; max-height: 120px; overflow: auto; }
 .argfold .mid { font-size: 11px; }
-/* The model's own header: one line of who it is, one of the hashes, each truncated with a copy button.
-   It rides at the top of its own panel while the panel scrolls, resting under the table's header and the
-   group row -- both of those heights are measured into variables by the script, so nothing here is a
-   number someone has to keep in step. */
-.mdet {
-  position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 0px) + var(--grow-h, 0px)); z-index: 2;
-  display: grid; gap: 4px; margin: -14px -16px 10px; padding: 10px 16px 8px;
-  background: var(--surface-solid); border-bottom: 1px solid var(--border);
-}
-.mdet__top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }
-.mdet__t { font-size: 16px; font-weight: 750; letter-spacing: -0.01em; }
-.mdet__id { font-family: var(--mono); font-size: 12px; color: var(--muted); background: none; border: 0; padding: 0; }
+/* The facts the row cannot carry: the hashes and the snippet. The title is not repeated here -- the row
+   itself is this panel's header, and it sticks. */
+.mdet { display: grid; gap: 4px; margin: 0 0 10px; }
 .mdet__ids { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12px; color: var(--muted); }
 .hsh { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .hsh code { font-size: 11.5px; }
@@ -896,7 +898,6 @@ table.mini code { font-size: 12px; }
 /* narrow: the record is a block under the table, so it slides right and closes the space it leaves */
 .split > .lead { transition: transform 0.34s cubic-bezier(0.3, 0.8, 0.3, 1), opacity 0.34s, height 0.34s, margin 0.34s, padding 0.34s; }
 .split.lead-away > .lead { transform: translateX(calc(100% + 26px)); opacity: 0; pointer-events: none; height: 0; margin: 0; padding-block: 0; overflow: hidden; }
-.split.lead-away .leadedge { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { .split, .split > .lead { transition: none; } }
 /* wide screens: the lead's record beside the table, in view while the table scrolls */
 @media (min-width: 1100px) {
@@ -985,8 +986,17 @@ table.mini code { font-size: 12px; }
 /* the test crashed before judging the model: not a failure of the model, so never the failed red */
 .mk--broke { --c: var(--accent); background: none; border-style: dashed; color: var(--accent); }
 .mk--conv { --c: var(--st-conv); }
-.mk.is-running { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 35%, transparent); animation: mkpulse 1.4s ease-in-out infinite; }
-@keyframes mkpulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-2) 10%, transparent); } }
+/* The ring a running check draws round its mark. It used to be an animated box-shadow ON the mark,
+   which repaints the mark and everything under it every frame -- with the table drawn in full that one
+   rule was worth about half the page's frame budget while scrolling. It is a pseudo-element now, moved
+   by transform and opacity only, so the compositor carries it and nothing repaints. */
+.mk.is-running { position: relative; }
+.mk.is-running::before {
+  content: ''; position: absolute; inset: -2px; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent-2) 55%, transparent);
+  animation: mkpulse 1.4s ease-in-out infinite;
+}
+@keyframes mkpulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.34); opacity: 0.2; } }
 .mk--letter { font-size: 10.5px; line-height: 1; }
 .mk svg { display: block; }
 .marks-legend .mk svg { width: 10px; height: 10px; }
@@ -1018,29 +1028,35 @@ table.mini code { font-size: 12px; }
 #tbl tr.row:nth-of-type(even) > td.model { background: color-mix(in srgb, var(--muted) 5%, var(--surface-solid)); }
 #tbl tr.row:hover > td.model, #tbl tr.row:nth-of-type(even):hover > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, var(--surface-solid)); }
 #tbl tr.row[aria-expanded="true"] > td.model, #tbl tr.row:nth-of-type(even)[aria-expanded="true"] > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 11%, var(--surface-solid)); }
-/* ---------- the open row's frame ----------
+/* ---------- the open row and its panel: one box ----------
    A frame round a table row cannot be one border: the model cell is sticky, so it is painted over its
-   neighbours and any single outline is cut where it begins. Each cell draws its own share instead --
-   top and bottom everywhere, the left end on the model cell, the right end on the last -- as an INSET
-   shadow, so it lands on top of the sticky cell's own background rather than under it. Only the two
-   true ends are rounded; the joins between cells stay square, so the frame reads as one line. */
-#tbl tr.row[aria-expanded="true"] > td {
+   neighbours and any single outline is cut where it begins. Each cell draws its share as an INSET
+   shadow instead, which lands on top of that cell's own background rather than under it. The row takes
+   the top and the two sides and is rounded at the top only; the panel takes the sides and the bottom
+   and is rounded at the bottom only; nothing is drawn between them. Both carry the same tint of the
+   group's colour, so the two are one object in one colour, not a row with a box under it. */
+#tbl tr.row[aria-expanded="true"] > td, #tbl tr.row[aria-expanded="true"] + tr.detail > td {
   --fr: color-mix(in srgb, var(--gc, var(--accent)) 72%, transparent);
-  box-shadow: inset 0 2px 0 var(--fr), inset 0 -2px 0 var(--fr);
 }
+#tbl tr.row[aria-expanded="true"] > td { box-shadow: inset 0 2px 0 var(--fr); }
 #tbl tr.row[aria-expanded="true"] > td.model {
   border-start-start-radius: 11px;
-  box-shadow: inset 3px 0 0 var(--fr), inset 0 2px 0 var(--fr), inset 0 -2px 0 var(--fr);
+  box-shadow: inset 3px 0 0 var(--fr), inset 0 2px 0 var(--fr);
 }
 #tbl tr.row[aria-expanded="true"] > td:last-child {
   border-start-end-radius: 11px;
-  box-shadow: inset -2px 0 0 var(--fr), inset 0 2px 0 var(--fr), inset 0 -2px 0 var(--fr);
+  box-shadow: inset -2px 0 0 var(--fr), inset 0 2px 0 var(--fr);
 }
-/* the panel hangs off the bottom of that frame, so the two read as one card */
+/* The row is the panel's header: it stays over the panel while the panel scrolls, under the table's own
+   header and the group row. Those two heights are measured into variables, never written in. */
+#tbl tr.row[aria-expanded="true"] > td {
+  position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 0px) + var(--grow-h, 0px)); z-index: 2;
+}
+#tbl tr.row[aria-expanded="true"] > td.model { z-index: 3; }
 #tbl tr.row[aria-expanded="true"] + tr.detail > td {
-  --fr: color-mix(in srgb, var(--gc, var(--accent)) 72%, transparent);
-  border-inline: 2px solid var(--fr); border-bottom: 2px solid var(--fr);
+  box-shadow: inset 3px 0 0 var(--fr), inset -2px 0 0 var(--fr), inset 0 -2px 0 var(--fr);
   border-end-start-radius: 11px; border-end-end-radius: 11px;
+  background: color-mix(in srgb, var(--gc, var(--accent)) 6%, var(--surface-solid));
 }
 #tbl td.st, #tbl th.st, #tbl td.last, #tbl th.last, #tbl td.ncom, #tbl th.ncom, #tbl td.rvw, #tbl th.rvw { width: 1%; white-space: nowrap; }
 .mt { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
@@ -1057,7 +1073,9 @@ table.mini code { font-size: 12px; }
 #tbl thead th.c .help { margin: 4px 0 0; }
 #tbl thead th.c br { display: none; }
 /* a check running now: a small pulsing count under its name, the rest in the tooltip */
-.hrun { display: block; margin: 4px auto 0; min-width: 22px; padding: 1px 4px; border-radius: 999px; background: var(--st-chk); color: var(--bg); font-size: 10px; font-weight: 800; letter-spacing: 0; text-align: center; animation: mkpulse 1.4s ease-in-out infinite; }
+.hrun { display: block; margin: 4px auto 0; min-width: 22px; padding: 1px 4px; border-radius: 999px; background: var(--st-chk); color: var(--bg); font-size: 10px; font-weight: 800; letter-spacing: 0; text-align: center; animation: hrunpulse 1.6s ease-in-out infinite; }
+/* the header badge breathes on opacity alone: scaling a number under a column head reads as a wobble */
+@keyframes hrunpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 .hrun.is-gone { background: var(--st-bad); color: #fff; animation: none; }
 @media (prefers-reduced-motion: reduce) { .hrun { animation: none; } }
 #tbl td.c { padding-left: 4px; padding-right: 4px; }
@@ -1079,7 +1097,7 @@ table.mini code { font-size: 12px; }
 .chip--act { cursor: pointer; font: inherit; }
 .chip--act:hover { box-shadow: 0 0 0 2px color-mix(in srgb, var(--hot) 40%, transparent); }
 .chip__aside { font-weight: 600; opacity: 0.85; }
-@media (prefers-reduced-motion: reduce) { .mk.is-running { animation: none; } .grow__btn svg { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .mk.is-running::before { animation: none; } .grow__btn svg { transition: none; } }
 /* narrower models panel: the last-commit columns give way first (each row's detail lists its commits) */
 @container models (max-width: 960px) { #tbl .last, #tbl .ncom { display: none; } }
 /* phones and narrow windows: each model is a card, its checks a wrap of labelled marks */
@@ -1097,6 +1115,18 @@ table.mini code { font-size: 12px; }
   #tbl tr.grow, #tbl tr.grow > th { display: block; }
   #tbl tr.grow > th { top: calc(var(--stick-head, 0px)); }
   #tbl tr.detail, #tbl tr.detail > td, #tbl tr.more, #tbl tr.more > td, #tbl tr.empty, #tbl tr.empty > td { display: block; }
+  /* As a card the row is one box already, so the frame goes back to being one border: the cells draw
+     nothing, the row takes the top and sides, the panel under it takes the sides and the bottom. The
+     card cannot stick -- it is a flex box in a block layout, not a table row -- so the panel's own
+     first line does the work of a header instead. */
+  #tbl tr.row[aria-expanded="true"] > td { position: static; box-shadow: none; border-radius: 0; z-index: auto; }
+  #tbl tr.row[aria-expanded="true"] {
+    border: 2px solid var(--fr, color-mix(in srgb, var(--gc, var(--accent)) 72%, transparent));
+    border-bottom: 0; border-radius: 11px 11px 0 0;
+  }
+  #tbl tr.row[aria-expanded="true"] + tr.detail > td {
+    box-shadow: none; border: 2px solid var(--fr); border-top: 0; border-radius: 0 0 11px 11px;
+  }
 }
 
 /* ---------- a bar per check: done, older code, failing, not run, of every model (or page) ---------- */
@@ -2261,22 +2291,49 @@ table.mini code { font-size: 12px; }
      bar's bottom edge, and each group row pins under the header. Nothing here is a written-in number:
      the bar's height changes as its chips rewrap, which happens while it is stuck and without any
      resize event, so the measurement runs on scroll as well -- once a frame, never per event. */
+  let stickTop = 0, wasStuck = null, wasEdge = null;
   function stickyOffsets() {
     const bar = $('filters');
-    const top = parseFloat(getComputedStyle(bar).top) || 0;
+    stickTop = parseFloat(getComputedStyle(bar).top) || 0;
     const root = document.documentElement.style;
-    root.setProperty('--stick-head', `${Math.round(top + bar.offsetHeight)}px`);
+    root.setProperty('--stick-head', `${Math.round(stickTop + bar.offsetHeight)}px`);
     // the thead is hidden on a phone, where each model is a card: measuring it gives 0 there by itself
     root.setProperty('--head-h', `${Math.round($('thead').offsetHeight)}px`);
     const grow = $('rows').querySelector('tr.grow > th');
     root.setProperty('--grow-h', `${grow ? Math.round(grow.offsetHeight) : 0}px`);
-    // "resting" is the bar sitting exactly at its own offset: the curtain above it belongs to that state only
-    bar.classList.toggle('is-stuck', bar.getBoundingClientRect().top <= top + 0.5);
-    leadEdge?.();
+    onScroll();
+  }
+  /* What scrolling alone can change: whether the bar is resting, and where the record's handle stands.
+     Both need one rectangle, not a re-measure of the stack -- the bar's height changes when its chips
+     rewrap, and a ResizeObserver already catches that, so reading the whole stack per frame would be
+     layout forced for nothing. Nothing is written unless the value actually moved. */
+  function onScroll() {
+    const bar = $('filters');
+    const stuck = bar.getBoundingClientRect().top <= stickTop + 0.5;
+    if (stuck !== wasStuck) { wasStuck = stuck; bar.classList.toggle('is-stuck', stuck); }
+    const sec = $('leadpanel'), tab = $('lead-tab');
+    if (sec && tab) {
+      /* The handle rides the panel's left edge only where the panel is a column beside the table. On a
+         narrow screen the record is a full-width block under the table, so its left edge is the page's
+         left margin -- the handle would stand off the side of the screen. There it rests against the
+         window's right edge instead, which is where the panel goes when it leaves. */
+      const beside = leadOpen && matchMedia('(min-width: 1100px)').matches;
+      const x = Math.round(beside ? sec.getBoundingClientRect().left : document.documentElement.clientWidth);
+      if (x !== wasEdge) { wasEdge = x; tab.style.setProperty('--lead-x', `${x}px`); }
+    }
   }
   if ('ResizeObserver' in window) { const ro = new ResizeObserver(stickyOffsets); ro.observe($('filters')); ro.observe($('thead')); }
   addEventListener('resize', stickyOffsets);
-  { let frame = 0; addEventListener('scroll', () => { if (frame) return; frame = requestAnimationFrame(() => { frame = 0; stickyOffsets(); }); }, { passive: true }); }
+  { let frame = 0; addEventListener('scroll', () => { if (frame) return; frame = requestAnimationFrame(() => { frame = 0; onScroll(); }); }, { passive: true }); }
+  /* Nothing animates off-screen. The stage strip is the page's most expensive thing to draw by a wide
+     margin (measured: it is most of the frame budget while the table scrolls), and once it has scrolled
+     away it is still being drawn thirty times a second. This pauses it -- play-state only, so not one
+     line of how the strip looks or moves is changed -- and does the same for the pills' specular. */
+  if ('IntersectionObserver' in window) {
+    const watch = (el, cls) => { if (!el) return; new IntersectionObserver(([e]) => document.documentElement.classList.toggle(cls, !e.isIntersecting), { rootMargin: '120px' }).observe(el); };
+    watch($('stats'), 'strip-away');
+    watch($('tablewrap'), 'table-away');
+  }
   const tagsScroll = scrollRow($('tags-row'));
   const legendScroll = scrollRow($('legend-row'));
   $('filters').addEventListener('click', onFilterClick);
@@ -2475,6 +2532,8 @@ table.mini code { font-size: 12px; }
     }
     flash = new Set(); // a row flashes once, on the refresh that changed it
     justApproved = new Set();
+    // past a page of rows the resting sweeps go: a hundred and thirty gradients in motion is not craft
+    $('rows').classList.toggle('many', drawn > 40);
     stickyOffsets(); // the group row only exists once there are rows, and its height is one of the offsets
   }
 
@@ -2508,17 +2567,16 @@ table.mini code { font-size: 12px; }
   }
   function detail(m) {
     const parts = [];
-    /* the model's own header: title, id, group and verdict on one line, the two hashes truncated under
-       it with a copy button each, and where the snippet was found. */
-    parts.push(`<header class="mdet">
-      <div class="mdet__top"><b class="mdet__t">${esc(m.title ?? m.id)}</b> <code class="mdet__id">${esc(m.id)}</code>
-        ${m.groupLabel ? `<span class="gchip">${esc(m.groupLabel)}</span>` : ''}
-        ${m.approved ? '<span class="chip s-ok">Approved</span>' : '<span class="chip s-conv">Not approved</span>'}</div>
+    /* No title here. The row above is the panel's header -- it carries the name, the id, the group and
+       the verdict already, and it sticks, so it stays over the panel while the panel scrolls. This
+       starts with what the row cannot say: the two hashes, cut to seven with the whole one a click
+       away, and where the snippet was found. */
+    parts.push(`<div class="mdet">
       <div class="mdet__ids">${hashBit('fingerprint', m.fingerprint, 'the source this model’s results are judged against')}${
         hashBit('converting commit', m.convertingCommit, 'the commit that first set --u in vmin')}<span class="hsh">snippet ${
         m.snippet ? `<code>${esc(m.snippet.file)}:${esc(m.snippet.line)}</code>${m.snippet.foundBy !== 'grep' ? ` <span class="muted">(${esc(m.snippet.foundBy)})</span>` : ''}` : '<b class="muted">not found</b>'}</span></div>
       ${m.approved ? '' : `<p class="mdet__miss"><b>Missing:</b> ${m.missing.map((x) => esc(x)).join(' · ')}</p>`}
-    </header>`);
+    </div>`);
     for (const n of m.notes) parts.push(`<div class="notice">${esc(n)}</div>`);
 
     /* One line per check, and the detail under the one you ask for. A grid of cards gave every check the
@@ -2837,12 +2895,7 @@ table.mini code { font-size: 12px; }
     if (t) t.textContent = qError || !Q ? 'Lead’s record' : `Lead’s record · ${n('running')} running`;
   }
   /** Where the handle stands: against the panel's left edge, or against the window once it has gone. */
-  function leadEdge() {
-    const sec = $('leadpanel'), tab = $('lead-tab');
-    if (!sec || !tab) return;
-    const x = leadOpen ? Math.round(sec.getBoundingClientRect().left) : Math.round(document.documentElement.clientWidth);
-    tab.style.setProperty('--lead-x', `${x}px`);
-  }
+  function leadEdge() { wasEdge = null; onScroll(); }
   function applyLead() {
     const sec = $('leadpanel'), tab = $('lead-tab');
     sec.closest('.split')?.classList.toggle('lead-away', !leadOpen);
