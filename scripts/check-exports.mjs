@@ -913,11 +913,17 @@ async function checkVideos(id) {
       // A live take is of a model held still, so every frame of it must be the same picture in the
       // same place: what changes between the first frame and any other is the recorder's doing, and
       // a slow creep (a fraction of a pixel a frame) shows here even though no single step does.
+      // Unless the model does not stand still when its animations are held: flaptext starts a
+      // flap-land from its script after the freeze, and the clock ticks on a timer. The canvas
+      // itself settles that — the same screen, shot before the take and again after it. If the
+      // model changed there too, the change in the file is the model's, not the recorder's.
       const crept = Math.max(0, ...boxes.map((b) => boxGap(boxes[0], b)));
       if (live && (worst.d > 0.5 || crept > 0.005)) {
+        const after = await screen();
+        const moved = await lab.evaluate(([a, b, bg]) => __px.likeness(__px.fromB64(a), __px.fromB64(b), bg), [scr.png, after.png, scr.bg]);
         const what = `an untouched model changes by up to ${worst.d.toFixed(2)} a frame, and its box wanders ${pc(crept)}% of the canvas from the first frame`;
-        if (scr.moving > 0.002) look(id, 'drift', shape, what, 'it was still moving when the take began (its own script), so a live take of it does change');
-        else miss(id, 'drift', shape, what, 'app');
+        if (scr.moving > 0.002 || moved > 0.5) look(id, 'drift', shape, what, `the model does not stand still while its animations are held (its own script or a timer): the canvas itself differs by ${moved.toFixed(2)} levels between the shot before the take and the one after it`);
+        else miss(id, 'drift', shape, `${what}, while the canvas before and after the take differs by only ${moved.toFixed(2)} levels`, 'app');
       }
       // The app says whether the file joins up: a model whose turn is longer than the dialog
       // records (rings takes 277s, the file is 30s) is cut, and its last frame is not its first.
