@@ -41,11 +41,6 @@
   --grid: rgb(140 150 220 / 0.036);
   --text: #eceefb; --muted: #949bc0;
   --accent: #8b6cff; --accent-2: #2ee6d6; --hot: #ff4d9d; --warm: #ffb547;
-  /* The one green this page adds to the site's violet/teal/pink/amber: Approved reads as done, not as
-     danger. Written in OKLCH so it sits in the same lightness and chroma family as the site's teal and
-     violet rather than as a saturated sRGB spring green, and its hue leans toward that teal. One token:
-     putting the arrow back to pink is this line. */
-  --good: oklch(0.82 0.128 166);
   --code-bg: #0a0c18;
   --shadow: 0 20px 50px -20px rgb(0 0 0 / 0.7);
   --radius: 18px;
@@ -60,7 +55,7 @@
     --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
     --grid: rgb(40 50 120 / 0.034);
     --text: #14172b; --muted: #5a6188;
-    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166);
+    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00;
     --code-bg: #e8eafa;
     --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
     color-scheme: light;
@@ -72,7 +67,7 @@
   --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
   --grid: rgb(40 50 120 / 0.034);
   --text: #14172b; --muted: #5a6188;
-  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166);
+  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00;
   --code-bg: #e8eafa;
   --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
   color-scheme: light;
@@ -194,8 +189,8 @@ button, input { font: inherit; color: inherit; }
   background: linear-gradient(104deg, transparent 38%, color-mix(in srgb, #fff var(--sweep-w), transparent) 50%, transparent 62%);
   transform: translateX(-165%); animation: oksheen 9s ease-in-out infinite; animation-delay: var(--sweep-d, 0s);
 }
-/* a win gets one brighter, faster crossing -- 9% is the most white that still leaves the label at 4.5:1 */
-.s-ok.won::after { --sweep-w: 9%; animation: oksheen 0.8s ease-out; }
+/* a win gets one brighter, faster crossing -- 7% is the most white that still leaves the label at 4.5:1 */
+.s-ok.won::after { --sweep-w: 7%; animation: oksheen 0.8s ease-out; }
 @keyframes oksheen { 0%, 79% { transform: translateX(-165%); } 100% { transform: translateX(165%); } }
 /* quiet at rest. One sweep and one settle on the refresh that turned this model approved, never a loop. */
 .s-ok.won { animation: okpop 0.6s cubic-bezier(0.22, 1.3, 0.3, 1); }
@@ -226,55 +221,10 @@ button, input { font: inherit; color: inherit; }
 /* ---------- the three stages as chevron tabs: each is a glass, and its models are the liquid in it ----------
    The level is that stage's share of every model, so the three levels add up to one full glass. Every
    colour the text sits on (the empty glass, the liquid, the wave crest) is a named mix of that stage's
-   colour, chosen so the label, the count and the one-line description clear 4.5:1 on both themes.
-   The share is per stage because the three hues are nowhere near equally bright: at one shared
-   percentage the violet would be a shadow and the teal would wash the text out. These numbers are the
-   measured caps -- raising one lowers the contrast over that stage's fill. */
-:root {
-  --step-ink-2: #e9ecfd;
-  --glass-lo: 8%; --glass-hi: 13%; --rim: 15%;
-  --lq-1: 50%; --lq-2: 25%; --lq-3: 22%;   /* colour in the fill at the surface, per stage */
-  --lq-up: 7%;                              /* the selected glass is one step richer */
-  --lq-dp: -12%;                            /* dark: the fill darkens with depth */
-  --lq-cr: 14%;                             /* dark: the crest is lighter than the surface */
-  --glass-base: var(--surface-solid); --liq-base: #0a0d1e;
-  /* The sky is one ramp on all three tabs: the stage's own colour over one base, a little of it high up
-     and more toward the horizon. Only the two percentages move, so the three read as one family at three
-     times of day. No tab introduces a hue of its own: the only accents are the site's amber (the sun)
-     and its violet (the lightning). The text sits on all of it, so every tone stays inside the same
-     measured range as the fill -- in dark, nothing past about 0.12 relative luminance. That is why the
-     sun is an ember rather than a white disc; against a sky at 0.01 it still reads as a sun. */
-  --sk-a1: 7%;  --sk-b1: 19%;   /* storm:  dim and cool */
-  --sk-a2: 11%; --sk-b2: 26%;   /* calm:   bright and even */
-  --sk-a3: 8%;  --sk-b3: 22%;   /* sunset: warm and low */
-  --sky-base: #06070f;
-  --sun: color-mix(in srgb, var(--warm) 44%, var(--sky-base));
-  --bolt: color-mix(in srgb, var(--accent) 62%, #ffffff);
-}
-@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
-  --step-ink-2: #272c4c; --glass-lo: 7%; --glass-hi: 12%; --rim: 13%;
-  --lq-1: 46%; --lq-2: 56%; --lq-3: 54%; --lq-up: 6%;
-  --lq-dp: 12%;                             /* light: the fill deepens with depth */
-  --lq-cr: -16%;                            /* light: the crest is paler than the surface */
-  --liq-base: #ffffff;
-  --sk-a1: 50%; --sk-b1: 33%;
-  --sk-a2: 22%; --sk-b2: 8%;
-  --sk-a3: 34%; --sk-b3: 13%;
-  --sky-base: #ffffff;
-  --sun: color-mix(in srgb, var(--warm) 62%, var(--sky-base));
-  --bolt: color-mix(in srgb, var(--accent) 30%, #ffffff);
-} }
-:root[data-theme="light"] {
-  --step-ink-2: #272c4c; --glass-lo: 7%; --glass-hi: 12%; --rim: 13%;
-  --lq-1: 46%; --lq-2: 56%; --lq-3: 54%; --lq-up: 6%;
-  --lq-dp: 12%; --lq-cr: -16%; --liq-base: #ffffff;
-  --sk-a1: 50%; --sk-b1: 33%;
-  --sk-a2: 22%; --sk-b2: 8%;
-  --sk-a3: 34%; --sk-b3: 13%;
-  --sky-base: #ffffff;
-  --sun: color-mix(in srgb, var(--warm) 62%, var(--sky-base));
-  --bolt: color-mix(in srgb, var(--accent) 30%, #ffffff);
-}
+   colour, chosen so the label, the count and the one-line description clear 4.5:1 on both themes. */
+:root { --step-ink-2: #d6dbf0; --glass-lo: 8%; --glass-hi: 13%; --liq-lo: 24%; --liq-hi: 30%; --crest-lo: 29%; --crest-hi: 34%; --glass-base: var(--surface-solid); --liq-base: var(--surface-solid); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --step-ink-2: #3d4468; --glass-lo: 7%; --glass-hi: 12%; --liq-lo: 20%; --liq-hi: 27%; --crest-lo: 30%; --crest-hi: 38%; } }
+:root[data-theme="light"] { --step-ink-2: #3d4468; --glass-lo: 7%; --glass-hi: 12%; --liq-lo: 20%; --liq-hi: 27%; --crest-lo: 30%; --crest-hi: 38%; }
 
 .flowwrap { --notch: 26px; --tipx: 6px; --tipy: 9px; --wave: 16px; margin-top: 16px; }
 .flow { list-style: none; margin: 0; padding: 0; display: flex; }
@@ -286,14 +236,10 @@ button, input { font: inherit; color: inherit; }
 .step { pointer-events: auto; }
 /* the notch of one tab is the exact negative of the tip before it, so they interlock with no seam */
 .step {
-  --c: var(--muted); --lv: 0; --lqp: 40%;
-  --lq: var(--lqp);
-  --wash: color-mix(in srgb, var(--c) var(--glass-lo), transparent);
-  /* the fill is three named mixes of one percentage: the surface, the same colour deeper down, and the
-     crest line where the wave meets the empty glass */
-  --liq: color-mix(in srgb, var(--c) var(--lq), var(--liq-base));
-  --liq-deep: color-mix(in srgb, var(--c) calc(var(--lq) + var(--lq-dp)), var(--liq-base));
-  --crest: color-mix(in srgb, var(--c) calc(var(--lq) + var(--lq-cr)), var(--liq-base));
+  --c: var(--muted); --lv: 0;
+  --glass: color-mix(in srgb, var(--c) var(--glass-lo), var(--glass-base));
+  --liq: color-mix(in srgb, var(--c) var(--liq-lo), var(--liq-base));
+  --crest: color-mix(in srgb, var(--c) var(--crest-lo), var(--liq-base));
   position: relative; display: block; width: 100%; padding: 0; border: 0; background: none;
   color: var(--text); font: inherit; text-align: left; cursor: pointer;
   /* on the button itself: the pointer then hits the chevron, not the box around it */
@@ -301,177 +247,48 @@ button, input { font: inherit; color: inherit; }
     calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
     0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
 }
-.step {
-  --sky: linear-gradient(180deg,
-    color-mix(in srgb, var(--c) var(--sk-a), var(--sky-base)) 0%,
-    color-mix(in srgb, var(--c) calc((var(--sk-a) + var(--sk-b)) / 2), var(--sky-base)) 56%,
-    color-mix(in srgb, var(--c) var(--sk-b), var(--sky-base)) 100%);
-}
-.step--1 { --sk-a: var(--sk-a1); --sk-b: var(--sk-b1); }
-.step--2 { --sk-a: var(--sk-a2); --sk-b: var(--sk-b2); }
-.step--3 { --sk-a: var(--sk-a3); --sk-b: var(--sk-b3); }
-.step--1 { --c: var(--accent); --lqp: var(--lq-1); clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
-.step--2 { --c: var(--accent-2); --lqp: var(--lq-2); }
-.step--3 { --c: var(--good); --lqp: var(--lq-3); }
-/* Approved -- sunset: the light at the surface is warm, so the crest carries a little amber and the
-   colour fades from that into the green below. Ten per cent, not more: the sweep measured 3.5:1 behind
-   the count at twenty-six, because amber is far brighter than this green. */
-.step--3 { --crest: color-mix(in srgb, var(--warm) 10%, color-mix(in srgb, var(--c) calc(var(--lq) + var(--lq-cr)), var(--liq-base))); }
-/* the glass: the stage's colour at its faintest, a sheen and a glow along the top rim, a rim along the
-   base. All of it is under the liquid, so it is what an empty stage shows. */
+.step--1 { --c: var(--accent); clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
+.step--2 { --c: var(--accent-2); }
+.step--3 { --c: var(--hot); }
+/* the glass: the stage's colour at its faintest, a sheen along the top edge, a rim along the base */
 .step__body {
   position: relative; display: block; height: 128px; overflow: hidden;
   background:
     linear-gradient(to top, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
-    radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--rim), transparent), transparent 76%),
     linear-gradient(180deg, color-mix(in srgb, #fff 7%, transparent), transparent 38%),
-    linear-gradient(var(--wash), var(--wash)),
-    var(--sky);
+    var(--glass);
+  transition: background-color 0.2s;
 }
-/* the liquid: a full-height block pushed down, so only its top --lv shows; its surface is the wave.
-   Under the wave the crest line, a sheen just below it, then the colour sinking toward the bottom.
-   Nothing drawn in here is lighter than --crest (dark) or darker than --liq-deep (light): that is what
-   keeps the worst pixel behind the text inside the measured range, bubbles and meniscus included. */
+/* the liquid: a full-height block pushed down, so only its top --lv shows; its surface is the wave */
 .step__liquid {
   position: absolute; inset: 0; padding-top: var(--wave);
-  background: linear-gradient(180deg, var(--liq) 0 30px, var(--liq-deep) 100%);
-  background-clip: content-box;
+  background: var(--liq); background-clip: content-box;
   transform: translateY(calc((1 - var(--lv)) * 100%));
-  /* the level does not slide into place: it overshoots a little and settles */
-  transition: transform 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
+  transition: transform 0.75s cubic-bezier(0.22, 0.9, 0.24, 1);
 }
-/* The meniscus: the liquid climbs the glass wall, brightest at the wall and fading inward and down.
-   A chevron has no vertical walls -- its sides are the notch and the tip -- so on the wide layout this
-   is drawn only on the first tab's flat left edge. Anywhere else it would be a bright band standing in
-   open water. The narrow layout stacks the tabs, where both walls really are vertical, and gets both. */
-.step__liquid::before {
-  content: ''; position: absolute; top: calc(var(--wave) - 3px); left: 0; right: 0; height: 30px;
-  background: linear-gradient(90deg, var(--crest), transparent 15px), linear-gradient(270deg, var(--crest), transparent 15px);
-  -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent);
-  opacity: 0.6; display: none;
-}
-.step--1 .step__liquid::before { display: block; background: linear-gradient(90deg, var(--crest), transparent 15px); }
-/* a few slow bubbles, hung under the surface so they only show where there is depth to rise through */
-.step__liquid .b { position: absolute; border-radius: 50%; background: color-mix(in srgb, var(--crest) 70%, transparent); animation: steprise 10s linear infinite; }
-.step__liquid .b1 { left: 21%; top: calc(var(--wave) + 52px); width: 5px; height: 5px; --climb: 52px; animation-duration: 9.5s; animation-delay: -2.2s; }
-.step__liquid .b2 { left: 57%; top: calc(var(--wave) + 34px); width: 3px; height: 3px; --climb: 34px; animation-duration: 13s; animation-delay: -7.4s; }
-.step__liquid .b3 { left: 78%; top: calc(var(--wave) + 22px); width: 4px; height: 4px; --climb: 22px; animation-duration: 7.5s; animation-delay: -4.1s; }
-@keyframes steprise {
-  0% { transform: translateY(0) scale(0.5); opacity: 0; }
-  18% { opacity: 0.8; }
-  82% { opacity: 0.55; }
-  100% { transform: translateY(calc(var(--climb) * -1)) scale(1); opacity: 0; }
-}
-/* A little life in the deep end. The lane is its own box so it can be clipped to the fill from the top:
-   it starts below the lowest line of text at both sizes, so nothing ever swims over a word, and a
-   shallow glass hides the swimmers entirely. Every shape is a mix between --liq and --crest, so none of
-   them can move the worst pixel behind the text either way. One constant in the script turns it all off.
-   CSS has no randomness, so "rare" is two long crossings on coprime cycles (97s and 151s): they drift
-   against each other for hours instead of landing on a beat. */
-.step__sea {
-  position: absolute; inset: 0; overflow: hidden; --swim: 680px; --lane: 97px;
-  clip-path: inset(calc((1 - var(--lv)) * 100%) 0 0 0);
-  transition: clip-path 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
-}
-.step__sea svg { position: absolute; top: var(--lane); fill: color-mix(in srgb, var(--crest) var(--tint), var(--liq)); }
-/* every sprite is drawn facing left, so the ones heading right carry the mirror in their own keyframes */
-.step__sea .swimL { right: -70px; }
-.step__sea .swimR { left: -70px; }
-@keyframes stepdriftL { 0%, 4% { transform: translateX(0); } 100% { transform: translateX(calc(var(--swim) * -1)); } }
-@keyframes stepdriftR { 0%, 4% { transform: translateX(0) scaleX(-1); } 100% { transform: translateX(var(--swim)) scaleX(-1); } }
-@keyframes steppassL { 0%, 78% { transform: translateX(0); } 100% { transform: translateX(calc(var(--swim) * -1)); } }
-@keyframes steppassR { 0%, 78% { transform: translateX(0) scaleX(-1); } 100% { transform: translateX(var(--swim)) scaleX(-1); } }
-/* the big ones come first, so they pass behind the small fish, fainter and slower */
-.step__sea .big1 { top: calc(var(--lane) - 1px); --tint: 24%; opacity: 0.2; animation: steppassL 97s linear infinite; animation-delay: -41s; }
-.step__sea .big2 { top: calc(var(--lane) + 2px); --tint: 30%; opacity: 0.17; animation: steppassR 151s linear infinite; animation-delay: -104s; }
-.step__sea .f1 { --tint: 46%; opacity: 0.42; animation: stepdriftR 31s linear infinite; animation-delay: -7s; }
-.step__sea .f2 { top: calc(var(--lane) + 10px); --tint: 64%; opacity: 0.34; animation: stepdriftL 43s linear infinite; animation-delay: -19s; }
-.step__sea .f3 { top: calc(var(--lane) + 17px); --tint: 32%; opacity: 0.4; animation: stepdriftR 57s linear infinite; animation-delay: -34s; }
-.step__sea .f4 { top: calc(var(--lane) + 4px); --tint: 54%; opacity: 0.26; animation: stepdriftL 67s linear infinite; animation-delay: -52s; }
 .step__wave { position: absolute; top: 0; left: 0; width: 100%; height: var(--wave); display: block; }
-/* three waves: different lengths, speeds, directions and weights, so the surface never reads as one
-   repeating sine. Each slide is a whole number of that wave's periods, so every loop lands where it started. */
-/* the sheen is a wide, soft stroke along the surface; the crest is a crisp one over it. Both fill with
-   --liq, which is exactly what the fill starts at, so the wave band and the fill meet seamlessly. */
-.step__wave .w1g { fill: var(--liq); stroke: var(--crest); stroke-width: 8; opacity: 0.32; animation: stepwave 11s linear infinite; }
-.step__wave .w1 { fill: var(--liq); stroke: var(--crest); stroke-width: 2; animation: stepwave 11s linear infinite; }
-.step__wave .w2 { fill: var(--crest); opacity: 0.5; animation: stepwave 19s linear infinite reverse; }
-.step__wave .w3 { fill: var(--crest); opacity: 0.28; animation: stepwave 7s linear infinite; }
+.step__wave .w1 { fill: var(--liq); stroke: var(--crest); stroke-width: 1.4; animation: stepwave 11s linear infinite; }
+.step__wave .w2 { fill: var(--crest); opacity: 0.55; animation: stepwave 17s linear infinite reverse; }
 @keyframes stepwave { from { transform: translateX(0); } to { transform: translateX(-120px); } }
-/* when the level changes, the surface swells once and settles, instead of arriving flat */
-.step.is-pour .step__wave { transform-origin: 50% 100%; animation: stepslosh 0.95s cubic-bezier(0.3, 0.9, 0.3, 1); }
-@keyframes stepslosh { 0% { transform: scaleY(2.1); } 45% { transform: scaleY(0.65); } 74% { transform: scaleY(1.2); } 100% { transform: scaleY(1); } }
-/* ---------- the weather: each stage gets its own mood, one element per tab ----------
-   Everything drawn here is --crest at some alpha, and that is the whole contrast argument: --crest is
-   already the lightest thing the fill paints in dark and the palest in light, so no weather layer can
-   push the worst pixel behind the text past what the fill was measured at. The storm's cooler, dimmer
-   cast is deliberately missing: darkening the glass is the one move that fails in the light theme, where
-   the text is dark, so the storm reads through its rain and its flash instead.
-   Approved has no layer at all -- its sunset is a warm shift of --crest itself, further down. */
-.step__sky { position: absolute; inset: 0; pointer-events: none; }
-.step__sky::before, .step__sky::after { content: ''; position: absolute; inset: 0; }
-/* To check -- a storm: rain across the glass, and roughly every 37s the water lights once, softly */
-.step--1 .step__sky::before {
-  top: -60px; bottom: -60px;
-  background: repeating-linear-gradient(74deg, color-mix(in srgb, var(--crest) 62%, transparent) 0 1px, transparent 1px 13px);
-  -webkit-mask-image: repeating-linear-gradient(164deg, #000 0 10px, transparent 10px 34px);
-  mask-image: repeating-linear-gradient(164deg, #000 0 10px, transparent 10px 34px);
-  opacity: 0.5; animation: steprain 0.9s linear infinite;
-}
-/* 47.17px down is exactly one stripe along the 74deg axis, so the rain never seams */
-@keyframes steprain { from { transform: translateY(0); } to { transform: translateY(47.17px); } }
-/* the bolt lights the sky only: over the fill a flash this bright would break the text's contrast */
-.step--1 .step__sky::after {
-  bottom: calc(var(--lv) * 100%);
-  background: linear-gradient(180deg, var(--bolt), color-mix(in srgb, var(--bolt) 34%, transparent) 62%, transparent);
-  opacity: 0; animation: stepflash 37s linear infinite;
-  transition: bottom 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
-}
-/* one slow rise and fall a little over a second, once every 37 seconds: distant, never a strobe */
-@keyframes stepflash { 0%, 95.6% { opacity: 0; } 97.2% { opacity: 0.4; } 99.2%, 100% { opacity: 0; } }
-/* Awaiting review -- a calm day: soft rays through the water only, and a gentler, slower surface */
-.step--2 .step__sky::before {
-  clip-path: inset(calc((1 - var(--lv)) * 100%) 0 0 0);
-  background: repeating-linear-gradient(100deg, color-mix(in srgb, var(--crest) 40%, transparent) 0 7px, transparent 7px 56px);
-  -webkit-mask-image: linear-gradient(180deg, #000, transparent 88%); mask-image: linear-gradient(180deg, #000, transparent 88%);
-  opacity: 0.62; animation: steprays 26s ease-in-out infinite alternate;
-}
-@keyframes steprays { from { transform: translateX(-18px); } to { transform: translateX(18px); } }
-.step--2 .step__wave { scale: 1 0.7; transform-origin: 50% 100%; }
-/* Approved -- sunset: the sun sits on the water line, so its box ends where the liquid starts and a full
-   glass has no sky left to put it in. Ember, not white: see the note on the sky tokens. */
-.step--3 .step__sky::after {
-  bottom: calc(var(--lv) * 100%);
-  background:
-    radial-gradient(30px 30px at 76% 100%, var(--sun) 0 34%, color-mix(in srgb, var(--sun) 52%, transparent) 48%, transparent 72%),
-    radial-gradient(70% 46% at 76% 100%, color-mix(in srgb, var(--sun) 34%, transparent), transparent 70%),
-    linear-gradient(180deg, transparent 46%, color-mix(in srgb, var(--sun) 20%, transparent));
-  transition: bottom 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
-}
-.step--2 .step__wave .w1 { animation-duration: 17s; }
-.step--2 .step__wave .w2 { animation-duration: 29s; }
-.step--2 .step__wave .w3 { animation-duration: 12s; }
 .step__text { position: relative; display: grid; align-content: center; height: 100%; padding: 8px calc(var(--notch) + 10px) 8px calc(var(--notch) + 14px); }
 .step--1 .step__text { padding-left: 16px; }
 .step__label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--step-ink-2); line-height: 1.25; }
-.step__n { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--c) 14%, var(--text)); }
+.step__n { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--c) 35%, var(--text)); }
 .step__sub { font-size: 11.5px; line-height: 1.3; color: var(--step-ink-2); }
-/* hover and select move the one percentage the three mixes are built from, so the text never leaves
-   the measured range */
-.step:hover { --wash: color-mix(in srgb, var(--c) var(--glass-hi), transparent); }
+/* hover and select both brighten the same three mixes, so the text never leaves the measured range */
+.step:hover { --glass: color-mix(in srgb, var(--c) var(--glass-hi), var(--glass-base)); }
 .step[aria-selected="true"] {
-  --wash: color-mix(in srgb, var(--c) var(--glass-hi), transparent);
-  --lq: calc(var(--lqp) + var(--lq-up));
+  --glass: color-mix(in srgb, var(--c) var(--glass-hi), var(--glass-base));
+  --liq: color-mix(in srgb, var(--c) var(--liq-hi), var(--liq-base));
+  --crest: color-mix(in srgb, var(--c) var(--crest-hi), var(--liq-base));
 }
 /* the selected one is marked four ways: a solid base bar, brighter glass and liquid, a full-strength
    label, and the panel below it taking its colour */
 .step[aria-selected="true"] .step__body { background:
     linear-gradient(to top, var(--c) 0 5px, transparent 5px),
     linear-gradient(to bottom, var(--c) 0 2px, transparent 2px),
-    radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--rim), transparent), transparent 76%),
     linear-gradient(180deg, color-mix(in srgb, #fff 9%, transparent), transparent 38%),
-    linear-gradient(var(--wash), var(--wash)),
-    var(--sky); }
+    var(--glass); }
 .step[aria-selected="true"] .step__label { color: var(--text); }
 .step[aria-selected="true"] .step__label::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 2px; background: var(--c); vertical-align: 0.5px; }
 .step:focus-visible { outline: none; }
@@ -482,11 +299,7 @@ button, input { font: inherit; color: inherit; }
 /* no waving, and the level jumps to where it belongs */
 @media (prefers-reduced-motion: reduce) {
   .step__liquid { transition: none; }
-  .step__wave .w1, .step__wave .w1g, .step__wave .w2, .step__wave .w3 { animation: none; }
-  .step.is-pour .step__wave { animation: none; }
-  .step__liquid .b, .step__sea { display: none; }
-  .step__sea, .step__sea svg[class], .step__sky::before, .step__sky::after { animation: none; transition: none; }
-  .step--3 .step__sky::after { transition: none; }
+  .step__wave .w1, .step__wave .w2 { animation: none; }
   .step__body { transition: none; }
 }
 /* narrow screens and phones: the arrow runs top to bottom, each stage pointing down into the next */
@@ -503,20 +316,12 @@ button, input { font: inherit; color: inherit; }
   .step--1 { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch))); }
   .step__body { height: 92px; background:
       linear-gradient(to right, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
-      radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--rim), transparent), transparent 76%),
       linear-gradient(180deg, color-mix(in srgb, #fff 7%, transparent), transparent 38%),
-      linear-gradient(var(--wash), var(--wash)),
-      var(--sky); }
+      var(--glass); }
   .step[aria-selected="true"] .step__body { background:
       linear-gradient(to right, var(--c) 0 5px, transparent 5px),
-      radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--rim), transparent), transparent 76%),
       linear-gradient(180deg, color-mix(in srgb, #fff 9%, transparent), transparent 38%),
-      linear-gradient(var(--wash), var(--wash)),
-      var(--sky); }
-  .step__liquid::before, .step--1 .step__liquid::before { display: block; background: linear-gradient(90deg, var(--crest), transparent 15px), linear-gradient(270deg, var(--crest), transparent 15px); }
-  /* 92px of glass is not enough water to hide the big ones, and a crowd would read as noise */
-  .step__sea { --swim: 460px; --lane: 62px; }
-  .step__sea .big1, .step__sea .big2, .step__sea .f4 { display: none; }
+      var(--glass); }
   .step__text, .step--1 .step__text { padding: calc(var(--notch) + 4px) 16px calc(var(--notch) + 4px) 20px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; }
   .step__label { grid-column: 1; }
   .step__n { grid-column: 2; grid-row: 1 / span 2; font-size: 26px; }
@@ -1507,7 +1312,7 @@ table.mini code { font-size: 12px; }
      that stage's detail. Selecting one does not filter the table; its panel has a button that does. */
   const STEP_SHORT = { 'to check': 'To check', checked: 'Awaiting review', approved: 'Approved' };
   const STEP_SUB = { 'to check': 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
-  const STAGE_C = ['var(--accent)', 'var(--accent-2)', 'var(--good)'];
+  const STAGE_C = ['var(--accent)', 'var(--accent-2)', 'var(--hot)'];
   let stage = null; // the selected tab's state key; remembered per viewer
   try { stage = localStorage.getItem('ledger-stage'); } catch {}
   /** The selected stage: the remembered one if it still exists, else the first with models in it. */
@@ -1521,37 +1326,11 @@ table.mini code { font-size: 12px; }
     renderOverview();
     if (focus) $('stats').querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
   }
-  /* The liquid's surface is three waves, not one: different lengths, weights and speeds, so it never
-     reads as a repeating sine. Each is drawn from -240 to 500 -- wide enough that the 120px slide never
-     runs out of wave -- and every period divides that slide, so each loop lands where it started.
-     Built once, at load; nothing here runs per frame. */
-  const wavePath = (y, h, a, up) => { // y: the flat line, h: half a period, a: how far it swings
-    let d = `M-240 ${y}`;
-    for (let x = -240; x < 500; x += h) { d += ` Q${x + h / 2} ${up ? y - a : y + a} ${x + h} ${y}`; up = !up; }
-    return `${d} V30 H-240 Z`;
-  };
+  /* the liquid's surface: two sine waves of the same period, drawn wide enough that sliding one period
+     left or right never runs out of wave. The back one is lighter and slower, so the two drift apart. */
   const WAVE = '<svg class="step__wave" viewBox="0 0 240 16" preserveAspectRatio="none" aria-hidden="true" focusable="false">'
-    + `<path class="w2" d="${wavePath(7, 60, 3.4, true)}"/>`
-    + `<path class="w3" d="${wavePath(11.5, 20, 2.2, false)}"/>`
-    + `<path class="w1g" d="${wavePath(9, 30, 5, true)}"/>`
-    + `<path class="w1" d="${wavePath(9, 30, 5, true)}"/></svg>`;
-  const LIQUID = '<i class="b b1"></i><i class="b b2"></i><i class="b b3"></i>' + WAVE;
-  /* The deep end of each glass, below the last line of text: four small fish of three shapes drifting at
-     their own depths and speeds, and behind them a whale and a dolphin that cross only now and then.
-     Every shape is drawn facing left; the CSS mirrors the ones heading right. Set SEA to false and the
-     markup goes with it. Silhouettes in the liquid's own colours, never a bright cartoon. */
-  const SEA = true;
-  const SHAPE = { // each one faces left: head at the low x, tail at the high x
-    a: [18, 10, 'M2 5C4 1.6 10 1.6 12.6 5 10 8.4 4 8.4 2 5Z M12.6 5 17 2.3 17 7.7Z'],
-    b: [14, 8, 'M1 4C2.6 1.3 7.4 1.3 9.5 4 7.4 6.7 2.6 6.7 1 4Z M9.5 4 13.5 1.6 13.5 6.4Z'],
-    c: [22, 9, 'M1.5 4.5C4 1.8 12 1.8 16 4.5 12 7.2 4 7.2 1.5 4.5Z M16 4.5 21 1.8 21 7.2Z M9 2.4 10.6 0.5 12 2.6Z'],
-    whale: [56, 22, 'M2 12.5C8 5 21 2 33 4.6 40 6.1 45 8.8 48 12.1 44 15.7 37 18.6 28 18.6 17 18.6 6 16.4 2 12.5Z M48 12.1C50.6 9.7 53 7.9 56 6.7 55 10.3 55 13.9 56 17.5 53 16.3 50.6 14.5 48 12.1Z'],
-    dolphin: [48, 18, 'M2 10C8 4 20 2 30 3.6 37 4.8 42 7 45 10 41 13.6 34 16 26 16 16 16 6 14 2 10Z M24 3.6 27 0.5 30 4Z M45 10 48 6.6 48 13.4Z'],
-  };
-  const swimmer = (shape, cls) => { const [w, h, d] = SHAPE[shape]; return `<svg class="${cls}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true" focusable="false"><path d="${d}"/></svg>`; };
-  const WEATHER = true;
-  const SKY = WEATHER ? '<span class="step__sky" aria-hidden="true"></span>' : '';
-  const SEALIFE = SEA ? `<span class="step__sea" aria-hidden="true">${swimmer('whale', 'big1 swimL')}${swimmer('dolphin', 'big2 swimR')}${swimmer('a', 'f1 swimR')}${swimmer('b', 'f2 swimL')}${swimmer('c', 'f3 swimR')}${swimmer('b', 'f4 swimL')}</span>` : '';
+    + '<path class="w2" d="M-210 6 Q-180 3 -150 6 T-90 6 T-30 6 T30 6 T90 6 T150 6 T210 6 T270 6 T330 6 T390 6 T450 6 T510 6 V30 H-210 Z"/>'
+    + '<path class="w1" d="M-240 9 Q-210 4 -180 9 T-120 9 T-60 9 T0 9 T60 9 T120 9 T180 9 T240 9 T300 9 T360 9 T420 9 T480 9 V30 H-240 Z"/></svg>';
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
   const shownLv = new Map(); // the level each glass is showing now, so only a real change animates
   function renderStats(buckets) {
@@ -1566,20 +1345,12 @@ table.mini code { font-size: 12px; }
       return `<li class="flow__li" role="presentation">${rule ? `<span id="step-rule-${i}" class="visually-hidden">${esc(rule)}.</span>` : ''}<button type="button" role="tab" id="stage-tab-${i}" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-stage="${esc(b.key)}" data-lv="${lv}" style="--lv:${from}" aria-selected="${on}" aria-controls="ov-stage" tabindex="${on ? 0 : -1}"${rule ? ` data-tip aria-describedby="step-rule-${i}"` : ''}
           aria-label="${esc(`${name}: ${b.count} of ${total} models, ${Math.round(lv * 100)}% of the glass`)}">
         <span class="step__body" aria-hidden="true">
-          <span class="step__liquid">${LIQUID}</span>${SEALIFE}${SKY}
+          <span class="step__liquid">${WAVE}</span>
           <span class="step__text"><span class="step__label">${esc(name)}</span><span class="step__n">${b.count}</span><span class="step__sub">${esc(STEP_SUB[b.key] ?? '')}</span></span>
         </span></button></li>`;
     }).join('')}</ol>`;
     // the level rises from where it was; a redraw on select starts where it already is, so nothing moves
-    const settle = () => {
-      for (const el of $('stats').querySelectorAll('.step')) {
-        const to = +el.dataset.lv, was = shownLv.get(el.dataset.stage);
-        el.style.setProperty('--lv', el.dataset.lv);
-        shownLv.set(el.dataset.stage, to);
-        // one swell when the level actually moves; a redraw at the same level leaves the surface alone
-        if (!REDUCED.matches && was !== to) { el.classList.add('is-pour'); setTimeout(() => el.classList.remove('is-pour'), 1000); }
-      }
-    };
+    const settle = () => { for (const el of $('stats').querySelectorAll('.step')) { el.style.setProperty('--lv', el.dataset.lv); shownLv.set(el.dataset.stage, +el.dataset.lv); } };
     if (REDUCED.matches) settle();
     else requestAnimationFrame(() => requestAnimationFrame(settle));
   }
