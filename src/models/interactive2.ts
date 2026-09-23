@@ -45,10 +45,10 @@ export const interactiveDemos2: Demo[] = [
   {
     id: 'confetti',
     title: 'Confetti burst',
-    description: 'Click anywhere. JS spawns particles with random 3D vectors; one CSS animation flies them all.',
+    description: 'Click anywhere on the canvas. JS gives each piece a random 3D vector in per cent of the canvas, and one CSS animation flies them all out to its edges.',
     category: 'js',
     tags: ['generated', 'pointer'],
-    technique: ['random --x / --y / --z / --spin per particle', 'translate3d + rotate3d keyframes', 'remove on animationend'],
+    technique: ['random --x / --y / --z / --spin per piece, in per cent of the canvas', 'translate3d + rotate3d keyframes', 'a pool of pieces thrown again and again'],
   },
   {
     id: 'scrollspin',

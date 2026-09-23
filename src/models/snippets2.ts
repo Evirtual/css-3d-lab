@@ -2045,47 +2045,52 @@ for (let row = 0; row < N; row++) {
 
   confetti: {
     how: [
-      'On click, JS creates 36 particles in the middle of the canvas. Each gets a random vector in custom properties: <code>--x</code>, <code>--y</code>, <code>--z</code>, <code>--spin</code>, <code>--hue</code>. The vectors come in mirrored pairs, one to the left and one to the right, so the burst is always balanced.',
+      'On click, JS gives 36 pieces a random vector each, in custom properties: <code>--x</code>, <code>--y</code> (per cent of the canvas from its middle), <code>--z</code>, <code>--spin</code>, <code>--hue</code>. The vectors come in mirrored pairs, one to the left and one to the right, so the burst is always balanced, and they reach the canvas edges.',
       'There is only <b>one</b> keyframe rule. It reads those variables, so every particle flies somewhere different.',
       '<code>--z</code> is what makes it 3D: particles coming toward the camera grow, the others shrink away.',
       'The pieces are made <b>once</b> and thrown again and again: three bursts\' worth (108) exist at all, and each click gives the next 36 of them new numbers and restarts their flight with <code>cancel()</code> then <code>play()</code>. Clicking as fast as a finger can is then only new values on elements that are already there — nothing is made or unmade while the page is drawing, nothing waits on <code>animationend</code>, and a piece a stage froze in mid-air is simply thrown afresh. A stage that holds its animations — the Pause switch, the export dialog\'s held pose, a print — would hold a throw where it started, so a click there throws nothing at all: the model asks a piece whether its animation reads as <code>paused</code>, and leaves the stage exactly as it is.',
-      'At rest, twenty-four pieces wait round the words, written into the HTML with their place and tilt in <code>--x</code>, <code>--y</code>, <code>--r</code>, so a paused card shows confetti and not just a caption. A click adds <code>.popped</code>: they flick outward, shrink and fade as the burst takes over, and a timer takes the class off again. Their resting rule jumps <code>transform</code> back at once but fades <code>opacity</code> in slowly, so they reappear in place instead of flying back.',
-      'The whole canvas is the click target (<code>inset: 0</code>), but the burst always starts from the words in the middle, so it stays inside the frame wherever you click. JS writes the vector as plain numbers and the keyframe multiplies them by one base unit, <code>--u</code>, tied to the canvas, so the burst is the same share of a gallery card and a full screen.',
+      'At rest, twenty-four pieces lie all over the canvas, written into the HTML with their place and tilt in <code>--x</code>, <code>--y</code>, <code>--r</code> — the place a per cent of the canvas across and down — so a paused card shows confetti and not just a caption, and the scene covers the canvas as a full-canvas model must. A click adds <code>.popped</code>: each piece flicks outward, away from the middle its own place points away from, shrinking and fading as the burst takes over, and a timer takes the class off again. Their resting rule jumps <code>transform</code> back at once but fades <code>opacity</code> in slowly, so they reappear in place instead of flying back.',
+      'This is a <b>full-canvas</b> scene (VIEW-CONTRACT.md): "click anywhere" is the whole canvas, so the whole canvas is the click target (<code>inset: 0</code>), the pieces lie over all of it, and a burst flies out to its edges. Places and flights are shares of the canvas — <code>container-type: size</code> makes <code>1cqw</code> and <code>1cqh</code> one per cent of it across and down — so the scene covers a gallery card, a tall 9:16 export and a full screen alike; only a piece\'s own size is in the base unit <code>--u</code>. The burst still starts from the middle, where the words are, wherever the click lands.',
     ],
     html: `<div class="party" role="button" tabindex="0" aria-label="Throw confetti">
   <span class="waiting" aria-hidden="true">
-    <b style="--x:310;--y:-28;--r:0deg;--c:#ff4d9d"></b>
-    <b style="--x:299;--y:71;--r:47deg;--c:#8b6cff"></b>
-    <b style="--x:212;--y:157;--r:94deg;--c:#2ee6d6"></b>
-    <b style="--x:68;--y:206;--r:141deg;--c:#ffb547"></b>
-    <b style="--x:-99;--y:206;--r:188deg;--c:#ff4d9d"></b>
-    <b style="--x:-248;--y:154;--r:235deg;--c:#8b6cff"></b>
-    <b style="--x:-298;--y:121;--r:282deg;--c:#2ee6d6"></b>
-    <b style="--x:-360;--y:16;--r:329deg;--c:#ffb547"></b>
-    <b style="--x:-334;--y:-97;--r:16deg;--c:#ff4d9d"></b>
-    <b style="--x:-188;--y:-161;--r:63deg;--c:#8b6cff"></b>
-    <b style="--x:-44;--y:-202;--r:110deg;--c:#2ee6d6"></b>
-    <b style="--x:117;--y:-195;--r:157deg;--c:#ffb547"></b>
-    <b style="--x:181;--y:-179;--r:204deg;--c:#ff4d9d"></b>
-    <b style="--x:301;--y:-104;--r:251deg;--c:#8b6cff"></b>
-    <b style="--x:260;--y:40;--r:298deg;--c:#2ee6d6"></b>
-    <b style="--x:152;--y:110;--r:345deg;--c:#ffb547"></b>
-    <b style="--x:-30;--y:133;--r:32deg;--c:#ff4d9d"></b>
-    <b style="--x:-114;--y:102;--r:79deg;--c:#8b6cff"></b>
-    <b style="--x:-229;--y:46;--r:126deg;--c:#2ee6d6"></b>
-    <b style="--x:-245;--y:-33;--r:173deg;--c:#ffb547"></b>
-    <b style="--x:-149;--y:-100;--r:220deg;--c:#ff4d9d"></b>
-    <b style="--x:18;--y:-125;--r:267deg;--c:#8b6cff"></b>
-    <b style="--x:184;--y:-93;--r:314deg;--c:#2ee6d6"></b>
-    <b style="--x:250;--y:-55;--r:1deg;--c:#ffb547"></b>
+    <b style="--x:1;--y:3;--r:0deg;--c:#ff4d9d"></b>
+    <b style="--x:20;--y:11;--r:47deg;--c:#8b6cff"></b>
+    <b style="--x:37;--y:0;--r:94deg;--c:#2ee6d6"></b>
+    <b style="--x:54;--y:9;--r:141deg;--c:#ffb547"></b>
+    <b style="--x:71;--y:4;--r:188deg;--c:#ff4d9d"></b>
+    <b style="--x:88;--y:12;--r:235deg;--c:#8b6cff"></b>
+    <b style="--x:100;--y:26;--r:282deg;--c:#2ee6d6"></b>
+    <b style="--x:0;--y:22;--r:329deg;--c:#ffb547"></b>
+    <b style="--x:16;--y:30;--r:16deg;--c:#ff4d9d"></b>
+    <b style="--x:33;--y:19;--r:63deg;--c:#8b6cff"></b>
+    <b style="--x:67;--y:22;--r:110deg;--c:#2ee6d6"></b>
+    <b style="--x:84;--y:31;--r:157deg;--c:#ffb547"></b>
+    <b style="--x:0;--y:50;--r:204deg;--c:#ff4d9d"></b>
+    <b style="--x:12;--y:62;--r:251deg;--c:#8b6cff"></b>
+    <b style="--x:89;--y:45;--r:298deg;--c:#2ee6d6"></b>
+    <b style="--x:100;--y:62;--r:345deg;--c:#ffb547"></b>
+    <b style="--x:7;--y:74;--r:32deg;--c:#ff4d9d"></b>
+    <b style="--x:24;--y:80;--r:79deg;--c:#8b6cff"></b>
+    <b style="--x:41;--y:71;--r:126deg;--c:#2ee6d6"></b>
+    <b style="--x:58;--y:77;--r:173deg;--c:#ffb547"></b>
+    <b style="--x:76;--y:70;--r:220deg;--c:#ff4d9d"></b>
+    <b style="--x:95;--y:84;--r:267deg;--c:#8b6cff"></b>
+    <b style="--x:30;--y:100;--r:314deg;--c:#2ee6d6"></b>
+    <b style="--x:63;--y:99;--r:1deg;--c:#ffb547"></b>
   </span>
   click anywhere
 </div>`,
-    css: `.party {
-  /* one base unit, tied to the canvas: the burst is measured in it */
+    css: `/* A full-canvas scene (VIEW-CONTRACT.md): "click anywhere" is the whole canvas, so the pieces
+   lie all over it and the burst flies to its edges. The scene is inset: 0 and every place in it is
+   a share of the canvas — 1cqw and 1cqh, one per cent across and down — so it covers the canvas
+   whatever shape the canvas is. Only a piece's own size is in the base unit. */
+.party {
+  /* one base unit, tied to the canvas: a piece's own size is measured in it */
   --u: 0.1vmin;
   position: fixed;
   inset: 0;
+  container-type: size; /* inside it, 1cqw and 1cqh are 1% of the canvas across and down */
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -2096,36 +2101,39 @@ for (let row = 0; row < N; row++) {
   user-select: none;
 }
 
-/* the pieces waiting at rest: two loose rings round the words, each tilted its own way in 3D */
+/* the pieces lying about at rest: over the whole canvas, each one's place a per cent of it
+   (--x across, --y down, written into the HTML) and each tilted its own way in 3D */
 .waiting {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  inset: 0;
   transform-style: preserve-3d;
   pointer-events: none;
 }
 
 .waiting b {
   position: absolute;
+  left: calc(var(--x) * 1cqw);
+  top: calc(var(--y) * 1cqh);
   width: calc(30 * var(--u));
   height: calc(42 * var(--u));
   margin: calc(-21 * var(--u)) 0 0 calc(-15 * var(--u));
   border-radius: calc(6 * var(--u));
   background: var(--c);
-  transform: translate3d(calc(var(--x) * var(--u)), calc(var(--y) * var(--u)), 0) rotate3d(1, 1, 0.4, var(--r)) scale(1);
+  transform: rotate3d(1, 1, 0.4, var(--r)) scale(1);
   /* coming back: in place at once (still invisible), then a slow fade in */
   transition: transform 0s, opacity 0.6s ease 0.1s;
 }
 
-/* a click flicks them a little outward as they shrink and fade, handing over to the burst */
+/* a click flicks them outward from the middle as they shrink and fade, handing over to the
+   burst: a piece's place tells it which way out is */
 .popped .waiting b {
   opacity: 0;
-  transform: translate3d(calc(var(--x) * 1.15 * var(--u)), calc(var(--y) * 1.15 * var(--u)), 0) rotate3d(1, 1, 0.4, calc(var(--r) + 180deg)) scale(0.2);
+  transform: translate3d(calc((var(--x) - 50) * 0.3cqw), calc((var(--y) - 50) * 0.3cqh), 0) rotate3d(1, 1, 0.4, calc(var(--r) + 180deg)) scale(0.2);
   transition: transform 0.35s ease-out, opacity 0.3s linear;
 }
 
-/* every burst starts from the middle, where the words are, so it stays inside the frame
-   wherever the click lands */
+/* every burst starts from the middle, where the words are, and flies out across the whole
+   canvas, wherever the click lands */
 .party i {
   position: absolute;
   top: 50%;
@@ -2147,7 +2155,8 @@ for (let row = 0; row < N; row++) {
   animation: fly 1.3s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
 }
 
-/* JS writes --x, --y and --z as plain numbers; they are counted in units here */
+/* JS writes --x, --y and --z as plain numbers: --x and --y are per cent of the canvas from its
+   middle, so a burst reaches the edges of any canvas, and --z is depth in the base unit */
 @keyframes fly {
   /* bright until the burst has nearly spread, then gone quickly: faded on the same curve as the
      flight, a particle is half see-through before it is halfway out, and the burst reads small */
@@ -2159,9 +2168,9 @@ for (let row = 0; row < N; row++) {
   }
   to {
     opacity: 0;
-    /* + 200 units on Y is the "gravity" */
+    /* + 18% of the canvas on Y is the "gravity" */
     transform:
-      translate3d(calc(var(--x) * var(--u)), calc((var(--y) + 200) * var(--u)), calc(var(--z) * var(--u)))
+      translate3d(calc(var(--x) * 1cqw), calc((var(--y) + 18) * 1cqh), calc(var(--z) * var(--u)))
       rotate3d(1, 1, 0.4, var(--spin));
   }
 }
@@ -2207,9 +2216,10 @@ function burst() {
 
   // 18 random vectors, each thrown twice, once to the left and once to the right, so the burst
   // is balanced around the middle however the dice fall; a little jitter keeps the two from
-  // reading as a mirror image. Each height is drawn from its own eighteenth of the range, so
-  // the burst always reaches as high and as low: -520 to 120, which the 200 of gravity turns
-  // into -320 to 320, a burst centred on the words.
+  // reading as a mirror image. Every number is a per cent of the canvas from its middle, so the
+  // burst is the same share of a gallery card and a full screen. Each height is drawn from its
+  // own eighteenth of the range, so the burst always reaches as high and as low: -68 to 32,
+  // which the 18 of gravity turns into -50 to 50 — the canvas, top to bottom.
   // the 36 pieces this throw uses: the next of the pool, made the first time round; past its end
   // they are the oldest ones still in the air, taken back for this throw
   const batch = [];
@@ -2226,12 +2236,13 @@ function burst() {
   void party.offsetWidth;
   let at = 0;
   for (let i = 0; i < 18; i++) {
-    const x = rand(0, 340), y = -520 + (i + rand(0.2, 0.8)) * 640 / 18, z = rand(-100, 100);
+    const x = rand(0, 52), y = -68 + (i + rand(0.2, 0.8)) * 100 / 18, z = rand(-100, 100);
     for (const side of [-1, 1]) {
       const p = batch[at++];
-      // plain numbers: the CSS multiplies them by --u, so the burst scales with the canvas
-      p.style.setProperty('--x', side * x + rand(-30, 30));
-      p.style.setProperty('--y', y + rand(-15, 15));
+      // plain numbers: the CSS reads --x and --y as per cent of the canvas, so the burst is the
+      // same share of a gallery card, a full screen and a recording canvas
+      p.style.setProperty('--x', side * x + rand(-5, 5));
+      p.style.setProperty('--y', y + rand(-2.5, 2.5));
       p.style.setProperty('--z', z);
       p.style.setProperty('--spin', rand(360, 1080) + 'deg');
       p.style.setProperty('--hue', rand(0, 360));
