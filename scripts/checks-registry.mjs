@@ -174,6 +174,19 @@ export const REGISTRY = [
     ],
   },
   {
+    key: 'perf', script: 'check-perf.mjs', scope: 'model', name: 'performance', short: 'Perf',
+    ruleVersion: 1,
+    rules: [{ v: 1, from: null, what: 'as first recorded: at the card\'s own 340 × 280, at most 250 elements at rest, frame time at the 95th at most 40ms over two seconds of the model running, its main interaction answered within 120ms, and thirty of that interaction adding at most 8 elements after the first five and never reaching 300 at the peak' }],
+    title: 'What a model costs to run (check-perf)', label: 'performance check (check-perf)',
+    rule: 'cleared when its latest result is a pass on the model\'s current code: within the element, frame-time, response and pile-up budgets scripts/check-perf.mjs names at the top, every one of them set from what the other models actually do',
+    steps: [
+      { key: 'elements', label: 'how much it draws', proves: 'the model draws at most 250 elements at rest — a snippet somebody copies into their own page, not a page of its own' },
+      { key: 'frames', label: 'frame time while it runs', proves: 'two seconds of the model running, traced frame by frame, stay within 40ms at the 95th (the empty-document floor of the same machine is printed beside it)' },
+      { key: 'response', label: 'how fast its main interaction answers', proves: 'the way the model is played with (hover, move, drag, click or scroll) is done once with a real pointer, and the next frame is produced within 120ms' },
+      { key: 'pileup', label: 'thirty interactions do not pile elements up', proves: 'the same interaction thirty times adds at most 8 elements after the first five and never reaches 300 at the peak: the confetti-freeze class of bug, where every click makes something nothing takes away' },
+    ],
+  },
+  {
     key: 'seo', script: 'check-seo.mjs', scope: 'site', name: 'seo', short: 'SEO',
     ruleVersion: 2,
     rules: [

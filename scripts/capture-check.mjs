@@ -10,6 +10,7 @@
  *   node scripts/capture-check.mjs access [args…]   scripts/check-access.mjs
  *   node scripts/capture-check.mjs boxsizing [args…] scripts/check-boxsizing.mjs
  *   node scripts/capture-check.mjs contrast [args…]  scripts/check-contrast.mjs
+ *   node scripts/capture-check.mjs perf [args…]      scripts/check-perf.mjs
  *   (npm run capture -- models cube dice)
  *
  * Which checks there are is scripts/checks-registry.mjs, the one list the ledger and its page read
@@ -43,6 +44,9 @@
  *    A pass only prints its line under --pass, so the wrapper adds it, as for models.
  *  - contrast: the same, with the failing texts indented under a failure, and its closing
  *    `N/M models have readable text on both stages.` The wrapper adds --pass here too.
+ *  - perf: the same lines once more, each budget the model broke indented under it, and its
+ *    closing `N/M models are within the performance budgets.` The wrapper adds --pass here too.
+ *    Under --json the check prints readings and no verdict, so such a run says nothing to record.
  *  - seo (a site check: its entries are pages, not models): `FAIL <page> <rule>: <what>` (a page
  *    can have several; they are grouped by page), `pass <page>`, and `listed <page> <rules>`, a pass
  *    whose findings are listed rather than failed (WAIVED or OWN-TEXT), recorded with `listed: true`.
@@ -101,8 +105,8 @@ if (!CHECKS[check]) {
   process.exit(2);
 }
 const args = [...rest];
-if (['models', 'seo', 'boxsizing', 'contrast'].includes(check) && !args.includes('--pass')) args.push('--pass');
-const record = !(check === 'stages' && args.includes('--json'));
+if (['models', 'seo', 'boxsizing', 'contrast', 'perf'].includes(check) && !args.includes('--pass')) args.push('--pass');
+const record = !(['stages', 'perf'].includes(check) && args.includes('--json'));
 if (!record) console.error('capture-check: --json prints numbers without a verdict, so this run is shown but not recorded.');
 
 const git = (...a) => { try { return execFileSync('git', a, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; } };
@@ -193,6 +197,17 @@ const parsers = {
     }
     if (/^ {10}\S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
     if (/models have readable text on both stages/.test(line)) summaryLine = line.trim();
+  },
+  // perf: the same lines again, `pass <id> …` / `FAILS <id> …` with each problem indented
+  perf(line) {
+    const m = /^(FAILS|pass)\s+(\S+)\s*(.*)$/.exec(line);
+    if (m) {
+      current = m[2];
+      results[current] = { status: m[1] === 'pass' ? 'pass' : 'fail', summary: m[3], detail: [], at: now() };
+      return;
+    }
+    if (/^ {10}\S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
+    if (/models are within the performance budgets/.test(line)) summaryLine = line.trim();
   },
   seo(line) {
     const f = /^FAIL (\S+) (.*)$/.exec(line);
@@ -467,6 +482,24 @@ const STEP_READERS = {
     out.disabled = /disabled text\(s\) exempt/.test(e.summary ?? '') ? 'listed' : SKIP('the model has no text in a disabled control');
     return { ...out, _unattributed: (e.detail ?? []).filter((l) => /^page error:/.test(l)) };
   },
+  // check-perf prints each budget it broke on its own indented line, and its pass line carries
+  // every reading, so a part no line names was measured and held
+  perf(e) {
+    if (e.status !== 'pass' && e.status !== 'fail') return {};
+    if (/could not be measured/.test(e.summary ?? '')) return { _unattributed: [e.summary] };
+    const { hit, loose } = place((e.detail ?? []).filter((l) => !/^page error:/.test(l)), [
+      ['elements', /^draws \d+ elements/], ['frames', /^frame time /],
+      ['response', /^answers /], ['pileup', /piles elements up|elements at the peak/],
+    ]);
+    const out = spread(['elements', 'frames', 'response', 'pileup'], hit);
+    // a model nothing is done to has no interaction to time, and nothing to repeat
+    if (/, no interaction/.test(e.summary ?? '')) {
+      const why = 'the model is not played with: it has no interaction to time or to repeat';
+      if (!hit.has('response')) out.response = SKIP(why);
+      if (!hit.has('pileup')) out.pileup = SKIP(why);
+    }
+    return { ...out, _unattributed: loose.concat((e.detail ?? []).filter((l) => /^page error:/.test(l))) };
+  },
   // a site check: each entry is a page. Its line names only the rules that found something on it,
   // so every other rule is "no finding" — not proof that the rule applies to that page.
   seo(e) {
@@ -547,7 +580,7 @@ function expectedTotal() {
     const src = workingSources();
     const demoIds = [...src].filter(([, m]) => m.parts.some((p) => p.kind === 'demo' || (p.whole && p.file.includes('/charts/')))).map(([id]) => id);
     const converted = demoIds.filter((id) => src.get(id)?.snippet?.css.includes('--u:'));
-    if (['models', 'stages', 'media', 'access', 'boxsizing', 'contrast'].includes(check)) return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
+    if (['models', 'stages', 'media', 'access', 'boxsizing', 'contrast', 'perf'].includes(check)) return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
     const site = REGISTRY.find((c) => c.key === check && c.scope === 'site');
     if (site) return { total: pagesFor(site), totalIsEstimate: true, totalFrom: 'the page count scripts/checks-registry.mjs gives' };
     if (check === 'motion') return args.includes('--all')

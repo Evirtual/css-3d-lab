@@ -102,6 +102,8 @@ export const USES = {
   media: { parts: ['snippet', 'play', 'text'], path: 'media' },
   boxsizing: { parts: ['snippet', 'boxmark'], path: 'file' },
   contrast: { parts: ['snippet', 'play'], path: 'file' },
+  // check-perf opens the standalone file on its own too, and drives the model the way its tags say
+  perf: { parts: ['snippet', 'play'], path: 'file' },
   visual: { parts: ['snippet', 'play'], path: 'frame' },
   text: { parts: ['text', 'snippet'], path: null },
 };
