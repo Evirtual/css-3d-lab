@@ -60,6 +60,8 @@ interface Choice<T> {
   hint: string;
   /** Shown but not to be picked: what it names cannot be had here. */
   off?: boolean;
+  /** Why it cannot be picked, as the chip's tooltip. */
+  why?: string;
 }
 
 const A4 = 297 / 210;
@@ -82,11 +84,27 @@ const VIDEO_SHAPES: Choice<Ratio>[] = [
   { value: '1:1', label: 'Square', hint: 'feed posts' },
   { value: '16:9', label: 'Wide', hint: 'YouTube, slides' },
 ];
+/**
+ * 4K is held back. A 3840 × 2160 render is about four times the pixels of 1080p at every frame,
+ * and the render service that draws the frames is on a free tier whose memory and time a 4K film
+ * runs out of: the file either never finishes or comes back cut short. So the chip stays VISIBLE —
+ * 4K is a thing this can do, and saying so is truer than pretending the size does not exist — but
+ * it cannot be picked, and its tooltip says why.
+ *
+ * TO BRING IT BACK, once the render service is on a paid tier, set this to true. Nothing else has
+ * to change: the chip, the encoder's own 4K levels (src/record.ts, h264Codec) and check-exports'
+ * 2160p row all read it from here, and a size the dialog shows disabled is not asked for a file.
+ */
+export const FOUR_K = false;
+const FOUR_K_WHY = 'The render service that draws the frames needs a paid tier before it can hold a 4K film; 1080p is the largest for now.';
+
 const QUALITIES: Choice<Quality>[] = [
   { value: 480, label: '480p', hint: 'small' },
   { value: 720, label: '720p', hint: 'for chat' },
   { value: 1080, label: '1080p', hint: 'social' },
-  { value: 2160, label: '4K', hint: 'big screens' },
+  FOUR_K
+    ? { value: 2160, label: '4K', hint: 'big screens' }
+    : { value: 2160, label: '4K · coming later', hint: 'not yet', off: true, why: FOUR_K_WHY },
 ];
 const IMAGE_SHAPES: Choice<ImageRatio>[] = [
   { value: '1:1', label: '1:1', hint: 'square' },
@@ -225,8 +243,10 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       paint();
     }
   });
+  // A size this browser cannot encode is shown and not offered — unless it is already held back
+  // (4K), whose own reason is the truer one to show.
   const qualities = (): Choice<Quality>[] =>
-    QUALITIES.map((q) => (films && !films.has(q.value) ? { ...q, hint: 'not in this browser', off: true } : q));
+    QUALITIES.map((q) => (!q.off && films && !films.has(q.value) ? { ...q, hint: 'not in this browser', off: true, why: 'This browser cannot encode a video that size.' } : q));
 
   const job = (): Job => {
     let mine = jobs.get(kind);
@@ -434,7 +454,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       <div class="maker__opts${items.length === 2 ? ' maker__opts--seg' : ''}" role="radiogroup" aria-label="${label}" style="--cols:${columnsFor(items.length)}">
         ${items
           .map(
-            (item) => `<button type="button" role="radio" class="maker__opt" data-pick="${name}" data-value="${item.value}" aria-checked="${item.value === pick}"${item.off ? ' data-off disabled' : ''}>
+            (item) => `<button type="button" role="radio" class="maker__opt" data-pick="${name}" data-value="${item.value}" aria-checked="${item.value === pick}"${item.off ? ' data-off disabled' : ''}${item.why ? ` title="${item.why.replace(/"/g, '&quot;')}"` : ''}>
               ${swatch ? swatch(item) : ''}
               <span class="maker__optText"><b>${item.label}</b><small>${item.hint}</small></span>
             </button>`,

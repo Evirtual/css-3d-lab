@@ -872,8 +872,10 @@ async function checkVideos(id) {
       h264: { '2160x3840': await own(2160, 3840), '2160x2160': await own(2160, 2160), '3840x2160': await own(3840, 2160), '1080x1920': await own(1080, 1920) },
       fourK: !document.querySelector('.maker [data-pick="quality"][data-value="2160"]')?.hasAttribute('data-off'),
       // the sizes the dialog shows but does not offer (data-off: "coming later", or too big for
-      // the render service): no file can be asked for at those, and the app says which they are
-      off: [...document.querySelectorAll('.maker [data-pick="quality"][data-off]')].map((c) => ({ quality: Number(c.dataset.value), why: (c.textContent || '').replace(/\s+/g, ' ').trim() })),
+      // the render service): no file can be asked for at those, and the app says which they are.
+      // The chip's own title is the sentence the app gives a visitor, so that is the reason to
+      // report; its label and hint, run together, are only the fallback.
+      off: [...document.querySelectorAll('.maker [data-pick="quality"][data-off]')].map((c) => ({ quality: Number(c.dataset.value), why: (c.getAttribute('title') || c.textContent || '').replace(/\s+/g, ' ').trim() })),
     };
   });
   say(`  video tab: ${animations} animations; own loop ${env.loop}s (${env.loopChip ? 'offered' : 'not offered'}); WebM clear chip ${env.clearChip ? 'enabled' : 'disabled'}; VP9+alpha encodable here: ${env.vp9alpha}; H.264 the app asks for, and encodable here: ${Object.entries(env.h264).map(([k, v]) => `${k} ${v}`).join(', ')}; 4K chip ${env.fourK ? 'offered' : 'not offered'}${env.off.length ? `; sizes the dialog shows disabled, so no file is asked for: ${env.off.map((o) => `${o.quality}p ("${o.why}")`).join(', ')}` : ''}`);
