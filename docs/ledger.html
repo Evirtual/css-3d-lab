@@ -227,70 +227,98 @@ button, input { font: inherit; color: inherit; }
   --k-never: var(--never);
 }
 /* ---------- the three stages as chevron tabs: one neon wave running through three gates ----------
-   The strip is one scene, not three boxes. A dark sky sits over a perspective grid floor, and a single
-   waveform travels left to right across all three arrows: the same period, the same phase, one crest
-   leaving an arrow exactly where the next picks it up. What changes at a gate is how tall that wave
-   stands, and the three chevrons are what tells you where one stage ends and the next begins.
+   The strip is one scene, not three boxes. A lit night sky sits over a perspective grid floor, and a
+   single waveform travels left to right across all three arrows -- the same period, the same phase and
+   the same speed from the first to the last, so a crest leaves one arrow and arrives in the next. What
+   changes at a gate is how tall that wave stands, and the three chevrons are what tells you where one
+   stage ends and the next begins.
+
+   THE COLOURS ARE THE TITLE'S. The word "ledger" up the page runs violet, then pink, then amber
+   (h1 span, one gradient). The strip is that same ramp laid along its length: violet at To check, pink
+   through Awaiting review, amber at Approved, and the sun at the far end is the warm end of it. Note
+   that --good, the green this page gives Approved in the table, is NOT what the Approved arrow uses
+   any more, and --warm is also what the check bars mean by "flagged, needs a person". Both are a
+   clash worth knowing about; neither token was touched, and only STAGE_C, which paints the panel under
+   the strip, was moved to follow the arrows.
 
    WHAT THE WAVE'S HEIGHT MEANS. A stage's amplitude is that stage's share of every model, and nothing
-   else. A stage holding nothing is a flat line -- empty reads as empty. A stage holding anything gets
-   at least a visible ripple (14% of the tallest), so "a few" never reads as "none"; above that the
-   height is the share, straight. The exact number is the count on the arrow and the first words of its
-   tooltip, so the picture never has to be measured.
+   else. A stage holding nothing is a flat line -- empty reads as empty, and the wave carries on
+   through it as an unbroken lit line rather than stopping. A stage holding anything stands at least at
+   14% of the tallest, so "a few" never reads as "none"; above that the height is the share, straight.
+   The exact number is the count on the arrow and the first line of its tooltip, so the picture never
+   has to be measured.
 
-   THE ARC ALONG IT, which is the same number told a second way: at To check the trace is thin and
-   faint, mid-strip it gains its second harmonic as it gathers, and at Approved it is full and steady
-   with the sun standing on the horizon behind it. All three come out of that one amplitude, so none of
-   them can say something the count does not.
+   THE ARC ALONG IT, which is that same number told a second way: where a stage is nearly empty its
+   trace is a thin faint line, as it fills the trace gains its second harmonic and its structure, and a
+   full stage stands at its tallest with the sun burning behind it. All of it comes out of the one
+   amplitude, so none of it can say something the count does not.
 
-   WHERE THE WORDS SIT. Every arrow's label, count and line of description is left-aligned in the top
-   two thirds -- y 14..76 of the 128px body -- and the whole scene (wave, floor, sun, horizon glow)
-   lives below y 86. So the only thing behind a word is that stage's sky ramp, which is one named mix
-   of the stage's own colour over one base, measured on both themes. That is the whole contrast
-   argument, and it is why the ramp's three percentages are tokens rather than numbers in a gradient:
-   raising one is what lowers the contrast, and there is nowhere else it can leak in from. */
+   WHY THE SKY IS THREE SETS OF NUMBERS, NOT ONE. Every word on the strip sits on its stage's sky ramp
+   and on nothing else -- the labels, counts and descriptions are left-aligned in the top two thirds
+   (y 14..76 of the 128px body) and the whole scene, wave, floor, sun and horizon glow, lives below
+   y 84. The middle stop of that ramp is at y 77, so it is the brightest pixel any word ever sits on,
+   and it is the one the contrast is measured at. The three hues are nowhere near equally bright:
+   amber at one percentage is far lighter than violet at the same one, so at a shared number the violet
+   would be a shadow and the amber would take the text under 4.5:1. These are the measured caps. Raise
+   one and the contrast over that stage falls; there is nowhere else it can leak in from. */
 :root {
   --step-ink-2: #e9ecfd;
   /* the two grounds: the sky the words sit on, and the deck the wave and the floor live on */
   --sw-sky-base: #06070f;
-  --sw-deck: #04050c;
-  --sw-sky-a: 4%;      /* the stage's colour at the top of its panel */
-  --sw-sky-b: 9%;      /* ...level with the words */
-  --sw-sky-c: 17%;     /* ...at the horizon, which is below every word */
+  --sw-deck: #0a0722;
+  /* per stage: the stage's colour at the top of its panel, level with the words, and at the horizon */
+  --sw-a1: 18%; --sw-b1: 40%; --sw-c1: 70%;   /* violet */
+  --sw-a2: 16%; --sw-b2: 34%; --sw-c2: 62%;   /* pink   */
+  --sw-a3: 14%; --sw-b3: 30%; --sw-c3: 52%;   /* amber  */
   --sw-lift: 0%;       /* hover and select raise the whole ramp by one step, and only by this */
-  --sw-sky-up: 7%;
-  --sw-rim: 15%;
+  --sw-sky-up: 10%;
+  --sw-rim: 26%;
   /* the wave: a bright core over two wider, fainter strokes. Three flat strokes, not a blur filter --
      a soft edge that costs one path each instead of a filter pass over the strip every frame. */
   --sw-core-mix: #ffffff;
-  --sw-core: 55%;      /* the lit core: the stage's colour carried toward --sw-core-mix */
-  --sw-halo-a: 0.2;    /* the middle stroke */
-  --sw-halo-b: 0.09;   /* the outer one */
-  /* the floor. Cyan, as the lab's own synthwave floor has it (models/grid): one colour for all three
+  --sw-core: 62%;      /* the lit core: the stage's colour carried toward --sw-core-mix */
+  --sw-halo-c: var(--c);
+  --sw-halo-a: 0.3;    /* the middle stroke */
+  --sw-halo-b: 0.15;   /* the outer one */
+  /* the floor. Cyan, as the lab's own synthwave floor has it (models/grid): one colour under all three
      stages, because the floor is the ground the whole strip stands on, not a per-stage reading. */
-  --sw-grid: color-mix(in srgb, var(--accent-2) 30%, transparent);
+  --sw-grid: color-mix(in srgb, var(--accent-2) 54%, transparent);
   --sw-cell: 22px;
-  --sw-sun-1: color-mix(in srgb, var(--warm) 80%, var(--sw-deck));
-  --sw-sun-2: color-mix(in srgb, var(--hot) 62%, var(--sw-deck));
-  --sw-sun-glow: color-mix(in srgb, var(--hot) 34%, transparent);
+  --sw-sun-1: color-mix(in srgb, var(--warm) 92%, var(--sw-deck));
+  --sw-sun-2: color-mix(in srgb, var(--hot) 74%, var(--sw-deck));
+  --sw-sun-glow: color-mix(in srgb, var(--hot) 52%, transparent);
+  --sw-sun-air: color-mix(in srgb, var(--warm) 22%, transparent);
 }
-/* Light. The sky goes pale so the dark ink on it reads; the deck stays night, because no word is ever
-   over the deck and that is where the neon can stay neon on both themes. */
+/* Light. The ink is dark here, so the sky has to stay pale for it: the same three hues, the same ramp,
+   at the percentages that keep every word over 4.5:1 on white. The deck stays night -- no word is ever
+   over it, and that is where the neon stays neon on both themes -- and the wave's core and halo are
+   carried into an indigo instead of into white, so the crests that rise into the pale sky read there
+   too. */
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
   --step-ink-2: #272c4c;
   --sw-sky-base: #ffffff;
-  --sw-sky-a: 7%; --sw-sky-b: 16%; --sw-sky-c: 30%; --sw-sky-up: 8%; --sw-rim: 13%;
-  --sw-core: 62%;
-  --sw-halo-a: 0.24; --sw-halo-b: 0.1;
-  --sw-grid: color-mix(in srgb, var(--accent-2) 34%, transparent);
+  --sw-deck: #120e2c;
+  --sw-a1: 10%; --sw-b1: 22%; --sw-c1: 42%;
+  --sw-a2: 10%; --sw-b2: 22%; --sw-c2: 46%;
+  --sw-a3: 10%; --sw-b3: 22%; --sw-c3: 44%;
+  --sw-sky-up: 8%; --sw-rim: 20%;
+  --sw-core-mix: #241d47; --sw-core: 62%;
+  --sw-halo-c: color-mix(in srgb, var(--c) 70%, #241d47);
+  --sw-halo-a: 0.34; --sw-halo-b: 0.18;
+  --sw-grid: color-mix(in srgb, var(--accent-2) 58%, transparent);
 } }
 :root[data-theme="light"] {
   --step-ink-2: #272c4c;
   --sw-sky-base: #ffffff;
-  --sw-sky-a: 7%; --sw-sky-b: 16%; --sw-sky-c: 30%; --sw-sky-up: 8%; --sw-rim: 13%;
-  --sw-core: 62%;
-  --sw-halo-a: 0.24; --sw-halo-b: 0.1;
-  --sw-grid: color-mix(in srgb, var(--accent-2) 34%, transparent);
+  --sw-deck: #120e2c;
+  --sw-a1: 10%; --sw-b1: 22%; --sw-c1: 42%;
+  --sw-a2: 10%; --sw-b2: 22%; --sw-c2: 46%;
+  --sw-a3: 10%; --sw-b3: 22%; --sw-c3: 44%;
+  --sw-sky-up: 8%; --sw-rim: 20%;
+  --sw-core-mix: #241d47; --sw-core: 62%;
+  --sw-halo-c: color-mix(in srgb, var(--c) 70%, #241d47);
+  --sw-halo-a: 0.34; --sw-halo-b: 0.18;
+  --sw-grid: color-mix(in srgb, var(--accent-2) 58%, transparent);
 }
 
 .flowwrap { --notch: 26px; --tipx: 6px; --tipy: 9px; --deck: 28px; margin-top: 16px; position: relative; }
@@ -301,15 +329,16 @@ button, input { font: inherit; color: inherit; }
    buttons take the pointer, and each button is clipped to its own chevron, so the hit area is the shape */
 .flow, .flow__li { pointer-events: none; }
 .step { pointer-events: auto; }
-/* the notch of one tab is the exact negative of the tip before it, so they interlock with no seam */
+/* the one ramp every word sits on, built from that stage's own three caps and nothing else */
 .step, .scene__sky {
   --sky: linear-gradient(180deg,
-    color-mix(in srgb, var(--c) calc(var(--sw-sky-a) + var(--sw-lift)), var(--sw-sky-base)) 0%,
-    color-mix(in srgb, var(--c) calc(var(--sw-sky-b) + var(--sw-lift)), var(--sw-sky-base)) 60%,
-    color-mix(in srgb, var(--c) calc(var(--sw-sky-c) + var(--sw-lift)), var(--sw-sky-base)) 100%);
+    color-mix(in srgb, var(--c) calc(var(--sw-a) + var(--sw-lift)), var(--sw-sky-base)) 0%,
+    color-mix(in srgb, var(--c) calc(var(--sw-b) + var(--sw-lift)), var(--sw-sky-base)) 60%,
+    color-mix(in srgb, var(--c) calc(var(--sw-c) + var(--sw-lift)), var(--sw-sky-base)) 100%);
 }
+/* the notch of one tab is the exact negative of the tip before it, so they interlock with no seam */
 .step {
-  --c: var(--muted);
+  --c: var(--muted); --sw-a: var(--sw-a1); --sw-b: var(--sw-b1); --sw-c: var(--sw-c1);
   position: relative; display: block; width: 100%; padding: 0; border: 0; background: none;
   color: var(--text); font: inherit; text-align: left; cursor: pointer;
   /* on the button itself: the pointer then hits the chevron, not the box around it */
@@ -317,14 +346,17 @@ button, input { font: inherit; color: inherit; }
     calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
     0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
 }
-.step--1 { --c: var(--accent); clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
-.step--2 { --c: var(--accent-2); }
-.step--3 { --c: var(--good); }
+/* which stage is which hue, and the three caps its ramp is allowed: declared after .step so a stage's
+   own colour wins over the fallback, and shared with the scene's sky panels so both draw one ramp */
+.step--1, .scene__sky.s1 { --c: var(--accent); --sw-a: var(--sw-a1); --sw-b: var(--sw-b1); --sw-c: var(--sw-c1); }
+.step--2, .scene__sky.s2 { --c: var(--hot); --sw-a: var(--sw-a2); --sw-b: var(--sw-b2); --sw-c: var(--sw-c2); }
+.step--3, .scene__sky.s3 { --c: var(--warm); --sw-a: var(--sw-a3); --sw-b: var(--sw-b3); --sw-c: var(--sw-c3); }
+.step--1 { clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
 /* the panel: the stage's sky, a glow along the top rim, and a hairline of its own colour along the base */
 .step__body {
   position: relative; display: block; height: 128px; overflow: hidden;
   background:
-    linear-gradient(to top, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
+    linear-gradient(to top, color-mix(in srgb, var(--c) 40%, transparent) 0 3px, transparent 3px),
     radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
     var(--sky);
 }
@@ -332,9 +364,8 @@ button, input { font: inherit; color: inherit; }
 /* ---------- the scene ----------
    Side by side the three arrows are windows onto one scene. The sky is painted per chevron -- that is
    what still separates the stages -- but the deck, the floor, the sun and the wave are single elements
-   across the whole strip, so a crest really does leave one arrow and arrive in the next. The scene sits
-   under the buttons and paints nothing opaque over them, so the arrows are still tabs: clickable across
-   their whole shape, focusable, and marked when selected.
+   across the whole strip. The scene sits under the buttons and paints nothing opaque over them, so the
+   arrows are still tabs: clickable across their whole shape, focusable, and marked when selected.
    Stacked on a narrow screen three arrows are not one horizon, so there each one draws its own. */
 .flow__scene { display: none; }
 @media (min-width: 901px) {
@@ -355,10 +386,8 @@ button, input { font: inherit; color: inherit; }
       calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
       0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
   }
-  .scene__sky.s1 { --c: var(--accent);
+  .scene__sky.s1 {
     clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
-  .scene__sky.s2 { --c: var(--accent-2); }
-  .scene__sky.s3 { --c: var(--good); }
   /* the selected stage's sky is a step richer, exactly as its own panel would have been */
   .flow__scene[data-sel="0"] .scene__sky.s1,
   .flow__scene[data-sel="1"] .scene__sky.s2,
@@ -370,20 +399,20 @@ button, input { font: inherit; color: inherit; }
     mask-image: linear-gradient(90deg, transparent, #000 42%, #000 58%, transparent);
   }
   .scene__blend.j1 { left: calc(var(--tabw) - var(--notch) - 60px);
-    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) var(--sw-sky-b), var(--sw-sky-base)), color-mix(in srgb, var(--accent-2) var(--sw-sky-b), var(--sw-sky-base))); }
+    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) var(--sw-b1), var(--sw-sky-base)), color-mix(in srgb, var(--hot) var(--sw-b2), var(--sw-sky-base))); }
   .scene__blend.j2 { left: calc(2 * (var(--tabw) - var(--notch)) - 60px);
-    background: linear-gradient(90deg, color-mix(in srgb, var(--accent-2) var(--sw-sky-b), var(--sw-sky-base)), color-mix(in srgb, var(--good) var(--sw-sky-b), var(--sw-sky-base))); }
+    background: linear-gradient(90deg, color-mix(in srgb, var(--hot) var(--sw-b2), var(--sw-sky-base)), color-mix(in srgb, var(--warm) var(--sw-b3), var(--sw-sky-base))); }
 }
 /* ---------- the floor ----------
    The lab's own synthwave floor (models/grid), turned side on: one plane laid down with rotateX under a
    short perspective, and the motion is the line layer sliding by exactly one cell with transform, so the
    loop is seamless and nothing repaints. Sideways, not toward the camera, because the strip's flow is
-   left to right. The mask fades the lines out into the horizon and again at the floor's far edge, so
-   the grid never ends on a hard line. */
+   left to right. The mask holds the lines back where they bunch at the horizon and fades them again at
+   the floor's far edge, so the grid never moires and never ends on a hard line. */
 .sw__deck {
   position: absolute; left: 0; right: 0; bottom: 0; height: var(--deck); overflow: hidden;
   perspective: 58px; perspective-origin: 50% 0%;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--sw-deck) 72%, transparent), var(--sw-deck) 34%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sw-deck) 22%, transparent) 0%, color-mix(in srgb, var(--sw-deck) 80%, transparent) 34%, var(--sw-deck) 100%);
 }
 .sw__deck i {
   position: absolute; left: -70%; right: -70%; top: 0; height: 190px;
@@ -391,30 +420,32 @@ button, input { font: inherit; color: inherit; }
   background:
     repeating-linear-gradient(90deg, var(--sw-grid) 0 1px, transparent 1px var(--sw-cell)),
     repeating-linear-gradient(180deg, var(--sw-grid) 0 1px, transparent 1px var(--sw-cell));
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 52%, transparent 96%);
-  mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 52%, transparent 96%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 34%, #000 62%, transparent 97%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 34%, #000 62%, transparent 97%);
   animation: swrun 3.6s linear infinite;
 }
 @keyframes swrun { to { transform: rotateX(81deg) translateX(var(--sw-cell)); } }
-/* the horizon: a low wash of the strip's pink where the sky meets the deck, and a hairline under it
-   that carries the three stages' colours. Both start at the top of the deck, below every word. */
+/* the horizon: the strip's pink burning along the line where the sky meets the deck, and a hairline
+   under it carrying the title's own ramp. Both start at the top of the deck, below every word. */
 .sw__horizon {
-  position: absolute; left: 0; right: 0; bottom: var(--deck); height: 14px;
+  position: absolute; left: 0; right: 0; bottom: var(--deck); height: 16px;
   background: linear-gradient(180deg, transparent, var(--sw-sun-glow));
-  opacity: 0.55;
+  opacity: 0.8;
 }
 .sw__horizon::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
   background: linear-gradient(90deg,
-    color-mix(in srgb, var(--accent) 52%, transparent) 0 26%,
-    color-mix(in srgb, var(--accent-2) 52%, transparent) 40% 60%,
-    color-mix(in srgb, var(--good) 52%, transparent) 74% 100%);
+    color-mix(in srgb, var(--accent) 78%, transparent) 0 20%,
+    color-mix(in srgb, var(--hot) 78%, transparent) 46% 56%,
+    color-mix(in srgb, var(--warm) 78%, transparent) 82% 100%);
 }
 /* ---------- the sun ----------
    It stands ON the horizon and is only the part above it: a 23px circle clipped to its top 27px, its
    slices cut by a mask on the sun itself, exactly as the floor model does it. It sits at the far end of
-   the Approved arrow, past the last word on it, with its reflection running down the deck.
-   The disc is a landmark and does not move with the count. What the count moves is the light around it,
+   the Approved arrow, past the last word on it, and it burns into its own sky and down the deck.
+   The glow is masked off toward the left, because the last word on that arrow ends about 40px short of
+   it: the light reaches its sky and its floor, never a label.
+   The disc is a landmark and does not move with the count. What the count moves is how hard it burns,
    so the Approved end warms as its share grows and the wave stays the thing that carries the number. */
 .sw__sun { position: absolute; left: 89.5%; bottom: var(--deck); width: 46px; height: 27px; translate: -50% 0; }
 .sw__sun i {
@@ -425,47 +456,66 @@ button, input { font: inherit; color: inherit; }
   mask-image: linear-gradient(180deg, #000 42%, transparent 42% 47%, #000 47% 61%, transparent 61% 66%, #000 66% 78%, transparent 78% 84%, #000 84%);
 }
 .sw__sun::before {
-  content: ''; position: absolute; left: -30px; right: -30px; top: -10px; bottom: -8px;
-  background: radial-gradient(50% 62% at 50% 78%, var(--sw-sun-glow), transparent 72%);
+  content: ''; position: absolute; left: -34px; right: -44px; top: -30px; bottom: -12px;
+  background: radial-gradient(54% 58% at 52% 76%, var(--sw-sun-glow), var(--sw-sun-air) 44%, transparent 78%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 46%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 46%);
   animation: swbreathe 9s ease-in-out infinite alternate;
-  opacity: calc(0.28 + 0.62 * var(--ch3, 0));
+  opacity: calc(0.4 + 0.6 * var(--ch3, 0));
 }
-@keyframes swbreathe { from { opacity: calc(0.2 + 0.46 * var(--ch3, 0)); } to { opacity: calc(0.28 + 0.62 * var(--ch3, 0)); } }
+@keyframes swbreathe { from { opacity: calc(0.32 + 0.46 * var(--ch3, 0)); } to { opacity: calc(0.4 + 0.6 * var(--ch3, 0)); } }
 /* the reflection: the same warm light lying on the deck, narrow and fading downward */
 .sw__sun::after {
-  content: ''; position: absolute; left: 50%; top: 100%; width: 20px; height: var(--deck); translate: -50% 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--warm) 26%, transparent), transparent 84%);
-  opacity: calc(0.3 + 0.7 * var(--ch3, 0));
+  content: ''; position: absolute; left: 50%; top: 100%; width: 22px; height: var(--deck); translate: -50% 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--warm) 44%, transparent), transparent 84%);
+  opacity: calc(0.34 + 0.66 * var(--ch3, 0));
 }
 /* ---------- the wave ----------
-   One SVG over the whole strip. Each stage is a <g> of its own carrying the same sine at its own
-   amplitude, and all three are drawn from the same origin, so they are in phase: what changes at a gate
-   is only how tall the crest is. Each <g> is masked to its own stretch with a soft join across the
-   chevron, so one wave swells into the next instead of stepping.
-   The travel is a transform on the <g>, sliding by exactly one period, so every loop lands where it
-   started and nothing recomputes. Each <g> holds three strokes of the same path -- a wide faint one, a
-   narrower one, and the core -- which is the soft falloff, done in paint instead of a blur filter.
-   The harmonic rides the same amplitude, so a stage with nothing in it has no structure either. */
-.sw__wave { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; }
-.sw__wave g { animation: swflow var(--dur) linear infinite; opacity: 0.72; transition: opacity 0.3s; }
-@keyframes swflow { from { transform: translateX(0); } to { transform: translateX(calc(var(--wvp) * -1px)); } }
-.sw__wave path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; transition: d 0.85s cubic-bezier(0.24, 1.32, 0.36, 1); }
-.sw__wave .h3 { stroke: var(--c); stroke-width: 9; opacity: var(--sw-halo-b); }
-.sw__wave .h2 { stroke: var(--c); stroke-width: 5; opacity: var(--sw-halo-a); }
-.sw__wave .h1 { stroke: var(--core); stroke-width: 2; }
-/* the harmonic: a finer ripple over the crest, at a third of the height and its own drift */
-.sw__wave .hm { stroke: var(--core); stroke-width: 1; opacity: 0.42; }
-.sw__wave .s1 { --c: var(--accent); --dur: 7.2s; }
-.sw__wave .s2 { --c: var(--accent-2); --dur: 6.1s; }
-.sw__wave .s3 { --c: var(--good); --dur: 5.2s; }
-.sw__wave .m1 { --c: var(--accent); --dur: 4.3s; }
-.sw__wave .m2 { --c: var(--accent-2); --dur: 3.7s; }
-.sw__wave .m3 { --c: var(--good); --dur: 3.2s; }
-.sw__wave g { --core: color-mix(in srgb, var(--c) var(--sw-core), var(--sw-core-mix)); }
+   One waveform, in three stretches only because each stage stands at its own height. All three carry
+   the same period, start from the same origin and run on one shared keyframe at one duration, so they
+   never drift apart: across a join they are the same wave at two heights, and the crossfade there
+   reads as a swell through the gate rather than a cut or a restart.
+   THE TWO WINDOWS the crossfades sit in -- 25.7%..35.2% and 58.7%..67.9% of the strip -- are the only
+   two places where no arrow has a word. They were measured over every width this layout runs at
+   (901px to 1920px): each arrow's left-aligned ink ends at 252, 582 and 853 of the strip's 1000, and
+   the chevron tips sit at 345..354 and 673..677. So each stage's wave is flat at its own height across
+   its own words, and the change happens in the gap. The fade is eased rather than linear, so the two
+   traces are only ever both visible over a short stretch in the middle of a window.
+   THE TRAVEL is a transform on an HTML element, never on anything inside the SVG: SVG transforms are
+   not composited, and that is what made the first cut of this jitter and step. The layer is one period
+   wider than the strip and slides by exactly one period, so every loop lands on the frame it started
+   from and there is no seam. The harmonic's period divides the carrier's, so one slide returns both. */
+.sw__wave { position: absolute; inset: 0; overflow: hidden; }
+.wv { position: absolute; inset: 0; }
+.wv__flow { position: absolute; left: 0; top: 0; height: 100%; width: var(--wvw); animation: swflow var(--dur, 6.4s) linear infinite; }
+@keyframes swflow { from { transform: translateX(0); } to { transform: translateX(var(--wvt)); } }
+.wv svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.wv path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; transition: d 0.85s cubic-bezier(0.24, 1.32, 0.36, 1); }
+.wv .h3 { stroke: var(--sw-halo-c); stroke-width: 10; opacity: var(--sw-halo-b); }
+.wv .h2 { stroke: var(--sw-halo-c); stroke-width: 5; opacity: var(--sw-halo-a); }
+.wv .h1 { stroke: var(--core); stroke-width: 2; }
+/* the harmonic: a finer ripple riding the crest, a third of the height and half the period. It rides
+   the same amplitude, so a stage with nothing in it has no structure either. */
+.wv .hm { stroke: var(--core); stroke-width: 1; opacity: 0.45; }
+.wv { --core: color-mix(in srgb, var(--c) var(--sw-core), var(--sw-core-mix)); opacity: 0.8; transition: opacity 0.3s; }
+.wv.w1 { --c: var(--accent); }
+.wv.w2 { --c: var(--hot); }
+.wv.w3 { --c: var(--warm); }
+/* each stretch shows over its own stage and eases away across the window at the gate */
+.wv.w1 { -webkit-mask-image: var(--m1); mask-image: var(--m1); }
+.wv.w2 { -webkit-mask-image: var(--m2); mask-image: var(--m2); }
+.wv.w3 { -webkit-mask-image: var(--m3); mask-image: var(--m3); }
+.sw__wave {
+  --f1: rgb(255 255 255 / 0.96) 27.1%, rgb(255 255 255 / 0.76) 29%, rgb(255 255 255 / 0.5) 30.45%, rgb(255 255 255 / 0.24) 31.9%, rgb(255 255 255 / 0.04) 33.8%;
+  --r1: rgb(255 255 255 / 0.04) 27.1%, rgb(255 255 255 / 0.24) 29%, rgb(255 255 255 / 0.5) 30.45%, rgb(255 255 255 / 0.76) 31.9%, rgb(255 255 255 / 0.96) 33.8%;
+  --f2: rgb(255 255 255 / 0.96) 60.1%, rgb(255 255 255 / 0.76) 61.9%, rgb(255 255 255 / 0.5) 63.3%, rgb(255 255 255 / 0.24) 64.7%, rgb(255 255 255 / 0.04) 66.5%;
+  --r2: rgb(255 255 255 / 0.04) 60.1%, rgb(255 255 255 / 0.24) 61.9%, rgb(255 255 255 / 0.5) 63.3%, rgb(255 255 255 / 0.76) 64.7%, rgb(255 255 255 / 0.96) 66.5%;
+  --m1: linear-gradient(90deg, #fff 25.7%, var(--f1), transparent 35.2%);
+  --m2: linear-gradient(90deg, transparent 25.7%, var(--r1), #fff 35.2%, #fff 58.7%, var(--f2), transparent 67.9%);
+  --m3: linear-gradient(90deg, transparent 58.7%, var(--r2), #fff 67.9%);
+}
 /* the selected stage's wave is the one at full strength; the other two hold back a step */
-.flow__scene[data-sel="0"] .sw__wave .s1, .flow__scene[data-sel="0"] .sw__wave .m1,
-.flow__scene[data-sel="1"] .sw__wave .s2, .flow__scene[data-sel="1"] .sw__wave .m2,
-.flow__scene[data-sel="2"] .sw__wave .s3, .flow__scene[data-sel="2"] .sw__wave .m3 { opacity: 1; }
+.flow__scene[data-sel="0"] .wv.w1, .flow__scene[data-sel="1"] .wv.w2, .flow__scene[data-sel="2"] .wv.w3 { opacity: 1; }
 
 .step__text { position: relative; display: grid; align-content: center; height: 100%; padding: 12px calc(var(--notch) + 10px) 50px calc(var(--notch) + 14px); }
 .step--1 .step__text { padding-left: 16px; }
@@ -474,11 +524,11 @@ button, input { font: inherit; color: inherit; }
 .step__sub { font-size: 11.5px; line-height: 1.3; color: var(--step-ink-2); }
 /* hover and select move the one number the sky ramp is built from, so the words never leave the
    measured range: every tone behind them is still a mix of that stage's colour over the one base */
-.step:hover { --sw-lift: 4%; }
+.step:hover { --sw-lift: 5%; }
 .step[aria-selected="true"] { --sw-lift: var(--sw-sky-up); }
 /* the selected one is marked five ways: a solid bar along its base and its top, a brighter sky, a
-   full-strength label with its colour beside it, its wave at full strength, and the panel below it
-   taking its colour */
+   full-strength label with its colour beside it, its stretch of the wave at full strength, and the
+   panel below it taking its colour */
 .step[aria-selected="true"] .step__body { background:
     linear-gradient(to top, var(--c) 0 5px, transparent 5px),
     linear-gradient(to bottom, var(--c) 0 2px, transparent 2px),
@@ -496,14 +546,15 @@ button, input { font: inherit; color: inherit; }
    of names at the weight they were declared at. The scene keeps every one of its parts: a wave held
    mid-stroke still says which stage stands tallest, which is the whole reading. */
 @media (prefers-reduced-motion: reduce) {
-  .sw__deck i, .sw__wave g, .sw__sun::before { animation: none; }
-  .sw__wave path, .sw__wave g { transition: none; }
+  .sw__deck i, .wv__flow, .sw__sun::before { animation: none; }
+  .wv path, .wv { transition: none; }
 }
 /* ---------- narrow screens and phones: the arrow runs top to bottom ----------
    Three stacked arrows are not one horizon, so each draws its own: its sky, its own stretch of floor and
-   its own wave, at the same amplitude its share earns it on the wide layout. The sun does not come with
-   them -- 100px of arrow has no sky to stand it in, and at this width it would land on the count -- so
-   the Approved arrow points down into its warm light instead. */
+   its own wave, at the amplitude its own share earns it. 358px of floor is not a road either -- at this
+   width the short lens reads as a bowtie rather than a horizon -- so the floor gets a longer one and a
+   wider cell. The sun does not come with them: 100px of arrow has no sky to stand it in, and at this
+   width it would land on the count, so the Approved arrow points down into its warm light instead. */
 @media (max-width: 900px) {
   .flowwrap { --notch: 14px; --tipx: 5px; --tipy: 10px; --deck: 28px; }
   .flow { flex-direction: column; }
@@ -516,26 +567,32 @@ button, input { font: inherit; color: inherit; }
   }
   .step--1 { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--notch)), calc(50% + var(--tipy)) calc(100% - var(--tipx)), 50% 100%, calc(50% - var(--tipy)) calc(100% - var(--tipx)), 0 calc(100% - var(--notch))); }
   .step__body { height: 100px; background:
-      linear-gradient(to right, color-mix(in srgb, var(--c) 26%, transparent) 0 3px, transparent 3px),
+      linear-gradient(to right, color-mix(in srgb, var(--c) 40%, transparent) 0 3px, transparent 3px),
       radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
       var(--sky); }
   .step[aria-selected="true"] .step__body { background:
       linear-gradient(to right, var(--c) 0 5px, transparent 5px),
       radial-gradient(92% 40% at 50% 0%, color-mix(in srgb, var(--c) var(--sw-rim), transparent), transparent 76%),
       var(--sky); }
-  /* one stage's own scene, inside its own panel */
+  /* one stage's own scene, inside its own panel: one stretch of wave, no window to cross */
   .step__wrap { position: absolute; inset: 0; pointer-events: none; }
   .step__wrap .sw__sun { display: none; }
+  .sw__deck { perspective: 150px; }
+  .sw__deck i { --sw-cell: 17px; transform: rotateX(78deg); animation-name: swrunN; }
   .step--3 .step__wrap .sw__deck { background-image:
-      radial-gradient(60% 150% at 50% 100%, color-mix(in srgb, var(--warm) calc(9% + 16% * var(--ch, 0)), transparent), transparent 70%),
-      linear-gradient(180deg, color-mix(in srgb, var(--sw-deck) 72%, transparent), var(--sw-deck) 34%); }
-  .step__wrap .sw__wave g { opacity: 0.82; }
-  .step[aria-selected="true"] .step__wrap .sw__wave g { opacity: 1; }
+      radial-gradient(60% 150% at 50% 100%, color-mix(in srgb, var(--warm) calc(14% + 26% * var(--ch, 0)), transparent), transparent 70%),
+      linear-gradient(180deg, color-mix(in srgb, var(--sw-deck) 22%, transparent) 0%, color-mix(in srgb, var(--sw-deck) 80%, transparent) 34%, var(--sw-deck) 100%); }
+  .step__wrap .wv { opacity: 0.9; -webkit-mask-image: none; mask-image: none; }
+  .step--1 .step__wrap .wv { --c: var(--accent); }
+  .step--2 .step__wrap .wv { --c: var(--hot); }
+  .step--3 .step__wrap .wv { --c: var(--warm); }
+  .step[aria-selected="true"] .step__wrap .wv { opacity: 1; }
   .step__text, .step--1 .step__text { padding: 10px 16px 30px 20px; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; }
   .step__label { grid-column: 1; }
   .step__n { grid-column: 2; grid-row: 1 / span 2; font-size: 26px; }
   .step__sub { grid-column: 1; }
 }
+@keyframes swrunN { to { transform: rotateX(78deg) translateX(var(--sw-cell)); } }
 </style>
 <style id="ledger-ocean" media="not all">
 /* ---------- the sea under three skies, kept whole and switched off ----------
@@ -621,7 +678,7 @@ button, input { font: inherit; color: inherit; }
     calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
     0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
 }
-.step {
+.step, .scene__sky {
   --sky: linear-gradient(180deg,
     color-mix(in srgb, var(--c) var(--sk-a), var(--sky-base)) 0%,
     color-mix(in srgb, var(--c) calc((var(--sk-a) + var(--sk-b)) / 2), var(--sky-base)) 56%,
@@ -796,6 +853,121 @@ button, input { font: inherit; color: inherit; }
 .step[aria-selected="true"] .step__label::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 2px; background: var(--c); vertical-align: 0.5px; }
 .step:focus-visible { outline: none; }
 .step:focus-visible .step__label { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 4px; }
+/* ---------- one sea under three skies ----------
+   Side by side, the three arrows are windows onto one scene rather than three glasses. The sky is
+   painted per chevron -- that is what still separates the stages -- but the water is a single path
+   across the whole strip, and the swimmers and bubbles are clipped to that one path, so a fish leaves
+   one arrow and arrives in the next. The buttons sit above this layer and paint nothing opaque, so they
+   are still tabs: clickable across their whole shape, and still marked when selected.
+   Each stage's level is still its own share of the models. The surface is flat at that level across the
+   middle of its arrow, which is where its count and label sit, and the change between two levels is a
+   swell eased across the join instead of a step. Stacked on a narrow screen three arrows are not a
+   coastline, so there each one goes back to being its own glass. */
+.flow__scene { display: none; }
+.flowwrap { position: relative; }
+@media (min-width: 901px) {
+  .flow { position: relative; z-index: 1; }             /* the buttons sit over the scene */
+  .step__liquid, .step__sea { display: none; }          /* the scene draws the water for every tab */
+  .step { --sky: transparent; }                         /* and the sky, on its own panels */
+  .flow__scene {
+    display: block; position: absolute; inset: 0; pointer-events: none;
+    --tabw: calc((100% + 2 * var(--notch)) / 3);
+    /* the outline of the three interlocking chevrons together: a flat left end, one tip on the right */
+    clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%);
+    /* the three stages' water, written out here because one gradient has to carry all three */
+    --lqp1: var(--lq-1); --lqp2: var(--lq-2); --lqp3: var(--lq-3);
+    --liq1: color-mix(in srgb, var(--accent) var(--lqp1), var(--liq-base));
+    --dep1: color-mix(in srgb, var(--accent) calc(var(--lqp1) + var(--lq-dp)), var(--liq-base));
+    --crt1: color-mix(in srgb, var(--accent) calc(var(--lqp1) + var(--lq-cr)), var(--liq-base));
+    --liq2: color-mix(in srgb, var(--accent-2) var(--lqp2), var(--liq-base));
+    --dep2: color-mix(in srgb, var(--accent-2) calc(var(--lqp2) + var(--lq-dp)), var(--liq-base));
+    --crt2: color-mix(in srgb, var(--accent-2) calc(var(--lqp2) + var(--lq-cr)), var(--liq-base));
+    --liq3: color-mix(in srgb, var(--good) var(--lqp3), var(--liq-base));
+    --dep3: color-mix(in srgb, var(--good) calc(var(--lqp3) + var(--lq-dp)), var(--liq-base));
+    --crt3: color-mix(in srgb, var(--warm) 10%, color-mix(in srgb, var(--good) calc(var(--lqp3) + var(--lq-cr)), var(--liq-base)));
+    --sm1: color-mix(in srgb, var(--accent) calc((var(--sk-a1) + var(--sk-b1)) / 2), var(--sky-base));
+    --sm2: color-mix(in srgb, var(--accent-2) calc((var(--sk-a2) + var(--sk-b2)) / 2), var(--sky-base));
+    --sm3: color-mix(in srgb, var(--good) calc((var(--sk-a3) + var(--sk-b3)) / 2), var(--sky-base));
+  }
+  /* the selected tab's water is a step richer, exactly as its glass used to be */
+  .flow__scene[data-sel="0"] { --lqp1: calc(var(--lq-1) + var(--lq-up)); }
+  .flow__scene[data-sel="1"] { --lqp2: calc(var(--lq-2) + var(--lq-up)); }
+  .flow__scene[data-sel="2"] { --lqp3: calc(var(--lq-3) + var(--lq-up)); }
+  /* the sky, one panel per chevron: the weather is what changes from arrow to arrow */
+  .scene__sky {
+    position: absolute; top: 0; bottom: 0; width: var(--tabw);
+    left: calc(var(--i) * (var(--tabw) - var(--notch)));
+    background: var(--sky);
+    clip-path: polygon(0 0,
+      calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
+      0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
+  }
+  .scene__sky.s1 { --c: var(--accent); --sk-a: var(--sk-a1); --sk-b: var(--sk-b1);
+    clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
+  .scene__sky.s2 { --c: var(--accent-2); --sk-a: var(--sk-a2); --sk-b: var(--sk-b2); }
+  .scene__sky.s3 { --c: var(--good); --sk-a: var(--sk-a3); --sk-b: var(--sk-b3); }
+  /* weather does not stop dead at a chevron: each sky carries a little of its neighbour across the join */
+  .scene__blend {
+    position: absolute; top: 0; bottom: 0; width: 128px; opacity: 0.5;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 42%, #000 58%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 42%, #000 58%, transparent);
+  }
+  .scene__blend.j1 { left: calc(var(--tabw) - var(--notch) - 64px); background: linear-gradient(90deg, var(--sm1), var(--sm2)); }
+  .scene__blend.j2 { left: calc(2 * (var(--tabw) - var(--notch)) - 64px); background: linear-gradient(90deg, var(--sm2), var(--sm3)); }
+  /* the water: one path, whose d is written when the counts change and eased from the one before it.
+     Chromium and Safari animate d; where a browser does not, the level arrives without the swell. */
+  .scene__sea { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .scene__sea path { transition: d 0.85s cubic-bezier(0.24, 1.32, 0.36, 1); }
+  .sea__fill { fill: url(#sea-surf); }
+  .sea__deep { fill: url(#sea-deep); }
+  .sea__edge { fill: none; stroke: url(#sea-crest); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  /* the chop: one wave strip per level, all three drawn from the same origin so they share one phase.
+     Each shows over the flat stretch of its own arrow and fades out across the swell, where the smooth
+     edge of the path takes over, so the surface reads as one sea that flattens over the change. */
+  .scene__chop {
+    position: absolute; left: 0; right: 0; top: 0; height: 100%;
+    transform: translateY(calc((1 - var(--l)) * 100% - 9px));
+    transition: transform 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
+  }
+  .scene__chop.c1 { --l: var(--lv1); --liq: var(--liq1); --crest: var(--crt1);
+    -webkit-mask-image: linear-gradient(90deg, #000 23.5%, transparent 28%); mask-image: linear-gradient(90deg, #000 23.5%, transparent 28%); }
+  .scene__chop.c2 { --l: var(--lv2); --liq: var(--liq2); --crest: var(--crt2);
+    -webkit-mask-image: linear-gradient(90deg, transparent 32.9%, #000 37.4%, #000 56.5%, transparent 61%); mask-image: linear-gradient(90deg, transparent 32.9%, #000 37.4%, #000 56.5%, transparent 61%); }
+  .scene__chop.c3 { --l: var(--lv3); --liq: var(--liq3); --crest: var(--crt3);
+    -webkit-mask-image: linear-gradient(90deg, transparent 65.6%, #000 70.1%); mask-image: linear-gradient(90deg, transparent 65.6%, #000 70.1%); }
+  .flow__scene.is-pour .step__wave { transform-origin: 50% 100%; animation: stepslosh 0.95s cubic-bezier(0.3, 0.9, 0.3, 1); }
+  /* the bubbles and the swimmers, clipped to the one water path: a fish crosses a join because there is
+     only one lane, and the lane starts below the lowest line of text on every arrow */
+  .scene__life { position: absolute; inset: 0; clip-path: url(#sea-clip); --swim: 1720px; --lane: 97px; }
+  .scene__life .b { position: absolute; border-radius: 50%; animation: steprise 10s linear infinite; }
+  .scene__life .b1 { left: 12%; top: 62%; width: 5px; height: 5px; --climb: 44px; animation-duration: 9.5s; animation-delay: -2.2s; background: color-mix(in srgb, var(--crt1) 70%, transparent); }
+  .scene__life .b2 { left: 47%; top: 70%; width: 3px; height: 3px; --climb: 30px; animation-duration: 13s; animation-delay: -7.4s; background: color-mix(in srgb, var(--crt2) 70%, transparent); }
+  .scene__life .b3 { left: 81%; top: 58%; width: 4px; height: 4px; --climb: 38px; animation-duration: 7.5s; animation-delay: -4.1s; background: color-mix(in srgb, var(--crt3) 70%, transparent); }
+  .scene__life .b4 { left: 66%; top: 74%; width: 3px; height: 3px; --climb: 26px; animation-duration: 11s; animation-delay: -9s; background: color-mix(in srgb, var(--crt3) 70%, transparent); }
+  /* a swimmer crosses all three waters, so it is drawn in the middle one's tones: between --liq and
+     --crest either way, which is the band the contrast sweep measured */
+  .scene__life svg { position: absolute; top: var(--lane); fill: color-mix(in srgb, var(--crt2) var(--tint), var(--liq2)); }
+  .scene__life .swimL { right: -70px; }
+  .scene__life .swimR { left: -70px; }
+  .scene__life .big1 { top: calc(var(--lane) - 1px); --tint: 24%; opacity: 0.2; animation: steppassL 97s linear infinite; animation-delay: -41s; }
+  .scene__life .big2 { top: calc(var(--lane) + 2px); --tint: 30%; opacity: 0.17; animation: steppassR 151s linear infinite; animation-delay: -104s; }
+  .scene__life .f1 { --tint: 46%; opacity: 0.42; animation: stepdriftR 46s linear infinite; animation-delay: -7s; }
+  .scene__life .f2 { top: calc(var(--lane) + 10px); --tint: 64%; opacity: 0.34; animation: stepdriftL 63s linear infinite; animation-delay: -19s; }
+  .scene__life .f3 { top: calc(var(--lane) + 17px); --tint: 32%; opacity: 0.4; animation: stepdriftR 79s linear infinite; animation-delay: -34s; }
+  .scene__life .f4 { top: calc(var(--lane) + 4px); --tint: 54%; opacity: 0.26; animation: stepdriftL 94s linear infinite; animation-delay: -52s; }
+}
+/* a crossing has to clear the strip and the 70px the sprite waits off each end, or a fish stops with
+   its nose at the edge: 1260 covers the widest strip this bracket reaches (1106px at 1180) */
+@media (min-width: 901px) and (max-width: 1180px) { .scene__life { --swim: 1260px; } }
+@media (prefers-reduced-motion: reduce) {
+  .scene__chop, .scene__sea path { transition: none; }
+  .scene__life { display: none; }
+  .scene__chop .w1, .scene__chop .w1g, .scene__chop .w2, .scene__chop .w3 { animation: none; }
+  .flow__scene.is-pour .step__wave { animation: none; }
+  /* still water under three skies, and nothing falling: rain held still is a screen of grey lines
+     across the storm, which is not weather, so the storm reads through its darker sky alone */
+  .step--1 .step__sky::before { display: none; }
+}
 .flow__hint { margin: 0; font-size: 13px; }
 .flow__bd { margin-top: 4px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 
@@ -2054,7 +2226,8 @@ table.mini code { font-size: 12px; }
      that stage's detail. Selecting one does not filter the table; its panel has a button that does. */
   const STEP_SHORT = { 'to check': 'To check', checked: 'Awaiting review', approved: 'Approved' };
   const STEP_SUB = { 'to check': 'an automated check is not yet cleared', checked: 'every check clear; reviews pending', approved: 'checks clear and reviewed' };
-  const STAGE_C = ['var(--accent)', 'var(--accent-2)', 'var(--good)'];
+  // the title's own ramp, so the panel under an arrow is the colour of the arrow above it
+  const STAGE_C = ['var(--accent)', 'var(--hot)', 'var(--warm)'];
   let stage = null; // the selected tab's state key; remembered per viewer
   try { stage = localStorage.getItem('ledger-stage'); } catch {}
   /** The selected stage: the remembered one if it still exists, else the first with models in it. */
@@ -2099,33 +2272,209 @@ table.mini code { font-size: 12px; }
   const WEATHER = true;
   const SKY = WEATHER ? '<span class="step__sky" aria-hidden="true"></span>' : '';
   const SEALIFE = SEA ? `<span class="step__sea" aria-hidden="true">${swimmer('whale', 'big1 swimL')}${swimmer('dolphin', 'big2 swimR')}${swimmer('a', 'f1 swimR')}${swimmer('b', 'f2 swimL')}${swimmer('c', 'f3 swimR')}${swimmer('b', 'f4 swimL')}</span>` : '';
+  /* The one sea. Its surface is flat at each stage's level across the middle of that stage's arrow --
+     where the count and the label sit, so the level a viewer reads is that stage's own share -- and it
+     swells from one level to the next across the chevron joins instead of stepping.
+     WHERE THE SWELLS GO, in the SVG's own 1000-wide space. Two things fix them, and they were measured
+     rather than guessed (901px to 1920px, which is every width this layout runs at):
+       the joins -- a chevron's tip -- sit at 345..354 and 673..677, drifting only because the notch is
+         a fixed 26px while the strip is not, so one pair of numbers covers every width;
+       the ink -- each arrow's label, count and line of description, all of them left-aligned -- runs
+         from 11..19 to 144..252 on the first arrow, 355..371 to 476..582 on the second, and 682..694 to
+         773..853 on the third.
+     A swell has to cross its join and clear both neighbours' ink, which leaves exactly two windows:
+     257..352 and 587..679. Each holds its join, so the change really is eased across it, and outside
+     them every arrow's own words sit over water that is flat at that stage's own share of the models.
+     Anything wider than this would put a slope under a word at 901px; anything narrower reads as a step.
+     The three masks further down (the chop, the smooth crest, the colour ramp) are cut to these same
+     numbers, so they cross-fade exactly where the surface starts and stops changing. */
+  const RAMPS = [[257, 352], [587, 679]];
+  const SEA_H = 128;              // the wide layout's glass height, so the path's y units are CSS pixels
+  const SEA_DROP = 4.5;           // the fill starts at the wave's troughs, not at its mean line
+  /** The water's outline for three levels: the filled body, the surface alone, and the body in 0..1. */
+  function seaPath(lvs) {
+    const at = (w, h) => {
+      // an empty stage's surface rests on the floor of the strip, never below it: a level of 0 is a
+      // waterline along the bottom, which is what that stage has, and the path stays a simple outline
+      const y = lvs.map((lv) => +(Math.min((1 - lv) * SEA_H + SEA_DROP, SEA_H) * (h / SEA_H)).toFixed(4));
+      const x = (v) => +((v / 1000) * w).toFixed(4);
+      const ease = (a, b, y0, y1) => { const c = x((a + b) / 2); return ` C${c} ${y0} ${c} ${y1} ${x(b)} ${y1}`; };
+      const top = `M0 ${y[0]} L${x(RAMPS[0][0])} ${y[0]}${ease(RAMPS[0][0], RAMPS[0][1], y[0], y[1])}`
+        + ` L${x(RAMPS[1][0])} ${y[1]}${ease(RAMPS[1][0], RAMPS[1][1], y[1], y[2])} L${w} ${y[2]}`;
+      return { top, fill: `${top} L${w} ${h} L0 ${h} Z` };
+    };
+    const px = at(1000, SEA_H), unit = at(1, 1);
+    return { fill: px.fill, edge: px.top, box: unit.fill };
+  }
+  /* The whole scene: three skies, one body of water, one shoal. It sits under the buttons and takes no
+     pointer events, so the arrows are still tabs. Ids are fixed because there is only ever one of it. */
+  const seaStop = (o, v) => `<stop offset="${o}" style="stop-color:var(${v})"/>`;
+  /* the three stages' colours change where their levels do, so a stage's own tone is flat over its own
+     ink and only the swell carries one into the next -- these offsets are RAMPS, in 0..1 */
+  const seaRamp = (a, b, c) => seaStop(0, a) + seaStop(0.257, a) + seaStop(0.352, b) + seaStop(0.587, b) + seaStop(0.679, c) + seaStop(1, c);
+  function sceneHtml(lvs, sel) {
+    const p = seaPath(lvs);
+    const sky = [0, 1, 2].map((i) => `<div class="scene__sky s${i + 1}" style="--i:${i}"></div>`).join('');
+    const chop = [1, 2, 3].map((i) => `<div class="scene__chop c${i}">${WAVE}</div>`).join('');
+    const life = SEA ? `<div class="scene__life"><i class="b b1"></i><i class="b b2"></i><i class="b b3"></i><i class="b b4"></i>`
+      + `${swimmer('whale', 'big1 swimL')}${swimmer('dolphin', 'big2 swimR')}${swimmer('a', 'f1 swimR')}${swimmer('b', 'f2 swimL')}${swimmer('c', 'f3 swimR')}${swimmer('b', 'f4 swimL')}</div>` : '';
+    return `<div class="flow__scene" aria-hidden="true" data-sel="${sel}" style="--lv1:${lvs[0]};--lv2:${lvs[1]};--lv3:${lvs[2]}">
+      ${sky}<div class="scene__blend j1"></div><div class="scene__blend j2"></div>
+      <svg class="scene__sea" viewBox="0 0 1000 ${SEA_H}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="sea-surf">${seaRamp('--liq1', '--liq2', '--liq3')}</linearGradient>
+          <linearGradient id="sea-deep">${seaRamp('--dep1', '--dep2', '--dep3')}</linearGradient>
+          <linearGradient id="sea-crest">${seaRamp('--crt1', '--crt2', '--crt3')}</linearGradient>
+          <linearGradient id="sea-depth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000"/><stop offset="0.3" stop-color="#000"/><stop offset="1" stop-color="#fff"/></linearGradient>
+          <linearGradient id="sea-swell"><stop offset="0.235" stop-color="#000"/><stop offset="0.28" stop-color="#fff"/><stop offset="0.329" stop-color="#fff"/><stop offset="0.374" stop-color="#000"/><stop offset="0.565" stop-color="#000"/><stop offset="0.61" stop-color="#fff"/><stop offset="0.656" stop-color="#fff"/><stop offset="0.701" stop-color="#000"/></linearGradient>
+          <mask id="sea-deepmask"><rect width="1000" height="${SEA_H}" fill="url(#sea-depth)"/></mask>
+          <mask id="sea-swellmask"><rect width="1000" height="${SEA_H}" fill="url(#sea-swell)"/></mask>
+          <clipPath id="sea-clip" clipPathUnits="objectBoundingBox"><path d="${p.box}"/></clipPath>
+        </defs>
+        <path class="sea__fill" d="${p.fill}"/>
+        <path class="sea__deep" d="${p.fill}" mask="url(#sea-deepmask)"/>
+        <path class="sea__edge" d="${p.edge}" mask="url(#sea-swellmask)"/>
+      </svg>
+      ${chop}${life}</div>`;
+  }
+  /* ---------- the strip, and the sea it used to be ----------
+     OCEAN is the sea under three skies this strip was until now (commit e196e17). None of it was thrown
+     away: the builders above still make its markup, and <style id="ledger-ocean"> in the head carries
+     its CSS whole, inert behind media="not all". Setting this one constant to true turns that
+     stylesheet on and builds the sea instead of the wave. Nothing else has to change. */
+  const OCEAN = false;
+  if (OCEAN) document.getElementById('ledger-ocean')?.removeAttribute('media');
+
+  /* ---------- the wave ----------
+     A sine drawn as cubic Beziers: each half period is one curve whose two control points sit at four
+     thirds of the amplitude, which puts the curve's own peak exactly at the amplitude -- closer to a
+     sine than any eye at this size can tell, and one curve where a polyline would need dozens.
+     The path runs two periods past each end of the layer, so the round caps at its ends are always off
+     screen and the slide never runs out of wave. Built when the counts change and never again:
+     nothing in here runs per frame, and the travel is a transform on an HTML element.
+     fw/tv are the two numbers that make the loop seamless: the layer is one period wider than the
+     strip (fw), and it slides by exactly that one period (tv, the same length written as a share of
+     the layer's own width). Every loop therefore lands on the frame it started from. */
+  const WV = { vw: 1092, h: 128, cy: 100, amp: 18, per: 92, fw: '109.2%', tv: '-8.4249%', a: -184, b: 1276 };
+  const WVN = { vw: 384, h: 100, cy: 72, amp: 11, per: 64, fw: '120%', tv: '-16.6667%', a: -128, b: 512 };
+  function sinePath(o, amp, per, phase) {
+    const half = per / 2, c = amp * 4 / 3, r = (n) => Math.round(n * 100) / 100;
+    let x = o.a + (phase || 0), up = true, d = `M${r(x)} ${o.cy}`;
+    while (x < o.b) {
+      const s = up ? -1 : 1;
+      d += ` C${r(x + per / 6)} ${r(o.cy + s * c)} ${r(x + per / 3)} ${r(o.cy + s * c)} ${r(x + half)} ${o.cy}`;
+      x += half; up = !up;
+    }
+    return d;
+  }
+  /** How tall a stage's wave stands: that stage's share of every model, and nothing else. A stage
+      holding nothing is a flat line -- empty reads as empty, and no floor lifts it off the axis, though
+      the line itself carries on lit through the stage so the waveform is never broken. A stage holding
+      anything stands at least at WV_MIN of the tallest, so "a few" can never read as "none"; above that
+      the height is the share, straight. The number itself is the count printed on the arrow and the
+      first line of its tooltip, so the picture never has to be measured. */
+  const WV_MIN = 0.14;
+  const waveAmp = (share, count, max) => (count ? max * (WV_MIN + (1 - WV_MIN) * share) : 0);
+  /* One stage's stretch of the wave: three strokes of the same path -- wide and faint, narrower, then
+     the core -- which is the soft falloff, paid for in paint instead of a blur filter over the strip
+     every frame. With them the harmonic, a third of the height and half the period, in the same
+     travelling layer so it moves at the carrier's own speed and the two stay locked into one shape. */
+  const waveLayer = (o, i, amp) =>
+    `<div class="wv w${i}" style="--wvw:${o.fw};--wvt:${o.tv}">`
+    + `<div class="wv__flow"><svg viewBox="0 0 ${o.vw} ${o.h}" preserveAspectRatio="none" aria-hidden="true" focusable="false">`
+    + ['h3', 'h2', 'h1'].map((c) => `<path class="${c}" d="${sinePath(o, amp, o.per, 0)}"/>`).join('')
+    + `<path class="hm" d="${sinePath(o, amp / 3, o.per / 2, o.per / 4)}"/>`
+    + '</svg></div></div>';
+  /* The whole scene: three skies, one deck, one floor, one sun and one wave in three stretches. It sits
+     under the buttons and takes no pointer events, so the arrows are still tabs. */
+  function synthScene(amps, sel) {
+    const sky = [0, 1, 2].map((i) => `<div class="scene__sky s${i + 1}" style="--i:${i}"></div>`).join('');
+    return `<div class="flow__scene" aria-hidden="true" data-sel="${sel}">
+      ${sky}<div class="scene__blend j1"></div><div class="scene__blend j2"></div>
+      <div class="sw__deck"><i></i></div><div class="sw__horizon"></div><div class="sw__sun"><i></i></div>
+      <div class="sw__wave">${amps.map((a, i) => waveLayer(WV, i + 1, a)).join('')}</div></div>`;
+  }
+  /** One stacked arrow's own scene: the same wave at the amplitude its own share earns it, in its own
+      panel and unmasked -- stacked, there is no neighbour to cross into. */
+  const synthStep = (amp) => '<span class="step__wrap" aria-hidden="true">'
+    + '<span class="sw__deck"><i></i></span><span class="sw__horizon"></span>'
+    + `<span class="sw__wave">${waveLayer(WVN, 1, amp)}</span></span>`;
+  /** The wave rises to the height the counts earn it, from wherever it already stood. Every stroke of
+      a stretch is the same path, and the harmonic is that amplitude thirded, so one number sets all
+      four. The transition on d is what makes the change a swell; where a browser does not animate d,
+      the wave arrives at its height instead. */
+  const rise = (root, o, i, amp) => {
+    const g = root.querySelector(`.wv.w${i}`);
+    if (!g) return;
+    const d = sinePath(o, amp, o.per, 0), dm = sinePath(o, amp / 3, o.per / 2, o.per / 4);
+    for (const p of g.querySelectorAll('path:not(.hm)')) p.setAttribute('d', d);
+    for (const p of g.querySelectorAll('path.hm')) p.setAttribute('d', dm);
+  };
+
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
-  const shownLv = new Map(); // the level each glass is showing now, so only a real change animates
+  const shownLv = new Map(); // the share each stage is showing now, so only a real change animates
   function renderStats(buckets) {
     const total = buckets.reduce((s, b) => s + b.count, 0) || 1;
     pickStage(buckets);
-    $('stats').innerHTML = `<ol class="flow" role="tablist" aria-label="Stages of the rewrite">${buckets.map((b, i) => {
+    const lvs = buckets.map((b) => b.count / total);
+    const selIx = Math.max(0, buckets.findIndex((b) => b.key === stage));
+    /* The scene is drawn where the wave already stands and eased to where it belongs on the next frame:
+       selecting a tab redraws the whole strip, and a wave that started flat every time would collapse
+       and rise again on every click. On the first draw there is no "already", so there it really does
+       start flat and rise. */
+    const seen = buckets.map((b) => shownLv.has(b.key));
+    const from = buckets.map((b, i) => (seen[i] ? shownLv.get(b.key) : 0));
+    const fromAmp = (o) => buckets.map((b, i) => waveAmp(from[i], seen[i] ? b.count : 0, o.amp));
+    const scene = OCEAN ? sceneHtml(from, selIx) : synthScene(fromAmp(WV), selIx);
+    const stepAmp = fromAmp(WVN);
+    // the sun's light is the Approved share; the wave is what carries the number, the sun only warms to it
+    $('stats').style.setProperty('--ch3', String(lvs[2] ?? 0));
+    $('stats').innerHTML = scene + `<ol class="flow" role="tablist" aria-label="Stages of the rewrite">${buckets.map((b, i) => {
       const on = stage === b.key;
-      const rule = b.means && b.means.length <= 140 ? b.means : null;
+      const pct = Math.round((b.count / total) * 100);
       const name = STEP_SHORT[b.key] ?? b.label;
-      const lv = b.count / total; // the level is this stage's share of every model, nothing else
-      const from = shownLv.has(b.key) ? shownLv.get(b.key) : 0;
-      return `<li class="flow__li" role="presentation">${rule ? `<span id="step-rule-${i}" class="visually-hidden">${esc(rule)}.</span>` : ''}<button type="button" role="tab" id="stage-tab-${i}" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-stage="${esc(b.key)}" data-lv="${lv}" style="--lv:${from}" aria-selected="${on}" aria-controls="ov-stage" tabindex="${on ? 0 : -1}"${rule ? ` data-tip aria-describedby="step-rule-${i}"` : ''}
-          aria-label="${esc(`${name}: ${b.count} of ${total} models, ${Math.round(lv * 100)}% of the glass`)}">
+      const lv = b.count / total; // the wave's height is this stage's share of every model, nothing else
+      const f = seen[i] ? from[i] : 0;
+      /* The tooltip leads with the number the picture is drawn from, then with what puts a model in
+         this stage. A wave has to be read off a curve; the count never does. */
+      const means = b.means && b.means.length <= 140 ? b.means.charAt(0).toUpperCase() + b.means.slice(1) : '';
+      const rule = `${b.count} of ${total} models, ${pct}% — that share is how tall the wave stands here.`
+        + (means ? ` ${means}.` : '');
+      const inner = OCEAN ? `<span class="step__liquid">${LIQUID}</span>${SEALIFE}${SKY}` : synthStep(stepAmp[i]);
+      return `<li class="flow__li" role="presentation"><span id="step-rule-${i}" class="visually-hidden">${esc(rule)}</span><button type="button" role="tab" id="stage-tab-${i}" class="step step--${i + 1}${b.count ? ' has-work' : ''}" data-stage="${esc(b.key)}" data-lv="${lv}" style="--lv:${f};--ch:${f}" aria-selected="${on}" aria-controls="ov-stage" tabindex="${on ? 0 : -1}" data-tip aria-describedby="step-rule-${i}"
+          aria-label="${esc(`${name}: ${b.count} of ${total} models, ${pct}% of the strip`)}">
         <span class="step__body" aria-hidden="true">
-          <span class="step__liquid">${LIQUID}</span>${SEALIFE}${SKY}
+          ${inner}
           <span class="step__text"><span class="step__label">${esc(name)}</span><span class="step__n">${b.count}</span><span class="step__sub">${esc(STEP_SUB[b.key] ?? '')}</span></span>
         </span></button></li>`;
     }).join('')}</ol>`;
-    // the level rises from where it was; a redraw on select starts where it already is, so nothing moves
+    // the wave rises from where it stood; a redraw on select starts where it already is, so nothing moves
     const settle = () => {
+      let moved = false;
       for (const el of $('stats').querySelectorAll('.step')) {
         const to = +el.dataset.lv, was = shownLv.get(el.dataset.stage);
         el.style.setProperty('--lv', el.dataset.lv);
+        el.style.setProperty('--ch', el.dataset.lv);
         shownLv.set(el.dataset.stage, to);
-        // one swell when the level actually moves; a redraw at the same level leaves the surface alone
-        if (!REDUCED.matches && was !== to) { el.classList.add('is-pour'); setTimeout(() => el.classList.remove('is-pour'), 1000); }
+        if (was !== to) moved = true;
       }
+      const sc = $('stats').querySelector('.flow__scene');
+      if (OCEAN) {
+        if (!sc) return;
+        const p = seaPath(lvs);
+        lvs.forEach((lv, i) => sc.style.setProperty(`--lv${i + 1}`, lv));
+        sc.querySelector('.sea__fill').setAttribute('d', p.fill);
+        sc.querySelector('.sea__deep').setAttribute('d', p.fill);
+        sc.querySelector('.sea__edge').setAttribute('d', p.edge);
+        sc.querySelector('#sea-clip path').setAttribute('d', p.box);
+        if (!REDUCED.matches && moved) { sc.classList.add('is-pour'); setTimeout(() => sc.classList.remove('is-pour'), 1000); }
+        return;
+      }
+      if (sc) lvs.forEach((lv, i) => rise(sc, WV, i + 1, waveAmp(lv, buckets[i].count, WV.amp)));
+      $('stats').querySelectorAll('.step').forEach((el, i) => {
+        const w = el.querySelector('.step__wrap');
+        if (w) rise(w, WVN, 1, waveAmp(lvs[i], buckets[i].count, WVN.amp));
+      });
     };
     if (REDUCED.matches) settle();
     else requestAnimationFrame(() => requestAnimationFrame(settle));
