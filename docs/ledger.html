@@ -891,25 +891,47 @@ table.mini code { font-size: 12px; }
 /* The handle: fixed to the window, standing just outside whichever edge the panel's own left edge is at.
    --lead-x is that edge, measured with everything else; when the panel is away it is the window's right
    edge, so the same handle ends up resting against the side of the screen. */
-.leadtab { position: fixed; top: 28vh; left: var(--lead-x, 100vw); translate: -100% 0; z-index: 30; display: grid; gap: 7px; justify-items: center; padding: 13px 7px; border: 1px solid var(--border-strong); border-right: 0; border-radius: 12px 0 0 12px; background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow); cursor: pointer; transition: left 0.34s cubic-bezier(0.3, 0.8, 0.3, 1); }
+/* The control that sends it away: a child of the panel, standing just off its outer edge, so it travels
+   with the panel and never overlaps a word of what is in it. */
+.leadedge { position: absolute; top: 20px; right: 100%; display: grid; gap: 3px; justify-items: center; padding: 9px 5px; border: 1px solid var(--border-strong); border-right: 0; border-radius: 10px 0 0 10px; background: var(--surface-solid); color: var(--muted); font: 600 11px/1 var(--font); cursor: pointer; }
+.leadedge:hover { color: var(--text); border-color: var(--accent); }
+.leadedge[hidden] { display: none; }
+.leadedge__a { font-size: 13px; font-weight: 800; }
+.leadedge__t { writing-mode: vertical-rl; letter-spacing: 0.06em; text-transform: uppercase; }
+/* Narrow, the record is a full-width block: its left edge is the page's own margin, and a handle
+   standing off it would hang off the side of the screen. The edge it slides toward is the right one
+   there, so the panel keeps a gutter on that side and the handle stands in it -- never over a word. */
+@media (max-width: 1099px) {
+  .lead { padding-right: 38px; }
+  .leadedge { right: 5px; left: auto; top: 12px; border-right: 1px solid var(--border-strong); border-radius: 10px; }
+}
+/* The control that brings it back: fixed to the window's right edge, vertically centred, and on screen
+   only while the record is away -- the script hides it the instant the panel starts coming back. */
+.leadtab { position: fixed; top: 50%; right: 0; translate: 0 -50%; z-index: 40; display: grid; gap: 7px; justify-items: center; padding: 13px 7px; border: 1px solid var(--border-strong); border-right: 0; border-radius: 12px 0 0 12px; background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
+.leadtab[hidden] { display: none; }
 .leadtab:hover { border-color: var(--accent); color: var(--accent); }
-.leadtab__a { font-size: 13px; font-weight: 800; color: var(--muted); transition: rotate 0.2s; }
-.leadtab[aria-expanded="false"] .leadtab__a { rotate: 180deg; }
+.leadtab__a { font-size: 13px; font-weight: 800; color: var(--muted); }
 .leadtab__t { writing-mode: vertical-rl; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; }
 .leadtab__c { writing-mode: vertical-rl; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--warm); }
-@media (prefers-reduced-motion: reduce) { .leadtab { transition: none; } .leadtab__a { transition: none; } }
 #lead-body[hidden] { display: none; }
 /* narrow: the record is a block under the table, so it slides right and closes the space it leaves */
-.split > .lead { transition: transform 0.34s cubic-bezier(0.3, 0.8, 0.3, 1), opacity 0.34s, height 0.34s, margin 0.34s, padding 0.34s; }
-.split.lead-away > .lead { transform: translateX(calc(100% + 26px)); opacity: 0; pointer-events: none; height: 0; margin: 0; padding-block: 0; overflow: hidden; }
-@media (prefers-reduced-motion: reduce) { .split, .split > .lead { transition: none; } }
+/* One property moves: transform. Nothing here animates a width, a height or a margin, so no frame of
+   the slide costs a reflow. The panel is promoted to its own layer for the two-tenths of a second it is
+   moving and dropped again the moment it lands. The column opens or closes in one step while the panel
+   is out of sight, so the table's width changes once rather than being dragged along with it. */
+.split > .lead { transition: transform 0.2s cubic-bezier(0.32, 0.9, 0.3, 1); }
+.split.lead-move > .lead { will-change: transform; }
+.split.lead-out > .lead { transform: translateX(calc(100% + 26px)); pointer-events: none; }
+.split.lead-away > .lead { display: none; }
+@media (prefers-reduced-motion: reduce) { .split > .lead { transition: none; } }
 /* wide screens: the lead's record beside the table, in view while the table scrolls */
 @media (min-width: 1100px) {
-  .split { display: grid; grid-template-columns: minmax(0, 1fr) var(--lead-col, clamp(300px, 26vw, 380px)); gap: 18px; align-items: start; transition: grid-template-columns 0.34s cubic-bezier(0.3, 0.8, 0.3, 1); }
-  .split > .lead { transition: transform 0.34s cubic-bezier(0.3, 0.8, 0.3, 1), opacity 0.34s; }
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) var(--lead-col, clamp(300px, 26vw, 380px)); gap: 18px; align-items: start; }
   .split.lead-away { --lead-col: 0px; gap: 0; }
-  .split.lead-away > .lead { width: var(--lead-w); transform: translateX(calc(100% + 26px)); opacity: 0; pointer-events: none; }
-  .split > .lead { position: sticky; top: var(--stick-top); max-height: calc(100vh - var(--stick-top) * 2); overflow: auto; overscroll-behavior: contain; padding: 16px 14px; }
+  .split > .lead { position: sticky; top: var(--stick-top); padding: 16px 14px; }
+  /* the record scrolls inside its body, not inside the panel: the panel must not clip the control that
+     stands off its edge */
+  .split > .lead > #lead-body { max-height: calc(100vh - var(--stick-top) * 2 - 92px); overflow: auto; overscroll-behavior: contain; }
   .split .board { grid-template-columns: minmax(0, 1fr); }
   .split .lead .head { flex-direction: column; align-items: flex-start; }
 }
@@ -1299,11 +1321,17 @@ table.mini code { font-size: 12px; }
       <p class="muted">From <code>ledger-queue.json</code>, which the lead session and its agents report through <code>npm run queue -- start|done</code>. Nothing here is checked against git or the checks; the table above is.</p>
       <div id="queue"></div>
     </div>
+    <!-- on the panel's own outer edge, outside its content, so it travels with the panel -->
+    <button type="button" class="leadedge" id="lead-hide" aria-expanded="true" aria-controls="leadpanel"
+      title="Slide the lead’s record out of the way. Nothing in it is measured against git or the checks.">
+      <span class="leadedge__a" aria-hidden="true">›</span><span class="leadedge__t">Hide</span>
+    </button>
   </section>
-  <!-- One handle, on the edge the panel slides toward: it rides the panel's own left edge while the
-       panel is there, and rests against the window's right edge once the panel has gone. -->
-  <button type="button" class="leadtab" id="lead-tab" aria-expanded="true" aria-controls="leadpanel">
-    <span class="leadtab__a" id="lead-tab-a" aria-hidden="true">›</span>
+  <!-- The handle that brings the record back: fixed to the window's right edge, and there only while
+       the record is away. While the record is here, the control is the one on its own edge, above. -->
+  <button type="button" class="leadtab" id="lead-tab" aria-expanded="false" aria-controls="leadpanel" hidden
+    title="Bring the lead’s record back. Nothing in it is measured against git or the checks.">
+    <span class="leadtab__a" aria-hidden="true">‹</span>
     <span class="leadtab__t" id="lead-tab-t">Lead’s record</span>
     <span class="leadtab__c">reported, not measured</span>
   </button>
@@ -2943,26 +2971,61 @@ table.mini code { font-size: 12px; }
     const t = $('lead-tab-t');
     if (t) t.textContent = qError || !Q ? 'Lead’s record' : `Lead’s record · ${n('running')} running`;
   }
-  /** Where the handle stands: against the panel's left edge, or against the window once it has gone. */
-  function leadEdge() { wasEdge = null; onScroll(); }
-  function applyLead() {
-    const sec = $('leadpanel'), tab = $('lead-tab');
-    sec.closest('.split')?.classList.toggle('lead-away', !leadOpen);
+  /* Two controls, and only ever one of them on screen. While the record is here, the one that sends it
+     away rides the panel's own outer edge -- it is a child of the panel, so it travels with it and can
+     never be left behind at a coordinate that was true a scroll ago. While the record is away, the one
+     that brings it back is fixed to the window's right edge, and it is the only thing there. */
+  const SLIDE_MS = 200;
+  let leadTimer = 0;
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function leadAria() {
+    const sec = $('leadpanel'), tab = $('lead-tab'), hide = $('lead-hide');
     sec.setAttribute('aria-hidden', String(!leadOpen));
-    tab.setAttribute('aria-expanded', String(leadOpen));
-    tab.title = leadOpen
-      ? 'Slide the lead’s record out of the way. Nothing in it is measured against git or the checks.'
-      : 'Bring the lead’s record back. Nothing in it is measured against git or the checks.';
+    tab.hidden = leadOpen;
+    hide.hidden = !leadOpen;
+    tab.setAttribute('aria-expanded', 'false');
+    hide.setAttribute('aria-expanded', 'true');
     leadCounts();
-    leadEdge();
-    stickyOffsets();
   }
-  $('lead-tab').addEventListener('click', () => {
-    leadOpen = !leadOpen;
-    try { localStorage.setItem(LEAD_KEY, leadOpen ? '1' : '0'); } catch {}
-    applyLead();
-  });
-  applyLead();
+  function setLead(open) {
+    const split = $('leadpanel').closest('.split');
+    if (!split) return;
+    leadOpen = open;
+    try { localStorage.setItem(LEAD_KEY, open ? '1' : '0'); } catch {}
+    clearTimeout(leadTimer);
+    // the handle that brings it back goes the instant it starts coming back, not when it arrives
+    $('lead-tab').hidden = true;
+    if (!open) {
+      split.classList.add('lead-move', 'lead-out');
+      const land = () => { split.classList.remove('lead-move'); split.classList.add('lead-away'); leadAria(); stickyOffsets(); };
+      if (reduced()) land(); else leadTimer = setTimeout(land, SLIDE_MS + 20);
+    } else {
+      /* the column opens while the panel is still out of sight, so the table's width changes once, in
+         one step, instead of being animated -- and nothing is mid-flight over the rows while it does */
+      split.classList.remove('lead-away');
+      split.classList.add('lead-move');
+      const land = () => { split.classList.remove('lead-move'); leadAria(); stickyOffsets(); };
+      if (reduced()) { split.classList.remove('lead-out'); land(); }
+      else {
+        /* The column opening is one layout, and it has to be done before the panel can start moving --
+           the panel is display:none until it is. Asking for it here, in the same tick, costs one long
+           frame at the press and none afterwards; waiting a frame or two for it instead would leave the
+           press feeling dead and put that same layout in the middle of the slide. */
+        void $('leadpanel').offsetWidth;
+        split.classList.remove('lead-out');
+        leadTimer = setTimeout(land, SLIDE_MS + 40);
+      }
+    }
+    $('lead-hide').hidden = !open;
+  }
+  $('lead-hide').addEventListener('click', () => { setLead(false); $('lead-tab').focus({ preventScroll: true }); });
+  $('lead-tab').addEventListener('click', () => { setLead(true); $('lead-hide').focus({ preventScroll: true }); });
+  // the state it starts in is not a movement: it is simply where the panel is
+  {
+    const split = $('leadpanel').closest('.split');
+    if (split && !leadOpen) split.classList.add('lead-out', 'lead-away');
+    leadAria();
+  }
   const took = (a, b) => {
     const s = (Date.parse(b) - Date.parse(a)) / 1000;
     if (!Number.isFinite(s) || s < 0) return null;
