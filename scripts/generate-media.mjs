@@ -12,7 +12,7 @@
 import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { settle, shotContext } from './og-shot.mjs';
 
 const argv = process.argv.slice(2);
@@ -42,7 +42,7 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
 
 mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch();
+const browser = await launchChromium();
 const failures = [];
 
 // How a shot is taken (the page, the size, the moment the model is stopped at) is in og-shot.mjs,

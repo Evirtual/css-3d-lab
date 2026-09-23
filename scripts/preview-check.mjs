@@ -9,11 +9,11 @@
  */
 import assert from 'node:assert/strict';
 import { createServer } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 
 const vite = await createServer({ logLevel: 'error', server: { host: '127.0.0.1', port: 0 } });
 await vite.listen();
-const browser = await chromium.launch();
+const browser = await launchChromium();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));

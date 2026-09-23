@@ -20,7 +20,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createServer as createVite } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { exportServer } from '../server/dev.mjs';
 
 const service = await exportServer(8787);
@@ -35,7 +35,7 @@ await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
 
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await launchChromium({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const W = 420;
 const H = 340;
 const S = 96; // compared at this size, so anti-aliasing is not what is measured
@@ -155,7 +155,7 @@ service.close();
 // the sheet of strips, for looking at what differed
 if (strips.length) {
   const sheet = await (async () => {
-    const b = await chromium.launch();
+    const b = await launchChromium();
     const p = await b.newPage({ viewport: { width: 560, height: 200 } });
     const png = await p.evaluate(async (items) => {
       const load = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = src; });

@@ -12,7 +12,7 @@
  * 127.0.0.1:8787, so stop a running `npm run export` first.
  */
 import { createServer as createVite } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { exportServer } from '../server/dev.mjs';
 
 const id = process.argv[2] ?? 'cube';
@@ -22,7 +22,7 @@ const service = await exportServer(8787);
 const vite = await createVite({ logLevel: 'error', server: { host: '127.0.0.1', port: 0 } });
 await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
-const browser = await chromium.launch();
+const browser = await launchChromium();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 page.on('pageerror', (e) => console.log('  page error:', e.message));
 page.on('console', (m) => m.type() === 'error' && console.log('  console:', m.text()));

@@ -5,7 +5,7 @@
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 
 const DIST = resolve('dist');
 const OUT = resolve('.media-tmp');
@@ -31,7 +31,7 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
 
 mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch();
+const browser = await launchChromium();
 const shots = [];
 const queue = [...demos];
 await Promise.all(

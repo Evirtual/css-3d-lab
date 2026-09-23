@@ -56,7 +56,7 @@
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { createServer as createVite } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError } from './browser-guard.mjs';
 
 /**
@@ -429,7 +429,7 @@ const ids = wanted.length ? wanted : demos.map((d) => d.id);
 // fresh browser (after one breaks, and every 20 models)
 let context, page;
 const guard = new BrowserGuard({
-  launch: () => chromium.launch(),
+  launch: () => launchChromium(),
   setup: async (browser) => {
     context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     // every frame draws the same random numbers, from the same seed: a scene that scatters its parts

@@ -2,12 +2,12 @@
 // build, reports script errors or empty pages, and photographs them all into .media-tmp/snippets.jpg.
 //   node scripts/snippet-check.mjs <id> [<id> ...]      (no build; .media-tmp/ must exist)
 import { createServer } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 const ids = process.argv.slice(2);
 const vite = await createServer({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
 const { snippets, standaloneDoc } = await vite.ssrLoadModule('/src/models/snippets.ts');
 await vite.close();
-const b = await chromium.launch();
+const b = await launchChromium();
 const shots = [];
 for (const id of ids) {
   const page = await b.newPage({ viewport: { width: 380, height: 280 } });

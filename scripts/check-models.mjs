@@ -99,7 +99,7 @@
  */
 import { inflateSync } from 'node:zlib';
 import { createServer as createVite } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError, unlessBrowser } from './browser-guard.mjs';
 
 const BAND = 70; // the model box, with no controls
@@ -378,7 +378,7 @@ const wanted = args.filter((a) => !a.startsWith('-'));
 const ids = wanted.length ? wanted : demos.map((d) => d.id);
 
 // replaced by a fresh one when it breaks, and every 20 models (scripts/browser-guard.mjs)
-const guard = new BrowserGuard({ launch: () => chromium.launch() });
+const guard = new BrowserGuard({ launch: () => launchChromium() });
 await guard.start();
 // a new one for every model, in a context of its own: see EACH MODEL FROM A CLEAN START
 let page;

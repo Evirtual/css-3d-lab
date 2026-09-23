@@ -66,7 +66,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createServer as createVite } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError, unlessBrowser } from './browser-guard.mjs';
 import { decode, cells, changeNear, change, STILL, STILL_NEAR } from './pixels.mjs';
 import { cssHeads } from './css-heads.mjs';
@@ -216,7 +216,7 @@ if (unknown.length) {
 
 mkdirSync(OUT, { recursive: true });
 // replaced by a fresh one when it breaks, and every 20 models (scripts/browser-guard.mjs)
-const guard = new BrowserGuard({ launch: () => chromium.launch() });
+const guard = new BrowserGuard({ launch: () => launchChromium() });
 await guard.start();
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 

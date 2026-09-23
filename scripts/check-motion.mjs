@@ -82,7 +82,7 @@ import { cssHeads } from './css-heads.mjs';
 import { join, resolve } from 'node:path';
 import { decode, cells as cellsAt, changeNear as changeNearAt, change, far, STILL, STILL_NEAR } from './pixels.mjs';
 import { createServer as createVite } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, unlessBrowser } from './browser-guard.mjs';
 
 const OUT = resolve('.media-tmp/motion');
@@ -463,7 +463,7 @@ mkdirSync(OUT, { recursive: true });
 let browser, sheet; // both replaced whenever scripts/browser-guard.mjs launches a fresh browser
 let page; // a new one for every model, in a context of its own: see film()
 const guard = new BrowserGuard({
-  launch: () => chromium.launch(),
+  launch: () => launchChromium(),
   setup: async (b) => {
     browser = b;
     sheet = await b.newPage({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });

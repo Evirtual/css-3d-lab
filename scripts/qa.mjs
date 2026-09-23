@@ -21,7 +21,7 @@ import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { createServer as createVite } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard } from './browser-guard.mjs';
 
 const DIST = resolve(process.env.QA_DIST || 'dist'); // QA_DIST: test another build (a deliberately broken copy)
@@ -42,7 +42,7 @@ const server = createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
 // replaced by a fresh one when it breaks, and every 20 models (scripts/browser-guard.mjs)
-const guard = new BrowserGuard({ launch: () => chromium.launch() });
+const guard = new BrowserGuard({ launch: () => launchChromium() });
 await guard.start();
 
 const W = Number(process.env.QA_W || 340); // QA_W / QA_H: test a bigger stage (the demo is then zoomed)

@@ -53,7 +53,7 @@
  * `N/M models do not depend on outside CSS.` scripts/capture-check.mjs records them.
  */
 import { createServer as createVite } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { BrowserGuard, crashGuard } from './browser-guard.mjs';
@@ -207,7 +207,7 @@ async function judge(id, browser) {
 
 const results = [];
 crashGuard('check-boxsizing', async () => console.error(`check-boxsizing: ${results.length} of ${ids.length} model(s) judged before the crash, each on its own line above`));
-const guard = new BrowserGuard({ launch: () => chromium.launch() });
+const guard = new BrowserGuard({ launch: () => launchChromium() });
 await guard.start();
 try {
   for (const id of ids) {

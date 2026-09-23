@@ -85,7 +85,7 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeF
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError } from './browser-guard.mjs';
 import { createServer as createVite } from 'vite';
 import { MOMENT, settle, shotContext, VIEWPORT } from './og-shot.mjs';
@@ -143,7 +143,7 @@ const base = `http://127.0.0.1:${server.address().port}`;
 // whenever scripts/browser-guard.mjs launches a fresh browser (after one breaks, and every 20 models)
 let cmpCtx, cmps;
 const guard = new BrowserGuard({
-  launch: () => chromium.launch(),
+  launch: () => launchChromium(),
   setup: async (b) => {
     cmpCtx = await b.newContext();
     cmps = await Promise.all(Array.from({ length: CONCURRENCY }, async () => { const p = await cmpCtx.newPage(); await p.goto(`${base}/__mc/`); return p; }));

@@ -81,7 +81,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer as createVite } from 'vite';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError } from './browser-guard.mjs';
 import { exportServer } from '../server/dev.mjs';
 import { DEFAULTS } from './export-defaults.mjs';
@@ -146,7 +146,7 @@ const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 // launches a fresh browser (after one breaks, and every 20 models); started once HELPERS exists, below
 let context, lab;
 const guard = new BrowserGuard({
-  launch: () => chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] }),
+  launch: () => launchChromium({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] }),
   setup: async (browser) => {
     context = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1 });
     await context.addInitScript(() => { try { localStorage.setItem('c3d-dots', '0'); } catch {} });

@@ -13,7 +13,7 @@
 //    only rounds the corners, so there it is a little bigger.
 // These sizes are the ones the icons have always had; only the look of the cube changed.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { chromium } from 'playwright';
+import { launchChromium } from './browser.mjs';
 
 const BARE = { e: 240 };
 const MASKABLE = { e: 179, tile: true };
@@ -45,7 +45,7 @@ function mark({ e, tile = false }) {
 mkdirSync('public', { recursive: true });
 writeFileSync('public/icon.svg', mark(BARE));
 
-const browser = await chromium.launch();
+const browser = await launchChromium();
 const page = await browser.newPage();
 async function png(file, size, look) {
   await page.setViewportSize({ width: size, height: size });
