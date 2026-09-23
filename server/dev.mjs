@@ -13,7 +13,7 @@
  */
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
-import { chromium } from 'playwright';
+import { launchChromium } from '../scripts/browser.mjs';
 import { readCapture, renderCapture } from './render.mjs';
 
 // Loopback-only development equivalent of the Worker, using the identical render implementation.
@@ -32,7 +32,7 @@ export function exportServer(port = 8787) {
     try {
       const request = new Request('http://localhost/capture', { method: 'POST', body: Readable.toWeb(req), duplex: 'half' });
       const payload = await readCapture(request);
-      const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+      const browser = await launchChromium({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
       const stream = await renderCapture(browser, payload, abort.signal);
       res.setHeader('Content-Type', 'application/x-ndjson');
       Readable.fromWeb(stream).on('error', () => res.destroy()).pipe(res);
