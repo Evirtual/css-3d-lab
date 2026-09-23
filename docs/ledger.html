@@ -1081,11 +1081,21 @@ button, input { font: inherit; color: inherit; }
    does not undo it. */
 .stagebox__head { flex-wrap: nowrap; }
 .stagebox__ttl { flex: 1 1 auto; min-width: 0; }
-.stagetog { flex: none; display: grid; place-items: center; width: 26px; height: 26px; margin: -1px 0 0 -4px; padding: 0; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--muted); cursor: pointer; transition: rotate 0.15s; }
+.stagebox__acts { flex: none; display: flex; align-items: center; gap: 8px; order: 2; }
+.stagetog { order: 3; }
+/* Narrow, the "show these in the table" button needs a line of its own. The toggle does not go with it:
+   it stays on the title row, at its right end, so it sits the same distance from the top of the box
+   whether the panel is open or folded. */
+@media (max-width: 600px) {
+  .stagebox__head { flex-wrap: wrap; align-items: flex-start; }
+  .stagebox__ttl { flex: 1 1 0; }
+  .stagetog { order: 2; }
+  .stagebox__acts { order: 3; flex: 1 1 100%; }
+}
+.stagetog { flex: none; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 1px solid var(--border); border-radius: 8px; background: none; color: var(--muted); cursor: pointer; transition: rotate 0.15s; }
 .stagetog:hover { color: var(--text); border-color: var(--border-strong); }
 .stagetog[aria-expanded="true"] { rotate: 90deg; }
 .stagebox__brief { display: none; margin: 2px 0 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.stagebox.is-folded { padding: 8px 12px; }
 .stagebox.is-folded .stagebox__means { display: none; }
 .stagebox.is-folded .stagebox__brief { display: block; }
 .stagebox__body[hidden] { display: none; }
@@ -1193,7 +1203,7 @@ button, input { font: inherit; color: inherit; }
 /* Below the split there is no second column to line up with, so the bar rests flush and there is no
    strip above it for rows to show through. */
 @media (max-width: 1099px) { :root { --stick-top: 0px; } }
-.fbar { position: sticky; top: var(--stick-top); z-index: 5; margin: 12px -6px 10px; padding: 14px 14px 10px; }
+.fbar { position: sticky; top: var(--stick-top); z-index: 5; margin: 12px -6px 0; padding: 14px 14px 10px; }
 .fbar::before { content: ''; position: absolute; inset: 0; z-index: -1; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--surface-solid) 88%, transparent); backdrop-filter: blur(18px) saturate(1.4); box-shadow: var(--shadow); }
 /* Once the bar is resting, the strip above it is a window onto the rows sliding past. It takes the bar's
    own glass, so what shows there is blurred exactly as the bar blurs it, and it is drawn only while the
@@ -1520,9 +1530,16 @@ table.mini code { font-size: 12px; }
 .marks-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .marks-legend .mk { display: inline-grid; place-items: center; gap: 0; width: 18px; height: 18px; font-size: 10px; } /* the legend's `span` rule would make it a left-packed flex row */
 /* what is on screen on the left, the two folding buttons on the right: one row instead of two */
-.showrow { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 16px; margin: 6px 0 2px; }
-.showrow .showing { flex: 1 1 320px; min-width: 0; margin: 0; }
-.showrow .tbltools__acts { margin-left: auto; }
+/* The panel's title row carries everything that was in the strip under the filter bar: the heading,
+   one bracketed aside saying what is on screen, and the one fold toggle. That strip is gone, and the
+   table has its height. On a phone the aside wraps under the heading and drops its hint rather than
+   pushing the heading off the side. */
+.tblhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 14px; }
+.tblhead h2 { flex: 1 1 auto; min-width: 0; }
+.tblhead .tbltools__acts { flex: none; margin-left: auto; align-self: center; }
+.showing { font-weight: 400; }
+@media (max-width: 760px) { .showing__hint { display: none; } }
+@media (max-width: 420px) { .tblhead h2 { flex: 1 1 100%; } }
 .tbltools__acts { display: flex; gap: 8px; flex: none; }
 .tbltools__acts .btn { padding: 4px 12px; font-size: 12.5px; }
 
@@ -1582,17 +1599,27 @@ table.mini code { font-size: 12px; }
   background: color-mix(in srgb, var(--gc, var(--accent)) 6%, var(--surface-solid));
 }
 #tbl td.st, #tbl th.st, #tbl td.last, #tbl th.last, #tbl td.ncom, #tbl th.ncom, #tbl td.rvw, #tbl th.rvw { width: 1%; white-space: nowrap; }
+/* Status is a column of one pill each. The column is only as wide as its widest thing, so whichever of
+   the word and the pill is narrower was left floating against a left-aligned edge. Both are centred on
+   the column now, which is the only way the two can line up whichever of them is wider. */
+#tbl th.st, #tbl td.st { text-align: center; }
+#tbl th.st .colh { margin-inline: 0; }
 .mt { display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; }
 .mt b { overflow: hidden; text-overflow: ellipsis; min-width: 0; font-weight: 700; }
 .mt code { flex: none; font-size: 11.5px; color: var(--muted); background: none; border: 0; padding: 0; }
 .gchip { flex: none; align-self: center; padding: 0 7px; border: 1px solid color-mix(in srgb, var(--gc, var(--accent)) 45%, transparent); border-radius: 999px; font-size: 10.5px; font-weight: 700; color: color-mix(in srgb, var(--gc, var(--accent)) 60%, var(--text)); letter-spacing: 0.02em; }
 .gchip::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: var(--gc, var(--accent)); vertical-align: 0; }
-.colh { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+/* A column head is a button, and a button's own padding pushed its words a few pixels off the column
+   its cells line up in. The padding stays -- it is the hit area -- and the same amount comes off the
+   margin, so the words start exactly where the cells' words start. */
+.colh { display: inline-flex; align-items: center; gap: 4px; margin: 0 -4px; padding: 2px 4px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
 .colh:hover { color: var(--text); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .colh .chip { margin-left: 2px; }
 /* check headers stand on end, so a check's column is only as wide as its mark and ten of them fit */
 #tbl thead th.c { vertical-align: bottom; padding-top: 6px; padding-bottom: 6px; }
-#tbl thead th.c .colh { writing-mode: vertical-rl; rotate: 180deg; padding: 4px 2px; }
+/* the rotated label and the help icon under it are one stack, centred over the marks below them */
+#tbl thead th.c > * { display: block; margin-inline: auto; }
+#tbl thead th.c .colh { writing-mode: vertical-rl; rotate: 180deg; margin: 0 auto; padding: 4px 2px; }
 #tbl thead th.c .help { margin: 4px 0 0; }
 #tbl thead th.c br { display: none; }
 /* a check running now: a small pulsing count under its name, the rest in the tooltip */
@@ -1749,7 +1776,10 @@ table.mini code { font-size: 12px; }
 
   <div class="split">
   <section class="panel" aria-labelledby="tbl-h">
-    <h2 id="tbl-h">All models</h2>
+    <div class="tblhead">
+      <h2 id="tbl-h">All models <span class="showing" id="showing"></span></h2>
+      <div class="tbltools__acts" id="grp-acts"><button type="button" class="btn" id="fold-all">Expand all</button></div>
+    </div>
     <div class="fbar" id="filters" role="search" aria-label="Filters">
       <div class="fbar__row">
         <label class="search">
@@ -1780,10 +1810,6 @@ table.mini code { font-size: 12px; }
         <button class="scrollrow__arrow scrollrow__arrow--next" type="button" aria-label="Scroll the key right" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
       <div class="fchip" id="fchip" hidden></div>
-    </div>
-    <div class="showrow">
-      <p class="showing" id="showing"></p>
-      <div class="tbltools__acts" id="grp-acts"><button type="button" class="btn" id="expand-all">Expand all</button><button type="button" class="btn" id="collapse-all">Collapse all</button></div>
     </div>
     <div class="table-wrap" id="tablewrap">
       <table id="tbl">
@@ -2653,12 +2679,13 @@ table.mini code { font-size: 12px; }
     const shown = blk === `status:${key}`;
     const op = stageIsOpen(key);
     panel.classList.toggle('is-folded', !op);
+    /* the title starts at the row's left edge; the two controls sit together at its right end */
     panel.innerHTML = `<div class="stagebox__head">
-      <button type="button" class="stagetog" data-stage-tog aria-expanded="${op}" aria-controls="stage-body" aria-label="${esc(op ? `Collapse ${STEP_SHORT[key] ?? b.label}` : `Expand ${STEP_SHORT[key] ?? b.label}`)}">${ssChevron}</button>
       <div class="stagebox__ttl"><h3 id="stage-h">${esc(STEP_SHORT[key] ?? b.label)}<span class="n">${b.count}</span></h3>
         <p class="stagebox__means">${esc(cap(b.means ?? ''))}.</p>
         <p class="stagebox__brief">${esc(stageBrief(key, b, models))}</p></div>
-      ${b.count ? `<button type="button" class="btn bdhead__all" data-show="${esc(`status:${key}`)}" style="padding:5px 12px;font-size:12.5px">${shown ? 'Shown in the table below' : `Show ${b.count === 1 ? 'it' : `these ${b.count}`} in the table`}</button>` : ''}</div>
+      <div class="stagebox__acts">${b.count ? `<button type="button" class="btn bdhead__all" data-show="${esc(`status:${key}`)}" style="padding:5px 12px;font-size:12.5px">${shown ? 'Shown in the table below' : `Show ${b.count === 1 ? 'it' : `these ${b.count}`} in the table`}</button>` : ''}</div>
+      <button type="button" class="stagetog" data-stage-tog aria-expanded="${op}" aria-controls="stage-body" aria-label="${esc(op ? `Collapse ${STEP_SHORT[key] ?? b.label}` : `Expand ${STEP_SHORT[key] ?? b.label}`)}">${ssChevron}</button></div>
       <div id="stage-body" class="stagebox__body"${op ? '' : ' hidden'}>${body}</div>`;
   }
   $('ov-stage').addEventListener('click', (e) => {
@@ -3086,6 +3113,7 @@ table.mini code { font-size: 12px; }
   });
 
   let moreObserver = null;
+  let showBits = [];   // the bracketed aside after the heading, built as the counts become known
 
   const badKey = (k) => `bad:${k}`;
   /** The ad-hoc "this check failed or flagged" filter is built from the models, not from ledger.json's
@@ -3207,8 +3235,11 @@ table.mini code { font-size: 12px; }
     if (!filteringNow()) saveGroups();
     renderRows();
   };
-  $('expand-all').addEventListener('click', () => setAll(true));
-  $('collapse-all').addEventListener('click', () => setAll(false));
+  /* One button, named for the thing it will do rather than for a pair of states. A mix of open and
+     folded groups counts as folded, so it offers to open them: that is the move a reader wants from a
+     half-folded list, and the one that cannot lose anything from sight. The label is the whole state:
+     aria-pressed would have read as a filter that is switched on. */
+  $('fold-all').addEventListener('click', (e) => setAll(e.currentTarget.dataset.act === 'open'));
   $('showing').addEventListener('click', (e) => { if (e.target.closest('[data-expand-all]')) setAll(true); });
 
   function renderRows() {
@@ -3221,10 +3252,11 @@ table.mini code { font-size: 12px; }
     const glabel = (L.groups ?? []).find((g) => g.key === group)?.label ?? group;
     const why = [blk ? `“${BLK.get(blk)?.chip ?? chipLabel(blk)}”` : '', filter !== 'all' ? `status “${filter}”` : '', group !== 'all' ? `group “${glabel}”` : '', ...[...tags].map((t) => `#${t}`), query.trim() ? `search “${query.trim()}”` : ''].filter(Boolean).join(', ');
     const screen = '';
-    $('showing').innerHTML = hidden
-      ? `${matching.length} of ${total} match; ${hidden} hidden by ${esc(why)}.${screen} <button type="button" class="linkish" id="clear">Show all ${total}</button>`
-      : `All ${total} match.${screen}`;
-    $('clear')?.addEventListener('click', () => { blk = null; filter = 'all'; group = 'all'; tags.clear(); query = ''; limit = PAGE; saveView(); render(); });
+    /* One aside after the heading, in brackets and never bold: what is on screen, then the hint. It is
+       built in pieces so the counts that are only known later can join the same sentence. */
+    showBits = hidden
+      ? [`${matching.length} of ${total} match, ${hidden} hidden by ${esc(why)}`, `<button type="button" class="linkish" id="clear">show all ${total}</button>`]
+      : [`${total} match`];
 
     // Sections per group, in the ledger's group order. A filter that leaves only a few models drops
     // them for a flat list with a group mark on each row. A folded group renders no rows, and the
@@ -3251,10 +3283,19 @@ table.mini code { font-size: 12px; }
     }
     $('rows').innerHTML = html || `<tr class="empty"><td colspan="${colCount()}" class="muted">No model matches.${hidden ? ' Every model is hidden by the filters above.' : ''}</td></tr>`;
     // say what the folding hides, with one click to see it
-    if (folded) $('showing').insertAdjacentHTML('beforeend', ` <span>${folded} of them in ${foldedGroups} folded group${foldedGroups === 1 ? '' : 's'}, not drawn.</span> <button type="button" class="linkish" data-expand-all>Expand all</button>`);
-    if (cut) $('showing').insertAdjacentHTML('beforeend', ` <span>${drawn} rows drawn; ${cut} more load as you scroll.</span>`);
-    $('showing').insertAdjacentHTML('beforeend', ' <span>Click a row for its commits, checks and reviews.</span>');
+    if (folded) showBits.push(`${folded} in ${foldedGroups} folded group${foldedGroups === 1 ? '' : 's'}`);
+    if (cut) showBits.push(`${drawn} drawn, ${cut} more as you scroll`);
+    // the hint is the first thing to go when the screen is narrow
+    $('showing').innerHTML = `(${showBits.join(' \u00b7 ')}<span class="showing__hint"> \u00b7 click a row for its commits, checks and reviews</span>)`;
+    $('clear')?.addEventListener('click', () => { blk = null; filter = 'all'; group = 'all'; tags.clear(); query = ''; limit = PAGE; saveView(); render(); });
     $('grp-acts').hidden = flat;
+    // folded, or a mix of the two, offers to open; only a list with every group open offers to close
+    {
+      const fb = $('fold-all'), opening = foldedGroups > 0 || sections.every((g) => !g.key);
+      fb.dataset.act = opening ? 'open' : 'close';
+      fb.textContent = opening ? 'Expand all' : 'Collapse all';
+      fb.title = opening ? 'Open every group' : 'Fold every group';
+    }
     const rest = cut;
     if (rest > 0) $('rows').insertAdjacentHTML('beforeend', `<tr class="more"><td colspan="${colCount()}"><button type="button" class="btn" id="more">Show ${Math.min(PAGE, rest)} more <small>${rest} not on screen yet</small></button></td></tr>`);
     $('rows').querySelectorAll('tr.row').forEach((tr) => {
