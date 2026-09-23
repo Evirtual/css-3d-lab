@@ -42,6 +42,8 @@
   --text: #eceefb; --muted: #949bc0;
   --accent: #8b6cff; --accent-2: #2ee6d6; --hot: #ff4d9d; --warm: #ffb547;
   --code-bg: #0a0c18;
+  /* the site's glass, as src/styles/_tokens.scss has it: the dialogs here are the same material */
+  --glass: rgb(18 21 42 / 0.72); --glass-edge: rgb(190 200 255 / 0.22); --glass-dim: rgb(4 5 12 / 0.62);
   --shadow: 0 20px 50px -20px rgb(0 0 0 / 0.7);
   --radius: 18px;
   --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -55,8 +57,9 @@
     --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
     --grid: rgb(40 50 120 / 0.034);
     --text: #14172b; --muted: #5a6188;
-    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00;
+    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --ok-ink: color-mix(in srgb, var(--accent) 86%, #120030); --ok-tick: var(--accent); --ok-tint: color-mix(in srgb, var(--accent) 11%, transparent); --ok-rim: color-mix(in srgb, var(--accent) 36%, transparent); --ok-sweep: #fff;
     --code-bg: #e8eafa;
+    --glass: rgb(255 255 255 / 0.7); --glass-edge: rgb(255 255 255 / 0.85); --glass-dim: rgb(30 34 70 / 0.4);
     --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
     color-scheme: light;
   }
@@ -67,8 +70,9 @@
   --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
   --grid: rgb(40 50 120 / 0.034);
   --text: #14172b; --muted: #5a6188;
-  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00;
+  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --ok-ink: color-mix(in srgb, var(--accent) 86%, #120030); --ok-tick: var(--accent); --ok-tint: color-mix(in srgb, var(--accent) 11%, transparent); --ok-rim: color-mix(in srgb, var(--accent) 36%, transparent); --ok-sweep: #fff;
   --code-bg: #e8eafa;
+  --glass: rgb(255 255 255 / 0.7); --glass-edge: rgb(255 255 255 / 0.85); --glass-dim: rgb(30 34 70 / 0.4);
   --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
   color-scheme: light;
 }
@@ -77,17 +81,16 @@
   --st-none: var(--muted);
   --st-conv: var(--accent);
   --st-chk: var(--accent-2);
-  /* The site's own violet-to-pink, which is what "approved" has always worn here and what the pressed
-     tabs, groups and filter chips wear beside it. Both ends are taken down toward one near-black plum,
-     because white on the raw brand gradient measures 3.1:1 over the pink end -- nowhere near enough for
-     a label. At these two mixes the worst pixel under the word, gloss and specular included, clears 4.5.
-     Raising either percentage, or the 6%/5%/9% whites below, lowers that number. */
-  --ok-deep: #17041f;
-  --st-ok: linear-gradient(120deg, color-mix(in srgb, var(--accent) 74%, var(--ok-deep)), color-mix(in srgb, var(--hot) 66%, var(--ok-deep)));
-  /* the tick is the one green on the pill, the same family as the Approved arrow, on a green-white disc
-     so it reads as green rather than as a hole in the pink */
-  --ok-tick: color-mix(in srgb, var(--good, oklch(0.62 0.13 166)) 70%, #04231a);
-  --ok-tick-bg: color-mix(in srgb, var(--good, oklch(0.62 0.13 166)) 16%, #fff);
+  /* Approved wears the site's violet. The group bars still take the full violet-to-pink brand gradient;
+     the pill itself is a tag -- a tint of the violet with violet ink -- so the label is one step off the
+     violet the tick uses, lightened in dark and deepened in light until it clears 4.5:1 over that tint. */
+  --st-ok: linear-gradient(120deg, var(--accent), var(--hot));
+  --ok-tint: color-mix(in srgb, var(--accent) 15%, transparent);
+  --ok-rim: color-mix(in srgb, var(--accent) 42%, transparent);
+  --ok-ink: color-mix(in srgb, var(--accent) 52%, #fff);
+  --ok-tick: color-mix(in srgb, var(--accent) 80%, #fff);
+  /* the sweep always moves the tint away from the ink: lighter under pale ink, paler under dark ink */
+  --ok-sweep: var(--accent);
   --st-bad: var(--hot);
   --st-warn: var(--warm);
 }
@@ -161,40 +164,32 @@ button, input { font: inherit; color: inherit; }
 .s-chk { --c: var(--st-chk); }
 .s-bad { --c: var(--st-bad); }
 .s-warn { --c: var(--st-warn); }
-/* the one pill made of glass: a lit top rim, a shaded bottom one, and the label sunk a little below the
-   surface. Every white in here is measured -- see --st-ok for what each percentage costs. */
+/* A tag, not a button. Filled, rimmed and lit it read as something to press, and a table of a hundred
+   and thirty of them read as a wall of buttons. It is the same tinted-and-outlined shape as every other
+   chip on the page, in the site's violet -- the only things that set it apart are the tick and a
+   specular that crosses it now and then. */
 .s-ok {
-  position: relative; overflow: hidden; color: #fff; font-weight: 800; border-color: transparent;
-  display: inline-flex; align-items: center; gap: 5px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #fff 6%, transparent) 0 46%, transparent 46%),
-    var(--st-ok);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.30),      /* the lit top edge */
-    inset 0 -1px 0 rgb(0 0 0 / 0.45),           /* and the shaded bottom one */
-    inset 0 3px 6px -4px rgb(0 0 0 / 0.55),     /* the label sits below the surface */
-    0 0 0 1px color-mix(in srgb, var(--hot) 24%, transparent),
-    0 2px 7px -3px color-mix(in srgb, var(--hot) 52%, transparent);  /* a faint glow in the brand pink */
+  position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 4px;
+  --c: var(--ok-ink);
+  color: var(--ok-ink); font-weight: 700;
+  background: var(--ok-tint);
+  border: 1px solid var(--ok-rim);
 }
-/* the tick: green, so the pill and the green Approved arrow read as the same verdict */
-.s-ok::before {
-  content: '✓'; flex: none; display: grid; place-items: center; width: 13px; height: 13px;
-  border-radius: 50%; background: var(--ok-tick-bg); color: var(--ok-tick);
-  font-size: 9px; font-weight: 900; line-height: 1; text-indent: 0;
-}
+/* the tick in the pill's own violet, a shade off the label so it reads as a mark, not a letter */
+.s-ok::before { content: '✓'; flex: none; font-size: 10px; font-weight: 900; line-height: 1; color: var(--ok-tick); text-indent: 0; }
 /* the specular: one gradient moved by transform, no filter. Each row carries its own delay, so a page
-   of approved pills never sweeps in unison. */
+   of approved tags never sweeps in unison. On a tint this faint it is a pale wash, not a shine. */
 .s-ok::after {
-  content: ''; position: absolute; inset: 0; --sweep-w: 5%;
-  background: linear-gradient(104deg, transparent 38%, color-mix(in srgb, #fff var(--sweep-w), transparent) 50%, transparent 62%);
+  content: ''; position: absolute; inset: 0; --sweep-w: 12%;
+  background: linear-gradient(104deg, transparent 38%, color-mix(in srgb, var(--ok-sweep) var(--sweep-w), transparent) 50%, transparent 62%);
   transform: translateX(-165%); animation: oksheen 9s ease-in-out infinite; animation-delay: var(--sweep-d, 0s);
 }
-/* a win gets one brighter, faster crossing -- 7% is the most white that still leaves the label at 4.5:1 */
-.s-ok.won::after { --sweep-w: 7%; animation: oksheen 0.8s ease-out; }
+/* a win gets one stronger, faster crossing -- still the tag's own violet, so the ink never loses ground */
+.s-ok.won::after { --sweep-w: 26%; animation: oksheen 0.8s ease-out; }
 @keyframes oksheen { 0%, 79% { transform: translateX(-165%); } 100% { transform: translateX(165%); } }
 /* quiet at rest. One sweep and one settle on the refresh that turned this model approved, never a loop. */
 .s-ok.won { animation: okpop 0.6s cubic-bezier(0.22, 1.3, 0.3, 1); }
-@keyframes okpop { 0% { transform: scale(1); } 38% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes okpop { 0% { transform: scale(1); } 38% { transform: scale(1.07); } 100% { transform: scale(1); } }
 
 /* ---------- panels ---------- */
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-top: 18px; box-shadow: var(--shadow); }
@@ -293,6 +288,116 @@ button, input { font: inherit; color: inherit; }
 .step[aria-selected="true"] .step__label::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 2px; background: var(--c); vertical-align: 0.5px; }
 .step:focus-visible { outline: none; }
 .step:focus-visible .step__label { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 4px; }
+/* ---------- one sea under three skies ----------
+   Side by side, the three arrows are windows onto one scene rather than three glasses. The sky is
+   painted per chevron -- that is what still separates the stages -- but the water is a single path
+   across the whole strip, and the swimmers and bubbles are clipped to that one path, so a fish leaves
+   one arrow and arrives in the next. The buttons sit above this layer and paint nothing opaque, so they
+   are still tabs: clickable across their whole shape, and still marked when selected.
+   Each stage's level is still its own share of the models. The surface is flat at that level across the
+   middle of its arrow, which is where its count and label sit, and the change between two levels is a
+   swell eased across the join instead of a step. Stacked on a narrow screen three arrows are not a
+   coastline, so there each one goes back to being its own glass. */
+.flow__scene { display: none; }
+.flowwrap { position: relative; }
+@media (min-width: 901px) {
+  .flow { position: relative; z-index: 1; }             /* the buttons sit over the scene */
+  .step__liquid, .step__sea { display: none; }          /* the scene draws the water for every tab */
+  .step { --sky: transparent; }                         /* and the sky, on its own panels */
+  .flow__scene {
+    display: block; position: absolute; inset: 0; pointer-events: none;
+    --tabw: calc((100% + 2 * var(--notch)) / 3);
+    /* the outline of the three interlocking chevrons together: a flat left end, one tip on the right */
+    clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%);
+    /* the three stages' water, written out here because one gradient has to carry all three */
+    --lqp1: var(--lq-1); --lqp2: var(--lq-2); --lqp3: var(--lq-3);
+    --liq1: color-mix(in srgb, var(--accent) var(--lqp1), var(--liq-base));
+    --dep1: color-mix(in srgb, var(--accent) calc(var(--lqp1) + var(--lq-dp)), var(--liq-base));
+    --crt1: color-mix(in srgb, var(--accent) calc(var(--lqp1) + var(--lq-cr)), var(--liq-base));
+    --liq2: color-mix(in srgb, var(--accent-2) var(--lqp2), var(--liq-base));
+    --dep2: color-mix(in srgb, var(--accent-2) calc(var(--lqp2) + var(--lq-dp)), var(--liq-base));
+    --crt2: color-mix(in srgb, var(--accent-2) calc(var(--lqp2) + var(--lq-cr)), var(--liq-base));
+    --liq3: color-mix(in srgb, var(--good) var(--lqp3), var(--liq-base));
+    --dep3: color-mix(in srgb, var(--good) calc(var(--lqp3) + var(--lq-dp)), var(--liq-base));
+    --crt3: color-mix(in srgb, var(--warm) 10%, color-mix(in srgb, var(--good) calc(var(--lqp3) + var(--lq-cr)), var(--liq-base)));
+    --sm1: color-mix(in srgb, var(--accent) calc((var(--sk-a1) + var(--sk-b1)) / 2), var(--sky-base));
+    --sm2: color-mix(in srgb, var(--accent-2) calc((var(--sk-a2) + var(--sk-b2)) / 2), var(--sky-base));
+    --sm3: color-mix(in srgb, var(--good) calc((var(--sk-a3) + var(--sk-b3)) / 2), var(--sky-base));
+  }
+  /* the selected tab's water is a step richer, exactly as its glass used to be */
+  .flow__scene[data-sel="0"] { --lqp1: calc(var(--lq-1) + var(--lq-up)); }
+  .flow__scene[data-sel="1"] { --lqp2: calc(var(--lq-2) + var(--lq-up)); }
+  .flow__scene[data-sel="2"] { --lqp3: calc(var(--lq-3) + var(--lq-up)); }
+  /* the sky, one panel per chevron: the weather is what changes from arrow to arrow */
+  .scene__sky {
+    position: absolute; top: 0; bottom: 0; width: var(--tabw);
+    left: calc(var(--i) * (var(--tabw) - var(--notch)));
+    background: var(--sky);
+    clip-path: polygon(0 0,
+      calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%,
+      0 100%, calc(var(--notch) - var(--tipx)) calc(50% + var(--tipy)), var(--notch) 50%, calc(var(--notch) - var(--tipx)) calc(50% - var(--tipy)));
+  }
+  .scene__sky.s1 { --c: var(--accent); --sk-a: var(--sk-a1); --sk-b: var(--sk-b1);
+    clip-path: polygon(0 0, calc(100% - var(--notch)) 0, calc(100% - var(--tipx)) calc(50% - var(--tipy)), 100% 50%, calc(100% - var(--tipx)) calc(50% + var(--tipy)), calc(100% - var(--notch)) 100%, 0 100%); }
+  .scene__sky.s2 { --c: var(--accent-2); --sk-a: var(--sk-a2); --sk-b: var(--sk-b2); }
+  .scene__sky.s3 { --c: var(--good); --sk-a: var(--sk-a3); --sk-b: var(--sk-b3); }
+  /* weather does not stop dead at a chevron: each sky carries a little of its neighbour across the join */
+  .scene__blend {
+    position: absolute; top: 0; bottom: 0; width: 128px; opacity: 0.5;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 42%, #000 58%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 42%, #000 58%, transparent);
+  }
+  .scene__blend.j1 { left: calc(var(--tabw) - var(--notch) - 64px); background: linear-gradient(90deg, var(--sm1), var(--sm2)); }
+  .scene__blend.j2 { left: calc(2 * (var(--tabw) - var(--notch)) - 64px); background: linear-gradient(90deg, var(--sm2), var(--sm3)); }
+  /* the water: one path, whose d is written when the counts change and eased from the one before it.
+     Chromium and Safari animate d; where a browser does not, the level arrives without the swell. */
+  .scene__sea { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .scene__sea path { transition: d 0.85s cubic-bezier(0.24, 1.32, 0.36, 1); }
+  .sea__fill { fill: url(#sea-surf); }
+  .sea__deep { fill: url(#sea-deep); }
+  .sea__edge { fill: none; stroke: url(#sea-crest); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  /* the chop: one wave strip per level, all three drawn from the same origin so they share one phase.
+     Each shows over the flat stretch of its own arrow and fades out across the swell, where the smooth
+     edge of the path takes over, so the surface reads as one sea that flattens over the change. */
+  .scene__chop {
+    position: absolute; left: 0; right: 0; top: 0; height: 100%;
+    transform: translateY(calc((1 - var(--l)) * 100% - 9px));
+    transition: transform 0.85s cubic-bezier(0.24, 1.32, 0.36, 1);
+  }
+  .scene__chop.c1 { --l: var(--lv1); --liq: var(--liq1); --crest: var(--crt1);
+    -webkit-mask-image: linear-gradient(90deg, #000 25.2%, transparent 31.5%); mask-image: linear-gradient(90deg, #000 25.2%, transparent 31.5%); }
+  .scene__chop.c2 { --l: var(--lv2); --liq: var(--liq2); --crest: var(--crt2);
+    -webkit-mask-image: linear-gradient(90deg, transparent 34%, #000 40.2%, #000 57.9%, transparent 64%); mask-image: linear-gradient(90deg, transparent 34%, #000 40.2%, #000 57.9%, transparent 64%); }
+  .scene__chop.c3 { --l: var(--lv3); --liq: var(--liq3); --crest: var(--crt3);
+    -webkit-mask-image: linear-gradient(90deg, transparent 66.6%, #000 72.9%); mask-image: linear-gradient(90deg, transparent 66.6%, #000 72.9%); }
+  .flow__scene.is-pour .step__wave { transform-origin: 50% 100%; animation: stepslosh 0.95s cubic-bezier(0.3, 0.9, 0.3, 1); }
+  /* the bubbles and the swimmers, clipped to the one water path: a fish crosses a join because there is
+     only one lane, and the lane starts below the lowest line of text on every arrow */
+  .scene__life { position: absolute; inset: 0; clip-path: url(#sea-clip); --swim: 1720px; --lane: 97px; }
+  .scene__life .b { position: absolute; border-radius: 50%; animation: steprise 10s linear infinite; }
+  .scene__life .b1 { left: 12%; top: 62%; width: 5px; height: 5px; --climb: 44px; animation-duration: 9.5s; animation-delay: -2.2s; background: color-mix(in srgb, var(--crt1) 70%, transparent); }
+  .scene__life .b2 { left: 47%; top: 70%; width: 3px; height: 3px; --climb: 30px; animation-duration: 13s; animation-delay: -7.4s; background: color-mix(in srgb, var(--crt2) 70%, transparent); }
+  .scene__life .b3 { left: 81%; top: 58%; width: 4px; height: 4px; --climb: 38px; animation-duration: 7.5s; animation-delay: -4.1s; background: color-mix(in srgb, var(--crt3) 70%, transparent); }
+  .scene__life .b4 { left: 66%; top: 74%; width: 3px; height: 3px; --climb: 26px; animation-duration: 11s; animation-delay: -9s; background: color-mix(in srgb, var(--crt3) 70%, transparent); }
+  /* a swimmer crosses all three waters, so it is drawn in the middle one's tones: between --liq and
+     --crest either way, which is the band the contrast sweep measured */
+  .scene__life svg { position: absolute; top: var(--lane); fill: color-mix(in srgb, var(--crt2) var(--tint), var(--liq2)); }
+  .scene__life .swimL { right: -70px; }
+  .scene__life .swimR { left: -70px; }
+  .scene__life .big1 { top: calc(var(--lane) - 1px); --tint: 24%; opacity: 0.2; animation: steppassL 97s linear infinite; animation-delay: -41s; }
+  .scene__life .big2 { top: calc(var(--lane) + 2px); --tint: 30%; opacity: 0.17; animation: steppassR 151s linear infinite; animation-delay: -104s; }
+  .scene__life .f1 { --tint: 46%; opacity: 0.42; animation: stepdriftR 46s linear infinite; animation-delay: -7s; }
+  .scene__life .f2 { top: calc(var(--lane) + 10px); --tint: 64%; opacity: 0.34; animation: stepdriftL 63s linear infinite; animation-delay: -19s; }
+  .scene__life .f3 { top: calc(var(--lane) + 17px); --tint: 32%; opacity: 0.4; animation: stepdriftR 79s linear infinite; animation-delay: -34s; }
+  .scene__life .f4 { top: calc(var(--lane) + 4px); --tint: 54%; opacity: 0.26; animation: stepdriftL 94s linear infinite; animation-delay: -52s; }
+}
+@media (min-width: 901px) and (max-width: 1180px) { .scene__life { --swim: 1240px; } }
+@media (prefers-reduced-motion: reduce) {
+  .scene__chop, .scene__sea path { transition: none; }
+  .scene__life { display: none; }
+  .scene__chop .w1, .scene__chop .w1g, .scene__chop .w2, .scene__chop .w3 { animation: none; }
+  .flow__scene.is-pour .step__wave { animation: none; }
+}
 .flow__hint { margin: 0; font-size: 13px; }
 .flow__bd { margin-top: 4px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 
@@ -434,9 +539,21 @@ button, input { font: inherit; color: inherit; }
 .hero__btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 #cl-btn small { opacity: 0.8; }
 #cl-btn.has-false { border-color: color-mix(in srgb, var(--hot) 60%, transparent); }
-.cldlg { width: min(860px, calc(100vw - 24px)); max-height: min(88vh, 900px); padding: 0; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface-solid); color: var(--text); box-shadow: var(--shadow), 0 30px 80px -20px rgb(0 0 0 / 0.6); overflow: hidden; }
+/* The site's own frosted glass, token for token (src/styles/_tokens.scss --glass/--glass-edge/--glass-dim
+   and the viewer dialog in _layout.scss): the same translucency, edge, 22px radius, blur and drop. It is
+   cheap because a dialog's blur is computed over what is behind it, which does not move while it is
+   open -- and only the dialog's own backdrop is blurred, never the page every frame. */
+.cldlg {
+  width: min(860px, calc(100vw - 24px)); max-height: min(88vh, 900px); padding: 0; overflow: hidden;
+  border: 1px solid var(--glass-edge); border-radius: 22px;
+  background: var(--glass); backdrop-filter: blur(26px) saturate(1.6);
+  color: var(--text);
+  box-shadow: 0 40px 120px -20px rgb(0 0 0 / 0.8), inset 0 1px 0 var(--glass-edge);
+}
 .cldlg[open] { display: flex; }
-.cldlg::backdrop { background: color-mix(in srgb, var(--bg) 55%, transparent); backdrop-filter: blur(6px) saturate(1.2); }
+.cldlg::backdrop { background: var(--glass-dim); backdrop-filter: blur(10px) saturate(1.2); }
+/* without backdrop-filter the glass would be see-through text: a solid panel instead, as on the site */
+@supports not (backdrop-filter: blur(1px)) { .cldlg { background: var(--surface-solid); } }
 .cldlg__box { display: flex; flex-direction: column; min-height: 0; width: 100%; }
 .cldlg__head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; padding: 18px 20px 12px; border-bottom: 1px solid var(--border); }
 .cldlg__head h2 { font-size: 22px; }
@@ -464,8 +581,17 @@ button, input { font: inherit; color: inherit; }
 /* ---------- the filter bar: the gallery's own (index.html + src/styles/_layout.scss "filters") ---------- */
 .icon { flex: none; width: 16px; height: 16px; pointer-events: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.fbar { position: sticky; top: 0; z-index: 5; margin: 12px -6px 10px; padding: 14px 14px 10px; }
+/* --stick-top is the one number the whole stack hangs from: the filter bar rests this far down, the
+   lead's record beside it rests at the same height, and the table's header pins directly under the bar.
+   The bar used to sit at 0 while the record sat at 16px, so the two columns were a card's corner out of
+   line the moment the page scrolled. The script measures this rather than assuming it. */
+:root { --stick-top: 16px; }
+.fbar { position: sticky; top: var(--stick-top); z-index: 5; margin: 12px -6px 10px; padding: 14px 14px 10px; }
 .fbar::before { content: ''; position: absolute; inset: 0; z-index: -1; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); backdrop-filter: blur(18px) saturate(1.4); box-shadow: var(--shadow); }
+/* Once the bar is resting, the strip above it is a window onto the rows sliding past. It takes the bar's
+   own glass, so what shows there is blurred exactly as the bar blurs it, and it is drawn only while the
+   bar is actually stuck -- at rest the bar sits below a heading, where a band of glass would be a smear. */
+.fbar.is-stuck::after { content: ''; position: absolute; inset: calc(var(--stick-top) * -1) 0 auto; height: var(--stick-top); z-index: -1; background: var(--surface); backdrop-filter: blur(18px) saturate(1.4); }
 .fbar__row { display: flex; flex-wrap: wrap; gap: 10px; }
 .fbar__controls { display: flex; flex: 0 1 auto; gap: 10px; min-width: 0; }
 .search { position: relative; flex: 1 1 260px; }
@@ -487,7 +613,10 @@ button, input { font: inherit; color: inherit; }
 .tagbtn:hover, .tagbtn[aria-expanded="true"] { border-color: var(--accent-2); }
 .scrollrow { position: relative; margin-top: 8px; }
 .scrollrow[hidden] { display: none; }
-.scrollrow__track { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+/* A box that scrolls on one axis clips the other, so the running mark's pulse -- a ring drawn outside
+   the mark -- came out shaved flat top and bottom in the key row. The track is given that room back as
+   padding and takes the same amount off its margin, so the ring fits and the row's height is unchanged. */
+.scrollrow__track { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-block: 8px; margin-block: -8px; }
 .scrollrow__track::-webkit-scrollbar { display: none; }
 .can-next .scrollrow__track { mask: linear-gradient(90deg, #000 calc(100% - 48px), transparent); }
 .can-prev .scrollrow__track { mask: linear-gradient(90deg, transparent, #000 48px); }
@@ -557,31 +686,52 @@ tr.detail > td { background: color-mix(in srgb, var(--bg) 55%, transparent); pad
 .commits li { padding: 6px 0; border-bottom: 1px dashed var(--border); }
 .tag { display: inline-block; font-size: 10.5px; font-weight: 600; border: 1px solid var(--border-strong); border-radius: 999px; padding: 0 7px; margin-left: 4px; color: var(--muted); }
 .tag.strong { border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--accent); }
-/* ---------- an open row's panel: the facts first, the long lists folded ----------
-   Every check used to print the whole run's argument list -- 135 ids as chips, in every card -- which
-   buried the one thing the card is for. Nothing is gone: the ids are behind a disclosure, and the card
-   scrolls inside itself rather than growing the page. */
-.checkgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; align-items: stretch; }
-.check { display: flex; flex-direction: column; gap: 5px; min-width: 0; max-height: 190px; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface); }
-.check__h { position: sticky; top: -10px; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: -10px -12px 0; padding: 10px 12px 5px; background: var(--surface-solid); }
-.check__h b { font-weight: 700; }
-.check__sum { margin: 0; font-size: 13.5px; overflow-wrap: anywhere; }
-.check__stale { margin: 0; padding: 5px 8px; border-left: 3px solid var(--warm); border-radius: 6px; background: color-mix(in srgb, var(--warm) 10%, transparent); font-size: 12.5px; }
-.check__list { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); }
-.check__list li + li { margin-top: 3px; }
-.check__note { margin: 0; font-size: 12px; }
-/* the two lines that date the result, pushed to the foot of the card so every card's foot lines up */
-.check__when { margin: auto 0 0; padding-top: 5px; border-top: 1px dashed var(--border); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.check__when code { font-size: 11px; }
-.check__how { margin: 0; font-size: 12px; overflow-wrap: anywhere; }
-.check__how code { font-size: 11px; }
+/* ---------- an open row's panel: one line per check, its detail under the one you ask for ----------
+   This was a grid of cards: every check got the same large box whatever it had to say, its sentences
+   were cut at a fixed height, and each card carried a scrollbar inside a page that already scrolled.
+   A list gives each check the room it needs and no more. Nothing is gone -- the run's whole argument
+   list is still there, one more fold down. */
+.cks { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: color-mix(in srgb, var(--surface-solid) 55%, transparent); }
+.ck + .ck { border-top: 1px solid var(--border); }
+.ck__row { display: grid; grid-template-columns: 22px 22em 6.5em minmax(0, 1fr) 16px; align-items: center; gap: 4px 10px; width: 100%; padding: 7px 10px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ck__row:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.ck__row:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; border-radius: 6px; }
+.ck__name { font-weight: 650; font-size: 13.5px; }
+.ck__verdict { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.ck.is-bad .ck__verdict { color: var(--hot); font-weight: 650; }
+.ck__sum { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; color: var(--muted); }
+.ck.is-open .ck__sum { white-space: normal; color: var(--text); }
+.ck__chev { display: grid; place-items: center; color: var(--muted); transition: rotate 0.15s; }
+.ck.is-open .ck__chev { rotate: 90deg; }
+.ck__body { display: grid; gap: 6px; padding: 2px 12px 11px 42px; }
+.ck__body[hidden] { display: none; }
+.ck__stale { margin: 0; padding: 5px 8px; border-left: 3px solid var(--warm); border-radius: 6px; background: color-mix(in srgb, var(--warm) 10%, transparent); font-size: 12.5px; }
+.ck__list { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); }
+.ck__list li + li { margin-top: 3px; }
+.ck__note, .ck__when, .check__how { margin: 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.ck__when { font-variant-numeric: tabular-nums; }
+.ck__when code, .check__how code { font-size: 11px; }
+@media (prefers-reduced-motion: reduce) { .ck__chev { transition: none; } }
+@media (max-width: 760px) {
+  .ck__row { grid-template-columns: 22px minmax(0, 1fr) 16px; }
+  .ck__verdict { grid-column: 2; }
+  .ck__sum { grid-column: 2; }
+  .ck__body { padding-left: 14px; }
+}
 .argfold { font-size: 12px; }
 .argfold > summary { color: var(--muted); cursor: pointer; border-radius: 6px; padding: 1px 2px; }
 .argfold > summary:hover { color: var(--accent-2); }
 .argfold .qids { margin-top: 5px; max-height: 120px; overflow: auto; }
 .argfold .mid { font-size: 11px; }
-/* the model's own header: one line of who it is, one of the hashes, each truncated with a copy button */
-.mdet { display: grid; gap: 4px; margin-bottom: 10px; }
+/* The model's own header: one line of who it is, one of the hashes, each truncated with a copy button.
+   It rides at the top of its own panel while the panel scrolls, resting under the table's header and the
+   group row -- both of those heights are measured into variables by the script, so nothing here is a
+   number someone has to keep in step. */
+.mdet {
+  position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 0px) + var(--grow-h, 0px)); z-index: 2;
+  display: grid; gap: 4px; margin: -14px -16px 10px; padding: 10px 16px 8px;
+  background: var(--surface-solid); border-bottom: 1px solid var(--border);
+}
 .mdet__top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }
 .mdet__t { font-size: 16px; font-weight: 750; letter-spacing: -0.01em; }
 .mdet__id { font-family: var(--mono); font-size: 12px; color: var(--muted); background: none; border: 0; padding: 0; }
@@ -593,13 +743,6 @@ tr.detail > td { background: color-mix(in srgb, var(--bg) 55%, transparent); pad
 .copyb.is-done { color: var(--accent-2); border-color: var(--accent-2); }
 .copyb.is-nope { color: var(--hot); border-color: var(--hot); }
 .mdet__miss { margin: 2px 0 0; font-size: 13px; color: var(--warm); }
-/* one column of eight cards is longer than any phone, so there the whole grid scrolls once instead of
-   each card scrolling inside a page that scrolls too */
-@media (max-width: 760px) {
-  .checkgrid { max-height: 68vh; overflow: auto; overscroll-behavior: contain; }
-  .check { max-height: none; overflow: visible; }
-  .check__h { position: static; margin: 0; padding: 0; background: none; }
-}
 ul.missing { margin: 4px 0; padding-left: 20px; }
 
 /* ---------- the lead's record: set apart, never mistaken for the measured table ---------- */
@@ -631,7 +774,7 @@ table.mini code { font-size: 12px; }
 /* wide screens: the lead's record beside the table, in view while the table scrolls */
 @media (min-width: 1100px) {
   .split { display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 26vw, 380px); gap: 18px; align-items: start; }
-  .split > .lead { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; overscroll-behavior: contain; padding: 16px 14px; }
+  .split > .lead { position: sticky; top: var(--stick-top); max-height: calc(100vh - var(--stick-top) * 2); overflow: auto; overscroll-behavior: contain; padding: 16px 14px; }
   .split .board { grid-template-columns: minmax(0, 1fr); }
   .split .lead .head { flex-direction: column; align-items: flex-start; }
 }
@@ -723,10 +866,10 @@ table.mini code { font-size: 12px; }
 .marks-legend:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 6px; }
 .marks-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .marks-legend .mk { display: inline-grid; place-items: center; gap: 0; width: 18px; height: 18px; font-size: 10px; } /* the legend's `span` rule would make it a left-packed flex row */
-/* what is shown on the left, the two folding buttons on the right: one row instead of two */
-.chiprow { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 16px; margin: 8px 0 0; }
-.chiprow .fchip { min-width: 0; }
-.chiprow .tbltools__acts { margin-left: auto; }
+/* what is on screen on the left, the two folding buttons on the right: one row instead of two */
+.showrow { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 16px; margin: 6px 0 2px; }
+.showrow .showing { flex: 1 1 320px; min-width: 0; margin: 0; }
+.showrow .tbltools__acts { margin-left: auto; }
 .tbltools__acts { display: flex; gap: 8px; flex: none; }
 .tbltools__acts .btn { padding: 4px 12px; font-size: 12.5px; }
 
@@ -738,8 +881,13 @@ table.mini code { font-size: 12px; }
 #tbl th.c, #tbl td.c { width: 1%; text-align: center; white-space: nowrap; }
 #tbl td.model, #tbl th.model { position: sticky; left: 0; z-index: 1; background: var(--surface-solid); width: 100%; max-width: 0; }
 #tbl thead th.model { z-index: 4; }
-#tbl tr.row:hover > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, var(--surface-solid)); }
-#tbl tr.row[aria-expanded="true"] > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 11%, var(--surface-solid)); }
+/* Whatever the row is painted, the model cell is painted the same. It is sticky, so it carries an opaque
+   background of its own -- otherwise the columns would slide visibly under it -- and that background
+   used to win over the row's tint, splitting every row in two down the model column. Each of the row's
+   three states is therefore mixed over --surface-solid here, in the same order and the same amounts. */
+#tbl tr.row:nth-of-type(even) > td.model { background: color-mix(in srgb, var(--muted) 5%, var(--surface-solid)); }
+#tbl tr.row:hover > td.model, #tbl tr.row:nth-of-type(even):hover > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, var(--surface-solid)); }
+#tbl tr.row[aria-expanded="true"] > td.model, #tbl tr.row:nth-of-type(even)[aria-expanded="true"] > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 11%, var(--surface-solid)); }
 /* ---------- the open row's frame ----------
    A frame round a table row cannot be one border: the model cell is sticky, so it is painted over its
    neighbours and any single outline is cut where it begins. Each cell draws its own share instead --
@@ -948,12 +1096,12 @@ table.mini code { font-size: 12px; }
         <div class="scrollrow__track"><div class="marks-legend" id="marklegend" aria-label="What the marks mean" tabindex="0"></div></div>
         <button class="scrollrow__arrow scrollrow__arrow--next" type="button" aria-label="Scroll the key right" tabindex="-1"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
-      <div class="chiprow">
-        <div class="fchip" id="fchip" hidden></div>
-        <div class="tbltools__acts" id="grp-acts"><button type="button" class="btn" id="expand-all">Expand all</button><button type="button" class="btn" id="collapse-all">Collapse all</button></div>
-      </div>
+      <div class="fchip" id="fchip" hidden></div>
     </div>
-    <p class="showing" id="showing"></p>
+    <div class="showrow">
+      <p class="showing" id="showing"></p>
+      <div class="tbltools__acts" id="grp-acts"><button type="button" class="btn" id="expand-all">Expand all</button><button type="button" class="btn" id="collapse-all">Collapse all</button></div>
+    </div>
     <div class="table-wrap" id="tablewrap">
       <table id="tbl">
         <thead><tr id="thead"><th class="model">Model</th><th class="st">Status</th></tr></thead>
@@ -1899,17 +2047,26 @@ table.mini code { font-size: 12px; }
   }
   $('f-status').addEventListener('scroll', tabsFade, { passive: true });
   if ('ResizeObserver' in window) new ResizeObserver(tabsFade).observe($('f-status'));
-  /* the sticky header sits under the sticky filter bar, and the group rows under the header */
+  /* The sticky stack, measured rather than assumed: the filter bar rests --stick-top below the viewport
+     edge (the same height as the lead's record beside it), the table's header pins directly under the
+     bar's bottom edge, and each group row pins under the header. Nothing here is a written-in number:
+     the bar's height changes as its chips rewrap, which happens while it is stuck and without any
+     resize event, so the measurement runs on scroll as well -- once a frame, never per event. */
   function stickyOffsets() {
-    const bar = $('filters').offsetHeight, head = $('thead').offsetHeight;
+    const bar = $('filters');
+    const top = parseFloat(getComputedStyle(bar).top) || 0;
     const root = document.documentElement.style;
-    root.setProperty("--stick-head", `${Math.round(bar)}px`);
-    root.setProperty('--head-h', `${Math.round(head)}px`);
+    root.setProperty('--stick-head', `${Math.round(top + bar.offsetHeight)}px`);
+    // the thead is hidden on a phone, where each model is a card: measuring it gives 0 there by itself
+    root.setProperty('--head-h', `${Math.round($('thead').offsetHeight)}px`);
+    const grow = $('rows').querySelector('tr.grow > th');
+    root.setProperty('--grow-h', `${grow ? Math.round(grow.offsetHeight) : 0}px`);
+    // "resting" is the bar sitting exactly at its own offset: the curtain above it belongs to that state only
+    bar.classList.toggle('is-stuck', bar.getBoundingClientRect().top <= top + 0.5);
   }
   if ('ResizeObserver' in window) { const ro = new ResizeObserver(stickyOffsets); ro.observe($('filters')); ro.observe($('thead')); }
   addEventListener('resize', stickyOffsets);
-  // the filter bar can change height as it sticks (its chips rewrap) without a resize: re-measure on scroll, once a frame
-  { let last = 0; addEventListener('scroll', () => { const t = performance.now(); if (t - last > 100) { last = t; stickyOffsets(); } }, { passive: true }); }
+  { let frame = 0; addEventListener('scroll', () => { if (frame) return; frame = requestAnimationFrame(() => { frame = 0; stickyOffsets(); }); }, { passive: true }); }
   const tagsScroll = scrollRow($('tags-row'));
   const legendScroll = scrollRow($('legend-row'));
   $('filters').addEventListener('click', onFilterClick);
@@ -2014,6 +2171,18 @@ table.mini code { font-size: 12px; }
     if (bad) { e.stopPropagation(); showBad(bad.dataset.showBad); return; }
     const cp = e.target.closest('[data-copy]');
     if (cp) { e.stopPropagation(); copyHash(cp); return; }
+    // one check's detail, opened in place: no re-render, so nothing below it jumps
+    const ck = e.target.closest('[data-ck]');
+    if (ck) {
+      e.stopPropagation();
+      const now = ck.getAttribute('aria-expanded') !== 'true';
+      ckOpen.set(ckKey(ck.dataset.ckModel, ck.dataset.ck), now);
+      ck.setAttribute('aria-expanded', String(now));
+      ck.closest('.ck')?.classList.toggle('is-open', now);
+      const body = document.getElementById(ck.getAttribute('aria-controls'));
+      if (body) body.hidden = !now;
+      return;
+    }
     const b = e.target.closest('[data-grp]');
     if (!b) return;
     e.stopPropagation();
@@ -2096,8 +2265,16 @@ table.mini code { font-size: 12px; }
     }
     flash = new Set(); // a row flashes once, on the refresh that changed it
     justApproved = new Set();
+    stickyOffsets(); // the group row only exists once there are rows, and its height is one of the offsets
   }
 
+  /* Which of a model's checks are open. A check that is failing, flagged, crashed or stale opens itself,
+     because that is the one a reader came for; everything else waits to be asked. The viewer's own
+     choices win over both, and are kept for the session so a refresh does not close what they opened. */
+  const ckOpen = new Map();
+  const ckKey = (id, name) => `${id} ${name}`;
+  const ckDefault = (r) => ['fail', 'flag', 'broke'].includes(markKind(r)[0]) || Boolean(r?.stale);
+  const ckIsOpen = (id, name, r) => ckOpen.get(ckKey(id, name)) ?? ckDefault(r);
   /** A hash short enough to read, with the whole thing one click away. Nothing is lost, only folded. */
   const hashBit = (label, full, note) => full
     ? `<span class="hsh">${esc(label)} <code>${esc(String(full).slice(0, 7))}</code><button type="button" class="copyb" data-copy="${esc(full)}" aria-label="${esc(`Copy the full ${label} ${full}`)}" data-tip data-tiptext="${esc(`${full}${note ? `. ${note}` : ''}`)}">${COPYICON}</button></span>`
@@ -2134,18 +2311,32 @@ table.mini code { font-size: 12px; }
     </header>`);
     for (const n of m.notes) parts.push(`<div class="notice">${esc(n)}</div>`);
 
-    parts.push('<h3>Checks: last known result</h3><div class="checkgrid">' + Object.entries(m.checks).map(([name, r]) => {
-      const head = `<div class="check__h"><b>${esc(CHECK_NAMES[name] ?? name)}</b>${checkChip(r)}</div>`;
-      if (r.status === 'never') return `<article class="check">${head}<p class="muted">No captured run has reported this model.</p></article>`;
-      return `<article class="check">${head}
-        <p class="check__sum">${esc(r.summary)}</p>
-        ${r.stale ? `<p class="check__stale"><b>Stale.</b> ${esc(r.staleWhy.join('; '))}.</p>` : ''}
-        ${r.flags?.length ? `<ul class="missing check__list">${r.flags.map((f) => `<li>${esc(f.flag)} ${f.resolved ? `<span class="chip s-chk">false alarm</span> <span class="muted">${esc(f.by)}: ${esc(f.reason)}</span>` : '<span class="chip s-warn">open</span>'}</li>`).join('')}</ul>`
-          : r.detail?.length ? `<ul class="missing check__list">${r.detail.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}
-        ${name === 'exports' ? '<p class="muted check__note">This verdict is for the default settings only. Other settings, if this run made any, are in the export matrix under Docs and release readiness.</p>' : ''}
-        <p class="check__when">Ran ${agoSpan(r.ranAt)}${r.ranAt ? ` <span class="muted" data-tip data-tiptext="${esc(new Date(r.ranAt).toLocaleString())}">(${esc(String(r.ranAt).slice(0, 16).replace('T', ' '))})</span>` : ''} at ${r.commit ? `<code>${esc(r.commit)}</code>` : '<span class="muted">a HEAD it did not record</span>'}</p>
-        ${howItRan(name, r, m.id)}</article>`;
-    }).join('') + '</div>');
+    /* One line per check, and the detail under the one you ask for. A grid of cards gave every check the
+       same large box whatever it had to say, cut sentences at a fixed height and put a scrollbar inside
+       a page that already scrolls. A list gives each check exactly the room it needs. */
+    parts.push('<h3>Checks: last known result</h3><ul class="cks">' + Object.entries(m.checks).map(([name, r]) => {
+      const [kind, word] = markKind(r);
+      const id = `ck-${m.id}-${name}`;
+      const op = ckIsOpen(m.id, name, r);
+      const never = r.status === 'never';
+      const body = never
+        ? '<p class="muted">No captured run has reported this model.</p>'
+        : `${r.stale ? `<p class="ck__stale"><b>Stale.</b> ${esc(r.staleWhy.join('; '))}.</p>` : ''}
+          ${r.flags?.length ? `<ul class="ck__list">${r.flags.map((f) => `<li>${esc(f.flag)} ${f.resolved ? `<span class="chip s-chk">false alarm</span> <span class="muted">${esc(f.by)}: ${esc(f.reason)}</span>` : '<span class="chip s-warn">open</span>'}</li>`).join('')}</ul>` : ''}
+          ${r.detail?.length ? `<ul class="ck__list">${r.detail.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>` : ''}
+          ${name === 'exports' ? '<p class="muted ck__note">This verdict is for the default settings only. Other settings, if this run made any, are in the export matrix under Docs and release readiness.</p>' : ''}
+          <p class="ck__when">Ran ${agoSpan(r.ranAt)}${r.ranAt ? ` <span data-tip data-tiptext="${esc(new Date(r.ranAt).toLocaleString())}">(${esc(String(r.ranAt).slice(0, 16).replace('T', ' '))})</span>` : ''} at ${r.commit ? `<code>${esc(r.commit)}</code>` : 'a HEAD it did not record'}</p>
+          ${howItRan(name, r)}`;
+      return `<li class="ck${op ? ' is-open' : ''}${['fail', 'flag', 'broke'].includes(kind) ? ' is-bad' : ''}">
+        <button type="button" class="ck__row" data-ck="${esc(name)}" data-ck-model="${esc(m.id)}" aria-expanded="${op}" aria-controls="${esc(id)}">
+          <span class="mk mk--${kind}" aria-hidden="true">${MARKS[kind][0]}</span>
+          <b class="ck__name">${esc(CHECK_NAMES[name] ?? name)}</b>
+          <span class="ck__verdict">${esc(word)}</span>
+          <span class="ck__sum">${esc(never ? 'never reported' : r.summary)}</span>
+          <span class="ck__chev" aria-hidden="true">${ssChevron}</span>
+        </button>
+        <div class="ck__body" id="${esc(id)}"${op ? '' : ' hidden'}>${body}</div></li>`;
+    }).join('') + '</ul>');
 
     const rv = m.reviews ?? [];
     parts.push(`<h3>Reviews (${rv.length})</h3>` + (rv.length ? `<ul class="commits">${rv.map((r) => {
