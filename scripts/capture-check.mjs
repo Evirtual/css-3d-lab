@@ -11,6 +11,7 @@
  *   node scripts/capture-check.mjs boxsizing [args…] scripts/check-boxsizing.mjs
  *   node scripts/capture-check.mjs contrast [args…]  scripts/check-contrast.mjs
  *   node scripts/capture-check.mjs perf [args…]      scripts/check-perf.mjs
+ *   node scripts/capture-check.mjs app [args…]       scripts/check-app.mjs (on the built site)
  *   (npm run capture -- models cube dice)
  *
  * Which checks there are is scripts/checks-registry.mjs, the one list the ledger and its page read
@@ -47,6 +48,9 @@
  *  - perf: the same lines once more, each budget the model broke indented under it, and its
  *    closing `N/M models are within the performance budgets.` The wrapper adds --pass here too.
  *    Under --json the check prints readings and no verdict, so such a run says nothing to record.
+ *  - app (a site check whose one entry is the gallery, `/`): a `readings / <numbers>` line every
+ *    run, then `FAIL / <rule>: <what>` for each budget it broke, or `pass / …` when it broke none.
+ *    The wrapper adds --pass, so a clean run still records a line.
  *  - seo (a site check: its entries are pages, not models): `FAIL <page> <rule>: <what>` (a page
  *    can have several; they are grouped by page), `pass <page>`, and `listed <page> <rules>`, a pass
  *    whose findings are listed rather than failed (WAIVED or OWN-TEXT), recorded with `listed: true`.
@@ -105,8 +109,8 @@ if (!CHECKS[check]) {
   process.exit(2);
 }
 const args = [...rest];
-if (['models', 'seo', 'boxsizing', 'contrast', 'perf'].includes(check) && !args.includes('--pass')) args.push('--pass');
-const record = !(['stages', 'perf'].includes(check) && args.includes('--json'));
+if (['models', 'seo', 'boxsizing', 'contrast', 'perf', 'app'].includes(check) && !args.includes('--pass')) args.push('--pass');
+const record = !(['stages', 'perf', 'app'].includes(check) && args.includes('--json'));
 if (!record) console.error('capture-check: --json prints numbers without a verdict, so this run is shown but not recorded.');
 
 const git = (...a) => { try { return execFileSync('git', a, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; } };
@@ -208,6 +212,36 @@ const parsers = {
     }
     if (/^ {10}\S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
     if (/models are within the performance budgets/.test(line)) summaryLine = line.trim();
+  },
+  // app (a site check whose one entry is the gallery, `/`): a `readings /` line every run, then a
+  // `FAIL / <rule>: <what>` line per budget it broke, or `pass / …` when it broke none
+  app(line) {
+    const rd = /^readings (\S+) (.*)$/.exec(line);
+    if (rd) {
+      const r = results[rd[1]] ?? (results[rd[1]] = { status: 'unreported', summary: '', detail: [], at: now() });
+      r.extra = { ...(r.extra ?? {}), readings: rd[2] };
+      if (!r.summary) r.summary = rd[2];
+      return;
+    }
+    const f = /^FAIL (\S+) (.*)$/.exec(line);
+    if (f) {
+      const r = results[f[1]] ?? (results[f[1]] = { status: 'fail', summary: '', detail: [], at: now() });
+      r.status = 'fail';
+      r.detail.push(f[2]);
+      r.summary = `${r.detail.length} problem(s); ${r.extra?.readings ?? ''}`.trim();
+      r.at = now();
+      return;
+    }
+    const p = /^pass (\S+)\s*(.*)$/.exec(line);
+    if (p) {
+      if (results[p[1]]?.status === 'fail') return;
+      const r = results[p[1]] ?? (results[p[1]] = { status: 'pass', summary: '', detail: [], at: now() });
+      r.status = 'pass';
+      r.summary = p[2] || r.extra?.readings || '';
+      r.at = now();
+      return;
+    }
+    if (/pages are within the app budgets/.test(line)) summaryLine = line.trim();
   },
   seo(line) {
     const f = /^FAIL (\S+) (.*)$/.exec(line);
@@ -499,6 +533,14 @@ const STEP_READERS = {
       if (!hit.has('pileup')) out.pileup = SKIP(why);
     }
     return { ...out, _unattributed: loose.concat((e.detail ?? []).filter((l) => /^page error:/.test(l))) };
+  },
+  // check-app's one entry is the gallery. Each FAIL line starts with the rule it broke; every
+  // other rule the check declares was measured and held, and its numbers are in the readings line.
+  app(e) {
+    if (e.status !== 'pass' && e.status !== 'fail') return {};
+    const keys = stepsOf('app').map((s) => s.key);
+    const { hit, loose } = place(e.detail ?? [], keys.map((k) => [k, new RegExp(`^${k}:`)]));
+    return { ...spread(keys, hit), _unattributed: loose };
   },
   // a site check: each entry is a page. Its line names only the rules that found something on it,
   // so every other rule is "no finding" — not proof that the rule applies to that page.

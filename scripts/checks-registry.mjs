@@ -187,6 +187,26 @@ export const REGISTRY = [
     ],
   },
   {
+    key: 'app', script: 'check-app.mjs', scope: 'site', name: 'app performance', short: 'App',
+    ruleVersion: 1,
+    rules: [{ v: 1, from: null, what: 'as first recorded: the built site served from dist/, the gallery loaded at 1280 × 900 and scrolled to the bottom of all 135 models and back — loaded within 2500ms, frame time at the 95th within 60ms, at most 12 long tasks and none over 200ms, at most 40 model frames still mounted at the bottom, at most 90 MB of JS heap and 60 documents held after collection, no card moving a pixel over the trip, and no console or page error' }],
+    title: 'What the gallery costs to use (check-app)', label: 'app performance check (check-app)',
+    rule: 'cleared when its latest run on the built site (after npm run build) reports no FAIL line for the page; it judges the site, not a model, so it gates no model',
+    steps: [
+      { key: 'load', label: 'first load', proves: 'the gallery loads, and draws its first card, within the budget' },
+      { key: 'scroll', label: 'the whole gallery', proves: 'scrolling reveals all 135 cards and reaches the bottom' },
+      { key: 'frames', label: 'frame time while scrolling', proves: 'the frames of the trip down and back, median and 95th, stay within the budget' },
+      { key: 'longtasks', label: 'long tasks', proves: 'the main thread is not held for over 50ms more often, or for longer, than the budget allows' },
+      { key: 'mounted', label: 'model frames still mounted', proves: 'a card far from the viewport has given its document back: at the bottom of all 135, few frames are mounted' },
+      { key: 'memory', label: 'memory held', proves: 'the JS heap and the document count, each measured after two forced collections, stay within the budget' },
+      { key: 'drift', label: 'nothing moves', proves: 'a card\'s own top on the page is the same pixel after the trip as before it: what an unmounted model leaves behind is the size it was' },
+      { key: 'remount', label: 'a model comes back', proves: 'a card scrolled away from and back to has its model mounted and running again' },
+      { key: 'errors', label: 'no errors', proves: 'no page error and no console error over the whole trip' },
+      { key: 'run', label: 'the run itself', proves: 'the built gallery could be opened and measured at all' },
+    ],
+    pages: 1,
+  },
+  {
     key: 'seo', script: 'check-seo.mjs', scope: 'site', name: 'seo', short: 'SEO',
     ruleVersion: 2,
     rules: [
