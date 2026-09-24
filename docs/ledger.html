@@ -2389,7 +2389,19 @@ table.mini code { font-size: 12px; }
   function selectStage(key, focus = false) {
     stage = key;
     try { localStorage.setItem('ledger-stage', key); } catch {}
-    renderOverview();
+    /* Picking a tab changes which tab is picked and what is under it. Nothing else. It used to redraw
+       the whole overview, which built the strip again from scratch -- so the wave jumped back to its
+       beginning on every click, as if the page had reloaded. The scene is not a function of the
+       selection: it is a function of the counts, and those have not changed. */
+    const tabs = [...$('stats').querySelectorAll('[data-stage]')];
+    if (tabs.length) {
+      for (const t of tabs) {
+        const on = t.dataset.stage === key;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+      }
+      renderStage();
+    } else renderOverview(); // nothing drawn yet: the first paint still has to happen
     if (focus) $('stats').querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
   }
   /* The liquid's surface is three waves, not one: different lengths, weights and speeds, so it never
