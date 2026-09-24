@@ -62,7 +62,7 @@
     --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
     --grid: rgb(40 50 120 / 0.034);
     --text: #14172b; --muted: #5a6188;
-    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--accent) 86%, #120030); --ok-tick: var(--accent); --ok-tint: color-mix(in srgb, var(--accent) 11%, transparent); --ok-rim: color-mix(in srgb, var(--accent) 36%, transparent); --ok-sweep: #fff;
+    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--accent) 74%, #120030); --ok-tick: color-mix(in srgb, var(--accent) 68%, #120030); --ok-tint: color-mix(in srgb, var(--accent) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--accent) 19%, transparent); --ok-rim: color-mix(in srgb, var(--accent) 52%, transparent); --ok-ring: color-mix(in srgb, var(--accent) 15%, transparent); --ok-gloss: color-mix(in srgb, #fff 62%, transparent); --ok-sweep: #fff;
     --code-bg: #e8eafa;
     --glass: rgb(255 255 255 / 0.7); --glass-edge: rgb(255 255 255 / 0.85); --glass-dim: rgb(30 34 70 / 0.4);
     --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
@@ -75,7 +75,7 @@
   --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
   --grid: rgb(40 50 120 / 0.034);
   --text: #14172b; --muted: #5a6188;
-  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--accent) 86%, #120030); --ok-tick: var(--accent); --ok-tint: color-mix(in srgb, var(--accent) 11%, transparent); --ok-rim: color-mix(in srgb, var(--accent) 36%, transparent); --ok-sweep: #fff;
+  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--accent) 74%, #120030); --ok-tick: color-mix(in srgb, var(--accent) 68%, #120030); --ok-tint: color-mix(in srgb, var(--accent) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--accent) 19%, transparent); --ok-rim: color-mix(in srgb, var(--accent) 52%, transparent); --ok-ring: color-mix(in srgb, var(--accent) 15%, transparent); --ok-gloss: color-mix(in srgb, #fff 62%, transparent); --ok-sweep: #fff;
   --code-bg: #e8eafa;
   --glass: rgb(255 255 255 / 0.7); --glass-edge: rgb(255 255 255 / 0.85); --glass-dim: rgb(30 34 70 / 0.4);
   --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
@@ -87,13 +87,21 @@
   --st-conv: var(--accent);
   --st-chk: var(--accent-2);
   /* Approved wears the site's violet. The group bars still take the full violet-to-pink brand gradient;
-     the pill itself is a tag -- a tint of the violet with violet ink -- so the label is one step off the
-     violet the tick uses, lightened in dark and deepened in light until it clears 4.5:1 over that tint. */
+     the pill itself is a tag -- a fill of the violet with violet ink -- so the label is one step off the
+     violet the tick uses, lightened in dark and deepened in light until it clears 4.5:1 over that fill.
+     APPROVED IS THE STRONGEST THING IN ITS ROW, because it is the one word in it that says the model is
+     finished; a row of teal marks says which checks passed, which is how it got there. So the fill is
+     the full violet at --ok-tint, falling to --ok-tint-2 across the tag, and the ink and the tick are
+     each set against the DEEPER of those two ends -- the top-left corner -- so no part of the label is
+     ever measured against a tone it does not sit on. */
   --st-ok: linear-gradient(120deg, var(--accent), var(--hot));
-  --ok-tint: color-mix(in srgb, var(--accent) 15%, transparent);
-  --ok-rim: color-mix(in srgb, var(--accent) 42%, transparent);
-  --ok-ink: color-mix(in srgb, var(--accent) 52%, #fff);
-  --ok-tick: color-mix(in srgb, var(--accent) 80%, #fff);
+  --ok-tint: color-mix(in srgb, var(--accent) 36%, transparent);
+  --ok-tint-2: color-mix(in srgb, var(--accent) 22%, transparent);
+  --ok-rim: color-mix(in srgb, var(--accent) 62%, transparent);
+  --ok-ring: color-mix(in srgb, var(--accent) 20%, transparent);
+  --ok-gloss: color-mix(in srgb, #fff 13%, transparent);
+  --ok-ink: color-mix(in srgb, var(--accent) 46%, #fff);
+  --ok-tick: color-mix(in srgb, var(--accent) 60%, #fff);
   /* the sweep always moves the tint away from the ink: lighter under pale ink, paler under dark ink */
   --ok-sweep: var(--accent);
   --st-bad: var(--hot);
@@ -169,19 +177,32 @@ button, input { font: inherit; color: inherit; }
 .s-chk { --c: var(--st-chk); }
 .s-bad { --c: var(--st-bad); }
 .s-warn { --c: var(--st-warn); }
-/* A tag, not a button. Filled, rimmed and lit it read as something to press, and a table of a hundred
-   and thirty of them read as a wall of buttons. It is the same tinted-and-outlined shape as every other
-   chip on the page, in the site's violet -- the only things that set it apart are the tick and a
-   specular that crosses it now and then. */
+/* THE ONE THING THE ROW IS ABOUT. Beside it sit eleven teal marks, each a filled disc, and next to that
+   wall the old tag -- a 15% wash with a hairline round it, at the same size and weight as every other
+   chip -- was the quietest thing in the row while being the only one that says the model is done. So it
+   is now the row's strongest element, and it earns that in five small ways rather than one loud one: a
+   fuller violet that falls across the tag instead of a flat wash, a label a point larger and a weight
+   heavier than the other chips, a little more room around it, a tick that reads as a mark, and a soft
+   ring of its own colour standing it off the teal. What it is NOT is a button: no solid fill, no drop
+   shadow under it, no hover or press of its own, and the ring is a wide, faint aura rather than a
+   border -- a hundred and thirty of these have to sit in one table without reading as a wall of
+   buttons, which is what killed the first cut of it.
+   The marks were left exactly as they were: they are the record of how the model got here, and calming
+   them would have bought the tag its place by taking something from them. */
 .s-ok {
-  position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 4px;
+  position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 5px;
   --c: var(--ok-ink);
-  color: var(--ok-ink); font-weight: 700;
-  background: var(--ok-tint);
+  padding: 4px 11px 4px 9px;
+  color: var(--ok-ink); font-size: 11.5px; font-weight: 800; letter-spacing: 0.05em;
+  /* the violet at its fullest where the tick and the first letters are, easing off toward the far end */
+  background: linear-gradient(118deg, var(--ok-tint) 0%, var(--ok-tint-2) 100%);
   border: 1px solid var(--ok-rim);
+  /* the glow: one wide, low aura of the tag's own violet, and a hairline of light along the top edge.
+     No shadow beneath it -- a shadow is what makes a tag look liftable, and this one does not lift. */
+  box-shadow: 0 0 0 3px var(--ok-ring), inset 0 1px 0 var(--ok-gloss);
 }
-/* the tick in the pill's own violet, a shade off the label so it reads as a mark, not a letter */
-.s-ok::before { content: '✓'; flex: none; font-size: 10px; font-weight: 900; line-height: 1; color: var(--ok-tick); text-indent: 0; }
+/* the tick in the pill's own violet, a step deeper than the label so it reads as a mark, not a letter */
+.s-ok::before { content: '✓'; flex: none; font-size: 11.5px; font-weight: 900; line-height: 1; color: var(--ok-tick); text-indent: 0; }
 /* the specular: one gradient moved by transform, no filter. Each row carries its own delay, so a page
    of approved tags never sweeps in unison. On a tint this faint it is a pale wash, not a shine. */
 .s-ok::after {
