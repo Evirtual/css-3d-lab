@@ -578,8 +578,7 @@ const fingerprint = (...files) =>
 // Each entry also keeps `published`: the day the page first appeared, for the JSON-LD
 // datePublished. A page the file has not seen yet is published today. (The entries there before
 // 2026-09-22 were filled in once from git history: a model's day is the commit that first added its
-// id under src/, the group and home pages' the commit that first generated them, the article's the
-// commit that added it.)
+// id under src/, and the group and home pages' the commit that first generated them.)
 const dates = {};
 const dated = (url, ...files) => {
   const hash = fingerprint(...files);
@@ -589,7 +588,10 @@ const dated = (url, ...files) => {
 };
 for (const g of GROUP_ORDER) dated(`groups/${g}/`, `groups/${g}/index.html`);
 for (const d of demos) dated(`models/${d.id}/`, `models/${d.id}/index.html`);
-if (existsSync('public/article/index.html')) dated('article/', 'public/article/index.html');
+// public/article/index.html is deliberately NOT dated here and NOT listed in the sitemap below:
+// the article is canonical on articles.edgarasneverdauskas.com (its own <link rel="canonical">
+// says so), and a sitemap must not list a page whose canonical is on another host. The copy here
+// is still built and served; it is just not advertised as this site's own page.
 const newest = Object.values(dates).reduce((a, b) => (b.date > a ? b.date : a), '');
 const own = dated('', 'index.html', 'src/generated/all-models.html');
 const lastmod = (u) => (u === '' ? (own > newest ? own : newest) : dates[u].date);
@@ -603,7 +605,7 @@ for (const g of GROUP_ORDER) fillDates(`groups/${g}/index.html`, `groups/${g}/`)
 for (const d of demos) fillDates(`models/${d.id}/index.html`, `models/${d.id}/`);
 write('src/generated/home-dates.json', JSON.stringify({ published: dates[''].published, modified: lastmod('') }));
 
-const urls = ['', ...(dates['article/'] ? ['article/'] : []), ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `models/${d.id}/`)];
+const urls = ['', ...GROUP_ORDER.map((g) => `groups/${g}/`), ...demos.map((d) => `models/${d.id}/`)];
 write(
   'public/sitemap.xml',
   `<?xml version="1.0" encoding="UTF-8"?>

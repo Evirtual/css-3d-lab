@@ -8,7 +8,12 @@
  *   npm run check-seo -- --dist .media-tmp/seocheck   another copy of the built site
  *
  * The pages, by address:
- *   public    /, /models/<id>/, /groups/<g>/, /article/: indexed, listed in the sitemap
+ *   public    /, /models/<id>/, /groups/<g>/: indexed, listed in the sitemap
+ *   article   /article/: the project article, which is canonical on
+ *             articles.edgarasneverdauskas.com. It is still built and served here, but it is not
+ *             one of this site's own pages: its canonical must point at the other host, and it
+ *             must stay out of the sitemap, so search engines are told once where it really lives.
+ *             It is not held to this site's title, description, JSON-LD or orphan rules.
  *   redirect  a page with <meta http-equiv="refresh"> (the old /demos/<id>/ addresses): must point
  *             its canonical and its refresh at a public page, and stay out of the sitemap
  *   utility   everything else (/embed/*, a 404, the share-image page): must say noindex
@@ -85,14 +90,13 @@ const WEIGHT_BUDGET = { model: 288 * 1024, home: 293 * 1024 };
 /**
  * Findings shown to the user and waiting on their decision. Key: `<page> <rule>`.
  */
-const WAIVED = {
-  '/article/ canonical':
-    'the article\'s canonical is https://articles.edgarasneverdauskas.com/css-3d-lab/ while the sitemap lists it on css3dlab; either the canonical or the sitemap entry has to change, and which is the user\'s call',
-  '/article/ orphan':
-    'no page of the site links to the article; proposed: a link in the site footer (generate-pages siteFooter, used on every page) or on the home page',
-  '/article/ jsonld':
-    'the article has no JSON-LD; its Article node needs the canonical address, which waits on the canonical decision',
-};
+// Decided 2026-09-24: the article is canonical on articles.edgarasneverdauskas.com, so it is no
+// longer one of this site's public pages. scripts/generate-pages.mjs stopped listing it in the
+// sitemap, and the `article` branch below holds it to the two rules that still apply: a canonical
+// on the other host, and no sitemap entry. That retired all three of its waived findings
+// (canonical, orphan, jsonld) — an orphan and missing JSON-LD are right for a page this site does
+// not claim.
+const WAIVED = {};
 
 if (!existsSync(join(DIST, 'index.html'))) {
   console.error(`check-seo: no ${relative(ROOT, DIST) || DIST}/index.html: run npm run build first`);
@@ -154,7 +158,7 @@ for (const file of htmlFiles(DIST)) {
     : address === '/article/' ? 'article'
     : refresh ? 'redirect'
     : 'utility';
-  pages.set(address, { address, file, raw, html, head, metas, links, refresh, kind, public: ['home', 'model', 'group', 'article'].includes(kind) });
+  pages.set(address, { address, file, raw, html, head, metas, links, refresh, kind, public: ['home', 'model', 'group'].includes(kind) });
 }
 const publicPages = [...pages.values()].filter((p) => p.public);
 
@@ -210,6 +214,16 @@ for (const p of pages.values()) {
 
   if (p.kind === 'utility') {
     if (!noindex) fail(a, 'robots-meta', 'a page that is not a public page has no <meta name="robots" content="noindex">');
+    continue;
+  }
+  if (p.kind === 'article') {
+    // Canonical on another host, so this copy is not indexed as the site's own and is not listed.
+    const canon = canonicals[0];
+    let u = null; try { u = new URL(canon, SITE + a); } catch {}
+    if (canonicals.length !== 1) fail(a, 'canonical', `${canonicals.length} canonical links on the article, not 1`);
+    else if (!u) fail(a, 'canonical', `the canonical is not an address: ${canon}`);
+    else if (u.origin === SITE) fail(a, 'canonical', `the canonical ${canon} is on this site, but the article is canonical on another host: point it there or make the article a public page again`);
+    if (lastmodOf.has(SITE + a)) fail(a, 'sitemap', 'the article is listed in the sitemap, though its canonical is on another host');
     continue;
   }
   if (p.kind === 'redirect') {
@@ -481,7 +495,7 @@ const siteFiles = ['/sitemap.xml', '/robots.txt'].map((f) => `${f.slice(1)} ${by
 const rules = {};
 for (const x of problems) rules[x.rule] = (rules[x.rule] ?? 0) + 1;
 console.log(`\nSEO check of ${relative(ROOT, DIST) || DIST}/ on ${SITE}`);
-console.log(`  pages: ${pages.size} (${publicPages.length} public: ${count('home')} home, ${count('model')} model, ${count('group')} group, ${count('article')} article; ${count('utility')} utility; ${count('redirect')} redirect stubs)`);
+console.log(`  pages: ${pages.size} (${publicPages.length} public: ${count('home')} home, ${count('model')} model, ${count('group')} group; ${count('article')} article canonical elsewhere; ${count('utility')} utility; ${count('redirect')} redirect stubs)`);
 console.log(`  site files: ${siteFiles.join(', ')}`);
 console.log(`  problems: ${problems.length}${problems.length ? ` (${Object.entries(rules).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}`);
 console.log(`  waived: ${waived.length}${waived.length ? ` (listed above, each waiting on a decision; they fail under --strict)` : ''}`);
