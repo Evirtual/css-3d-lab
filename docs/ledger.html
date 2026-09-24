@@ -3531,7 +3531,7 @@ table.mini code { font-size: 12px; }
      because that is the one a reader came for; everything else waits to be asked. The viewer's own
      choices win over both, and are kept for the session so a refresh does not close what they opened. */
   const ckOpen = new Map();
-  const ckKey = (id, name) => `${id} ${name}`;
+  const ckKey = (id, name) => `${id}\u0000${name}`;
   const ckDefault = (r) => ['fail', 'flag', 'broke'].includes(markKind(r)[0]) || Boolean(r?.stale);
   const ckIsOpen = (id, name, r) => ckOpen.get(ckKey(id, name)) ?? ckDefault(r);
   /** A hash short enough to read, with the whole thing one click away. Nothing is lost, only folded. */

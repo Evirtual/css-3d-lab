@@ -518,7 +518,7 @@ const { perModel, commitCount, headLines, order, shortIndex, headSources } = his
 lap('sources + git replay');
 const reviewLog = readReviewLog(new Set(ids));
 // the docs' last commits change only with HEAD or the docs folder's contents
-const docsKey = `${headFull} ${(() => { try { return readdirSync(join(ROOT, 'docs')).join('|'); } catch { return ''; } })()}`;
+const docsKey = `${headFull}\u0000${(() => { try { return readdirSync(join(ROOT, 'docs')).join('|'); } catch { return ''; } })()}`;
 let docs;
 if (cache?.docs?.key === docsKey) docs = cache.docs.value; else { docs = docList(); if (cache) cache.docs = { key: docsKey, value: docs }; }
 lap('reviews + docs');
