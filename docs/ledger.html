@@ -462,51 +462,85 @@ button, input { font: inherit; color: inherit; }
   opacity: calc(0.34 + 0.66 * var(--ch3, 0));
 }
 /* ---------- the wave ----------
-   One waveform, in three stretches only because each stage stands at its own height. All three carry
-   the same period, start from the same origin and run on one shared keyframe at one duration, so they
-   never drift apart: across a join they are the same wave at two heights, and the crossfade there
-   reads as a swell through the gate rather than a cut or a restart.
-   THE TWO WINDOWS the crossfades sit in -- 25.7%..35.2% and 58.7%..67.9% of the strip -- are the only
-   two places where no arrow has a word. They were measured over every width this layout runs at
-   (901px to 1920px): each arrow's left-aligned ink ends at 252, 582 and 853 of the strip's 1000, and
-   the chevron tips sit at 345..354 and 673..677. So each stage's wave is flat at its own height across
-   its own words, and the change happens in the gap. The fade is eased rather than linear, so the two
-   traces are only ever both visible over a short stretch in the middle of a window.
-   THE TRAVEL is a transform on an HTML element, never on anything inside the SVG: SVG transforms are
-   not composited, and that is what made the first cut of this jitter and step. The layer is one period
-   wider than the strip and slides by exactly one period, so every loop lands on the frame it started
-   from and there is no seam. The harmonic's period divides the carrier's, so one slide returns both. */
+   ONE path across the whole strip, and only one. It used to be three full-width waves, each at its own
+   stage's height, cross-faded into each other over the two windows at the gates -- and a crossfade
+   between two curves standing at two heights shows BOTH of them through the window: the trace forked,
+   one half dimmed out, and what you read was three waves butted together rather than one line crossing
+   the strip. Now the height is a function of x baked into a single path, so there is exactly one trace
+   at every pixel of the strip and it cannot fork, jump or gap at a join, at any phase of the travel.
+
+   HOW THE HEIGHT CHANGES. A(x) holds each stage's own amplitude flat across that stage's words and
+   eases into the next one with a smootherstep (6t^5 - 15t^4 + 10t^3) across the window at the gate.
+   That curve leaves both ends of the window with zero slope AND zero curvature, so at the two points
+   where one stage's height meets the next the wave's own height and slope match exactly and the ease
+   shows no corner -- the amplitude swells through the gate instead of stepping at it.
+
+   THE TWO WINDOWS -- 25.7%..35.2% and 58.7%..67.9% of the strip -- are the only two stretches where no
+   arrow has a word. They were measured over every width this layout runs at (901px to 1920px): each
+   arrow's left-aligned ink ends at 252, 582 and 853 of the strip's 1000, and the chevron tips sit at
+   345..354 and 673..677. So every stage still stands at its own true height across its own count and
+   label, and the whole of the change happens in the gap between two stages' words.
+
+   A STAGE HOLDING NOTHING is A(x) = 0 across it: a flat line, at full strength and full colour, run
+   straight through the stage and on into the next. Empty reads as empty, and the line is never cut.
+
+   THE TRAVEL cannot be a slide any more. Sliding the layer would carry the envelope along with it and
+   the tall stage would walk across the strip. So the path itself is the animation: twelve frames of d,
+   one per twelfth of a period, and the browser interpolates between them. Frame twelve IS frame zero,
+   because moving the phase by a whole period under a fixed envelope returns the same curve, so the
+   loop is seamless. Nothing in here runs per frame in script -- the twelve frames are built once, when
+   the counts change, into one @keyframes that the page then leaves alone. The harmonic runs its own
+   twelve frames over half the duration, which is one of ITS periods and so exactly the carrier's
+   speed, and the two stay locked into one shape.
+
+   THE COLOUR travels with the height: one stroke gradient along the strip, violet to pink to amber,
+   changing across those same two windows, so the line is the title's own ramp laid along its length
+   and a stage's stretch is its own colour everywhere its words are. */
 .sw__wave { position: absolute; inset: 0; overflow: hidden; }
 .wv { position: absolute; inset: 0; }
-.wv__flow { position: absolute; left: 0; top: 0; height: 100%; width: var(--wvw); animation: swflow var(--dur, 6.4s) linear infinite; }
-@keyframes swflow { from { transform: translateX(0); } to { transform: translateX(var(--wvt)); } }
 .wv svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.wv path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; transition: d 0.85s cubic-bezier(0.24, 1.32, 0.36, 1); }
+.wv path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
 .wv .h3 { stroke: var(--sw-halo-c); stroke-width: 10; opacity: var(--sw-halo-b); }
 .wv .h2 { stroke: var(--sw-halo-c); stroke-width: 5; opacity: var(--sw-halo-a); }
 .wv .h1 { stroke: var(--core); stroke-width: 2; }
 /* the harmonic: a finer ripple riding the crest, a third of the height and half the period. It rides
-   the same amplitude, so a stage with nothing in it has no structure either. */
+   the same envelope, so a stage with nothing in it has no structure either. */
 .wv .hm { stroke: var(--core); stroke-width: 1; opacity: 0.45; }
 .wv { --core: color-mix(in srgb, var(--c) var(--sw-core), var(--sw-core-mix)); opacity: 0.8; transition: opacity 0.3s; }
 .wv.w1 { --c: var(--accent); }
 .wv.w2 { --c: var(--hot); }
 .wv.w3 { --c: var(--warm); }
-/* each stretch shows over its own stage and eases away across the window at the gate */
-.wv.w1 { -webkit-mask-image: var(--m1); mask-image: var(--m1); }
-.wv.w2 { -webkit-mask-image: var(--m2); mask-image: var(--m2); }
-.wv.w3 { -webkit-mask-image: var(--m3); mask-image: var(--m3); }
-.sw__wave {
-  --f1: rgb(255 255 255 / 0.96) 27.1%, rgb(255 255 255 / 0.76) 29%, rgb(255 255 255 / 0.5) 30.45%, rgb(255 255 255 / 0.24) 31.9%, rgb(255 255 255 / 0.04) 33.8%;
-  --r1: rgb(255 255 255 / 0.04) 27.1%, rgb(255 255 255 / 0.24) 29%, rgb(255 255 255 / 0.5) 30.45%, rgb(255 255 255 / 0.76) 31.9%, rgb(255 255 255 / 0.96) 33.8%;
-  --f2: rgb(255 255 255 / 0.96) 60.1%, rgb(255 255 255 / 0.76) 61.9%, rgb(255 255 255 / 0.5) 63.3%, rgb(255 255 255 / 0.24) 64.7%, rgb(255 255 255 / 0.04) 66.5%;
-  --r2: rgb(255 255 255 / 0.04) 60.1%, rgb(255 255 255 / 0.24) 61.9%, rgb(255 255 255 / 0.5) 63.3%, rgb(255 255 255 / 0.76) 64.7%, rgb(255 255 255 / 0.96) 66.5%;
-  --m1: linear-gradient(90deg, #fff 25.7%, var(--f1), transparent 35.2%);
-  --m2: linear-gradient(90deg, transparent 25.7%, var(--r1), #fff 35.2%, #fff 58.7%, var(--f2), transparent 67.9%);
-  --m3: linear-gradient(90deg, transparent 58.7%, var(--r2), #fff 67.9%);
-}
-/* the selected stage's wave is the one at full strength; the other two hold back a step */
-.flow__scene[data-sel="0"] .wv.w1, .flow__scene[data-sel="1"] .wv.w2, .flow__scene[data-sel="2"] .wv.w3 { opacity: 1; }
+/* Stacked on a narrow screen every arrow draws its own wave in its own panel, at one height with no
+   join to cross, so there the travel stays what it always was: a transform on an HTML element, one
+   period wide and sliding by exactly one period, composited and costing no repaint. */
+.wv__flow { position: absolute; left: 0; top: 0; height: 100%; width: var(--wvw); animation: swflow var(--dur, 6.4s) linear infinite; }
+@keyframes swflow { from { transform: translateX(0); } to { transform: translateX(var(--wvt)); } }
+.step__wrap .wv path { transition: d 0.85s cubic-bezier(0.24, 1.32, 0.36, 1); }
+
+/* ---------- side by side: the one line ---------- */
+.wv--env { opacity: 1; }
+.wv--env .h1, .wv--env .h2, .wv--env .h3 { animation: wvmain var(--dur, 6.4s) linear infinite; }
+.wv--env .hm { animation: wvharm calc(var(--dur, 6.4s) / 2) linear infinite; }
+.wv--env .h3, .wv--env .h2 { stroke: url(#wv-halo); }
+.wv--env .h1, .wv--env .hm { stroke: url(#wv-core); }
+/* the colour along the line. Each stop carries its own stage's --c, and --core and --sw-halo-c are
+   both written in terms of --c, so one ramp serves the core and the halo and the light theme's
+   different carry comes through both without a second set of numbers. */
+.wv--env stop { --core: color-mix(in srgb, var(--c) var(--sw-core), var(--sw-core-mix)); }
+.wv--env .sa { --c: var(--accent); }
+.wv--env .sb { --c: var(--hot); }
+.wv--env .sc { --c: var(--warm); }
+/* the rise: the counts' height reached by scaling the one line about its own centre, which is exactly
+   what multiplying every amplitude by one factor does. It runs on the draw where a count changed --
+   on this page, the first one -- and selecting a tab redraws the strip without moving it. */
+.wv__rise { transform-box: view-box; transition: transform 0.85s cubic-bezier(0.24, 1.32, 0.36, 1); }
+/* the selected stage's stretch is the one at full strength and the other two hold back a step. One
+   line now, so that is an alpha along it rather than three opacities -- eased across the same two
+   windows the height changes in, so nothing about the line steps at a gate. */
+.wv--env { -webkit-mask-image: var(--msel); mask-image: var(--msel); }
+.flow__scene[data-sel="0"] { --msel: linear-gradient(90deg, #fff 25.7%, rgb(255 255 255 / 0.8) 35.2%); }
+.flow__scene[data-sel="1"] { --msel: linear-gradient(90deg, rgb(255 255 255 / 0.8) 25.7%, #fff 35.2% 58.7%, rgb(255 255 255 / 0.8) 67.9%); }
+.flow__scene[data-sel="2"] { --msel: linear-gradient(90deg, rgb(255 255 255 / 0.8) 58.7%, #fff 67.9%); }
 
 .step__text { position: relative; display: grid; align-content: center; height: 100%; padding: 12px calc(var(--notch) + 10px) 50px calc(var(--notch) + 14px); }
 .step--1 .step__text { padding-left: 16px; }
@@ -539,7 +573,8 @@ button, input { font: inherit; color: inherit; }
    mid-stroke still says which stage stands tallest, which is the whole reading. */
 @media (prefers-reduced-motion: reduce) {
   .sw__deck i, .wv__flow, .sw__sun::before { animation: none; }
-  .wv path, .wv { transition: none; }
+  .wv--env .h1, .wv--env .h2, .wv--env .h3, .wv--env .hm { animation: none; }
+  .wv path, .wv, .wv__rise { transition: none; }
 }
 /* ---------- narrow screens and phones: the arrow runs top to bottom ----------
    Three stacked arrows are not one horizon, so each draws its own: its sky, its own stretch of floor and
@@ -2404,8 +2439,11 @@ table.mini code { font-size: 12px; }
      nothing in here runs per frame, and the travel is a transform on an HTML element.
      fw/tv are the two numbers that make the loop seamless: the layer is one period wider than the
      strip (fw), and it slides by exactly that one period (tv, the same length written as a share of
-     the layer's own width). Every loop therefore lands on the frame it started from. */
-  const WV = { vw: 1092, h: 128, cy: 100, amp: 18, per: 92, fw: '109.2%', tv: '-8.4249%', a: -184, b: 1276 };
+     the layer's own width). Every loop therefore lands on the frame it started from.
+     This is the STACKED arrow's wave: one panel, one height, no join to cross. Side by side, where the
+     three stand in one strip and the line has to cross two gates, the strip draws one enveloped path
+     instead -- envPath and waveFrames below. */
+  const WV = { vw: 1092, h: 128, cy: 100, amp: 18, per: 92, a: -46, b: 1138 };
   const WVN = { vw: 384, h: 100, cy: 72, amp: 11, per: 64, fw: '120%', tv: '-16.6667%', a: -128, b: 512 };
   function sinePath(o, amp, per, phase) {
     const half = per / 2, c = amp * 4 / 3, r = (n) => Math.round(n * 100) / 100;
@@ -2435,20 +2473,105 @@ table.mini code { font-size: 12px; }
     + ['h3', 'h2', 'h1'].map((c) => `<path class="${c}" d="${sinePath(o, amp, o.per, 0)}"/>`).join('')
     + `<path class="hm" d="${sinePath(o, amp / 3, o.per / 2, o.per / 4)}"/>`
     + '</svg></div></div>';
-  /* The whole scene: one field, one floor, one sun and one wave in three stretches. It sits
+  /* ---------- the one line across the strip ----------
+     Side by side the three arrows are one scene, so the wave is ONE path over the whole of it and its
+     height is a function of x. THE WINDOWS the height changes in are the only two stretches where no
+     arrow has a word, so each stage still stands at its own true height everywhere its count and its
+     label are, and every bit of the change happens in the gap between two stages' words. */
+  const WV_GATE = [[0.257, 0.352], [0.587, 0.679]];
+  /* smootherstep: zero slope AND zero curvature at both ends of a window, so where one stage's height
+     meets the next the line's height and its slope match and the ease shows no corner. */
+  const sstep = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+  const dsstep = (t) => 30 * t * t * (t - 1) * (t - 1);
+  /** A(x) and A'(x) down the strip: each stage's amplitude flat across its own words, eased into the
+      next across the window at the gate. A stage holding nothing is 0 here -- a flat line, still lit
+      and still drawn, so empty reads as empty without cutting the wave. */
+  function envelope(amps, vw) {
+    const g = WV_GATE.map(([s, e]) => [s * vw, e * vw]);
+    return (x) => {
+      for (let i = 0; i < g.length; i++) {
+        const [s, e] = g[i];
+        if (x <= s) return [amps[i], 0];
+        if (x < e) {
+          const len = e - s, t = (x - s) / len, d = amps[i + 1] - amps[i];
+          return [amps[i] + d * sstep(t), (d * dsstep(t)) / len];
+        }
+      }
+      return [amps[g.length], 0];
+    };
+  }
+  /** One frame of the line: y = cy - A(x)·sin(2π(x - phase)/q), as cubic Hermite segments on an x grid
+      that is FIXED -- the same x at every frame, so from one frame to the next only the heights move
+      and the browser's interpolation between two frames is the wave travelling, never a drift
+      sideways. Six samples a period with the exact slope at each puts the curve inside a twentieth of
+      a pixel of the sine, and the whole path is two half periods wider than the strip so the round
+      caps at its ends are always outside it. */
+  function envPath(o, env, k, q, phase, div) {
+    const w = (2 * Math.PI) / q, step = q / div, n = Math.ceil((o.b - o.a) / step);
+    const r = (v) => Math.round(v * 10) / 10;
+    const at = (x) => {
+      const [A, dA] = env(x), th = w * (x - phase), s = Math.sin(th), c = Math.cos(th);
+      return [o.cy - k * A * s, -k * (dA * s + A * w * c)];
+    };
+    let x0 = o.a, [y0, m0] = at(x0), d = `M${r(x0)} ${r(y0)}`;
+    for (let i = 1; i <= n; i++) {
+      const x1 = o.a + i * step, h = step, [y1, m1] = at(x1);
+      d += `C${r(x0 + h / 3)} ${r(y0 + (m0 * h) / 3)} ${r(x1 - h / 3)} ${r(y1 - (m1 * h) / 3)} ${r(x1)} ${r(y1)}`;
+      x0 = x1; y0 = y1; m0 = m1;
+    }
+    return d;
+  }
+  /* THE TRAVEL, with the envelope standing still: twelve frames of d, one per twelfth of a period,
+     which the browser interpolates. Frame twelve is frame zero -- moving the phase by a whole period
+     under a fixed envelope returns the same curve -- so the loop is seamless. The harmonic takes its
+     twelve frames over half the duration, which is one of its own periods and therefore the carrier's
+     own speed. Built here, once, when the counts change; nothing runs per frame in script. */
+  const WV_FRAMES = 12;
+  const WV_CSS = document.head.appendChild(Object.assign(document.createElement('style'), { id: 'wv-frames' }));
+  function waveFrames(o, amps) {
+    const env = envelope(amps, o.vw), main = [], harm = [];
+    for (let i = 0; i <= WV_FRAMES; i++) {
+      const t = i / WV_FRAMES;
+      main.push(envPath(o, env, 1, o.per, t * o.per, 6));
+      harm.push(envPath(o, env, 1 / 3, o.per / 2, o.per / 4 + (t * o.per) / 2, 4));
+    }
+    const kf = (name, fr) => `@keyframes ${name}{`
+      + fr.map((d, i) => `${Math.round((i / WV_FRAMES) * 1e4) / 100}%{d:path("${d}")}`).join('') + '}';
+    WV_CSS.textContent = kf('wvmain', main) + kf('wvharm', harm);
+    return { main: main[0], harm: harm[0] };
+  }
+  /* One line, three strokes of it -- wide and faint, narrower, then the core -- which is the soft
+     falloff, paid for in paint instead of a blur filter over the strip every frame. The colour runs
+     along it in one gradient in the strip's own coordinates (userSpaceOnUse, so a stage's colour stays
+     over that stage whatever the strip is scaled to), changing across the same two windows the height
+     does. `rise` is the group the counts' height is reached by scaling. */
+  const wvStop = (off, cls, v) => `<stop offset="${off}" class="${cls}" style="stop-color:var(${v})"/>`;
+  const wvRamp = (v) => wvStop(0, 'sa', v) + wvStop(WV_GATE[0][0], 'sa', v) + wvStop(WV_GATE[0][1], 'sb', v)
+    + wvStop(WV_GATE[1][0], 'sb', v) + wvStop(WV_GATE[1][1], 'sc', v) + wvStop(1, 'sc', v);
+  function envLayer(o, amps, flat) {
+    const f = waveFrames(o, amps);
+    const gu = `gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${o.vw}" y2="0"`;
+    return `<div class="wv wv--env"><svg viewBox="0 0 ${o.vw} ${o.h}" preserveAspectRatio="none" aria-hidden="true" focusable="false">`
+      + `<defs><linearGradient id="wv-core" ${gu}>${wvRamp('--core')}</linearGradient>`
+      + `<linearGradient id="wv-halo" ${gu}>${wvRamp('--sw-halo-c')}</linearGradient></defs>`
+      + `<g class="wv__rise" style="transform-origin:0 ${o.cy}px${flat ? ';transform:scaleY(0)' : ''}">`
+      + ['h3', 'h2', 'h1'].map((c) => `<path class="${c}" d="${f.main}"/>`).join('')
+      + `<path class="hm" d="${f.harm}"/></g></svg></div>`;
+  }
+  /* The whole scene: one field, one floor, one sun and one line across all three arrows. It sits
      under the buttons and takes no pointer events, so the arrows are still tabs. */
-  function synthScene(amps, sel) {
+  function synthScene(amps, sel, flat) {
     return `<div class="flow__scene" aria-hidden="true" data-sel="${sel}">
       <div class="sw__deck"><i></i></div><div class="sw__horizon"></div><div class="sw__sun"><i></i></div>
-      <div class="sw__wave">${amps.map((a, i) => waveLayer(WV, i + 1, a)).join('')}</div></div>`;
+      <div class="sw__wave">${envLayer(WV, amps, flat)}</div></div>`;
   }
   /** One stacked arrow's own scene: the same wave at the amplitude its own share earns it, in its own
       panel and unmasked -- stacked, there is no neighbour to cross into. */
   const synthStep = (amp) => '<span class="step__wrap" aria-hidden="true">'
     + '<span class="sw__deck"><i></i></span><span class="sw__horizon"></span>'
     + `<span class="sw__wave">${waveLayer(WVN, 1, amp)}</span></span>`;
-  /** The wave rises to the height the counts earn it, from wherever it already stood. Every stroke of
-      a stretch is the same path, and the harmonic is that amplitude thirded, so one number sets all
+  /** A stacked arrow's wave rises to the height its count earns it, from wherever it already stood.
+      Every stroke is the same path, and the harmonic is that amplitude thirded, so one number sets all
       four. The transition on d is what makes the change a swell; where a browser does not animate d,
       the wave arrives at its height instead. */
   const rise = (root, o, i, amp) => {
@@ -2469,11 +2592,18 @@ table.mini code { font-size: 12px; }
     /* The scene is drawn where the wave already stands and eased to where it belongs on the next frame:
        selecting a tab redraws the whole strip, and a wave that started flat every time would collapse
        and rise again on every click. On the first draw there is no "already", so there it really does
-       start flat and rise. */
+       start flat and rise.
+       The one line across the strip carries its envelope in its own path, so it cannot be drawn at a
+       height it is about to leave: it is built at the height the counts earn it and, when a count has
+       actually changed, laid down flat and scaled up to it on the next frame -- which, since one
+       factor over every amplitude is exactly a change of height, is the same swell. Selecting a tab
+       changes no count, so there it is drawn standing and nothing moves. */
     const seen = buckets.map((b) => shownLv.has(b.key));
     const from = buckets.map((b, i) => (seen[i] ? shownLv.get(b.key) : 0));
     const fromAmp = (o) => buckets.map((b, i) => waveAmp(from[i], seen[i] ? b.count : 0, o.amp));
-    const scene = OCEAN ? sceneHtml(from, selIx) : synthScene(fromAmp(WV), selIx);
+    const grew = buckets.some((b, i) => !seen[i] || from[i] !== lvs[i]);
+    const scene = OCEAN ? sceneHtml(from, selIx)
+      : synthScene(buckets.map((b, i) => waveAmp(lvs[i], b.count, WV.amp)), selIx, grew);
     const stepAmp = fromAmp(WVN);
     // the sun's light is the Approved share; the wave is what carries the number, the sun only warms to it
     $('stats').style.setProperty('--ch3', String(lvs[2] ?? 0));
@@ -2518,7 +2648,9 @@ table.mini code { font-size: 12px; }
         if (!REDUCED.matches && moved) { sc.classList.add('is-pour'); setTimeout(() => sc.classList.remove('is-pour'), 1000); }
         return;
       }
-      if (sc) lvs.forEach((lv, i) => rise(sc, WV, i + 1, waveAmp(lv, buckets[i].count, WV.amp)));
+      // the one line is already at its height; laid flat for a rise, this is the frame it stands up on
+      const g = sc?.querySelector('.wv__rise');
+      if (g) g.style.transform = 'scaleY(1)';
       $('stats').querySelectorAll('.step').forEach((el, i) => {
         const w = el.querySelector('.step__wrap');
         if (w) rise(w, WVN, 1, waveAmp(lvs[i], buckets[i].count, WVN.amp));
