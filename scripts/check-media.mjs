@@ -81,12 +81,13 @@
  * go on anyway; and a crash inside Playwright is said on stderr with exit 3, the lines printed
  * before it kept.
  */
-import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
 import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError } from './browser-guard.mjs';
+import { tmpdir } from 'node:os';
 import { createServer as createVite } from 'vite';
 import { MOMENT, settle, shotContext, VIEWPORT } from './og-shot.mjs';
 
@@ -110,7 +111,15 @@ if (!existsSync(join(DIST, 'embed'))) { console.error(`${DIST}/embed not found: 
 
 /* ---------- the models, as src/models has them now ---------- */
 const site = JSON.parse(readFileSync('site.config.json', 'utf8'));
-const vite = await createVite({ configFile: false, root: resolve('.'), server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom', logLevel: 'error' });
+// A cache of its own, so two shards side by side (or another agent's dev server) do not fight over
+// node_modules/.vite while its dependencies are being optimised. On 2026-09-24 the gate's two
+// check-media shards both reached for it and the loser died in 0s with "EPERM: rmdir", which left
+// its 67 models with no verdict and failed a gate in which nothing had actually failed.
+const cacheDir = mkdtempSync(join(tmpdir(), 'check-media-vite-'));
+// registered here rather than at the end of the file: most of these checks finish with
+// process.exit(), which never reaches a line below it, and the directory would be left behind.
+process.on('exit', () => rmSync(cacheDir, { recursive: true, force: true }));
+const vite = await createVite({ cacheDir, configFile: false, root: resolve('.'), server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom', logLevel: 'error' });
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
 const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
 const { standaloneDoc } = await vite.ssrLoadModule('/src/models/snippet-utils.ts');

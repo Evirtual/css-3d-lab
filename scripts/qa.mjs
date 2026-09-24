@@ -17,16 +17,25 @@
 // to 3 minutes) while free memory is under 1.5 GB, with a `note: <id>: ran under memory pressure`
 // when it had to go on anyway; and a crash inside Playwright prints the problems found so far and
 // exits 3, rather than dying silently.
-import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { createServer as createVite } from 'vite';
 import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard } from './browser-guard.mjs';
 
 const DIST = resolve(process.env.QA_DIST || 'dist'); // QA_DIST: test another build (a deliberately broken copy)
 const only = process.argv.slice(2);
-const vite = await createVite({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
+// A cache of its own, so two shards side by side (or another agent's dev server) do not fight over
+// node_modules/.vite while its dependencies are being optimised. On 2026-09-24 the gate's two
+// check-media shards both reached for it and the loser died in 0s with "EPERM: rmdir", which left
+// its 67 models with no verdict and failed a gate in which nothing had actually failed.
+const cacheDir = mkdtempSync(join(tmpdir(), 'qa-vite-'));
+// registered here rather than at the end of the file: most of these checks finish with
+// process.exit(), which never reaches a line below it, and the directory would be left behind.
+process.on('exit', () => rmSync(cacheDir, { recursive: true, force: true }));
+const vite = await createVite({ cacheDir, server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
 const { interactionOf } = await vite.ssrLoadModule('/src/models/interaction.ts');
 await vite.close();

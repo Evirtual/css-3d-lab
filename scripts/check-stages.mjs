@@ -53,8 +53,9 @@
  * inside Playwright prints the report (table, disagreements, tally) for the models finished before
  * it, under a "PARTIAL" line, and exits 3, so scripts/capture-check.mjs still records them.
  */
-import { readdirSync, statSync } from 'node:fs';
+import { mkdtempSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { createServer as createVite } from 'vite';
 import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError } from './browser-guard.mjs';
@@ -416,7 +417,15 @@ const showFull = (s) => (isFull(s) ? `fills ${fills(s)}` : show(s));
 
 // No watcher and no HMR: a model file saved while this is running would otherwise reload the page
 // under the measurement, and half a run would be of one version of the model and half of another.
-const vite = await createVite({ logLevel: 'error', server: { host: '127.0.0.1', port: 0, watch: null, hmr: false } });
+// A cache of its own, so two shards side by side (or another agent's dev server) do not fight over
+// node_modules/.vite while its dependencies are being optimised. On 2026-09-24 the gate's two
+// check-media shards both reached for it and the loser died in 0s with "EPERM: rmdir", which left
+// its 67 models with no verdict and failed a gate in which nothing had actually failed.
+const cacheDir = mkdtempSync(join(tmpdir(), 'check-stages-vite-'));
+// registered here rather than at the end of the file: most of these checks finish with
+// process.exit(), which never reaches a line below it, and the directory would be left behind.
+process.on('exit', () => rmSync(cacheDir, { recursive: true, force: true }));
+const vite = await createVite({ cacheDir, logLevel: 'error', server: { host: '127.0.0.1', port: 0, watch: null, hmr: false } });
 await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');

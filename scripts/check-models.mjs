@@ -98,6 +98,9 @@
  * and a crash inside Playwright is said on stderr with exit 3, the lines printed before it kept.
  */
 import { inflateSync } from 'node:zlib';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError, unlessBrowser } from './browser-guard.mjs';
@@ -367,7 +370,15 @@ function inkBoxes(png, faint, solid) {
 // No hot reload and no watching: a save anywhere in src (someone else's, mid-run) would reload
 // the page under the camera and put the site's own backdrop back into the picture. Not watching
 // also means nothing tells Vite a file changed, so freshCode() empties its cache before each model.
-const vite = await createVite({ logLevel: 'error', server: { host: '127.0.0.1', port: 0, hmr: false, watch: null } });
+// A cache of its own, so two shards side by side (or another agent's dev server) do not fight over
+// node_modules/.vite while its dependencies are being optimised. On 2026-09-24 the gate's two
+// check-media shards both reached for it and the loser died in 0s with "EPERM: rmdir", which left
+// its 67 models with no verdict and failed a gate in which nothing had actually failed.
+const cacheDir = mkdtempSync(join(tmpdir(), 'check-models-vite-'));
+// registered here rather than at the end of the file: most of these checks finish with
+// process.exit(), which never reaches a line below it, and the directory would be left behind.
+process.on('exit', () => rmSync(cacheDir, { recursive: true, force: true }));
+const vite = await createVite({ cacheDir, logLevel: 'error', server: { host: '127.0.0.1', port: 0, hmr: false, watch: null } });
 await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
