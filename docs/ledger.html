@@ -62,7 +62,7 @@
     --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
     --grid: rgb(40 50 120 / 0.034);
     --text: #14172b; --muted: #5a6188;
-    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--warm) 52%, #120030); --ok-tick: color-mix(in srgb, var(--warm) 48%, #120030); --ok-tint: color-mix(in srgb, var(--warm) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--warm) 19%, transparent); --ok-rim: color-mix(in srgb, var(--warm) 52%, transparent); --ok-ring: color-mix(in srgb, var(--warm) 15%, transparent); --ok-gloss: color-mix(in srgb, #fff 62%, transparent); --ok-sweep: #fff;
+    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--warm) 52%, #120030); --ok-tick: color-mix(in srgb, var(--warm) 48%, #120030); --ok-tint: color-mix(in srgb, var(--warm) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--warm) 19%, transparent); --ok-rim: color-mix(in srgb, var(--warm) 52%, transparent); --ok-sweep: #fff;
     --code-bg: #e8eafa;
     --glass: rgb(255 255 255 / 0.7); --glass-edge: rgb(255 255 255 / 0.85); --glass-dim: rgb(30 34 70 / 0.4);
     --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
@@ -75,7 +75,7 @@
   --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
   --grid: rgb(40 50 120 / 0.034);
   --text: #14172b; --muted: #5a6188;
-  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--warm) 52%, #120030); --ok-tick: color-mix(in srgb, var(--warm) 48%, #120030); --ok-tint: color-mix(in srgb, var(--warm) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--warm) 19%, transparent); --ok-rim: color-mix(in srgb, var(--warm) 52%, transparent); --ok-ring: color-mix(in srgb, var(--warm) 15%, transparent); --ok-gloss: color-mix(in srgb, #fff 62%, transparent); --ok-sweep: #fff;
+  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--warm) 52%, #120030); --ok-tick: color-mix(in srgb, var(--warm) 48%, #120030); --ok-tint: color-mix(in srgb, var(--warm) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--warm) 19%, transparent); --ok-rim: color-mix(in srgb, var(--warm) 52%, transparent); --ok-sweep: #fff;
   --code-bg: #e8eafa;
   --glass: rgb(255 255 255 / 0.7); --glass-edge: rgb(255 255 255 / 0.85); --glass-dim: rgb(30 34 70 / 0.4);
   --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
@@ -100,8 +100,6 @@
   --ok-tint: color-mix(in srgb, var(--warm) 36%, transparent);
   --ok-tint-2: color-mix(in srgb, var(--warm) 22%, transparent);
   --ok-rim: color-mix(in srgb, var(--warm) 62%, transparent);
-  --ok-ring: color-mix(in srgb, var(--warm) 20%, transparent);
-  --ok-gloss: color-mix(in srgb, #fff 13%, transparent);
   --ok-ink: color-mix(in srgb, var(--warm) 46%, #fff);
   --ok-tick: color-mix(in srgb, var(--warm) 60%, #fff);
   /* the sweep always moves the tint away from the ink: lighter under pale ink, paler under dark ink */
@@ -199,9 +197,8 @@ button, input { font: inherit; color: inherit; }
   /* the violet at its fullest where the tick and the first letters are, easing off toward the far end */
   background: linear-gradient(118deg, var(--ok-tint) 0%, var(--ok-tint-2) 100%);
   border: 1px solid var(--ok-rim);
-  /* the glow: one wide, low aura of the tag's own violet, and a hairline of light along the top edge.
-     No shadow beneath it -- a shadow is what makes a tag look liftable, and this one does not lift. */
-  box-shadow: 0 0 0 3px var(--ok-ring), inset 0 1px 0 var(--ok-gloss);
+  /* No glow and no shadow. It had a wide aura outside the border and a hairline along the top; the
+     border is enough to say where the tag ends, and a shadow is what makes a tag look liftable. */
 }
 /* the tick in the pill's own violet, a step deeper than the label so it reads as a mark, not a letter */
 .s-ok::before { content: '✓'; flex: none; font-size: 11.5px; font-weight: 900; line-height: 1; color: var(--ok-tick); text-indent: 0; }
