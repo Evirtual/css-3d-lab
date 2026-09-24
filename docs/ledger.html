@@ -320,9 +320,18 @@ button, input { font: inherit; color: inherit; }
   --sw-deck: #120e2c;
   --sw-f1: 26%; --sw-f2: 26%; --sw-f3: 30%;
   --sw-sky-up: 8%;
-  --sw-core-mix: #241d47; --sw-core: 62%;
-  --sw-halo-c: color-mix(in srgb, var(--c) 70%, #241d47);
-  --sw-halo-a: 0.34; --sw-halo-b: 0.18;
+  /* Dark carries the line toward white: lighter than its field, and it glows with it. Light has to
+     go the other way -- darker than the field, same family -- and what it mixes toward decides whether
+     that reads. A violet-black turns the amber third olive; this near-black wine deepens all three: the
+     violet to plum, the pink to rose, the amber to bronze. */
+  --sw-core-mix: #2a0a14; --sw-core: 58%;
+  --sw-halo-c: color-mix(in srgb, var(--c) 78%, #2a0a14);
+  /* the sun, and only in light: the dark theme mixes it with the deck, which is near-black */
+  --sw-sun-1: var(--warm);
+  --sw-sun-2: color-mix(in srgb, var(--hot) 88%, #fff);
+  --sw-sun-glow: color-mix(in srgb, var(--hot) 34%, transparent);
+  --sw-sun-air: color-mix(in srgb, var(--warm) 16%, transparent);
+  --sw-halo-a: 0.22; --sw-halo-b: 0.10;
   --sw-grid: color-mix(in srgb, var(--accent-2) 72%, transparent);
 } }
 :root[data-theme="light"] {
@@ -331,9 +340,18 @@ button, input { font: inherit; color: inherit; }
   --sw-deck: #120e2c;
   --sw-f1: 26%; --sw-f2: 26%; --sw-f3: 30%;
   --sw-sky-up: 8%;
-  --sw-core-mix: #241d47; --sw-core: 62%;
-  --sw-halo-c: color-mix(in srgb, var(--c) 70%, #241d47);
-  --sw-halo-a: 0.34; --sw-halo-b: 0.18;
+  /* Dark carries the line toward white: lighter than its field, and it glows with it. Light has to
+     go the other way -- darker than the field, same family -- and what it mixes toward decides whether
+     that reads. A violet-black turns the amber third olive; this near-black wine deepens all three: the
+     violet to plum, the pink to rose, the amber to bronze. */
+  --sw-core-mix: #2a0a14; --sw-core: 58%;
+  --sw-halo-c: color-mix(in srgb, var(--c) 78%, #2a0a14);
+  /* the sun, and only in light: the dark theme mixes it with the deck, which is near-black */
+  --sw-sun-1: var(--warm);
+  --sw-sun-2: color-mix(in srgb, var(--hot) 88%, #fff);
+  --sw-sun-glow: color-mix(in srgb, var(--hot) 34%, transparent);
+  --sw-sun-air: color-mix(in srgb, var(--warm) 16%, transparent);
+  --sw-halo-a: 0.22; --sw-halo-b: 0.10;
   --sw-grid: color-mix(in srgb, var(--accent-2) 72%, transparent);
 }
 
