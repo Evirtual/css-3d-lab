@@ -409,6 +409,7 @@ scene.addEventListener('pointercancel', leave);`,
       'An open-top box: four walls around the centre and a base laid flat with <code>rotateX(-90deg)</code>, pushed down by half the wall height.',
       'The lid stands <b>above</b> the back wall and is hinged on its bottom edge with <code>transform-origin: 50% 100%</code>. At rest <code>rotateX(-90deg)</code> lays it flat over the opening, so the box is shut and the card inside is hidden; open, <code>rotateX(-32deg)</code> lifts it most of the way up, leaning a little towards you.',
       'Two transitions, swapped delays: opening, the lid goes first and the card rises 0.3s later; closing, the card drops first and the lid waits 0.3s. Each state carries the delay for the move <i>into</i> it.',
+      'Shut, the card is not only behind the walls, it is <code>visibility: hidden</code>; it is turned on at the moment it starts to rise, still inside the box, and off again once it is back in. Left drawn, the browser’s sorting of the card’s plane against the front wall’s let a sliver of its badge through the wall.',
       'The camera looks at the box from a gentle 24° above, and it is the box’s own size that fills the frame: at <code>--u: 0.41vmin</code> the shut box is 42–43vmin tall. Open, the lid stops at <code>rotateX(-32deg)</code>, short of upright, so lid and card stay inside the 70vmin band; as it opens the whole box sinks 26 units (<code>translate</code>, on top of the swaying <code>transform</code>), so the shut box and the open one are both centred.',
       'The hovered element is a static wrapper; the box inside has <code>pointer-events: none</code>. A hovered element that moves away from the pointer would flicker.',
     ],
@@ -541,15 +542,19 @@ scene.addEventListener('pointercancel', leave);`,
   height: calc(52 * var(--u));
   border: calc(1 * var(--u)) solid rgb(255 255 255 / 0.5);
   border-radius: calc(8 * var(--u));
-  /* deep enough for its white NEW, 4.5:1 or more: the bright #2ee6d6 and #8b6cff were 3.7:1 */
+  /* deep enough for its white NEW where the badge is seen — 5.8:1 with the box open; the bright
+     #2ee6d6 and #8b6cff were 3.7:1 */
   background: linear-gradient(140deg, #087a70, #6a45f5 60%, #d1206f);
   box-shadow: inset 0 0 calc(14 * var(--u)) rgb(255 255 255 / 0.25);
   color: #fff;
   font: 900 calc(10 * var(--u)) system-ui;
   letter-spacing: calc(1.5 * var(--u));
-  /* at rest it is inside the shut box, out of sight */
+  /* at rest it is inside the shut box, out of sight, and NOT DRAWN: with the card left drawn, the
+     browser's sorting of the two planes let a sliver of its NEW through the front wall, white on
+     light violet at 3.7:1. It is turned on as it starts to rise, while the walls still hide it. */
+  visibility: hidden;
   transform: translateY(0);
-  transition: transform 0.5s ease-in-out;
+  transition: transform 0.5s ease-in-out, visibility 0s 0.5s; /* closing: gone once it is back in */
 }
 
 /* the "product": a little gem */
@@ -580,8 +585,9 @@ scene.addEventListener('pointercancel', leave);`,
 /* opening: the card waits until the lid is out of the way */
 .package:hover .card,
 .package:focus-visible .card {
+  visibility: visible;
   transform: translateY(calc(-50 * var(--u)));
-  transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1) 0.3s;
+  transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1) 0.3s, visibility 0s 0.3s;
 }
 
 /* the camera looks down at a gentle 24deg; the box sits 2 units above its layout box, which
