@@ -5031,5 +5031,232 @@
     "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
    }
   }
+ },
+ {
+  "model": "wordcube",
+  "kind": "visual",
+  "reviewer": "re-rule of the open motion flags (last-eight agent)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-24T00:58:51Z",
+  "commit": "3a6b9b2423ce9177755d140e77287932c988f040",
+  "notes": "Looked at the whole 9s loop (24 frames) and at the flagged turn frame by frame. \"We make\" stands still and the word under it — design, code, motion, brands — turns over on a cube, centred, both lines crisp, and the pose at every frame is a whole word or a clean edge-on turn. Nothing else changed since the last review; this entry is here to rule the loop flag again.",
+  "motionFlagsResolved": [
+   {
+    "flag": "loop: pop 5→6,11→12,17→18,23→0",
+    "reason": "Filmed on the loop’s own clock, the way check-motion seeks it, and laid out as a sheet with the mean change from the frame before under every frame. Across 1875-2250ms (the 5→6 pair) the change per step runs 5.08, 6.10, 7.05, 7.71, 7.91, 6.95, 7.19, 7.04, 6.41, 5.60, 4.72, 3.94, 3.20, 2.56, 1.78 …: one smooth hump over about 275ms, easing in and easing out, no step carrying the change. What happens is the quarter-turn — \"design\" rolls up and away while \"code\" rolls in under it. The strip samples 375ms apart, so one frame lands mid-turn and the next after it has settled, which is what reads as a jump. The seam 23→0 is the same turn filmed at 8625-9000ms (worst step 8.51 in the same shape, and 9000ms is the 0ms frame again). All four pops are one event, once per word: a sampling artefact, not a glitch."
+   }
+  ],
+  "motion": "The 1 open flag (four pops, one per word) was ruled by filming the flagged moment at 15ms a step instead of 375ms: a false alarm.",
+  "fingerprints": {
+   "kind": "visual",
+   "snippet": "9c60c1dd86c0",
+   "play": "7d97c36447dc",
+   "paths": {
+    "src/models/snippet-utils.ts (RESIZE_SNAP, standaloneDoc)": "336c2cd51dee",
+    "src/preview.ts": "a008241273f7",
+    "src/embed.ts": "8072bc3b9d9e",
+    "src/fit.ts": "98e379396fe5",
+    "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
+   }
+  }
+ },
+ {
+  "model": "cubeletters",
+  "kind": "visual",
+  "reviewer": "re-rule of the open motion flags (last-eight agent)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-24T00:58:51Z",
+  "commit": "3a6b9b2423ce9177755d140e77287932c988f040",
+  "notes": "Looked at the whole 8s loop (24 frames) and at the flagged turn frame by frame: four letter cubes roll from CUBE to ROLL and back, staggered, centred, each face square and readable at every frame. Nothing else changed since the last review; this entry rules the loop flag again.",
+  "motionFlagsResolved": [
+   {
+    "flag": "loop: pop 5→6,11→12,17→18,23→0",
+    "reason": "Filmed on the loop’s own clock, the way check-motion seeks it, and laid out as a sheet with the mean change from the frame before under every frame. Across 1660-2010ms (the 5→6 pair) the change per step is almost flat — 1.93, 1.86, 1.89, 1.76, 1.83, 2.17, 2.42, 2.57, 2.50, 2.38, 2.20, 2.13 …, worst 2.57 against a mean of 2.18 — because the cubes are rolling the whole time, one after another, and the flagged pair is only where the most of them are mid-roll at once. The seam 23→0, filmed at 7660-8000ms, is the same (worst 2.64, mean 2.15). The strip steps 333ms, wider than a whole roll. A sampling artefact."
+   }
+  ],
+  "motion": "The 1 open flag (four pops, one per turn) was ruled by filming the flagged moment at 14ms a step instead of 333ms: a false alarm.",
+  "fingerprints": {
+   "kind": "visual",
+   "snippet": "7b1ccd0f2a5d",
+   "play": "7d97c36447dc",
+   "paths": {
+    "src/models/snippet-utils.ts (RESIZE_SNAP, standaloneDoc)": "336c2cd51dee",
+    "src/preview.ts": "a008241273f7",
+    "src/embed.ts": "8072bc3b9d9e",
+    "src/fit.ts": "98e379396fe5",
+    "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
+   }
+  }
+ },
+ {
+  "model": "cubeloader",
+  "kind": "visual",
+  "reviewer": "re-rule of the open motion flags (last-eight agent)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-24T00:58:51Z",
+  "commit": "3a6b9b2423ce9177755d140e77287932c988f040",
+  "notes": "Looked at the whole 2.4s loop (24 frames) and at the flagged step frame by frame: four tiles fold away one by one and fold back in the same order, on an isometric plate, centred, with the plate always square. Nothing else changed since the last review; this entry rules the loop flag again.",
+  "motionFlagsResolved": [
+   {
+    "flag": "loop: pop 11→12",
+    "reason": "Filmed on the loop’s own clock, the way check-motion seeks it, and laid out as a sheet with the mean change from the frame before under every frame. Across 1050-1300ms the change per step runs 0.10, 0.19, 0.27, 0.33, 0.42, 0.48, 0.55, 0.59, 0.76, 0.92, 1.05, 1.12, 1.11, 0.96, 0.91, 0.99 … (worst 1.12, mean 0.67): the last orange tile folds down on its hinge while the first purple one folds up from the same hinge — one continuous fold through edge-on, where both tiles are hairlines. The strip steps 100ms and catches the two ends of the fastest part of that fold. A sampling artefact."
+   }
+  ],
+  "motion": "The 1 open flag was ruled by filming the flagged moment at 10ms a step instead of 100ms: a false alarm.",
+  "fingerprints": {
+   "kind": "visual",
+   "snippet": "dd2e12a6c8fb",
+   "play": "7d97c36447dc",
+   "paths": {
+    "src/models/snippet-utils.ts (RESIZE_SNAP, standaloneDoc)": "336c2cd51dee",
+    "src/preview.ts": "a008241273f7",
+    "src/embed.ts": "8072bc3b9d9e",
+    "src/fit.ts": "98e379396fe5",
+    "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
+   }
+  }
+ },
+ {
+  "model": "rocket",
+  "kind": "visual",
+  "reviewer": "re-rule of the open motion flags (last-eight agent)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-24T00:58:51Z",
+  "commit": "3a6b9b2423ce9177755d140e77287932c988f040",
+  "notes": "Looked at the whole 32s loop (96 frames) and at the flagged step frame by frame: the rocket stands by its gantry, lights, climbs, and the camera follows it out of the frame before the next one is on the pad. Nothing else changed since the last review; this entry rules the loop flag again.",
+  "motionFlagsResolved": [
+   {
+    "flag": "loop: pop 39→40",
+    "reason": "Filmed on the loop’s own clock, the way check-motion seeks it, and laid out as a sheet with the mean change from the frame before under every frame. (with the loop seeked from the same start as the check, so the animations that are not the loop’s own period stand where the strip has them). Across 12800-13500ms the change per step climbs 0.12, 0.11, 0.05, 0.08, 0.14, 0.10, 0.04, 0.23, 0.74, 1.14, 1.42, 1.65, 1.84, 2.02, 2.22, 2.29, 2.29, 2.27, 2.30, 2.19, 1.35, 1.22, then 0.00, 0.00, 0.00: the rocket accelerates, flies out of the top of the canvas and the frame is empty. Every frame shows a continuous climb; the flagged pair is only where 333ms of an accelerating climb moves the rocket furthest. Real, intended motion."
+   }
+  ],
+  "motion": "The 1 open flag was ruled by filming the flagged moment at 28ms a step instead of 333ms: a false alarm — it is the launch leaving the frame.",
+  "fingerprints": {
+   "kind": "visual",
+   "snippet": "22130d727d42",
+   "play": "7d97c36447dc",
+   "paths": {
+    "src/models/snippet-utils.ts (RESIZE_SNAP, standaloneDoc)": "336c2cd51dee",
+    "src/preview.ts": "a008241273f7",
+    "src/embed.ts": "8072bc3b9d9e",
+    "src/fit.ts": "98e379396fe5",
+    "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
+   }
+  }
+ },
+ {
+  "model": "flipgrid",
+  "kind": "visual",
+  "reviewer": "re-rule of the open motion flags (last-eight agent)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-24T00:58:51Z",
+  "commit": "3a6b9b2423ce9177755d140e77287932c988f040",
+  "notes": "Looked at the grid at rest and through a tile’s whole flip frame by frame: six tiles on a tilted plane, each turning to show its word and back, the tile itself never moving. Nothing else changed since the last review; this entry rules the two flags that stayed open on tile 01.",
+  "motionFlagsResolved": [
+   {
+    "flag": "leave div.tile#1: pop 1→2",
+    "reason": "Filmed the flip back at 16ms a step, the transition paused and stepped by hand: the change per step runs 0.30, 0.63, 1.32, 1.51, 1.50, 1.10, 0.67, 0.81, 0.76, 0.67, 0.57, 0.48, 0.39, 0.31, 0.23 … (worst 1.51, mean 0.30) — one smooth hump with the overshoot easing out after it. Tile 01 turns back from its \"tilt\" face through edge-on, where the face is a hairline and nearly nothing of it is drawn, and lands square on \"01\". The check steps a 0.6s transition 12 times, 50ms apart, and the 1→2 pair is exactly that edge-on crossing: half the tile is gone in one frame and back, mirrored, in the next. A sampling artefact of a half-turn, not a glitch."
+   },
+   {
+    "flag": "blur div.tile#1: pop 1→2",
+    "reason": "The same transition as the leave flag above, on the same element: .tile:hover .tile-inner and .tile:focus-visible .tile-inner are one declaration, and the only transition is transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1) on .tile-inner, so the keyboard side turns through the same edge-on crossing as the pointer side filmed above. Ten flags of this shape on tiles 02-06 (hover, leave, focus and blur) were already ruled false alarms for this reason."
+   }
+  ],
+  "motion": "Both open flags were ruled by filming tile 01’s flip back at 16ms a step instead of 50ms: false alarms, the same edge-on crossing already ruled on tiles 02-06.",
+  "fingerprints": {
+   "kind": "visual",
+   "snippet": "80cbef989051",
+   "play": "4fde05efc49e",
+   "paths": {
+    "src/models/snippet-utils.ts (RESIZE_SNAP, standaloneDoc)": "336c2cd51dee",
+    "src/preview.ts": "a008241273f7",
+    "src/embed.ts": "8072bc3b9d9e",
+    "src/fit.ts": "98e379396fe5",
+    "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
+   }
+  }
+ },
+ {
+  "model": "zones",
+  "kind": "visual",
+  "reviewer": "re-rule of the open motion flags (last-eight agent)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-24T00:58:51Z",
+  "commit": "3a6b9b2423ce9177755d140e77287932c988f040",
+  "notes": "Looked at the card at rest and mapped the two flagged zones by hand: one card, centred, \"Hover around me\" readable on it, tilting toward whichever ninth of the canvas the pointer is in. Nothing else changed since the last review; this entry rules the two flags that stayed open (the bottom two corner zones).",
+  "motionFlagsResolved": [
+   {
+    "flag": "hover i#7: its hit area is mostly over empty canvas (54 of 81 reachable points draw nothing)",
+    "reason": "Hit map on a 360 × 300 card: i#7 is the bottom-left ninth, 120 × 100 at 0,200, and all 81 of the grid points land on it — nothing is unreachable. A real pointer on twelve of them, the outermost corner and the edges included (7,283 / 113,239 / 33,272 …), tilts the card every time, 11.19 mean change over the canvas at each point. The zones ARE the canvas: nine invisible ninths laid over it so the pointer steers the card from anywhere, which is the whole model (its how says so, and .zones is width/height 100%). A corner ninth is mostly bare because the card sits in the middle. Not a fault."
+   },
+   {
+    "flag": "hover i#9: its hit area is mostly over empty canvas (58 of 81 reachable points draw nothing)",
+    "reason": "The mirror of i#7: the bottom-right ninth, 120 × 100 at 240,200, 81 of 81 points land on it, and a pointer on twelve of them — 353,239 and 340,283 in the far corner included — tilts the card every time, 7.78 mean change over the canvas. Same design, same answer: the empty pixels are the backdrop the zone is meant to cover."
+   }
+  ],
+  "motion": "Both open flags were ruled by mapping each zone’s 9 × 9 grid on the card canvas and putting a real pointer on a dozen of its points: false alarms — the zones are the whole canvas by design.",
+  "fingerprints": {
+   "kind": "visual",
+   "snippet": "49948b47d7a3",
+   "play": "4fde05efc49e",
+   "paths": {
+    "src/models/snippet-utils.ts (RESIZE_SNAP, standaloneDoc)": "336c2cd51dee",
+    "src/preview.ts": "a008241273f7",
+    "src/embed.ts": "8072bc3b9d9e",
+    "src/fit.ts": "98e379396fe5",
+    "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
+   }
+  }
+ },
+ {
+  "model": "headphones",
+  "kind": "visual",
+  "reviewer": "re-rule of the open motion flags (last-eight agent)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-24T00:58:51Z",
+  "commit": "3a6b9b2423ce9177755d140e77287932c988f040",
+  "notes": "Looked at the headset at rest and mapped its hover target by hand: a headset, centred, that turns on its lap and glides to the front pose and lights up when hovered or focused. Nothing else changed since the last review; this entry rules the hit-area flag again.",
+  "motionFlagsResolved": [
+   {
+    "flag": "hover div.headphones \"Headphones that turn and light up on hover or focus\": its hit area is mostly over empty canvas (64 of 81 reachable points draw nothing)",
+    "reason": "Hit map on a 360 × 300 card: the hover target is the static wrapper, 220 × 188 at 70,56 — a rectangle just round the headset and the room its lap swings the cups into, not a box over the whole canvas. All 81 grid points land on it, and a real pointer on twelve of them turns the headset to the front and lights it every time (3.3 to 6.0 mean change over the canvas). The points that draw nothing are the opening under the arched band and the gap between the two cups: a headset is mostly hole, so any rectangle round one is mostly bare. The wrapper is deliberately static and everything that moves has pointer-events: none (its how says so) — a hover target that turned with the model would flicker. Not a fault."
+   }
+  ],
+  "motion": "The 1 open flag was ruled by mapping the wrapper’s 9 × 9 grid on the card canvas and putting a real pointer on a dozen of its points: a false alarm.",
+  "fingerprints": {
+   "kind": "visual",
+   "snippet": "c9c5135d230d",
+   "play": "4fde05efc49e",
+   "paths": {
+    "src/models/snippet-utils.ts (RESIZE_SNAP, standaloneDoc)": "336c2cd51dee",
+    "src/preview.ts": "a008241273f7",
+    "src/embed.ts": "8072bc3b9d9e",
+    "src/fit.ts": "98e379396fe5",
+    "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
+   }
+  }
+ },
+ {
+  "model": "package",
+  "kind": "visual",
+  "reviewer": "re-rule of the open motion flags (last-eight agent)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-24T00:58:51Z",
+  "commit": "3a6b9b2423ce9177755d140e77287932c988f040",
+  "notes": "Looked at it again after 3a6b9b2, which stopped the card inside being drawn while the box is shut, on a 360 × 300 card on both stages. At rest: a shut box, centred, 52 × 43vmin, CUBE · 01 crisp on the front wall, the ribbon straight over the lid — and nothing of the card inside showing through a wall any more, which is what the change was for. Hovered or focused: the lid swings up behind the box and the card rises out whole, its gem and its NEW badge readable, clear of the lid, 52 × 68vmin, still inside the band. The moment the card is turned on is 0.3s into the opening, while the walls still hide it, and check-motion films the opening and the closing and calls both smooth.",
+  "motionFlagsResolved": [],
+  "motion": "check-motion reports \"smooth\" for it at 3a6b9b2 (1 hover, 1 focus, no flag); the hit-area flag ruled at 1d88b26 is no longer raised.",
+  "fingerprints": {
+   "kind": "visual",
+   "snippet": "e6adc5b17858",
+   "play": "4fde05efc49e",
+   "paths": {
+    "src/models/snippet-utils.ts (RESIZE_SNAP, standaloneDoc)": "336c2cd51dee",
+    "src/preview.ts": "a008241273f7",
+    "src/embed.ts": "8072bc3b9d9e",
+    "src/fit.ts": "98e379396fe5",
+    "src/styles/_page.scss (/embed/<id>/)": "ab3252d963a2"
+   }
+  }
  }
 ]

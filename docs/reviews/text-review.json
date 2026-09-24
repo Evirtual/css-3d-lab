@@ -3836,5 +3836,27 @@
     "category": "93f8bb0eb2c6"
    }
   }
+ },
+ {
+  "model": "package",
+  "kind": "text",
+  "reviewer": "re-rule of the open motion flags (last-eight agent)",
+  "verdict": "fine",
+  "reviewedAt": "2026-09-24T00:58:51Z",
+  "commit": "3a6b9b2423ce9177755d140e77287932c988f040",
+  "notes": "Read title, description, how, technique, tags and category against the html and css. Only the how changed at 3a6b9b2: a step saying the card is visibility: hidden while the box is shut, turned on at the moment it starts to rise and off again once it is back in, and why — left drawn, the browser’s sorting of the card’s plane against the front wall’s let a sliver of its badge through the wall. That is the code line for line (visibility: hidden on .card with transition …, visibility 0s 0.5s; visibility: visible with …, visibility 0s 0.3s on :hover / :focus-visible). The rest still holds: the description’s shut box, the lid swinging open on its back edge and the card rising out are what it does; the how’s base unit, four walls and a base laid flat, the hinge at transform-origin: 50% 100%, the swapped delays and the static wrapper with pointer-events: none on the box all match; technique’s four chips and the tags (hover, product, box, packaging) are right, and the category is css — there is no JS.",
+  "fingerprints": {
+   "kind": "text",
+   "text": "a1aa9adccf99",
+   "snippet": "e6adc5b17858",
+   "textParts": {
+    "title": "731f19e14515",
+    "description": "4f4cf43d8b0f",
+    "how": "ca587ba56deb",
+    "technique": "ecb0e1126644",
+    "tags": "bb82d57f6e10",
+    "category": "2f84417a9e73"
+   }
+  }
  }
 ]
