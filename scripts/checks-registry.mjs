@@ -107,6 +107,10 @@ export const REGISTRY = [
       { v: 7, from: null, what: 'a box edge the canvas and the file disagree about ONLY where the ink is a hairline is a reading for a person, not a mismatch: the same edge is drawn twice at sizes that differ five- or tenfold, and a thin fading tail lands in whole ink pixels on a canvas of a few hundred while the file spreads it over five at partial coverage, too thin to count. The edges are judged again where the ink is at least 1% of the side thick — which both draw the same way — and the gap is excused only when those firm edges agree and the whole disagreement lies within 5% of them. layertext\'s 1080p frame 0, "2.4% short on the right", is that hairline: the pink tail off its stacked letters is in the file too, out past where the screen\'s box ends' },
     ],
     title: 'Export at default settings (check-exports)', label: 'export check at default settings (check-exports)',
+    // Said on the bar itself, not only behind "what it covers". "Export 135/135" reads as every
+    // option on every model, and it is not: 127 of them were tried at the dialog's defaults alone.
+    // A count has to mean what the screen shows.
+    coverage: 'the dialog\'s default settings only · every other shape, size, quality, format and the slider run on 8 sample models and never gate a model',
     rule: 'cleared when its verdict at the export dialog\'s default settings (image 1:1 at 1600 px PNG, video 9:16 at 1080p, a loop) is a pass on the current code; a run that left the defaults out counts as never run, and the full settings matrix is a sample that does not gate. The drift readings it prints for a person ("look:") are not part of the verdict',
     steps: [
       { key: 'image', label: 'image 1:1 at 1600 px, PNG', proves: 'the dialog\'s default picture comes out at the size it promises and draws the canvas' },
@@ -281,4 +285,4 @@ export function pagesFor(check, root = process.cwd()) {
 export const stepsOf = (key) => byKey(key)?.steps ?? [];
 
 /** What the page needs to draw each check: everything above except code. */
-export const forPage = (root) => REGISTRY.map((c) => ({ key: c.key, script: `scripts/${c.script}`, scope: c.scope, name: c.name, short: c.short, title: c.title, label: c.label, rule: c.rule, ruleVersion: c.ruleVersion, rules: c.rules, steps: c.steps ?? [], ...(c.scope === 'site' ? { pages: pagesFor(c, root) } : {}) }));
+export const forPage = (root) => REGISTRY.map((c) => ({ key: c.key, script: `scripts/${c.script}`, scope: c.scope, name: c.name, short: c.short, title: c.title, coverage: c.coverage, label: c.label, rule: c.rule, ruleVersion: c.ruleVersion, rules: c.rules, steps: c.steps ?? [], ...(c.scope === 'site' ? { pages: pagesFor(c, root) } : {}) }));
