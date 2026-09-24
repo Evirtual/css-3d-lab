@@ -231,6 +231,40 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     }],
     [/^COMMIT-AUDIT\.md is marked as a historical snapshot/, () => { const line = (read('docs/COMMIT-AUDIT.md') ?? '').replace(/\r/g, '').split('\n')[2] ?? ''; return line.startsWith('> **Historical snapshot') ? T('line 3 starts with "> **Historical snapshot"') : F(`line 3 is: ${line.slice(0, 60) || '(empty)'}`); }],
     [/^The project article at public\/article\/index\.html is corrected/, () => N('needs a person to read the article line by line')],
+    // The story is kept as published and dated instead of corrected, so the proof is the note:
+    // both files carry it, and it names the article that says what changed. Both are file reads.
+    [/^The project article at public\/article\/index\.html is kept as published/, () => {
+      const page = read('public/article/index.html') ?? '';
+      const css = read('public/article/assets/site.css') ?? '';
+      const missing = [];
+      if (!/class="note-then"/.test(page)) missing.push('the note is not in public/article/index.html');
+      if (!/\.note-then\b/.test(css)) missing.push('nothing styles .note-then in public/article/assets/site.css');
+      if (!/css-3d-lab-ledger/.test(page)) missing.push('the note does not link to the ledger article');
+      const when = /Written in ([A-Z][a-z]+ \d{4})/.exec(page)?.[1];
+      if (!when) missing.push('the note does not say when the article was written');
+      return missing.length ? F(missing.join('; ')) : T(`the note is in the page, styled, dated ${when}, and links to the ledger article`);
+    }],
+    // Two halves: what the code says is a file read, what the chip looks like is a person or a
+    // browser. The reading is reported either way, so the item is never just "not evaluated".
+    [/^4K video is held back/, () => {
+      const v = read('src/video.ts') ?? '';
+      const flag = /export const FOUR_K = (true|false);/.exec(v)?.[1];
+      const words = /4K\s*·\s*coming later/.test(v);
+      if (flag !== 'false') return F(`src/video.ts has FOUR_K = ${flag ?? '(not found)'}, so 4K is not held back`);
+      return N(`read here: src/video.ts has FOUR_K = false${words ? ' and the chip\'s words "4K · coming later"' : ', but not the chip\'s words'}. That the chip is shown, faded and unpickable, with its tooltip, is a look in the browser`);
+    }],
+    [/^Every file the dialog hands out is named after its model/, () => {
+      const uses = ((read('src/video.ts') ?? '').match(/fileName\(/g) ?? []).length;
+      if (!existsSync(join(ROOT, 'src/file-name.ts'))) return F('src/file-name.ts is gone, so nothing builds the names');
+      if (uses < 2) return F(`src/video.ts calls fileName( ${uses} time(s): a download goes out without it`);
+      return N(`read here: src/file-name.ts exists and src/video.ts calls fileName( ${uses} times, so every download the dialog makes is named there. What the browser actually saves is a look in the browser`);
+    }],
+    [/^View zoom changes the view only/, () => {
+      const z = read('src/view-zoom.ts') ?? '';
+      if (!z) return F('src/view-zoom.ts is missing');
+      const wears = (z.match(/maker__zoom/g) ?? []).length;
+      return N(`read here: src/view-zoom.ts is there and wears the export slider's classes (${wears} mention(s) of maker__zoom). That the zoom moves the view and nothing else, and survives full screen, is a look in the browser`);
+    }],
     [/^A second article on how the view-contract rewrite was run/, () => N('needs a person, and the rewrite to be complete')],
     [/^The deploy succeeded/, () => N('needs gh against GitHub: networked, and only after the push')],
     [/^Recording works on the live site/, () => N('a manual check on the live site')],
