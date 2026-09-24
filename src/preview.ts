@@ -88,19 +88,27 @@ export class Preview {
     // side, and the model sizes and places itself from that. Nothing out here adjusts a model —
     // except when the visitor asks for it: the export dialog's Model size slider writes --zoom on
     // the stage, and the scene is made that much bigger or smaller about the canvas's middle.
-    //   Bigger is a zoom, so the model is laid out and drawn at its new size and 3D layers stay
-    // sharp. Smaller is a scale: the model keeps the layout it has untouched and is drawn smaller,
-    // so it is exactly that share of its untouched size. A zoom below 1 lays the model out again
-    // at the small size, and layout rounds every border up to a whole device pixel — switch's
-    // 1-unit rocker border, 0.27 px at 25% on a 16:9 canvas, becomes 1 px, and the rocker comes
-    // out at ×0.377 of its size instead of ×0.357.
+    //   It is a scale at every size, above 1 and below it: the model keeps the layout it has and is
+    // drawn that much bigger or smaller about its own middle, so it is exactly that share of its
+    // untouched size. A scale and not a zoom, because zoom MOVES the model as well as sizing it: the
+    // scene is `position:absolute; inset:0`, so `zoom` renders its box that much bigger from the
+    // TOP-LEFT CORNER and the model, centred inside it, travels with it. `browser` at 16:9 and 100%
+    // came out 11.8% below the middle and 0.4% into the 4vmin margin; the same size as a scale lands
+    // centred to 0.0% (check-exports --only slider browser, 2026-09-24). Sizing the scene's box to
+    // canvas ÷ zoom does not save it either: under `zoom` a percentage is not multiplied while a
+    // pixel length is, and neither moved the model. A scale is about the element's own middle, which
+    // is what the Model size slider and fill-limit.ts both promise.
+    //   Below 1 a scale was always right for its own reason: a zoom lays the model out again at the
+    // small size, and layout rounds every border up to a whole device pixel — switch's 1-unit rocker
+    // border, 0.27 px at 25% on a 16:9 canvas, becomes 1 px, and the rocker comes out at ×0.377 of
+    // its size instead of ×0.357.
     //   Both are ordinary computed styles, so a capture picks them up with everything else and
     // the file matches the frame.
     const factor = Number.parseFloat(stage?.style.getPropertyValue('--zoom') ?? '');
-    const zoom = Number.isFinite(factor) && factor > 1 ? String(factor) : '';
-    const scale = Number.isFinite(factor) && factor > 0 && factor < 1 ? String(factor) : '';
+    const scale = Number.isFinite(factor) && factor > 0 && factor !== 1 ? String(factor) : '';
     const scene = doc.getElementById('c3d-scene');
-    if (scene && scene.style.zoom !== zoom) scene.style.zoom = zoom;
+    // a scene zoomed by an older build: clear it, or it would stack with the scale
+    if (scene && scene.style.zoom) scene.style.zoom = '';
     if (scene && scene.style.scale !== scale) scene.style.scale = scale;
     const theme = stage?.closest<HTMLElement>('[data-theme]')?.dataset.theme ?? this.theme;
     doc.body.style.color = theme === 'light' ? '#14172b' : '#eceefb';
