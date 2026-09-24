@@ -571,8 +571,14 @@ async function look(selector, { timeout = 20_000, settle = false } = {}) {
   }
   const seen = await frame.evaluate(lookFn).catch(() => null);
   if (!seen) return null;
+  // Was the model still gliding when this was read? CSSTransitions only: a model's endless keyframe
+  // loop is always running and says nothing about whether its layout has landed. `pose` cannot
+  // answer this -- it reads :hover, which goes false the instant the pointer leaves while the
+  // transitions that leaving started keep running for their full duration.
+  const moving = await frame.evaluate(() =>
+    document.getAnimations().some((a) => a.constructor.name === 'CSSTransition' && a.playState === 'running')).catch(() => false);
   // the canvas the model was given, on the page's own scale: proof the frame really fills the stage
-  return { ...seen, frameW: box?.width ?? null, frameH: box?.height ?? null, pose: hovered ? 'pointed' : 'rest', parkedOn };
+  return { ...seen, frameW: box?.width ?? null, frameH: box?.height ?? null, pose: hovered ? 'pointed' : 'rest', moving, parkedOn };
 }
 
 /**
@@ -836,11 +842,13 @@ function report() {
     }
 
     let bad = 0;
+    const stillMoving = [];
     console.log('\nDisagreements (against the model\'s own page):');
     for (const row of results) {
       const ref = row.stages.page;
       const full = row.full ? row.mapping : null; // a full-canvas scene is judged on its one mapping
       const off = [];
+      const reads = []; // printed, never counted: what was read while the model was still moving
       if (!ref) off.push('the model page could not be measured');
       else for (const s of STAGES) {
         const seen = row.stages[s];
@@ -858,13 +866,31 @@ function report() {
         }
         const j = apart(m.before, m.first, full);
         const settled = m.after ? apart(m.first, m.after, full) : null;
-        if (j.bad) off.push(full ? `jump on "${m.label}": ${j.size}` : `jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.size})`);
-        else if (settled?.bad) off.push(full ? `settles after "${m.label}": ${settled.size}` : `settles after "${m.label}": ${show(m.first)} → ${show(m.after)} (${settled.size})`);
+        // A model still running a transition when it was first measured is mid-animation, not in
+        // the wrong place: `before` is a settled reading and `first` is not, so the two are not
+        // comparable. stackbars and funnel are the only two models of 135 whose entrance is
+        // staggered -- `transition: transform 0.7s ... calc(var(--i) * 50ms)` -- so their bars land
+        // over about a second, and whichever of them the reading caught mid-stagger failed while the
+        // other passed: funnel 6.0vmin and stackbars 0.0 in one run, stackbars 4.8 and funnel clear
+        // in the next, on the same commit. Both settle to the same box on all fifteen surfaces.
+        //   So the jump is a failure only when nothing was moving. What it caught is still counted
+        // and still printed in the movement table below, and the settled comparison below still
+        // fails a model that does not end up where the page has it -- which is what this check is for.
+        if (j.bad && !m.first.moving) off.push(full ? `jump on "${m.label}": ${j.size}` : `jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.size})`);
+        else if (j.bad) reads.push(`mid-transition on "${m.label}": ${j.size} from the settled box before it, read while a transition was still running${settled && !settled.bad ? ', and it settled where it belongs' : ''}`);
+        if (settled?.bad) off.push(full ? `settles after "${m.label}": ${settled.size}` : `settles after "${m.label}": ${show(m.first)} → ${show(m.after)} (${settled.size})`);
       }
       for (const note of row.notes) off.push(note);
       if (off.length) { bad++; console.log(`  ${row.id}\n${off.map((o) => `    ${o}`).join('\n')}`); }
+      if (reads.length) stillMoving.push([row.id, reads]);
     }
     if (!bad) console.log('  none.');
+
+    // Read while the model was still gliding: printed so nothing is hidden, counted as nothing.
+    if (stillMoving.length) {
+      console.log('\nReadings taken mid-transition (not disagreements: the settled reading is what this check judges):');
+      for (const [id, reads] of stillMoving) console.log(`  ${id}\n${reads.map((r) => `    ${r}`).join('\n')}`);
+    }
 
     // "Nothing jumps" is worth a number even when nothing is wrong: this is the largest movement
     // measured across every transition, so a quiet report says how quiet it was.

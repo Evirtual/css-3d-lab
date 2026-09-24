@@ -66,8 +66,11 @@ export const REGISTRY = [
   },
   {
     key: 'stages', script: 'check-stages.mjs', scope: 'model', name: 'stages', short: 'Stages',
-    ruleVersion: 1,
-    rules: [{ v: 1, from: null, what: 'as first recorded' }],
+    ruleVersion: 2,
+    rules: [
+      { v: 1, from: null, what: 'as first recorded' },
+      { v: 2, from: null, what: 'the jump on a transition fails only when nothing was still moving when the model was first measured. "Before" is a settled reading and the first frame after an action is not, so a model mid-transition is being compared against a state it has not reached yet: stackbars and funnel are the only two of 135 whose entrance is staggered (transition: transform 0.7s … calc(var(--i) * 50ms)), their bars land over about a second, and whichever the reading caught mid-stagger failed while the other passed — funnel 6.0vmin with stackbars at 0.0 in one run, stackbars 4.8vmin with funnel clear in the next, on the same commit. A reading taken while a CSSTransition was running is now printed under "Readings taken mid-transition" and counted as nothing. The settled comparison is unchanged and still fails a model that does not end up where its own page has it, which is what this check is for' },
+    ],
     title: 'Same on every surface (check-stages)', label: 'stage check (check-stages)',
     rule: 'cleared when its latest result is a pass on the model\'s current code',
     steps: [
