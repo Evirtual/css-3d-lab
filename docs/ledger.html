@@ -1221,6 +1221,29 @@ button, input { font: inherit; color: inherit; }
 .hero__btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 #cl-btn small { opacity: 0.8; }
 #cl-btn.has-false { border-color: color-mix(in srgb, var(--hot) 60%, transparent); }
+/* THE CHECKLIST FILLS LIKE A BATTERY. Two fills, not one, because the list has two different kinds
+   of done: what this page has proven itself (the solid part) and what is ticked in the file on top of
+   that (the faint part). The numbers are in the label; the fill is what carries across the room. An
+   item whose proof fails is red at the right-hand end, so a list that is filling up and wrong does not
+   look like a list that is filling up. The bar is behind the text, never over it. */
+.clfill { position: relative; overflow: hidden; isolation: isolate; }
+.clfill::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent-2) 30%, transparent) 0 var(--cl-proven, 0%),
+    color-mix(in srgb, var(--accent-2) 12%, transparent) var(--cl-proven, 0%) var(--cl-ticked, 0%),
+    transparent var(--cl-ticked, 0%) calc(100% - var(--cl-false, 0%)),
+    color-mix(in srgb, var(--hot) 26%, transparent) calc(100% - var(--cl-false, 0%)) 100%);
+}
+/* the same bar on its own, under the dialog's summary, where there is room to label it */
+.clbar { height: 10px; margin: 10px 0 2px; border: 1px solid var(--border); border-radius: 999px; }
+.clkey { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0 0 6px; font-size: 11.5px; color: var(--muted); }
+.clkey b { font-weight: 700; color: var(--text); }
+.clkey i { display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 2px; vertical-align: -1px; }
+.clkey .k-proven { background: color-mix(in srgb, var(--accent-2) 60%, transparent); }
+.clkey .k-ticked { background: color-mix(in srgb, var(--accent-2) 24%, transparent); }
+.clkey .k-false { background: color-mix(in srgb, var(--hot) 52%, transparent); }
+.clkey .k-open { background: var(--surface-2); border: 1px solid var(--border); }
 /* The site's own frosted glass, token for token (src/styles/_tokens.scss --glass/--glass-edge/--glass-dim
    and the viewer dialog in _layout.scss): the same translucency, edge, 22px radius, blur and drop. It is
    cheap because a dialog's blur is computed over what is behind it, which does not move while it is
@@ -1499,6 +1522,11 @@ table.mini code { font-size: 12px; }
 .qitem { cursor: default; }
 .qtop { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
 .qtop > b { flex: 1 1 auto; min-width: 0; }
+/* What a running job says it is doing right now. Still the runner's own word, like everything else in
+   this panel, so it carries when it said it -- a progress line that stopped moving an hour ago is the
+   most useful thing on the page, and only the timestamp shows it. */
+.qprog { margin: 4px 0 2px; padding: 5px 8px; border-left: 2px solid var(--st-chk); border-radius: 0 6px 6px 0; background: color-mix(in srgb, var(--accent-2) 7%, transparent); font-size: 12.5px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.qprog__k { font-weight: 700; color: var(--accent-2); letter-spacing: 0.04em; text-transform: uppercase; font-size: 10.5px; }
 .qbrief { margin: 6px 0 4px; cursor: pointer; border-radius: 6px; }
 .qbrief:not(.is-open) { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .qbrief:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
@@ -1832,9 +1860,10 @@ table.mini code { font-size: 12px; }
   <div id="livenote" aria-live="polite"></div>
   <div id="notices"></div>
 
-  <section class="panel" aria-labelledby="sum-h">
+  <!-- No heading: the headline under it ("All 135 models approved.") says what this is, and a heading
+       over it only repeated that in weaker words. The section keeps its name for a screen reader. -->
+  <section class="panel" aria-label="Where the release stands">
     <div class="head notes-anchor">
-      <h2 id="sum-h">Where the rewrite stands</h2>
       <div class="head__acts"><button type="button" class="linkish" id="rules-btn" aria-haspopup="dialog">How these are counted</button><button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" hidden></button></div>
       <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
     </div>
@@ -1970,6 +1999,8 @@ table.mini code { font-size: 12px; }
         <span class="eyebrow">Before main is pushed</span>
         <h2 id="cl-title">Release checklist</h2>
         <p class="muted" id="cl-sum"></p>
+        <div class="clbar" id="cl-bar" role="img" aria-label="How much of the checklist holds"></div>
+        <p class="clkey" id="cl-key"></p>
       </div>
       <button type="button" class="cldlg__x" id="cl-close" aria-label="Close the checklist"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
     </div>
@@ -2642,7 +2673,7 @@ table.mini code { font-size: 12px; }
     const stepAmp = fromAmp(WVN);
     // the sun's light is the Approved share; the wave is what carries the number, the sun only warms to it
     $('stats').style.setProperty('--ch3', String(lvs[2] ?? 0));
-    $('stats').innerHTML = scene + `<ol class="flow" role="tablist" aria-label="Stages of the rewrite">${buckets.map((b, i) => {
+    $('stats').innerHTML = scene + `<ol class="flow" role="tablist" aria-label="Stages every model passes through">${buckets.map((b, i) => {
       const on = stage === b.key;
       const pct = Math.round((b.count / total) * 100);
       const name = STEP_SHORT[b.key] ?? b.label;
@@ -3640,6 +3671,25 @@ table.mini code { font-size: 12px; }
     }
     const evald = cl.proven != null;
     btn.classList.toggle('has-false', Boolean(cl.provenFalse || cl.conflicts));
+    /* the battery: proven here, then ticked on top of it, then what its proof contradicts. Shares of
+       the whole list, so the bar and the counts can never say different things. */
+    const pc = (x) => `${((x / (cl.total || 1)) * 100).toFixed(1)}%`;
+    const provenPart = cl.proven ?? 0;
+    const tickedPart = Math.max(provenPart, Math.min(cl.total ?? 0, (cl.done ?? 0)));
+    for (const el of [btn, $('cl-bar')]) {
+      if (!el) continue;
+      el.classList.add('clfill');
+      el.style.setProperty('--cl-proven', pc(provenPart));
+      el.style.setProperty('--cl-ticked', pc(tickedPart));
+      el.style.setProperty('--cl-false', pc(cl.provenFalse ?? 0));
+    }
+    const key = $('cl-key');
+    if (key) {
+      key.innerHTML = `<span><i class="k-proven"></i><b>${provenPart}</b> proven here</span>`
+        + `<span><i class="k-ticked"></i><b>${Math.max(0, tickedPart - provenPart)}</b> ticked, not proven here</span>`
+        + (cl.provenFalse ? `<span><i class="k-false"></i><b>${cl.provenFalse}</b> contradicted by its proof</span>` : '')
+        + `<span><i class="k-open"></i><b>${Math.max(0, (cl.total ?? 0) - tickedPart - (cl.provenFalse ?? 0))}</b> still open</span>`;
+    }
     btn.innerHTML = evald
       ? `Release checklist <small>· proven ${cl.proven} of ${cl.total}, ${cl.notEvaluated} not evaluated${cl.conflicts ? `, <b>${cl.conflicts} conflict${cl.conflicts === 1 ? '' : 's'}</b>` : ''}</small>`
       : `Release checklist <small>· ${cl.done} of ${cl.total} ticked (not evaluated: this ledger predates it)</small>`;
@@ -3947,6 +3997,7 @@ table.mini code { font-size: 12px; }
     return `<div class="qitem ${cls}"><div class="qtop"><b>${esc(i.name)}</b>${chip}</div>
       <p class="when">${how}${i.status === 'done' && i.finished ? ` · done ${agoSpan(i.finished)}` : ''}</p>
       ${i.brief ? `<p class="qbrief${openBriefs.has(i.name) ? ' is-open' : ''}" data-brief="${key}" title="${openBriefs.has(i.name) ? 'Click to shorten' : 'Click to read all of it'}">${esc(i.brief)}</p>` : ''}
+      ${i.status === 'running' && i.progress ? `<p class="qprog"><span class="qprog__k">at</span> ${esc(i.progress)}${i.progressAt ? ` <span class="muted">· said ${agoSpan(i.progressAt)}</span>` : ''}</p>` : ''}
       <div class="qids">${models.length ? models.map((id) => `<span class="mid${known.has(id) ? '' : ' not-id'}" title="${known.has(id) ? 'a model id' : 'not a model id: a label the reporter wrote'}">${esc(id)}</span>`).join('') : '<span class="muted" style="font-size:12px">no models listed</span>'}</div>
       ${ledger.length ? `<p class="qmeasured">Measured, not claimed: ${done} of ${ledger.length} approved now.</p>` : ''}</div>`;
   };

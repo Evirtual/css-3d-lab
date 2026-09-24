@@ -4,6 +4,8 @@
  *
  *   npm run queue -- start "<name>" "<brief>" <model...>   mark work as running (adds it, or
  *                                                          moves a queued item of that name to running)
+ *   npm run queue -- progress "<name>" "<where it is>"     say where a running item has got to
+ *                                                          (its own word, with the time it said it)
  *   npm run queue -- done "<name>"                         mark it done
  *   npm run queue -- list                                  print the record
  *
@@ -29,7 +31,7 @@ const usage = () => {
   process.exit(2);
 };
 const [cmd, name, ...rest] = process.argv.slice(2);
-if (!['start', 'done', 'list'].includes(cmd)) usage();
+if (!['start', 'progress', 'done', 'list'].includes(cmd)) usage();
 if (cmd !== 'list' && !name?.trim()) usage();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -95,6 +97,17 @@ const result = await withLock(() => {
       q.items.push(item);
       msg = `"${item.name}" added as running${models.length ? ` (${models.length} model(s))` : ' (no models listed)'}.`;
     }
+  } else if (cmd === 'progress') {
+    // Where a run has got to. It does not touch status or started: a progress line is not a restart,
+    // and "running since" must keep meaning since it started. The time it was said is kept with it,
+    // so the page can show a line that has stopped moving for what it is.
+    if (!item) throw new Error(`no running or queued item is named "${name}".`);
+    if (item.status !== 'running') throw new Error(`"${item.name}" is ${item.status}, not running.`);
+    const [where] = rest;
+    if (!where?.trim()) throw new Error('say where it has got to: npm run queue -- progress "<name>" "<where it is>"');
+    item.progress = where.trim();
+    item.progressAt = at;
+    msg = `"${item.name}" is at: ${item.progress}`;
   } else {
     if (!item) {
       const names = q.items.filter((i) => i.status !== 'done').map((i) => `"${i.name}"`).join(', ') || 'none';
