@@ -1,10 +1,13 @@
 /**
  * The one gate every model has to pass: runs every check over every model and prints one summary.
  *
+ * RUN IT ON AN IDLE MACHINE. Even capped it opens browsers for hours; it is the gate before a
+ * push, not something to run while working.
+ *
  *   npm run verify                      every check below over all models
  *   npm run verify -- --fast            only the quick ones (check-models, qa), for after every change
  *   npm run verify -- cube dice         only these models
- *   npm run verify -- --jobs 6          how many workers run at once (default: see JOBS below)
+ *   npm run verify -- --jobs 6          how many workers run at once, never more than the cap (see JOBS)
  *   npm run verify -- --no-build        qa on the dist/ already there, not a fresh build (it says how old)
  *
  * The checks, which this file only runs and reads, never changes:
@@ -17,7 +20,17 @@
  *                                             (on the BUILT site, after its images are made with
  *                                             generate-media, which this runs for the models checked)
  *
- * Sharding: each check's model list is split into shards, and at most --jobs shards run at a time.
+ * ONE CHECK AT A TIME, AND AT MOST MAX_BROWSERS SHARDS. The checks run in the order listed above,
+ * each finishing before the next begins: a run's browsers are then one check's worth, not every
+ * check's at once, and a failure is read against one thing. Within a check, at most MAX_BROWSERS
+ * shards run side by side (scripts/browser-guard.mjs, C3D_MAX_BROWSERS, default 2); --jobs may ask
+ * for fewer but never for more. Before the cap, the default was half the cores and the free
+ * memory in gigabytes, and the export service opened a Chromium per request on top of that: one
+ * run reached 57 headless browsers and the laptop had to be restarted. The service honours the
+ * same cap now (server/dev.mjs), so a whole run holds at most MAX_BROWSERS shard browsers plus
+ * MAX_BROWSERS service browsers.
+ *
+ * Sharding: each check's model list is split into shards, and at most JOBS shards run at a time.
  * Every shard is a process of its own, so it has its own browser and its own Vite server on its own
  * port (the checks listen on port 0). check-exports goes one model per shard, since a single model
  * takes many minutes; the export service it talks to is shared, and started here if nothing already
@@ -40,6 +53,7 @@ import { existsSync, mkdirSync, statSync, createWriteStream } from 'node:fs';
 import { availableParallelism, freemem, totalmem, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createServer as createVite } from 'vite';
+import { MAX_BROWSERS } from './browser-guard.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const args = process.argv.slice(2);
@@ -49,10 +63,14 @@ const jobsAt = args.indexOf('--jobs');
 const cores = availableParallelism();
 const GB = 2 ** 30;
 // Every worker is a Node process with Vite in it plus a Chromium, about a gigabyte between them, and
-// the export shards make the service open a Chromium per file on top. So the default is what the
-// free memory holds, never more than half the cores, and never under two.
-const JOBS = jobsAt >= 0 ? Math.max(1, Number(args[jobsAt + 1]) || 1) : Math.max(2, Math.min(Math.floor(cores / 2), 8, Math.floor(freemem() / GB)));
-const jobsWhy = jobsAt >= 0 ? 'as asked' : `default, from ${(freemem() / GB).toFixed(1)} GB free of ${(totalmem() / GB).toFixed(1)} GB and ${cores} cores`;
+// the export shards make the service open a Chromium per file on top. So the number of shards
+// running at once is MAX_BROWSERS (scripts/browser-guard.mjs, C3D_MAX_BROWSERS, default 2), which
+// --jobs may lower but never raise: the cap is the machine's, not the caller's.
+const asked = jobsAt >= 0 ? Math.max(1, Number(args[jobsAt + 1]) || 1) : MAX_BROWSERS;
+const JOBS = Math.min(asked, MAX_BROWSERS);
+const jobsWhy = jobsAt >= 0
+  ? (asked > MAX_BROWSERS ? `asked for ${asked}, held to the cap of ${MAX_BROWSERS} (C3D_MAX_BROWSERS)` : 'as asked')
+  : `the cap (C3D_MAX_BROWSERS, default 2); this machine has ${(freemem() / GB).toFixed(1)} GB free of ${(totalmem() / GB).toFixed(1)} GB and ${cores} cores`;
 const wanted = args.filter((a, i) => !a.startsWith('--') && !(jobsAt >= 0 && i === jobsAt + 1));
 const QUIET_LIMIT = 15 * 60_000; // a shard that prints nothing for this long is taken as hung
 
@@ -186,7 +204,8 @@ const missing = checks.filter((c) => !existsSync(join(ROOT, c.script)));
 const runnable = checks.filter((c) => !missing.includes(c));
 
 console.log(`verify: ${ids.length} model${ids.length === 1 ? '' : 's'}, ` +
-  `${checks.map((c) => c.name).join(', ')}${fast ? ' (--fast)' : ''}; ${JOBS} jobs (${jobsWhy})`);
+  `${checks.map((c) => c.name).join(', ')}${fast ? ' (--fast)' : ''}; one check at a time, ${JOBS} shard${JOBS === 1 ? '' : 's'} at once (${jobsWhy})`);
+console.log(`the gate is for an IDLE machine: it holds at most ${MAX_BROWSERS} shard browser${MAX_BROWSERS === 1 ? '' : 's'} and ${MAX_BROWSERS} render-service browser${MAX_BROWSERS === 1 ? '' : 's'} at a time`);
 console.log(`logs: ${LOGS}`);
 for (const c of missing) console.log(`MISSING ${c.script}: ${c.name} cannot run, so every model has no verdict for it`);
 
@@ -280,18 +299,19 @@ function split(list, n) {
   return out;
 }
 const results = new Map(checks.map((c) => [c.name, { verdicts: new Map(), notes: [], first: null, last: null }]));
-const tasks = [];
+// one group per check, run in the order CHECKS lists them: a check's shards all finish before the
+// next check starts, so the browsers open at any moment belong to one check (see the head of file)
+const groups = [];
 for (const c of runnable) {
   if (c.needsBuild && !buildOk) { results.get(c.name).notes.push(`not run: ${buildNote}`); continue; }
   if (c.needsMedia && !mediaOk) { results.get(c.name).notes.push(`not run: ${mediaNote}`); continue; }
   const shards = c.perModel ? ids.map((id) => [id]) : split(ids, JOBS);
-  shards.forEach((shard, i) => tasks.push({ check: c, shard, n: i + 1, of: shards.length }));
+  groups.push({ check: c, tasks: shards.map((shard, i) => ({ check: c, shard, n: i + 1, of: shards.length })) });
 }
-// the quick checks first, so their answer is in early; the slow ones fill the workers after them
 let done = 0;
-const total = tasks.length;
-async function worker() {
-  for (let task = tasks.shift(); task; task = tasks.shift()) {
+const total = groups.reduce((n, g) => n + g.tasks.length, 0);
+async function worker(queue) {
+  for (let task = queue.shift(); task; task = queue.shift()) {
     const { check, shard, n, of } = task;
     const r = results.get(check.name);
     r.first ??= Date.now();
@@ -312,12 +332,16 @@ async function worker() {
       ` in ${clock(res.ms)}: ${held} held, ${failed} failed${lost.length ? `, ${lost.length} no verdict` : ''}  (${clock(Date.now() - started)} so far)`);
   }
 }
-await Promise.all(Array.from({ length: Math.min(JOBS, total || 1) }, worker));
+for (const g of groups) {
+  const queue = g.tasks.slice();
+  console.log(`\n${g.check.name}: ${queue.length} shard${queue.length === 1 ? '' : 's'}, ${Math.min(JOBS, queue.length)} at a time`);
+  await Promise.all(Array.from({ length: Math.min(JOBS, queue.length || 1) }, () => worker(queue)));
+}
 service?.close();
 
 /* ---------------- the summary ---------------- */
 const line = '='.repeat(78);
-console.log(`\n${line}\nverify: ${ids.length} models, ${JOBS} jobs, ${clock(Date.now() - started)}`);
+console.log(`\n${line}\nverify: ${ids.length} models, one check at a time, ${JOBS} shard${JOBS === 1 ? '' : 's'} at once (cap ${MAX_BROWSERS}), ${clock(Date.now() - started)}`);
 if (buildNote) console.log(buildNote);
 if (mediaNote) console.log(mediaNote);
 if (serviceNote) console.log(serviceNote);

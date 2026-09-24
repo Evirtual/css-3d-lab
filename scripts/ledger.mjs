@@ -37,10 +37,13 @@ const { evaluateChecklist } = await import(`./checklist-proofs.mjs${new URL(impo
 const { stalenessIndex, STALENESS_TEXT, contains } = await import(`./fingerprint.mjs${new URL(import.meta.url).search}`);
 // the one list of checks: capture-check.mjs runs them, this gates on them, the page draws them
 const { REGISTRY, MODEL_CHECKS, forPage, ruleStale } = await import(`./checks-registry.mjs${new URL(import.meta.url).search}`);
+// the committed state at the last release, for a clone whose own checks have not run
+const { readSnapshot, snapshotStatus } = await import(`./release-snapshot.mjs${new URL(import.meta.url).search}`);
 
 /** The build's own code: a hash of these files as they are on disk right now. */
 const CODE_FILES = ['scripts/ledger.mjs', 'scripts/model-sources.mjs', 'scripts/checklist-proofs.mjs', 'scripts/checks-registry.mjs'];
 CODE_FILES.push('scripts/fingerprint.mjs');
+CODE_FILES.push('scripts/release-snapshot.mjs');
 export const codeVersion = () => createHash('sha1').update(CODE_FILES.map((f) => { try { return norm(readFileSync(join(ROOT, f), 'utf8')); } catch { return `(missing ${f})`; } }).join('\0')).digest('hex').slice(0, 10);
 /** The version this copy of the module was loaded from. A build compares it with the disk. */
 export const LOADED_CODE = codeVersion();
@@ -522,6 +525,12 @@ lap('reviews + docs');
 const readiness = { checklist: readChecklist(), docs, atRisk: atRisk(), at: new Date().toISOString() };
 lap('checklist read + git status');
 const checkFiles = readChecks();
+// The committed snapshot of the last release. It is NOT a result: nothing here counts it as one.
+// A check with no result file of its own stays "not run yet" and every model under it stays "to
+// check"; what the snapshot adds is a second, labelled line the page can show beside that — what
+// this same check said on the commit it was taken at.
+const snapshot = readSnapshot();
+const snapshotAt = snapshot ? snapshotStatus() : null;
 const running = runsNow(checkFiles);
 const generatedAt = new Date().toISOString();
 const head = git(['rev-parse', '--short', headFull]).trim();
@@ -548,7 +557,13 @@ const models = demos.map((d) => {
   for (const name of MODEL_KEYS) {
     const file = checkFiles[name];
     const r = file?.models?.[d.id];
-    if (!r) { checks[name] = { status: 'never' }; continue; }
+    if (!r) {
+      // no run of this machine's own has reported this model: still "not run yet". If the committed
+      // snapshot has a verdict for it, it rides along under `snapshot`, never as `status`.
+      const was = snapshot?.models?.[d.id]?.checks?.[name] ?? null;
+      checks[name] = { status: 'never', ...(was ? { snapshot: was } : {}) };
+      continue;
+    }
     const stale = [];
     const judged = staleIx.check(name, d.id);
     if (judged) stale.push(...judged.why);
@@ -702,6 +717,39 @@ const ledger = {
     const lastRun = checkFiles[c.key]?.runs?.[0] ?? null;
     return { ...c, unit: 'pages', total, tally, listed, kinds, captured, running: run, stepTotals, lastRun: lastRun ? { finishedAt: lastRun.finishedAt, commit: lastRun.commit, summaryLine: lastRun.summaryLine } : null };
   }),
+  // The state at the last release, from the committed docs/release-snapshot.json: what the checks
+  // said on the commit it was taken at, per check, for the models this ledger knows. It is shown
+  // on the page only where a check has no results of its own, and always labelled as the release's
+  // state, never as a run. Null when the file is missing (nothing has been released yet).
+  release: !snapshot ? null : {
+    file: 'docs/release-snapshot.json',
+    head: snapshot.head,
+    takenAt: snapshot.takenAt,
+    counts: snapshot.counts ?? null,
+    // whether it still describes the code at HEAD, in the same words the checklist item uses
+    describesHead: snapshotAt?.ok ?? false,
+    why: snapshotAt?.why ?? null,
+    changed: snapshotAt?.changed ?? [],
+    what: snapshot.what ?? null,
+    checks: Object.fromEntries(REGISTRY.filter((c) => c.scope === 'model').map((c) => {
+      const byStatus = {};
+      let reported = 0;
+      for (const id of ids) {
+        const s = snapshot.models?.[id]?.checks?.[c.key];
+        if (!s?.status) continue;
+        reported++;
+        byStatus[s.status] = (byStatus[s.status] ?? 0) + 1;
+      }
+      const then = snapshot.checks?.[c.key]?.ruleVersion ?? null;
+      return [c.key, {
+        reported, byStatus, pass: byStatus.pass ?? 0, of: ids.length,
+        // a model this ledger knows that the snapshot never judged (a model added since)
+        unknown: ids.length - reported,
+        ruleVersion: then, ruleNow: c.ruleVersion ?? null, ruleChanged: then != null && c.ruleVersion != null && then !== c.ruleVersion,
+        live: Boolean(checkFiles[c.key]),
+      }];
+    })),
+  },
   readiness,
   exportsMatrix: (() => {
     const f = checkFiles.exports;

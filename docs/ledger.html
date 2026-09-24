@@ -1196,6 +1196,10 @@ button, input { font: inherit; color: inherit; }
 .bdpill i { width: 8px; height: 8px; border-radius: 50%; }
 .bdpill b { color: var(--text); font-variant-numeric: tabular-nums; }
 .bdpill.is-zero { opacity: 0.6; }
+/* The committed snapshot's number, beside a bar that has no run of its own. Dashed and in the muted
+   ink, never the pass green: it is the last release's word, not a result measured here. */
+.bdpill--rel { border-style: dashed; font-style: italic; }
+.bdpill--rel b { color: var(--muted); }
 .bd__note { font-size: 12px; color: var(--muted); font-style: italic; }
 @media (max-width: 600px) { .bd li { grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr) 4ch; gap: 4px 8px; } .bd__under { grid-column: 1 / -1; } }
 
@@ -1564,7 +1568,11 @@ table.mini code { font-size: 12px; }
 .mk--flag { --c: var(--st-warn); background: var(--st-warn); color: var(--bg); border-color: transparent; }
 .mk--fail { --c: var(--st-bad); background: var(--st-bad); color: #fff; border-color: transparent; }
 .mk--never { --c: var(--muted); background: none; border-style: dashed; color: var(--muted); }
-/* the test crashed before judging the model: not a failure of the model, so never the failed red */
+/* Nothing has run here, but the committed snapshot has a verdict for it. The mark stays the dashed
+   "not run yet" -- a release's word is not this machine's run -- and carries one small dot to say
+   there is something to read in its tooltip. Never a colour that could pass for a pass. */
+.mk--wasrel { position: relative; }
+.mk--wasrel::before { content: ''; position: absolute; right: -1px; top: -1px; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
 .mk--broke { --c: var(--accent); background: none; border-style: dashed; color: var(--accent); }
 .mk--conv { --c: var(--st-conv); }
 /* The ring a running check draws round its mark. It used to be an animated box-shadow ON the mark,
@@ -2173,8 +2181,12 @@ table.mini code { font-size: 12px; }
     const run = L.running?.[key];
     const now = run && run.alive !== false && run.last === m.id;
     const when = r && r.status !== 'never' ? ` Ran ${r.ranAt ? new Date(r.ranAt).toLocaleString() : 'at an unknown time'}${r.commit ? ` at ${r.commit}` : ''}.` : ' No captured run has reported this model.';
-    const text = `${title}: ${word}.${r?.summary ? ` ${r.summary}.` : ''}${when}${r?.stale ? ` Stale: ${r.staleWhy.join('; ')}.` : ''}${now ? ' Running on this model now.' : ''}`;
-    return markHtml(kind, `${title}: ${word}${now ? ', running now' : ''}`, text, MARKS[kind][0], now ? ' is-running' : '');
+    // nothing has run here, but the committed snapshot has a verdict: said as the last release's
+    // state, with the commit it was taken at, and never folded into the mark, which stays "not run yet"
+    const s = r?.status === 'never' ? r.snapshot : null;
+    const rel = s ? ` At the last release (commit ${L.release?.head ?? '?'}) this check said "${s.status}"${s.ranAt ? `, run ${new Date(s.ranAt).toLocaleString()}` : ''}. That is the committed snapshot (${L.release?.file ?? 'docs/release-snapshot.json'}), not a run on this machine.` : '';
+    const text = `${title}: ${word}.${r?.summary ? ` ${r.summary}.` : ''}${when}${rel}${r?.stale ? ` Stale: ${r.staleWhy.join('; ')}.` : ''}${now ? ' Running on this model now.' : ''}`;
+    return markHtml(kind, `${title}: ${word}${s ? `, ${s.status} at the last release` : ''}${now ? ', running now' : ''}`, text, MARKS[kind][0], `${now ? ' is-running' : ''}${s ? ' mk--wasrel' : ''}`);
   }
   /** A review as a mark: V or T, coloured by its latest fresh verdict. */
   function reviewMark(m, kind) {
@@ -2779,14 +2791,33 @@ table.mini code { font-size: 12px; }
 
   /* ---------- the one detail area under the strip: all models, or the picked stage ---------- */
   const GATE_TALLY = { 'stale-pass': 'stale', flagged: 'flag', failed: 'fail', broke: 'broke', never: 'never' };
+  /**
+   * One notice above the bars when a check has nothing captured here and the committed snapshot has
+   * its verdicts: it names the file and the commit, and says in so many words that those numbers are
+   * the state at the last release and not a run on this machine. Nothing when every check has run.
+   */
+  function releaseNotice() {
+    const R = L.release;
+    if (!R) return '';
+    const checks = CHECK_LIST.filter((c) => c.scope === 'model');
+    const noRun = checks.filter((c) => !c.captured && R.checks?.[c.key]?.reported);
+    if (!noRun.length) return '';
+    const one = noRun.length === 1;
+    const which = one ? `The <b>${esc(noRun[0].short)}</b> check has` : noRun.length === checks.length ? 'None of these checks has' : `${noRun.length} of these ${checks.length} checks have`;
+    return `<div class="notice" style="margin:0 0 12px"><b class="big">The state at the last release.</b>
+      ${which} been captured on this machine, so ${one ? 'its bar reads' : 'their bars read'} <b>not run yet</b> and the models under ${one ? 'it' : 'them'} stay to check.
+      Beside ${one ? 'it' : 'them'}, in a dashed pill, is what <code>${esc(R.file)}</code> recorded at commit <code>${esc(R.head)}</code>${R.takenAt ? `, taken ${esc(new Date(R.takenAt).toLocaleString())}` : ''}: ${esc(noRun.map((c) => `${c.short.toLowerCase()} ${R.checks[c.key].pass}/${R.checks[c.key].of}`).join(' · '))}.
+      That is a committed record of someone else's run, never a result of yours. ${R.describesHead ? `It still describes this code: ${esc(R.why)}.` : `<b>It no longer describes this code:</b> ${esc(R.why ?? 'the commit it was taken at is not this one')}.`}
+      Run <code>npm run capture -- &lt;check&gt;</code> for numbers of your own.</div>`;
+  }
   /** The per-check bars counted over some models only (a stage), from each model's gates. */
   function bucketCheckBars(models) {
     const list = CHECK_LIST.filter((c) => c.scope === 'model').map((c) => {
       const tally = { pass: 0, stale: 0, flag: 0, fail: 0, broke: 0, never: 0 };
       for (const m of models) { const k = m.gates?.[c.key]?.kind; tally[k == null ? 'pass' : GATE_TALLY[k] ?? 'never']++; }
-      return { ...c, unit: 'models', total: models.length, tally, captured: true, running: null, listed: 0, lastRun: null, kinds: null };
+      return { ...c, unit: 'models', total: models.length, tally, captured: c.captured, running: null, listed: 0, lastRun: null, kinds: null };
     });
-    return checkBarsOf(list, false);
+    return releaseNotice() + checkBarsOf(list, false);
   }
   /** Where each model's latest review of a kind stands: fine or fixed (fresh), problem, stale, none. */
   const reviewState = (m, kind) => {
@@ -3646,6 +3677,10 @@ table.mini code { font-size: 12px; }
       // as if the embeds were the failing ones: "9 of 145 public · 136 of 136 embeds · 135 of 135 redirects"
       const KIND_ORDER = ['public', 'embeds', 'redirects'];
       const kinds = c.kinds ? KIND_ORDER.filter((k) => c.kinds[k]).map((k) => `${c.kinds[k].pass} of ${c.kinds[k].pages} ${k}`).join(' · ') : '';
+      // no results of this check's own, but the committed snapshot has its verdicts: one labelled
+      // pill beside the bar, reading as the last release's state. The bar itself does not move.
+      const relc = !c.captured ? L.release?.checks?.[c.key] : null;
+      const relPill = relc && relc.reported ? `<span class="bdpill bdpill--rel" data-tip data-tiptext="${esc(`From ${L.release.file}, the committed state at commit ${L.release.head}${L.release.takenAt ? `, taken ${new Date(L.release.takenAt).toLocaleString()}` : ''}. ${relc.pass} of ${relc.of} models passed ${c.short} then${relc.unknown ? `, and ${relc.unknown} model(s) here were not in it` : ''}${relc.ruleChanged ? `; judged under rule v${relc.ruleVersion}, and the rule is v${relc.ruleNow} now` : ''}. Nothing has been captured on this machine, so the bar above stays "not run yet".`)}">at the last release <b>${relc.pass}/${relc.of}</b>${relc.ruleChanged ? ' · older rule' : ''}</span>` : '';
       const status = !c.captured && !run ? `not run yet (0 of ${total} ${unit})` : `${t.pass} of ${total} ${unit} pass${kinds ? ` (${kinds})` : ''}${c.listed ? ` · ${c.listed} of them with listed findings (waived or the model's own text, not failed)` : ''}${c.lastRun?.finishedAt ? ` · last run ${new Date(c.lastRun.finishedAt).toLocaleString()}${c.lastRun.commit ? ` at ${c.lastRun.commit}` : ''}` : ''}`;
       const runChip = run ? `<span class="chip ${run.alive === false ? 's-bad' : 's-chk'}">${run.alive === false ? 'stopped' : 'running'} ${esc(run.done)} of ${run.total ?? '?'}</span>` : '';
       // a segment a blocker covers is a button: it filters the table to those models, as the blocker does
@@ -3665,7 +3700,7 @@ table.mini code { font-size: 12px; }
       // here too, and when the run ends the counts it left stay
       const ssRun = L.running?.[c.key] ?? null;
       return `<li><button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
-        <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}</span>${pills}${ssBtn}</span>${ssOpened ? ssPanel(c, ssId, ssRun) : ''}</li>`;
+        <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}</span>${pills}${relPill}${ssBtn}</span>${ssOpened ? ssPanel(c, ssId, ssRun) : ''}</li>`;
     }).join('')}</ul>`;
   }
   function renderCheckBars() {
@@ -3677,7 +3712,7 @@ table.mini code { font-size: 12px; }
     // over every model, one line: the bars are in the selected stage's panel, over its models only.
     // Each count's full split (older code, flagged, failed, didn't run, not run yet) is in its tooltip.
     const splitOf = (c) => CK_SEGS.filter(([k]) => c.tally?.[k]).map(([k, label]) => `${c.tally[k]} ${label}`).join(', ');
-    $('checkbars').innerHTML = `<p class="allline"><span class="label">All ${n}, passing</span> ${models.map((c) => `<span tabindex="0" data-tip data-tiptext="${esc(`${c.title}, over all ${n} models: ${splitOf(c)}.`)}">${esc(c.short.toLowerCase())} <b>${c.tally?.pass ?? 0}</b></span>`).join('<span class="allline__sep" aria-hidden="true">·</span>')}</p>`;
+    $('checkbars').innerHTML = `<p class="allline"><span class="label">All ${n}, passing</span>${models.map((c) => `<span tabindex="0" data-tip data-tiptext="${esc(`${c.title}, over all ${n} models: ${splitOf(c)}.`)}">${esc(c.short.toLowerCase())} <b>${c.tally?.pass ?? 0}</b></span>`).join('<span class="allline__sep" aria-hidden="true">·</span>')}</p>`;
     $('sitebars').innerHTML = (site.length ? `<h3>Site <span class="muted" style="text-transform:none;letter-spacing:0">· counted in pages, not a gate on any model</span></h3>${checkBarsOf(site)}` : '');
   }
   /** Opens the definitions at one check's entry. */

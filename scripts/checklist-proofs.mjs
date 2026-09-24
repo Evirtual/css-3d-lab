@@ -15,6 +15,8 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { REGISTRY } from './checks-registry.mjs';
+// read-only: git's own read commands over the committed snapshot. Importing it writes nothing.
+import { snapshotStatus } from './release-snapshot.mjs';
 
 export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, cache = null }) {
   const mtime = (p) => { try { return statSync(join(ROOT, p)).mtimeMs; } catch { return 0; } };
@@ -45,6 +47,28 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
   const F = (found) => ({ result: 'false', found });
   const N = (why) => ({ result: 'not-evaluated', why });
   const n = models.length;
+  /**
+   * A check whose verdict is already recorded per model, read back rather than run again. The
+   * capture run itself is hours of browser work, and every result it would look at is in
+   * docs/checks/<key>.json already; the found text says so, so a read is never read as a run.
+   */
+  const recorded = (key, what, extra = '') => {
+    const ok = models.filter((m) => m.checks[key]?.status === 'pass' && !m.checks[key].stale).length;
+    const stale = models.filter((m) => m.checks[key]?.status === 'pass' && m.checks[key].stale).length;
+    return ok === n
+      ? T(`from the recorded results in docs/checks/${key}.json: ${n} of ${n} models pass ${what} on the current code (read back, not re-run here)${extra}`)
+      : F(`from the recorded results in docs/checks/${key}.json: ${ok} of ${n} have a fresh pass${stale ? `, ${stale} passed on code that has changed since` : ''}`);
+  };
+  /** The same for a site-wide check, whose results are pages rather than models. */
+  const recordedPages = (key) => {
+    const f = checkFiles?.[key];
+    if (!f) return F(`docs/checks/${key}.json does not exist: this check has never been captured`);
+    const pages = Object.values(f.models ?? {});
+    const bad = pages.filter((p) => p.status !== 'pass');
+    return pages.length && !bad.length
+      ? T(`from the recorded results in docs/checks/${key}.json: ${pages.length} of ${pages.length} pages pass, run ${f.updatedAt ?? 'at an unknown time'} (read back, not re-run here)`)
+      : F(`from the recorded results in docs/checks/${key}.json: ${pages.length - bad.length} of ${pages.length} pages pass${bad.length ? `; not passing: ${bad.length}` : ' (no page results recorded)'}`);
+  };
   const walk = (dir) => { const out = []; const go = (d) => { let es = []; try { es = readdirSync(d, { withFileTypes: true }); } catch { return; } for (const e of es) { const f = join(d, e.name); e.isDirectory() ? go(f) : out.push(f); } }; go(dir); return out; };
 
   const PROOFS = [
@@ -63,16 +87,41 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     }],
     [/^Local-only files stay local/, KEYS.index, () => { const t = git('ls-files', 'hero-options.html', 'og-preview.html', 'harness-tmp').trim(); return t ? F(`tracked: ${t.split('\n').join(', ')}`) : T('none of them is tracked'); }],
     [/^The remote has nothing main lacks/, () => N('needs git fetch, which uses the network')],
-    [/^The verify gate holds/, () => N('npm run verify runs every check in browsers: slow')],
+    [/^The verify gate holds/, () => N('npm run verify is hours of browser work and is written for an idle machine, so it is never run from here. Capped at C3D_MAX_BROWSERS (default 2) and one check at a time since an earlier run opened 57 browsers. The same checks are recorded green per model in the ledger at this commit, which is evidence, not this proof')],
     [/^Every model is approved/, () => counts.approved === n ? T(`${n} of ${n} approved`) : F(`${counts.approved} of ${n} approved`)],
-    [/^The check results behind the ledger are published with the code/, () => `${KEYS.index()}|${mtime('.gitignore')}`, () => {
-      // the files named by the registry, so a check added there is asked for here too
+    [/^The raw check records stay out of the repo/, () => `${KEYS.index()}|${mtime('.gitignore')}|${mtime('docs/release-snapshot.json')}`, () => {
       const ignored = (read('.gitignore') ?? '').split(/\r?\n/).some((l) => l.trim() === '/docs/checks/');
-      const tracked = new Set(git('ls-files', 'docs/checks').trim().split('\n').filter(Boolean));
-      const missing = REGISTRY.map((c) => `docs/checks/${c.key}.json`).filter((f) => !tracked.has(f));
-      return !ignored && !missing.length ? T(`/docs/checks/ is not ignored, and all ${REGISTRY.length} registry checks' files are committed`) : F(`/docs/checks/ in .gitignore: ${ignored ? 'yes' : 'no'}; not committed: ${missing.length ? missing.map((f) => f.slice(12)).join(', ') : 'none'} (of ${REGISTRY.length} in scripts/checks-registry.mjs)`);
+      const leaked = git('ls-files', 'docs/checks').trim().split('\n').filter(Boolean);
+      const snapTracked = git('ls-files', 'docs/release-snapshot.json').trim() === 'docs/release-snapshot.json';
+      let kb = null; try { kb = statSync(join(ROOT, 'docs/release-snapshot.json')).size / 1024; } catch {}
+      const small = kb != null && kb < 200;
+      return ignored && !leaked.length && snapTracked && small
+        ? T(`/docs/checks/ is gitignored and none of it is tracked; docs/release-snapshot.json is tracked, ${kb.toFixed(0)} kB`)
+        : F(`/docs/checks/ in .gitignore: ${ignored ? 'yes' : 'no'}; tracked under docs/checks: ${leaked.length}; docs/release-snapshot.json tracked: ${snapTracked ? 'yes' : 'no'}; size: ${kb == null ? 'missing' : `${kb.toFixed(0)} kB${small ? '' : ', over the 200 kB this item allows'}`}`);
+    }],
+    [/^The release snapshot is the state of the commit being pushed/, () => `${H}|${mtime('docs/release-snapshot.json')}`, () => {
+      // the same call the item's command makes, read as data rather than run as a process
+      const s = snapshotStatus();
+      return s.ok ? T(s.why) : F(`${s.why}${s.changed.length ? `: e.g. ${s.changed.slice(0, 3).join(', ')}` : ''}`);
     }],
     [/^The ledger was built on the commit being pushed/, () => (H.startsWith(head) ? T(`built at ${head}, which is HEAD as this ledger was written (the watcher rebuilds when main moves)`) : F(`built at ${head}, HEAD is ${H.slice(0, 7) || 'unreadable'}`))],
+    [/^Every model draws the same whatever box-sizing/, () => recorded('boxsizing', 'check-boxsizing', ', and no result carries a "content-box by design" exception for anyone to have read')],
+    [/^Every model's text is readable on the dark stage/, () => recorded('contrast', 'check-contrast')],
+    [/^Every model is within its performance budgets/, () => recorded('perf', 'check-perf')],
+    [/^Every model stops when paused, names its controls/, () => recorded('access', 'check-access')],
+    [/^No check result behind the ledger was judged under an older rule/, () => {
+      const bad = models.flatMap((m) => Object.entries(m.checks)).filter(([, c]) => (c.staleWhy ?? []).some((w) => String(w).startsWith('rule changed')));
+      return bad.length ? F(`${bad.length} result(s) judged under an older rule, e.g. ${bad.slice(0, 3).map(([k]) => k).join(', ')}`) : T('no result carries a "rule changed" staleness, over every model and every check');
+    }],
+    [/^The built gallery stays answerable over all 135 models/, () => recordedPages('app')],
+    [/^The built site passes the SEO check/, () => {
+      const r = recordedPages('seo');
+      const f = checkFiles?.seo;
+      const listed = Object.values(f?.models ?? {}).filter((p) => p.listed).length;
+      // every page passing is provable from the records; whether each WAIVED / OWN-TEXT line has
+      // been accepted by the user is not, so this item is not ticked off a read alone
+      return N(`${r.found}. But the item also asks that each WAIVED or OWN-TEXT line has been fixed or accepted by the user${listed ? ` (${listed} page(s) carry listed findings)` : ''}, which needs a person; run npm run check-seo -- --strict once they are all fixed`);
+    }],
     [/^No contract result is stale or failing/, () => { const c = counts.checks.models ?? {}; const keys = Object.keys(c); return keys.length === 1 && c.pass === n ? T(`"pass":${n}`) : F(JSON.stringify(c)); }],
     [/^check-stages has judged every model/, () => { const ok = models.filter((m) => m.checks.stages?.status === 'pass' && !m.checks.stages.stale).length; return ok === n ? T(`from the recorded results: ${n} of ${n} pass on the current code`) : F(`from the recorded results: ${ok} of ${n} have a fresh pass (the proof itself, a full capture run, is not run here)`); }],
     [/^check-motion has run over every model/, () => {
@@ -135,7 +184,51 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       const code = git('log', '-1', '--format=%cI', '--', 'package.json', 'scripts/', 'server/', 'worker/', 'src/preview.ts', 'src/video.ts').trim();
       return Date.parse(docs) >= Date.parse(code) ? T(`heuristic: docs last committed ${docs.slice(0, 16)}, code ${code.slice(0, 16)}`) : F(`heuristic: docs last committed ${docs.slice(0, 16)}, older than the code's ${code.slice(0, 16)}`);
     }],
-    [/^VIEW-CONTRACT\.md's numbers are the checks' numbers/, () => N('comparing the table to the constants needs a person to read both')],
+    [/^VIEW-CONTRACT\.md's numbers are the checks' numbers/, () => {
+      // Each limit, read from the check's own constant and from the sentence in the document that
+      // states it. A number changed in one place and not the other makes this false and names both.
+      const src = read('scripts/check-models.mjs') ?? '';
+      const doc = read('docs/VIEW-CONTRACT.md') ?? '';
+      if (!src || !doc) return F(`${!src ? 'scripts/check-models.mjs' : 'docs/VIEW-CONTRACT.md'} could not be read`);
+      const konst = (name) => (new RegExp(`^const ${name} = ([\\d.]+)`, 'm').exec(src) ?? [])[1] ?? null;
+      const inSrc = (re) => (re.exec(src) ?? [])[1] ?? null;
+      const PAIRS = [
+        ['tallest (BAND)', konst('BAND'), /\|\s*Tallest\s*\|\s*solid\s*\|\s*(\d+)vmin/],
+        ['shortest (FLOOR)', konst('FLOOR'), /\|\s*Shortest\s*\|\s*solid\s*\|\s*(\d+)vmin/],
+        ['widest (WIDEST)', konst('WIDEST'), /\|\s*Widest\s*\|\s*solid\s*\|\s*(\d+)%/],
+        ['centred (CENTRED)', konst('CENTRED'), /\|\s*Centred\s*\|\s*solid\s*\|\s*within (\d+)vmin/],
+        ['top corners (CORNER)', konst('CORNER'), /\|\s*Top corners\s*\|\s*all\s*\|\s*nothing drawn within (\d+)vmin/],
+        ['all ink (INK)', konst('INK'), /Edges are judged on all ink, alpha over (\d+)\/255/],
+        ['solid ink (SOLID)', konst('SOLID'), /judged on solid ink, alpha (\d+)\/255/],
+        ['the quick pass (FINEST)', konst('FINEST'), /quick pass over up to (\d+) moments/],
+        ['the width floor (WIDE_FLOOR)', konst('WIDE_FLOOR'), /at least (\d+)vmin wide at rest/],
+        ['full canvas, judged', inSrc(/coversW >= 0\.(\d+)/), /covers at least (\d+)% of the canvas both ways/],
+        ['full canvas, must cover', inSrc(/coversW < 0\.(\d+)/), /must cover (\d+)%/],
+      ];
+      const off = PAIRS.map(([what, code, re]) => [what, code, (re.exec(doc) ?? [])[1] ?? null])
+        .filter(([, code, said]) => code == null || said == null || String(Number(code)) !== String(Number(said)));
+      return off.length
+        ? F(`${off.length} of ${PAIRS.length} do not line up: ${off.map(([w, c, d]) => `${w}: the check says ${c ?? 'nothing this proof could find'}, VIEW-CONTRACT.md says ${d ?? 'nothing this proof could find'}`).join('; ')}`)
+        : T(`all ${PAIRS.length} limits line up: ${PAIRS.map(([w, c]) => `${w.replace(/ \(.*/, '')} ${c}`).join(', ')}`);
+    }],
+    [/^The README says how to run the ledger from a fresh clone/, KEYS.readme, () => {
+      const readme = read('README.md') ?? '';
+      const at = readme.indexOf('\n## Running the ledger');
+      if (at < 0) return F('README.md has no "## Running the ledger" section');
+      const end = readme.indexOf('\n## ', at + 1);
+      const sec = readme.slice(at, end < 0 ? readme.length : end);
+      // everything the item asks the section to say, each looked for in the section itself
+      const wants = [
+        ['local tool', /local\*{0,2} tool/i], ['nothing hosted', /nothing about it is hosted|nothing is hosted|no service/i],
+        ['npm install', /npm install/], ['npm run dev', /npm run dev/], ['npm run capture', /npm run capture -- /],
+        ['npm run ledger', /npm run ledger\b/], ['npm run ledger:watch', /npm run ledger:watch/],
+        ['the local address', /localhost:5183\/docs\/ledger\.html/], ['"not run yet"', /not run yet/],
+        ['the committed snapshot', /release-snapshot\.json/], ['npm run export for the export check', /npm run export/],
+        ["Playwright's browser", /playwright install chromium|Playwright's Chromium/i],
+      ];
+      const absent = wants.filter(([, re]) => !re.test(sec)).map(([w]) => w);
+      return absent.length ? F(`the section is there but does not say: ${absent.join(', ')}`) : T(`"## Running the ledger" is at README.md line ${readme.slice(0, at + 1).split('\n').length}, and says all ${wants.length} things the item asks for`);
+    }],
     [/^COMMIT-AUDIT\.md is marked as a historical snapshot/, () => { const line = (read('docs/COMMIT-AUDIT.md') ?? '').replace(/\r/g, '').split('\n')[2] ?? ''; return line.startsWith('> **Historical snapshot') ? T('line 3 starts with "> **Historical snapshot"') : F(`line 3 is: ${line.slice(0, 60) || '(empty)'}`); }],
     [/^The project article at public\/article\/index\.html is corrected/, () => N('needs a person to read the article line by line')],
     [/^A second article on how the view-contract rewrite was run/, () => N('needs a person, and the rewrite to be complete')],

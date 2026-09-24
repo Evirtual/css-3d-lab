@@ -35,7 +35,18 @@
  * (which capture-check parses) are unchanged; the notes a model's result carries are the check's to
  * print, from what run() returns.
  *
+ * It also holds THE ONE NUMBER FOR HOW MANY BROWSERS MAY BE OPEN AT ONCE (MAX_BROWSERS, default
+ * 2, C3D_MAX_BROWSERS). Two places can multiply browsers past what one guard opens, and both read
+ * it from here: scripts/verify.mjs, which runs shards in processes of their own and now runs at
+ * most MAX_BROWSERS of them, one check at a time; and server/dev.mjs, the render service, which
+ * draws each capture in a fresh Chromium and now takes a slot from browserSlot() per request, so
+ * requests queue instead of each opening a browser. A guard itself keeps exactly one browser per
+ * process, so a check that uses one is inside the cap already. The cap exists because a full
+ * `npm run verify` once had 57 headless browsers open and the machine had to be restarted: the
+ * gate is written for an IDLE machine, and even then it opens no more than this.
+ *
  * Settings, for a run or a test (environment):
+ *   C3D_MAX_BROWSERS=2      how many browsers may be open at once (the cap above; never under 1)
  *   C3D_RELAUNCH_EVERY=20   models per browser before a fresh one
  *   C3D_MIN_FREE_GB=1.5     the low-memory threshold (set it high to see the guard wait)
  *   C3D_MEM_WAIT_S=180      how long to wait for memory before running anyway
@@ -44,6 +55,38 @@
  *   C3D_FAULT=crash-after:3 throw an unhandled rejection after the 3rd model (a test of 4)
  */
 import { freemem } from 'node:os';
+
+/**
+ * How many headless browsers may be open at once, anywhere this number is read. Default 2: a
+ * Chromium plus the Node and Vite around it is about a gigabyte, so two is what a laptop with
+ * something else open can hold. Set C3D_MAX_BROWSERS higher only on a machine doing nothing else.
+ */
+export const MAX_BROWSERS = Math.max(1, Math.floor(Number(process.env.C3D_MAX_BROWSERS) || 2));
+
+/**
+ * A slot in that cap, for code that launches browsers itself rather than through a BrowserGuard
+ * (the render service opens one per capture request). `const release = await browserSlot(); try {
+ * … } finally { release(); }` — the caller waits its turn instead of opening browser number three.
+ * Process-local: it bounds what one process opens, and verify.mjs bounds how many processes run.
+ */
+let openNow = 0;
+const waiting = [];
+export async function browserSlot() {
+  // queue behind anyone already waiting, so a slot freed for a waiter cannot be taken by a caller
+  // that arrived after it; the slot is handed straight over rather than counted down and back up
+  if (openNow >= MAX_BROWSERS || waiting.length) await new Promise((go) => waiting.push(go));
+  else openNow++;
+  let freed = false;
+  return () => {
+    if (freed) return;
+    freed = true;
+    const next = waiting.shift();
+    if (next) next(); // the slot passes on, so openNow stays as it is
+    else openNow--;
+  };
+}
+/** How many slots are taken now, and how many callers are waiting: for a message, or a test. */
+export const browserSlots = () => ({ open: openNow, waiting: waiting.length, max: MAX_BROWSERS });
 
 // A fresh browser after this many models: a Chromium that has run 20 models is thrown away before
 // its memory can grow across a 135-model run; relaunching costs about a second.

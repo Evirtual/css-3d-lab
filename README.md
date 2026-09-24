@@ -111,7 +111,7 @@ Without `npm run export` running, everything works in dev except making a video 
 | `check-seo` | `scripts/check-seo.mjs` | After a build: reads every page in `dist/` as a search engine would. Titles and descriptions fit a search result and are unique (the limits and their sources are in `scripts/seo-limits.mjs`), one canonical on the sitemap's host, one h1 and no skipped heading level, JSON-LD that parses with its dates and image, og and twitter tags present, noindex on embeds and utility pages only, the sitemap and robots.txt right, no dead internal links or orphan pages, each model's title, description and steps in the HTML without JS, and the JS and CSS a model page and the home page load within a gzip budget. One `FAIL` line per problem, exit 1 on any. A finding waiting on a decision prints as `WAIVED` and a model text too long in its own words as `OWN-TEXT`; neither fails unless `--strict`. |
 | `compare` | `scripts/compare-capture.mjs` | Does a snapshot from the render service match the screen? Starts its own service on 8787, so that port must be free. Sheet in `qa/capture-diff.png`. |
 | `capture` | `scripts/capture-check.mjs` | Runs `check-models`, `check-stages`, `check-motion`, `check-exports`, `check-media`, `check-access`, `check-boxsizing`, `check-contrast`, `check-perf` or `check-app` (the list is `scripts/checks-registry.mjs`, which the ledger and its page read too) unchanged and records each model's result in `docs/checks/<check>.json` for the ledger: `npm run capture -- models cube dice`. The per-model export proof is `npm run capture -- exports --defaults <all 135 ids>`. Each result records its check's `ruleVersion` (in the registry, bumped whenever a rule's meaning changes), and a result judged under an older one is stale, "rule changed (vN → vM)". |
-| `verify` | `scripts/verify.mjs` | The one gate: runs `check-models`, `qa`, `check-stages`, `check-media` and `check-exports` over every model, sharded across processes (each with its own browser and Vite port), and prints one summary. `GATE HOLDS` and exit 0 only when every model held every check; a model no check reported on is "no verdict", never counted as held. `-- --fast` the quick ones only, `-- <id...>` only those models, `-- --jobs N` how many shards at once, `-- --no-build` qa on the `dist/` already there. Every shard's full output is kept in a log directory it names. |
+| `verify` | `scripts/verify.mjs` | The one gate: runs `check-models`, `qa`, `check-stages`, `check-media` and `check-exports` over every model, sharded across processes (each with its own browser and Vite port), and prints one summary. `GATE HOLDS` and exit 0 only when every model held every check; a model no check reported on is "no verdict", never counted as held. **Run it on an idle machine.** It runs **one check at a time**, and at most `C3D_MAX_BROWSERS` shards at once — default **2**, the cap in `scripts/browser-guard.mjs`, which `-- --jobs N` may lower but never raise. The render service honours the same cap, so a whole run holds at most two shard browsers and two service browsers. (Before the cap, the default was half the cores and the free memory in gigabytes, and the service opened a Chromium per request on top: one run reached 57 headless browsers and the laptop had to be restarted.) `-- --fast` the quick ones only, `-- <id...>` only those models, `-- --no-build` qa on the `dist/` already there. Every shard's full output is kept in a log directory it names. |
 | `ledger` | `scripts/ledger.mjs` | Writes `docs/ledger.json`: per model, its stage (To check, Awaiting review or Approved), its commits, check results and reviews. `--u` in vmin is part of the contract check, not a stage of its own. `docs/ledger.html` shows it. A result or review is stale only when something it judged has changed since, and the ledger says what and at which commit: the resolved snippet (shared constants such as `CUBE_FACES` filled in), how the model is played (`interaction.ts`), its text, or a file on that check's render path (the model frame, the export code, the share-image layout). A contract, stage or motion result does not go stale on a text-only change; a text review does not go stale on a change to the frame. The rules are in `scripts/fingerprint.mjs`; results and reviews that recorded only a commit are judged by the model as it was at that commit, rebuilt from git and cached in `.cache/` (the first build after new commits takes a few minutes). |
 | `ledger:watch` | `scripts/ledger-watch.mjs` | Rebuilds `docs/ledger.json` whenever HEAD, a check result, a review, the queue or a model file changes. |
 | `queue` | `scripts/queue.mjs` | Records running and finished work in `docs/ledger-queue.json`: `npm run queue -- start "<name>" "<brief>" <model...>`, `-- done "<name>"`, `-- list`. |
@@ -129,6 +129,7 @@ Without `npm run export` running, everything works in dev except making a video 
 | `node scripts/check-app.mjs` | What the gallery costs to use: the built site served from `dist/`, loaded at 1280 × 900 and scrolled to the bottom of all 135 models and back. First load, frame times over the trip, long tasks, memory and documents held after a forced collection, how many model frames stay mounted at the bottom, whether a card moves a pixel, and whether a card scrolled back to is running again. A site-wide check, so it gates no model; record it with `npm run capture -- app`. |
 | `node scripts/check-motion.mjs [id...]` | Films every animation and interaction frame by frame and flags flicker, pops and dead or unreachable controls, with a strip per model in `.media-tmp/motion/`. Hints for a human, not verdicts. |
 | `node scripts/fingerprint.mjs <id> [--kind visual\|text]` | Prints what a result or review of the model depends on now (the resolved snippet, how it is played, its text and the render-path files), as the `fingerprints` a reviewer adds to a `docs/reviews/` entry. `npm run capture` records the same with every check result. |
+| `node scripts/release-snapshot.mjs` | Writes `docs/release-snapshot.json` from `docs/ledger.json`: one line per model per check (status, `ruleVersion`, when it ran) plus each model's review verdicts and the ledger's counts, about 140 kB. It is the one file about check results that is committed, so a clone can see what the checks said at the last release while its own bars honestly read "not run yet". `--check` says whether the committed snapshot still describes HEAD (exit 0) or which files the checks judge have changed since (exit 1). |
 | `node scripts/contact-sheet.mjs [id...]` | After a build: photographs models into sheets in `.media-tmp/` for a review by eye. |
 | `node scripts/snippet-check.mjs <id...>` | Renders each snippet's standalone page (what "Copy as one HTML file" gives) and reports script errors or empty pages; sheet in `.media-tmp/snippets.jpg`. |
 | `node scripts/preview-check.mjs` | On `/models/cube/`: a CSS edit, a colour edit, reset and opening the export dialog must not remount the frame, move it or lose the animation's pose. |
@@ -136,6 +137,14 @@ Without `npm run export` running, everything works in dev except making a video 
 | `node scripts/diag-video.mjs [id] [frames]` | Pulls frames through the render service and reports repeats (stutter). Starts its own service on 8787. |
 
 Every script says how to run it in the comment at its top.
+
+**Scratch output goes under `.media-tmp/`, never in the repository root.** Screenshots, contact
+sheets, frame dumps, throwaway scripts and anything else a check or a working session produces
+belong in `.media-tmp/` (gitignored) or in that session's own scratch directory outside the repo.
+Two folders of screenshots, `current/` and `lead/`, were once left at the root by agent sessions
+and had to be moved to `.media-tmp/shots/`: anything at the root turns up in `git status` and is
+one `git add` away from being committed. `git status --short --untracked-files=all` should print
+nothing but what is deliberately ignored.
 
 **Shared by the scripts above, not run on their own.** `scripts/browser.mjs` is the one place a
 check opens a browser, so "which Chromium do the checks run on" is answered once.
@@ -152,10 +161,47 @@ of [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md) for the ledger, markin
 
 - A model whose run hits a browser-level error (a protocol error, "Unable to capture screenshot", a `goto` or `setContent` timeout, a crashed or closed target, a disconnected browser) runs again, once, in a fresh browser, and its result says `retried after a browser failure`. Only a second failure makes it fail or `BROKE`, and the next model starts in a fresh browser too.
 - The browser is replaced every 20 models (`C3D_RELAUNCH_EVERY`), so its memory cannot creep up over a long run.
+- **At most `C3D_MAX_BROWSERS` browsers are open at once, default 2.** The number lives in `scripts/browser-guard.mjs` and both places that could multiply browsers read it: `verify` runs at most that many shards, one check at a time, and the render service (`server/dev.mjs`) takes a slot per capture request, so requests over the cap wait their turn instead of opening another Chromium. A check run on its own keeps one browser, so it is inside the cap already.
 - Before each model, free memory is read. Under 1.5 GB (`C3D_MIN_FREE_GB`) the check waits, logging `waiting for memory: X GB free` every 10 s, for up to 3 minutes (`C3D_MEM_WAIT_S`). If memory is still low, the model runs anyway and its result says `ran under memory pressure`. Nothing else is ever killed.
 - A crash inside Playwright ends the run with `CRASHED` on stderr and exit 3, not silently. Results printed before the crash are kept: `capture-check` records each model as its line arrives, `check-stages` prints its report for the finished models under a `PARTIAL` line, and `check-motion` and `check-access` write their `report.json` so far.
 
 The notes go on each model's own line, where `capture-check` records them with the result. For `check-stages` and `check-exports` they go on a `note:` line under the model instead, and for `qa` on a `note:` line after the problems. Those lines show in the log, but `capture-check` does not record them. Messages about the browser itself go to stderr, prefixed `browser-guard:`. The checks' output is otherwise unchanged, so `capture-check` reads it as before. To test the guard, `C3D_FAULT=kill-after:N` kills the browser once after the Nth model, `kill-during:N` kills it 3 s into a model, and `crash-after:N` throws an unhandled rejection.
+
+## Running the ledger
+
+The ledger is a **local tool**. Nothing about it is hosted: the page is `docs/ledger.html` in this
+repository, served by your own dev server, and the numbers on it are whatever your machine has
+measured. There is no account, no service and no shared database.
+
+```bash
+npm install
+npm run dev                          # Vite, on the port it prints
+npm run capture -- contrast          # run a check and record it (add ids for a few models)
+npm run ledger                       # rebuild docs/ledger.json from what has been recorded
+npm run ledger:watch                 # or: rebuild it whenever something it reads changes
+```
+
+Then open **<http://localhost:5183/docs/ledger.html>** (the port is the one `npm run dev` printed;
+`5183` is what this project uses).
+
+What you will see on a fresh clone:
+
+- **Every bar reads "not run yet", and all 135 models sit under "To check".** That is correct, not
+  a fault. The raw run records (`docs/checks/`) are gitignored — they are megabytes of one
+  machine's workings, and someone else's run is not your result. Bars fill in as you capture
+  checks, one at a time.
+- **Beside each of those bars, a dashed pill: "at the last release".** That is
+  `docs/release-snapshot.json`, which *is* committed: one line per model per check — status, the
+  rule version it was judged under and when it ran — from the release it was taken at. A notice
+  above the bars names the commit and says whether the snapshot still describes the code you have.
+  It is never counted as a run of yours: it moves no bar and approves no model. Write a new one
+  with `node scripts/release-snapshot.mjs`, and check it still fits HEAD with `--check`.
+- **Two checks need something extra.** `npm run capture -- exports` needs the render service, so
+  start `npm run export` in a second terminal first. Every browser-driven check needs Playwright's
+  Chromium: `npx playwright install chromium` if you have not got it.
+
+A full `npm run verify` is the gate before a push, not a thing to run while working: see the
+`verify` row above, and run it on an idle machine.
 
 ## Add a model
 
