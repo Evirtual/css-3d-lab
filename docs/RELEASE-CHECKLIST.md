@@ -19,7 +19,7 @@ written by `npm run ledger`.
 - [x] scripts/verify.mjs and scripts/check-exports.mjs are committed, with the verify entry in package.json — `git ls-files scripts/verify.mjs scripts/check-exports.mjs` prints both names and `git show HEAD:package.json | grep '"verify"'` prints the entry
 - [x] The lead's queue has nothing running and its final state is committed — `npm run queue -- list` shows no running item and `git diff --quiet HEAD -- docs/ledger-queue.json && echo committed` prints `committed`
 - [x] Local-only files stay local: hero-options.html, og-preview.html and harness-tmp/ (listed in .git/info/exclude) are not tracked — `git ls-files hero-options.html og-preview.html harness-tmp` prints nothing
-- [ ] The remote has nothing main lacks — `git fetch origin && git rev-list --count main..origin/main` prints `0`
+- [x] The remote has nothing main lacks — `git fetch origin && git rev-list --count main..origin/main` prints `0` — run 2026-09-24: prints `0`, and main is 615 ahead
 
 ## The models
 
@@ -62,11 +62,11 @@ written by `npm run ledger`.
 
 Recording, snapshots and print all need it (README, "Recording, snapshots and print").
 
-- [ ] The Worker in worker/ is deployed with the current server/render.mjs — `cd worker && npx wrangler deployments list` shows a deployment made after the last commit touching `server/render.mjs` or `worker/` (`git log -1 --format=%ci -- server/render.mjs worker/`)
+- [x] The Worker in worker/ is deployed with the current server/render.mjs — `cd worker && npx wrangler deployments list` shows a deployment made after the last commit touching `server/render.mjs` or `worker/` (`git log -1 --format=%ci -- server/render.mjs worker/`) — redeployed 2026-09-24 03:31Z (version 30d09e76), after the last commit touching it (9d111c5, 2026-09-23 00:46)
 - [x] ALLOWED_ORIGINS names the live site — `grep ALLOWED_ORIGINS worker/wrangler.jsonc` includes `https://css3dlab.edgarasneverdauskas.com`
-- [ ] The Worker answers the site and refuses anyone else — `curl -s -o /dev/null -w '%{http_code}' -X OPTIONS -H 'Origin: https://css3dlab.edgarasneverdauskas.com' "$VITE_CAPTURE_URL"` prints `204`, and the same with `-H 'Origin: https://example.com'` prints `403` (the failure path, so a 204 is not a fallback page)
+- [x] The Worker answers the site and refuses anyone else — `curl -s -o /dev/null -w '%{http_code}' -X OPTIONS -H 'Origin: https://css3dlab.edgarasneverdauskas.com' "$VITE_CAPTURE_URL"` prints `204`, and the same with `-H 'Origin: https://example.com'` prints `403` (the failure path, so a 204 is not a fallback page) — run 2026-09-24 against the new deployment: 204 for the site, 403 for example.com
 - [x] VITE_CAPTURE_URL is passed to the Pages build — `grep -n VITE_CAPTURE_URL .github/workflows/deploy.yml` finds it in the env of the `npm run build` step (on 2026-09-21 it does not: the workflow never sets it, and a production build without it says "Export service is not configured yet.")
-- [ ] The value the workflow reads exists in the repository settings — `gh variable list` or `gh secret list` shows `VITE_CAPTURE_URL`
+- [x] The value the workflow reads exists in the repository settings — `gh variable list` or `gh secret list` shows `VITE_CAPTURE_URL` — `gh variable list` shows VITE_CAPTURE_URL, set 2026-09-22
 - [ ] A local production build with the variable carries the endpoint — `VITE_CAPTURE_URL=<the Worker URL> npm run build && grep -rl "<the Worker host>" dist/assets` finds a file
 
 ## Docs
@@ -80,12 +80,14 @@ Recording, snapshots and print all need it (README, "Recording, snapshots and pr
 - [x] The README says how to run the ledger from a fresh clone — README.md has a `## Running the ledger` section which says it is a local tool with nothing hosted, names `npm install`, `npm run dev`, `npm run capture -- <check> [ids]`, `npm run ledger`, `npm run ledger:watch` and `http://localhost:5183/docs/ledger.html`, and says that the bars read "not run yet" until checks are captured, that the committed docs/release-snapshot.json shows the last release's state, that the export check needs `npm run export` and that the browser checks need Playwright's Chromium
 - [x] COMMIT-AUDIT.md is marked as a historical snapshot — `sed -n 3p docs/COMMIT-AUDIT.md` starts with `> **Historical snapshot`
 
-## Article
-
-- [ ] The project article at public/article/index.html is corrected for what the rewrite made false: the model count, how recording and snapshots are made (the render service, not the browser), anything about the old compositor or render3d — `grep -n "models\|video\|in your browser\|compositor\|render3d\|frame by frame" public/article/index.html` reviewed line by line against the README, and `git log -1 --format=%ci -- public/article/index.html` is later than the commit where the ledger first reached 135 approved
-- [ ] A second article on how the view-contract rewrite was run (the contract, parallel agents reviewing each other, the ledger, the checks) is drafted from docs/ledger.json, docs/reviews/ and the commit history, only after the rewrite is complete — its first commit is later than the one where `node -p "require('./docs/ledger.json').counts.approved"` first printed 135; if it lives under public/, scripts/generate-pages.mjs is extended to put it in the sitemap (today only public/article/index.html is)
-
 ## After the push
 
 - [ ] The deploy succeeded — `gh run list --workflow deploy.yml --limit 1` shows `completed success` for the pushed commit
 - [ ] Recording works on the live site — on https://css3dlab.edgarasneverdauskas.com/models/cube/ the Video button makes a file that plays, and Image makes a picture (a manual check: no script covers the live site)
+
+## Article
+
+Written last, after everything above holds: every count, every check result and every ruling in it is read from the repository, so a draft written earlier would quote numbers that are still moving.
+
+- [ ] The project article at public/article/index.html is corrected for what the rewrite made false: the model count, how recording and snapshots are made (the render service, not the browser), anything about the old compositor or render3d — `grep -n "models\|video\|in your browser\|compositor\|render3d\|frame by frame" public/article/index.html` reviewed line by line against the README, and `git log -1 --format=%ci -- public/article/index.html` is later than the commit where the ledger first reached 135 approved
+- [ ] A second article on how the view-contract rewrite was run (the contract, parallel agents reviewing each other, the ledger, the checks) is drafted from docs/ledger.json, docs/reviews/ and the commit history, only after the rewrite is complete — its first commit is later than the one where `node -p "require('./docs/ledger.json').counts.approved"` first printed 135; if it lives under public/, scripts/generate-pages.mjs is extended to put it in the sitemap (today only public/article/index.html is)
