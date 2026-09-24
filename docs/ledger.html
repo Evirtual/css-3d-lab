@@ -109,7 +109,7 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); }
+html { overflow-x: clip; background: var(--bg); }
 body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font: 15px/1.55 var(--font); overflow-x: clip; }
 /* the site's ambient backdrop, held still: a faint blueprint grid and two washes */
 body::before {
@@ -350,9 +350,25 @@ button, input { font: inherit; color: inherit; }
    than a picture inside it. The bleed is exactly the panel's padding plus its border. */
 /* The strip is wider than the card it sits in: its back stands on the card's left edge and its point
    carries on past the right one, out to the page's own margin, where the content of every other card
-   ends too. Nothing clips it -- the point leaving the card is the thing being drawn. --gut is the page
-   gutter (main's side padding); --bleed is the card's padding plus its border. */
-.flowwrap { --notch: 26px; --deck: 28px; --bleed: 21px; --gut: 16px; margin-top: 16px; margin-left: calc(-1 * var(--bleed)); margin-right: calc(-1 * (var(--bleed) + var(--gut))); position: relative; }
+   ends too: the whole point, all --notch of it, is outside the card, so the card's edge crosses the
+   strip at full height. Nothing clips it. --bleed is the card's padding plus its border, and the page
+   itself clips sideways (overflow-x: clip, which keeps position: sticky working) so a point that runs
+   past the window cannot put a scrollbar under the page. */
+/* The run over the arrows. The bar is the run's own count of its shards, not a measurement of the
+   models -- the ledger measures those, and they are the row of numbers under the strip. So it says
+   who is speaking, keeps the time the line was said, and greys out when that time gets old: a line
+   that stopped moving is the useful thing to see. */
+.runline { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px 12px; margin-top: 14px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--accent-2) 5%, transparent); font-size: 12.5px; }
+.runline[hidden] { display: none; }
+.runline__who { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; color: var(--text); }
+.runline__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 22%, transparent); }
+.runline__at { min-width: 0; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.runline__when { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+.runline.is-stale .runline__dot { background: var(--muted); box-shadow: none; }
+.runline__bar { grid-column: 1 / -1; height: 5px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.runline__bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--accent-2) 55%, transparent), var(--accent-2)); }
+@media (max-width: 700px) { .runline__at { white-space: normal; } }
+.flowwrap { --notch: 26px; --deck: 28px; --bleed: 21px; --gut: 16px; margin-top: 16px; margin-left: calc(-1 * var(--bleed)); margin-right: calc(-1 * (var(--bleed) + var(--notch))); position: relative; }
 .flow { list-style: none; margin: 0; padding: 0; display: flex; }
 .flow__li { position: relative; flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1); }
 .flow__li:first-child { margin-left: 0; }
@@ -1880,6 +1896,8 @@ table.mini code { font-size: 12px; }
       <div class="head__acts"><button type="button" class="linkish" id="rules-btn" aria-haspopup="dialog">How these are counted</button><button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" hidden></button></div>
       <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
     </div>
+    <!-- what the lead says it is doing, over the arrows: reported, never measured -->
+    <div class="runline" id="runline" hidden></div>
     <!-- the four stages are tabs: exactly one is selected, and its panel is right under them -->
     <div class="flowwrap" id="stats"></div>
     <!-- what is running now: first thing under the stages, where it is seen -->
@@ -3920,7 +3938,29 @@ table.mini code { font-size: 12px; }
     if (brief) { const n = brief.dataset.brief; openBriefs.has(n) ? openBriefs.delete(n) : openBriefs.add(n); renderQueue(); return; }
     if (e.target.closest('[data-done-all]')) { doneAll = !doneAll; renderQueue(); }
   });
+  /* The line over the arrows: the one running item, its own progress line, and when it said it.
+     "4 of 10 shards done" is read for the bar; if a line says nothing countable there is no bar. */
+  function renderRunLine() {
+    const el = $('runline');
+    if (!el) return;
+    const items = Array.isArray(Q?.items) ? Q.items : [];
+    const run = items.filter((i) => i.status === 'running');
+    if (!run.length) { el.hidden = true; el.innerHTML = ''; return; }
+    const i = run.find((x) => x.progress) ?? run[0];
+    const said = i.progressAt ? Date.parse(i.progressAt) : null;
+    const old = said ? Date.now() - said > 6 * 60000 : false;
+    const m = /(d+)s+ofs+(d+)s+shards?s+done/i.exec(i.progress ?? '');
+    const pct = m ? Math.min(100, (100 * Number(m[1])) / Math.max(1, Number(m[2]))) : null;
+    el.hidden = false;
+    el.classList.toggle('is-stale', old);
+    el.innerHTML = `<span class="runline__who"><span class="runline__dot"></span>${esc(i.name)}</span>
+      <span class="runline__at">${i.progress ? esc(i.progress) : 'running; it has not said where it has got to'}</span>
+      <span class="runline__when">${i.progressAt ? `said ${agoSpan(i.progressAt)}` : `started ${agoSpan(i.started)}`} · reported</span>
+      ${pct == null ? '' : `<span class="runline__bar"><i style="width:${pct.toFixed(1)}%"></i></span>`}`;
+  }
+
   function renderQueue() {
+    renderRunLine();
     const box = $('queue');
     leadCounts();
     if (qError) { box.innerHTML = `<div class="notice">The lead's record could not be read: ${esc(qError)}</div>`; return; }
