@@ -1,6 +1,6 @@
 {
   "comment": "Kept by the lead session. This is the lead's record of work that has not landed yet, not a measured fact.",
-  "updatedAt": "2026-09-24T02:10:15.222Z",
+  "updatedAt": "2026-09-24T06:55:12.414Z",
   "items": [
     { "name": "Animation and interaction check", "brief": "Build scripts/check-motion.mjs: filmstrips through each animation and every hover, click, toggle, slider, drag and scroll; flag flicker, pass-through, depth flips, dead controls and misaligned hit areas. Fix book and bookshelf.", "models": ["all converted", "book", "bookshelf"], "status": "done", "started": "2026-09-21T14:05:00+07:00", "finished": "2026-09-21T08:48:08.247Z" },
     { "name": "Batch L: last charts", "brief": "Convert stackbars, funnel, waterfall, treemap, radar, activity; remove every px written from JS.", "models": ["stackbars", "funnel", "waterfall", "treemap", "radar", "activity"], "status": "done", "started": "2026-09-21T14:20:00+07:00", "finished": "2026-09-21T08:21:46.426Z" },
@@ -89,6 +89,8 @@
     { "name": "Final runs: every check over all 135", "brief": "contract, stages, motion (in batches), access, build + share images, SEO, exports at the defaults; one after another on a quiet tree", "models": ["all"], "status": "done", "started": "2026-09-23T21:02:24.486Z", "finished": "2026-09-24T00:22:49.937Z" },
     { "name": "Models · last eight", "brief": "Fix package's badge contrast; rule the seven motion flags", "models": [], "status": "done", "started": "2026-09-24T00:24:20.555Z", "finished": "2026-09-24T01:00:22.232Z" },
     { "name": "Ledger UI · one unbroken wave", "brief": "The waveform crosses the joins without a break", "models": [], "status": "done", "started": "2026-09-24T00:30:13.424Z", "finished": "2026-09-24T01:17:58.594Z" },
-    { "name": "Release · checklist", "brief": "Every item proven, with capped runs", "models": [], "status": "done", "started": "2026-09-24T01:51:22.683Z", "finished": "2026-09-24T02:10:15.222Z" }
+    { "name": "Release · checklist", "brief": "Every item proven, with capped runs", "models": [], "status": "done", "started": "2026-09-24T01:51:22.683Z", "finished": "2026-09-24T02:10:15.222Z" },
+    { "name": "Release checklist: every proof a script can run", "brief": "generate, tsc, build, qa, seo, media, snippets, preview, compare, exports at the defaults, then the gate", "models": ["all"], "status": "done", "started": "2026-09-24T03:18:10.622Z", "finished": "2026-09-24T06:55:11.569Z" },
+    { "name": "The gate over all 135", "brief": "npm run verify: contract, QA, same-on-every-surface, share previews, and the export matrix on its eight sample models. The batch before it ran generate, tsc, build, qa, seo, media, snippets, preview, compare and the exports at the defaults; a memory guard stopped that batch at 12:02 and the gate was restarted at 13:51 on its own.", "models": ["all"], "status": "running", "started": "2026-09-24T06:55:12.414Z" }
   ]
 }

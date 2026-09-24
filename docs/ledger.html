@@ -1480,15 +1480,11 @@ table.mini code { font-size: 12px; }
 .leadtab__c { writing-mode: vertical-rl; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--warm); }
 #lead-body[hidden] { display: none; }
 /* narrow: the record is a block under the table, so it slides right and closes the space it leaves */
-/* One property moves: transform. Nothing here animates a width, a height or a margin, so no frame of
-   the slide costs a reflow. The panel is promoted to its own layer for the two-tenths of a second it is
-   moving and dropped again the moment it lands. The column opens or closes in one step while the panel
-   is out of sight, so the table's width changes once rather than being dragged along with it. */
-.split > .lead { transition: transform 0.2s cubic-bezier(0.32, 0.9, 0.3, 1); }
-.split.lead-move > .lead { will-change: transform; }
+/* Nothing moves: the panel is either there or it is not, and the table's column closes in the same
+   frame. It used to slide for two tenths of a second with the column following it, which read as lag on
+   a page that redraws itself whenever the watcher rebuilds. */
 .split.lead-out > .lead { transform: translateX(calc(100% + 26px)); pointer-events: none; }
 .split.lead-away > .lead { display: none; }
-@media (prefers-reduced-motion: reduce) { .split > .lead { transition: none; } }
 /* wide screens: the lead's record beside the table, in view while the table scrolls */
 @media (min-width: 1100px) {
   .split { display: grid; grid-template-columns: minmax(0, 1fr) var(--lead-col, clamp(300px, 26vw, 380px)); gap: 18px; align-items: start; }
@@ -3898,8 +3894,6 @@ table.mini code { font-size: 12px; }
      away rides the panel's own outer edge -- it is a child of the panel, so it travels with it and can
      never be left behind at a coordinate that was true a scroll ago. While the record is away, the one
      that brings it back is fixed to the window's right edge, and it is the only thing there. */
-  const SLIDE_MS = 200;
-  let leadTimer = 0;
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   function leadAria() {
     const sec = $('leadpanel'), tab = $('lead-tab'), hide = $('lead-hide');
@@ -3910,36 +3904,19 @@ table.mini code { font-size: 12px; }
     hide.setAttribute('aria-expanded', 'true');
     leadCounts();
   }
+  /* The record goes and the table takes its place in the same frame. It used to slide out over two
+     tenths of a second and the column closed after it landed, so the two happened one after the other
+     and the table jumped when the panel was already gone. One class, one layout, no timer: on a page
+     that is redrawing itself from a watcher, a toggle reads as quick and a slide reads as lag. */
   function setLead(open) {
     const split = $('leadpanel').closest('.split');
     if (!split) return;
     leadOpen = open;
     try { localStorage.setItem(LEAD_KEY, open ? '1' : '0'); } catch {}
-    clearTimeout(leadTimer);
-    // the handle that brings it back goes the instant it starts coming back, not when it arrives
-    $('lead-tab').hidden = true;
-    if (!open) {
-      split.classList.add('lead-move', 'lead-out');
-      const land = () => { split.classList.remove('lead-move'); split.classList.add('lead-away'); leadAria(); stickyOffsets(); };
-      if (reduced()) land(); else leadTimer = setTimeout(land, SLIDE_MS + 20);
-    } else {
-      /* the column opens while the panel is still out of sight, so the table's width changes once, in
-         one step, instead of being animated -- and nothing is mid-flight over the rows while it does */
-      split.classList.remove('lead-away');
-      split.classList.add('lead-move');
-      const land = () => { split.classList.remove('lead-move'); leadAria(); stickyOffsets(); };
-      if (reduced()) { split.classList.remove('lead-out'); land(); }
-      else {
-        /* The column opening is one layout, and it has to be done before the panel can start moving --
-           the panel is display:none until it is. Asking for it here, in the same tick, costs one long
-           frame at the press and none afterwards; waiting a frame or two for it instead would leave the
-           press feeling dead and put that same layout in the middle of the slide. */
-        void $('leadpanel').offsetWidth;
-        split.classList.remove('lead-out');
-        leadTimer = setTimeout(land, SLIDE_MS + 40);
-      }
-    }
-    $('lead-hide').hidden = !open;
+    split.classList.toggle('lead-out', !open);
+    split.classList.toggle('lead-away', !open);
+    leadAria();
+    stickyOffsets();
   }
   $('lead-hide').addEventListener('click', () => { setLead(false); $('lead-tab').focus({ preventScroll: true }); });
   $('lead-tab').addEventListener('click', () => { setLead(true); $('lead-hide').focus({ preventScroll: true }); });
