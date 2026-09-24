@@ -1251,9 +1251,6 @@ button, input { font: inherit; color: inherit; }
 .bdpill--rel { border-style: dashed; font-style: italic; }
 .bdpill--rel b { color: var(--muted); }
 .bd__note { font-size: 12px; color: var(--muted); font-style: italic; }
-/* what a pass count does not cover, next to the count itself: warm rather than muted, because a
-   scope that reads as a footnote is a scope nobody reads, and this one changes what the count means */
-.bdscope { color: var(--warm); }
 @media (max-width: 600px) { .bd li { grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr) 4ch; gap: 4px 8px; } .bd__under { grid-column: 1 / -1; } }
 
 /* running check */
@@ -3796,11 +3793,6 @@ table.mini code { font-size: 12px; }
       // pill beside the bar, reading as the last release's state. The bar itself does not move.
       const relc = !c.captured ? L.release?.checks?.[c.key] : null;
       const relPill = relc && relc.reported ? `<span class="bdpill bdpill--rel" data-tip data-tiptext="${esc(`From ${L.release.file}, the committed state at commit ${L.release.head}${L.release.takenAt ? `, taken ${new Date(L.release.takenAt).toLocaleString()}` : ''}. ${relc.pass} of ${relc.of} models passed ${c.short} then${relc.unknown ? `, and ${relc.unknown} model(s) here were not in it` : ''}${relc.ruleChanged ? `; judged under rule v${relc.ruleVersion}, and the rule is v${relc.ruleNow} now` : ''}. Nothing has been captured on this machine, so the bar above stays "not run yet".`)}">at the last release <b>${relc.pass}/${relc.of}</b>${relc.ruleChanged ? ' · older rule' : ''}</span>` : '';
-      // What a check's pass count does NOT cover, said on the bar rather than behind the disclosure:
-      // "Export 135 of 135 models pass" read as every setting on every model, when 127 of them were
-      // only ever tried at the dialog's defaults. It is PLAIN TEXT here because `status` is rendered
-      // through esc() and read out as an aria-label; the styled copy is built in the markup below.
-      const scopeText = c.coverage ? ` — ${c.coverage}` : '';
       const status = !c.captured && !run ? `not run yet (0 of ${total} ${unit})` : `${t.pass} of ${total} ${unit} pass${kinds ? ` (${kinds})` : ''}${c.listed ? ` · ${c.listed} of them with listed findings (waived or the model's own text, not failed)` : ''}${c.lastRun?.finishedAt ? ` · last run ${new Date(c.lastRun.finishedAt).toLocaleString()}${c.lastRun.commit ? ` at ${c.lastRun.commit}` : ''}` : ''}`;
       const runChip = run ? `<span class="chip ${run.alive === false ? 's-bad' : 's-chk'}">${run.alive === false ? 'stopped' : 'running'} ${esc(run.done)} of ${run.total ?? '?'}</span>` : '';
       // a segment a blocker covers is a button: it filters the table to those models, as the blocker does
@@ -3819,8 +3811,8 @@ table.mini code { font-size: 12px; }
       // the same panel "Running now" draws, off the same record: while this check runs it says so
       // here too, and when the run ends the counts it left stay
       const ssRun = L.running?.[c.key] ?? null;
-      return `<li><button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button>${bar}<b class="bd__n" aria-label="${esc(status + scopeText)}">${t.pass}/${total}</b>
-        <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}${c.coverage ? `<span class="bdscope"> — ${esc(c.coverage)}</span>` : ''}</span>${pills}${relPill}${ssBtn}</span>${ssOpened ? ssPanel(c, ssId, ssRun) : ''}</li>`;
+      return `<li><button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
+        <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}</span>${pills}${relPill}${ssBtn}</span>${ssOpened ? ssPanel(c, ssId, ssRun) : ''}</li>`;
     }).join('')}</ul>`;
   }
   function renderCheckBars() {
