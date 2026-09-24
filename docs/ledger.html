@@ -361,6 +361,11 @@ button, input { font: inherit; color: inherit; }
 .runcard { padding: 12px 14px; }
 .runcard[hidden] { display: none; }
 .runcard .bd { margin: 0; }
+/* A check is called "contract"; a run is called "The gate over all 135". The name column here is the
+   width of the words, up to a third of the card, instead of the 7.5em a check's name needs. */
+.runcard .bd li { grid-template-columns: minmax(0, clamp(9em, 22%, 20em)) minmax(0, 1fr) 4ch; }
+.runcard .bd__under { grid-column: 2 / -1; }
+.runcard .ssbox { grid-column: 1 / -1; }
 .ckname--run { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; color: var(--text); background: none; border: 0; padding: 0; }
 .runline__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--st-chk); box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-chk) 22%, transparent); }
 .runcard.is-stale .runline__dot { background: var(--muted); box-shadow: none; }
@@ -2193,7 +2198,9 @@ table.mini code { font-size: 12px; }
     // aria-expanded on hover, so the attribute is not this disclosure's alone
     ssOpen[id] = !ssIsOpen(id);
     ssSave();
-    if (id.startsWith('run:')) renderRunning(); else { renderStage(); renderCheckBars(); }
+    if (id === RUN_SS) renderRunLine();
+    else if (id.startsWith('run:')) renderRunning();
+    else { renderStage(); renderCheckBars(); }
     document.querySelector(`[data-ss="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
   });
 
@@ -3938,6 +3945,7 @@ table.mini code { font-size: 12px; }
   });
   /* The line over the arrows: the one running item, its own progress line, and when it said it.
      "4 of 10 shards done" is read for the bar; if a line says nothing countable there is no bar. */
+  const RUN_SS = 'runline';
   function renderRunLine() {
     const el = $('runline');
     if (!el) return;
@@ -3948,6 +3956,7 @@ table.mini code { font-size: 12px; }
     const said = i.progressAt ? Date.parse(i.progressAt) : null;
     const old = said ? Date.now() - said > 6 * 60000 : false;
     const m = /([0-9]+)[ ]+of[ ]+([0-9]+)[ ]+shards?[ ]+done/i.exec(i.progress ?? '');
+    const open = ssIsOpen(RUN_SS, false);
     const pct = m ? Math.min(100, (100 * Number(m[1])) / Math.max(1, Number(m[2]))) : null;
     el.hidden = false;
     el.classList.toggle('is-stale', old);
@@ -3963,7 +3972,16 @@ table.mini code { font-size: 12px; }
       ${bar}<b class="bd__n">${m ? `${done}/${of}` : '—'}</b>
       <span class="bd__under"><span class="bd__note" style="font-style:normal">${i.progress ? esc(i.progress) : 'running; it has not said where it has got to'}</span>
         <span class="bdpill">${i.progressAt ? `said ${agoSpan(i.progressAt)}` : `started ${agoSpan(i.started)}`}</span>
-        <span class="bdpill">reported, not measured</span></span>
+        <span class="bdpill">reported, not measured</span>${ssToggle(RUN_SS, open ? 'hide what it is doing' : 'what it is doing', open)}</span>
+      ${open ? `<div class="ssbox" id="ss-${RUN_SS}">
+        <p class="ss__t">What it says it is running</p>
+        <p>${i.brief ? esc(i.brief) : 'It reported no description of the work.'}</p>
+        <p class="ss__t">Where it has got to</p>
+        <p>${i.progress ? esc(i.progress) : 'It has not said.'}${i.progressAt ? ` — said ${agoSpan(i.progressAt)}` : ''}</p>
+        <p class="ss__t">Since</p>
+        <p>${i.started ? `Started ${when(i.started)}.` : 'No start time was recorded.'}${Array.isArray(i.models) && i.models.length ? ` Reported against: ${i.models.map((x) => esc(x)).join(', ')}.` : ''}</p>
+        <p class="muted">None of this is measured. It is what the run writes through <code>npm run queue -- progress</code>; the bars under the strip are the measurements. The run's own output is in <code>.media-tmp/runs/</code>.</p>
+      </div>` : ''}
     </li></ul>`;
   }
 
