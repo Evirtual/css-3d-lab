@@ -1082,6 +1082,7 @@ button, input { font: inherit; color: inherit; }
 .tally__ok { color: var(--accent-2); font-weight: 650; cursor: help; border-bottom: 1px dotted currentColor; }
 .tally.bad { padding: 8px 12px; border: 2px solid var(--hot); border-radius: 10px; background: color-mix(in srgb, var(--hot) 16%, var(--surface-solid)); color: var(--text); font-size: 15px; }
 .tally.bad .tick { color: var(--hot); font-weight: 900; font-size: 18px; }
+.ovsub[hidden] { display: none; }
 .ovsub { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; margin: 22px 0 8px; }
 .ovsub h3 { margin: 0; }
 .ovsub p { margin: 0; font-size: 13px; color: var(--muted); max-width: 80ch; }
@@ -1867,7 +1868,6 @@ table.mini code { font-size: 12px; }
       <div class="head__acts"><button type="button" class="linkish" id="rules-btn" aria-haspopup="dialog">How these are counted</button><button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" hidden></button></div>
       <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
     </div>
-    <p class="headline" id="headline">Loading…</p>
     <p class="tally" id="balance" role="status"></p>
     <!-- the four stages are tabs: exactly one is selected, and its panel is right under them -->
     <div class="flowwrap" id="stats"></div>
@@ -2733,7 +2733,6 @@ table.mini code { font-size: 12px; }
     const parts = [];
     if (ch) parts.push(`<b>${ch}</b> ${ch === 1 ? 'has' : 'have'} every check clear and ${ch === 1 ? 'waits' : 'wait'} for review`);
     if (cv) parts.push(`<b>${cv}</b> ${cv === 1 ? 'is' : 'are'} held by a check`);
-    $('headline').innerHTML = ap === n ? `All <b>${n}</b> models approved.` : `<b>${ap}</b> of <b>${n}</b> models approved.${parts.length ? ` ${parts.join('; ')}.` : ''}`;
 
     // the accounting: every model in exactly one state; the sum itself is one hover away
     const buckets = c.buckets ?? STATUS.map((s) => ({ key: s.key, label: s.long, count: by(s.key) }));
@@ -2782,7 +2781,12 @@ table.mini code { font-size: 12px; }
   function renderRunning() {
     const runs = Object.entries(L.running ?? {}).filter(([, p]) => p);
     $('run-note').innerHTML = runs.length ? `From each check's result file, as the ledger built ${agoSpan(L.generatedAt)} read it.` : '';
-    if (!runs.length) { $('runnow').innerHTML = '<p class="muted" style="font-size:14px;margin:0">No check is running now.</p>'; return; }
+    /* Nothing running is the normal state, and a heading over a sentence saying so is a row of the
+       page spent on no news: the heading goes with it. */
+    const head = document.querySelector('.ovsub--run');
+    if (head) head.hidden = !runs.length;
+    $('runnow').hidden = !runs.length;
+    if (!runs.length) { $('runnow').innerHTML = ''; return; }
     $('runnow').innerHTML = `<ul class="runs">${runs.map(([key, p]) => {
       const title = CHECK_NAMES[key] ?? key, short = CHECK_LIST.find((c) => c.key === key)?.short ?? key;
       const gone = p.alive === false;
