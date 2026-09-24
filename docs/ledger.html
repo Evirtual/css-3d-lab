@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>View-contract ledger</title>
+<title>Ledger</title>
 <script>
 /* Served by the Vite dev server, this page gets Vite's client, which reloads EVERY open page when
    any model file changes (a full-reload with no page named). This page refreshes its own data,
@@ -62,7 +62,7 @@
     --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
     --grid: rgb(40 50 120 / 0.034);
     --text: #14172b; --muted: #5a6188;
-    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--accent) 74%, #120030); --ok-tick: color-mix(in srgb, var(--accent) 68%, #120030); --ok-tint: color-mix(in srgb, var(--accent) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--accent) 19%, transparent); --ok-rim: color-mix(in srgb, var(--accent) 52%, transparent); --ok-ring: color-mix(in srgb, var(--accent) 15%, transparent); --ok-gloss: color-mix(in srgb, #fff 62%, transparent); --ok-sweep: #fff;
+    --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--warm) 52%, #120030); --ok-tick: color-mix(in srgb, var(--warm) 48%, #120030); --ok-tint: color-mix(in srgb, var(--warm) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--warm) 19%, transparent); --ok-rim: color-mix(in srgb, var(--warm) 52%, transparent); --ok-ring: color-mix(in srgb, var(--warm) 15%, transparent); --ok-gloss: color-mix(in srgb, #fff 62%, transparent); --ok-sweep: #fff;
     --code-bg: #e8eafa;
     --glass: rgb(255 255 255 / 0.7); --glass-edge: rgb(255 255 255 / 0.85); --glass-dim: rgb(30 34 70 / 0.4);
     --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
@@ -75,7 +75,7 @@
   --border: rgb(40 50 120 / 0.13); --border-strong: rgb(40 50 120 / 0.3);
   --grid: rgb(40 50 120 / 0.034);
   --text: #14172b; --muted: #5a6188;
-  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--accent) 74%, #120030); --ok-tick: color-mix(in srgb, var(--accent) 68%, #120030); --ok-tint: color-mix(in srgb, var(--accent) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--accent) 19%, transparent); --ok-rim: color-mix(in srgb, var(--accent) 52%, transparent); --ok-ring: color-mix(in srgb, var(--accent) 15%, transparent); --ok-gloss: color-mix(in srgb, #fff 62%, transparent); --ok-sweep: #fff;
+  --accent: #6a45f5; --accent-2: #0aa99c; --hot: #e0257a; --warm: #c97a00; --good: oklch(0.60 0.118 166); --ok-ink: color-mix(in srgb, var(--warm) 52%, #120030); --ok-tick: color-mix(in srgb, var(--warm) 48%, #120030); --ok-tint: color-mix(in srgb, var(--warm) 32%, transparent); --ok-tint-2: color-mix(in srgb, var(--warm) 19%, transparent); --ok-rim: color-mix(in srgb, var(--warm) 52%, transparent); --ok-ring: color-mix(in srgb, var(--warm) 15%, transparent); --ok-gloss: color-mix(in srgb, #fff 62%, transparent); --ok-sweep: #fff;
   --code-bg: #e8eafa;
   --glass: rgb(255 255 255 / 0.7); --glass-edge: rgb(255 255 255 / 0.85); --glass-dim: rgb(30 34 70 / 0.4);
   --shadow: 0 20px 50px -24px rgb(40 50 120 / 0.35);
@@ -86,24 +86,26 @@
   --st-none: var(--muted);
   --st-conv: var(--accent);
   --st-chk: var(--accent-2);
-  /* Approved wears the site's violet. The group bars still take the full violet-to-pink brand gradient;
-     the pill itself is a tag -- a fill of the violet with violet ink -- so the label is one step off the
-     violet the tick uses, lightened in dark and deepened in light until it clears 4.5:1 over that fill.
+  /* Approved wears the amber of the gate it comes out of. The strip ramps violet to pink to amber, and
+     amber is where a model ends up, so the tag in the row is the same colour as the arrow that counted
+     it -- the page says "approved" in one hue, in both places. The pill is a tag: a fill of the amber
+     with amber ink, the label one step off the amber the tick uses, lightened in dark and deepened in
+     light until it clears 4.5:1 over that fill.
      APPROVED IS THE STRONGEST THING IN ITS ROW, because it is the one word in it that says the model is
      finished; a row of teal marks says which checks passed, which is how it got there. So the fill is
-     the full violet at --ok-tint, falling to --ok-tint-2 across the tag, and the ink and the tick are
+     the full amber at --ok-tint, falling to --ok-tint-2 across the tag, and the ink and the tick are
      each set against the DEEPER of those two ends -- the top-left corner -- so no part of the label is
      ever measured against a tone it does not sit on. */
   --st-ok: linear-gradient(120deg, var(--accent), var(--hot));
-  --ok-tint: color-mix(in srgb, var(--accent) 36%, transparent);
-  --ok-tint-2: color-mix(in srgb, var(--accent) 22%, transparent);
-  --ok-rim: color-mix(in srgb, var(--accent) 62%, transparent);
-  --ok-ring: color-mix(in srgb, var(--accent) 20%, transparent);
+  --ok-tint: color-mix(in srgb, var(--warm) 36%, transparent);
+  --ok-tint-2: color-mix(in srgb, var(--warm) 22%, transparent);
+  --ok-rim: color-mix(in srgb, var(--warm) 62%, transparent);
+  --ok-ring: color-mix(in srgb, var(--warm) 20%, transparent);
   --ok-gloss: color-mix(in srgb, #fff 13%, transparent);
-  --ok-ink: color-mix(in srgb, var(--accent) 46%, #fff);
-  --ok-tick: color-mix(in srgb, var(--accent) 60%, #fff);
+  --ok-ink: color-mix(in srgb, var(--warm) 46%, #fff);
+  --ok-tick: color-mix(in srgb, var(--warm) 60%, #fff);
   /* the sweep always moves the tint away from the ink: lighter under pale ink, paler under dark ink */
-  --ok-sweep: var(--accent);
+  --ok-sweep: var(--warm);
   --st-bad: var(--hot);
   --st-warn: var(--warm);
 }
@@ -464,8 +466,10 @@ button, input { font: inherit; color: inherit; }
   position: absolute; inset: 0;
   background: linear-gradient(180deg, var(--sw-sun-1), var(--sw-sun-2));
   clip-path: circle(23px at 50% 23px);
-  -webkit-mask-image: linear-gradient(180deg, #000 42%, transparent 42% 47%, #000 47% 61%, transparent 61% 66%, #000 66% 78%, transparent 78% 84%, #000 84%);
-  mask-image: linear-gradient(180deg, #000 42%, transparent 42% 47%, #000 47% 61%, transparent 61% 66%, #000 66% 78%, transparent 78% 84%, #000 84%);
+  /* The slices thin out downward and the last one is a gap, not a band: a solid bottom made the disc
+     end in a brick sitting on the horizon instead of dissolving into it. */
+  -webkit-mask-image: linear-gradient(180deg, #000 44%, transparent 44% 50%, #000 50% 63%, transparent 63% 70%, #000 70% 80%, transparent 80% 88%, #000 88% 95%, transparent 95%);
+  mask-image: linear-gradient(180deg, #000 44%, transparent 44% 50%, #000 50% 63%, transparent 63% 70%, #000 70% 80%, transparent 80% 88%, #000 88% 95%, transparent 95%);
 }
 .sw__sun::before {
   content: ''; position: absolute; left: -34px; right: -44px; top: -30px; bottom: -12px;
@@ -476,10 +480,15 @@ button, input { font: inherit; color: inherit; }
   opacity: calc(0.4 + 0.6 * var(--ch3, 0));
 }
 @keyframes swbreathe { from { opacity: calc(0.32 + 0.46 * var(--ch3, 0)); } to { opacity: calc(0.4 + 0.6 * var(--ch3, 0)); } }
-/* the reflection: the same warm light lying on the deck, narrow and fading downward */
+/* the reflection: the same warm light lying on the deck, fading downward AND at both sides. Without
+   the side mask it is a rectangle with two hard vertical edges standing under the sun -- light on water
+   has no straight sides. The mask takes it to nothing by the edges, so what is left is a column of
+   light with the deck showing through it. */
 .sw__sun::after {
-  content: ''; position: absolute; left: 50%; top: 100%; width: 22px; height: var(--deck); translate: -50% 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--warm) 44%, transparent), transparent 84%);
+  content: ''; position: absolute; left: 50%; top: 100%; width: 30px; height: var(--deck); translate: -50% 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--warm) 40%, transparent), transparent 84%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 34%, #000 66%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 34%, #000 66%, transparent 100%);
   opacity: calc(0.34 + 0.66 * var(--ch3, 0));
 }
 /* ---------- the wave ----------
@@ -1818,7 +1827,7 @@ table.mini code { font-size: 12px; }
   <header class="hero">
     <div class="top">
       <span class="eyebrow">CSS 3D Lab · progress</span>
-      <h1>View-contract <span>ledger</span></h1>
+      <h1><span>Ledger</span></h1>
       <div class="hero__btns">
         <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" hidden>What’s holding models back</button>
         <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" hidden>Release checklist</button>
