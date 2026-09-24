@@ -1078,7 +1078,7 @@ button, input { font: inherit; color: inherit; }
 .pillbtn[aria-pressed="true"] { border-color: var(--accent-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent-2); }
 .pillbtn { padding: 1px 8px; font-size: 11.5px; }
 .sw { flex: none; display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
-.tally { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.tally { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: 0; font-size: 13px; color: var(--muted); }
 .tally__ok { color: var(--accent-2); font-weight: 650; cursor: help; border-bottom: 1px dotted currentColor; }
 .tally.bad { padding: 8px 12px; border: 2px solid var(--hot); border-radius: 10px; background: color-mix(in srgb, var(--hot) 16%, var(--surface-solid)); color: var(--text); font-size: 15px; }
 .tally.bad .tick { color: var(--hot); font-weight: 900; font-size: 18px; }
@@ -1865,10 +1865,10 @@ table.mini code { font-size: 12px; }
        over it only repeated that in weaker words. The section keeps its name for a screen reader. -->
   <section class="panel" aria-label="Where the release stands">
     <div class="head notes-anchor">
+      <p class="tally" id="balance" role="status"></p>
       <div class="head__acts"><button type="button" class="linkish" id="rules-btn" aria-haspopup="dialog">How these are counted</button><button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" hidden></button></div>
       <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
     </div>
-    <p class="tally" id="balance" role="status"></p>
     <!-- the four stages are tabs: exactly one is selected, and its panel is right under them -->
     <div class="flowwrap" id="stats"></div>
     <!-- what is running now: first thing under the stages, where it is seen -->
