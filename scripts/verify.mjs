@@ -15,7 +15,12 @@
  *   qa             scripts/qa.mjs             page errors, and whether the badge's interaction does anything
  *                                             (on the BUILT site, so the site is built first)
  *   check-stages   scripts/check-stages.mjs   the same model on every surface and export shape
- *   check-exports  scripts/check-exports.mjs  recordings and snapshots at every setting (only if the file exists)
+ *   check-exports  scripts/check-exports.mjs  recordings and snapshots at every setting, ON ITS EIGHT
+ *                                             SAMPLE MODELS: every setting is ~38 minutes a model, so
+ *                                             all 135 would be over 40 hours at this cap. Every model
+ *                                             is covered at the dialog's defaults by
+ *                                             `npm run capture -- exports --defaults`, recorded per
+ *                                             model in the ledger (only if the file exists)
  *   check-media    scripts/check-media.mjs    each model's share preview: image, tags, headline, picture
  *                                             (on the BUILT site, after its images are made with
  *                                             generate-media, which this runs for the models checked)
@@ -179,17 +184,25 @@ const CHECKS = [
     script: 'scripts/check-exports.mjs',
     fast: false,
     args: [],
-    perModel: true,
+    // THE SAMPLE, NOT ALL 135. Every setting the dialog offers takes about 38 minutes a model, so
+    // all of them would be over 40 hours at this cap -- a gate nobody can run is not a gate. The
+    // sample is check-exports' own eight models, split over the shards; every model's exports are
+    // covered at the dialog's defaults by `npm run capture -- exports --defaults`, whose results
+    // the ledger holds per model. That pair is what RELEASE-CHECKLIST.md asks for.
+    sample: ['candles', 'dice', 'paycard', 'cube', 'browser', 'coverflow', 'switch', 'starfield'],
     needsService: true,
-    // `N mismatches in X min:` then `  <id> <check> <what>: <detail>  [fault]`; `not testable here:`
-    // lists what this browser cannot make, which is not a failure
+    // `N mismatches in X min:` then `  <id> <check> <what>: <detail>  [fault]`. What follows the
+    // failures is NOT failures: `N readings left for a person to look at` are the drifts the file
+    // alone cannot tell from the model's own motion, and `not testable here:` is what this browser
+    // cannot make. Reading either as a failure marked passing models as failed -- `phone` printed
+    // `0 mismatches in 38.2 min` and this called it a failure.
     parse(out, shard) {
       const verdicts = new Map();
       const at = out.search(/^\d+ mismatch(es)? in [\d.]+ min:/m);
       if (at < 0) return { verdicts, finished: false };
       const why = new Map();
       for (const line of out.slice(at).split(/\r?\n/).slice(1)) {
-        if (/^not testable here:/.test(line)) break;
+        if (/^not testable here:/.test(line) || /^\d+ reading/.test(line)) break;
         const m = /^ {2}(\S+)\s+(.*)$/.exec(line);
         if (m && shard.includes(m[1])) why.set(m[1], [...(why.get(m[1]) ?? []), m[2].replace(/\s+/, ' ')]);
       }
@@ -305,7 +318,9 @@ const groups = [];
 for (const c of runnable) {
   if (c.needsBuild && !buildOk) { results.get(c.name).notes.push(`not run: ${buildNote}`); continue; }
   if (c.needsMedia && !mediaOk) { results.get(c.name).notes.push(`not run: ${mediaNote}`); continue; }
-  const shards = c.perModel ? ids.map((id) => [id]) : split(ids, JOBS);
+  // a sampled check judges only the models it names, and says so in the summary
+  const mine = c.sample ? c.sample.filter((id) => ids.includes(id)) : ids;
+  const shards = c.perModel ? mine.map((id) => [id]) : split(mine, JOBS);
   groups.push({ check: c, tasks: shards.map((shard, i) => ({ check: c, shard, n: i + 1, of: shards.length })) });
 }
 let done = 0;
@@ -353,8 +368,9 @@ const badConverted = new Set(), badUnconverted = new Set();
 for (const c of checks) {
   const r = results.get(c.name);
   const ran = r.first ? ` (${clock(r.last - r.first)})` : '';
-  console.log(`\n${c.name}${missing.includes(c) ? ' — MISSING, not run' : ran}`);
-  for (const [label, group] of [['converted', ids.filter((id) => converted.has(id))], ['unconverted', ids.filter((id) => !converted.has(id))]]) {
+  const judged = c.sample ? ids.filter((id) => c.sample.includes(id)) : ids;
+  console.log(`\n${c.name}${missing.includes(c) ? ' — MISSING, not run' : ran}${c.sample ? ` — the sample: ${judged.length} of ${ids.length} models, every setting the dialog offers (the other ${ids.length - judged.length} are covered at the dialog's defaults by npm run capture -- exports --defaults)` : ''}`);
+  for (const [label, group] of [['converted', judged.filter((id) => converted.has(id))], ['unconverted', judged.filter((id) => !converted.has(id))]]) {
     if (!group.length) continue;
     const held = group.filter((id) => r.verdicts.get(id)?.ok);
     const failed = group.filter((id) => r.verdicts.has(id) && !r.verdicts.get(id).ok);
