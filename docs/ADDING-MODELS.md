@@ -168,6 +168,28 @@ node scripts/check-motion.mjs <id> # no flicker or pop through its animation and
 - `npm run build` regenerates every static page, runs `tsc`, and must pass.
 - Commit `src/sitemap-dates.json` if the build changed it.
 
+## Where you watch it get in
+
+The ledger is where a new model becomes a finished one, and it is a local page: `npm run ledger:watch`
+in one terminal, `npm run dev` in another, then <http://localhost:5183/docs/ledger.html>. The README
+section "Running the ledger" has the whole of it; this is only what your model does.
+
+The moment its id exists, the count goes up and your model appears under **To check**, every mark
+reading "not run yet". Nothing is assumed about it. Then:
+
+1. **To check** — until every automated check above has a pass recorded on the code as it is now.
+   The row says which check is missing, and a check you ran without `npm run capture` records
+   nothing: the ledger only reads what was captured.
+2. **Awaiting review** — every check is green, and a person has not looked yet. No check decides
+   whether the 3D is right or whether the motion reads as the thing it is meant to be; that is why
+   this stage exists.
+3. **Approved** — the checks are green on the current code *and* a visual review and a text review
+   are recorded against it in `docs/reviews/`, each with the name of whoever made the ruling.
+
+Edit the model afterwards and its ticks go grey, naming what changed and at which commit: the
+resolved snippet, the files that draw it, its own words, or the rule a check was judged under. Run
+the checks it names again. That loop is the whole system, and it is the same loop whether the model
+was written by a person or handed to an agent.
 ## Its video and picture
 
 Nothing to do: the Video and Image buttons send the live model to the render service (see the
