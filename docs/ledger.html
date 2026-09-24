@@ -341,7 +341,18 @@ button, input { font: inherit; color: inherit; }
    is also how deep the notch is cut into the next arrow. One angle from the top edge to the point and
    the same one back to the bottom, and the notch is that angle's exact negative, so the three
    interlock with nothing to line up by eye. */
-.flowwrap { --notch: 26px; --deck: 28px; margin-top: 16px; position: relative; }
+/* The strip runs wider than the panel it sits in: its point leaves the box on the right and its
+   back leaves it by the same distance on the left, so the arrows read as a road passing through rather
+   than a picture placed inside. The bleed is the panel's own padding plus a little, and it is the only
+   thing here allowed outside that padding. */
+/* The strip runs the full width of the panel, not of its padding: its back sits on the panel's left
+   edge and its point lands on the right one, so the arrows read as a road crossing the card rather
+   than a picture inside it. The bleed is exactly the panel's padding plus its border. */
+/* The strip is wider than the card it sits in: its back stands on the card's left edge and its point
+   carries on past the right one, out to the page's own margin, where the content of every other card
+   ends too. Nothing clips it -- the point leaving the card is the thing being drawn. --gut is the page
+   gutter (main's side padding); --bleed is the card's padding plus its border. */
+.flowwrap { --notch: 26px; --deck: 28px; --bleed: 21px; --gut: 16px; margin-top: 16px; margin-left: calc(-1 * var(--bleed)); margin-right: calc(-1 * (var(--bleed) + var(--gut))); position: relative; }
 .flow { list-style: none; margin: 0; padding: 0; display: flex; }
 .flow__li { position: relative; flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1); }
 .flow__li:first-child { margin-left: 0; }
@@ -1863,7 +1874,7 @@ table.mini code { font-size: 12px; }
 
   <!-- No heading: the headline under it ("All 135 models approved.") says what this is, and a heading
        over it only repeated that in weaker words. The section keeps its name for a screen reader. -->
-  <section class="panel" aria-label="Where the release stands">
+  <section class="panel panel--strip" aria-label="Where the release stands">
     <div class="head notes-anchor">
       <p class="tally" id="balance" role="status"></p>
       <div class="head__acts"><button type="button" class="linkish" id="rules-btn" aria-haspopup="dialog">How these are counted</button><button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" hidden></button></div>
