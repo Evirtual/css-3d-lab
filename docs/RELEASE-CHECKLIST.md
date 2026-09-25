@@ -41,7 +41,7 @@ Whoever is releasing answers them, under their own name — `npm run signoff` wr
 the date, the commit and the name git is configured with, so the record says who said it.
 
 - [x] The person publishing has read the release article and says it is ready — the draft is at `css-3d-lab-ledger-article/article.md` (about 7,100 words, counted at `ee272a1`); "ready" means a person has read it, not that a script has counted its words. It is the same item as *A second article on how the view-contract rewrite was run* under **Article** below, which carries the conditions the article itself must meet. Ticked with `npm run signoff -- article` — signed off by Edgaras Neverdauskas, 2026-09-25, at 6f8f72d
-- [ ] The person publishing has said to push — in their own words, after this list is complete and they have read it. Nothing else here may be read as that permission: not a green ledger, not `GATE HOLDS`, not 57 of 57. The push deploys to the live site (`.github/workflows/deploy.yml`) and is the claim that everything above checked out, so it is theirs to make. Ticked with `npm run signoff -- push`, which refuses while anything else that can be done before the push is still open
+- [x] The person publishing has said to push — in their own words, after this list is complete and they have read it. Nothing else here may be read as that permission: not a green ledger, not `GATE HOLDS`, not 57 of 57. The push deploys to the live site (`.github/workflows/deploy.yml`) and is the claim that everything above checked out, so it is theirs to make. Ticked with `npm run signoff -- push`, which refuses while anything else that can be done before the push is still open — signed off by Edgaras Neverdauskas, 2026-09-25, at c9d3c6f
 
 ## Nothing is lost
 
