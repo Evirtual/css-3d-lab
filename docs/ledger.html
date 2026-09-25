@@ -3827,7 +3827,17 @@ table.mini code { font-size: 12px; }
       ? `Release checklist <small>· proven ${cl.proven} of ${cl.total}, ${cl.notEvaluated} not evaluated${cl.conflicts ? `, <b data-cl-jump="attention" title="Show just these">${cl.conflicts} conflict${cl.conflicts === 1 ? '' : 's'}</b>` : ''}</small>`
       : `Release checklist <small>· ${cl.done} of ${cl.total} ticked (not evaluated: this ledger predates it)</small>`;
     $('cl-sum').innerHTML = evald
-      ? `Of ${cl.total} items: <b>${cl.proven}</b> proven true now, <b>${cl.provenFalse}</b> proven false, <b>${cl.notEvaluated}</b> not evaluated here (slow, networked, or needing a person); ${cl.done} ticked in the file${cl.conflicts ? `, <b>${cl.conflicts}</b> of them contradicted by their proof` : ''}. A tick is a claim; only a proof run here counts as proven. From <code>${esc(cl.file)}</code>, as of the ledger built ${agoSpan(L.generatedAt)}.`
+      // What is LEFT first, because that is the question. The ledger's own accounting follows it,
+      // smaller: leading with "31 proven" over a list where 55 items are finished told a person
+      // about to release that most of their list was outstanding when almost none of it was.
+      ? (() => {
+          const stuck = cl.items.filter((x) => !x.done || x.state === 'conflict' || x.result === 'false');
+          const bad = stuck.filter((x) => x.done);
+          const lead = stuck.length
+            ? `<b>${cl.total - stuck.length} of ${cl.total} done.</b> ${stuck.length} to go${bad.length ? `, ${bad.length} of them ticked but contradicted by their own proof` : ''}.`
+            : `<b>All ${cl.total} done.</b>`;
+          return `${lead} <span class="muted">Of those done, ${cl.proven} were re-proved by this ledger just now; the rest are slow, networked or need a person, and carry what they printed in their own line. A tick is a claim; only a proof run here counts as proven. From <code>${esc(cl.file)}</code>, as of the ledger built ${agoSpan(L.generatedAt)}.</span>`;
+        })()
       : `${cl.done} of ${cl.total} ticked in the file. This ledger was built before items were evaluated.`;
     // Which items to show. "Needs a look" is the one worth opening straight to: an item ticked in
     // the file whose proof disagrees, or one the proof says outright is false. On 2026-09-25 the
@@ -3882,9 +3892,15 @@ table.mini code { font-size: 12px; }
     for (const x of shown) { let g = groups.find((y) => y.name === x.group); if (!g) groups.push((g = { name: x.group, items: [] })); g.items.push(x); }
     if (!shown.length) $('cl-body').innerHTML = `<p class="muted">Nothing under “${esc(pick[1])}”.</p>`;
     else $('cl-body').innerHTML = groups.map((g) => {
-      const p = g.items.filter((x) => x.result === 'true').length;
-      // when a filter is on, say so rather than printing "2 of 2 proven" about a filtered slice
-      const head = clFilter === 'all' ? `· ${p} of ${g.items.length} proven` : `· ${g.items.length} shown of ${cl.items.filter((x) => x.group === g.name).length}`;
+      // COUNT DONE, NOT PROVEN. "The build · 4 of 10 proven" made ten finished items read as four
+      // finished and six outstanding: "proven" is the ledger's word for "I re-ran this myself just
+      // now", and it does not re-run a twenty-second build or a ninety-minute gate on every
+      // rebuild. A group is finished when every item is done and no proof contradicts one, so that
+      // is what the heading says, and anything not finished is named beside it instead of implied.
+      const stuck = g.items.filter((x) => !x.done || x.state === 'conflict' || x.result === 'false');
+      const head = clFilter === 'all'
+        ? (stuck.length ? `· ${g.items.length - stuck.length} of ${g.items.length} done · ${stuck.length} to go` : `· all ${g.items.length} done`)
+        : `· ${g.items.length} shown of ${cl.items.filter((x) => x.group === g.name).length}`;
       return `<h3>${esc(g.name ?? 'Items')} <span class="muted" style="text-transform:none;letter-spacing:0">${head}</span></h3>
       <ul class="cl">${g.items.map((x) => {
         const [label, cls, mark] = CL_STATE[x.state] ?? CL_STATE['not-evaluated'];
