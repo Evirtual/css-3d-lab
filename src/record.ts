@@ -58,6 +58,21 @@ const TAKE_LIMIT = 6 * 1024 * 1024;
 /** How long any video may be. A whole loop below this joins up; anything longer is cut here. */
 export const MAX_SECONDS = 30;
 
+/**
+ * The longest a LIVE take may run, in seconds.
+ *
+ * Deliberately not MAX_SECONDS, though it started as the same number. That constant is the ceiling
+ * on a LOOP, and a loop that is cut short stops joining up -- recordModel reports `loops` by
+ * comparing the model's turn against it, and the dialog tells you when a turn is too long to close.
+ * Lowering the one number would have quietly cost seamless looping on every model that turns in
+ * 15 to 30 seconds, which is a quality the whole project is about.
+ *
+ * A live take has no such geometry to protect: it is you playing with the model, and fifteen
+ * seconds of that is plenty. Halving it halves the most expensive export the dialog can produce --
+ * 900 frames becomes 450 -- and costs nothing at all, because length is not fidelity.
+ */
+export const MAX_LIVE_SECONDS = 15;
+
 /** Is there any way to encode a video in this browser? */
 export const canRecord = (): boolean => typeof VideoEncoder !== 'undefined' && typeof createImageBitmap !== 'undefined';
 
@@ -457,7 +472,7 @@ export interface LiveOptions extends Omit<RecordOptions, 'onProgress' | 'signal'
  * play back in lurches. Every pose is kept with the moment it was taken, and the video is written
  * at a steady 30 frames a second from those, each pose held until the next one was sampled.
  */
-export async function recordLive({ stage, ratio, backdrop, look, quality = 1080, seconds = MAX_SECONDS, onTick, onProgress, stop, lookNow }: LiveOptions): Promise<Recording> {
+export async function recordLive({ stage, ratio, backdrop, look, quality = 1080, seconds = MAX_LIVE_SECONDS, onTick, onProgress, stop, lookNow }: LiveOptions): Promise<Recording> {
   const size = frameSize(ratio, quality);
   const source = captureSource(stage);
   await ensureCaptureFonts();
@@ -487,7 +502,7 @@ export async function recordLive({ stage, ratio, backdrop, look, quality = 1080,
     }
     onTick?.(Math.min(seconds, (performance.now() - start) / 1000), poses.length);
     // the whole take goes to the render service in one piece, and that has a size limit
-    if (poses.length >= MAX_SECONDS * FPS || kept > TAKE_LIMIT) break;
+    if (poses.length >= MAX_LIVE_SECONDS * FPS || kept > TAKE_LIMIT) break;
     // Sampling never takes more than half the time, so the model stays smooth to play with.
     await wait(Math.max(1000 / FPS - cost, cost));
   }
@@ -500,7 +515,7 @@ export async function recordLive({ stage, ratio, backdrop, look, quality = 1080,
   const canvas = document.createElement('canvas');
   canvas.width = size.width; canvas.height = size.height;
   const ctx = canvas.getContext('2d')!;
-  const count = Math.min(MAX_SECONDS * FPS, Math.max(1, Math.round((took / 1000) * FPS)));
+  const count = Math.min(MAX_LIVE_SECONDS * FPS, Math.max(1, Math.round((took / 1000) * FPS)));
   let index = 0, written = 0;
   try {
     for await (const bitmap of renderedFrames({ ...scene, poses }, scale, poses.length, undefined, backdrop === 'transparent' ? 'png' : 'webp')) {

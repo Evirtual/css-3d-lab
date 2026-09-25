@@ -6,6 +6,7 @@ import {
   canRecordClear,
   captureImage,
   frameFor,
+  MAX_LIVE_SECONDS,
   MAX_SECONDS,
   motionSeconds,
   mp4Qualities,
@@ -533,7 +534,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       const height = aspect >= 1 ? chosen().quality : even(chosen().quality / aspect);
       const wrapper = backdrop() === 'transparent' ? 'WebM, see-through' : 'MP4';
       const turn = stage ? motionSeconds(stage) : 0;
-      const length = chosen().motion === 'live' ? `up to ${MAX_SECONDS}s, you decide` : turn ? `${Math.min(turn, MAX_SECONDS).toFixed(1)}s of loop` : 'this model has no loop';
+      const length = chosen().motion === 'live' ? `up to ${MAX_LIVE_SECONDS}s, you decide` : turn ? `${Math.min(turn, MAX_SECONDS).toFixed(1)}s of loop` : 'this model has no loop';
       return `${width} × ${height} · ${wrapper} · ${length}${tooBigNote({ width, height })}`;
     }
     if (kind === 'image') {
@@ -603,7 +604,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     if (kind === 'video') {
       note(
         chosen().motion === 'live'
-          ? `Play with the model; it is filmed as you go, up to ${MAX_SECONDS}s.`
+          ? `Play with the model; it is filmed as you go, up to ${MAX_LIVE_SECONDS}s.`
           : 'One full turn, every frame drawn, starting from this pose.',
       );
     } else if (kind === 'image') {
@@ -783,11 +784,11 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
             backdrop: backdrop(),
             look: paintNow(),
             lookNow: () => paintNow(),
-            seconds: MAX_SECONDS,
+            seconds: MAX_LIVE_SECONDS,
             stop: stopper.signal,
             onTick: (seconds) => {
-              mine.progress = Math.min(1, seconds / MAX_SECONDS);
-              working(`Recording ${seconds.toFixed(1)}s of ${MAX_SECONDS}`);
+              mine.progress = Math.min(1, seconds / MAX_LIVE_SECONDS);
+              working(`Recording ${seconds.toFixed(1)}s of ${MAX_LIVE_SECONDS}`);
               pill?.style.setProperty('--done', String(mine.progress));
             },
             // the take is drawn once the recording has stopped, which is the part that takes time
