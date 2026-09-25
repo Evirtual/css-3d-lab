@@ -63,7 +63,7 @@ const itemNo = (key) => {
   return i < 0 ? null : i + 1;
 };
 const ITEM = {
-  fourK: '4K video is held back',
+  fourK: '4K is not offered at all while the render service cannot draw it',
   names: 'Every file the dialog hands out is named after its model',
   zoom: 'View zoom is gone from the editing view',
 };
@@ -124,18 +124,18 @@ if (dialogUp) {
   /* ------------------------------------------------------------ 40: the 4K chip */
   const quality = await page.evaluate(() => {
     const chips = [...document.querySelectorAll('.maker button, .maker [data-value], .maker label')]
-      .filter((el) => /\b(480|720|1080|2160|4K)\b/i.test(el.textContent || ''));
+      .filter((el) => /(^|[^0-9])(480|720|1080|2160|4K)(p|\b)/i.test(el.textContent || ''));
     return chips.map((el) => ({
       text: (el.textContent || '').replace(/\s+/g, ' ').trim(),
       disabled: el.disabled === true || el.getAttribute('aria-disabled') === 'true' || el.hasAttribute('disabled'),
       title: el.title || el.getAttribute('data-tip-text') || el.getAttribute('data-tiptext') || el.closest('[title]')?.title || null,
     }));
   });
+  // 4K is not offered while FOUR_K is false, so the Quality group has three chips and none of them
+  // mentions it. A faded chip explaining a feature that does not exist was worse than its absence.
   const fourK = quality.find((c) => /4K|2160/i.test(c.text));
-  say('fourK', Boolean(fourK), 'a fourth Quality chip for 4K is shown', fourK ? `"${fourK.text}"` : `only: ${quality.map((c) => c.text).join(' | ')}`);
-  say('fourK', Boolean(fourK && /coming later/i.test(fourK.text)), 'it reads "coming later"', fourK?.text);
-  say('fourK', Boolean(fourK && fourK.disabled), 'it is unpickable', fourK ? `disabled=${fourK.disabled}` : 'n/a');
-  say('fourK', Boolean(fourK && /paid tier/i.test(fourK.title || '')), 'its tooltip gives the reason', fourK?.title ? `"${fourK.title.slice(0, 90)}…"` : 'no tooltip read');
+  say('fourK', !fourK, 'no 4K chip is offered while the feature is off', fourK ? `still there: "${fourK.text}"` : `Quality offers only: ${quality.map((c) => c.text).join(' | ')}`);
+  say('fourK', quality.length === 3, 'the Quality group has its three real choices', `${quality.length} chip(s)`);
 
   /* ------------------------------------------------------------ 41: the names */
   // The dialog takes the picture and then offers it: [data-go] ("Take the picture") makes the file

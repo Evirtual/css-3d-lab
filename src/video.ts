@@ -96,15 +96,17 @@ const VIDEO_SHAPES: Choice<Ratio>[] = [
  * 2160p row all read it from here, and a size the dialog shows disabled is not asked for a file.
  */
 export const FOUR_K = false;
-const FOUR_K_WHY = 'The render service that draws the frames needs a paid tier before it can hold a 4K film; 1080p is the largest for now.';
+// Why 4K is off: The render service that draws the frames needs a paid tier before it can hold a 4K film; 1080p is the largest for now.
 
 const QUALITIES: Choice<Quality>[] = [
   { value: 480, label: '480p', hint: 'small' },
   { value: 720, label: '720p', hint: 'for chat' },
   { value: 1080, label: '1080p', hint: 'social' },
-  FOUR_K
-    ? { value: 2160, label: '4K', hint: 'big screens' }
-    : { value: 2160, label: '4K · coming later', hint: 'not yet', off: true, why: FOUR_K_WHY },
+  // 4K is not offered at all while FOUR_K is false. It used to sit here as a faded chip reading
+  // '4K · coming later', which overflowed its pill and explained an absence nobody had asked about.
+  // A control for something that does not exist is worse than no control: turn FOUR_K on when the
+  // render service can hold a 4K film and the chip comes back.
+  ...(FOUR_K ? [{ value: 2160 as Quality, label: '4K', hint: 'big screens' }] : []),
 ];
 const IMAGE_SHAPES: Choice<ImageRatio>[] = [
   { value: '1:1', label: '1:1', hint: 'square' },
