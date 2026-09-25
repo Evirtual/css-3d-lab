@@ -14,7 +14,7 @@ for Edgaras — whether the article is ready, and whether to push. Every other i
 script, or by an agent running one and writing what it printed into the item's own line. So the
 only two questions a person is ever asked here are the two a machine has no business answering.
 
-That split is not a convenience. Of the 55, `npm run ledger` re-proves 33 on the spot every time it
+That split is not a convenience. Of the 57, `npm run ledger` re-proves 33 on the spot every time it
 builds, and says so per item: *proven*, *ticked but not proven here*, or *its proof disagrees with
 its tick*. That last one is not hypothetical — on 2026-09-25 it caught a release snapshot describing
 code that no longer existed, which a fresh clone would have read instead of real results. A tick is
