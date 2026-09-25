@@ -63,7 +63,7 @@ export async function readCapture(request) {
   } finally { reader.releaseLock(); }
 }
 
-export async function renderCapture(browser, payload, signal) {
+export async function renderCapture(browser, payload, signal, keepBrowser = false) {
   let context;
   let closed = false;
   const close = async () => {
@@ -71,7 +71,12 @@ export async function renderCapture(browser, payload, signal) {
     closed = true;
     clearTimeout(timeout);
     signal?.removeEventListener('abort', abort);
-    await browser.close().catch(() => {});
+    // The context always goes: it owns the page, and with it the frames' memory. The BROWSER stays
+    // when the caller asked to keep it. On Cloudflare it is ACQUIRING a browser that is rate
+    // limited, not drawing in one, so closing the browser after every picture is what made a second
+    // picture -- seconds after a first that worked -- come back as "could not start the capture".
+    await context?.close().catch(() => {});
+    if (!keepBrowser) await browser.close().catch(() => {});
   };
   const abort = () => { void close(); };
   // The whole render's deadline: a watchdog for a browser that stopped answering, not a budget for

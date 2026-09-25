@@ -20,7 +20,15 @@ export async function* renderedFrames(scene: CapturedScene, scale: number, count
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   try {
     const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...scene, scale, count, fps: 30, frame }), signal: abort.signal });
-    if (!response.ok) throw new Error(response.status === 429 ? 'Export service is busy. Please try again shortly.' : 'Export service could not start the capture.');
+    // The service's own words when it has them: it is the only thing here that knows WHICH limit
+    // it hit, and "busy, try again shortly" is a lie when the true answer is "not until tomorrow".
+    // Guarded on length so a stray error page cannot become the dialog's message.
+    if (!response.ok) {
+      const said = (await response.text().catch(() => '')).trim();
+      throw new Error(said && said.length <= 120 && !said.includes('<')
+        ? said
+        : response.status === 429 ? 'Export service is busy. Please try again shortly.' : 'Export service could not start the capture.');
+    }
     if (!response.body) throw new Error('Export service returned no frames.');
     reader = response.body.getReader();
     const decoder = new TextDecoder();

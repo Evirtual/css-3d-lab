@@ -7,4 +7,4 @@ export const FRAME_TYPES: readonly ('png' | 'webp')[];
 export function renderFits(width: number, height: number, scale: number): boolean;
 export function validateCapture(payload: unknown): any;
 export function readCapture(request: Request): Promise<any>;
-export function renderCapture(browser: any, payload: any, signal?: AbortSignal): Promise<ReadableStream<Uint8Array>>;
+export function renderCapture(browser: any, payload: any, signal?: AbortSignal, keepBrowser?: boolean): Promise<ReadableStream<Uint8Array>>;
