@@ -33,7 +33,10 @@ export class Preview {
     this.theme = theme;
     this.frame.className = 'live-frame';
     this.frame.title = `${title} — live preview`;
-    this.frame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+    // No sandbox attribute. It would need allow-scripts (models run their own script) AND
+    // allow-same-origin (the export reads the frame's contentDocument), and Chrome warns -- correctly
+    // -- that those two together can escape the sandbox, so it protects nothing while logging a
+    // warning on every model page. The frame's content is this site's own generated document.
     previews.set(this.frame, this);
     this.frame.addEventListener('load', () => this.loaded());
     this.frame.srcdoc = standaloneDoc(title, { how: [], ...original }, theme);

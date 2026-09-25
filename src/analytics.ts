@@ -24,6 +24,10 @@ export function initAnalytics(): void {
   script.async = true;
   script.src = 'https://gc.zgo.at/count.js';
   script.dataset.goatcounter = `https://${code}.goatcounter.com/count`;
+  // A blocker refusing this is normal and not a fault of the site: the browser logs the blocked
+  // request itself, which nothing here can suppress, but the failure is handled so it does not also
+  // arrive as an unhandled load error. Counting simply does not happen.
+  script.onerror = () => { /* counting is off for this visitor, which is their choice */ };
   document.head.append(script);
 
   // Say so, where people can see it. Only shown when counting is really on.
