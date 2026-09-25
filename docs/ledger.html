@@ -3877,7 +3877,15 @@ table.mini code { font-size: 12px; }
         // and the LEDGER's answer second, smaller. Both are true; they answer different questions,
         // and leading with the ledger's made a person think an item run last night was theirs to do.
         const [waits, waitsCls] = clWaitingOn(x);
-        const ran = (x.proof ?? '').match(/\b(20\d\d-\d\d-\d\d)\b/);
+        // The date the item was RUN, which is not simply the first date in its text: several
+        // proofs name an older run in passing ("or the headless one of 2026-09-23") before giving
+        // the real one, and taking the first match showed work from this morning as two days old.
+        // So: prefer a date introduced by run/re-run/re-checked/redeployed, and fall back to the
+        // LAST date in the line, which is the one most recently written there.
+        const proof = x.proof ?? '';
+        const named = [...proof.matchAll(/(?:re-?run|re-?checked|redeployed|drafted|taken)\b[^.]{0,40}?(20\d\d-\d\d-\d\d)/gi)].pop();
+        const all = [...proof.matchAll(/\b(20\d\d-\d\d-\d\d)\b/g)].pop();
+        const ran = named ?? all;
         const when = ran ? ` <span class="clwhen">run ${ran[1]}</span>` : '';
         const said = x.result === 'not-evaluated' ? `<span class="muted found">Not evaluated here: ${esc(x.why)}.</span>` : `<span class="found${x.result === 'false' ? ' bad' : ''}">Found: ${esc(x.found)}</span>`;
         return `<li class="st-${esc(x.state ?? 'not-evaluated')}"><span class="box" aria-hidden="true">${mark}</span>
