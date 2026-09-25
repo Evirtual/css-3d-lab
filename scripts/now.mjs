@@ -209,7 +209,9 @@ const busyNow = () => Array.isArray(PS_CACHE) && PS_CACHE.some((p) => /scripts[\
 
 const WORK = [
   {
-    name: 'the release chain (finish.sh)', file: 'finish.status',
+    // Whichever chain ran most recently: finish.sh on release day, tonight.sh for the re-check
+    // the export fix forced. Reading a fixed name reported 'finished' over a run that had just begun.
+    name: 'the release chain', file: ['tonight.status','finish.status'].filter((f)=>existsSync(join(RUNS,f))).sort((a,b)=>statSync(join(RUNS,b)).mtimeMs-statSync(join(RUNS,a)).mtimeMs)[0] ?? 'finish.status',
     // finish.status is written BETWEEN steps, so during a 1h34m gate it is necessarily an hour old
     // and the file's own age says nothing about whether the chain is alive. Judging the chain by it
     // printed "over; this is the last run, not now" across a run with twenty Chromium renderers
@@ -387,7 +389,10 @@ async function draw() {
  * output says which of the two it is rather than collapsing them into one verdict.
  */
 function alive() {
-  const status = readIf('finish.status');
+  // the newest chain's file, for the same reason the WORK block picks it
+  const chainFile = ['tonight.status', 'finish.status'].filter((f) => existsSync(join(RUNS, f)))
+    .sort((a, b) => statSync(join(RUNS, b)).mtimeMs - statSync(join(RUNS, a)).mtimeMs)[0] ?? 'finish.status';
+  const status = readIf(chainFile);
   // A finished chain has no current step, and asking for one printed
   //   STOPPED: no check process is running and undefined has not grown for InfinityhNaNm
   // which is true, useless, and looks like a fault. Done is its own answer.
