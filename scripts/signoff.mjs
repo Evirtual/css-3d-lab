@@ -29,11 +29,17 @@ const args = process.argv.slice(2);
 const undo = args[0] === 'undo';
 const which = (undo ? args[1] : args[0]) ?? '';
 
-const WHO = 'Edgaras';
+// Whoever is releasing, from git, not a name written into the source: anyone who clones this is
+// not the person who wrote it, and the two items this ticks belong to whoever is publishing today.
+const WHO = (() => {
+  try { return execFileSync('git', ['config', 'user.name'], { cwd: ROOT, encoding: 'utf8' }).trim() || 'the person publishing'; }
+  catch { return 'the person publishing'; }
+})();
 const ITEMS = {
-  article: { match: /^- \[( |x)\] (Edgaras has read the ledger article[^\n]*)$/m, says: 'read the article and called it ready' },
-  push: { match: /^- \[( |x)\] (Edgaras has said to push[^\n]*)$/m, says: 'said to push', guarded: true },
+  article: { match: /^- \[( |x)\] (The person publishing has read the release article[^\n]*)$/m, says: 'read the article and called it ready' },
+  push: { match: /^- \[( |x)\] (The person publishing has said to push[^\n]*)$/m, says: 'said to push', guarded: true },
 };
+const MINE = /^The person publishing has /;
 
 const text = readFileSync(FILE, 'utf8');
 const eol = text.includes('\r\n') ? '\r\n' : '\n';
@@ -56,11 +62,11 @@ for (const line of text.split(/\r?\n/)) {
   if (m) all.push({ done: m[1] === 'x', text: m[2], section });
 }
 const AFTER = 'After the push';
-const openOthers = all.filter((i) => !i.done && !/^Edgaras has /.test(i.text) && i.section !== AFTER);
+const openOthers = all.filter((i) => !i.done && !MINE.test(i.text) && i.section !== AFTER);
 const openAfter = all.filter((i) => !i.done && i.section === AFTER);
 
 if (!which || !ITEMS[which]) {
-  const waiting = all.filter((i) => !i.done && /^Edgaras has /.test(i.text));
+  const waiting = all.filter((i) => !i.done && MINE.test(i.text));
   console.log(`\nThe release checklist: ${all.filter((i) => i.done).length} of ${all.length} ticked.\n`);
   console.log(waiting.length ? 'Waiting for you:' : 'Nothing is waiting for you.');
   for (const i of waiting) console.log(`  [ ] ${i.text.split(' — ')[0]}`);
