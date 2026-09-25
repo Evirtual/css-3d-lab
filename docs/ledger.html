@@ -1254,20 +1254,31 @@ button, input { font: inherit; color: inherit; }
 @media (max-width: 600px) { .bd li { grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr) 4ch; gap: 4px 8px; } .bd__under { grid-column: 1 / -1; } }
 
 /* running check */
-/* the three phases as a stepper: before the push, yours, after the push */
-.clstep { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
-.clstep__i button { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; font: inherit; cursor: pointer; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text); }
-.clstep__i button:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
-.clstep__i[aria-pressed] button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
-.clstep__n { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 500; background: color-mix(in srgb, var(--muted) 25%, transparent); color: var(--text); }
+/* The three phases as one arrow strip, in the shape the stage flow above already uses: each
+   segment points into the next, so the order reads as an order and not as three cards. --notch is
+   the only number the shape has, as it is up there: how far the point stands out. Kept small --
+   this is a bar inside a dialog, not the page's headline. The reason each phase exists is in its
+   title attribute rather than on the strip; three paragraphs made it a wall. */
+.clstep { --notch: 13px; list-style: none; margin: 12px 0 0; padding: 0; display: flex; }
+.clstep__i { flex: 1 1 0; min-width: 0; margin-left: calc(var(--notch) * -1); }
+.clstep__i:first-child { margin-left: 0; }
+.clstep__i button { display: flex; gap: 7px; align-items: center; width: 100%; text-align: left; font: inherit; font-size: 12.5px; cursor: pointer; border: 0; color: var(--text);
+  padding: 7px calc(var(--notch) + 8px) 7px calc(var(--notch) + 10px);
+  background: color-mix(in srgb, var(--muted) 14%, transparent);
+  clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%, var(--notch) 50%); }
+.clstep__i:first-child button { padding-left: 11px; clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%); }
+.clstep__i:last-child button { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, var(--notch) 50%); }
+.clstep__i button:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.clstep__i.is-done button { background: color-mix(in srgb, var(--st-chk) 26%, transparent); }
+.clstep__i.is-here button { background: color-mix(in srgb, var(--accent) 34%, transparent); }
+.clstep__i.is-later button { color: var(--muted); }
+.clstep__n { flex: none; width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; font-size: 10.5px; font-weight: 500; background: color-mix(in srgb, var(--surface-solid) 55%, transparent); }
 .clstep__i.is-done .clstep__n { background: var(--st-chk); color: var(--surface-solid); }
-.clstep__i.is-here { border-radius: 10px; }
-.clstep__i.is-here button { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .clstep__i.is-here .clstep__n { background: var(--accent); color: var(--surface-solid); }
-.clstep__i.is-later button { opacity: 0.72; }
-.clstep__c { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
-.clstep__now { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin-left: 4px; }
-.clstep__why { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.clstep__t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clstep__c { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; flex: none; }
+.clstep__i.is-here .clstep__c { color: var(--text); }
+@media (max-width: 620px) { .clstep { flex-wrap: wrap; } .clstep__i { flex: 1 1 100%; margin-left: 0; } .clstep__i button, .clstep__i:first-child button, .clstep__i:last-child button { clip-path: none; border-radius: 8px; padding: 7px 11px; } .clstep__i + .clstep__i { margin-top: 4px; } }
 .clwhen { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 /* the ledger's own verdict, kept but made quieter than the release's answer */
 .chip--quiet { opacity: 0.62; font-size: 11px; }
@@ -3838,11 +3849,12 @@ table.mini code { font-size: 12px; }
     $('cl-steps').innerHTML = phaseOf.map((p, i) => {
       const state = p.left === 0 ? 'is-done' : p.key === here ? 'is-here' : 'is-later';
       const mark = p.left === 0 ? '✓' : String(i + 1);
-      return `<li class="clstep__i ${state}"><button type="button" data-cl-phase="${p.key}" aria-pressed="${clFilter === 'phase:' + p.key}">
+      // why the phase exists goes in the tooltip: on the strip it was three paragraphs of wall
+      const tip = `${p.name} — ${p.why}${p.key === here ? ' This is where the release has got to.' : ''}`;
+      return `<li class="clstep__i ${state}"><button type="button" data-cl-phase="${p.key}" aria-pressed="${clFilter === 'phase:' + p.key}" title="${esc(tip)}">
         <span class="clstep__n" aria-hidden="true">${mark}</span>
-        <span><b>${esc(p.name)}</b> <span class="clstep__c">${p.done} of ${p.items.length}</span>
-        ${p.key === here ? '<span class="clstep__now">you are here</span>' : ''}
-        <span class="clstep__why">${esc(p.why)}</span></span></button></li>`;
+        <span class="clstep__t">${esc(p.name)}${p.key === here ? ' ·' : ''}</span>
+        <span class="clstep__c">${p.done}/${p.items.length}</span></button></li>`;
     }).join('');
 
     $('cl-filter').innerHTML = CL_FILTERS.map(([key, words, test]) => {
