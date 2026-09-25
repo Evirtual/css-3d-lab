@@ -27,7 +27,7 @@ export async function* renderedFrames(scene: CapturedScene, scale: number, count
       const said = (await response.text().catch(() => '')).trim();
       throw new Error(said && said.length <= 120 && !said.includes('<')
         ? said
-        : response.status === 429 ? 'Export service is busy. Please try again shortly.' : 'Export service could not start the capture.');
+        : response.status === 429 ? 'the export service is busy — try again shortly' : 'the export could not start');
     }
     if (!response.body) throw new Error('Export service returned no frames.');
     reader = response.body.getReader();

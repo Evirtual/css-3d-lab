@@ -85,9 +85,10 @@ export default {
         // Nothing running, no wait to serve, and a new browser still refused: what is exhausted is
         // the allowance for the day, not this minute.
         const spent = wait <= 0 && (seen?.activeSessions?.length ?? 0) === 0;
+        // The dialog prefixes 'It did not work: ', so these are short fragments, not sentences.
         const say = spent
-          ? 'The export service has used its rendering allowance for today. It comes back tomorrow.'
-          : `No browser is free right now. Try again in ${Math.max(1, wait)} seconds.`;
+          ? 'out of exports for today — it resets tomorrow'
+          : `no browser free — try again in ${Math.max(1, wait)}s`;
         return new Response(say, { status: 429, headers: { ...headers, 'Retry-After': String(Math.max(1, wait || 60)) } });
       }
       return new Response('The rendering service is unavailable', { status: 503, headers });
