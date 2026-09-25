@@ -1254,6 +1254,23 @@ button, input { font: inherit; color: inherit; }
 @media (max-width: 600px) { .bd li { grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr) 4ch; gap: 4px 8px; } .bd__under { grid-column: 1 / -1; } }
 
 /* running check */
+/* the three phases as a stepper: before the push, yours, after the push */
+.clstep { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+.clstep__i button { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; font: inherit; cursor: pointer; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text); }
+.clstep__i button:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+.clstep__i[aria-pressed] button[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.clstep__n { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 500; background: color-mix(in srgb, var(--muted) 25%, transparent); color: var(--text); }
+.clstep__i.is-done .clstep__n { background: var(--st-chk); color: var(--surface-solid); }
+.clstep__i.is-here { border-radius: 10px; }
+.clstep__i.is-here button { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.clstep__i.is-here .clstep__n { background: var(--accent); color: var(--surface-solid); }
+.clstep__i.is-later button { opacity: 0.72; }
+.clstep__c { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.clstep__now { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin-left: 4px; }
+.clstep__why { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.clwhen { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* the ledger's own verdict, kept but made quieter than the release's answer */
+.chip--quiet { opacity: 0.62; font-size: 11px; }
 /* the checklist's own filter row: which slice of the 55 the dialog is showing */
 .clfilter { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
 .clfilter__b { font: inherit; font-size: 12.5px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px; padding: 4px 11px; }
@@ -2053,6 +2070,7 @@ table.mini code { font-size: 12px; }
         <span class="eyebrow">Before main is pushed</span>
         <h2 id="cl-title">Release checklist</h2>
         <p class="muted" id="cl-sum"></p>
+        <ol class="clstep" id="cl-steps"></ol>
         <p class="clfilter" id="cl-filter"></p>
         <div class="clbar" id="cl-bar" role="img" aria-label="How much of the checklist holds"></div>
         <p class="clkey" id="cl-key"></p>
@@ -3727,9 +3745,34 @@ table.mini code { font-size: 12px; }
     'true-ticked': ['holds now · ticked', 's-chk', '✓'],
     'false': ['fails now', 's-bad', '✗'],
     conflict: ['ticked, but its proof fails now', 's-bad', '!'],
-    'ticked-unproven': ['ticked in the file; not proven here', 's-warn', '?'],
+    'ticked-unproven': ['done · not re-proved here', 's-chk', '✓'],
     'not-evaluated': ['not evaluated here', 's-none', ''],
   };
+  /**
+   * THE THREE PHASES, which is the only question a person releasing actually has.
+   *
+   * The labels above answer the LEDGER's question -- did I re-prove this just now. That is the
+   * right question for the ledger and the wrong one for whoever is about to push: they read
+   * "not evaluated here" on an item that was run last night and think it is waiting for them.
+   * So each item is also placed in one of three phases, and the dialog leads with those.
+   *
+   * A phase comes from the item's own `## ` section, so the markdown stays the source of truth.
+   */
+  const CL_PHASE = (item) => (item.group === 'Yours' ? 'yours' : item.group === 'After the push' ? 'after' : 'before');
+  const CL_PHASES = [
+    ['before', 'Before the push', 'Run by a script, or by an agent running one. Each carries what it printed, in its own line. None of it waits for you.'],
+    ['yours', 'Yours', 'The two a machine has no business answering: is the writing good, and do we publish.'],
+    ['after', 'After the push', 'Cannot be true until the site is live. Nothing here blocks the push — they are what is checked once it has happened.'],
+  ];
+  /** What an item is waiting for, in the words of someone about to release. */
+  function clWaitingOn(item) {
+    const phase = CL_PHASE(item);
+    if (item.state === 'conflict' || item.result === 'false') return ['needs a look', 's-bad'];
+    if (item.done) return phase === 'after' ? ['done', 's-chk'] : ['done', 's-chk'];
+    if (phase === 'yours') return ['waiting for you', 's-warn'];
+    if (phase === 'after') return ['waits for the push', 's-none'];
+    return ['still to do', 's-warn'];
+  }
   // Which slice of the checklist the dialog is showing. 'all' unless something asked for a slice --
   // the conflict count on the button opens straight to 'attention'.
   let clFilter = 'all';
@@ -3776,11 +3819,32 @@ table.mini code { font-size: 12px; }
     // one of them was a release snapshot describing code that no longer existed.
     const CL_FILTERS = [
       ['attention', 'needs a look', (x) => x.state === 'conflict' || x.result === 'false'],
-      ['unproven', 'ticked, not proven here', (x) => x.state === 'ticked-unproven'],
-      ['open', 'not ticked', (x) => !x.done],
+      ['open', 'still to do', (x) => !x.done],
       ['all', 'everything', () => true],
     ];
-    const pick = CL_FILTERS.find((f) => f[0] === clFilter) ?? CL_FILTERS[3];
+    // a phase filter is "phase:<key>", set by the stepper above rather than by this row
+    const pick = clFilter.startsWith('phase:')
+      ? [clFilter, CL_PHASES.find((p) => p[0] === clFilter.slice(6))?.[1] ?? clFilter, (x) => CL_PHASE(x) === clFilter.slice(6)]
+      : CL_FILTERS.find((f) => f[0] === clFilter) ?? CL_FILTERS[CL_FILTERS.length - 1];
+    // The three phases as a stepper: where the release has got to, and which step is waiting.
+    // "You are here" is the first phase that is not finished, so the eye lands on the next thing
+    // to do rather than on a wall of ticks.
+    const phaseOf = CL_PHASES.map(([key, name, why]) => {
+      const items = cl.items.filter((x) => CL_PHASE(x) === key);
+      const done = items.filter((x) => x.done && x.state !== 'conflict' && x.result !== 'false').length;
+      return { key, name, why, items, done, left: items.length - done };
+    });
+    const here = phaseOf.find((p) => p.left > 0)?.key ?? null;
+    $('cl-steps').innerHTML = phaseOf.map((p, i) => {
+      const state = p.left === 0 ? 'is-done' : p.key === here ? 'is-here' : 'is-later';
+      const mark = p.left === 0 ? '✓' : String(i + 1);
+      return `<li class="clstep__i ${state}"><button type="button" data-cl-phase="${p.key}" aria-pressed="${clFilter === 'phase:' + p.key}">
+        <span class="clstep__n" aria-hidden="true">${mark}</span>
+        <span><b>${esc(p.name)}</b> <span class="clstep__c">${p.done} of ${p.items.length}</span>
+        ${p.key === here ? '<span class="clstep__now">you are here</span>' : ''}
+        <span class="clstep__why">${esc(p.why)}</span></span></button></li>`;
+    }).join('');
+
     $('cl-filter').innerHTML = CL_FILTERS.map(([key, words, test]) => {
       const n = cl.items.filter(test).length;
       if (!n && key !== 'all') return '';
@@ -3797,9 +3861,15 @@ table.mini code { font-size: 12px; }
       return `<h3>${esc(g.name ?? 'Items')} <span class="muted" style="text-transform:none;letter-spacing:0">${head}</span></h3>
       <ul class="cl">${g.items.map((x) => {
         const [label, cls, mark] = CL_STATE[x.state] ?? CL_STATE['not-evaluated'];
+        // The RELEASE's answer first -- done, waiting for you, waits for the push, needs a look --
+        // and the LEDGER's answer second, smaller. Both are true; they answer different questions,
+        // and leading with the ledger's made a person think an item run last night was theirs to do.
+        const [waits, waitsCls] = clWaitingOn(x);
+        const ran = (x.proof ?? '').match(/\b(20\d\d-\d\d-\d\d)\b/);
+        const when = ran ? ` <span class="clwhen">run ${ran[1]}</span>` : '';
         const said = x.result === 'not-evaluated' ? `<span class="muted found">Not evaluated here: ${esc(x.why)}.</span>` : `<span class="found${x.result === 'false' ? ' bad' : ''}">Found: ${esc(x.found)}</span>`;
         return `<li class="st-${esc(x.state ?? 'not-evaluated')}"><span class="box" aria-hidden="true">${mark}</span>
-          <div><b>${esc(x.item)}</b> <span class="chip ${cls}">${esc(label)}</span><br>${said}
+          <div><b>${esc(x.item)}</b> <span class="chip ${waitsCls}">${esc(waits)}</span>${when} <span class="chip ${cls} chip--quiet">${esc(label)}</span><br>${said}
             ${x.proof ? `<br><span class="proofline">Proof: ${esc(x.proof)}</span>` : '<br><span class="proofline">No way to prove it is written down.</span>'}</div>
           <code class="muted">:${x.line}</code></li>`;
       }).join('')}</ul>`;
@@ -3937,6 +4007,14 @@ table.mini code { font-size: 12px; }
     const b = e.target.closest('[data-cl-filter]');
     if (!b) return;
     clFilter = b.dataset.clFilter;
+    renderChecklist();
+  });
+  // the stepper: a phase narrows the list to that phase, clicking it again goes back to everything
+  $('cl-steps').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-cl-phase]');
+    if (!b) return;
+    const key = `phase:${b.dataset.clPhase}`;
+    clFilter = clFilter === key ? 'all' : key;
     renderChecklist();
   });
   $('cl-close').addEventListener('click', () => dlg.close());
