@@ -105,13 +105,31 @@ note(goodImgs === Math.min(imgs.length, 12), 'the share images the tags name are
 /* ---------------- 4. does the served JS know the Worker? ---------------- */
 const home = pages.find((p) => new URL(p.url).pathname === '/') ?? pages[0];
 const scripts = [...(home?.html.matchAll(/<script[^>]+src="([^"]+\.js)"/g) ?? [])].map((m) => new URL(m[1], BASE).href);
+// The entry scripts AND the chunks they import. The endpoint is not in an entry script and is not
+// meant to be: the export dialog is lazily mounted, so it rides in that chunk and arrives when a
+// visitor opens the dialog. Reading only the entry scripts reported a configuration fault on a
+// site that was configured correctly.
 let endpoint = null;
-for (const s of scripts.slice(0, 8)) {
-  const r = await get(s);
+const looked = [];
+// Start from the entry scripts AND the modulepreload links, which is where Vite declares the
+// chunks a page will need. The endpoint rides in a lazily mounted chunk, named in main as
+// "./lazy-mount-XXXX.js" -- relative, with no /assets/ in it, which an earlier version of the
+// pattern below insisted on and so followed nothing at all.
+const preloads = [...(home?.html.matchAll(/<link[^>]+rel="modulepreload"[^>]+href="([^"]+)"/g) ?? [])].map((m) => new URL(m[1], BASE).href);
+const queue = [...new Set([...scripts.slice(0, 8), ...preloads])];
+const seen = new Set(queue);
+for (let i = 0; i < queue.length && i < 40 && !endpoint; i++) {
+  const r = await get(queue[i]);
+  looked.push(queue[i].replace(BASE, ''));
+  if (!r.ok) continue;
   const hit = r.body.match(/https:\/\/[a-z0-9.-]*workers\.dev\/[a-z]+/i);
   if (hit) { endpoint = hit[0]; break; }
+  for (const m of r.body.matchAll(/["'`](\.{0,2}\/[A-Za-z0-9._\/-]+\.js)["'`]/g)) {
+    const u = new URL(m[1], queue[i]).href;
+    if (!seen.has(u)) { seen.add(u); queue.push(u); }
+  }
 }
-note(Boolean(endpoint), 'the served JS carries the capture endpoint', endpoint ?? 'no workers.dev URL in the entry scripts — Video and Image would say "Export service is not configured yet"');
+note(Boolean(endpoint), 'the served JS carries the capture endpoint', endpoint ?? `no workers.dev URL in ${looked.length} served script(s) (${looked.slice(0, 4).join(', ')}${looked.length > 4 ? ', …' : ''}) — Video and Image would say "Export service is not configured yet"`);
 
 /* ---------------- what to do next ---------------- */
 console.log(`\n${problems.length ? `${problems.length} problem(s)` : 'Nothing wrong'} with ${BASE}.`);
