@@ -351,7 +351,10 @@ export const snippetsB: Record<string, Snippet> = {
 .num {
   left: calc(18 * var(--u));
   bottom: calc(36 * var(--u));
-  font: 600 calc(13 * var(--u))/1 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  /* 12, not 13: JetBrains Mono's advance is 0.6em against Consolas's 0.55, so the 19 characters
+     of the number ran to 194.7 of the card's 196 units and sat on its edge. At 12 they measure
+     165.3 units against the 164.3 this line was drawn for. */
+  font: 600 calc(12 * var(--u))/1 'JetBrains Mono', ui-monospace, Consolas, monospace;
   letter-spacing: calc(1.5 * var(--u));
   text-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) rgb(0 0 0 / 0.45);
   white-space: nowrap;
