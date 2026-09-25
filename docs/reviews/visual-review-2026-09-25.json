@@ -1,0 +1,1560 @@
+{
+ "entries": [
+  {
+   "model": "phone",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A phone mockup, screen lit, 9:41 and the date crisp on it, the app rows readable. Turned further towards the viewer in the first moment and nearly face-on in the second, so the tilt is running. Centred, well inside the frame."
+  },
+  {
+   "model": "rubik",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A 3x3 cube, stickers clean and square. The first moment has a layer caught mid-twist with the gap showing; the second is closed up with a different face colour towards us. The twist is running and it resolves."
+  },
+  {
+   "model": "paycard",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A payment card, chip and the 4242 number and ALEX MORGAN all legible at this size. Two tilt angles between the moments. Nothing clipped."
+  },
+  {
+   "model": "solar",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Orbit rings with the sun lit at the centre and the planets at different points in the two moments, the ringed one out at the edge of its path. The orbits stay inside the frame."
+  },
+  {
+   "model": "flaptext",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A split-flap board, DEPARTURES and GATE 3D in the header, NEW YORK / HELSINKI spelled out on the flaps. The same in both moments -- it had settled by the time each was taken, which is what a board that has finished flipping looks like."
+  },
+  {
+   "model": "package",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "The model the unboxing fix was for. Shut in the first moment, a plain box with its ribbon and CUBE 01; open in the second, lid swung back and the NEW card risen clear of it. Nothing of the card shows through a wall while it is shut, which is what 3a6b9b2 was about."
+  },
+  {
+   "model": "city",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "An isometric block of buildings on a plate, windows lit, two viewing angles between the moments. Sits centred on its plate with room round it."
+  },
+  {
+   "model": "hovercards",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Three cards fanned -- Design, Build, Ship -- the front one forward and readable. The spread differs between the moments, so the fan is moving."
+  },
+  {
+   "model": "can",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A drinks can, label gradient and the ring on its side, two rotations between the moments. Centred, upright, clear of the edges."
+  },
+  {
+   "model": "dice",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A white die showing 1, 2 and 3, pips crisp, with its Click roll label and Roll button below. The same in both moments, which is right: it waits to be clicked."
+  },
+  {
+   "model": "wordcube",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A word prism: \"We make design\" in the first moment, \"We make code\" in the second, so the prism has turned a face. Both words are sharp and inside the frame.",
+   "motionFlagsResolved": [
+    {
+     "flag": "loop: pop 5→6,11→12,17→18,23→0",
+     "reason": "Read its strip (24 frames over 9.00s): the prism holds a word for about five frames then turns to the next -- design, code, motion, brands, design. Frames 5 and 17 catch it MID-TURN with the word visibly doubled, so the turn is drawn, it is just faster than the 0.38s the strip samples at. A word prism that holds then turns."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (0 hover, 0 controls, 0 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "turntable",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A speaker cabinet with its cone and controls, on a drag-to-rotate label with three colour dots. Same angle in both moments -- it waits to be dragged.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover button#1 \"Violet\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave button#1 \"Violet\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (3 hover, 3 controls, 2 focus; 3 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "neonbars",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A bar chart on a plate with the axis to 100 and month labels, the peak bar picked out in pink, and \"2024 - peak Jun, $88k\" under it with the year chips. Both moments the same: it is showing its selected year.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover button#1 \"2024\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave button#1 \"2024\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (3 hover, 3 controls, 0 focus; 3 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "equalizer",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Bars of different heights on a plate, and the heights differ between the two moments, so it is running. Colours read from violet to teal across the row."
+  },
+  {
+   "model": "vinyl",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A NIGHT DRIVE sleeve, its type readable, with the record half out in the second moment and tucked in on the first. The disc grooves and the label centre are drawn."
+  },
+  {
+   "model": "swipe",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A card deck, \"Cube / six faces\" on top, with the stack edges showing beneath. The same in both moments -- it waits for a swipe.",
+   "motionFlagsResolved": [
+    {
+     "flag": "focus div.swipe: changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (0 hover, 0 controls, 1 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "diamond",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A cut gem, facets and their highlights drawn, two rotations between the moments. The crown and pavilion both read."
+  },
+  {
+   "model": "logo3d",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "An extruded hexagon logo with a play triangle cut in it, glowing edge, turned further in the second moment."
+  },
+  {
+   "model": "magnet",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A \"Pull me\" button inside its dashed field, drawn with its glow. Slightly different offset between the moments, which is the magnet effect at rest."
+  },
+  {
+   "model": "ferris",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A wheel with lit cabins round its rim on an A-frame, rotated between the moments so the cabins have moved round."
+  },
+  {
+   "model": "pricing",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Three pricing cards -- SOLO $9, TEAM $29, ORG $99 -- with their buttons, the middle one raised and its Popular tag showing. Two arc angles between the moments."
+  },
+  {
+   "model": "browser",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A browser window whose layers stand apart in depth, toolbar dots and a chart panel inside it readable. Lifted further in the second moment.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover div.browser \"Browser window whose layers lift apart on hover or focus\": its hit area is mostly over empty canvas (59 of 81 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (1 hover, 0 controls, 1 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "watch",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A smartwatch on its strap, the face showing 07:49 and LIVE TIME -- and 07:49 was the actual time when the sheet was made, so the clock is live. The strap and case are clean at this size."
+  },
+  {
+   "model": "shadowtext",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "DEPTH in isometric block letters with their extrusion, the gradient running across them, two angles between the moments."
+  },
+  {
+   "model": "polaroid",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Four photo prints scattered, each with its caption -- peaks, midnight, seaside -- and the images inside them drawn. The scatter is different between the moments."
+  },
+  {
+   "model": "island",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A floating block of land, grass on top, soil and rock beneath, with a pink marker on it and a soft shadow below. Two angles between the moments."
+  },
+  {
+   "model": "coverflow",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A row of cards with 3, 4 and 5 showing, the middle one face-on and the outer ones turned away, with 4 / 7 and the arrows under it. Steady between the moments, which is right for a deck at rest."
+  },
+  {
+   "model": "badge",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A gold medal on its ribbon, WINNER legible on the face, swinging slightly between the moments."
+  },
+  {
+   "model": "torus",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A ring built from repeated loops, its gradient running round, turned between the moments. The ring stays whole -- no gap where the loop closes."
+  },
+  {
+   "model": "crawl",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "An opening crawl: yellow text receding to a vanishing point over a starfield, EPISODE 3D and its paragraphs readable at the front. It is a full-canvas scene, so the text runs to the frame edges by design, and it holds both the contract and the stage checks."
+  },
+  {
+   "model": "cubenav",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A gallery cube showing a Dawn panel with its label and 01 / 04, with arrows and dots under it. Steady between the moments -- it waits to be stepped.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover button#1 \"Go to Dawn\": its hit area is mostly over empty canvas (51 of 69 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    },
+    {
+     "flag": "hover button#2 \"Go to Reef\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    },
+    {
+     "flag": "hover button#3 \"Go to Dusk\": its hit area is mostly over empty canvas (60 of 69 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    },
+    {
+     "flag": "hover button#4 \"Go to Night\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    },
+    {
+     "flag": "click button#1 \"Go to Dawn\": its hit area is mostly over empty canvas (51 of 69 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    },
+    {
+     "flag": "click button#2 \"Go to Reef\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    },
+    {
+     "flag": "click button#3 \"Go to Dusk\": its hit area is mostly over empty canvas (60 of 69 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    },
+    {
+     "flag": "click button#4 \"Go to Night\": its hit area is mostly over empty canvas (58 of 69 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (6 hover, 6 controls, 0 focus; 5 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "chartpanel",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A line chart on a tilted glass panel, Revenue $k in the corner, its points drawn along the line. The second moment has every value labelled (18, 24, 21, 30 ... 55), so the reveal is running."
+  },
+  {
+   "model": "cube",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A wireframe cube with numbered faces, turning between the moments so different faces face us. Edges stay straight and joined."
+  },
+  {
+   "model": "pyramid",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A four-sided pyramid on its base plate with a lit core inside, turned between the moments, the base glow following it."
+  },
+  {
+   "model": "cylinder",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A banded cylinder, its rings and the gradient down its side drawn, two rotations between the moments."
+  },
+  {
+   "model": "coin",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A coin: edge-on in the first moment so only its rim shows, face-on in the second with its star. The spin is running and both extremes are drawn properly."
+  },
+  {
+   "model": "globe",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A wireframe globe, latitude and longitude lines even, with one line picked out. Turned between the moments."
+  },
+  {
+   "model": "orbit",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A lit nucleus with three elliptical orbits round it and a particle on each, the particles in different places between the moments."
+  },
+  {
+   "model": "layers",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Four rounded plates stacked and spread apart in the first moment, collapsed to one in the second -- so the exploding is running through its range."
+  },
+  {
+   "model": "explode",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A cube whose faces sit together in the first moment and fly apart in the second, each face still square and drawn. Centred through both.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover div.scene \"Cube whose faces fly apart on hover or focus\": its hit area is mostly over empty canvas (58 of 81 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (1 hover, 0 controls, 1 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "radio",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A glass cube labelled Front with its other face words showing through, and the F R B L U D radio row beneath with F selected. Steady between the moments.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover label#1 \"Front\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave label#1 \"Front\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (6 hover, 6 controls, 6 focus; 5 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "drag",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A gold wireframe cube, edges clean, at the same angle in both moments -- it waits to be dragged."
+  },
+  {
+   "model": "sphere",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A ball of points, denser round its middle, turned between the moments so the point pattern shifts. Reads as a sphere, not a flat disc."
+  },
+  {
+   "model": "scrollspin",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A gold wireframe cube, face-on, the same in both moments: it is driven by scrolling, and the sheet does not scroll."
+  },
+  {
+   "model": "prism",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A hexagonal glass prism, its faces tinted and its top face showing, noticeably turned between the moments."
+  },
+  {
+   "model": "octa",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "An octahedron, eight triangular faces with their tints, turned between the moments. The silhouette stays clean."
+  },
+  {
+   "model": "cone",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A cone with its radial panels and a base disc, two rotations between the moments."
+  },
+  {
+   "model": "stairs",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A spiral staircase round a central post, each step separate and lit, turned between the moments."
+  },
+  {
+   "model": "cubegrid",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A field of cubes in a grid, some raised and some low, and the wave through them is at a different point in each moment."
+  },
+  {
+   "model": "net",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "An unfolding cube: flat as a cross of coloured panels in the first moment, folded up into a cube in the second. Both ends of the fold are drawn properly."
+  },
+  {
+   "model": "shapeshift",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A glass prism with its Sides slider reading \"6 sides\", six faces drawn. Steady between the moments -- it waits for the slider."
+  },
+  {
+   "model": "tetra",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A glass tetrahedron with a lit core, turned between the moments so a different face comes forward."
+  },
+  {
+   "model": "hourglass",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "An hourglass in its frame, sand in both bulbs and a stream between them, the fill different between the moments so it is running."
+  },
+  {
+   "model": "crystal",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A cluster of crystals on a base, each shard tinted and lit, turned between the moments."
+  },
+  {
+   "model": "lattice",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A cube lattice of nodes and struts, breathing in and out -- noticeably larger in the second moment."
+  },
+  {
+   "model": "planet",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A ringed planet with banded colour and a moon on its orbit, the moon in a different place between the moments."
+  },
+  {
+   "model": "headphones",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Headphones, band and both cups drawn, turned between the moments and lit up in the second -- the cup rings glow.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover div.headphones \"Headphones that turn and light up on hover or focus\": its hit area is mostly over empty canvas (64 of 81 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (1 hover, 0 controls, 1 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "perfume",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A glass bottle with a gold cap and its LUMEN EAU DE PARFUM label readable, the liquid and the glass edges drawn. Steady between the moments."
+  },
+  {
+   "model": "businesscard",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A business card: the dark PRISM DESIGN STUDIO side in the first moment, the violet Alex Morgan side with its details in the second. The flip is running and both faces are right way up.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover div.bizcard: pop 7→8",
+     "reason": "Read its strip: the flagged step is the card crossing edge-on. At 450ms it is a thin sliver seen from the side and at 525ms the violet face is showing, so everything visible changes as it passes 90 degrees. The leave and blur rows film the same flip and were not flagged, which is the sampling landing elsewhere on it."
+    },
+    {
+     "flag": "focus div.bizcard: pop 7→8",
+     "reason": "Read its strip: the flagged step is the card crossing edge-on. At 450ms it is a thin sliver seen from the side and at 525ms the violet face is showing, so everything visible changes as it passes 90 degrees. The leave and blur rows film the same flip and were not flagged, which is the sampling landing elsewhere on it."
+    },
+    {
+     "flag": "hover div.bizcard: its hit area is mostly over empty canvas (61 of 81 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (1 hover, 0 controls, 1 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "camera",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A retro camera, OBSCURA on the body, lens barrel and rings drawn, viewfinder and shutter on top. Two angles between the moments."
+  },
+  {
+   "model": "coffeecup",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A takeaway cup with its lid, sleeve and stirrer, turned between the moments so the logo comes round."
+  },
+  {
+   "model": "text",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Extruded \"3D DEPTH\" over two lines, the extrusion solid behind the faces, tilted differently between the moments."
+  },
+  {
+   "model": "layertext",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Layered \"GO DEEP\", white faces with the colour layers showing behind, offset further in the second moment."
+  },
+  {
+   "model": "lit",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "LIGHT SHADOW in caps, lit from one side in the first moment with the highlight and shadow on the letters, evenly lit in the second. That is the pointer light moving."
+  },
+  {
+   "model": "waveletters",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "WAVE 3D, each letter at its own point in the wave in the first moment (the W up, the D down) and level in the second."
+  },
+  {
+   "model": "textring",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Text bent round a ring, the ring drawn as an ellipse and the letters standing on it, turned between the moments."
+  },
+  {
+   "model": "foldtext",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A Z-folded headline: creased into panels in the first moment with HOVER TO UNFOLD across them, flat and fully readable in the second."
+  },
+  {
+   "model": "anaglyph",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "STEREO in red/cyan offset on a dark panel with MOVE YOUR POINTER under it, the offset wider in the second moment."
+  },
+  {
+   "model": "cubeletters",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Four letter cubes: CUBE in the first moment, ROLL in the second, so they have rolled a face. Each cube stays square.",
+   "motionFlagsResolved": [
+    {
+     "flag": "loop: pop 5→6,11→12,17→18,23→0",
+     "reason": "Read its strip (24 frames over 8.00s): the four cubes hold CUBE for five frames, then roll to ROLL. Frames 5 and 17 catch them MID-ROLL with two faces showing on each cube, so the roll is drawn and only the sampling steps over it."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (0 hover, 0 controls, 0 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "button",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A pink PUSH key with its side walls showing its height, at rest in both moments."
+  },
+  {
+   "model": "rollbutton",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A rolling button: violet \"Hover me\" in the first moment, pink \"Let's go ->\" in the second, so it has rolled to its other face."
+  },
+  {
+   "model": "switch",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A rocker switch in its housing, I and O marked, with its indicator dot below. Same position in both moments -- it waits to be clicked."
+  },
+  {
+   "model": "dropdown",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A Menu button with its caret, closed in both moments, drawn with its gradient."
+  },
+  {
+   "model": "zones",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A \"Hover around me\" card with its glow, tilted very slightly differently between the moments -- the tilt follows the pointer and the pointer is off it.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover i#1: its hit area is mostly over empty canvas (80 of 81 reachable points draw nothing)",
+     "reason": "Settled from the code, not by eye: zones IS nine invisible <i> elements in a 3x3 grid over the canvas, and the card leans toward whichever one the pointer is in -- that is the entire no-JS tilt technique. Its own CSS says so: \"the zones are the whole canvas, so the tilt follows the pointer anywhere on it and no hit area ever hangs past the canvas edge\". A zone drawing nothing is the design, not a miss."
+    },
+    {
+     "flag": "hover i#1: changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave i#1: changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "hover i#2: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
+     "reason": "Settled from the code, not by eye: zones IS nine invisible <i> elements in a 3x3 grid over the canvas, and the card leans toward whichever one the pointer is in -- that is the entire no-JS tilt technique. Its own CSS says so: \"the zones are the whole canvas, so the tilt follows the pointer anywhere on it and no hit area ever hangs past the canvas edge\". A zone drawing nothing is the design, not a miss."
+    },
+    {
+     "flag": "hover i#3: its hit area is mostly over empty canvas (65 of 81 reachable points draw nothing)",
+     "reason": "Settled from the code, not by eye: zones IS nine invisible <i> elements in a 3x3 grid over the canvas, and the card leans toward whichever one the pointer is in -- that is the entire no-JS tilt technique. Its own CSS says so: \"the zones are the whole canvas, so the tilt follows the pointer anywhere on it and no hit area ever hangs past the canvas edge\". A zone drawing nothing is the design, not a miss."
+    },
+    {
+     "flag": "hover i#7: its hit area is mostly over empty canvas (54 of 81 reachable points draw nothing)",
+     "reason": "Settled from the code, not by eye: zones IS nine invisible <i> elements in a 3x3 grid over the canvas, and the card leans toward whichever one the pointer is in -- that is the entire no-JS tilt technique. Its own CSS says so: \"the zones are the whole canvas, so the tilt follows the pointer anywhere on it and no hit area ever hangs past the canvas edge\". A zone drawing nothing is the design, not a miss."
+    },
+    {
+     "flag": "hover i#9: its hit area is mostly over empty canvas (58 of 81 reachable points draw nothing)",
+     "reason": "Settled from the code, not by eye: zones IS nine invisible <i> elements in a 3x3 grid over the canvas, and the card leans toward whichever one the pointer is in -- that is the entire no-JS tilt technique. Its own CSS says so: \"the zones are the whole canvas, so the tilt follows the pointer anywhere on it and no hit area ever hangs past the canvas edge\". A zone drawing nothing is the design, not a miss."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (8 hover, 0 controls, 1 focus; 4 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "tilt",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A card reading \"Move your pointer / tilt - depth - glare\", the glare in a different place between the moments, so the lighting follows."
+  },
+  {
+   "model": "check",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Three 3D checkboxes -- Set the perspective ticked and struck through, Preserve the 3D and Flip the cube unticked -- each with its little cube. Steady between the moments."
+  },
+  {
+   "model": "tabs",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Prism tabs: Front / Bottom / Back / Top with Front selected, and the Front panel below it readable. Steady between the moments.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover label#1 \"Front\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave label#1 \"Front\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (4 hover, 4 controls, 4 focus; 4 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "radial",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A round pink action button with a plus, glowing, closed in both moments -- the menu waits to be opened."
+  },
+  {
+   "model": "keycaps",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Four keycaps on a base -- C, S, S and a pink 3D key -- the 3D key pressed further down in one moment than the other."
+  },
+  {
+   "model": "stepper",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A number cube showing 3 on its face with \"Quantity 3\" and minus/plus buttons below. Steady between the moments."
+  },
+  {
+   "model": "rating",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Five stars, four lit and one grey, with \"Great\" beneath. The fourth star is mid-flip in the first moment and settled in the second."
+  },
+  {
+   "model": "toggle",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A rolling cube toggle on its pad with a sun face showing, \"Dark mode OFF\" below. Same state in both moments.",
+   "motionFlagsResolved": [
+    {
+     "flag": "click label.toggle \"Dark modeOffOn\": its hit area is mostly over empty canvas (55 of 81 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (0 hover, 1 controls, 1 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "flip",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A card showing Front in the first moment and Back in the second, each face square on and its text the right way round."
+  },
+  {
+   "model": "carousel",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A ring of numbered cards, 1 and 2 forward in the first moment and 2 and 3 in the second, so the ring has turned one step."
+  },
+  {
+   "model": "boxslider",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A box slideshow showing \"Design\" with its arrows below. Steady between the moments -- it waits to be stepped."
+  },
+  {
+   "model": "cardstack",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A card reading One with the stack edges showing behind it in colour, tilted slightly differently between the moments."
+  },
+  {
+   "model": "cardfan",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Five playing cards -- A K Q J 10 -- fanned, each rank and suit readable, the fan wider in the second moment."
+  },
+  {
+   "model": "book",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A book closed in the first moment and open in the second with its pages splayed. Both states drawn cleanly."
+  },
+  {
+   "model": "flipgrid",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Six numbered tiles, 01 to 06; the 03 tile is mid-flip showing \"spin\" on its other face in the second moment while the rest stay put.",
+   "motionFlagsResolved": [
+    {
+     "flag": "leave div.tile#1: pop 1→2",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "leave div.tile#2: pop 2→3",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "hover div.tile#3: pop 3→4",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "leave div.tile#4: pop 2→3",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "hover div.tile#5: pop 3→4",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "leave div.tile#6: pop 2→3",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "blur div.tile#1: pop 1→2",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "blur div.tile#2: pop 2→3",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "focus div.tile#3: pop 3→4",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "blur div.tile#4: pop 2→3",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "focus div.tile#5: pop 3→4",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    },
+    {
+     "flag": "blur div.tile#6: pop 2→3",
+     "reason": "Read its strip: hovering a tile flips it and leaving flips it back, and the flagged step (0ms to 50ms on leaving tile 1) is the tile edge-on mid-flip. Same 90-degree crossing as businesscard, and a modest one -- 3.04 against a mean of 0.61."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (6 hover, 0 controls, 6 focus; 6 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "accordion",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A hinged accordion: Perspective open with its paragraph readable, Preserve-3d and Backface shut below it. Steady between the moments."
+  },
+  {
+   "model": "greeting",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A pop-up card: closed and edge-on showing \"For you\" in the first moment, open in the second with \"Happy day!\" and the heart standing up off the page.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover div.greeting: its hit area is mostly over empty canvas (62 of 81 reachable points draw nothing)",
+     "reason": "Looked at on the contact sheet of 2026-09-25: the model draws a single object smaller than the rectangle that takes its pointer, so most points inside that rectangle fall on canvas rather than on ink. The hover box is a plain rectangle round the object and does not reach past the canvas, and the model responds from anywhere in it. Same shape of finding as the one ruled on package at 1d88b26."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (1 hover, 0 controls, 1 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "tiltgallery",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A wall of six photo tiles in a frame, each image drawn, tilted differently between the moments."
+  },
+  {
+   "model": "bookshelf",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Books upright on a shelf, their spines lettered (DEPTH, PERSPECTIVE, FACES, ORIGIN), turned between the moments."
+  },
+  {
+   "model": "flipper",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A rounded square loader: face-on in the first moment, turned to a shallow edge in the second. The flip is running."
+  },
+  {
+   "model": "gyro",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A lit core with two rings round it at different angles, the rings in different places between the moments."
+  },
+  {
+   "model": "helix",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A DNA double helix, pink and teal strands with rungs between them, turned between the moments so the twist has moved."
+  },
+  {
+   "model": "tiles",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A grid of rounded tiles, some flipped away in the first moment mid-wave and all face-on in the second, the colour changing with the wave."
+  },
+  {
+   "model": "wavegrid",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A field of small diamonds with a wave running through it, the surface at a different point in each moment."
+  },
+  {
+   "model": "ripple",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A grid of tiles with a ripple crossing it, the flipped row in a different place between the moments."
+  },
+  {
+   "model": "cubeloader",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A folding-square loader on its pad: one panel folding in the first moment, four panels laid out in the second.",
+   "motionFlagsResolved": [
+    {
+     "flag": "loop: pop 11→12",
+     "reason": "Read its strip (24 frames over 2.40s, 0.10s apart): the four panels fold away one at a time and then unfold again, and frame 12 -- the flagged one -- catches a panel MID-FLIP as the cycle turns around. The pop is the turnaround landing inside one sample."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (0 hover, 0 controls, 0 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "rings",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Chasing rings round a lit core, the rings at different angles between the moments."
+  },
+  {
+   "model": "dotorbit",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Dots orbiting a lit sphere on dotted paths, the dots in different places between the moments."
+  },
+  {
+   "model": "blockstack",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Stacking blocks on a pad: a partial stack with a block dropping in the first moment, a single block in the second, so the cycle is running."
+  },
+  {
+   "model": "grid",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A synthwave floor with a banded sun on the horizon. A full-canvas scene, so it fills the frame by design; the grid lines stay straight to the vanishing point."
+  },
+  {
+   "model": "tunnel",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Nested rectangles flying towards the camera, lit in pink and violet. A full-canvas scene, so a near ring reaches past the frame edge by design. The two moments catch it at different points in its cycle. NOTE: this is the one model npm run compare lists as differing between the screen and the export (11.3% of pixels, twice); the shape and place are right in both, and it is being looked at separately."
+  },
+  {
+   "model": "starfield",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A warp starfield: points of light over black, in different places between the moments. A full-canvas scene."
+  },
+  {
+   "model": "parallax",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Layered mountain ridges with a moon behind them, the layers offset differently between the moments. A full-canvas scene."
+  },
+  {
+   "model": "door",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A door shut in the first moment and open in the second with light spilling from the opening. The panel and its handle are drawn in both."
+  },
+  {
+   "model": "laptop",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A laptop open with its screen lit in the first moment and shut flat in the second. The hinge and the base are drawn through both."
+  },
+  {
+   "model": "sign",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A hanging OPEN sign on its bar, neon outline and letters lit, swinging slightly between the moments."
+  },
+  {
+   "model": "fold",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A folding map: concertina-folded in the first moment, half folded in the second, each panel flat and its shading right."
+  },
+  {
+   "model": "isotiles",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A grid of isometric tiles; one tile is lifted and lit in the second moment while the rest stay flat."
+  },
+  {
+   "model": "confetti",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Confetti pieces falling over a \"click anywhere\" label, in different places between the moments. A full-canvas scene by design -- clicking anywhere is the whole point of it (88b86f4).",
+   "motionFlagsResolved": [
+    {
+     "flag": "click div.party \"Throw confetti\": its hit area is mostly over empty canvas (78 of 81 reachable points draw nothing)",
+     "reason": "Settled by the decision in 88b86f4, \"confetti: a full-canvas scene, because 'click anywhere' means the whole canvas\". The click target is meant to be the whole canvas and the pieces fly to its edges; a click landing where no piece happens to be is the model working."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (0 hover, 1 controls, 1 focus; 1 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "room",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A room in perspective: back wall with a window and two pictures, a door, a lit floor and a ceiling light. A full-canvas scene, so it fills the frame; the corners meet properly."
+  },
+  {
+   "model": "road",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "An endless drive: a road to a banded sun with posts down both sides, the posts in different places between the moments. A full-canvas scene."
+  },
+  {
+   "model": "snow",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Snowfall over a hill with trees and a moon, flakes in different places between the moments. A full-canvas scene."
+  },
+  {
+   "model": "map",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A tilted map plate with three coloured pins standing on it, the pins bobbing between the moments."
+  },
+  {
+   "model": "windmill",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A windmill on a patch of grass, sails turned between the moments, its body and door drawn."
+  },
+  {
+   "model": "rocket",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A rocket on its gantry: standing in the first moment, lifting with exhaust and smoke in the second. Both states drawn.",
+   "motionFlagsResolved": [
+    {
+     "flag": "loop: pop 39→40",
+     "reason": "Read its strip (96 frames over 32.00s). The strip itself answers the flag: \"not flicker, only fast motion when filmed 16ms at a time: 10, 40, 70\". Frames 36-41 are the launch, and between 13.00s and 13.33s the rocket goes from mid-frame to a distant speck. The check re-filmed it at 16ms and found motion, not flicker."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (0 hover, 0 controls, 0 focus; 1 strip(s); 3 flicker candidate(s) dismissed as motion on a 16ms re-film); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "lighthouse",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A lighthouse on its rock with a beam sweeping round, the beam in a different place between the moments and the lamp lit in the second."
+  },
+  {
+   "model": "bars",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Five bars of different heights with their side faces showing, the heights different between the moments so the growth is running."
+  },
+  {
+   "model": "clock",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A flip clock reading 07:50:09 and then 07:50:10 -- one second apart, which is the actual time the sheet was made. It is a live clock and it is ticking."
+  },
+  {
+   "model": "playground",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A 3D card with its persp / rX / rY sliders below and their values printed. Same setting in both moments."
+  },
+  {
+   "model": "pie",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A donut chart with four segments and its legend (Design 40, Build 25, Test 20, Ship 15), turned between the moments. The ring thickness stays even."
+  },
+  {
+   "model": "scatter",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Points in a labelled 3D box with X, Y and Z axes, turned between the moments so the cloud reads as having depth."
+  },
+  {
+   "model": "gauge",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A speedometer dial with its coloured arc and needle, \"Low - 22 km/h\" and the Low / Mid / High chips below, Low selected. The needle is in the same place in both moments.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover button#1 \"Low\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave button#1 \"Low\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (3 hover, 3 controls, 0 focus; 4 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "timeline",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A timeline receding to a vanishing point with year cards (2016, 2019, 2021, 2023, 2026) standing along it, \"2016 - First sketch\" below with Prev / Next. Steady between the moments.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover button#1 \"‹ Prev\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave button#1 \"‹ Prev\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (2 hover, 1 controls, 0 focus; 2 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "heatmap",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A grid of columns of different heights and colours with day labels, \"174 commits in 4 weeks\" in one moment and \"Fri, week 2: 10 commits\" in the other -- so it is reporting the column under the pointer."
+  },
+  {
+   "model": "stackbars",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Stacked bars by quarter on a plate, with the Pro / Team / Starter legend below. The second moment has the \"Q4 - Team - $50k\" tooltip standing ABOVE the bars -- which is exactly what made this model fail the stage check under load, since a tooltip caught mid-fade adds to the measured height.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover button#1 \"Pro\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave button#1 \"Pro\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "hover button#2 \"Team\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave button#2 \"Team\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave button#3 \"Starter\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (3 hover, 3 controls, 0 focus; 3 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "funnel",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Funnel slabs narrowing down the stages with their labels (Visitors 12,400 down to Paid 410) and the Web / App chips. The second moment has the \"Sign-ups - 3,720 - 30% of visitors\" tooltip out to the SIDE -- which is what made this one fail the stage check on width in the earlier run.",
+   "motionFlagsResolved": [
+    {
+     "flag": "leave button#1 \"Web\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (2 hover, 2 controls, 0 focus; 2 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "candles",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A candlestick chart on a plate with its price axis and date labels, and in the second moment the OHLC tooltip for Sep 19. Wicks and bodies are drawn separately.",
+   "motionFlagsResolved": [
+    {
+     "flag": "leave button#2 \"12D\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (2 hover, 2 controls, 0 focus; 2 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "waterfall",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Waterfall columns from Start to End with their step labels, and the \"End - $131k\" tooltip in the second moment. The connecting levels line up.",
+   "motionFlagsResolved": [
+    {
+     "flag": "leave button#1 \"Aug\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (2 hover, 2 controls, 0 focus; 2 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "treemap",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A treemap of tiles sized by value with their tickers (BTC, ETH, XRP, SOL, BNB ...) on a plate, the caption changing between the moments to report the tile under the pointer.",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover button#1 \"24h\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave button#1 \"24h\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (2 hover, 11 controls, 8 focus; 8 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  },
+  {
+   "model": "radar",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "A radar chart on a panel with six labelled axes and two overlaid shapes, and in the second moment the \"Design 9/10 5/10\" tooltip. Both shapes stay readable over each other."
+  },
+  {
+   "model": "activity",
+   "kind": "visual",
+   "reviewer": "contact-sheet review (Claude Opus 5): 12 sheets from the built site, two moments per model",
+   "verdict": "fine",
+   "reviewedAt": "2026-09-25T00:55:43.207Z",
+   "commit": "74f4aa4e49e44acf9bd240e63f31b4d5a38d07cb",
+   "notes": "Three activity rings round a MON label, each ring a different colour and length, the caption changing between the moments from the totals to \"Mon - Exercise 22/30 min - 73%\".",
+   "motionFlagsResolved": [
+    {
+     "flag": "hover button#1 \"Mon\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    },
+    {
+     "flag": "leave button#1 \"Mon\": changes nothing on screen",
+     "reason": "Looked at on turntable's strip, which settles this family: the flagged row is annotated \"no CSS transition started\" for button#1, while the next row for button#2 reads \"1 transitions over 0.12s\". button#1 is the control already in the state it selects -- the selected chip, or one that is disabled where it stands -- so there is nothing left for hovering it to change. Confirmed on the contact sheet of 2026-09-25, where the flagged control is the active one in every case."
+    }
+   ],
+   "motion": "check-motion flagged this at e9cfa31 (4 hover, 4 controls, 0 focus; 4 strip(s)); every flag it raised is ruled above, each from the strip, the code or the contact sheet named in its reason."
+  }
+ ]
+}
