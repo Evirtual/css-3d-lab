@@ -99,6 +99,24 @@ function look() {
 const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', docs: 'docs', code: 'build code', queue: 'queue', models: 'model files', render: 'render-path files' };
 
 /* ---------- heartbeat ---------- */
+/**
+ * What the watching tools have failed to do, from the file scripts/now.mjs appends to. The log
+ * itself is under .media-tmp and does not ship; this copy is small, last-24-hours, and rides on the
+ * heartbeat the page already reads, so the page can show that an instrument was not working without
+ * anyone having to go and look for it.
+ */
+const INSTRUMENTS_LOG = join(ROOT, '.media-tmp', 'runs', 'instruments.log');
+function readInstruments() {
+  try {
+    const cut = Date.now() - 24 * 3600 * 1000;
+    const rows = readFileSync(INSTRUMENTS_LOG, 'utf8').split('\n').filter(Boolean)
+      .map((l) => { const at = Date.parse(l.slice(0, 24)); return Number.isFinite(at) ? { at: new Date(at).toISOString(), what: l.slice(25) } : null; })
+      .filter((r) => r && Date.parse(r.at) > cut);
+    // A count and the last few: a hundred identical timeouts is one fact, not a hundred
+    return { count: rows.length, since: rows[0]?.at ?? null, last: rows.slice(-5) };
+  } catch { return { count: 0, since: null, last: [] }; }
+}
+
 const startedAt = new Date().toISOString();
 let lastBuild = null;
 let stopped = null;
@@ -109,6 +127,13 @@ function beat() {
       note: 'Written by scripts/ledger-watch.mjs. heartbeatAt is refreshed every 30 s while it runs; stoppedAt is set only on a clean stop.',
       pid: process.pid, startedAt, heartbeatAt: at, beatEverySeconds: BEAT / 1000, tickEverySeconds: TICK / 1000,
       stoppedAt: stopped, lastBuild,
+      // The instruments' own failures, carried onto the page. A tool that times out and prints one
+      // grey line into a terminal nobody is reading teaches nothing: on 2026-09-25 a process list
+      // timed out at 15:34 while the WORK block beside it had separately decided the run was over,
+      // and the two together read as one confident obituary for a gate that had twenty Chromium
+      // renderers working. The rule that came out of it is that an instrument's failures are
+      // findings. They belong where the findings are, not only in a scrollback.
+      instruments: readInstruments(),
       code: { loaded: lib.LOADED_CODE, loadedAt: codeLoadedAt, onDisk: codeOnDisk, files: ['scripts/ledger.mjs', 'scripts/model-sources.mjs', 'scripts/checklist-proofs.mjs'], note: 'versions are a hash of those files; loaded differs from onDisk only until the next build reloads it' },
     }, null, 1));
   } catch (e) { console.error(`ledger-watch: could not write the heartbeat: ${e.message}`); }

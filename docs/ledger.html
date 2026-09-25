@@ -4323,6 +4323,14 @@ table.mini code { font-size: 12px; }
     if (!code) note += `<div class="notice"><b class="big">Built by old code.</b> This ledger was built by a version of <code>scripts/ledger.mjs</code> from before it recorded its own version, so it may be missing sections or counting the old way.${w.kind === 'alive' ? ' The watcher running now loaded that old code: restart it with <code>npm run ledger:watch</code>.' : ' Run <code>npm run ledger</code>.'}</div>`;
     else if (code.stale) note += `<div class="notice"><b class="big">Built by older code than is on disk.</b> This build ran on <code>${esc(code.loaded)}</code>, but <code>${esc(code.files.join(' and '))}</code> are now <code>${esc(code.onDisk)}</code>. ${w.kind === 'alive' && W?.code ? 'The watcher reloads the new code on its next build.' : w.kind === 'alive' ? 'The watcher running now does not reload its code: restart it with <code>npm run ledger:watch</code>.' : 'Run <code>npm run ledger</code>.'}</div>`;
     else if (w.kind === 'alive' && W && !W.code) note += `<div class="notice">The watcher running now does not report which build code it has loaded, so it predates reloading and will keep building with old code after the next change to <code>scripts/ledger.mjs</code>. Restart it with <code>npm run ledger:watch</code>.</div>`;
+    // The instruments' own failures, outside the chain above because it is a separate fact and can
+    // be true alongside any of them. This page says "reported, not measured" about the work; this is
+    // the same honesty pointed at the tools doing the reporting. On 2026-09-25 a process list timed
+    // out at the same moment a status block had separately decided the run was over, and together
+    // they read as one confident obituary for a gate that had twenty Chromium renderers working. A
+    // failure of an instrument is a finding, and findings belong where the findings are.
+    const inst = W?.instruments;
+    if (inst?.count) note += `<div class="notice"><b class="big">The watching tools failed ${inst.count} time${inst.count === 1 ? '' : 's'} in the last day.</b> Not the app and not the checks — the instruments that report on them. What they could not do is recorded rather than swallowed, because a tool that gives up quietly is how you come to trust a reading taken by something that was not working: <code>${esc(inst.last.map((r) => r.what).join(' · ').slice(0, 220))}</code></div>`;
     if ($('livenote').dataset.note !== note) { $('livenote').dataset.note = note; $('livenote').innerHTML = note; }
   }
 

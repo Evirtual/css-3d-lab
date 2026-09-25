@@ -200,6 +200,13 @@ const CHAIN_COUNT = {
   },
 };
 
+// The last process list draw() read, so the chain can prefer direct evidence over cadence without
+// paying for a second PowerShell call. Null until the first draw, or when it could not be read.
+let PS_CACHE = null;
+// Windows command lines use backslashes, so the separator class must carry both -- [\/] alone
+// matches nothing here and would have quietly made "is anything working" always answer no.
+const busyNow = () => Array.isArray(PS_CACHE) && PS_CACHE.some((p) => /scripts[\\/](check-|capture-check|verify)/.test(p.cmd));
+
 const WORK = [
   {
     name: 'the release chain (finish.sh)', file: 'finish.status',
@@ -210,7 +217,7 @@ const WORK = [
     // independent failures that together read as one confident obituary. The chain's age is the age
     // of the newest thing any of its steps has written, and it goes stale on that step's own floor.
     freshest: (t, fileAge) => Math.min(fileAge, ...Object.values(CHAIN_LOG).map((f) => ageOf(f))),
-    staleAfter: (t) => QUIET_AFTER[chainStep(t).step] ?? STALE,
+    staleAfter: (t) => (busyNow() ? Infinity : QUIET_AFTER[chainStep(t).step] ?? STALE),
     lines: (t) => {
       const rows = t.split('\n').filter(Boolean);
       const start = rows.find((l) => / start at /.test(l));
@@ -230,7 +237,8 @@ const WORK = [
         // something is wrong. The gate writes a line per SHARD, and a check-stages shard is 68
         // models at 22 seconds each -- twenty-five minutes between lines, every time, working
         // perfectly. At 14:40 that was called dead while ten Chromiums held 1.5 GB doing it.
-        const moving = lag < (QUIET_AFTER[step] ?? 300);
+        const busy = busyNow();
+        const moving = busy || lag < (QUIET_AFTER[step] ?? 300);
         const head = `step ${done.length + 1} of 5: ${CHAIN_WHAT[step] ?? step}`;
         out.push(`    ${moving ? green(head) : red(`${head} — its log has not changed for ${clock(lag)}`)}`);
         const txt = log ? readIf(log) : '';
@@ -288,6 +296,7 @@ async function draw() {
 
   // PROCESSES
   const ps = processes();
+  PS_CACHE = ps.error ? null : ps;
   lines.push(bold('PROCESSES'));
   if (ps.error) {
     // "I could not look" and "nothing is there" are opposite facts and must never share a sentence.
@@ -357,6 +366,52 @@ async function draw() {
   const out = lines.join('\n');
   if (WATCH) process.stdout.write(`${TTY ? CLEAR : ''}${out}\n\n${dim('refreshing every 5s — Ctrl-C to stop')}\n`);
   else process.stdout.write(`${out}\n`);
+}
+
+/* ---------------- is it alive ---------------- */
+/**
+ * ONE ANSWER TO "IS WORK HAPPENING", used by this tool and by whatever is watching it.
+ *
+ * Three false alarms on the same step in one afternoon, each answered by raising a number: seven
+ * minutes, thirty, forty-five. check-exports was 46m37s in and holding thirteen Chromium when the
+ * forty-five-minute floor called it dead. The number was never the problem. The problem was
+ * inferring from cadence while DIRECT evidence sat one call away.
+ *
+ * So the order is: direct evidence first, inference only when direct evidence cannot be had.
+ *   1  a check process is running          -> alive, and say which one and for how long
+ *   2  the process list could not be read  -> fall back to the log, and SAY it is a fallback
+ *   3  the log grew within this step's floor -> alive
+ *   4  none of the above                   -> not alive, with what was looked at
+ *
+ * Step 2 is the part that matters. "I could not look" is not evidence of absence, and the honest
+ * output says which of the two it is rather than collapsing them into one verdict.
+ */
+function alive() {
+  const status = readIf('finish.status');
+  const { step } = chainStep(status);
+  const floor = QUIET_AFTER[step] ?? 300;
+  const ps = processes();
+
+  if (!ps.error) {
+    const working = ps.filter((p) => /scripts[\\/](check-|capture-check|verify)/.test(p.cmd));
+    if (working.length) {
+      const oldest = Math.min(...working.map((p) => p.started));
+      return { ok: true, how: 'measured', why: `${working.length} check process(es) running, the oldest for ${clock((Date.now() - oldest) / 1000)}: ${describe(working[0].cmd)}` };
+    }
+  }
+
+  const log = CHAIN_LOG[step];
+  const lag = log ? ageOf(log) : Infinity;
+  const fallback = ps.error ? ' (the process list could not be read, so this is the log, not the processes)' : '';
+  if (lag < floor) return { ok: true, how: ps.error ? 'inferred' : 'measured', why: `${log} grew ${clock(lag)} ago, inside this step's ${clock(floor)} floor${fallback}` };
+  if (ps.error) return { ok: null, how: 'unknown', why: `could not read the process list (${ps.error}), and ${log} has not grown for ${clock(lag)}. This is "I could not look", not "nothing is running"` };
+  return { ok: false, how: 'measured', why: `no check process is running and ${log} has not grown for ${clock(lag)}, past this step's ${clock(floor)}` };
+}
+
+if (process.argv.includes('--alive')) {
+  const a = alive();
+  process.stdout.write(`${a.ok === true ? 'ALIVE' : a.ok === false ? 'STOPPED' : 'UNKNOWN'} (${a.how}): ${a.why}\n`);
+  process.exit(a.ok === true ? 0 : a.ok === false ? 1 : 2);
 }
 
 await draw();
