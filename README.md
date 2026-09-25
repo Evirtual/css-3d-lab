@@ -179,7 +179,19 @@ npm run dev                          # Vite, on the port it prints
 npm run capture -- contrast          # run a check and record it (add ids for a few models)
 npm run ledger                       # rebuild docs/ledger.json from what has been recorded
 npm run ledger:watch                 # or: rebuild it whenever something it reads changes
+npm run now -- --watch               # a second terminal: what is running, MEASURED
 ```
+
+`npm run now` is the counterpart to the lead's record on the page. The record is **reported** — it
+knows only what a script told it through `npm run queue`, so a run that dies between `start` and
+`done` sits there "running" for ever. `now` asks the machine instead: which check is running and on
+which model, whether the dev server and the render service actually answer on their ports, how far
+a run has got (read from the file the run itself writes), and how much memory is left against the
+floor the guards watch. It only reads — it starts nothing and kills nothing.
+
+It is a terminal tool on purpose. A watcher that needed a browser would be driving one while the
+checks drive theirs, and that changes their answers: `stackbars` and `candles` have failed stage
+checks under exactly that load and passed clean on an idle machine.
 
 Then open **<http://localhost:5183/docs/ledger.html>** (the port is the one `npm run dev` printed;
 `5183` is what this project uses).
@@ -199,6 +211,12 @@ What you will see on a fresh clone:
 - **Two checks need something extra.** `npm run capture -- exports` needs the render service, so
   start `npm run export` in a second terminal first. Every browser-driven check needs Playwright's
   Chromium: `npx playwright install chromium` if you have not got it.
+- **In PowerShell, use `npm.cmd` or call node directly.** npm ships three launchers and PowerShell
+  picks `npm.ps1`, which a `Restricted` execution policy refuses to load at all —
+  `npm run now -- --watch` then fails with "cannot be loaded because running scripts is disabled on
+  this system", and so would every other `npm run` in this file. `npm.cmd run now -- --watch` skips
+  the `.ps1`, and `node scripts/now.mjs --watch` skips npm. Git Bash and cmd are unaffected, as are
+  macOS and Linux. Nothing here needs the execution policy changed.
 - **It runs the same on macOS, Linux and Windows.** Node 22 and the commands above are all it
   needs. The checks shell out to exactly two programs: `git`, and `taskkill` on Windows only —
   there a check's Chromium is a grandchild that outlives killing Node, so `scripts/verify.mjs`
