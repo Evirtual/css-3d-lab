@@ -1272,6 +1272,11 @@ button, input { font: inherit; color: inherit; }
 .clstep__i.is-done button { background: color-mix(in srgb, var(--st-chk) 26%, transparent); }
 .clstep__i.is-here button { background: color-mix(in srgb, var(--accent) 34%, transparent); }
 .clstep__i.is-later button { color: var(--muted); }
+/* shut: every phase after the first unfinished one. Not merely dimmed — the numeral becomes a
+   lock, because "later" and "you cannot do this yet" are different things to be told. */
+.clstep__i.is-shut button { color: var(--muted); background: repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in srgb, var(--muted) 10%, transparent) 7px 14px); cursor: not-allowed; }
+.clstep__i.is-shut button:hover { background: repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in srgb, var(--muted) 14%, transparent) 7px 14px); }
+.clstep__i.is-shut .clstep__n { background: transparent; font-size: 10px; }
 .clstep__n { flex: none; width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; font-size: 10.5px; font-weight: 500; background: color-mix(in srgb, var(--surface-solid) 55%, transparent); }
 .clstep__i.is-done .clstep__n { background: var(--st-chk); color: var(--surface-solid); }
 .clstep__i.is-here .clstep__n { background: var(--accent); color: var(--surface-solid); }
@@ -3846,11 +3851,21 @@ table.mini code { font-size: 12px; }
       return { key, name, why, items, done, left: items.length - done };
     });
     const here = phaseOf.find((p) => p.left > 0)?.key ?? null;
+    // A PHASE IS SHUT UNTIL EVERY PHASE BEFORE IT IS GREEN. Not "mostly green", not "green except
+    // the slow ones": every item done, with no proof contradicting its tick. The whole point of
+    // the order is that the push is the claim everything before it checked out, so a stage you can
+    // enter while the one before it still has something amber in it is a stage that means nothing.
+    const firstOpen = phaseOf.findIndex((p) => p.left > 0);
+    const shutFrom = firstOpen === -1 ? phaseOf.length : firstOpen + 1;
     $('cl-steps').innerHTML = phaseOf.map((p, i) => {
-      const state = p.left === 0 ? 'is-done' : p.key === here ? 'is-here' : 'is-later';
-      const mark = p.left === 0 ? '✓' : String(i + 1);
+      const shut = i >= shutFrom;
+      const state = p.left === 0 ? 'is-done' : p.key === here ? 'is-here' : shut ? 'is-shut' : 'is-later';
+      const mark = p.left === 0 ? '✓' : shut ? '🔒' : String(i + 1);
       // why the phase exists goes in the tooltip: on the strip it was three paragraphs of wall
-      const tip = `${p.name} — ${p.why}${p.key === here ? ' This is where the release has got to.' : ''}`;
+      const blockers = firstOpen === -1 ? [] : phaseOf[firstOpen].items.filter((x) => !x.done || x.state === 'conflict' || x.result === 'false');
+      const tip = shut
+        ? `${p.name} — shut until "${phaseOf[firstOpen].name}" is green. ${blockers.length} left there: ${blockers.map((b) => b.item.split(' — ')[0]).slice(0, 4).join('; ')}`
+        : `${p.name} — ${p.why}${p.key === here ? ' This is where the release has got to.' : ''}`;
       return `<li class="clstep__i ${state}"><button type="button" data-cl-phase="${p.key}" aria-pressed="${clFilter === 'phase:' + p.key}" title="${esc(tip)}">
         <span class="clstep__n" aria-hidden="true">${mark}</span>
         <span class="clstep__t">${esc(p.name)}${p.key === here ? ' ·' : ''}</span>

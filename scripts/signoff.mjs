@@ -36,7 +36,9 @@ const WHO = (() => {
   catch { return 'the person publishing'; }
 })();
 const ITEMS = {
-  article: { match: /^- \[( |x)\] (The person publishing has read the release article[^\n]*)$/m, says: 'read the article and called it ready' },
+  // BOTH are guarded, not just the push. A stage you can enter while the stage before it still has
+  // something open is a stage that means nothing: "all have to be green before 2 stage is opened".
+  article: { match: /^- \[( |x)\] (The person publishing has read the release article[^\n]*)$/m, says: 'read the article and called it ready', guarded: true },
   push: { match: /^- \[( |x)\] (The person publishing has said to push[^\n]*)$/m, says: 'said to push', guarded: true },
 };
 const MINE = /^The person publishing has /;
@@ -62,7 +64,29 @@ for (const line of text.split(/\r?\n/)) {
   if (m) all.push({ done: m[1] === 'x', text: m[2], section });
 }
 const AFTER = 'After the push';
-const openOthers = all.filter((i) => !i.done && !MINE.test(i.text) && i.section !== AFTER);
+
+/**
+ * NOT GREEN is more than NOT TICKED, and the first version of this guard missed the difference.
+ *
+ * An item can be ticked in the file while the ledger's own proof contradicts it — that is the
+ * whole reason the proofs exist, and it caught a release snapshot describing code that no longer
+ * existed. A guard that counts unticked boxes says "nothing else is open" over exactly that, which
+ * is what it did on 2026-09-25: it signed off the article while two proofs were failing.
+ *
+ * So it reads docs/ledger.json too, and treats an item as green only when it is ticked AND no
+ * proof run there disagrees. If the ledger cannot be read, it says so rather than assuming green.
+ */
+let failing = new Map();
+let ledgerRead = null;
+try {
+  const l = JSON.parse(readFileSync(join(ROOT, 'docs', 'ledger.json'), 'utf8'));
+  const items = l?.readiness?.checklist?.items ?? [];
+  if (!items.length) ledgerRead = 'docs/ledger.json holds no checklist items';
+  for (const i of items) if (i.state === 'conflict' || i.result === 'false') failing.set(i.item, i.found ?? 'its proof disagrees');
+} catch (e) { ledgerRead = `docs/ledger.json could not be read (${e.message.split('\n')[0]})`; }
+
+const notGreen = (i) => !i.done || failing.has(i.text.split(' — ')[0]) || [...failing.keys()].some((k) => i.text.startsWith(k));
+const openOthers = all.filter((i) => notGreen(i) && !MINE.test(i.text) && i.section !== AFTER);
 const openAfter = all.filter((i) => !i.done && i.section === AFTER);
 
 if (!which || !ITEMS[which]) {
@@ -106,10 +130,16 @@ if (found[1] === 'x') {
 }
 
 if (item.guarded && openOthers.length) {
-  console.error(`\nNot signing off the push: ${openOthers.length} item(s) are still open.\n`);
-  for (const i of openOthers) console.error(`  [ ] ${i.text.split(' — ')[0]}`);
-  console.error(`\nThe push is the claim that everything above it checked out. Finish those first,`);
-  console.error(`or edit the file by hand if you mean to push with them open — but then the list says so.\n`);
+  console.error(`\nStage 2 is shut: ${openOthers.length} item(s) before the push are not green.\n`);
+  for (const i of openOthers) {
+    const name = i.text.split(' — ')[0];
+    const why = failing.get(name) ?? [...failing.entries()].find(([k]) => i.text.startsWith(k))?.[1];
+    console.error(`  ${i.done ? '[x] TICKED, BUT ITS PROOF FAILS' : '[ ] not ticked'}  ${name}`);
+    if (why) console.error(`        ${String(why).slice(0, 110)}`);
+  }
+  console.error(`\nEverything before the push has to be green first — the push is the claim that it all`);
+  console.error(`checked out, and a sign-off given over an unfinished list says nothing. Finish those,`);
+  console.error(`or edit the file by hand if you mean to go anyway, and then the list says so.\n`);
   process.exit(1);
 }
 
