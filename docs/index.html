@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS 3D Lab — docs</title>
+<meta name="robots" content="noindex">
+<!--
+  The docs, in a browser, beside the ledger.
+
+  WHY THIS EXISTS. Everything on this page was already written down -- in README.md and four files
+  under docs/ -- and that turned out not to be the same as being readable. There was no way in: no
+  index, no order, and nothing that told a person who had just cloned the repository which of the
+  five to open first. A new person landed on a folder of Markdown and had to guess.
+
+  So this is an entry point, not new content. It renders the same files from disk, in the order a
+  person actually needs them, and it links to the ledger, which links back here. If you edit a
+  Markdown file, this page shows the edit on reload: there is no build step and nothing is copied.
+
+  It is deliberately local-only (noindex, and docs/ is not what the deploy publishes -- that is
+  dist/). The docs ship with the repository, for whoever has the repository.
+-->
+<style>
+  *{box-sizing:border-box}
+  :root{
+    --bg:#0b0d18;--surface:#121528;--surface2:#171b33;--line:#272b48;--text:#c9cce6;
+    --strong:#eceefb;--muted:#9296bb;--accent:#2ee6d6;--accent2:#ab97ff;--pink:#ff4d9d;--amber:#ffb347;
+    --focus:#2ee6d6;
+  }
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font:16px/1.65 system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:4px}
+
+  header{border-bottom:1px solid var(--line);background:linear-gradient(180deg,#141833,#0e1124)}
+  .bar{max-width:1240px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .brand{font-size:18px;font-weight:800;color:var(--strong);letter-spacing:-.01em}
+  .brand span{color:var(--muted);font-weight:600}
+  .spacer{flex:1}
+  .go{display:inline-block;padding:9px 15px;border:1px solid var(--line);border-radius:999px;
+    background:var(--surface);color:var(--text);text-decoration:none;font-size:14px;font-weight:600}
+  .go:hover{border-color:var(--accent);color:var(--strong)}
+  .go.key{background:linear-gradient(135deg,var(--accent2),var(--pink));border-color:transparent;color:#fff}
+
+  .shell{max-width:1240px;margin:0 auto;padding:26px 24px 80px;display:grid;grid-template-columns:262px 1fr;gap:34px}
+  @media (max-width:900px){.shell{grid-template-columns:1fr;gap:20px}}
+
+  nav{position:sticky;top:20px;align-self:start}
+  nav h2{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:0 0 11px}
+  nav ol{list-style:none;margin:0 0 22px;padding:0}
+  nav li{margin:0 0 7px}
+  nav button{display:block;width:100%;text-align:left;padding:10px 13px;border:1px solid transparent;
+    border-radius:10px;background:none;color:var(--text);font:inherit;font-size:14.5px;cursor:pointer}
+  nav button:hover{background:var(--surface)}
+  nav button[aria-current="true"]{background:var(--surface);border-color:var(--accent);color:var(--strong);font-weight:650}
+  nav button small{display:block;color:var(--muted);font-size:12.5px;font-weight:400;margin-top:2px}
+
+  main{min-width:0}
+  .doc{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:34px 38px}
+  @media (max-width:640px){.doc{padding:22px 18px}}
+  .doc h1{font-size:31px;line-height:1.2;color:var(--strong);margin:0 0 6px;letter-spacing:-.015em}
+  .doc h2{font-size:22px;color:var(--strong);margin:34px 0 10px;padding-top:16px;border-top:1px solid var(--line)}
+  .doc h3{font-size:17.5px;color:var(--strong);margin:24px 0 8px}
+  .doc p{margin:0 0 14px}
+  .doc ul,.doc ol{margin:0 0 14px;padding-left:22px}
+  .doc li{margin:0 0 7px}
+  .doc code{font-family:ui-monospace,'Cascadia Code',Consolas,monospace;font-size:13.5px;
+    background:var(--surface2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--strong)}
+  .doc pre{background:#0c0f1f;border:1px solid var(--line);border-radius:11px;padding:15px 17px;overflow:auto;margin:0 0 16px}
+  .doc pre code{background:none;border:0;padding:0;font-size:13px;line-height:1.6;color:var(--text)}
+  .doc blockquote{margin:0 0 16px;padding:12px 16px;border-left:3px solid var(--amber);
+    background:var(--surface2);border-radius:0 10px 10px 0;color:var(--text)}
+  .doc blockquote p:last-child{margin:0}
+  .doc table{width:100%;border-collapse:collapse;margin:0 0 16px;font-size:14.5px}
+  .doc th,.doc td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  .doc th{color:var(--muted);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase}
+  .doc hr{border:0;border-top:1px solid var(--line);margin:26px 0}
+  .doc strong{color:var(--strong)}
+  .doc .note{color:var(--muted);font-size:13.5px}
+
+  .loading{color:var(--muted);padding:40px 0}
+  .bad{border-left:3px solid var(--pink);background:var(--surface2);padding:14px 16px;border-radius:0 10px 10px 0}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">CSS 3D Lab <span>· docs</span></div>
+    <div class="spacer"></div>
+    <a class="go key" href="ledger.html">Open the ledger →</a>
+    <a class="go" href="https://css3dlab.edgarasneverdauskas.com">The gallery</a>
+  </div>
+</header>
+
+<div class="shell">
+  <nav aria-label="Documents">
+    <h2>Read in this order</h2>
+    <ol id="nav"></ol>
+    <h2>The repository</h2>
+    <ol>
+      <li><a class="go" href="../LICENSE" style="width:100%">LICENSE</a></li>
+    </ol>
+  </nav>
+  <main>
+    <article class="doc" id="doc"><p class="loading">Loading…</p></article>
+  </main>
+</div>
+
+<script>
+(() => {
+  // The order a person actually needs them, which is not alphabetical and not the order they were
+  // written. START-HERE first, because the failure this page fixes was not knowing where to start.
+  const DOCS = [
+    { file: 'START-HERE.md',        name: 'Start here',        blurb: 'What it is, what you get, how to run it' },
+    { file: '../README.md',         name: 'README',            blurb: 'Every npm script and every check, in one table' },
+    { file: 'ADDING-MODELS.md',     name: 'Adding models',     blurb: 'A model, a snippet, and the bugs the checks now catch' },
+    { file: 'VIEW-CONTRACT.md',     name: 'The view contract', blurb: 'What a model must satisfy, and nothing about how' },
+    { file: 'RELEASE-CHECKLIST.md', name: 'Release checklist', blurb: 'The list that gates a push' },
+    { file: 'COMMIT-AUDIT.md',      name: 'Commit audit',      blurb: 'How the history is kept honest' },
+  ];
+
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /**
+   * Markdown, the subset these files actually use. Not a library: this page has no build step and
+   * no dependencies, the same as the ledger, so that it keeps working in five years with nothing
+   * installed. Anything it does not understand is shown as plain text rather than swallowed --
+   * losing a line silently would be the same sin the rest of this project is about.
+   */
+  function render(md) {
+    const lines = md.replace(/\r/g, '').split('\n');
+    const out = [];
+    let i = 0;
+
+    const inline = (s) => esc(s)
+      .replace(/`([^`]+)`/g, (_, c) => `<code>${c}</code>`)
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, t, h) => {
+        const href = /^https?:|^#/.test(h) ? h : h.replace(/\.md($|#)/, '.md$1');
+        const ext = /^https?:/.test(href);
+        return `<a href="${href}"${ext ? ' target="_blank" rel="noopener"' : ' data-doc="' + href + '"'}>${t}</a>`;
+      });
+
+    while (i < lines.length) {
+      const l = lines[i];
+
+      if (/^```/.test(l)) {                                   // fenced code
+        const body = [];
+        i++;
+        while (i < lines.length && !/^```/.test(lines[i])) body.push(lines[i++]);
+        i++;
+        out.push(`<pre><code>${esc(body.join('\n'))}</code></pre>`);
+        continue;
+      }
+      if (/^\s*$/.test(l)) { i++; continue; }
+      if (/^#{1,4} /.test(l)) {                               // heading
+        const n = l.match(/^#+/)[0].length;
+        out.push(`<h${Math.min(n, 3)}>${inline(l.slice(n + 1))}</h${Math.min(n, 3)}>`);
+        i++; continue;
+      }
+      if (/^---+\s*$/.test(l)) { out.push('<hr>'); i++; continue; }
+      if (/^\s*\|/.test(l)) {                                 // table
+        const rows = [];
+        while (i < lines.length && /^\s*\|/.test(lines[i])) rows.push(lines[i++]);
+        const cells = (r) => r.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+        const head = cells(rows[0]);
+        const body = rows.slice(/^[\s|:-]+$/.test(rows[1] || '') ? 2 : 1);
+        const headHtml = head.some(Boolean) ? `<tr>${head.map((c) => `<th>${inline(c)}</th>`).join('')}</tr>` : '';
+        out.push(`<table>${headHtml}${body.map((r) => `<tr>${cells(r).map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</table>`);
+        continue;
+      }
+      if (/^\s*>/.test(l)) {                                  // blockquote
+        const body = [];
+        while (i < lines.length && /^\s*>/.test(lines[i])) body.push(lines[i++].replace(/^\s*>\s?/, ''));
+        out.push(`<blockquote>${render(body.join('\n'))}</blockquote>`);
+        continue;
+      }
+      if (/^\s*([-*]|\d+\.) /.test(l)) {                      // list
+        const ordered = /^\s*\d+\./.test(l);
+        const items = [];
+        while (i < lines.length && /^\s*([-*]|\d+\.) /.test(lines[i])) {
+          let text = lines[i++].replace(/^\s*([-*]|\d+\.) /, '');
+          // a checklist box is content here, not a control
+          text = text.replace(/^\[([ xX])\]\s*/, (_, m) => (m === ' ' ? '☐ ' : '☑ '));
+          while (i < lines.length && /^\s{2,}\S/.test(lines[i]) && !/^\s*([-*]|\d+\.) /.test(lines[i])) {
+            text += ' ' + lines[i++].trim();
+          }
+          items.push(`<li>${inline(text)}</li>`);
+        }
+        out.push(`<${ordered ? 'ol' : 'ul'}>${items.join('')}</${ordered ? 'ol' : 'ul'}>`);
+        continue;
+      }
+      const para = [];                                        // paragraph
+      while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,4} |```|\s*\||\s*>|---+\s*$)/.test(lines[i])
+             && !/^\s*([-*]|\d+\.) /.test(lines[i])) para.push(lines[i++]);
+      out.push(`<p>${inline(para.join(' '))}</p>`);
+    }
+    return out.join('\n');
+  }
+
+  const nav = document.getElementById('nav');
+  const doc = document.getElementById('doc');
+
+  DOCS.forEach((d, n) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<button type="button" data-file="${d.file}">${d.name}<small>${d.blurb}</small></button>`;
+    nav.appendChild(li);
+  });
+
+  async function open(file, push = true) {
+    for (const b of nav.querySelectorAll('button')) b.setAttribute('aria-current', String(b.dataset.file === file));
+    doc.innerHTML = '<p class="loading">Loading…</p>';
+    try {
+      const r = await fetch(file, { cache: 'no-cache' });
+      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+      doc.innerHTML = render(await r.text());
+      doc.scrollIntoView({ block: 'start', behavior: 'instant' });
+    } catch (e) {
+      // Say which file and why. "Could not load" on its own sends a person looking in the wrong place.
+      doc.innerHTML = `<div class="bad"><strong>Could not read ${esc(file)}</strong><br>${esc(e.message)}
+        <p class="note">This page reads the Markdown files from disk, so it needs to be served rather than opened
+        as a file:// URL. From the repository root: <code>npm run dev</code>, then open
+        <code>/docs/index.html</code> on the port it prints.</p></div>`;
+    }
+    if (push) history.replaceState(null, '', `#${file}`);
+  }
+
+  // A link inside a document to another document opens it here rather than downloading the raw file
+  doc.addEventListener('click', (e) => {
+    const a = e.target.closest('a[data-doc]');
+    if (!a) return;
+    const href = a.getAttribute('data-doc');
+    if (!/\.md(#|$)/.test(href)) return;
+    e.preventDefault();
+    open(href.split('#')[0]);
+  });
+  nav.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-file]');
+    if (b) open(b.dataset.file);
+  });
+
+  open(decodeURIComponent(location.hash.slice(1)) || DOCS[0].file, false);
+})();
+</script>
+</body>
+</html>
