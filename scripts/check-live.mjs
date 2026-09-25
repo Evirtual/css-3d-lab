@@ -83,6 +83,34 @@ for (const url of urls) {
 }
 note(served === urls.length, 'every page in the sitemap is served as HTML', `${served} of ${urls.length}`);
 
+// The files those pages reference, fetched once each, so the copy on disk is a COPY and not just
+// its text. Without this every stylesheet, script and icon reads as a dead link to check-seo and
+// every page weighs nothing, which is a fault in the download and not in the site.
+const assets = new Set();
+for (const p of pages) {
+  for (const m of p.html.matchAll(/(?:href|src)="([^"]+)"/g)) {
+    const raw = m[1];
+    if (/^(data:|mailto:|#)/.test(raw)) continue;
+    let u;
+    try { u = new URL(raw, p.url); } catch { continue; }
+    if (u.origin !== new URL(BASE).origin) continue;
+    if (!/.[a-z0-9]{2,5}$/i.test(u.pathname)) continue; // no extension = a page, not a file
+    assets.add(u.href.split('#')[0]);
+  }
+}
+let gotAssets = 0;
+for (const href of assets) {
+  const r = await get(href);
+  if (!r.ok) continue;
+  const path = new URL(href).pathname.replace(/^\//, '');
+  if (!path) continue;
+  const file = join(OUT, path);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, r.body);
+  gotAssets++;
+}
+note(gotAssets > 0, 'the files those pages reference are served', `${gotAssets} of ${assets.size} fetched into .media-tmp/live/`);
+
 /* ---------------- 2. is it the build we made? ---------------- */
 const stamp = (html) => html.match(/\?v=(\d{10,})/)?.[1] ?? null;
 const localStamp = (() => { try { return stamp(readFileSync(join(process.cwd(), 'dist', 'index.html'), 'utf8')); } catch { return null; } })();

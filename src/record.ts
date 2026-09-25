@@ -2,6 +2,7 @@ import { ArrayBufferTarget as Mp4Target, Muxer as Mp4Muxer } from 'mp4-muxer';
 import { ArrayBufferTarget as WebmTarget, Muxer as WebmMuxer } from 'webm-muxer';
 import { accessUnitWithColour, avcColour, avcCWithColour, type AvcColour } from './avc-colour';
 import { captureScene, captureSource, poseChange, poseOf, type PoseChange } from './capture-scene';
+import { ensureCaptureFonts } from './fonts/capture-fonts';
 import { renderedFrames } from './capture-client';
 import { MAX_PIXELS, renderFits } from '../server/render.mjs';
 
@@ -378,6 +379,7 @@ async function openVideo(width: number, height: number, transparent: boolean): P
 
 /** Snapshot of one synchronously sampled pose, rendered by Chromium. */
 export async function captureImage(stage: HTMLElement, { backdrop = 'stage', format = 'png', size = 1600, look, saveAspect }: ImageOptions = {}): Promise<Blob> {
+  await ensureCaptureFonts();
   const scene = captureScene(stage);
   const frame = frameFor(scene, size, saveAspect);
   const scale = scaleFor(scene, frame);
@@ -413,6 +415,7 @@ export async function recordModel({ stage, ratio, backdrop, look, quality = 1080
   const loop = loopLength(stage);
   const seconds = loop ? Math.min(MAX_SECONDS, loop / 1000) : 4;
   const count = Math.round(seconds * FPS);
+  await ensureCaptureFonts();
   const scene = captureScene(stage, true);
   const scale = scaleFor(scene, size);
   const video = await openVideo(size.width, size.height, backdrop === 'transparent');
@@ -457,6 +460,7 @@ export interface LiveOptions extends Omit<RecordOptions, 'onProgress' | 'signal'
 export async function recordLive({ stage, ratio, backdrop, look, quality = 1080, seconds = MAX_SECONDS, onTick, onProgress, stop, lookNow }: LiveOptions): Promise<Recording> {
   const size = frameSize(ratio, quality);
   const source = captureSource(stage);
+  await ensureCaptureFonts();
   const scene = captureScene(stage);
   const paint = paintOf(stage, backdrop, lookNow?.() ?? look);
   const scale = scaleFor(scene, size);

@@ -1,4 +1,4 @@
-import { CAPTURE_FONT_CSS } from './fonts/capture-fonts';
+import { captureFontCss } from './fonts/capture-fonts';
 
 /** The browser has already resolved layout, hover, JS state and CSS. Keep that DOM intact;
  * Chromium paints it on the server. No CSS geometry or depth sorting is reimplemented here. */
@@ -143,5 +143,5 @@ export function captureScene(stage: HTMLElement, animated = false): CapturedScen
   rules.push('*,*::before,*::after{font-family:"CaptureSans",ui-sans-serif,sans-serif!important}');
   rules.push('[data-cap-mono],[data-cap-mono]::before,[data-cap-mono]::after{font-family:"CaptureMono",ui-monospace,monospace!important}');
   const body = root.tagName === 'BODY' ? copy.outerHTML : `<body style="margin:0">${copy.outerHTML}</body>`;
-  return { width, height, animations, html: `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><style>${CAPTURE_FONT_CSS}${escapeStyle(rules.join('\n'))}</style></head>${body}</html>` };
+  return { width, height, animations, html: `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><style>${captureFontCss()}${escapeStyle(rules.join('\n'))}</style></head>${body}</html>` };
 }
