@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "generate": "node scripts/generate-pages.mjs",
+    "generate": "node scripts/generate-capture-fonts.mjs && node scripts/generate-pages.mjs",
     "media": "node scripts/generate-media.mjs",
     "qa": "node scripts/qa.mjs",
     "compare": "node scripts/compare-capture.mjs",
