@@ -1,7 +1,5 @@
 {
-  "comment": "Kept by the lead session. This is the lead's record of work that has not landed yet, not a measured fact. It ships EMPTY on purpose: it is a working file for whoever is working on this clone. The 94 jobs of the rewrite the article describes are at 16f829c — git show 16f829c:docs/ledger-queue.json",
-  "updatedAt": "2026-09-25T09:57:51.561Z",
-  "items": [
-    { "name": "Everything outstanding before the push", "brief": "stages under rule v3, then compare, the three browser looks, the gate, and the release snapshot -- one chain, each step recorded", "models": ["all"], "status": "done", "started": "2026-09-25T06:34:02.358Z", "progress": "finished -- approved 135", "progressAt": "2026-09-25T09:57:50.889Z", "finished": "2026-09-25T09:57:51.561Z" }
-  ]
+ "comment": "Kept by the lead session. This is the lead's record of work that has not landed yet, not a measured fact. It ships EMPTY on purpose: it is a working file for whoever is working on this clone, not a log of what the last person did. Two runs are kept in git rather than here: the 94 jobs of the rewrite the article describes are at 16f829c, and the release-day chain (stages, compare, the three looks, the gate, the snapshot; 3h24m) is at b2041dd. git show <commit>:docs/ledger-queue.json reads either one back.",
+ "updatedAt": "2026-09-25T10:15:04.058Z",
+ "items": []
 }
