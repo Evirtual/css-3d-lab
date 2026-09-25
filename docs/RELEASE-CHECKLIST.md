@@ -77,7 +77,7 @@ the date, the commit and the name git is configured with, so the record says who
 
 ## The build
 
-- [x] TypeScript is clean — `npx tsc --noEmit` exits 0
+- [x] TypeScript is clean — `npx tsc --noEmit` exits 0 — run 2026-09-25 at `31bf1b5`: exits 0, no output, 2s
 - [x] The build is clean — `npm run build` exits 0 and prints `generated 135 model pages, 8 group pages`
 - [x] QA on the built site finds nothing — `npm run qa` (after the build) ends with `QA: 135 demos, 0 problem(s)` (its exit code is 0 either way, so read the line) — run 2026-09-24 10:20: `QA: 135 demos, 0 problem(s)`
 - [x] The built site passes the SEO check (tags, canonical, headings, JSON-LD, sitemap, robots.txt, links, page weight) — after `npm run build`, `npm run check-seo` exits 0 and prints `problems: 0`, and each `WAIVED` or `OWN-TEXT` line it prints has been fixed or accepted by the user (`npm run check-seo -- --strict` exits 0 once all are fixed) — run 2026-09-24 10:20 on the fresh build: `problems: 0`, `waived: 0`, 416/416 pages, and no OWN-TEXT line left for a person to accept
@@ -97,7 +97,7 @@ Recording, snapshots and print all need it (README, "Recording, snapshots and pr
 - [x] ALLOWED_ORIGINS names the live site — `grep ALLOWED_ORIGINS worker/wrangler.jsonc` includes `https://css3dlab.edgarasneverdauskas.com`
 - [x] The Worker answers the site and refuses anyone else — `curl -s -o /dev/null -w '%{http_code}' -X OPTIONS -H 'Origin: https://css3dlab.edgarasneverdauskas.com' "$VITE_CAPTURE_URL"` prints `204`, and the same with `-H 'Origin: https://example.com'` prints `403` (the failure path, so a 204 is not a fallback page) — run 2026-09-24 against the new deployment: 204 for the site, 403 for example.com
 - [x] VITE_CAPTURE_URL is passed to the Pages build — `grep -n VITE_CAPTURE_URL .github/workflows/deploy.yml` finds it in the env of the `npm run build` step (on 2026-09-21 it does not: the workflow never sets it, and a production build without it says "Export service is not configured yet.")
-- [x] The value the workflow reads exists in the repository settings — `gh variable list` or `gh secret list` shows `VITE_CAPTURE_URL` — `gh variable list` shows VITE_CAPTURE_URL, set 2026-09-22
+- [x] The value the workflow reads exists in the repository settings — `gh variable list` or `gh secret list` shows `VITE_CAPTURE_URL` — `gh variable list` shows VITE_CAPTURE_URL, set 2026-09-22 — re-checked 2026-09-25 at `31bf1b5`: it prints `VITE_CAPTURE_URL  https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture  2026-09-22T01:34:57Z`, which is the endpoint the production build put into `dist/assets`
 - [x] A local production build with the variable carries the endpoint — `VITE_CAPTURE_URL=<the Worker URL> npm run build && grep -rl "<the Worker host>" dist/assets` finds a file — run 2026-09-25 02:43 with the deployed Worker URL (the repo variable `VITE_CAPTURE_URL`, `https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture`): the build exits 0 and the grep finds the Worker host in `dist/assets/lazy-mount-gJwB5zgi.js`
 
 ## Docs
