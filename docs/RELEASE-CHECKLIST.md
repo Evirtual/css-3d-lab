@@ -9,8 +9,11 @@ spaces around it; everything after the first ` — ` is the proof. `scripts/ledg
 file in that format. Tick an item (`- [x]`) only after running its proof on the commit being
 pushed, and untick it when that commit changes.
 
-Commands are for Git Bash from the repository root. "The ledger" means `docs/ledger.json`,
-written by `npm run ledger`.
+Commands are POSIX shell, run from the repository root: a terminal on macOS or Linux, or Git Bash
+on Windows. Nothing here needs Windows — the checks shell out to exactly two commands, `git` and
+(only on Windows, where a check's Chromium is a grandchild that survives killing Node) `taskkill`,
+and every path is built with `join`/`resolve`. "The ledger" means `docs/ledger.json`, written by
+`npm run ledger`.
 
 ## Nothing is lost
 

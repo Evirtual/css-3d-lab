@@ -199,6 +199,12 @@ What you will see on a fresh clone:
 - **Two checks need something extra.** `npm run capture -- exports` needs the render service, so
   start `npm run export` in a second terminal first. Every browser-driven check needs Playwright's
   Chromium: `npx playwright install chromium` if you have not got it.
+- **It runs the same on macOS, Linux and Windows.** Node 22 and the commands above are all it
+  needs. The checks shell out to exactly two programs: `git`, and `taskkill` on Windows only —
+  there a check's Chromium is a grandchild that outlives killing Node, so `scripts/verify.mjs`
+  kills the tree; everywhere else it sends SIGKILL. Every path is built with `join`/`resolve`, so
+  nothing assumes a separator, and every relative import matches its file character for character,
+  which is what a case-sensitive filesystem needs. The deploy builds on `ubuntu-24.04`.
 
 A full `npm run verify` is the gate before a push, not a thing to run while working: see the
 `verify` row above, and run it on an idle machine.
