@@ -388,6 +388,11 @@ async function draw() {
  */
 function alive() {
   const status = readIf('finish.status');
+  // A finished chain has no current step, and asking for one printed
+  //   STOPPED: no check process is running and undefined has not grown for InfinityhNaNm
+  // which is true, useless, and looks like a fault. Done is its own answer.
+  const done = /\sfinished --/.test(status);
+  if (done) return { ok: false, how: 'measured', why: `the chain finished: ${status.trim().split('\n').pop().replace(/^\S+\s+/, '')}` };
   const { step } = chainStep(status);
   const floor = QUIET_AFTER[step] ?? 300;
   const ps = processes();

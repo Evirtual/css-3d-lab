@@ -366,7 +366,11 @@ These are the things that would otherwise be found one model at a time.
 - **The export slider is the visitor's, not the model's.** In the Video / Image dialog the model
   fills 70% by default, which is the canvas exactly as the contract lays it out. Another setting
   writes `--zoom` (the setting ÷ 0.7) on the stage and the frame's scene is zoomed by it, the same
-  for every model (`src/video.ts`, `src/preview.ts`).
+  for every model (`src/video.ts`, `src/preview.ts`). It is now the **only** zoom on the site: the
+  page had a View zoom of its own until 2026-09-25, and it was taken out because a percentage a
+  visitor set while editing changed what they saw without changing what they would get — which is
+  the single thing this contract exists to prevent. A setting that moves the model now sits beside
+  the file it is about to make, where its effect is visible in the same dialog.
 - **A model in the band paints no backdrop.** The stage's colour, its dots and its theme are the
   site's. Its text colour is inherited, so it reads on a light stage and a dark one, and a
   see-through export has nothing of the model's own behind it.
