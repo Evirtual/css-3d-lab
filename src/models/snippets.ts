@@ -222,9 +222,13 @@ ${CUBE_FACES}
   animation: rock 5s ease-in-out infinite alternate;
 }
 
+/* The lift is 12 units, not 20. At 20 the headline sat 5.8vmin above the middle of its canvas,
+   past the 4vmin the view contract allows -- it read as centred only while the models asked for
+   system-ui, whose shorter ink box hid part of the offset. Inter's does not. Some lift is still
+   wanted: the drop shadow falls down and to the right, so a headline hung dead centre looks low. */
 @keyframes rock {
-  from { transform: translateY(calc(-20 * var(--u))) rotateY(-32deg) rotateX(12deg); }
-  to   { transform: translateY(calc(-20 * var(--u))) rotateY(32deg)  rotateX(-6deg); }
+  from { transform: translateY(calc(-12 * var(--u))) rotateY(-32deg) rotateX(12deg); }
+  to   { transform: translateY(calc(-12 * var(--u))) rotateY(32deg)  rotateX(-6deg); }
 }`,
   },
 

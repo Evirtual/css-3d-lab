@@ -190,6 +190,13 @@ const CHECKS = [
     // covered at the dialog's defaults by `npm run capture -- exports --defaults`, whose results
     // the ledger holds per model. That pair is what RELEASE-CHECKLIST.md asks for.
     sample: ['candles', 'dice', 'paycard', 'cube', 'browser', 'coverflow', 'switch', 'starfield'],
+    // One model to a shard, which is what the note at the top of this file has always said this
+    // check does. It was never switched on: the flag is read where the shards are built and no
+    // check ever set it, so these eight went out four to a shard, two shards at once. That is the
+    // arrangement RELEASE-CHECKLIST.md records as reaching 0.18 GB free and freezing the laptop --
+    // and on 2026-09-26 it spent an hour per shard and returned no verdict at all for any of the
+    // eight, while the same eight run one at a time finished in 35 minutes with free memory rising.
+    perModel: true,
     needsService: true,
     // `N mismatches in X min:` then `  <id> <check> <what>: <detail>  [fault]`. What follows the
     // failures is NOT failures: `N readings left for a person to look at` are the drifts the file
