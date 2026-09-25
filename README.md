@@ -220,7 +220,9 @@ What you will see on a fresh clone:
   `npm run now -- --watch` then fails with "cannot be loaded because running scripts is disabled on
   this system", and so would every other `npm run` in this file. `npm.cmd run now -- --watch` skips
   the `.ps1`, and `node scripts/now.mjs --watch` skips npm. Git Bash and cmd are unaffected, as are
-  macOS and Linux. Nothing here needs the execution policy changed.
+  macOS and Linux. Nothing here needs the execution policy changed. `scripts/signoff.mjs` prints
+  its own instructions in whichever form works on the shell it is running on, because the first
+  version answered a blocked `npm run` by printing the same blocked `npm run` back.
 - **It runs the same on macOS, Linux and Windows.** Node 22 and the commands above are all it
   needs. The checks shell out to exactly two programs: `git`, and `taskkill` on Windows only —
   there a check's Chromium is a grandchild that outlives killing Node, so `scripts/verify.mjs`
