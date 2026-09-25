@@ -413,7 +413,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   const fit = (): void => {
     const frame = el<HTMLElement>('[data-frame]');
     if (!stage || !frame) return;
-    (frame.closest<HTMLElement>('.maker__box') ?? frame).style.setProperty('--aspect', String(aspectOf() ?? shape));
+    frame.style.setProperty('--aspect', String(aspectOf() ?? shape));
     // never past the top end (a film being made keeps the size it started with)
     if (fillTop !== null && !busy && chosen().fill * 100 > fillTop) {
       chosen().fill = fillTop / 100;
@@ -643,7 +643,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     const frame = el<HTMLElement>('[data-frame]')!;
     frame.dataset.shape = kind === 'print' ? 'sheet' : 'screen';
     const aspect = aspectOf();
-    if (aspect) (frame.closest<HTMLElement>('.maker__box') ?? frame).style.setProperty('--aspect', String(aspect));
+    if (aspect) frame.style.setProperty('--aspect', String(aspect));
     const mine = job();
     if (mine.url) showResult(mine);
     else showModel();
@@ -682,7 +682,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       </div>
       <div class="maker__body">
         <div class="maker__show">
-          <div class="maker__box" data-box style="--aspect:1"><div class="maker__frame" data-frame data-shape="screen" aria-label="${title}, in the frame it will be saved in">
+          <div class="maker__box"><div class="maker__frame" data-frame data-shape="screen" style="--aspect:1" aria-label="${title}, in the frame it will be saved in">
             <div class="maker__live" data-live></div>
           </div></div>
           <p class="maker__caption" data-caption></p>
@@ -935,7 +935,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       for (const other of dialog.querySelectorAll<HTMLElement>(`[data-pick="${name}"]`)) other.setAttribute('aria-checked', String(other === chip));
       const frame = el<HTMLElement>('[data-frame]')!;
       const aspect = aspectOf();
-      if (aspect) (frame.closest<HTMLElement>('.maker__box') ?? frame).style.setProperty('--aspect', String(aspect));
+      if (aspect) frame.style.setProperty('--aspect', String(aspect));
       // a file made with the old settings is no longer what these settings say
       const mine = job();
       if (mine.url) URL.revokeObjectURL(mine.url);
