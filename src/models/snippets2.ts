@@ -654,7 +654,7 @@ ${[...RING_TEXT].map((c, i) => `    <span style="--i:${i}" aria-hidden="true">${
   position: relative;
   width: calc(36 * var(--u));
   height: calc(64 * var(--u));
-  font: 800 calc(52 * var(--u))/calc(64 * var(--u)) ui-monospace, monospace;
+  font: 800 calc(52 * var(--u))/calc(64 * var(--u)) 'JetBrains Mono', ui-monospace, monospace;
   transform-style: preserve-3d;
   animation: ring-spin 12s linear infinite;
 }

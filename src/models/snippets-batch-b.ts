@@ -351,7 +351,7 @@ export const snippetsB: Record<string, Snippet> = {
 .num {
   left: calc(18 * var(--u));
   bottom: calc(36 * var(--u));
-  font: 600 calc(13 * var(--u))/1 ui-monospace, Consolas, monospace;
+  font: 600 calc(13 * var(--u))/1 'JetBrains Mono', ui-monospace, Consolas, monospace;
   letter-spacing: calc(1.5 * var(--u));
   text-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) rgb(0 0 0 / 0.45);
   white-space: nowrap;
@@ -1335,7 +1335,7 @@ scene.addEventListener('pointercancel', leave);`,
 .time {
   margin-top: calc(5 * var(--u));
   counter-reset: hh var(--hh, 10) mm var(--mm, 9);
-  font: 700 calc(15 * var(--u))/1 ui-monospace, Consolas, monospace;
+  font: 700 calc(15 * var(--u))/1 'JetBrains Mono', ui-monospace, Consolas, monospace;
   letter-spacing: calc(-0.5 * var(--u));
 }
 

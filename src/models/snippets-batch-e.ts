@@ -1337,7 +1337,7 @@ ${CUBE_FACES}
   box-shadow: none;
   color: inherit;
   opacity: 0.65;
-  font: 700 calc(17 * var(--u))/1 monospace;
+  font: 700 calc(17 * var(--u))/1 'JetBrains Mono', ui-monospace, monospace;
 }
 
 .is-drag .spin,

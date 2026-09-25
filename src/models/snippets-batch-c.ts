@@ -109,7 +109,7 @@ export const snippetsC: Record<string, Snippet> = {
   left: 0;
   height: 200%;
   color: #f4f1e6;
-  font: 800 calc(22 * var(--u))/calc(34 * var(--u)) ui-monospace, monospace;
+  font: 800 calc(22 * var(--u))/calc(34 * var(--u)) 'JetBrains Mono', ui-monospace, monospace;
   text-align: center;
 }
 

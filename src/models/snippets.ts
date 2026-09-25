@@ -1541,7 +1541,7 @@ layout();`,
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 ui-monospace, monospace;
+  font: 500 4.5vmin/1.2 'JetBrains Mono', ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   opacity: 0.7;
 }
@@ -1820,7 +1820,7 @@ for (let i = 0; i < COUNT; i++) {
   display: flex;
   align-items: center;
   gap: calc(8 * var(--u));
-  font: 800 calc(56 * var(--u)) ui-monospace, monospace;
+  font: 800 calc(56 * var(--u)) 'JetBrains Mono', ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   transform: rotateY(-14deg) rotateX(6deg);
   transform-style: preserve-3d;
