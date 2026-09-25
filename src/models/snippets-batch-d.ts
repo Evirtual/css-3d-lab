@@ -847,7 +847,7 @@ root.addEventListener('keydown', key);`,
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box: the same height in every model that has controls, so the zone below it lands
@@ -968,7 +968,7 @@ root.addEventListener('keydown', key);`,
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   letter-spacing: 0.06em;
   opacity: 0.7;
 }
@@ -991,7 +991,7 @@ root.addEventListener('keydown', key);`,
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }

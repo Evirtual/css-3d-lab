@@ -520,7 +520,7 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
 
 .controls .caption {
   color: #fff;
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   opacity: 0.7;
   transition: opacity 0.4s;
 }
@@ -1177,7 +1177,7 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
 
 .controls .caption {
   margin: 0;
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   opacity: 0.7;
 }
 
@@ -1195,7 +1195,7 @@ ${lines(12, (i) => `<i style="--i:${i}"></i>`, '        ')}
   align-items: center;
   gap: 1.2vmin;
   height: 8vmin;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

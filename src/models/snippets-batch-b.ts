@@ -263,7 +263,7 @@ export const snippetsB: Record<string, Snippet> = {
   width: 100%;
   height: 100%;
   color: #fff;
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   transform-style: preserve-3d;
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   /* the tilt and the glare's centre glide together, so one duration drives both */
@@ -493,7 +493,7 @@ scene.addEventListener('pointercancel', leave);`,
 
 .front em {
   color: #fff;
-  font: normal 800 calc(9 * var(--u)) system-ui;
+  font: normal 800 calc(9 * var(--u)) Inter, system-ui;
   letter-spacing: calc(1 * var(--u));
 }
 
@@ -547,7 +547,7 @@ scene.addEventListener('pointercancel', leave);`,
   background: linear-gradient(140deg, #087a70, #6a45f5 60%, #d1206f);
   box-shadow: inset 0 0 calc(14 * var(--u)) rgb(255 255 255 / 0.25);
   color: #fff;
-  font: 900 calc(10 * var(--u)) system-ui;
+  font: 900 calc(10 * var(--u)) Inter, system-ui;
   letter-spacing: calc(1.5 * var(--u));
   /* at rest it is inside the shut box, out of sight, and NOT DRAWN: with the card left drawn, the
      browser's sorting of the two planes let a sliver of its NEW through the front wall, white on
@@ -797,7 +797,7 @@ scene.addEventListener('pointercancel', leave);`,
     radial-gradient(circle at 78% 72%, #ffb547 0 calc(17 * var(--u)), transparent calc(17.5 * var(--u))),
     linear-gradient(150deg, #6a45f5, #d1206f 85%); /* deep enough for the white words */
   color: #fff;
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   backface-visibility: hidden;
   transform: translateZ(calc(3 * var(--u)));
 }
@@ -1086,7 +1086,7 @@ scene.addEventListener('pointercancel', leave);`,
     inset 0 0 0 calc(6 * var(--u)) var(--gold-deep),
     inset 0 0 0 calc(12 * var(--u)) rgb(170 117 25 / 0.25);
   color: #5a3a10;
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   transform: translateZ(calc(3 * var(--u)));
 }
 
@@ -1273,7 +1273,7 @@ scene.addEventListener('pointercancel', leave);`,
   border: calc(5 * var(--u)) solid #05060c;
   background: radial-gradient(circle at 50% 30%, #231c42, #05060c 70%);
   color: #fff;
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   transform: translateZ(calc(5 * var(--u)));
 }
 
@@ -1407,7 +1407,7 @@ setInterval(tick, 1000);`,
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box: the same height in every model that has controls, so the zone below it lands
@@ -1561,7 +1561,7 @@ setInterval(tick, 1000);`,
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   opacity: 0.7;
 }
 
@@ -1582,7 +1582,7 @@ setInterval(tick, 1000);`,
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }

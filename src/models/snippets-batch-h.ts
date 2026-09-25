@@ -102,7 +102,7 @@ ${key('3D', true)}
   border-radius: calc(6 * var(--u));
   background: none;
   color: var(--ink);
-  font: 800 calc(16 * var(--u))/1 system-ui, sans-serif;
+  font: 800 calc(16 * var(--u))/1 Inter, system-ui, sans-serif;
   cursor: pointer;
   pointer-events: auto;
   transform-style: preserve-3d;
@@ -335,7 +335,7 @@ ${key('3D', true)}
     linear-gradient(150deg, rgb(255 255 255 / 0.28), transparent 45%),
     linear-gradient(color-mix(in srgb, #8b6cff, #ff4d9d 25%), color-mix(in srgb, #8b6cff, #000 25%));
   color: #fff;
-  font: 900 calc(50 * var(--u))/1 system-ui, sans-serif;
+  font: 900 calc(50 * var(--u))/1 Inter, system-ui, sans-serif;
   font-style: normal;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 calc(3 * var(--u)) 0 color-mix(in srgb, #8b6cff, #000 45%);
@@ -1007,7 +1007,7 @@ ${CUBE_FACES}
     linear-gradient(150deg, rgb(255 255 255 / 0.3), transparent 45%),
     linear-gradient(color-mix(in srgb, var(--c), #fff 8%), color-mix(in srgb, var(--c), #000 22%));
   color: #fff;
-  font: 900 calc(26 * var(--u))/1 system-ui, sans-serif;
+  font: 900 calc(26 * var(--u))/1 Inter, system-ui, sans-serif;
   font-style: normal;
   text-shadow: 0 calc(2 * var(--u)) 0 color-mix(in srgb, var(--c), #000 45%);
   backface-visibility: hidden; /* never a mirrored letter */

@@ -50,7 +50,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box: the same height in every model that has controls */
@@ -125,7 +125,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
      was 2.2:1 on the light one */
   color: inherit;
   opacity: 0.72;
-  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) Inter, system-ui, sans-serif;
 }
 
 .bars {
@@ -176,7 +176,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
     calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--c) 55%, #05060c),
     0 0 calc(14 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent);
   color: ${TEXT};
-  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) Inter, system-ui, sans-serif;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
@@ -254,7 +254,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   width: calc(33 * var(--u));
   color: inherit; /* the stage's ink, softened: see .wall span */
   opacity: 0.72;
-  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) Inter, system-ui, sans-serif;
   text-align: center;
   transform: translateZ(calc(9.5 * var(--u)));
 }
@@ -270,7 +270,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   opacity: 0.7;
 }
@@ -292,7 +292,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }
@@ -438,7 +438,7 @@ show('${YEARS[0]}');`,
   display: grid;
   justify-items: center;
   gap: 4vmin;
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box */
@@ -484,7 +484,7 @@ show('${YEARS[0]}');`,
   left: calc((10 + var(--x) * 34) * var(--u));
   width: calc(26 * var(--u));
   color: ${MUTED};
-  font: 700 calc(10 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(10 * var(--u))/calc(12 * var(--u)) Inter, system-ui, sans-serif;
   font-style: normal;
   text-align: center;
 }
@@ -567,7 +567,7 @@ show('${YEARS[0]}');`,
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   opacity: 0.7;
@@ -648,7 +648,7 @@ world.addEventListener('focusout', reset);`,
   outline: none;
   transform-style: preserve-3d;
   perspective: calc(800 * var(--u));
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the tilt lives here; the wrapper above stays still, so hovering it never flickers */
@@ -740,7 +740,7 @@ world.addEventListener('focusout', reset);`,
   border-radius: calc(4 * var(--u));
   background: rgb(20 24 48 / 0.85);
   color: ${TEXT};
-  font: 700 calc(10 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(10 * var(--u))/calc(12 * var(--u)) Inter, system-ui, sans-serif;
   white-space: nowrap;
   opacity: 0;
   translate: -50% 0;
@@ -758,7 +758,7 @@ world.addEventListener('focusout', reset);`,
   top: calc(9 * var(--u));
   left: calc(12 * var(--u));
   color: ${TEXT};
-  font: 800 calc(10 * var(--u))/calc(12 * var(--u)) system-ui, sans-serif;
+  font: 800 calc(10 * var(--u))/calc(12 * var(--u)) Inter, system-ui, sans-serif;
   letter-spacing: 0.04em;
   transform: translateZ(calc(6 * var(--u)));
 }

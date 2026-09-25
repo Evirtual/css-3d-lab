@@ -924,7 +924,7 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   display: grid;
   justify-items: center;
   gap: 4vmin;
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 .gauge * {
@@ -1016,7 +1016,7 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   top: calc(50% - calc(7 * var(--u)));
   width: calc(28 * var(--u));
   color: #b4b9d9; /* lighter than the muted #949bc0, which was 4.2:1 on the dial's face */
-  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(11 * var(--u))/calc(14 * var(--u)) Inter, system-ui, sans-serif;
   font-style: normal;
   text-align: center;
   transform: translateZ(calc(1 * var(--u))) rotate(var(--a)) translateY(calc(-33 * var(--u))) rotate(calc(var(--a) * -1));
@@ -1026,7 +1026,7 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   position: absolute;
   inset: auto 0 calc(20 * var(--u));
   color: ${MUTED};
-  font: 800 calc(9 * var(--u)) system-ui, sans-serif;
+  font: 800 calc(9 * var(--u)) Inter, system-ui, sans-serif;
   letter-spacing: 0.12em;
   text-align: center;
   text-transform: uppercase;
@@ -1096,7 +1096,7 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   opacity: 0.7;
 }
@@ -1118,7 +1118,7 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }
@@ -1201,7 +1201,7 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
   display: grid;
   justify-items: center;
   gap: 4vmin;
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box */
@@ -1352,7 +1352,7 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   opacity: 0.7;
 }
 
@@ -1373,7 +1373,7 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }

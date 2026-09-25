@@ -41,6 +41,12 @@ export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
 <style>
+${stage ? `/* The lab's own faces, so a model in a frame draws what an export draws. Only in the
+   frame: a copied file has no /fonts/ to load and should use the reader's own fonts. */
+@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/inter-latin-400.woff2) format("woff2")}
+@font-face{font-family:Inter;font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/inter-latin-700.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-latin-400.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/jetbrains-mono-latin-600.woff2) format("woff2")}` : ''}
 body {
   margin: 0;
   min-height: 100vh;
@@ -49,7 +55,7 @@ body {
   overflow: hidden;
   background: ${background};
   color: ${color};
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 </style>
@@ -125,7 +131,7 @@ body {
   overflow: hidden !important;
   background: transparent;
   color: ${ink};
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 .print-art {
@@ -147,7 +153,7 @@ body {
   right: 12mm;
   bottom: 9mm;
   color: ${ink};
-  font: 600 7pt/1 system-ui, sans-serif;
+  font: 600 7pt/1 Inter, system-ui, sans-serif;
   letter-spacing: 0.32em;
   text-transform: uppercase;
   opacity: 0.4;

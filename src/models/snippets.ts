@@ -27,7 +27,7 @@ const CUBE_FACE_LOOK = `.cube > * {
   inset: 0;
   display: grid;
   place-items: center;
-  font: 700 calc(24 * var(--u)) system-ui;
+  font: 700 calc(24 * var(--u)) Inter, system-ui;
   background: rgb(139 108 255 / 0.28);
   border: calc(1 * var(--u)) solid rgb(139 108 255 / 0.8);
 }`;
@@ -116,7 +116,7 @@ ${CUBE_FACES}
   display: grid;
   place-items: center;
   border-radius: calc(16 * var(--u));
-  font: 700 calc(24 * var(--u)) system-ui;
+  font: 700 calc(24 * var(--u)) Inter, system-ui;
   color: #fff;
   /* deep enough for white words (5.1:1 at the worst end): the bright #8b6cff to #ff4d9d was 3.3:1 */
   background: linear-gradient(135deg, #6a45f5, #d1206f);
@@ -168,7 +168,7 @@ ${CUBE_FACES}
   display: grid;
   place-items: center;
   border-radius: calc(10 * var(--u));
-  font: 800 calc(22 * var(--u)) system-ui;
+  font: 800 calc(22 * var(--u)) Inter, system-ui;
   color: #fff;
   background: hsl(calc(250 + var(--i) * 18) 80% 52% / 0.92); /* deep enough for white numbers on either stage */
   transform:
@@ -205,7 +205,7 @@ ${CUBE_FACES}
    floor. A kicker line over the word is what a headline does anyway. */
 .extruded {
   margin: 0;
-  font: 900 calc(80 * var(--u))/1.04 system-ui;
+  font: 900 calc(80 * var(--u))/1.04 Inter, system-ui;
   letter-spacing: 0.04em;
   text-align: center;
   color: #fff;
@@ -312,7 +312,7 @@ ${CUBE_FACES}
   display: block;
   padding: calc(56 * var(--u)) calc(22 * var(--u));
   border-radius: calc(20 * var(--u));
-  font: 900 calc(26 * var(--u)) / 1.2 system-ui;
+  font: 900 calc(26 * var(--u)) / 1.2 Inter, system-ui;
   letter-spacing: 0.14em;
   color: #fff;
   background: linear-gradient(#ff4d9d, #d63a80);
@@ -720,7 +720,7 @@ ${CUBE_FACES}
   display: grid;
   justify-items: center;
   gap: 4vmin;
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box: the same height in every model that has controls */
@@ -752,7 +752,7 @@ ${CUBE_FACES}
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   opacity: 0.7;
 }
 
@@ -773,7 +773,7 @@ ${CUBE_FACES}
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }
@@ -858,7 +858,7 @@ input:nth-of-type(6):focus-visible ~ .controls label:nth-of-type(6) {
   inset: 0;
   display: grid;
   place-items: center;
-  font: 700 calc(16 * var(--u)) system-ui;
+  font: 700 calc(16 * var(--u)) Inter, system-ui;
   background: rgb(46 230 214 / 0.25);
   /* an inner line plus a soft glow instead of a hard border: squeezed side-on, a one-unit line
      breaks up, the glow survives */
@@ -1106,7 +1106,7 @@ ${CUBE_FACES}`,
   border-radius: calc(18 * var(--u));
   color: #fff;
   /* the card's own words, so they scale with the card and not with the page */
-  font: 500 calc(17 * var(--u))/1.35 system-ui, sans-serif;
+  font: 500 calc(17 * var(--u))/1.35 Inter, system-ui, sans-serif;
   /* deep enough for its white words (5.1:1 at the worst end): the bright #8b6cff to #ff4d9d was 3:1 */
   background: linear-gradient(135deg, #6a45f5, #d1206f);
   box-shadow: 0 calc(24 * var(--u)) calc(40 * var(--u)) calc(-18 * var(--u)) #8b6cff;
@@ -1323,7 +1323,7 @@ scene.addEventListener('pointercancel', release);`,
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box: the same height in every model that has controls, so the zone below it lands
@@ -1351,7 +1351,7 @@ scene.addEventListener('pointercancel', release);`,
   display: grid;
   place-items: center;
   border-radius: calc(12 * var(--u));
-  font: 900 calc(35 * var(--u)) system-ui;
+  font: 900 calc(35 * var(--u)) Inter, system-ui;
   color: #fff;
   cursor: pointer;
   pointer-events: auto;
@@ -1387,7 +1387,7 @@ scene.addEventListener('pointercancel', release);`,
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   opacity: 0.7;
 }
 
@@ -1408,7 +1408,7 @@ scene.addEventListener('pointercancel', release);`,
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }
@@ -1524,7 +1524,7 @@ layout();`,
   width: calc(120 * var(--u));
   height: calc(120 * var(--u));
   border-radius: calc(16 * var(--u));
-  font: 900 calc(38 * var(--u)) system-ui, sans-serif;
+  font: 900 calc(38 * var(--u)) Inter, system-ui, sans-serif;
   color: #fff;
   /* deep enough for its white 3D, 3:1 or more (large text): the bright #ffb547 was 2.3:1 */
   background: linear-gradient(135deg, #c96f00, #d1206f);
@@ -1563,7 +1563,7 @@ layout();`,
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }
@@ -1699,7 +1699,7 @@ update();`,
   --dx: 0.7;   /* direction — overwritten from JS */
   --dy: 0.7;
   margin: 0;
-  font: 900 calc(72 * var(--u))/1.2 system-ui;
+  font: 900 calc(72 * var(--u))/1.2 Inter, system-ui;
   text-align: center;
   white-space: nowrap;
   transform: translateY(calc(-4 * var(--u)));

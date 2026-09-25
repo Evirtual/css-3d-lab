@@ -269,7 +269,7 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
   border: calc(6 * var(--u)) solid #e2a93b;
   background: radial-gradient(circle at 35% 30%, #fff1b8, #f1b93d 55%, #c98a1b);
   color: #8a5a0c;
-  font: 900 calc(72 * var(--u)) system-ui;
+  font: 900 calc(72 * var(--u)) Inter, system-ui;
   backface-visibility: hidden;
   transform: translateZ(calc(5 * var(--u)));
 }
@@ -583,7 +583,7 @@ ${[...'3D'].map((c, i) => `      <span style="--i:${i + 4}" data-c="${c}" aria-h
   align-items: center;
   gap: calc(22 * var(--u));
   margin: 0;
-  font: 900 calc(64 * var(--u))/1 system-ui;
+  font: 900 calc(64 * var(--u))/1 Inter, system-ui;
   transform-style: preserve-3d;
 }
 
@@ -725,7 +725,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
 .deep {
   position: relative;
   margin: 0;
-  font: 900 calc(90 * var(--u))/0.92 system-ui;
+  font: 900 calc(90 * var(--u))/0.92 Inter, system-ui;
   text-align: center;
   transform-style: preserve-3d;
   animation: deep-rock 5s ease-in-out -1.75s infinite alternate;
@@ -803,7 +803,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   border-radius: calc(12 * var(--u));
   background: #1b1408;
   color: #ffb547;
-  font: 900 calc(45 * var(--u)) system-ui;
+  font: 900 calc(45 * var(--u)) Inter, system-ui;
   letter-spacing: 0.12em;
   text-shadow: 0 0 calc(14 * var(--u)) #ffb547;
   box-shadow: 0 0 calc(24 * var(--u)) rgb(255 181 71 / 0.45);
@@ -931,7 +931,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   border-radius: calc(10 * var(--u));
   background: linear-gradient(160deg, #fff, #d9dcec);
   color: #14172b;
-  font: 800 calc(26 * var(--u))/1 system-ui;
+  font: 800 calc(26 * var(--u))/1 Inter, system-ui;
   box-shadow: 0 calc(8 * var(--u)) calc(16 * var(--u)) calc(-8 * var(--u)) #000;
   /* the pivot is half a card below the bottom edge. Further down flattens the arc and throws
      the outer cards wider — at 170% the open hand ran off the sides of the canvas. */
@@ -1196,7 +1196,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   margin: auto;
   border-radius: calc(18 * var(--u));
   color: #fff;
-  font: 800 calc(17.6 * var(--u)) system-ui;
+  font: 800 calc(17.6 * var(--u)) Inter, system-ui;
   /* deep enough for white words, 5.2:1 at its worst end: the bright #2ee6d6 was 2.2:1 */
   background: linear-gradient(135deg, #087a70, #6a45f5);
   box-shadow: 0 calc(22 * var(--u)) calc(36 * var(--u)) calc(-16 * var(--u)) #8b6cff;
@@ -1254,7 +1254,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   border: 0;
   background: none;
   color: #fff;
-  font: 800 calc(24 * var(--u)) system-ui;
+  font: 800 calc(24 * var(--u)) Inter, system-ui;
   cursor: pointer;
   transform-style: preserve-3d;
 }
@@ -1342,7 +1342,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   background: linear-gradient(#2b3050, #161a30);
   border: calc(1 * var(--u)) solid #4a5280;
   color: #8d95b3;
-  font: 700 calc(25.6 * var(--u)) system-ui;
+  font: 700 calc(25.6 * var(--u)) Inter, system-ui;
   text-align: center;
   box-shadow: 0 0 0 calc(9 * var(--u)) #05060c, 0 0 0 calc(10 * var(--u)) #4a5280;
   transform: rotateX(-22deg);                       /* OFF */
@@ -1399,7 +1399,7 @@ input:checked ~ em {
   --u: 0.29vmin;
   width: calc(200 * var(--u));
   cursor: pointer;
-  font: calc(16 * var(--u)) system-ui, sans-serif;
+  font: calc(16 * var(--u)) Inter, system-ui, sans-serif;
 }
 
 .menu > span {
@@ -1491,7 +1491,7 @@ input:checked ~ em {
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui;
+  font-family: Inter, system-ui;
 }
 
 /* the model box: the same height in every model that has controls, so the zone below it lands
@@ -1529,7 +1529,7 @@ input:checked ~ em {
   border-radius: calc(16 * var(--u));
   background: radial-gradient(circle at 30% 30%, #fff, #dfe1f0);
   color: #1a1d33;
-  font: 900 calc(54 * var(--u)) system-ui;
+  font: 900 calc(54 * var(--u)) Inter, system-ui;
   transform-style: preserve-3d;
 }
 
@@ -1556,7 +1556,7 @@ ${CUBE_FACES}
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   opacity: 0.7;
 }
 
@@ -1577,7 +1577,7 @@ ${CUBE_FACES}
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }
@@ -1667,7 +1667,7 @@ document.querySelector('button').addEventListener('click', () => {
   place-items: center;
   border-radius: calc(16 * var(--u));
   color: #fff;
-  font: 900 calc(26 * var(--u)) system-ui;
+  font: 900 calc(26 * var(--u)) Inter, system-ui;
   background: linear-gradient(135deg, hsl(var(--hue) 85% 64%), hsl(calc(var(--hue) + 40) 80% 46%));
   box-shadow: 0 calc(12 * var(--u)) calc(22 * var(--u)) calc(-12 * var(--u)) #000;
   opacity: calc(1 - var(--p) * 0.18);
@@ -1895,7 +1895,7 @@ view.addEventListener('pointerleave', () => {
   place-items: center;
   border-radius: calc(8 * var(--u));
   color: #fff;
-  font: 900 calc(32 * var(--u)) system-ui;
+  font: 900 calc(32 * var(--u)) Inter, system-ui;
   background: linear-gradient(135deg, hsl(var(--hue) 85% 62%), hsl(var(--hue) 75% 38%));
   backface-visibility: hidden;
   transform-style: preserve-3d;
@@ -1941,7 +1941,7 @@ view.addEventListener('pointerleave', () => {
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }
@@ -2096,7 +2096,7 @@ for (let row = 0; row < N; row++) {
   overflow: hidden;
   perspective: calc(850 * var(--u));
   color: inherit; /* the stage's own ink: a fixed pale lavender was 2.5:1 on the light stage */
-  font: 700 calc(62 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(62 * var(--u)) Inter, system-ui, sans-serif;
   cursor: pointer;
   user-select: none;
 }

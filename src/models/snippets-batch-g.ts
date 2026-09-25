@@ -444,7 +444,7 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
 }
 
 .label b { font-size: calc(11 * var(--u)); font-weight: 400; letter-spacing: calc(2.5 * var(--u)); text-indent: calc(2.5 * var(--u)); }
-.label small { font: calc(4.5 * var(--u)) system-ui, sans-serif; letter-spacing: calc(0.8 * var(--u)); white-space: nowrap; opacity: 0.85; }
+.label small { font: calc(4.5 * var(--u)) Inter, system-ui, sans-serif; letter-spacing: calc(0.8 * var(--u)); white-space: nowrap; opacity: 0.85; }
 
 /* --- neck and cap: four walls and a lid --- */
 .box {
@@ -569,7 +569,7 @@ ${lines(7, (i) => `<i style="--n:${i + 1}"></i>`, '      ')}
   height: calc(170 * var(--u));
   border-radius: calc(16 * var(--u));
   cursor: pointer;
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   transform-style: preserve-3d;
 }
 
@@ -872,7 +872,7 @@ ${lines(16, (i) => `<i class="strip" style="--i:${i}"></i>`, '      ')}
   top: calc(8 * var(--u));
   width: 100%;
   color: #4a4f66;
-  font: 800 calc(7 * var(--u)) system-ui, sans-serif;
+  font: 800 calc(7 * var(--u)) Inter, system-ui, sans-serif;
   letter-spacing: calc(2.5 * var(--u));
   text-align: center;
   text-indent: calc(2.5 * var(--u));
