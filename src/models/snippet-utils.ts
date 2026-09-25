@@ -1,4 +1,5 @@
 /** Shared pieces for the copy-paste snippets. */
+import site from '../../site.config.json';
 export interface Snippet {
   /** Step-by-step explanation. May contain <code>. */
   how: string[];
@@ -41,12 +42,21 @@ export function standaloneDoc(title: string, s: Snippet, stage?: 'dark' | 'light
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
 <style>
-${stage ? `/* The lab's own faces, so a model in a frame draws what an export draws. Only in the
-   frame: a copied file has no /fonts/ to load and should use the reader's own fonts. */
-@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/inter-latin-400.woff2) format("woff2")}
+${stage
+  /* In the site's own frame the faces come from the site itself. */
+  ? `@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/inter-latin-400.woff2) format("woff2")}
 @font-face{font-family:Inter;font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/inter-latin-700.woff2) format("woff2")}
 @font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-latin-400.woff2) format("woff2")}
-@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/jetbrains-mono-latin-600.woff2) format("woff2")}` : ''}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/jetbrains-mono-latin-600.woff2) format("woff2")}`
+  /* And in the file a visitor takes away, from the site over https, so the SAME model is drawn
+     wherever that file is opened -- which is what docs/VIEW-CONTRACT.md asks of "the copied file",
+     and what it stopped doing the day the models began asking for Inter. Saved to a disk with no
+     network it falls back to the reader's own fonts, as it always did.
+     The SNIPPET a reader pastes is untouched: it carries no @font-face and never has. */
+  : `@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:swap;src:url(${site.url}/fonts/inter-latin-400.woff2) format("woff2")}
+@font-face{font-family:Inter;font-style:normal;font-weight:700;font-display:swap;src:url(${site.url}/fonts/inter-latin-700.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400;font-display:swap;src:url(${site.url}/fonts/jetbrains-mono-latin-400.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:600;font-display:swap;src:url(${site.url}/fonts/jetbrains-mono-latin-600.woff2) format("woff2")}`}
 body {
   margin: 0;
   min-height: 100vh;
