@@ -50,7 +50,7 @@ the date, the commit and the name git is configured with, so the record says who
 - [x] scripts/verify.mjs and scripts/check-exports.mjs are committed, with the verify entry in package.json — `git ls-files scripts/verify.mjs scripts/check-exports.mjs` prints both names and `git show HEAD:package.json | grep '"verify"'` prints the entry
 - [x] The lead's queue has nothing running and its final state is committed — `npm run queue -- list` shows no running item and `git diff --quiet HEAD -- docs/ledger-queue.json && echo committed` prints `committed`
 - [x] Local-only files stay local: hero-options.html, og-preview.html and harness-tmp/ (listed in .git/info/exclude) are not tracked — `git ls-files hero-options.html og-preview.html harness-tmp` prints nothing
-- [x] The remote has nothing main lacks — `git fetch origin && git rev-list --count main..origin/main` prints `0` — run 2026-09-24: prints `0`, and main is 615 ahead
+- [x] The remote has nothing main lacks — `git fetch origin && git rev-list --count main..origin/main` prints `0` — re-run 2026-09-25 at `31bf1b5`: prints `0`. `origin/main` is still `b1d49c2` ("Add project article page", 2026-09-19), so nothing has reached the remote since, and the push would be a fast-forward of **667** commits. *(It last said "run 2026-09-24 … main is 615 ahead" — the `0` held, but the count was a day and 52 commits out of date. A networked proof the ledger cannot re-run has to be re-run by hand before the push, or its number quietly rots.)*
 
 ## The models
 
