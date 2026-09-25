@@ -9,11 +9,36 @@ spaces around it; everything after the first ` — ` is the proof. `scripts/ledg
 file in that format. Tick an item (`- [x]`) only after running its proof on the commit being
 pushed, and untick it when that commit changes.
 
+**Who answers what.** The list is split once, at the top: **Yours** holds the two items that wait
+for Edgaras — whether the article is ready, and whether to push. Every other item is answered by a
+script, or by an agent running one and writing what it printed into the item's own line. So the
+only two questions a person is ever asked here are the two a machine has no business answering.
+
+That split is not a convenience. Of the 55, `npm run ledger` re-proves 33 on the spot every time it
+builds, and says so per item: *proven*, *ticked but not proven here*, or *its proof disagrees with
+its tick*. That last one is not hypothetical — on 2026-09-25 it caught a release snapshot describing
+code that no longer existed, which a fresh clone would have read instead of real results. A tick is
+a claim; only a proof run here counts as proven.
+
 Commands are POSIX shell, run from the repository root: a terminal on macOS or Linux, or Git Bash
 on Windows. Nothing here needs Windows — the checks shell out to exactly two commands, `git` and
 (only on Windows, where a check's Chromium is a grandchild that survives killing Node) `taskkill`,
 and every path is built with `join`/`resolve`. "The ledger" means `docs/ledger.json`, written by
 `npm run ledger`.
+
+## Yours
+
+**Two items, and they are the only two on this list that wait for Edgaras.** Everything below this
+section is answered by a script or by an agent running one, and each of those carries its evidence
+in its own line — what was run, when, on which commit, and what it printed. None of them needs a
+person to look, agree or sign anything.
+
+These two do, and neither can be delegated: one is a judgement about whether the writing is good,
+and the other is the decision to make 656 commits public. A checklist that could tick these itself
+would be a checklist that pushes without being asked.
+
+- [ ] Edgaras has read the ledger article and says it is ready — the draft is at `css-3d-lab-ledger-article/article.md` (about 7,100 words, counted at `ee272a1`); "ready" means he has read it, not that a script has counted its words. It is the same item as *A second article on how the view-contract rewrite was run* under **Article** below, which carries the conditions the article itself must meet
+- [ ] Edgaras has said to push — in his own words, after this list is complete and he has read it. Nothing else here may be read as that permission: not a green ledger, not `GATE HOLDS`, not 55 of 55. The push deploys to the live site (`.github/workflows/deploy.yml`) and is the claim that everything above checked out, so it is his claim to make
 
 ## Nothing is lost
 
@@ -88,7 +113,7 @@ Recording, snapshots and print all need it (README, "Recording, snapshots and pr
 Written last of everything done before the push, and never after it: the push is the claim that it all checked out, so the article has to be able to describe a list that already holds. Every count, check result and ruling in it is read from the repository, so a draft written earlier quotes numbers that are still moving.
 
 - [x] The project article at public/article/index.html is kept as published and dated, not rewritten: it is an account of one day, it is canonical on Medium and LinkedIn, and editing it to match later code would change a record people have already read. Instead it carries a note saying when it was written and linking to the story of what changed — `grep -n "note-then" public/article/index.html public/article/assets/site.css` finds the note and its style, and the note names the ledger article
-- [ ] A second article on how the view-contract rewrite was run (the contract, parallel agents reviewing each other, the ledger, the checks) is drafted from docs/ledger.json, docs/reviews/ and the commit history, only after the rewrite is complete — its first commit is later than the one where `node -p "require('./docs/ledger.json').counts.approved"` first printed 135; if it lives under public/, scripts/generate-pages.mjs is extended to put it in the sitemap (today only public/article/index.html is)
+- [x] A second article on how the view-contract rewrite was run (the contract, parallel agents reviewing each other, the ledger, the checks) is drafted from docs/ledger.json, docs/reviews/ and the commit history, only after the rewrite is complete — its first commit is later than the one where `node -p "require('./docs/ledger.json').counts.approved"` first printed 135; if it lives under public/, scripts/generate-pages.mjs is extended to put it in the sitemap (today only public/article/index.html is) — **drafted**, 2026-09-25: `css-3d-lab-ledger-article/article.md`, about 7,100 words, written from `docs/ledger.json`, `docs/reviews/` and the commit history, and brought up to the current commit after the rewrite finished — its numbers, its open-items section and its account of the three gate failures are all counted at `ee272a1`, the commit where the ledger first read 135 approved and `GATE HOLDS`. It lives in its own repository beside this one, not under `public/`, so the sitemap condition does not apply. **This item is that the draft exists and is current. Whether it is GOOD is not a thing a script can answer, and it is the first item under [Yours](#yours).**
 
 ## After the push
 
