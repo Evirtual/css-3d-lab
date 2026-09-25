@@ -575,6 +575,12 @@ async function look(selector, { timeout = 20_000, settle = false } = {}) {
   // loop is always running and says nothing about whether its layout has landed. `pose` cannot
   // answer this -- it reads :hover, which goes false the instant the pointer leaves while the
   // transitions that leaving started keep running for their full duration.
+  //   PROVEN TO WORK, on businesscard (which flips over 0.9s on hover), 2026-09-25: false at rest,
+  // true 120ms and 420ms into the flip, false once it landed. That test matters because the
+  // expression is wrapped in .catch(() => false) -- had it thrown, `moving` would be false for ever
+  // and this whole branch would be a silent no-op. It has now survived four full runs without the
+  // section below ever printing, so the transient it is for is rare; the mechanism is proven, the
+  // case it was written for has not recurred, and those are not the same thing.
   const moving = await frame.evaluate(() =>
     document.getAnimations().some((a) => a.constructor.name === 'CSSTransition' && a.playState === 'running')).catch(() => false);
   // the canvas the model was given, on the page's own scale: proof the frame really fills the stage
