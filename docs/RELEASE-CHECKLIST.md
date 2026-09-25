@@ -143,3 +143,14 @@ thing no check that runs against `dist/` could have told anyone.*
 - [ ] The share images are served, and the served JavaScript knows the Worker — `npm run check-live` prints `ok` for both: every `og:image` the tags name answers as a real picture, and a `workers.dev` endpoint is in the entry scripts. Before this push the second one fails, which is why Video and Image do not work on the live site today
 - [ ] What is served passes the same SEO check as what was built — `npm run check-live` then `npm run check-seo -- --dist .media-tmp/live` prints `problems: 0`, over the pages downloaded from the live site rather than the ones in `dist/`
 - [ ] Recording works on the live site — on https://css3dlab.edgarasneverdauskas.com/models/cube/ the Video button makes a file that plays, and Image makes a picture (a manual check: no script covers the live site)
+
+### Tidy-up, put off on purpose
+
+Not about the served site — these are three things found on release day and deliberately not done
+before the push, each because doing them then would have cost more than leaving them. They live in
+this section because this section does not block the push, and they are written down because the
+alternative is that they are remembered by nobody.
+
+- [ ] `check-exports` runs its two shards one at a time — measured on 2026-09-25 during the gate, its two headless Chromium GPU processes used 778% and 690% of one core on a 16-core machine: 1468% of the 1600% available, so they are saturating it rather than sharing it, and running them in parallel buys almost no wall-clock time for twice the heat. The laptop got hot enough to be noticed from across the room. The change is in the gate's shard plan for `check-exports` only; every other check is cheap enough to pair
+- [ ] The dead `[data-view-zoomed]` rule is gone from `src/styles/_layout.scss:2281` — nothing has set that attribute since View zoom was removed on 2026-09-25, so the rule never matches. It was left because editing a render path would have staled a `check-stages` run that had just gone green over all 135 models, which is an hour of machine time to buy back a rule with no effect
+- [ ] `finish.sh` counts disagreements from the check's own summary, not by grepping indented names — on 2026-09-25 it reported `stages: 135/135 models are the same everywhere | disagreeing: 1`, two numbers that contradict each other. The `1` was `funnel`, listed under the heading *Readings taken mid-transition (not disagreements: the settled reading is what this check judges)*. The grep could not tell a heading from a verdict. It was left alone because the script was running at the time, and bash reads a running script by byte offset
