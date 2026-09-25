@@ -15,13 +15,28 @@ export async function ensureCaptureFonts(): Promise<void> {
   if (css) return;
   try {
     const parts = await Promise.all(FACES.map(async (f) => {
-      const r = await fetch(new URL(`fonts/${f.file}`, document.baseURI).href);
+      // From the SITE ROOT, not from the page. document.baseURI on /models/text/ made this ask for
+      // /models/text/fonts/inter-latin-400.woff2, which exists nowhere: in production it 404s and
+      // the export ships no fonts at all, and on the dev server it is answered by index.html with
+      // a 200. Every export taken from a model page -- which is every export anyone takes -- drew
+      // in a fallback whose vertical metrics are not Inter's. The frame's own @font-face rules in
+      // snippet-utils.ts have always used this absolute form.
+      const r = await fetch(new URL(`/fonts/${f.file}`, location.origin).href);
       if (!r.ok) throw new Error(`${r.status} ${f.file}`);
       const b = new Uint8Array(await r.arrayBuffer());
+      // 'wOF2'. r.ok was not enough, and that is the whole lesson: a server that answers a missing
+      // font with a 200 and an HTML page turned this into base64'd markup inside a @font-face,
+      // which fails to load in silence. A check that cannot fail proves nothing.
+      if (b[0] !== 0x77 || b[1] !== 0x4f || b[2] !== 0x46 || b[3] !== 0x32) throw new Error(`not a woff2: ${f.file}`);
       let s = '';
       for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
       return `@font-face{font-family:"${f.family}";font-style:normal;font-weight:${f.weight};font-display:block;src:url(data:font/woff2;base64,${btoa(s)}) format("woff2")}`;
     }));
     css = parts.join('');
-  } catch { css = ''; }
+  } catch (error) {
+    // Still not fatal -- a picture is better than no picture. But it is no longer silent: this
+    // failing means every export from this page is drawn in the wrong font, and nothing else says so.
+    console.warn('capture fonts could not be embedded; the export will use fallback fonts:', error);
+    css = '';
+  }
 }
