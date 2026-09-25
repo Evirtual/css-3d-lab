@@ -135,6 +135,10 @@ const CHAIN_WHAT = {
   snapshot: 'retaking docs/release-snapshot.json',
 };
 const CHAIN_LOG = { stages: 'fin-stages.log', compare: 'fin-compare.log', looks: 'fin-looks.log', gate: 'gate.log', snapshot: 'fin-snap.log' };
+// Seconds of silence that mean nothing, per step, from what each log actually writes: a line per
+// model for stages and compare, a line per shard for the gate -- and its slowest shard is
+// check-stages over 68 models, about twenty-five minutes of saying nothing while working.
+const QUIET_AFTER = { stages: 300, compare: 300, looks: 300, gate: 1800, snapshot: 300 };
 // Counted only where the log's shape is known. Elsewhere its last line stands alone, which is still
 // measured -- a guessed denominator would not be.
 const CHAIN_COUNT = {
@@ -167,7 +171,12 @@ const WORK = [
         const step = CHAIN[done.length];
         const log = CHAIN_LOG[step];
         const lag = log ? ageOf(log) : Infinity;
-        const moving = lag < 300; // its own log changed within the last five minutes
+        // HOW LONG SILENCE IS NORMAL DEPENDS ON WHAT THE STEP WRITES, and getting this wrong cried
+        // wolf a fourth time. check-stages writes a line per model, so five minutes quiet means
+        // something is wrong. The gate writes a line per SHARD, and a check-stages shard is 68
+        // models at 22 seconds each -- twenty-five minutes between lines, every time, working
+        // perfectly. At 14:40 that was called dead while ten Chromiums held 1.5 GB doing it.
+        const moving = lag < (QUIET_AFTER[step] ?? 300);
         const head = `step ${done.length + 1} of 5: ${CHAIN_WHAT[step] ?? step}`;
         out.push(`    ${moving ? green(head) : red(`${head} — its log has not changed for ${clock(lag)}`)}`);
         const txt = log ? readIf(log) : '';
