@@ -3010,11 +3010,16 @@ table.mini code { font-size: 12px; }
     const panel = $('ov-stage');
     if (!b) { panel.innerHTML = ''; return; }
     panel.setAttribute('aria-labelledby', `stage-tab-${i}`);
-    /* the "All N" line would repeat the panel's own bars when this stage holds every model -- and when
-       the stage is folded, the all-models bars and the site's own checks fold with it: they are the
-       rest of the same panel, and a slim bar with two blocks of bars under it is not a slim bar */
-    $('checkbars').hidden = !stageIsOpen(key) || (b.count === L.models.length && key === 'to check');
-    $('sitebars').hidden = !stageIsOpen(key);
+    /* NEITHER OF THESE BELONGS TO A STAGE.
+       "All 135, passing" is every model whatever stage it is in, and the site's checks are counted
+       in pages and gate no model at all — the page says so in its own heading. They were folded
+       away with whichever stage was open, so the same two blocks appeared under To check, under
+       Awaiting review and under Approved, identical every time, and vanished when the stage they
+       did not belong to was collapsed. They now stand on their own, outside the fold, once.
+       The one case the "All N" line is still dropped: when a single stage holds every model, it
+       would repeat that stage's own bars line for line. */
+    $('checkbars').hidden = b.count === L.models.length && key === 'to check';
+    $('sitebars').hidden = false;
     panel.style.setProperty('--stage-c', STAGE_C[i] ?? 'var(--border-strong)');
     const models = L.models.filter((m) => m.status === key);
     const holds = holdsIn(models);

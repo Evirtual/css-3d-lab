@@ -872,19 +872,28 @@ function report() {
         }
         const j = apart(m.before, m.first, full);
         const settled = m.after ? apart(m.first, m.after, full) : null;
-        // A model still running a transition when it was first measured is mid-animation, not in
-        // the wrong place: `before` is a settled reading and `first` is not, so the two are not
-        // comparable. stackbars and funnel are the only two models of 135 whose entrance is
-        // staggered -- `transition: transform 0.7s ... calc(var(--i) * 50ms)` -- so their bars land
-        // over about a second, and whichever of them the reading caught mid-stagger failed while the
-        // other passed: funnel 6.0vmin and stackbars 0.0 in one run, stackbars 4.8 and funnel clear
-        // in the next, on the same commit. Both settle to the same box on all fifteen surfaces.
-        //   So the jump is a failure only when nothing was moving. What it caught is still counted
-        // and still printed in the movement table below, and the settled comparison below still
-        // fails a model that does not end up where the page has it -- which is what this check is for.
-        if (j.bad && !m.first.moving) off.push(full ? `jump on "${m.label}": ${j.size}` : `jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.size})`);
-        else if (j.bad) reads.push(`mid-transition on "${m.label}": ${j.size} from the settled box before it, read while a transition was still running${settled && !settled.bad ? ', and it settled where it belongs' : ''}`);
-        if (settled?.bad) off.push(full ? `settles after "${m.label}": ${settled.size}` : `settles after "${m.label}": ${show(m.first)} → ${show(m.after)} (${settled.size})`);
+        // WHERE IT ENDS UP IS THE QUESTION. This check is called "same on every surface", and
+        // "the same" means the layout the stage settles at, not the frame an animation happens to
+        // be on when a reading lands.
+        //   Three models of 135 have a staggered entrance -- stackbars, funnel and treemap, all
+        // `transition: transform 0.7s ... calc(var(--i) * 45ms)` -- so they arrive over about a
+        // second. Each has failed this exactly once and passed every other time: funnel in the
+        // capture run, stackbars in the gate, treemap here, and treemap passes 3 runs out of 3 on
+        // its own. Whichever one a reading catches mid-arrival fails; it is a coin toss.
+        //   Judging "was something moving" was not enough, and treemap is why: at the moment it
+        // was read its transition had not STARTED, so nothing was moving and it sat at its
+        // pre-arrival size, 73.5 against the 84.1 it settles at. A flag for "a transition is
+        // running" cannot see one that is about to run.
+        //   So the verdict is `before` against `after`: both settled readings, both comparable.
+        // treemap is 84.1x62.9 on the card and 84.1x63.1 settled in the viewer -- the same model
+        // in the same place, which is all this check was ever asking. What it does on the way
+        // there is printed and fails nothing.
+        //   This is not looser where it matters. A model that ends up in the wrong place still
+        // fails here, and every surface is still measured against the page separately above.
+        const landed = m.after ? apart(m.before, m.after, full) : null;
+        if (landed?.bad) off.push(full ? `does not settle where "${m.label}" left it: ${landed.size}` : `does not settle where "${m.label}" left it: ${show(m.before)} → ${show(m.after)} (${landed.size})`);
+        else if (!m.after && j.bad) off.push(full ? `jump on "${m.label}": ${j.size}, and it never settled` : `jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.size}), and it never settled`);
+        else if (j.bad || settled?.bad) reads.push(`arrives over ${[j.bad ? j.size : null, settled?.bad ? settled.size : null].filter(Boolean).join(' then ')} on "${m.label}"${m.first.moving ? ', with a transition running' : ''}, and settles where the card left it`);
       }
       for (const note of row.notes) off.push(note);
       if (off.length) { bad++; console.log(`  ${row.id}\n${off.map((o) => `    ${o}`).join('\n')}`); }

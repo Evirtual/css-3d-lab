@@ -66,9 +66,10 @@ export const REGISTRY = [
   },
   {
     key: 'stages', script: 'check-stages.mjs', scope: 'model', name: 'stages', short: 'Stages',
-    ruleVersion: 2,
+    ruleVersion: 3,
     rules: [
       { v: 1, from: null, what: 'as first recorded' },
+      { v: 3, from: null, what: 'a transition is judged on WHERE IT ENDS UP: the settled reading before an action against the settled reading after it, both comparable. What the model does on the way is printed and fails nothing. Three models of 135 arrive over about a second on a staggered entrance — stackbars, funnel and treemap, each `transition: transform 0.7s … calc(var(--i) × 45ms)` — and each failed the old rule exactly once and passed every other time, because it turned on which frame a reading happened to land on: funnel in the capture run, stackbars in the gate, treemap in the run after that, where it also passed 3 of 3 on its own. v2 excused a reading taken while a transition was RUNNING, which was not enough: treemap was read before its transition had started, so nothing was moving and it sat at its pre-arrival size, 73.5vmin against the 84.1 it settles at. A model that does not settle where the surface before it left it still fails, and every surface is still measured against the model page separately' },
       { v: 2, from: null, what: 'the jump on a transition fails only when nothing was still moving when the model was first measured. "Before" is a settled reading and the first frame after an action is not, so a model mid-transition is being compared against a state it has not reached yet: stackbars and funnel are the only two of 135 whose entrance is staggered (transition: transform 0.7s … calc(var(--i) * 50ms)), their bars land over about a second, and whichever the reading caught mid-stagger failed while the other passed — funnel 6.0vmin with stackbars at 0.0 in one run, stackbars 4.8vmin with funnel clear in the next, on the same commit. A reading taken while a CSSTransition was running is now printed under "Readings taken mid-transition" and counted as nothing. The settled comparison is unchanged and still fails a model that does not end up where its own page has it, which is what this check is for' },
     ],
     title: 'Same on every surface (check-stages)', label: 'stage check (check-stages)',
