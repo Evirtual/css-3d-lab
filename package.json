@@ -26,7 +26,9 @@
     "capture": "node scripts/capture-check.mjs",
     "now": "node scripts/now.mjs",
     "signoff": "node scripts/signoff.mjs",
-    "check-live": "node scripts/check-live.mjs"
+    "check-live": "node scripts/check-live.mjs",
+    "capture-payload": "node scripts/capture-payload.cjs",
+    "check-renderers": "node scripts/check-renderers.cjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",
