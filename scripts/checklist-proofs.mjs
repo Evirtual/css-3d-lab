@@ -283,6 +283,31 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     const state = ev.result === 'true' ? (it.done ? 'true-ticked' : 'true')
       : ev.result === 'false' ? (it.done ? 'conflict' : 'false')
       : it.done ? 'ticked-unproven' : 'not-evaluated';
-    return { ...it, ...ev, state };
+    // HOW OLD THE EVIDENCE IS, for the items this ledger cannot re-run.
+    //
+    // "done, not re-proved here" is a true and useless thing to say on its own: it does not say
+    // whether the run was this morning or last week, nor how much has changed since. The gate
+    // holds AT 74f4aa4 -- and by the time anyone reads that, HEAD has moved and View zoom has been
+    // taken out. So where an item's own line names the commit it was run at, count how far back
+    // that is. A number of commits is not proof the item went stale; it is the one fact a reader
+    // needs to decide whether to re-run it, and it costs one `git rev-list --count`.
+    let provedAt = null, behind = null;
+    if (state === 'ticked-unproven') {
+      // WHICH hash in the line, because several may be there for different reasons. A proof that
+      // says "re-run 2026-09-25 at `31bf1b5`: prints 0. origin/main is still b1d49c2" holds two,
+      // and taking the last gave "676 commits ago" about a run from this morning. So prefer one
+      // introduced by "at" -- which is how a run is written down here -- and only fall back to any
+      // hash when the line names none that way.
+      const proofText = String(it.proof ?? '');
+      const at = [...proofText.matchAll(/\bat `?([0-9a-f]{7,40})`?/g)].map((x) => x[1]);
+      const any = [...proofText.matchAll(/\b([0-9a-f]{7,40})\b/g)].map((x) => x[1]).reverse();
+      for (const hash of (at.length ? at.reverse() : any)) {
+        try {
+          const n = execFileSync('git', ['rev-list', '--count', `${hash}..HEAD`], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+          if (/^\d+$/.test(n)) { provedAt = hash; behind = Number(n); break; }
+        } catch { /* not a commit in this history: try the next hash in the line */ }
+      }
+    }
+    return { ...it, ...ev, state, ...(provedAt ? { provedAt, behind } : {}) };
   });
 }

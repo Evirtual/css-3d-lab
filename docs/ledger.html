@@ -1356,7 +1356,13 @@ button, input { font: inherit; color: inherit; }
 .cl li.st-false .box { border-color: var(--hot); color: var(--hot); }
 .cl li.st-conflict { background: color-mix(in srgb, var(--hot) 9%, transparent); }
 .cl li.st-conflict .box { border-color: var(--hot); background: var(--hot); color: #fff; }
-.cl li.st-ticked-unproven .box { border-color: var(--warm); color: var(--warm); }
+/* Done is done: a green tick. This was amber, which said "the ledger did not re-run this itself"
+   in the one place that answers "is it finished" — so a gate that ran for 94 minutes and holds,
+   with its output written into its own line, wore the same colour as something unfinished. The
+   distinction is real and it is kept, in the chip beside it ("done · not re-proved here") and in
+   the note under it. It does not belong in the tick. Amber and red stay for the two states that
+   are genuinely not done: a proof that fails, and a tick its own proof contradicts. */
+.cl li.st-ticked-unproven .box { border-color: var(--accent-2); color: var(--accent-2); }
 .cl .found { font-size: 12.5px; }
 .cl .found.bad { color: var(--hot); }
 .cl .proofline { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
