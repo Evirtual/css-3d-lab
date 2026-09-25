@@ -351,11 +351,13 @@ export const snippetsB: Record<string, Snippet> = {
 .num {
   left: calc(18 * var(--u));
   bottom: calc(36 * var(--u));
-  /* 12, not 13: JetBrains Mono's advance is 0.6em against Consolas's 0.55, so the 19 characters
-     of the number ran to 194.7 of the card's 196 units and sat on its edge. At 12 they measure
-     165.3 units against the 164.3 this line was drawn for. */
+  /* 12, not 13: JetBrains Mono's advance is 0.6em against Consolas's 0.55, so at 13 the 19
+     characters of the number ran to 194.7 of the card's 196 units and sat on its edge.
+     The tracking is the expiry's, not a value of its own, because that is what makes the two
+     right edges agree: the number's last digit lands at 176.4 units and the expiry's at 176.8,
+     while both lines still start their run at the same 18 the name does. */
   font: 600 calc(12 * var(--u))/1 'JetBrains Mono', ui-monospace, Consolas, monospace;
-  letter-spacing: calc(1.5 * var(--u));
+  letter-spacing: calc(1.2 * var(--u));
   text-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) rgb(0 0 0 / 0.45);
   white-space: nowrap;
 }

@@ -50,7 +50,7 @@
     "published": "2026-09-18"
   },
   "models/paycard/": {
-    "hash": "1ca82823514b63cd",
+    "hash": "4fc4407ad2ac8b22",
     "date": "2026-09-25",
     "published": "2026-09-18"
   },
@@ -65,7 +65,7 @@
     "published": "2026-09-18"
   },
   "models/package/": {
-    "hash": "5cf7fb8d41bd3a21",
+    "hash": "bb3e716e97a6f934",
     "date": "2026-09-25",
     "published": "2026-09-18"
   },
@@ -80,7 +80,7 @@
     "published": "2026-09-18"
   },
   "models/can/": {
-    "hash": "1c699a96cdb1e036",
+    "hash": "29c33d2f50def930",
     "date": "2026-09-25",
     "published": "2026-09-18"
   },
@@ -95,7 +95,7 @@
     "published": "2026-09-18"
   },
   "models/turntable/": {
-    "hash": "530bc8e7a64e0816",
+    "hash": "acb17b7ae463d9d3",
     "date": "2026-09-25",
     "published": "2026-09-18"
   },
@@ -110,7 +110,7 @@
     "published": "2026-09-18"
   },
   "models/vinyl/": {
-    "hash": "fcb152ac73f660c9",
+    "hash": "fcdb070e5d45d432",
     "date": "2026-09-25",
     "published": "2026-09-18"
   },
@@ -125,7 +125,7 @@
     "published": "2026-09-18"
   },
   "models/logo3d/": {
-    "hash": "cb66862246b73fd6",
+    "hash": "b4d4f361ed618d04",
     "date": "2026-09-25",
     "published": "2026-09-18"
   },
@@ -145,12 +145,12 @@
     "published": "2026-09-18"
   },
   "models/browser/": {
-    "hash": "82b120d7887e2890",
+    "hash": "bad1e894340cdd6a",
     "date": "2026-09-25",
     "published": "2026-09-18"
   },
   "models/watch/": {
-    "hash": "a64dba61f30f8a05",
+    "hash": "18d8dd990d255cb6",
     "date": "2026-09-25",
     "published": "2026-09-18"
   },
@@ -175,7 +175,7 @@
     "published": "2026-09-18"
   },
   "models/badge/": {
-    "hash": "b0fe677b630c23f9",
+    "hash": "0a53251ba3c3ca91",
     "date": "2026-09-25",
     "published": "2026-09-18"
   },
