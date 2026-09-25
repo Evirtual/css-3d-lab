@@ -29,7 +29,7 @@
  * on Windows, `ps` elsewhere -- and if that command is missing or refused, that section says so and
  * the other three still work. Nothing else here leaves Node.
  */
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { connect } from 'node:net';
 import { freemem, totalmem } from 'node:os';
@@ -50,27 +50,64 @@ const clock = (s) => (s >= 3600 ? `${Math.floor(s / 3600)}h${String(Math.floor((
 const pad = (s, n) => String(s).padEnd(n);
 
 /* ---------------- processes ---------------- */
-/** Every node process, with its command line, its age and what it holds. [] when it cannot be read. */
-function processes() {
+/**
+ * INSTRUMENT FAILURES ARE RECORDED, NEVER SWALLOWED.
+ *
+ * Every time an instrument here cannot answer, the attempt goes in this file with what was tried
+ * and what it said. Nothing is allowed to quietly give up: a tool that times out and prints one
+ * grey line teaches you nothing, and the same timeout at 15:34 on 2026-09-25 appeared on screen as
+ * "could not read the process list" directly above a WORK block that had ALSO decided the run was
+ * over -- two instruments failing at once, reading like one confident report that everything had
+ * stopped. Twelve node processes and twenty Chromium renderers were running at that moment.
+ */
+const INSTRUMENTS = join(RUNS, 'instruments.log');
+function record(what, detail) {
+  try { appendFileSync(INSTRUMENTS, `${new Date().toISOString()} ${what}: ${detail}\n`); } catch { /* the log is a courtesy, never a dependency */ }
+}
+/** What this session has already seen fail, so a failure is visible even after it stops happening. */
+function recorded() {
   try {
-    if (process.platform === 'win32') {
-      // -NoProfile so a slow profile cannot stall this, and CSV so the command line survives spaces
-      const out = execFileSync('powershell', ['-NoProfile', '-Command',
-        "Get-CimInstance Win32_Process -Filter \"Name='node.exe' or Name='chrome.exe'\" | ForEach-Object { '{0}|{1}|{2}|{3}' -f $_.ProcessId, $_.WorkingSetSize, $_.CreationDate.ToString('o'), ($_.CommandLine -replace '\\|',' ') }"],
-        { encoding: 'utf8', timeout: 8000, windowsHide: true });
+    return readFileSync(INSTRUMENTS, 'utf8').split('\n').filter(Boolean).slice(-4);
+  } catch { return []; }
+}
+
+/**
+ * Every node process, with its command line, its age and what it holds.
+ *
+ * Two budgets, because the eight-second one was itself the bug: under a full gate the machine is
+ * loaded enough that PowerShell needs longer to start than it does to answer, and a timeout there
+ * says nothing whatever about what is running. It escalates to thirty seconds rather than giving
+ * up, and if BOTH fail it returns the failure with everything it tried, so the caller can say "I
+ * could not look" instead of the far more dangerous "nothing is there".
+ *
+ * `tasklist` is deliberately not a fallback. Asked at 15:34 it returned two lines for the entire
+ * machine and no error, which is worse than timing out: a confident empty answer.
+ */
+function processes() {
+  const parseWin = (out) => out.split('\n').filter(Boolean).map((l) => {
+    const [pid, rss, started, ...rest] = l.trim().split('|');
+    return { pid: Number(pid), rss: Number(rss), started: Date.parse(started), cmd: rest.join('|') };
+  });
+  const PS = "Get-CimInstance Win32_Process -Filter \"Name='node.exe' or Name='chrome.exe'\" | ForEach-Object { '{0}|{1}|{2}|{3}' -f $_.ProcessId, $_.WorkingSetSize, $_.CreationDate.ToString('o'), ($_.CommandLine -replace '\\|',' ') }";
+  const tried = [];
+  for (const ms of [10000, 30000]) {
+    try {
+      if (process.platform === 'win32') {
+        // -NoProfile so a slow profile cannot stall this
+        return parseWin(execFileSync('powershell', ['-NoProfile', '-Command', PS], { encoding: 'utf8', timeout: ms, windowsHide: true }));
+      }
+      const out = execFileSync('ps', ['-eo', 'pid=,rss=,etimes=,args='], { encoding: 'utf8', timeout: ms });
       return out.split('\n').filter(Boolean).map((l) => {
-        const [pid, rss, started, ...rest] = l.trim().split('|');
-        return { pid: Number(pid), rss: Number(rss), started: Date.parse(started), cmd: rest.join('|') };
-      });
+        const m = l.trim().match(/^(\d+)\s+(\d+)\s+(\d+)\s+(.*)$/);
+        return m ? { pid: Number(m[1]), rss: Number(m[2]) * 1024, started: Date.now() - Number(m[3]) * 1000, cmd: m[4] } : null;
+      }).filter(Boolean).filter((p) => /node|chrome|chromium/i.test(p.cmd));
+    } catch (e) {
+      const why = e.message.split('\n')[0];
+      tried.push(`${ms / 1000}s -> ${why}`);
+      record('process list', `${ms / 1000}s budget failed: ${why}`);
     }
-    const out = execFileSync('ps', ['-eo', 'pid=,rss=,etimes=,args='], { encoding: 'utf8', timeout: 8000 });
-    return out.split('\n').filter(Boolean).map((l) => {
-      const m = l.trim().match(/^(\d+)\s+(\d+)\s+(\d+)\s+(.*)$/);
-      return m ? { pid: Number(m[1]), rss: Number(m[2]) * 1024, started: Date.now() - Number(m[3]) * 1000, cmd: m[4] } : null;
-    }).filter(Boolean).filter((p) => /node|chrome|chromium/i.test(p.cmd));
-  } catch (e) {
-    return { error: e.message.split('\n')[0] };
   }
+  return { error: tried.join('; then ') };
 }
 
 /** A check process said in English: which check, and which model it was given. */
@@ -138,7 +175,16 @@ const CHAIN_LOG = { stages: 'fin-stages.log', compare: 'fin-compare.log', looks:
 // Seconds of silence that mean nothing, per step, from what each log actually writes: a line per
 // model for stages and compare, a line per shard for the gate -- and its slowest shard is
 // check-stages over 68 models, about twenty-five minutes of saying nothing while working.
-const QUIET_AFTER = { stages: 300, compare: 300, looks: 300, gate: 1800, snapshot: 300 };
+// Raised for the gate on 2026-09-25 after a SECOND false alarm on the same step: thirty minutes was
+// still short. check-exports renders real files per model and had run 33 minutes without landing a
+// shard, with twenty Chromium renderers on the machine doing it. Forty-five, with the reason here
+// rather than in someone's head.
+const QUIET_AFTER = { stages: 300, compare: 300, looks: 300, gate: 2700, snapshot: 300 };
+/** Which step the chain is on, from its own status file. */
+const chainStep = (t) => {
+  const done = t.split('\n').filter((l) => /^\S+ (stages|compare|looks|gate|snapshot):/.test(l)).length;
+  return { done, step: CHAIN[done] };
+};
 // Counted only where the log's shape is known. Elsewhere its last line stands alone, which is still
 // measured -- a guessed denominator would not be.
 const CHAIN_COUNT = {
@@ -157,6 +203,14 @@ const CHAIN_COUNT = {
 const WORK = [
   {
     name: 'the release chain (finish.sh)', file: 'finish.status',
+    // finish.status is written BETWEEN steps, so during a 1h34m gate it is necessarily an hour old
+    // and the file's own age says nothing about whether the chain is alive. Judging the chain by it
+    // printed "over; this is the last run, not now" across a run with twenty Chromium renderers
+    // working -- directly above a process list that had timed out, so the screen carried two
+    // independent failures that together read as one confident obituary. The chain's age is the age
+    // of the newest thing any of its steps has written, and it goes stale on that step's own floor.
+    freshest: (t, fileAge) => Math.min(fileAge, ...Object.values(CHAIN_LOG).map((f) => ageOf(f))),
+    staleAfter: (t) => QUIET_AFTER[chainStep(t).step] ?? STALE,
     lines: (t) => {
       const rows = t.split('\n').filter(Boolean);
       const start = rows.find((l) => / start at /.test(l));
@@ -211,6 +265,9 @@ const WORK = [
   },
   {
     name: 'the gate (npm run verify)', file: 'gate.log',
+    // The gate's own floor, not the global one: it writes a line per shard, and check-exports can
+    // take forty minutes between them. The global thirty called a working gate over at 15:43.
+    staleAfter: () => QUIET_AFTER.gate,
     lines: (t) => {
       const steps = [...t.matchAll(/^\[\s*(\d+)\/(\d+)\]\s+(\S+)\s+shard\s+(\d+)\/(\d+)\s+(\d+) models in (\S+): (.+?)\s*\(/gm)];
       const last = steps[steps.length - 1];
@@ -233,7 +290,10 @@ async function draw() {
   const ps = processes();
   lines.push(bold('PROCESSES'));
   if (ps.error) {
-    lines.push(`  could not read the process list (${ps.error}) — the rest below is still measured`);
+    // "I could not look" and "nothing is there" are opposite facts and must never share a sentence.
+    lines.push(`  ${red('I COULD NOT LOOK at the process list — this is not "nothing is running"')}`);
+    lines.push(`  tried: ${ps.error}`);
+    lines.push(`  ${dim('what can still be measured: the ports below, and whether the logs are growing')}`);
   } else {
     const mine = ps.filter((p) => describe(p.cmd));
     const chrome = ps.filter((p) => /chrome|chromium/i.test(p.cmd) && /--headless|--remote-debugging/.test(p.cmd));
@@ -262,11 +322,14 @@ async function draw() {
   for (const w of WORK) {
     const file = join(RUNS, w.file);
     if (!existsSync(file)) continue;
-    const age = (Date.now() - statSync(file).mtimeMs) / 1000;
-    const body = w.lines(readFileSync(file, 'utf8'), age);
+    const text = readFileSync(file, 'utf8');
+    const fileAge = (Date.now() - statSync(file).mtimeMs) / 1000;
+    const age = w.freshest ? w.freshest(text, fileAge) : fileAge;
+    const limit = w.staleAfter ? w.staleAfter(text) : STALE;
+    const body = w.lines(text, age);
     if (!body.length) continue;
     any = true;
-    lines.push(`  ${w.name}${age > STALE ? dim('   — over; this is the last run, not now') : ''}`);
+    lines.push(`  ${w.name}${age > limit ? dim(`   — over; nothing has written for ${clock(age)}, past this step's ${clock(limit)}`) : ''}`);
     lines.push(...body);
     lines.push(`    ${dim(`from .media-tmp/runs/${w.file}, written ${clock(age)} ago`)}`);
   }
@@ -276,6 +339,18 @@ async function draw() {
   // MACHINE
   const free = freemem(), total = totalmem();
   const low = free < 1.4 * 1073741824;
+  // INSTRUMENTS — what this tool itself has failed to do, kept on screen after it stops happening.
+  // A timeout that scrolls past and is never mentioned again is how you end up trusting a reading
+  // taken by something that was not working. Four watchers have now been wrong on this project; the
+  // rule that came out of it is that an instrument's failures are findings, not noise.
+  const failures = recorded();
+  if (failures.length) {
+    lines.push(bold('INSTRUMENTS'));
+    lines.push(`  ${red(`${failures.length} recent failure(s) of this tool itself`)} ${dim(`(.media-tmp/runs/instruments.log)`)}`);
+    for (const f of failures) lines.push(`    ${dim(f.slice(0, 100))}`);
+    lines.push('');
+  }
+
   lines.push(bold('MACHINE'));
   lines.push(`  free ${(low ? red : green)(GB(free))} of ${GB(total)}   ${low ? 'under the 1.4 GB the guards watch for' : 'above the guards\' floor'}`);
 
