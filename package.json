@@ -9,6 +9,7 @@
     "media": "node scripts/generate-media.mjs",
     "qa": "node scripts/qa.mjs",
     "compare": "node scripts/compare-capture.mjs",
+    "looks": "node scripts/three-looks.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "dev": "npm run generate && vite",
     "build": "npm run generate && tsc && vite build",
