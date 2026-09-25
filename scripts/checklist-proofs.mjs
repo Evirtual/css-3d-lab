@@ -283,6 +283,43 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     const state = ev.result === 'true' ? (it.done ? 'true-ticked' : 'true')
       : ev.result === 'false' ? (it.done ? 'conflict' : 'false')
       : it.done ? 'ticked-unproven' : 'not-evaluated';
+    // DONE, OR NOT DONE. There is no third thing.
+    //
+    // A model check is never "passed, but a while ago": every result records fingerprints of the
+    // files it judged, and the moment one changes the result goes STALE and stops counting. That
+    // is why `approved` fell from 135 to 0 the instant src/preview.ts changed.
+    //
+    // Checklist items never had that, so they grew a mushy middle -- "done, not re-proved here" --
+    // which really means "nobody knows", written to look like done. A count of commits since does
+    // not fix it either: it is a number to interpret, and interpreting is the thing a checklist
+    // exists to stop you having to do.
+    //
+    // So an item that names the commit it was run at ALSO says which paths its proof depends on,
+    // below. If any of those changed between that commit and HEAD, the item is stale and is not
+    // done. If none changed, it is done, with no caveat and nothing to weigh up.
+    const WATCHES = [
+      [/^The verify gate holds/, ['src', 'scripts/verify.mjs', 'scripts/check-models.mjs', 'scripts/qa.mjs', 'scripts/check-stages.mjs', 'scripts/check-media.mjs', 'scripts/check-exports.mjs']],
+      [/^Recordings and snapshots match/, ['src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/preview.ts', 'server/render.mjs', 'scripts/check-exports.mjs']],
+      [/^Snapshots match the screen/, ['src', 'scripts/compare-capture.mjs', 'scripts/generate-pages.mjs']],
+      [/^4K video is held back/, ['src/video.ts', 'src/main.ts', 'src/model-page.ts']],
+      [/^Every file the dialog hands out/, ['src/video.ts', 'src/file-name.ts', 'src/print.ts', 'src/main.ts']],
+      [/^Every standalone snippet runs/, ['src/models', 'src/models/snippet-utils.ts', 'scripts/snippet-check.mjs']],
+      [/^Editing a model never remounts/, ['src/preview.ts', 'src/live-edit.ts', 'scripts/preview-check.mjs']],
+      [/^TypeScript is clean/, ['src', 'tsconfig.json', 'package.json']],
+      [/^The build is clean/, ['src', 'scripts/generate-pages.mjs', 'vite.config.ts', 'package.json']],
+      [/^QA on the built site/, ['src', 'scripts/qa.mjs', 'scripts/generate-pages.mjs']],
+      [/^The built site passes the SEO check/, ['src', 'scripts/check-seo.mjs', 'scripts/generate-pages.mjs']],
+      [/^The social preview images are made/, ['src', 'scripts/generate-media.mjs', 'scripts/og-shot.mjs']],
+      [/^The sitemap dates are regenerated/, ['src/models', 'scripts/generate-pages.mjs']],
+      [/^A local production build with the variable/, ['src/capture-client.ts', 'scripts/generate-pages.mjs', 'vite.config.ts']],
+      [/^The Worker in worker\//, ['server/render.mjs', 'worker']],
+      // These are about the outside world, not this tree: no file here can stale them.
+      [/^The remote has nothing main lacks/, []],
+      [/^The Worker answers the site/, []],
+      [/^The value the workflow reads exists/, []],
+      [/^A second article on how the view-contract rewrite/, []],
+    ];
+
     // HOW OLD THE EVIDENCE IS, for the items this ledger cannot re-run.
     //
     // "done, not re-proved here" is a true and useless thing to say on its own: it does not say
@@ -308,6 +345,23 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
         } catch { /* not a commit in this history: try the next hash in the line */ }
       }
     }
-    return { ...it, ...ev, state, ...(provedAt ? { provedAt, behind } : {}) };
+    // and then: did anything it depends on change since it was proven?
+    let staleBy = null;
+    if (provedAt) {
+      const watch = WATCHES.find(([re]) => re.test(it.item));
+      const paths = watch ? watch[1] : null;
+      if (paths === null) staleBy = undefined; // nothing declared: cannot judge, leave it alone
+      else if (paths.length) {
+        try {
+          const out = execFileSync('git', ['diff', '--name-only', `${provedAt}..HEAD`, '--', ...paths], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+          if (out) staleBy = out.split('\n').filter(Boolean);
+        } catch { /* leave it as it was */ }
+      }
+    }
+    const finalState = staleBy && staleBy.length ? 'stale' : state;
+    const extra = staleBy && staleBy.length
+      ? { found: `proven at ${provedAt}, but ${staleBy.length} file(s) its proof depends on changed since: ${staleBy.slice(0, 3).join(', ')}${staleBy.length > 3 ? `, +${staleBy.length - 3}` : ''}`, why: 'needs running again on this commit' }
+      : {};
+    return { ...it, ...ev, ...extra, state: finalState, ...(provedAt ? { provedAt, behind } : {}), ...(staleBy?.length ? { staleBy } : {}) };
   });
 }

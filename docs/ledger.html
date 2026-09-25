@@ -3768,8 +3768,19 @@ table.mini code { font-size: 12px; }
     'false': ['fails now', 's-bad', '✗'],
     conflict: ['ticked, but its proof fails now', 's-bad', '!'],
     'ticked-unproven': ['done · not re-proved here', 's-chk', '✓'],
+    stale: ['needs running again on this commit', 's-warn', '↻'],
     'not-evaluated': ['not evaluated here', 's-none', ''],
   };
+  /**
+   * DONE MEANS DONE. One predicate, used by the phase strip, the group headings, the summary and
+   * the filters, so they cannot disagree with each other — which they did, three separate times,
+   * each time by counting something slightly different.
+   *
+   * A tick in the file is not enough: an item whose proof fails, or whose proof was run on a
+   * commit where the code it tests has changed since, is not done. That is the same rule the model
+   * checks have always had, and the reason `approved` fell from 135 to 0 when preview.ts changed.
+   */
+  const clDone = (x) => x.done && x.state !== 'conflict' && x.state !== 'stale' && x.result !== 'false';
   /**
    * THE THREE PHASES, which is the only question a person releasing actually has.
    *
@@ -3790,7 +3801,8 @@ table.mini code { font-size: 12px; }
   function clWaitingOn(item) {
     const phase = CL_PHASE(item);
     if (item.state === 'conflict' || item.result === 'false') return ['needs a look', 's-bad'];
-    if (item.done) return phase === 'after' ? ['done', 's-chk'] : ['done', 's-chk'];
+    if (item.state === 'stale') return ['run it again', 's-warn'];
+    if (clDone(item)) return ['done', 's-chk'];
     if (phase === 'yours') return ['waiting for you', 's-warn'];
     if (phase === 'after') return ['waits for the push', 's-none'];
     return ['still to do', 's-warn'];
@@ -3837,7 +3849,7 @@ table.mini code { font-size: 12px; }
       // smaller: leading with "31 proven" over a list where 55 items are finished told a person
       // about to release that most of their list was outstanding when almost none of it was.
       ? (() => {
-          const stuck = cl.items.filter((x) => !x.done || x.state === 'conflict' || x.result === 'false');
+          const stuck = cl.items.filter((x) => !clDone(x));
           const bad = stuck.filter((x) => x.done);
           const lead = stuck.length
             ? `<b>${cl.total - stuck.length} of ${cl.total} done.</b> ${stuck.length} to go${bad.length ? `, ${bad.length} of them ticked but contradicted by their own proof` : ''}.`
@@ -3850,8 +3862,8 @@ table.mini code { font-size: 12px; }
     // button read "2 conflicts" and the only way to find out WHICH two was to read all 55 items --
     // one of them was a release snapshot describing code that no longer existed.
     const CL_FILTERS = [
-      ['attention', 'needs a look', (x) => x.state === 'conflict' || x.result === 'false'],
-      ['open', 'still to do', (x) => !x.done],
+      ['attention', 'needs a look', (x) => x.state === 'conflict' || x.state === 'stale' || x.result === 'false'],
+      ['open', 'still to do', (x) => !clDone(x)],
       ['all', 'everything', () => true],
     ];
     // a phase filter is "phase:<key>", set by the stepper above rather than by this row
@@ -3863,7 +3875,7 @@ table.mini code { font-size: 12px; }
     // to do rather than on a wall of ticks.
     const phaseOf = CL_PHASES.map(([key, name, why]) => {
       const items = cl.items.filter((x) => CL_PHASE(x) === key);
-      const done = items.filter((x) => x.done && x.state !== 'conflict' && x.result !== 'false').length;
+      const done = items.filter(clDone).length;
       return { key, name, why, items, done, left: items.length - done };
     });
     const here = phaseOf.find((p) => p.left > 0)?.key ?? null;
@@ -3878,7 +3890,7 @@ table.mini code { font-size: 12px; }
       const state = p.left === 0 ? 'is-done' : p.key === here ? 'is-here' : shut ? 'is-shut' : 'is-later';
       const mark = p.left === 0 ? '✓' : shut ? '🔒' : String(i + 1);
       // why the phase exists goes in the tooltip: on the strip it was three paragraphs of wall
-      const blockers = firstOpen === -1 ? [] : phaseOf[firstOpen].items.filter((x) => !x.done || x.state === 'conflict' || x.result === 'false');
+      const blockers = firstOpen === -1 ? [] : phaseOf[firstOpen].items.filter((x) => !clDone(x));
       const tip = shut
         ? `${p.name} — shut until "${phaseOf[firstOpen].name}" is green. ${blockers.length} left there: ${blockers.map((b) => b.item.split(' — ')[0]).slice(0, 4).join('; ')}`
         : `${p.name} — ${p.why}${p.key === here ? ' This is where the release has got to.' : ''}`;
@@ -3903,7 +3915,7 @@ table.mini code { font-size: 12px; }
       // now", and it does not re-run a twenty-second build or a ninety-minute gate on every
       // rebuild. A group is finished when every item is done and no proof contradicts one, so that
       // is what the heading says, and anything not finished is named beside it instead of implied.
-      const stuck = g.items.filter((x) => !x.done || x.state === 'conflict' || x.result === 'false');
+      const stuck = g.items.filter((x) => !clDone(x));
       const head = clFilter === 'all'
         ? (stuck.length ? `· ${g.items.length - stuck.length} of ${g.items.length} done · ${stuck.length} to go` : `· all ${g.items.length} done`)
         : `· ${g.items.length} shown of ${cl.items.filter((x) => x.group === g.name).length}`;

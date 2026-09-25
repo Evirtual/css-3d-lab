@@ -82,7 +82,7 @@ try {
   const l = JSON.parse(readFileSync(join(ROOT, 'docs', 'ledger.json'), 'utf8'));
   const items = l?.readiness?.checklist?.items ?? [];
   if (!items.length) ledgerRead = 'docs/ledger.json holds no checklist items';
-  for (const i of items) if (i.state === 'conflict' || i.result === 'false') failing.set(i.item, i.found ?? 'its proof disagrees');
+  for (const i of items) if (i.state === 'conflict' || i.state === 'stale' || i.result === 'false') failing.set(i.item, i.found ?? 'its proof disagrees');
 } catch (e) { ledgerRead = `docs/ledger.json could not be read (${e.message.split('\n')[0]})`; }
 
 const notGreen = (i) => !i.done || failing.has(i.text.split(' — ')[0]) || [...failing.keys()].some((k) => i.text.startsWith(k));
