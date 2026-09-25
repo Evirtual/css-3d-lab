@@ -24,7 +24,8 @@
     "queue": "node scripts/queue.mjs",
     "capture": "node scripts/capture-check.mjs",
     "now": "node scripts/now.mjs",
-    "signoff": "node scripts/signoff.mjs"
+    "signoff": "node scripts/signoff.mjs",
+    "check-live": "node scripts/check-live.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",

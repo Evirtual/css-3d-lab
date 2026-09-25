@@ -120,5 +120,26 @@ Written last of everything done before the push, and never after it: the push is
 
 ## After the push
 
+Everything above this line is about what was BUILT. This section is the only part about what is
+SERVED, and they are not the same thing: between them sit a deploy workflow, a CDN and a host that
+can cache, rewrite or simply fail to publish a file. Of the items above, only five ever touch
+anything outside the building machine, and all five are about the Worker rather than the site.
+
+`npm run check-live` is written for this section. It fetches the real site over HTTPS and asks
+whether every page in the sitemap is served, whether what is served is the build we made, whether
+the share images the tags name are really there, and whether the served JavaScript carries the
+capture endpoint. It keeps what it downloaded in `.media-tmp/live/`, so `npm run check-seo --
+--dist .media-tmp/live` then runs the full SEO check over what is ACTUALLY served.
+
+*It earned its place before it was ever used after a push: run against the live site on
+2026-09-25, it found that the served JavaScript has no capture endpoint at all, so Video and Image
+answer "Export service is not configured yet." for every visitor. The live build is `b1d49c2`
+(2026-09-19) and the workflow only started passing `VITE_CAPTURE_URL` at `2c83b2d` (2026-09-22), so
+the live site was built before the variable existed. This push is what repairs it — which is a
+thing no check that runs against `dist/` could have told anyone.*
+
 - [ ] The deploy succeeded — `gh run list --workflow deploy.yml --limit 1` shows `completed success` for the pushed commit
+- [ ] The site that is served is the site that was built — `npm run check-live` prints `ok` for every page in the sitemap being served as HTML, and for the served pages being the build in `dist/` (the `?v=` stamps match)
+- [ ] The share images are served, and the served JavaScript knows the Worker — `npm run check-live` prints `ok` for both: every `og:image` the tags name answers as a real picture, and a `workers.dev` endpoint is in the entry scripts. Before this push the second one fails, which is why Video and Image do not work on the live site today
+- [ ] What is served passes the same SEO check as what was built — `npm run check-live` then `npm run check-seo -- --dist .media-tmp/live` prints `problems: 0`, over the pages downloaded from the live site rather than the ones in `dist/`
 - [ ] Recording works on the live site — on https://css3dlab.edgarasneverdauskas.com/models/cube/ the Video button makes a file that plays, and Image makes a picture (a manual check: no script covers the live site)
