@@ -155,6 +155,58 @@ node scripts/check-motion.mjs <id> # no flicker or pop through its animation and
     with a caption sat visibly high on their cards and passed. A model that lays its own caption
     out (the toggle's "Dark mode" under its track) centres the whole of it, caption included.
 
+## How long the checks take, and which ones you actually have to run
+
+**Checking one new model is about a minute of work, not an afternoon.** The hours you will see
+quoted anywhere in this repository are for re-running all 135 at once, which only happens when a
+file every model shares has changed. Adding a model changes only that model.
+
+Measured on one laptop, over all 135 models, on 2026-09-25:
+
+| check | all 135 | which is, per model |
+| --- | --- | --- |
+| contract (`models`) | 7m22s | ~3 s |
+| qa | 1m05s | under a second |
+| same on every surface (`stages`) | 26m57s | ~12 s |
+| share preview (`media`) | 2m28s | ~1 s |
+| access | 9m12s | ~4 s |
+| **exports, at the dialog's defaults** | **70m48s** | **~31 s** |
+
+So the nine per-model checks on **one** model come to roughly a minute of measuring, plus a few
+seconds for each browser to start. Run them on your model's id and nothing else:
+
+```bash
+npm run capture -- models <id>
+npm run capture -- stages <id>
+npm run capture -- exports --defaults <id>      # the render service must be up: npm run export
+```
+
+### The export matrix is NOT one of these, and nothing makes you run it
+
+This is the part that confuses people, so: **the matrix is not a separate check.** It is the same
+`check-exports` run in a deeper mode, and the flag is the whole difference.
+
+| | what it makes | how long | does it gate a model? |
+| --- | --- | --- | --- |
+| `check-exports --defaults <id>` | the dialog's default settings: a 1:1 1600 px PNG, a 9:16 1080p video, one drift take | **~31 s a model** | **Yes.** This is the verdict the ledger counts |
+| `check-exports <id>` (no flag) | *every* shape × size × quality × format, and every stop of the Model size slider | **~6.5 min a model**, twelve times more | **No.** It gates nothing, ever |
+
+The matrix proves **the export dialog**, not your model. Its job is to catch a bug in the pipeline —
+a format that writes the wrong header, a slider stop that puts the model off centre — and those are
+the same for all 135 models, so it runs on a built-in sample of eight and that is enough. If you
+have added a model and not touched `src/video.ts`, `src/record.ts` or `src/capture-scene.ts`, you
+never need to run it.
+
+The ledger says this too, in the check's own title: **"Export at default settings"**, with step 5 of
+what it covers reading *"the rest of the settings matrix … run on a sample of models, and never part
+of a model's verdict."*
+
+For the record, running it over all 135 was tried on 2026-09-25 and stopped after seven models. It
+found two things, and both were worth knowing and neither was a release blocker: `flaptext` drifts
+2.4% at 3200 px because its script keeps flapping while a 4.7-second render runs, and `city`'s 9:16
+480p first frame came back unreadable — the same intermittent encode `candles` showed, where the
+drift pass reads that identical clip perfectly moments later.
+
 ## Checks before committing
 
 - `npm run check-models -- <id>` holds; `node scripts/check-stages.mjs <id>` and
