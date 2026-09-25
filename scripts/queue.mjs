@@ -10,7 +10,20 @@
  *   npm run queue -- list                                  print the record
  *
  * The lead session and its agents call it when work starts and ends. What it writes is their
- * word, not a measurement; the page labels it so.
+ * word, not a measurement; the page labels it so. For what IS measured -- which check is running
+ * on which model, which ports answer, how far a run has got -- see `npm run now`.
+ *
+ * THE RECORD IN THIS REPOSITORY IS SOMEBODY ELSE'S WEEK. docs/ledger-queue.json holds 94 jobs run
+ * between 2026-09-21 and 2026-09-25, the rewrite this project's article is about. It is kept
+ * deliberately, not left behind: the article makes checkable claims about that week, and this is
+ * what they are checked against. Anyone starting their own work can empty it --
+ *
+ *   echo '{"items":[]}' > docs/ledger-queue.json
+ *
+ * -- and the page draws an empty board without complaint. Checked before saying so: the only
+ * thing that reads this file besides the page and this script is one release-checklist proof,
+ * and it reads `.filter(i => i.status === 'running')` to confirm nothing is mid-flight. An empty
+ * file passes it. Not one of the 94 finished jobs is read by any check, gate or count.
  *
  * Safe to run from two agents at once: it takes docs/ledger-queue.json.lock (created exclusively,
  * so only one process can hold it), reads, edits, writes a temporary file and renames it over the
