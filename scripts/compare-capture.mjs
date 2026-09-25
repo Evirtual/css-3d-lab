@@ -50,15 +50,28 @@ async function compare(demo) {
   await page.goto(`${base}/embed/${demo.id}/`);
   await page.addStyleTag({ content: '.embed__credit{display:none!important} html{overflow:hidden}' });
   await page.waitForTimeout(600);
-  // one fixed moment for both pictures: every animation held part-way through
+  // One fixed moment for both pictures: every animation held part-way through.
+  //
+  // IN EVERY FRAME, NOT JUST THE OUTER PAGE. The model on /embed/<id>/ is mounted inside an
+  // iframe, so `document.getAnimations()` on the top document returns NOTHING and this freeze did
+  // nothing at all -- for all 135 models, since the day it was written. It went unnoticed because
+  // most models change too little between the screenshot and the capture to cross the threshold.
+  // tunnel does not: ten rings fly at the camera on staggered negative delays (0, -400, -800 ...),
+  // so an unfrozen moment is a visibly different picture, and it failed at every CAPTURE_T --
+  // 12.0% at 1137 ms, 12.8% at 2500, 13.7% at 600 -- never approaching zero, which is the shape of
+  // "never frozen" rather than "frozen at an unlucky instant".
   if (T !== null) {
-    await page.evaluate((t) => {
+    const hold = (t) => {
       for (const a of document.getAnimations()) {
         a.pause();
         const d = a.effect?.getComputedTiming().duration;
         if (typeof d === 'number' && d > 0) a.currentTime = t % d;
       }
-    }, T);
+      return document.getAnimations().length;
+    };
+    let held = 0;
+    for (const frame of page.frames()) held += await frame.evaluate(hold, T).catch(() => 0);
+    if (!held) console.log(`  ${demo.id}: no animations to hold (nothing moves, or none could be reached)`);
   }
   await page.waitForTimeout(150);
   const stage = page.locator('.stage').first();
