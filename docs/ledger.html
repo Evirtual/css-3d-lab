@@ -1254,6 +1254,16 @@ button, input { font: inherit; color: inherit; }
 @media (max-width: 600px) { .bd li { grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr) 4ch; gap: 4px 8px; } .bd__under { grid-column: 1 / -1; } }
 
 /* running check */
+/* the checklist's own filter row: which slice of the 55 the dialog is showing */
+.clfilter { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+.clfilter__b { font: inherit; font-size: 12.5px; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px; padding: 4px 11px; }
+.clfilter__b b { color: var(--text); margin-left: 3px; }
+.clfilter__b:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+.clfilter__b.is-on { border-color: var(--accent); color: var(--text); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.clfilter__b.is-bad { border-color: color-mix(in srgb, var(--hot) 55%, var(--border)); }
+.clfilter__b.is-bad b { color: var(--hot); }
+/* the conflict count inside the button is its own target, so it can look like one */
+#cl-btn [data-cl-jump] { text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .progress { border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, var(--surface-solid)); border-radius: 12px; padding: 10px 14px; margin-top: 10px; font-size: 14px; }
 .progress.gone { border-color: color-mix(in srgb, var(--hot) 55%, transparent); background: color-mix(in srgb, var(--hot) 10%, var(--surface-solid)); }
 .progress .track { height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--muted) 22%, transparent); margin-top: 8px; overflow: hidden; }
@@ -2043,6 +2053,7 @@ table.mini code { font-size: 12px; }
         <span class="eyebrow">Before main is pushed</span>
         <h2 id="cl-title">Release checklist</h2>
         <p class="muted" id="cl-sum"></p>
+        <p class="clfilter" id="cl-filter"></p>
         <div class="clbar" id="cl-bar" role="img" aria-label="How much of the checklist holds"></div>
         <p class="clkey" id="cl-key"></p>
       </div>
@@ -3719,6 +3730,9 @@ table.mini code { font-size: 12px; }
     'ticked-unproven': ['ticked in the file; not proven here', 's-warn', '?'],
     'not-evaluated': ['not evaluated here', 's-none', ''],
   };
+  // Which slice of the checklist the dialog is showing. 'all' unless something asked for a slice --
+  // the conflict count on the button opens straight to 'attention'.
+  let clFilter = 'all';
   function renderChecklist() {
     const cl = L.readiness?.checklist;
     const btn = $('cl-btn');
@@ -3751,16 +3765,36 @@ table.mini code { font-size: 12px; }
         + `<span><i class="k-open"></i><b>${Math.max(0, (cl.total ?? 0) - tickedPart - (cl.provenFalse ?? 0))}</b> still open</span>`;
     }
     btn.innerHTML = evald
-      ? `Release checklist <small>· proven ${cl.proven} of ${cl.total}, ${cl.notEvaluated} not evaluated${cl.conflicts ? `, <b>${cl.conflicts} conflict${cl.conflicts === 1 ? '' : 's'}</b>` : ''}</small>`
+      ? `Release checklist <small>· proven ${cl.proven} of ${cl.total}, ${cl.notEvaluated} not evaluated${cl.conflicts ? `, <b data-cl-jump="attention" title="Show just these">${cl.conflicts} conflict${cl.conflicts === 1 ? '' : 's'}</b>` : ''}</small>`
       : `Release checklist <small>· ${cl.done} of ${cl.total} ticked (not evaluated: this ledger predates it)</small>`;
     $('cl-sum').innerHTML = evald
       ? `Of ${cl.total} items: <b>${cl.proven}</b> proven true now, <b>${cl.provenFalse}</b> proven false, <b>${cl.notEvaluated}</b> not evaluated here (slow, networked, or needing a person); ${cl.done} ticked in the file${cl.conflicts ? `, <b>${cl.conflicts}</b> of them contradicted by their proof` : ''}. A tick is a claim; only a proof run here counts as proven. From <code>${esc(cl.file)}</code>, as of the ledger built ${agoSpan(L.generatedAt)}.`
       : `${cl.done} of ${cl.total} ticked in the file. This ledger was built before items were evaluated.`;
+    // Which items to show. "Needs a look" is the one worth opening straight to: an item ticked in
+    // the file whose proof disagrees, or one the proof says outright is false. On 2026-09-25 the
+    // button read "2 conflicts" and the only way to find out WHICH two was to read all 55 items --
+    // one of them was a release snapshot describing code that no longer existed.
+    const CL_FILTERS = [
+      ['attention', 'needs a look', (x) => x.state === 'conflict' || x.result === 'false'],
+      ['unproven', 'ticked, not proven here', (x) => x.state === 'ticked-unproven'],
+      ['open', 'not ticked', (x) => !x.done],
+      ['all', 'everything', () => true],
+    ];
+    const pick = CL_FILTERS.find((f) => f[0] === clFilter) ?? CL_FILTERS[3];
+    $('cl-filter').innerHTML = CL_FILTERS.map(([key, words, test]) => {
+      const n = cl.items.filter(test).length;
+      if (!n && key !== 'all') return '';
+      return `<button type="button" class="clfilter__b${clFilter === key ? ' is-on' : ''}${key === 'attention' && n ? ' is-bad' : ''}" data-cl-filter="${key}" aria-pressed="${clFilter === key}">${words} <b>${n}</b></button>`;
+    }).join('');
+    const shown = cl.items.filter(pick[2]);
     const groups = [];
-    for (const x of cl.items) { let g = groups.find((y) => y.name === x.group); if (!g) groups.push((g = { name: x.group, items: [] })); g.items.push(x); }
-    $('cl-body').innerHTML = groups.map((g) => {
+    for (const x of shown) { let g = groups.find((y) => y.name === x.group); if (!g) groups.push((g = { name: x.group, items: [] })); g.items.push(x); }
+    if (!shown.length) $('cl-body').innerHTML = `<p class="muted">Nothing under “${esc(pick[1])}”.</p>`;
+    else $('cl-body').innerHTML = groups.map((g) => {
       const p = g.items.filter((x) => x.result === 'true').length;
-      return `<h3>${esc(g.name ?? 'Items')} <span class="muted" style="text-transform:none;letter-spacing:0">· ${p} of ${g.items.length} proven</span></h3>
+      // when a filter is on, say so rather than printing "2 of 2 proven" about a filtered slice
+      const head = clFilter === 'all' ? `· ${p} of ${g.items.length} proven` : `· ${g.items.length} shown of ${cl.items.filter((x) => x.group === g.name).length}`;
+      return `<h3>${esc(g.name ?? 'Items')} <span class="muted" style="text-transform:none;letter-spacing:0">${head}</span></h3>
       <ul class="cl">${g.items.map((x) => {
         const [label, cls, mark] = CL_STATE[x.state] ?? CL_STATE['not-evaluated'];
         const said = x.result === 'not-evaluated' ? `<span class="muted found">Not evaluated here: ${esc(x.why)}.</span>` : `<span class="found${x.result === 'false' ? ' bad' : ''}">Found: ${esc(x.found)}</span>`;
@@ -3891,7 +3925,20 @@ table.mini code { font-size: 12px; }
   }
   wireDialog($('rules-dialog'), $('rules-btn'), $('rules-close'));
   const dlg = $('cl-dialog');
-  $('cl-btn').addEventListener('click', () => { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); $('cl-close').focus(); });
+  $('cl-btn').addEventListener('click', (e) => {
+    // the conflict count is its own target inside the button: it opens the dialog already narrowed
+    // to the items that disagree with their proof, instead of leaving you to read all 55
+    clFilter = e.target.closest('[data-cl-jump]')?.dataset.clJump ?? 'all';
+    renderChecklist();
+    if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+    $('cl-close').focus();
+  });
+  $('cl-filter').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-cl-filter]');
+    if (!b) return;
+    clFilter = b.dataset.clFilter;
+    renderChecklist();
+  });
   $('cl-close').addEventListener('click', () => dlg.close());
   // a click on the backdrop lands on the dialog element itself, outside its box
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
