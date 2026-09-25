@@ -20,7 +20,7 @@ and every path is built with `join`/`resolve`. "The ledger" means `docs/ledger.j
 - [x] The working tree is clean: every file is committed, or deliberately left out and named in the push notes — `git status --short --untracked-files=all` prints nothing
 - [x] The main index matches HEAD, so a plain `git commit` cannot undo commits made with commit-tree — `git diff --cached --quiet HEAD && echo same` prints `same`
 - [x] scripts/verify.mjs and scripts/check-exports.mjs are committed, with the verify entry in package.json — `git ls-files scripts/verify.mjs scripts/check-exports.mjs` prints both names and `git show HEAD:package.json | grep '"verify"'` prints the entry
-- [ ] The lead's queue has nothing running and its final state is committed — `npm run queue -- list` shows no running item and `git diff --quiet HEAD -- docs/ledger-queue.json && echo committed` prints `committed`
+- [x] The lead's queue has nothing running and its final state is committed — `npm run queue -- list` shows no running item and `git diff --quiet HEAD -- docs/ledger-queue.json && echo committed` prints `committed`
 - [x] Local-only files stay local: hero-options.html, og-preview.html and harness-tmp/ (listed in .git/info/exclude) are not tracked — `git ls-files hero-options.html og-preview.html harness-tmp` prints nothing
 - [x] The remote has nothing main lacks — `git fetch origin && git rev-list --count main..origin/main` prints `0` — run 2026-09-24: prints `0`, and main is 615 ahead
 
