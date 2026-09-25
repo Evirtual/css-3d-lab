@@ -2901,9 +2901,18 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
   // reshapes the frame inside it — smoothly — and the dialog itself stays put.
   &__box {
     display: grid;
-    place-items: center;
+    // the frame sits at the TOP of the space, not adrift in the middle of it: a wide file left
+    // dead space above and below and read as a fault rather than as a frame
+    place-items: start center;
     width: min(100%, 44vh);
-    aspect-ratio: 1;
+    // only as tall as the frame it holds. The square it used to be is still the widest it gets,
+    // and the height eases with the same curve the frame uses, so reshaping moves one thing.
+    // as tall as the frame needs and no taller. max(1, aspect) keeps a TALL file square --
+    // the frame goes narrow inside it -- while a WIDE file shortens the box to match.
+    // A height: calc() with 100% in it collapsed to 2px: a percentage height resolves against the
+    // parent height, which here is auto.
+    aspect-ratio: #{"max(1, var(--aspect, 1))"};
+    transition: aspect-ratio 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   // The frame is not a picture of the model, it is the model: the stage itself is moved in here
