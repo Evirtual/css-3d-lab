@@ -6,6 +6,10 @@
  *   npm run signoff -- push         "Push it"
  *   npm run signoff -- undo <which> take it back
  *
+ * On Windows in PowerShell, call node directly -- `node scripts/signoff.mjs article`. PowerShell
+ * picks npm.ps1 out of npm's three launchers and a Restricted execution policy will not load it.
+ * What this prints at the end already accounts for that.
+ *
  * WHY A COMMAND AND NOT A CHECKBOX IN A PAGE. The tick has to end up in
  * docs/RELEASE-CHECKLIST.md, because that file is the record: every tick is a line in a commit,
  * with a date, a commit hash and a name beside it. A checkbox on a page would either write nothing
@@ -104,9 +108,20 @@ if (!which || !ITEMS[which]) {
     console.log(`\nOnly answerable after the push (${openAfter.length}), so they do not block it:`);
     for (const i of openAfter) console.log(`  [ ] ${i.text.split(' — ')[0]}`);
   }
-  console.log(`\n  npm run signoff -- article      after reading it`);
-  console.log(`  npm run signoff -- push         only once nothing else is open`);
-  console.log(`  npm run signoff -- undo <which> take one back\n`);
+  // How to say it, in a form that works on the shell this is running in. On Windows the npm
+  // launcher PowerShell picks is npm.ps1, which a Restricted execution policy refuses to load, so
+  // printing "npm run" there hands someone the command that just failed. Calling node skips npm.
+  const how = process.platform === 'win32' ? 'node scripts/signoff.mjs' : 'npm run signoff --';
+  console.log(`\n  ${how} article      after reading it`);
+  console.log(`  ${how} push         only once nothing else is open`);
+  console.log(`  ${how} undo <which> take one back`);
+  if (process.platform === 'win32') {
+    console.log(`\n  (node, not npm: PowerShell loads npm.ps1, which a Restricted execution policy`);
+    console.log(`   blocks. npm.cmd run signoff -- article works too. Nothing here needs that`);
+    console.log(`   policy changed.)\n`);
+  } else {
+    console.log('');
+  }
   process.exit(0);
 }
 
@@ -151,6 +166,11 @@ if (which === 'push') {
   console.log('  git push origin main\n');
 } else {
   const left = openOthers.length;
-  console.log(left ? `\n${left} item(s) still open before the push can be signed off.\n` : '\nNothing else is open. `npm run signoff -- push` is available.\n');
+  const pushCmd = process.platform === 'win32' ? '`node scripts/signoff.mjs push`' : '`npm run signoff -- push`';
+  console.log(left ? `
+${left} item(s) still open before the push can be signed off.
+` : `
+Nothing else is open. ${pushCmd} is available.
+`);
 }
 console.log('Commit docs/RELEASE-CHECKLIST.md to record it.\n');
