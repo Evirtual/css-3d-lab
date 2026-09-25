@@ -22,7 +22,8 @@
     "ledger": "node scripts/ledger.mjs",
     "ledger:watch": "node scripts/ledger-watch.mjs",
     "queue": "node scripts/queue.mjs",
-    "capture": "node scripts/capture-check.mjs"
+    "capture": "node scripts/capture-check.mjs",
+    "now": "node scripts/now.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",
