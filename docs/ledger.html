@@ -3842,7 +3842,16 @@ table.mini code { font-size: 12px; }
         + `<span><i class="k-open"></i><b>${Math.max(0, (cl.total ?? 0) - tickedPart - (cl.provenFalse ?? 0))}</b> still open</span>`;
     }
     btn.innerHTML = evald
-      ? `Release checklist <small>· proven ${cl.proven} of ${cl.total}, ${cl.notEvaluated} not evaluated${cl.conflicts ? `, <b data-cl-jump="attention" title="Show just these">${cl.conflicts} conflict${cl.conflicts === 1 ? '' : 's'}</b>` : ''}</small>`
+      // The same words as the dialog, because two numbers for one list is worse than either. This
+      // said "proven 31 of 59, 26 not evaluated" while the dialog said 43 done — and "not
+      // evaluated" is nonsense about an item that is ticked with its output written beside it.
+      ? (() => {
+          const stuck = cl.items.filter((x) => !clDone(x));
+          const staleN = stuck.filter((x) => x.state === 'stale').length;
+          const badN = stuck.filter((x) => x.state === 'conflict' || x.result === 'false').length;
+          const bits = [staleN ? `${staleN} to run again` : '', badN ? `<b data-cl-jump="attention" title="Show just these">${badN} need${badN === 1 ? 's' : ''} a look</b>` : ''].filter(Boolean);
+          return `Release checklist <small>· ${cl.total - stuck.length} of ${cl.total} done${bits.length ? `, ${bits.join(', ')}` : ''}</small>`;
+        })()
       : `Release checklist <small>· ${cl.done} of ${cl.total} ticked (not evaluated: this ledger predates it)</small>`;
     $('cl-sum').innerHTML = evald
       // What is LEFT first, because that is the question. The ledger's own accounting follows it,
