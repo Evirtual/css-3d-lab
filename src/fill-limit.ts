@@ -1,6 +1,13 @@
 /**
  * How big a model may be shown on its stage: the top end of the export dialog's Model size slider
- * (video.ts) and of the page's View zoom (view-zoom.ts), one piece of math for both.
+ * (video.ts).
+ *
+ * It was written for two callers. The page's View zoom was the other, and was removed on
+ * 2026-09-25: it re-measured the stage once a second on every model page, including while
+ * somebody was typing in the editor beside it, and scaling the view of 135 models that each set
+ * their own size was a source of trouble rather than of use. Model size in the export dialog is
+ * the one place a model is deliberately drawn at another size, and it is the one place this is
+ * called from now.
  *
  * Both sliders say how much of the frame the model fills: 70% is its own size (the view
  * contract's 70vmin band) and a value v shows it v / 70% times as big about the canvas's middle.
@@ -40,7 +47,8 @@
  *    (freshFillLimit). That is what holds the contract: the value the slider gives is always a
  *    value something was measured for, so the model cannot pass the canvas edge;
  *  - now and then while the model is shown zoomed, for a model moved by its own script
- *    (sampleFillLimit, called by view-zoom.ts once a second).
+ *    (sampleFillLimit). The page's View zoom called this once a second until 2026-09-25; the
+ *    export dialog is the only caller now, and only while its own slider is in use.
  * It is NOT taken on transitionrun, animationstart, transitionend or animationend, nor on every
  * pointer move: those fire in bursts — one hover that transitions twenty elements over three
  * properties is sixty events — and each one used to be a whole measurement, which is what made
@@ -462,7 +470,12 @@ class Limit {
     // a scene that already fills the canvas is not made bigger: that would only crop it
     if (this.full) return this.publish(NATURAL_FILL);
     const pad = PAD * Math.min(w, h);
-    // at full screen the View zoom bar lies over the canvas's bottom edge: the model stops above it
+    // A bar lying over the canvas's bottom edge at full screen: the model stops above it rather
+    // than under it. The page's View zoom was the only such bar and was taken out on 2026-09-25 --
+    // it re-measured the stage once a second, including while the editor was being typed in. This
+    // stays because the export dialog's Model size slider shares this same code, and because a
+    // querySelector that finds nothing costs nothing: `over` falls to 0 and the model is centred
+    // on the whole canvas, which is what a stage with no bar over it should do.
     const bar = this.stage.parentElement?.querySelector<HTMLElement>(':scope > .stage__view');
     const barCs = bar ? getComputedStyle(bar) : null;
     const over = bar && barCs!.position === 'absolute' && barCs!.display !== 'none' ? this.stage.getBoundingClientRect().bottom - bar.getBoundingClientRect().top + 8 : 0;

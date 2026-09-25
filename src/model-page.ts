@@ -20,7 +20,6 @@ import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
 import { printModel } from './print';
 import { initThanks, showThanks } from './thanks';
 import { markPause } from './stage-pause';
-import './view-zoom'; // the stage's View zoom: wired to the document, the control is in the page
 
 /**
  * Enhances the static demo and group pages. Everything a search engine needs is already in the

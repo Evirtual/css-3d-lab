@@ -259,12 +259,6 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       if (uses < 2) return F(`src/video.ts calls fileName( ${uses} time(s): a download goes out without it`);
       return N(`read here: src/file-name.ts exists and src/video.ts calls fileName( ${uses} times, so every download the dialog makes is named there. What the browser actually saves is a look in the browser`);
     }],
-    [/^View zoom changes the view only/, () => {
-      const z = read('src/view-zoom.ts') ?? '';
-      if (!z) return F('src/view-zoom.ts is missing');
-      const wears = (z.match(/maker__zoom/g) ?? []).length;
-      return N(`read here: src/view-zoom.ts is there and wears the export slider's classes (${wears} mention(s) of maker__zoom). That the zoom moves the view and nothing else, and survives full screen, is a look in the browser`);
-    }],
     [/^A second article on how the view-contract rewrite was run/, () => N('needs a person, and the rewrite to be complete')],
     [/^The deploy succeeded/, () => N('needs gh against GitHub: networked, and only after the push')],
     [/^Recording works on the live site/, () => N('a manual check on the live site')],
