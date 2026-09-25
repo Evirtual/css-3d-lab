@@ -108,30 +108,107 @@ const knock = (port, host) => new Promise((done) => {
 const answers = async (port) => (await knock(port, '127.0.0.1')) || (await knock(port, '::1'));
 
 /* ---------------- work ---------------- */
+const STALE = 30 * 60; // seconds: past this, a status file is history, not progress
+
 /**
  * How far a run has got, read from the file the run itself writes -- not from what anyone reported.
- * Each entry knows how to count its own lines, so a new runner is one entry here.
+ *
+ * LIVE OR HISTORY, AND WHY THE DIFFERENCE IS THE WHOLE POINT. On 2026-09-25 at 13:38 this block said
+ * the export matrix was "7 of 135 models ... ends about 3:35:54 AM" -- in the afternoon, off a file
+ * last written three hours earlier -- while the run actually on the machine, check-stages, 41 models
+ * in and listed in PROCESSES four lines above, was not mentioned at all. The age was there, in grey,
+ * underneath an extrapolation written in the present tense. That is the wrong way round.
+ *
+ * So: anything older than STALE is labelled over and never gets an estimate, because an estimate off
+ * a dead file is a guess wearing a clock. And the release chain reads FIRST, from the log of whatever
+ * step it is on, so the thing that is running is the thing at the top.
  */
+const readIf = (f) => { const p = join(RUNS, f); return existsSync(p) ? readFileSync(p, 'utf8') : ''; };
+const ageOf = (f) => { const p = join(RUNS, f); return existsSync(p) ? (Date.now() - statSync(p).mtimeMs) / 1000 : Infinity; };
+
+const CHAIN = ['stages', 'compare', 'looks', 'gate', 'snapshot'];
+const CHAIN_WHAT = {
+  stages: 'check-stages, every model on fifteen surfaces',
+  compare: 'compare, snapshots against the screen',
+  looks: 'the three browser looks',
+  gate: 'the gate, every check over every model',
+  snapshot: 'retaking docs/release-snapshot.json',
+};
+const CHAIN_LOG = { stages: 'fin-stages.log', compare: 'fin-compare.log', looks: 'fin-looks.log', gate: 'gate.log', snapshot: 'fin-snap.log' };
+// Counted only where the log's shape is known. Elsewhere its last line stands alone, which is still
+// measured -- a guessed denominator would not be.
+const CHAIN_COUNT = {
+  stages: (t, since) => {
+    const n = (t.match(/^[a-z0-9]+$/gm) ?? []).length;
+    if (!n) return null;
+    const each = since / n;
+    return `${n} of 135 models · ${(each / 60).toFixed(1)} min each · ends about ${new Date(Date.now() + (135 - n) * each * 1000).toLocaleTimeString()}`;
+  },
+  gate: (t) => {
+    const n = (t.match(/^\[\s*\d+\/\d+\]/gm) ?? []).length;
+    return n ? `${n} of 10 shards done (about 1h34m in all)` : null;
+  },
+};
+
 const WORK = [
   {
-    name: 'the export matrix over all 135', file: 'matrix-all.status', of: 135,
-    read: (t) => {
-      const lines = t.split('\n').filter(Boolean);
-      const done = lines.filter((l) => /: (held|FAILED|STOPPED)/.test(l));
-      const held = done.filter((l) => /: held/.test(l)).length;
-      const mins = done.map((l) => Number(l.match(/in ([0-9.]+) min/)?.[1])).filter(Number.isFinite);
-      const each = mins.length ? mins.reduce((a, b) => a + b, 0) / mins.length : null;
-      const now = lines[lines.length - 1]?.match(/ ([a-z0-9]+): waiting/)?.[1] ?? null;
-      return { done: done.length, held, failed: done.length - held, each, waiting: now, last: done[done.length - 1] ?? null };
+    name: 'the release chain (finish.sh)', file: 'finish.status',
+    lines: (t) => {
+      const rows = t.split('\n').filter(Boolean);
+      const start = rows.find((l) => / start at /.test(l));
+      const t0 = start ? Date.parse(start.split(' ')[0]) : null;
+      const done = rows.filter((l) => /^\S+ (stages|compare|looks|gate|snapshot):/.test(l));
+      const finished = rows.find((l) => / finished --/.test(l));
+      const out = [];
+
+      if (finished) {
+        out.push(`    ${green(`all five steps done · ${finished.replace(/^\S+\s+finished --\s*/, '')}`)}`);
+      } else {
+        const step = CHAIN[done.length];
+        const log = CHAIN_LOG[step];
+        const lag = log ? ageOf(log) : Infinity;
+        const moving = lag < 300; // its own log changed within the last five minutes
+        const head = `step ${done.length + 1} of 5: ${CHAIN_WHAT[step] ?? step}`;
+        out.push(`    ${moving ? green(head) : red(`${head} — its log has not changed for ${clock(lag)}`)}`);
+        const txt = log ? readIf(log) : '';
+        const count = t0 && CHAIN_COUNT[step] ? CHAIN_COUNT[step](txt, (Date.now() - t0) / 1000) : null;
+        if (count) out.push(`      ${count}`);
+        const last = txt.split('\n').filter((l) => l.trim()).pop();
+        if (last) out.push(`      ${dim(`${log}, ${clock(lag)} ago: ${last.trim().slice(0, 74)}`)}`);
+      }
+
+      for (const d of done) out.push(`    ${dim('done:')} ${d.replace(/^\S+\s+/, '').slice(0, 92)}`);
+      if (t0) out.push(`    ${dim(`started ${clock((Date.now() - t0) / 1000)} ago at ${start.match(/start at (\S+?),/)?.[1] ?? '?'}`)}`);
+      return out;
     },
   },
   {
-    name: 'the gate (npm run verify)', file: 'gate.log', of: null,
-    read: (t) => {
+    name: 'the export matrix over all 135', file: 'matrix-all.status',
+    lines: (t, age) => {
+      const rows = t.split('\n').filter(Boolean);
+      const done = rows.filter((l) => /: (held|FAILED|STOPPED)/.test(l));
+      if (!done.length) return [];
+      const held = done.filter((l) => /: held/.test(l)).length;
+      const mins = done.map((l) => Number(l.match(/in ([0-9.]+) min/)?.[1])).filter(Number.isFinite);
+      const each = mins.length ? mins.reduce((a, b) => a + b, 0) / mins.length : null;
+      const live = age <= STALE;
+      const eta = live && each ? ` · ends about ${new Date(Date.now() + (135 - done.length) * each * 60000).toLocaleTimeString()}` : '';
+      const out = [`    ${done.length} of 135 models · held ${held}, failed ${done.length - held}${each ? ` · ${each.toFixed(1)} min each` : ''}${eta}`];
+      out.push(`    last: ${done[done.length - 1].replace(/^\S+\s/, '').slice(0, 88)}`);
+      const waiting = rows[rows.length - 1]?.match(/ ([a-z0-9]+): waiting/)?.[1];
+      if (live && waiting) out.push(`    waiting for memory before ${waiting}`);
+      return out;
+    },
+  },
+  {
+    name: 'the gate (npm run verify)', file: 'gate.log',
+    lines: (t) => {
       const steps = [...t.matchAll(/^\[\s*(\d+)\/(\d+)\]\s+(\S+)\s+shard\s+(\d+)\/(\d+)\s+(\d+) models in (\S+): (.+?)\s*\(/gm)];
       const last = steps[steps.length - 1];
-      const verdict = t.match(/GATE (HOLDS|FAILS)[^\n]*/)?.[0] ?? null;
-      return { done: last ? Number(last[1]) : 0, of: last ? Number(last[2]) : null, step: last ? `${last[3]} shard ${last[4]}/${last[5]} — ${last[8]}` : null, verdict };
+      const verdict = t.match(/GATE (HOLDS|FAILS)[^\n]*/)?.[0];
+      if (verdict) return [`    ${(verdict.startsWith('GATE HOLDS') ? green : red)(verdict.slice(0, 92))}`];
+      if (!last) return [];
+      return [`    step ${last[1]} of ${last[2]} · ${last[3]} shard ${last[4]}/${last[5]} — ${last[8]}`];
     },
   },
 ];
@@ -177,23 +254,11 @@ async function draw() {
     const file = join(RUNS, w.file);
     if (!existsSync(file)) continue;
     const age = (Date.now() - statSync(file).mtimeMs) / 1000;
-    const r = w.read(readFileSync(file, 'utf8'));
-    if (w.file === 'matrix-all.status') {
-      if (!r.done && !r.waiting) continue;
-      any = true;
-      const left = w.of - r.done;
-      const eta = r.each ? new Date(Date.now() + left * r.each * 60000).toLocaleTimeString() : '—';
-      lines.push(`  ${w.name}`);
-      lines.push(`    ${r.done} of ${w.of} models · held ${r.held}, failed ${r.failed}${r.each ? ` · ${r.each.toFixed(1)} min each · ends about ${eta}` : ''}`);
-      if (r.last) lines.push(`    last: ${r.last.replace(/^\S+\s/, '').slice(0, 88)}`);
-      if (r.waiting) lines.push(`    waiting for memory before ${r.waiting}`);
-    } else {
-      if (!r.done && !r.verdict) continue;
-      any = true;
-      lines.push(`  ${w.name}`);
-      if (r.verdict) lines.push(`    ${(r.verdict.startsWith('GATE HOLDS') ? green : red)(r.verdict.slice(0, 92))}`);
-      else lines.push(`    step ${r.done} of ${r.of} · ${r.step}`);
-    }
+    const body = w.lines(readFileSync(file, 'utf8'), age);
+    if (!body.length) continue;
+    any = true;
+    lines.push(`  ${w.name}${age > STALE ? dim('   — over; this is the last run, not now') : ''}`);
+    lines.push(...body);
     lines.push(`    ${dim(`from .media-tmp/runs/${w.file}, written ${clock(age)} ago`)}`);
   }
   if (!any) lines.push('  no run has written a status file this session');
