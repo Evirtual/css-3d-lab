@@ -1634,8 +1634,10 @@ td.c.is-checking { background: color-mix(in srgb, var(--st-warn) 13%, transparen
 /* the stripes crawl the way the work is going, so the bar is moving even between models */
 .pg__track i::before { content: ""; position: absolute; inset: 0; border-radius: 999px;
   background-image: repeating-linear-gradient(115deg, rgb(255 255 255 / 0.26) 0 7px, transparent 7px 15px);
-  background-size: 21px 100%; animation: pgcrawl 0.9s linear infinite; }
-@keyframes pgcrawl { to { background-position: 21px 0; } }
+  animation: pgcrawl 0.9s linear infinite; }
+/* one 15px period along a 115deg axis is 15 / sin(115deg) = 16.55px across: step by the pattern,
+   not by a tile, or the seam shows as a jump */
+@keyframes pgcrawl { to { background-position: 16.55px 0; } }
 /* and a light runs the length of what is left, so the eye knows where it is heading */
 .pg__track::after { content: ""; position: absolute; inset: 0; border-radius: 999px;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--pg-c) 26%, transparent), transparent);
@@ -3033,3 +3035,4 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
    They are block-level boxes already and stack on their own; they only wanted a margin. */
 #tbl tr.suiterun > td > .pg + .pg,
 #tbl tr.detail--run > td > .pg + .pg { margin-top: 7px; }
+

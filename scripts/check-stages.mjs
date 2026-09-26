@@ -659,6 +659,63 @@ for (const id of ids) {
   finishRow(row);
 }
 
+/**
+ * One model's verdict, from its own readings only.
+ *
+ * Every comparison in here is a model against ITSELF -- its card, editor, full screen and
+ * recording canvas against its own page. Nothing needs another model, so a verdict exists the
+ * moment that model has been measured. It used to be worked out here, in the closing report,
+ * which is why nothing could be written about any model until the whole run was over and the
+ * column sat unchanged behind a bar counting to 135.
+ */
+function judgeRow(row) {
+  const ref = row.stages.page;
+  const full = row.full ? row.mapping : null; // a full-canvas scene is judged on its one mapping
+  const off = [];
+  const reads = []; // printed, never counted: what was read while the model was still moving
+  if (!ref) off.push('the model page could not be measured');
+  else for (const s of STAGES) {
+    const seen = row.stages[s];
+    if (s === 'page') continue;
+    if (!seen) { off.push(`${s}: not measured`); continue; }
+    if (!alike(ref, seen)) continue; // said once, in the note on pointed lines
+    const d = apart(ref, seen, full);
+    if (d.bad) off.push(full ? `${s}: ${d.size}, against the page` : `${s}: ${show(seen)} against ${show(ref)} — ${d.size} apart`);
+  }
+  for (const m of row.moves) {
+    if (!m.before || !m.first) continue;
+    if (!alike(m.before, m.first) || (m.after && !alike(m.first, m.after))) {
+      off.push(`"${m.label}" not compared: the pointer was on the model for part of it (${[m.before, m.first, m.after].filter(Boolean).map((x) => x.pose).join(' → ')})`);
+      continue;
+    }
+    const j = apart(m.before, m.first, full);
+    const settled = m.after ? apart(m.first, m.after, full) : null;
+    // WHERE IT ENDS UP IS THE QUESTION. This check is called "same on every surface", and
+    // "the same" means the layout the stage settles at, not the frame an animation happens to
+    // be on when a reading lands.
+    //   Three models of 135 have a staggered entrance -- stackbars, funnel and treemap, all
+    // `transition: transform 0.7s ... calc(var(--i) * 45ms)` -- so they arrive over about a
+    // second. Each has failed this exactly once and passed every other time: funnel in the
+    // capture run, stackbars in the gate, treemap here, and treemap passes 3 runs out of 3 on
+    // its own. Whichever one a reading catches mid-arrival fails; it is a coin toss.
+    //   Judging "was something moving" was not enough, and treemap is why: at the moment it
+    // was read its transition had not STARTED, so nothing was moving and it sat at its
+    // pre-arrival size, 73.5 against the 84.1 it settles at. A flag for "a transition is
+    // running" cannot see one that is about to run.
+    //   So the verdict is `before` against `after`: both settled readings, both comparable.
+    // treemap is 84.1x62.9 on the card and 84.1x63.1 settled in the viewer -- the same model
+    // in the same place, which is all this check was ever asking. What it does on the way
+    // there is printed and fails nothing.
+    //   This is not looser where it matters. A model that ends up in the wrong place still
+    // fails here, and every surface is still measured against the page separately above.
+    const landed = m.after ? apart(m.before, m.after, full) : null;
+    if (landed?.bad) off.push(full ? `does not settle where "${m.label}" left it: ${landed.size}` : `does not settle where "${m.label}" left it: ${show(m.before)} → ${show(m.after)} (${landed.size})`);
+    else if (!m.after && j.bad) off.push(full ? `jump on "${m.label}": ${j.size}, and it never settled` : `jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.size}), and it never settled`);
+    else if (j.bad || settled?.bad) reads.push(`arrives over ${[j.bad ? j.size : null, settled?.bad ? settled.size : null].filter(Boolean).join(' then ')} on "${m.label}"${m.first.moving ? ', with a transition running' : ''}, and settles where the card left it`);
+  }
+  for (const note of row.notes) off.push(note);
+  return { off, reads };
+}
 /** A model's readings and notes, printed as it finishes. What scripts/browser-guard.mjs had to do (row.guard) is printed as notes too, but never counted as a disagreement. */
 function finishRow(row) {
   for (const stage of STAGES) if (!(stage in row.stages)) row.stages[stage] = null;
@@ -667,6 +724,22 @@ function finishRow(row) {
   say(STAGES.map((s) => `  ${s.padEnd(11)} ${showFull(row.stages[s])}${row.stages[s] ? `   canvas ${Math.round(row.stages[s].canvasW)}×${Math.round(row.stages[s].canvasH)}${row.stages[s].pose === 'pointed' ? '   POINTED' : ''}   pointer on ${row.stages[s].parkedOn ?? '?'}` : ''}`).join('\n'));
   for (const note of row.notes) say(`  note: ${note}`);
   for (const note of row.guard ?? []) say(`  note: ${note}`);
+  /*
+   * Its verdict, now, in the same shape check-media prints: a word, the id, a summary, and any
+   * disagreements indented under it. scripts/capture-check.mjs reads these as they arrive and
+   * writes the result file mid-run, so this column fills in as it goes like every other one.
+   * The closing report is unchanged -- it reuses what was worked out here.
+   */
+  row.full = isFull(row.stages.page);
+  if (row.full) {
+    const { mapping, scores } = mappingOf(row);
+    row.mapping = mapping;
+    row.mappings = scores.map((x) => ({ mapping: mappingName(x.m), placedDifferently: Math.round(x.share * 1000) / 10 }));
+  }
+  row.judged = judgeRow(row);
+  const off = row.judged.off;
+  say(`${off.length ? 'OFF ' : 'same'} ${row.id} ${off.length ? `${off.length} disagreement(s)` : 'the same on every surface'}`);
+  for (const o of off) say(`          ${o}`);
   row.done = true;
 }
 
@@ -811,7 +884,10 @@ function report() {
   const moved = after.files !== before.files || after.latest !== before.latest;
   // A row is judged as a full-canvas scene when its own page shows it covering the canvas, on the one
   // mapping that places most of it the same (see FULL-CANVAS SCENES)
+  // finishRow works these out as each model lands; a row that never finished (a crash) has not
+  // been through it, so it is done here for those.
   for (const row of results) {
+    if ('full' in row) continue;
     row.full = isFull(row.stages.page);
     if (!row.full) continue;
     const { mapping, scores } = mappingOf(row);
@@ -851,51 +927,7 @@ function report() {
     const stillMoving = [];
     console.log('\nDisagreements (against the model\'s own page):');
     for (const row of results) {
-      const ref = row.stages.page;
-      const full = row.full ? row.mapping : null; // a full-canvas scene is judged on its one mapping
-      const off = [];
-      const reads = []; // printed, never counted: what was read while the model was still moving
-      if (!ref) off.push('the model page could not be measured');
-      else for (const s of STAGES) {
-        const seen = row.stages[s];
-        if (s === 'page') continue;
-        if (!seen) { off.push(`${s}: not measured`); continue; }
-        if (!alike(ref, seen)) continue; // said once, in the note on pointed lines
-        const d = apart(ref, seen, full);
-        if (d.bad) off.push(full ? `${s}: ${d.size}, against the page` : `${s}: ${show(seen)} against ${show(ref)} — ${d.size} apart`);
-      }
-      for (const m of row.moves) {
-        if (!m.before || !m.first) continue;
-        if (!alike(m.before, m.first) || (m.after && !alike(m.first, m.after))) {
-          off.push(`"${m.label}" not compared: the pointer was on the model for part of it (${[m.before, m.first, m.after].filter(Boolean).map((x) => x.pose).join(' → ')})`);
-          continue;
-        }
-        const j = apart(m.before, m.first, full);
-        const settled = m.after ? apart(m.first, m.after, full) : null;
-        // WHERE IT ENDS UP IS THE QUESTION. This check is called "same on every surface", and
-        // "the same" means the layout the stage settles at, not the frame an animation happens to
-        // be on when a reading lands.
-        //   Three models of 135 have a staggered entrance -- stackbars, funnel and treemap, all
-        // `transition: transform 0.7s ... calc(var(--i) * 45ms)` -- so they arrive over about a
-        // second. Each has failed this exactly once and passed every other time: funnel in the
-        // capture run, stackbars in the gate, treemap here, and treemap passes 3 runs out of 3 on
-        // its own. Whichever one a reading catches mid-arrival fails; it is a coin toss.
-        //   Judging "was something moving" was not enough, and treemap is why: at the moment it
-        // was read its transition had not STARTED, so nothing was moving and it sat at its
-        // pre-arrival size, 73.5 against the 84.1 it settles at. A flag for "a transition is
-        // running" cannot see one that is about to run.
-        //   So the verdict is `before` against `after`: both settled readings, both comparable.
-        // treemap is 84.1x62.9 on the card and 84.1x63.1 settled in the viewer -- the same model
-        // in the same place, which is all this check was ever asking. What it does on the way
-        // there is printed and fails nothing.
-        //   This is not looser where it matters. A model that ends up in the wrong place still
-        // fails here, and every surface is still measured against the page separately above.
-        const landed = m.after ? apart(m.before, m.after, full) : null;
-        if (landed?.bad) off.push(full ? `does not settle where "${m.label}" left it: ${landed.size}` : `does not settle where "${m.label}" left it: ${show(m.before)} → ${show(m.after)} (${landed.size})`);
-        else if (!m.after && j.bad) off.push(full ? `jump on "${m.label}": ${j.size}, and it never settled` : `jump on "${m.label}": ${show(m.before)} → ${show(m.first)} (${j.size}), and it never settled`);
-        else if (j.bad || settled?.bad) reads.push(`arrives over ${[j.bad ? j.size : null, settled?.bad ? settled.size : null].filter(Boolean).join(' then ')} on "${m.label}"${m.first.moving ? ', with a transition running' : ''}, and settles where the card left it`);
-      }
-      for (const note of row.notes) off.push(note);
+      const { off, reads } = row.judged ?? judgeRow(row);
       if (off.length) { bad++; console.log(`  ${row.id}\n${off.map((o) => `    ${o}`).join('\n')}`); }
       if (reads.length) stillMoving.push([row.id, reads]);
     }

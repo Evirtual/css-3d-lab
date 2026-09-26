@@ -1056,6 +1056,18 @@ for (const id of models) {
     miss(id, 'run', 'browser', e.message.split('\n')[0], 'harness');
   }
   for (const n of notes) say(`    note: ${n}`);
+  /*
+   * This model is finished.
+   *
+   * Not "pass" or "fail": which mismatches count towards the verdict depends on whether this
+   * is a --defaults run, and scripts/capture-check.mjs is what knows that (isDefault,
+   * finalizeExport). Saying it here as well would be two places deciding one thing.
+   *
+   * It is said at all because the wrapper used to infer it from the NEXT model's name, so
+   * every verdict landed a model late and the last one waited for the closing summary. The
+   * ledger is per model, per check: a result belongs on the board when that model is done.
+   */
+  say(`done ${id}  ${mismatches.filter((m) => m.model === id).length} mismatch(es) recorded`);
 }
 
 say(`\n${mismatches.length} mismatch${mismatches.length === 1 ? '' : 'es'} in ${((Date.now() - started) / 60000).toFixed(1)} min:`);

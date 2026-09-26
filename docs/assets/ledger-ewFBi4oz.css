@@ -5025,13 +5025,14 @@ td.c.is-checking {
   inset: 0;
   border-radius: 999px;
   background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.26) 0 7px, transparent 7px 15px);
-  background-size: 21px 100%;
   animation: pgcrawl 0.9s linear infinite;
 }
 
+/* one 15px period along a 115deg axis is 15 / sin(115deg) = 16.55px across: step by the pattern,
+   not by a tile, or the seam shows as a jump */
 @keyframes pgcrawl {
   to {
-    background-position: 21px 0;
+    background-position: 16.55px 0;
   }
 }
 /* and a light runs the length of what is left, so the eye knows where it is heading */

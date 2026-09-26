@@ -267,6 +267,7 @@ import { icon } from '../icons.ts';
     // state, with the commit it was taken at, and never folded into the mark, which stays "not run yet"
     const s = r?.status === 'never' ? r.snapshot : null;
     const rel = s ? ` At the last release (commit ${L.release?.head ?? '?'}) this check said "${s.status}"${s.ranAt ? `, run ${new Date(s.ranAt).toLocaleString()}` : ''}. That is the committed snapshot (${L.release?.file ?? 'docs/release-snapshot.json'}), not a run on this machine.` : '';
+
     const text = `${title}: ${word}.${r?.summary ? ` ${r.summary}.` : ''}${when}${rel}${r?.stale ? ` Stale: ${r.staleWhy.join('; ')}.` : ''}${now ? ' Running on this model now.' : ''}`;
     // How old the verdict is: 0 for its first day, up to 1 a fortnight later. Nothing here judges
     // the model. It only stops "we checked" and "we checked last week" being drawn the same green.
@@ -1034,7 +1035,7 @@ import { icon } from '../icons.ts';
     // somebody began in a terminal, and a Stop that does nothing is worse than no Stop.
     const mine = runOf(key)?.mine ?? false;
     return `<span class="pg${RUN_NOW.paused && mine ? ' is-paused' : ''}">
-      <span class="pg__name" data-tip data-tiptext="${esc(`${title}, over ${over}.${c?.reportsAtEnd ? ' It judges every model in the report it prints at the end, so its column does not change while it runs: the count is models it has started measuring.' : ''}`)}">${esc(short)}</span>
+      <span class="pg__name" data-tip data-tiptext="${esc(`${title}, over ${over}.`)}">${esc(short)}</span>
       <span class="pg__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? '?'}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><i style="width:${pct}%"></i></span>
       <span class="pg__n">${esc(p.done)}/${esc(p.total ?? '?')}</span>
       <span class="pg__meta">${(() => {
@@ -1045,9 +1046,6 @@ import { icon } from '../icons.ts';
         if (RUN_NOW.paused && mine) bits.push('paused');
         else if (e) bits.push(`about ${fmtDur(e.left)} left`);
         if (p.last) bits.push(esc(p.last));
-        // a check that only judges in its closing report leaves its column untouched while it
-        // runs, which reads as a wedged run unless the bar says otherwise
-        if (c?.reportsAtEnd) bits.push('verdicts at the end');
         return bits.join(' · ');
       })()}</span>
       ${mine && RUN_OK ? `<span class="pg__acts">${holdAndStop('rowrun')}</span>` : ''}</span>`;

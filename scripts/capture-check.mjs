@@ -68,8 +68,7 @@
  * second), with `running: true` and `progress: { done, total, … }`, so the ledger and its page can
  * show a run in progress. `total` is what the check will go through, worked out from the same
  * arguments the check reads; `totalIsEstimate` says when it is inferred rather than named on the
- * command line. check-stages only gives its verdicts in the report at the end, so during its run
- * `done` counts the models it has started measuring and no result is written until the end.
+ * command line.
  * The final write clears `running`. If the wrapper dies without it, `progress.pid` lets a reader
  * see the run is gone.
  *
@@ -142,9 +141,18 @@ const parsers = {
     if (/^\s+(page error|could not measure):/.test(line)) { pending.push(line.trim()); return; }
     if (/models hold the contract\.$/.test(line)) summaryLine = line.trim();
   },
-  // stages: headers are timed as they arrive; the verdict is read from the report at the end
+  // stages: the id as the model is picked up, then its verdict when that model is done. Every
+  // comparison it makes is a model against itself, so the answer exists as soon as the model has
+  // been measured and does not wait for the closing report (check-stages: judgeRow, finishRow).
   stages(line) {
-    if (/^[A-Za-z0-9_-]+$/.test(line) && known.has(line)) { current = line; results[line] = { status: 'unreported', summary: '', detail: [], at: now() }; }
+    if (/^[A-Za-z0-9_-]+$/.test(line) && known.has(line)) { current = line; results[line] = { status: 'unreported', summary: '', detail: [], at: now() }; return; }
+    const v = /^(same|OFF)\s+(\S+)\s+(.*)$/.exec(line);
+    if (v && known.has(v[2])) {
+      current = v[2];
+      results[current] = { status: v[1] === 'same' ? 'pass' : 'fail', summary: v[3].trim(), detail: [], at: now() };
+      return;
+    }
+    if (/^ {10}\S/.test(line) && current && results[current]) { results[current].detail.push(line.trim()); return; }
     if (/^WARNING: src changed while this ran/.test(line)) warnings.push(line.trim());
     if (/models are the same everywhere/.test(line)) summaryLine = line.trim();
   },
@@ -157,6 +165,11 @@ const parsers = {
     }
     const m = /^\s+MISMATCH (\S+) (.+?): (.*?)(?:\s+\[(.*)\])?$/.exec(line);
     if (m && current && results[current]) { results[current].mismatches.push({ check: m[1], what: m[2], detail: m[3], fault: m[4] ?? null }); results[current].at = now(); return; }
+    // the model said it is done: its verdict belongs on the board now, not when the next one
+    // starts. The next-model and closing-summary finalizes stay as a backstop for a run that
+    // dies mid-model; finalizeExport only ever acts once per model.
+    const d = /^done (\S+)\s/.exec(line);
+    if (d && known.has(d[1]) && results[d[1]]) { results[d[1]].complete = true; finalizeExport(d[1]); return; }
     if (/^\d+ mismatch(es)? in [\d.]+ min:$/.test(line)) { if (current && results[current]) { results[current].complete = true; finalizeExport(current); } summaryLine = line.trim(); }
   },
   media(line) {
@@ -709,10 +722,7 @@ function writeProgress() {
   const printsNow = fingerprints();
   const models = { ...(o.models ?? {}) };
   const done = reportedNow();
-  // stages has no verdict to write yet: it only judges in the report it prints at the end (see
-  // the header above). Its progress count is models STARTED, and the registry says so too, so
-  // the bar on the page can tell a reader why the column is not moving.
-  if (check !== 'stages') for (const [id, r] of done) models[id] = entry({ ...r, id }, printsNow);
+  for (const [id, r] of done) models[id] = entry({ ...r, id }, printsNow);
   const started = Object.keys(results).length;
   writeOut({
     check,
