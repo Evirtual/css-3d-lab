@@ -109,7 +109,11 @@ function start(what) {
   if (!argv) return { ok: false, why: `not a check: ${String(what).slice(0, 40)}` };
   // No shell, and argv comes from the registry rather than from the page.
   setPaused(false);
-  const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: 'ignore', detached: false });
+  // detached on anything but Windows, so the child leads its own process group: stop() signals
+  // -pid to take the browsers with it, and that only works on a group leader. Without it the
+  // signal went nowhere, the fallback killed Node alone, and every browser it had opened stayed
+  // up holding memory. Windows has no process groups to speak of; taskkill /T walks the tree.
+  const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: 'ignore', detached: process.platform !== win32 });
   running = { what, startedAt: new Date().toISOString(), child };
   console.log(`${new Date().toTimeString().slice(0, 8)} board: started ${what} (pid ${child.pid})`);
   child.on('close', (code) => {

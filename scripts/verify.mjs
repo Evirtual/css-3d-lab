@@ -42,6 +42,7 @@
  * alternative is a run you have to stop halfway.
  */
 import { spawn, execFileSync } from 'node:child_process';
+import { freemem } from 'node:os';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './model-sources.mjs';
@@ -69,20 +70,35 @@ if (missing.length) { console.error(`verify: not in the registry: ${missing.join
 
 const run = ORDER.filter((k) => !fast || FAST.has(k));
 
-const mb = () => {
-  try {
-    const out = execFileSync('powershell', ['-NoProfile', '-Command', '(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory'], { encoding: 'utf8', timeout: 20000 });
-    return Math.round(Number(out.trim()) / 1024);
-  } catch { return null; }
-};
+/**
+ * Free memory, in MB.
+ *
+ * os.freemem() is in Node on every platform and answers instantly. This used to shell out to
+ * PowerShell, which meant it returned nothing at all on macOS or Linux -- and cost about a second
+ * of process start on Windows, once per step, to read a number Node already had.
+ */
+const mb = () => Math.round(freemem() / 1024 / 1024);
 
 /** Every headless browser a check left behind, so the next one starts from nothing. */
+/**
+ * Every headless browser a check left behind, so the next one starts from nothing.
+ *
+ * Only ever browsers this project drives: matched on --headless or --remote-debugging-pipe, which
+ * the checks pass and a person's own browser does not. It has to be a command on each platform
+ * because there is no Node call for "kill things matching this command line", and this used to do
+ * nothing at all anywhere but Windows -- so on a Mac the browsers simply accumulated.
+ */
 const sweep = () => {
-  if (process.platform !== 'win32') return;
   try {
-    execFileSync('powershell', ['-NoProfile', '-Command',
-      "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | Where-Object { $_.CommandLine -like '*--headless*' -or $_.CommandLine -like '*--remote-debugging-pipe*' } | ForEach-Object { taskkill /PID $_.ProcessId /T /F 2>$null | Out-Null }",
-    ], { stdio: 'ignore', timeout: 30000 });
+    if (process.platform === 'win32') {
+      execFileSync('powershell', ['-NoProfile', '-Command',
+        "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | Where-Object { $_.CommandLine -like '*--headless*' -or $_.CommandLine -like '*--remote-debugging-pipe*' } | ForEach-Object { taskkill /PID $_.ProcessId /T /F 2>$null | Out-Null }",
+      ], { stdio: 'ignore', timeout: 30000 });
+    } else {
+      // -f matches the whole command line. A non-zero exit here means "nothing matched", which is
+      // the good case, so the failure is swallowed either way.
+      execFileSync('pkill', ['-f', '--headless|--remote-debugging-pipe'], { stdio: 'ignore', timeout: 30000 });
+    }
   } catch { /* nothing to sweep, or it could not look: neither is this run's problem */ }
 };
 
