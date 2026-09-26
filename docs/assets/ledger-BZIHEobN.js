@@ -1477,32 +1477,32 @@ function icon(name) {
 	}
 	$("f-status").addEventListener("scroll", tabsFade, { passive: true });
 	if ("ResizeObserver" in window) new ResizeObserver(tabsFade).observe($("f-status"));
-	let stickTop = 0, headH = 0, wasStuck = null, headOff = false;
-	/** How far the table's header has tucked up: nothing while it is out, its own height while it is away.
-	The group rows and any open row take the same number off, so the stack closes up behind it. */
-	const applyHeadOff = () => document.documentElement.style.setProperty("--head-off", headOff ? `${-headH}px` : "0px");
+	let stickTop = 0, headH = 0, wasStuck = null, tucked = false;
 	function stickyOffsets() {
 		const bar = $("filters");
 		stickTop = parseFloat(getComputedStyle(bar).top) || 0;
+		document.documentElement.style.setProperty("--fbar-h", `${Math.round(bar.offsetHeight)}px`);
 		document.documentElement.style.setProperty("--stick-head", `${Math.round(stickTop + bar.offsetHeight)}px`);
 		headH = Math.round($("thead").offsetHeight);
 		document.documentElement.style.setProperty("--head-h", `${headH}px`);
-		applyHeadOff();
 		const suite = $("rows").querySelector("tr.suiterun > td");
 		document.documentElement.style.setProperty("--suite-h", `${suite ? Math.round(suite.offsetHeight) : 0}px`);
 		const grow = $("rows").querySelector("tr.grow > th");
 		document.documentElement.style.setProperty("--grow-h", `${grow ? Math.round(grow.offsetHeight) : 0}px`);
 		onScroll();
 	}
-	let lastY = -1;
-	function setHeadOff(off) {
-		if (off === headOff) return;
-		headOff = off;
-		$("tbl").classList.toggle("head-off", off);
-		applyHeadOff();
+	let lastY = -1, run = 0;
+	const TUCK_AFTER = 110;
+	const dialogOpen = () => Boolean($("rules-dialog").open || $("blk-dialog").open || $("cl-dialog").open);
+	function setTuck(on) {
+		if (on === tucked) return;
+		tucked = on;
+		document.documentElement.classList.toggle("tucked", on);
+		document.documentElement.style.setProperty("--show", on ? "0" : "1");
 	}
 	const revealHead = () => {
-		setHeadOff(false);
+		run = 0;
+		setTuck(false);
 	};
 	$("filters").addEventListener("focusin", revealHead);
 	$("tbl").addEventListener("focusin", revealHead);
@@ -1514,9 +1514,14 @@ function icon(name) {
 			bar.classList.toggle("is-stuck", stuck);
 		}
 		const y = Math.max(0, scrollY);
-		lastY < 0 || y - lastY;
+		const dy = lastY < 0 ? 0 : y - lastY;
 		lastY = y;
-		revealHead();
+		if (dy > 0 && run < 0 || dy < 0 && run > 0) run = 0;
+		run += dy;
+		const deep = $("tbl").getBoundingClientRect().top <= 0;
+		if (dialogOpen() || !deep) revealHead();
+		else if (run > TUCK_AFTER) setTuck(true);
+		else if (run < -45) revealHead();
 	}
 	if ("ResizeObserver" in window) {
 		const ro = new ResizeObserver(stickyOffsets);

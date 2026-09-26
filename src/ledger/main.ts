@@ -1481,18 +1481,18 @@ import { icon } from '../icons.ts';
      bar's bottom edge, and each group row pins under the header. Nothing here is a written-in number:
      the bar's height changes as its chips rewrap, which happens while it is stuck and without any
      resize event, so the measurement runs on scroll as well -- once a frame, never per event. */
-  let stickTop = 0, headH = 0, wasStuck = null, wasEdge = null, headOff = false;
-  /** How far the table's header has tucked up: nothing while it is out, its own height while it is away.
-      The group rows and any open row take the same number off, so the stack closes up behind it. */
-  const applyHeadOff = () => document.documentElement.style.setProperty('--head-off', headOff ? `${-headH}px` : '0px');
+  let stickTop = 0, headH = 0, wasStuck = null, wasEdge = null, tucked = false;
   function stickyOffsets() {
     const bar = $('filters');
     stickTop = parseFloat(getComputedStyle(bar).top) || 0;
+    /* --fbar-h is the searching and filtering on its own, without the gap it floats in. The two are
+       separate because only one of them goes away: the gap is there at every scroll position, and
+       the bar's height is what the stack below either makes room for or closes up over. */
+    document.documentElement.style.setProperty('--fbar-h', `${Math.round(bar.offsetHeight)}px`);
     document.documentElement.style.setProperty('--stick-head', `${Math.round(stickTop + bar.offsetHeight)}px`);
     // the thead is hidden on a phone, where each model is a card: measuring it gives 0 there by itself
     headH = Math.round($('thead').offsetHeight);
     document.documentElement.style.setProperty('--head-h', `${headH}px`);
-    applyHeadOff();
     /* The bar for a run over every model is the one thing on this page that is still changing while
        you read it, and it was the first thing to go: it stuck at the same offset as the group rows,
        which come after it in the table, so the first group covered it as soon as you scrolled. It
@@ -1504,23 +1504,36 @@ import { icon } from '../icons.ts';
     document.documentElement.style.setProperty('--grow-h', `${grow ? Math.round(grow.offsetHeight) : 0}px`);
     onScroll();
   }
-  /* ---------- the table's header gets out of the way ----------
-     Reading down the table you already know what the columns are, and ten vertical words are a band in
-     the way. So scrolling down tucks the header up behind the filter bar -- which stays put, and is
-     above it in the stack, so it really does go behind it -- and scrolling up slides it back out. It
-     stays out while the table's top is still on screen, while a dialog is open, and while anything in
-     the header or the filter bar has focus, so a keyboard reaching a column button brings it back. A
-     run of travel in one direction has to build up before it moves either way, so a jittery wheel or a
-     thumb resting on the glass does nothing. */
+  /* ---------- searching and the run bar get out of the way on the way down ----------
+     Four bands were pinned at the top while you read the rows: the search and its filters, the
+     column headings, the bar for a run over every model, and the group heading. Together that is
+     most of a phone's screen and a third of a laptop's, held for two things you are not doing --
+     searching, and watching a count -- while you read the one you are: which models are where.
+
+     So a run of downward travel takes the search and the run bar away, and any upward travel brings
+     them back. What stays is what you are reading with: the column headings, which carry the button
+     that runs each check, and the group heading, which is the only thing on screen that says where
+     in 135 models you are. That is also why the header itself does not go: hiding it hides nine
+     controls, and a control you have to scroll up to find is one you cannot find.
+
+     Travel has to build up before either move, so a jittery wheel or a thumb resting on the glass
+     does nothing, and the bars come straight back near the top of the page, while a dialog is open,
+     and the moment anything in them takes focus -- a keyboard must never be typing into a box that
+     has been scrolled off the screen. */
   let lastY = -1, run = 0;
+  const TUCK_AFTER = 110, BACK_AFTER = 45;
   const dialogOpen = () => Boolean($('rules-dialog').open || $('blk-dialog').open || $('cl-dialog').open);
-  function setHeadOff(off) {
-    if (off === headOff) return;
-    headOff = off;
-    $('tbl').classList.toggle('head-off', off);
-    applyHeadOff();
+  function setTuck(on) {
+    if (on === tucked) return;
+    tucked = on;
+    /* --show is the whole mechanism: 1 while the two bands are out, 0 while they are away. Every
+       offset under them is written as `their height * var(--show)`, so the stack closes up and
+       opens out from one number, and the heights themselves stay honest measurements of what
+       those bands are -- not of whether they happen to be on screen. */
+    document.documentElement.classList.toggle('tucked', on);
+    document.documentElement.style.setProperty('--show', on ? '0' : '1');
   }
-  const revealHead = () => { run = 0; setHeadOff(false); };
+  const revealHead = () => { run = 0; setTuck(false); };
   $('filters').addEventListener('focusin', revealHead);
   $('tbl').addEventListener('focusin', revealHead);
   /* What scrolling alone can change: whether the bar is resting, whether the header should be away, and
@@ -1534,20 +1547,28 @@ import { icon } from '../icons.ts';
     const y = Math.max(0, scrollY);
     const dy = lastY < 0 ? 0 : y - lastY;
     lastY = y;
+    // A turn resets the tally, so it is a run of travel one way that counts and not the sum of a
+    // fidget: sixty down then sixty up leaves nothing, where adding them would have tucked.
+    if ((dy > 0 && run < 0) || (dy < 0 && run > 0)) run = 0;
+    run += dy;
     /*
-     * The header no longer tucks away on the way down.
+     * Nothing tucks until the band is doing something.
      *
-     * It used to slide behind the filter bar after a run of downward travel, to give the rows more
-     * of the screen, and come back on the way up. That was worth it when a heading was a word.
-     * It is not now: every heading carries the button that runs its check over every model, so
-     * hiding the header hides nine controls -- and it did it while you were scrolling towards the
-     * row you wanted to run something on. A heading you have to scroll UP to get back is a control
-     * you cannot find.
+     * The test used to be how far down the page you were, and a hundred pixels of travel is easy
+     * to reach before the table's own top has even gone by. Two things were wrong with tucking
+     * there. The band was not covering anything yet, so taking it away bought no rows -- it just
+     * took the search box off the screen of somebody who had barely started scrolling. And the run
+     * bar still had its row in the flow at the top of the table, so hiding it left a band of empty
+     * table where it had been: a hole is not less in the way than a bar.
      *
-     * setHeadOff and its --head-off are left in place: every sticky offset in the stylesheet is
-     * written in terms of it, and it is now simply always nought. Nothing else changes.
+     * So the table's top edge has to be past the top of the window. Then the header is pinned, the
+     * run bar's own row is above the window with only its pinned copy on screen, and taking the
+     * band away really does hand those rows back.
      */
-    revealHead();
+    const deep = $('tbl').getBoundingClientRect().top <= 0;
+    if (dialogOpen() || !deep) revealHead();
+    else if (run > TUCK_AFTER) setTuck(true);
+    else if (run < -BACK_AFTER) revealHead();
   }
   if ('ResizeObserver' in window) { const ro = new ResizeObserver(stickyOffsets); ro.observe($('filters')); ro.observe($('thead')); }
   addEventListener('resize', stickyOffsets);

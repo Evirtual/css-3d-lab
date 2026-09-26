@@ -1107,14 +1107,11 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .table-wrap { overflow: visible; margin: 0; }
 #tbl { table-layout: auto; border-collapse: separate; border-spacing: 0; }
 #tbl th, #tbl td { padding: 7px 6px; vertical-align: middle; }
-/* ---------- the table header tucks away ----------
-   Reading down the table you already know what the columns are; the header is a band of vertical words
-   in the way. So it slides up behind the filter bar on the way down and back out from under it on the
-   way up. --head-off is how far up it has gone: nought while it is out, minus its own height while it
-   is away, and the group rows and any open row take the same number off their own offsets, so the top
-   of the table closes up behind it with no gap and nothing overlapping. The bar is above it in the
-   stack, so what slides up really does go behind the bar rather than over it. */
-#tbl thead th { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-off, 0px)); z-index: 3; background: var(--surface-solid); box-shadow: inset 0 -1px 0 var(--border); }
+/* The header does not tuck away: every column heading carries the button that runs its check over
+   every model, and a control you have to scroll up to find is one you cannot find. What does go on
+   the way down is the searching and the run bar -- see 'what goes away on the way down' at the end
+   of this file, which is also where this top is finally written. */
+#tbl thead th { position: sticky; top: calc(var(--stick-head, 0px)); z-index: 3; background: var(--surface-solid); box-shadow: inset 0 -1px 0 var(--border); }
 #tbl th.c, #tbl td.c { width: 1%; text-align: center; white-space: nowrap; }
 /* The sticky name column needs a background -- a transparent cell would have the row slide under
    it -- but setting it HERE, with an id in the selector, beat every rule that tints a row. So the
@@ -1127,7 +1124,7 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
    This was one curve for the header and everything pinned under it, so that the tuck -- the header
    sliding up behind the filter bar on the way down -- moved the whole stack together instead of
    snapping it. The tuck was taken out when every heading grew the button that runs its check:
-   --head-off is now permanently nought and nothing changes it (see onScroll in main.ts).
+   --head-off went with it, and the term it added to every offset in this file went too.
 
    What was left was a 200ms glide on a number that nobody meant to change, and there is one that
    changes constantly: the run bar's height, which feeds --suite-h and moves everything below it.
@@ -1161,7 +1158,7 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 /* The row is the panel's header: it stays over the panel while the panel scrolls, under the table's own
    header and the group row. Those two heights are measured into variables, never written in. */
 #tbl tr.row[aria-expanded="true"] > td {
-  position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 0px) + var(--head-off, 0px) + var(--grow-h, 0px)); z-index: 2;
+  position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 0px) + var(--grow-h, 0px)); z-index: 2;
 }
 #tbl tr.row[aria-expanded="true"] > td.model { z-index: 3; }
 #tbl tr.row[aria-expanded="true"] + tr.detail > td {
@@ -1208,7 +1205,7 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 #tbl td.c { padding-left: 4px; padding-right: 4px; }
 .last small { display: block; }
 /* a thin section row per group, sticky under the header while its rows scroll past */
-#tbl tr.grow > th { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px) + var(--head-off, 0px)); z-index: 2; padding: 0; background: color-mix(in srgb, var(--gc, var(--accent)) 14%, var(--surface-solid)); box-shadow: inset 4px 0 0 var(--gc, var(--accent)); border-bottom: 1px solid var(--border-strong); text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); white-space: normal; }
+#tbl tr.grow > th { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px)); z-index: 2; padding: 0; background: color-mix(in srgb, var(--gc, var(--accent)) 14%, var(--surface-solid)); box-shadow: inset 4px 0 0 var(--gc, var(--accent)); border-bottom: 1px solid var(--border-strong); text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); white-space: normal; }
 .grow__in { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 6px 8px; }
 .grow__btn { display: inline-flex; align-items: center; gap: 8px; padding: 2px 6px 2px 2px; border: 0; border-radius: 8px; background: none; color: var(--text); font: 700 13px/1.3 var(--font); cursor: pointer; white-space: nowrap; }
 .grow__btn:hover { background: color-mix(in srgb, var(--gc, var(--accent)) 16%, transparent); }
@@ -1705,7 +1702,7 @@ td.c.is-waiting .mk { opacity: 0.4; filter: saturate(0.4); }
 /* ---------- a run over every model: the table's own first row ---------- */
 .suiterun > td { padding: 9px 14px 10px; background: color-mix(in srgb, var(--st-chk) 7%, var(--surface-solid));
   border-bottom: 1px solid color-mix(in srgb, var(--st-chk) 30%, transparent); }
-#tbl tr.suiterun > td { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px) + var(--head-off, 0px)); z-index: 2; }
+#tbl tr.suiterun > td { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px)); z-index: 2; }
 .suiterun .pg__track { height: 14px; }
 
 /* ---------- one colour across a row, whatever the cell ----------
@@ -1894,7 +1891,7 @@ header .sitechk { gap: 8px 22px; }
    stick, and has to carry the same tint -- a heading where two cells stay and nine scroll away is
    the bug the column headings had. */
 #tbl tr.grow > th, #tbl tr.grow > td {
-  position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px) + var(--head-off, 0px));
+  position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px));
   z-index: 2; padding: 0 6px; vertical-align: middle;
   background: color-mix(in srgb, var(--gc, var(--accent)) 14%, var(--surface-solid));
   border-bottom: 1px solid var(--border-strong);
@@ -2920,28 +2917,47 @@ td.c:has(.ckrun--busy) { background: color-mix(in srgb, var(--st-warn) 14%, tran
    It is a step of its own now, and the group rows and any open row start below it. --suite-h is
    measured in stickyOffsets and is 0 when no run is on, so the stack closes up by itself.
    ================================================================================================ */
+/* ---------- one band, written once ----------
+   Four things were pinned here and each carried its own hand-written sum of the ones above it, in
+   two media queries, with a 34px guess where --head-h had not been measured yet. Four sums to keep
+   in step is how the group heading came to be told to stand exactly where the run bar already was.
+
+   There is one sum now and each line adds one term to the line above it, in the order they appear
+   down the screen. --stick-top is the gap the search bar floats in, and it belongs to that bar:
+   when the bar goes there is nothing left to float, so it is multiplied away with it and the
+   column headings meet the top edge. --head-h is 0 on a phone because the header really is not
+   there, so the phone needs no rule of its own -- it falls out of the same sum. */
+#tbl thead th { top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1)); }
+#tbl tr.suiterun > td {
+  top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px));
+  z-index: 4;
+}
 #tbl tr.grow > th, #tbl tr.grow > td {
-  top: calc(var(--stick-head, 0px) + var(--head-h, 34px) + var(--head-off, 0px) + var(--suite-h, 0px));
+  top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px)
+            + var(--suite-h, 0px) * var(--show, 1));
 }
 #tbl tr.row[aria-expanded="true"] > td {
-  top: calc(var(--stick-head, 0px) + var(--head-h, 0px) + var(--head-off, 0px) + var(--suite-h, 0px) + var(--grow-h, 0px));
+  top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px)
+            + var(--suite-h, 0px) * var(--show, 1) + var(--grow-h, 0px));
 }
-/* the bar keeps its own place above them both */
-#tbl tr.suiterun > td { z-index: 4; }
 
-/* ---------- the same stack on a phone, where the table is a list ----------
-   Two things to keep straight here. The head is hidden below 760px, so --head-h is 0 and the group
-   row pins straight under the filter bar -- and the block above, being later in the file, would
-   otherwise put the desktop offset back. And the bar for a run over every model pins in exactly
-   the same place as the group row did, which is how the first group came to sit on top of it.
-   Same order as the wide screen: bar first, then the group. */
+/* ---------- what goes away on the way down ----------
+   --show is 0 while the two are tucked, which is what takes their height out of every sum above.
+   They still have to leave the screen themselves: the search bar rises into the gap it floats in,
+   the run bar loses the stacking order it was given to keep it off the group heading, and neither
+   can be clicked while it is on its way out. Both come back together on the first upward scroll,
+   so the search box is never more than a flick away and the count is never hidden for long. */
+.fbar, #tbl tr.suiterun > td { transition: opacity 0.16s ease, translate 0.16s ease; }
+.tucked .fbar {
+  opacity: 0; pointer-events: none;
+  translate: 0 calc(-1 * (var(--fbar-h, 0px) + var(--stick-top, 0px)));
+}
+.tucked #tbl tr.suiterun > td { opacity: 0; pointer-events: none; z-index: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .fbar, #tbl tr.suiterun > td { transition: none; }
+}
+
 @media (max-width: 760px) {
-  #tbl tr.grow > th, #tbl tr.grow > td {
-    top: calc(var(--stick-head, 0px) + var(--suite-h, 0px));
-  }
-  #tbl tr.row[aria-expanded="true"] > td {
-    top: calc(var(--stick-head, 0px) + var(--suite-h, 0px) + var(--grow-h, 0px));
-  }
   /* ---------- a bar on a phone is a bar across the phone ----------
      Every track on this page gets the width of the card it is in: the run bars already did, and
      the group's approved/to-check bar was still on the wide-screen rule -- 140px of flex basis
@@ -2980,3 +2996,14 @@ td.c:has(.ckrun--busy) { background: color-mix(in srgb, var(--st-warn) 14%, tran
 @media (max-width: 760px) {
   #tbl tr.grow, #tbl tr.suiterun { display: contents; }
 }
+
+/* ---------- the group heading casts the same shadow the search bar does ----------
+   Pinned bands on this page sit above what they cover and say so with a shadow: the search bar has
+   one, and while it was the bottom of the stack that was enough. Now the group heading can be the
+   bottom -- once the search and the run bar have tucked away, it is the last pinned thing, with
+   rows sliding under it and nothing between. Without a shadow it read as just another row that had
+   stopped moving. It is the same --shadow, so the stack looks like one object however much of it
+   is on screen. */
+#tbl tr.grow > th, #tbl tr.grow > td { box-shadow: var(--shadow); }
+/* the group's colour keeps its stripe: box-shadow above replaced the inset that drew it */
+#tbl tr.grow > th.model { box-shadow: inset 4px 0 0 var(--gc, var(--accent)), var(--shadow); }
