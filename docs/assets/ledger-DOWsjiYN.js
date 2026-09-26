@@ -1488,6 +1488,8 @@ function icon(name) {
 		headH = Math.round($("thead").offsetHeight);
 		document.documentElement.style.setProperty("--head-h", `${headH}px`);
 		applyHeadOff();
+		const suite = $("rows").querySelector("tr.suiterun > td");
+		document.documentElement.style.setProperty("--suite-h", `${suite ? Math.round(suite.offsetHeight) : 0}px`);
 		const grow = $("rows").querySelector("tr.grow > th");
 		document.documentElement.style.setProperty("--grow-h", `${grow ? Math.round(grow.offsetHeight) : 0}px`);
 		onScroll();
@@ -1711,7 +1713,7 @@ function icon(name) {
 		if (PENDING && PENDING.key === key) return `<span class="${cls} ckrun--wait" role="status" aria-label="Starting"><i></i></span>`;
 		const r = runOf(what);
 		if (r && r.mine && sameIds(r.models ?? [], ids)) {
-			if (cls === "cellrun") return `<span class="${cls} ckrun--wait" role="status" aria-label="Being checked now" title="Being checked now"><i></i></span>`;
+			if (cls === "cellrun") return `<span class="${cls} ckrun--wait ckrun--busy" role="status" aria-label="Being checked now" title="Being checked now"><i></i></span>`;
 			return holdAndStop(cls, what);
 		}
 		const why = blockedBy(what, ids);

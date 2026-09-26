@@ -2836,3 +2836,109 @@ html:has(.cldlg[open]) { overflow: hidden; scrollbar-gutter: auto; }
 }
 td.c .cellrun.ckrun--wait i { border-color: color-mix(in srgb, var(--st-warn) 30%, transparent); border-top-color: var(--st-warn); }
 .btnrun.ckrun--wait i { width: 1.1em; height: 1.1em; }
+
+/* ---------- only a notice with a dismiss needs a column for one ----------
+   The two-column grid was written for the run notices, which have a headline, a reason and an X.
+   The live notices are not built that way: they are a <b> followed by loose text, and in a grid a
+   run of loose text becomes an anonymous item of its own -- so it was placed in the 30px column
+   meant for the button and wrapped one word per line.
+
+   The grid now applies only where there is actually a button to make room for. Everything else is
+   ordinary text in an ordinary box, which is what it was written as. */
+.notice { display: block; padding: 11px 14px; }
+.notice:has(.notice__x) {
+  display: grid; grid-template-columns: minmax(0, 1fr) 30px; gap: 4px 10px; align-items: center;
+}
+.notice:not(:has(.notice__x)) .notice__what,
+.notice:not(:has(.notice__x)) .notice__why { grid-column: auto; }
+/* the headline of a live notice reads as a headline, then its reason follows in the same breath */
+.notice .big { display: inline; margin-right: 4px; }
+
+/* ================================================================================================
+   A CHECK THAT IS RUNNING LOOKS THE SAME WHEREVER IT IS RUNNING
+
+   The Export column heading, with the run going, showed a still teal ring smaller than the buttons
+   beside it. Three separate faults met in that one 20px circle.
+
+   It did not turn. `@keyframes ckspin` was deleted in 7a0bef5 -- the pass that removed 77 dead
+   rules -- because "dead" was decided by asking whether anything on the page matches the selector,
+   and a keyframes block has no selector to match. Three rules kept animating with a name that no
+   longer existed, which is not an error in CSS: an unknown animation name is simply no animation.
+   So the spinner stopped spinning and nothing said so.
+
+   It was teal, not amber. Amber means a verdict is being re-decided right now, and it was written
+   as `td.c .cellrun.ckrun--wait` -- true of a cell, and of a group row, because a group row's cells
+   are cells. A column heading is a `th`, the site line is neither, so the same state wore the
+   colour of a different state there. The state is not a place: the class now says which it is, and
+   ckrun--busy is amber in a heading, a group, a row and a list alike.
+
+   It was half the size of its neighbours. The ring was sized in ems off the control's font-size --
+   11.5px inside a 20px circle -- as a way around the earlier collapse of `width: 100%` in a
+   content-sized grid track. The track is what was wrong, not the percentage: these controls have an
+   explicit width and height, so a track told to be 100% of that box is a real length and the ring
+   fills the circle it replaces.
+   ================================================================================================ */
+@keyframes ckspin { to { rotate: 360deg; } }
+
+/* the ring IS the control while it turns, so it is the size of the control */
+.ckrun--wait { grid-template-columns: 100%; grid-template-rows: 100%; }
+.ckrun--wait i { width: 100%; height: 100%; }
+.btnrun.ckrun--wait i { width: 100%; height: 100%; }
+
+/* waiting on the board to answer a press: teal, the colour of the button just pressed */
+.ckrun--wait i {
+  border-color: color-mix(in srgb, var(--st-chk) 26%, transparent);
+  border-top-color: var(--st-chk);
+}
+/* being checked right now: amber, the colour of a mark that is about to change */
+.ckrun--busy i {
+  border-color: color-mix(in srgb, var(--st-warn) 30%, transparent);
+  border-top-color: var(--st-warn);
+}
+/* and the cell it sits in says so too, wherever that cell is */
+td.c:has(.ckrun--busy) { background: color-mix(in srgb, var(--st-warn) 14%, transparent); }
+
+/* ================================================================================================
+   THE RUN OVER EVERY MODEL STAYS ON SCREEN WHILE YOU SCROLL THROUGH WHAT IT IS RUNNING ON
+
+   Three things pin under the filter bar: the table's own header, the bar for a run over every
+   model, and the group row. The first and the third had a place in that stack; the middle one was
+   given the same offset as the group row, and it comes FIRST in the table, so the moment a group
+   row reached its mark it parked on top of the bar and the count, the time left and the model it
+   was on were gone for the rest of the page.
+
+   That bar is the only thing here that keeps changing while you read -- it is why the page is open.
+   It is a step of its own now, and the group rows and any open row start below it. --suite-h is
+   measured in stickyOffsets and is 0 when no run is on, so the stack closes up by itself.
+   ================================================================================================ */
+#tbl tr.grow > th, #tbl tr.grow > td {
+  top: calc(var(--stick-head, 0px) + var(--head-h, 34px) + var(--head-off, 0px) + var(--suite-h, 0px));
+}
+#tbl tr.row[aria-expanded="true"] > td {
+  top: calc(var(--stick-head, 0px) + var(--head-h, 0px) + var(--head-off, 0px) + var(--suite-h, 0px) + var(--grow-h, 0px));
+}
+/* the bar keeps its own place above them both */
+#tbl tr.suiterun > td { z-index: 4; }
+
+/* ---------- the same stack on a phone, where the table is a list ----------
+   Two things to keep straight here. The head is hidden below 760px, so --head-h is 0 and the group
+   row pins straight under the filter bar -- and the block above, being later in the file, would
+   otherwise put the desktop offset back. And the bar for a run over every model pins in exactly
+   the same place as the group row did, which is how the first group came to sit on top of it.
+   Same order as the wide screen: bar first, then the group. */
+@media (max-width: 760px) {
+  #tbl tr.grow > th, #tbl tr.grow > td {
+    top: calc(var(--stick-head, 0px) + var(--suite-h, 0px));
+  }
+  #tbl tr.row[aria-expanded="true"] > td {
+    top: calc(var(--stick-head, 0px) + var(--suite-h, 0px) + var(--grow-h, 0px));
+  }
+  /* ---------- a bar on a phone is a bar across the phone ----------
+     Every track on this page gets the width of the card it is in: the run bars already did, and
+     the group's approved/to-check bar was still on the wide-screen rule -- 140px of flex basis
+     beside a name, which on a 375px screen is a third of the line, with its own words wrapped
+     underneath it. A bar that narrow is a decoration; at full width it is a reading of where the
+     group has got to, which is the only reason it is drawn. */
+  .grow__bar { flex: 1 1 100%; order: 3; height: 10px; }
+  .grow__meta { order: 4; flex: 1 1 100%; white-space: normal; }
+}

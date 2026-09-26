@@ -1493,6 +1493,13 @@ import { icon } from '../icons.ts';
     headH = Math.round($('thead').offsetHeight);
     document.documentElement.style.setProperty('--head-h', `${headH}px`);
     applyHeadOff();
+    /* The bar for a run over every model is the one thing on this page that is still changing while
+       you read it, and it was the first thing to go: it stuck at the same offset as the group rows,
+       which come after it in the table, so the first group covered it as soon as you scrolled. It
+       is a step of its own in the stack now -- its own height, measured like the rest, and zero the
+       moment no run is on, so nothing is held open for a bar that is not there. */
+    const suite = $('rows').querySelector('tr.suiterun > td');
+    document.documentElement.style.setProperty('--suite-h', `${suite ? Math.round(suite.offsetHeight) : 0}px`);
     const grow = $('rows').querySelector('tr.grow > th');
     document.documentElement.style.setProperty('--grow-h', `${grow ? Math.round(grow.offsetHeight) : 0}px`);
     onScroll();
@@ -1712,7 +1719,11 @@ import { icon } from '../icons.ts';
        * So a cell says only that it is being worked on, and the bar for the run -- which names it,
        * counts it and sits across the row -- is where you stop or hold it.
        */
-      if (cls === 'cellrun') return `<span class="${cls} ckrun--wait" role="status" aria-label="Being checked now" title="Being checked now"><i></i></span>`;
+      // Two states share the spinner and they are not the same news: ckrun--wait is a press the
+      // board has not answered yet, ckrun--busy is a check actually running over this model. The
+      // second is amber, because the mark underneath it is a verdict about to be replaced. It says
+      // so in the class and not in where it sits, so a heading, a group and a row all read alike.
+      if (cls === 'cellrun') return `<span class="${cls} ckrun--wait ckrun--busy" role="status" aria-label="Being checked now" title="Being checked now"><i></i></span>`;
       return holdAndStop(cls, what);
     }
     /*
