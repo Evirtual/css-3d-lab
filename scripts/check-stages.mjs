@@ -401,6 +401,12 @@ const fills = (s) => `${pct(s.cover.minW)} × ${pct(s.cover.minH)}`;
  * and for a full-canvas scene (when `mapping`, the scene's one mapping, is given) as the share of
  * what is in view that is placed differently on it, with a gap on either canvas said first.
  */
+// A pose is only ever compared with the same pose: at rest with at rest (every reading this check
+// sets out to take), pointed with pointed. Up here beside apart() because judgeRow needs it while
+// the models are still being measured -- it was inside report(), which is why the first run after
+// judgeRow moved out of report() died with "alike is not defined" before judging a single model.
+const alike = (a, b) => a.pose === b.pose;
+
 function apart(a, b, mapping) {
   if (!mapping) {
     const d = Math.max(Math.abs(a.width - b.width), Math.abs(a.height - b.height), Math.abs(a.offX - b.offX), Math.abs(a.offY - b.offY));
@@ -904,9 +910,6 @@ function report() {
     }
     console.log('\nAll numbers are vmin of the canvas the model is in: width × height @ offset from the middle.');
     console.log('A full-canvas scene says instead how much of the canvas it fills at its emptiest moment.\n');
-    // a pose is only ever compared with the same pose: at rest with at rest (every reading this check
-    // sets out to take), pointed with pointed
-    const alike = (a, b) => a.pose === b.pose;
     const ID = Math.max(11, ...results.map((row) => row.id.length + 1)); // capture-check splits the table on whitespace
     console.log(['model'.padEnd(ID), ...STAGES.map((s) => s.padEnd(26))].join(''));
     for (const row of results) {
