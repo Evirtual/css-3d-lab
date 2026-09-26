@@ -399,6 +399,17 @@ export const snippet: Snippet = {
   color: inherit;
 }
 
+/* A series that is on answers the pointer in its OWN colours.
+
+   The rule above keeps the stage's dark ink and a light tint, on purpose: these are switches, not
+   the brand pill. But the segmented pill's hover rule outranks it
+   (0,3,0 against 0,2,1), so hovering an "on" series painted the pill's dark gradient
+   behind dark text -- 2.42:1 where 4.5 is needed. check-contrast caught it by name, "Ours" and
+   "Theirs", within an hour of me writing it. Deeper tint, same ink, contrast goes up not down. */
+.toggles button[aria-pressed='true']:hover {
+  background: color-mix(in srgb, var(--c) 34%, transparent);
+}
+
 .toggles button[aria-pressed='true']::before {
   background: var(--c);
 }`,
