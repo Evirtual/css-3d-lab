@@ -26,8 +26,6 @@ import type { PrintSetup } from './models/snippet-utils';
 import { fileName, shapeTag } from './file-name';
 import { showThanks } from './thanks';
 import { fillsCanvas, freshFillLimit, MIN_FILL, refreshFillLimit, watchFillLimit } from './fill-limit';
-import { CAPTURE_FONT_RULES, tagCaptureMono } from './capture-scene';
-import { captureFontCss, ensureCaptureFonts } from './fonts/capture-fonts';
 
 /**
  * One dialog with three tabs — Video, Image, Print.
@@ -296,59 +294,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     inner.dataset.inMaker = '';
   };
 
-  /*
-   * ---------- the preview wears the fonts the file will be drawn in ----------
-   *
-   * The scene that travels to the render service forces CaptureSans and CaptureMono onto every
-   * element (CAPTURE_FONT_RULES), because it carries family NAMES and not font files: before that,
-   * the worker's Linux browser had neither Segoe UI nor Consolas, glyphs came out wider, and "4242"
-   * ran off the payment card on the live site.
-   *
-   * The frame on the left is the real stage, so it kept drawing in the fonts THIS machine has. The
-   * two were then different pictures, and check-exports measured the gap on 2026-09-26: six models
-   * whose left edge matched and whose right edge did not, because the text under it was wider in
-   * the file than on the screen. layertext was 10.5% out; text, lit and layertext reached the very
-   * edge of the exported picture, which is text being cut off.
-   *
-   * So the preview wears them too. It is the same constant and the same mono tagging as the scene,
-   * exported from capture-scene.ts, because two copies of this rule would drift apart and the whole
-   * point is that they cannot. The model re-flows when the dialog opens, which is the honest thing:
-   * that re-flow IS the export, and it is better seen here than found in a downloaded file.
-   *
-   * The gallery and the model page are untouched: they keep system-ui, which is what the snippet
-   * a visitor copies should say.
-   */
-  const CAP_STYLE = 'c3d-capture-fonts';
-  const liveDoc = (): Document | null => {
-    const frame = el<HTMLElement>('[data-live]')?.querySelector('iframe') as HTMLIFrameElement | null;
-    // a frame from another origin has no contentDocument to reach; the model's own always does
-    try { return frame?.contentDocument ?? null; } catch { return null; }
-  };
-  const undressFonts = (): void => {
-    const doc = liveDoc();
-    if (!doc) return;
-    doc.getElementById(CAP_STYLE)?.remove();
-    for (const n of doc.querySelectorAll('[data-cap-mono]')) n.removeAttribute('data-cap-mono');
-  };
-  const wearCaptureFonts = async (): Promise<void> => {
-    await ensureCaptureFonts();
-    const css = captureFontCss();
-    // The fetch failed. The file then draws with whatever the renderer has, so the preview showing
-    // whatever THIS machine has is no less true than anything else available — and a preview is
-    // better than none.
-    if (!css) return;
-    const doc = liveDoc();
-    if (!doc?.body || doc.getElementById(CAP_STYLE)) return;
-    // read what the browser resolved BEFORE the override lands, or everything answers CaptureSans
-    tagCaptureMono(doc.body, doc.body);
-    const style = doc.createElement('style');
-    style.id = CAP_STYLE;
-    style.textContent = css + CAPTURE_FONT_RULES.join('');
-    doc.head.append(style);
-    // the model's box can change with its glyphs, and the frame is sized from that box
-    fit();
-  };
-
   const mount = (): void => {
     const frame = el<HTMLElement>('[data-live]');
     if (!stage || !frame) return;
@@ -375,7 +320,7 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
       stage = inner;
       // it has to load, lay itself out and paint before there is anything to measure
       const settle = (): void => {
-        requestAnimationFrame(() => requestAnimationFrame(() => { fit(); void wearCaptureFonts(); }));
+        requestAnimationFrame(() => requestAnimationFrame(fit));
       };
       copy.querySelector('iframe')?.addEventListener('load', settle);
       window.setTimeout(settle, 700);
@@ -397,7 +342,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
     if (typeof frame.moveBefore === 'function') frame.moveBefore(panel, null);
     else frame.append(panel);
     dress(panel, stage);
-    void wearCaptureFonts();
   };
 
   /** The slider says the top end, and a value above it comes down to it. */
@@ -432,8 +376,6 @@ export function initVideoMaker(track: (event: string) => void = () => {}, print?
   };
 
   const unmount = (): void => {
-    // before anything moves: the borrowed stage is the PAGE's, and it goes back as it came
-    undressFonts();
     unfollow?.();
     unfollow = null;
     fillTop = null;
