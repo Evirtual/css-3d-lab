@@ -1,5 +1,16 @@
 /** Shared pieces for the copy-paste snippets. */
-import site from '../../site.config.json';
+
+/**
+ * Where a copied file fetches the lab's fonts from.
+ *
+ * Spelled out rather than imported from site.config.json, which is the source of truth for the
+ * url everywhere else: scripts/fingerprint.mjs bundles src/models on its own to work out which
+ * models a change touches, and that bundle resolves model sources only. A JSON import here breaks
+ * the staleness index for all 135 models -- the ledger silently falls back to comparing source
+ * text -- which is a bad trade for not repeating a domain. If the domain ever moves, it moves here
+ * too.
+ */
+const FONT_ORIGIN = 'https://css3dlab.edgarasneverdauskas.com';
 export interface Snippet {
   /** Step-by-step explanation. May contain <code>. */
   how: string[];
@@ -53,10 +64,10 @@ ${stage
      and what it stopped doing the day the models began asking for Inter. Saved to a disk with no
      network it falls back to the reader's own fonts, as it always did.
      The SNIPPET a reader pastes is untouched: it carries no @font-face and never has. */
-  : `@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:swap;src:url(${site.url}/fonts/inter-latin-400.woff2) format("woff2")}
-@font-face{font-family:Inter;font-style:normal;font-weight:700;font-display:swap;src:url(${site.url}/fonts/inter-latin-700.woff2) format("woff2")}
-@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400;font-display:swap;src:url(${site.url}/fonts/jetbrains-mono-latin-400.woff2) format("woff2")}
-@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:600;font-display:swap;src:url(${site.url}/fonts/jetbrains-mono-latin-600.woff2) format("woff2")}`}
+  : `@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:swap;src:url(${FONT_ORIGIN}/fonts/inter-latin-400.woff2) format("woff2")}
+@font-face{font-family:Inter;font-style:normal;font-weight:700;font-display:swap;src:url(${FONT_ORIGIN}/fonts/inter-latin-700.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:400;font-display:swap;src:url(${FONT_ORIGIN}/fonts/jetbrains-mono-latin-400.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:600;font-display:swap;src:url(${FONT_ORIGIN}/fonts/jetbrains-mono-latin-600.woff2) format("woff2")}`}
 body {
   margin: 0;
   min-height: 100vh;
