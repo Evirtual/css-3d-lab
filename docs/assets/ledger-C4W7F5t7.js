@@ -1728,11 +1728,10 @@ function icon(name) {
 	/**
 	* Why this run cannot start, in the words the button will show, or null if it can.
 	*
-	* One rule: a run is blocked by a live run it OVERLAPS -- the same check over any of the same
-	* models. So a group working through its models switches off every button inside it, including
-	* each cell; one check running over everything switches off that whole column; and a check on
-	* one model leaves every other model and every other check alone, which is the whole point of
-	* running several at once.
+	* One rule: a run is blocked by a live run of the SAME CHECK, whatever models either names. So
+	* a check running anywhere switches off its whole column, cells and group rows and all; and it
+	* leaves every OTHER check alone, on every model, which is the whole point of running several at
+	* once. Motion over all 135 does not stop you running Stages beside it.
 	*
 	* "Run everything" is its own case. It walks every check and rewrites every result file, so it
 	* cannot share the machine with anything, and nothing can start while it is going. That is not
@@ -1740,13 +1739,12 @@ function icon(name) {
 	* board would show verdicts for models nothing had judged.
 	*/
 	function blockedBy(what, ids) {
-		const overlaps = (a, b) => !a.length || !b.length || a.some((x) => b.includes(x));
 		for (const r of RUN_NOW.runs) {
 			if (r.what === "all") return "the whole run is going, and it covers every check on every model";
-			if (what === "all") return `${r.label ?? r.what} is running: the whole run covers every check, so it waits for that to finish`;
+			if (what === "all") return ids.length ? `${CHECK_NAMES[r.what] ?? r.label ?? r.what} is running, and every check means that one too` : `${CHECK_NAMES[r.what] ?? r.label ?? r.what} is running: the whole run covers every check, so it waits for that to finish`;
 			if (r.what !== what) continue;
-			if (!overlaps(r.models ?? [], ids)) continue;
-			return `${CHECK_NAMES[what] ?? what} is already running over ${(r.models ?? []).length ? `those models` : `every model`}`;
+			const over = (r.models ?? []).length;
+			return `${CHECK_NAMES[what] ?? what} is already running over ${over ? `${over} model${over === 1 ? "" : "s"}` : "every model"}, and one check writes one result file`;
 		}
 		if (RUN_NOW.runs.length >= (RUN_NOW.max ?? 2)) return `${RUN_NOW.runs.length} checks are already running, which is as many as this machine will drive at once`;
 		return null;
