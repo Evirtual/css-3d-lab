@@ -363,6 +363,18 @@ export const snippet: Snippet = {
   color: #fff;
 }
 
+/* The pill already chosen answers the pointer too.
+
+   Hover sets background-color; this rule sets the background SHORTHAND, so its gradient image
+   was painted straight over that colour. The one control that was already selected was the one
+   control that did nothing when you pointed at it. check-motion named it on six of these charts
+   ('hover button#1 "24h": changes nothing on screen').
+
+   Darker, not lighter: the gradient above is as pale as it can be with white text still passing. */
+.controls [aria-pressed='true']:hover {
+  background-image: linear-gradient(135deg, #5730dd, #b31859);
+}
+
 /* the legend is the switches: one real button per product, in the product's colour when on.
    Its word stays the stage's ink, on a tint light enough to keep it readable on both stages */
 .controls button {
@@ -375,6 +387,12 @@ export const snippet: Snippet = {
   background: color-mix(in srgb, var(--c) 22%, transparent);
   box-shadow: inset 0 0 0 0.3vmin color-mix(in srgb, var(--c) 60%, transparent);
   color: inherit;
+}
+
+/* and so does a switch that is on: same fault, by weight rather than by paint -- this rule and the
+   hover above are of equal specificity, and this one comes later, so it simply won */
+.legend button[aria-pressed='true']:hover {
+  background: color-mix(in srgb, var(--c) 34%, transparent);
 }
 
 /* the swatch: filled when on, a hollow ring when off */

@@ -326,6 +326,18 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
 .controls [aria-pressed='true'] {
   background: linear-gradient(135deg, #6a45f5, #d1206f);
   color: #fff;
+}
+
+/* The pill already chosen answers the pointer too.
+
+   Hover sets background-color; this rule sets the background SHORTHAND, so its gradient image
+   was painted straight over that colour. The one control that was already selected was the one
+   control that did nothing when you pointed at it. check-motion named it on six of these charts
+   ('hover button#1 "24h": changes nothing on screen').
+
+   Darker, not lighter: the gradient above is as pale as it can be with white text still passing. */
+.controls [aria-pressed='true']:hover {
+  background-image: linear-gradient(135deg, #5730dd, #b31859);
 }`,
   js: `// The data, as an API would send it back
 const FUNNEL = ${json};
