@@ -1608,6 +1608,18 @@ setInterval(tick, 1000);`,
   color: #fff;
 }
 
+/* The pill already chosen answers the pointer too.
+
+   Hover sets background-color; this rule sets the background SHORTHAND, so its gradient image was
+   painted straight over that colour. The one control already selected was the one control that
+   did nothing when you pointed at it, which is what check-motion kept saying:
+   'hover button#1 "Low": changes nothing on screen'.
+
+   Darker, not lighter: the gradient above is as pale as it can be with white text still passing. */
+.controls [aria-pressed='true']:hover {
+  background-image: linear-gradient(135deg, #5730dd, #b31859);
+}
+
 /* a swatch: its colour is what it says, so it keeps it when selected, and the selected one is
    ringed in the stage's own ink */
 .controls .row button {

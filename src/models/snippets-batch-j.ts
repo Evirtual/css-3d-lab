@@ -1139,6 +1139,18 @@ ${lines(3, (i) => `<button type="button" data-value="${LEVELS[i][1]}" aria-press
   color: #fff;
 }
 
+/* The pill already chosen answers the pointer too.
+
+   Hover sets background-color; this rule sets the background SHORTHAND, so its gradient image was
+   painted straight over that colour. The one control already selected was the one control that
+   did nothing when you pointed at it, which is what check-motion kept saying:
+   'hover button#1 "Low": changes nothing on screen'.
+
+   Darker, not lighter: the gradient above is as pale as it can be with white text still passing. */
+.controls [aria-pressed='true']:hover {
+  background-image: linear-gradient(135deg, #5730dd, #b31859);
+}
+
 @keyframes sway {
   from { transform: rotateX(32deg) rotateY(-16deg); }
   to   { transform: rotateX(28deg) rotateY(10deg); }
@@ -1395,6 +1407,18 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 .controls [aria-pressed='true'] {
   background: linear-gradient(135deg, #6a45f5, #d1206f);
   color: #fff;
+}
+
+/* The pill already chosen answers the pointer too.
+
+   Hover sets background-color; this rule sets the background SHORTHAND, so its gradient image was
+   painted straight over that colour. The one control already selected was the one control that
+   did nothing when you pointed at it, which is what check-motion kept saying:
+   'hover button#1 "Low": changes nothing on screen'.
+
+   Darker, not lighter: the gradient above is as pale as it can be with white text still passing. */
+.controls [aria-pressed='true']:hover {
+  background-image: linear-gradient(135deg, #5730dd, #b31859);
 }
 
 /* Next is the way on, so it wears the selected pill's gradient. The gradient hides the hover
