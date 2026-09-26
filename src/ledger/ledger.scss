@@ -2571,28 +2571,6 @@ html:has(.cldlg[open]) { overflow: hidden; scrollbar-gutter: auto; }
 @media (max-width: 620px) { .flowwrap { --lean: 12.5deg; } }   /* 12px notch over 108px */
 @media (max-width: 520px) { .flowwrap { --lean: 9.5deg; } }    /* 9px notch over 108px */
 
-/* ---------- run over every model: a row of buttons, not a row of pairs ----------
-   It was a small round button with a word printed beside it -- two things to aim at, of which only
-   one did anything. Each is one control now: the play mark and the name it runs, in a pill you can
-   hit anywhere. They read as the things you press, which is what they are. */
-.colrun {
-  display: inline-flex; align-items: center; gap: 7px;
-  min-height: 32px; padding: 0 12px 0 9px; box-sizing: border-box;
-  border-radius: 999px; cursor: pointer; line-height: 1;
-  font: 650 12.5px/1 var(--font); letter-spacing: 0.01em;
-  color: color-mix(in srgb, var(--st-chk) 92%, var(--text));
-  background: color-mix(in srgb, var(--st-chk) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--st-chk) 34%, transparent);
-  transition: color 0.12s, background 0.12s, border-color 0.12s;
-}
-.colrun .ri { width: 12px; height: 12px; flex: none; }
-.colrun:hover:not([disabled]) { color: var(--bg); background: var(--st-chk); border-color: var(--st-chk); }
-.colrun:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent); }
-.colrun[disabled] {
-  cursor: default; color: var(--muted); opacity: 0.45;
-  background: transparent; border-color: var(--border);
-}
-
 @media (max-width: 760px) {
   .colruns {
     display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
@@ -2763,3 +2741,80 @@ html:has(.cldlg[open]) { overflow: hidden; scrollbar-gutter: auto; }
    sitting directly on the search field. The gap is back; it is margin, so it is space in the flow
    above the bar and has nothing to do with where the bar rests once it sticks. */
 .fbar { margin-top: 14px; }
+
+/* ================================================================================================
+   THE WORD AND THE COUNT FOLLOW THE TWO STROKES OF THE CHEVRON
+
+   The line between one arrow and the next is a V lying on its side: it runs down-and-in from the
+   top corner to a point one notch deep at half the height, then down-and-out again to the bottom
+   corner. Two strokes, leaning OPPOSITE ways. That is the thing I kept missing -- I was tilting
+   both the same way, so one of them always fought the line beside it.
+
+   So: both written vertically, the word in the top half leaning with the upper stroke, the count in
+   the lower half leaning with the lower one, each centred across the arrow. The pair mirrors the
+   chevron it sits beside.
+
+   The angle is the line's own: atan(notch / (height / 2)). 9px over 108px is 9.5deg.
+   ================================================================================================ */
+@media (max-width: 620px) {
+  .step__text, .step--1 .step__text {
+    position: relative; display: block !important; padding: 0;
+  }
+  .step__label, .step__n {
+    position: absolute; left: 50%;
+    width: max-content; height: auto; margin: 0; padding: 0;
+    writing-mode: vertical-rl; text-orientation: mixed; rotate: none;
+    white-space: nowrap; overflow: visible; text-align: center;
+    line-height: 1;
+  }
+  /* the top half: down and in, the way the upper stroke goes */
+  .step__label {
+    top: 25%;
+    transform: translate(-50%, -50%) rotate(var(--lean, 9.5deg));
+    font-size: 8.5px; letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--text) 82%, transparent);
+  }
+  /* the bottom half: down and out, the mirror of it */
+  .step__n {
+    top: 72%;
+    transform: translate(-50%, -50%) rotate(calc(-1 * var(--lean, 9.5deg)));
+    font-size: clamp(13px, 4.2vw, 17px);
+    font-variant-numeric: tabular-nums; color: var(--text);
+  }
+  /* the first arrow has no chevron on its left, so there is no stroke to follow */
+  .flow__li:first-child .step__label,
+  .flow__li:first-child .step__n { transform: translate(-50%, -50%); }
+}
+
+/* ---------- both lean the same way ----------
+   Following the two strokes of the chevron separately made the pair a V of its own, which reads as
+   two things at odds rather than two things on one line. They lean together now, parallel to the
+   line running past them. */
+@media (max-width: 620px) {
+  .step__n {
+    transform: translate(-50%, -50%) rotate(var(--lean, 9.5deg));
+  }
+}
+
+/* ---------- the lean goes the way the line goes ----------
+   Both were parallel to each other but square against the line: the chevron's stroke runs from the
+   top corner DOWN AND IN, so on screen its top sits left of its bottom, which is a turn
+   anticlockwise. They were turned clockwise, so the text and the line beside it made a shallow X. */
+@media (max-width: 620px) {
+  .step__label,
+  .step__n {
+    transform: translate(-50%, -50%) rotate(calc(-1 * var(--lean, 9.5deg)));
+  }
+  .flow__li:first-child .step__label,
+  .flow__li:first-child .step__n { transform: translate(-50%, -50%); }
+}
+
+/* ---------- the count follows the lower stroke ----------
+   As first described: the word runs with the top half of the chevron, the count with the bottom
+   half. The two halves of a V lean opposite ways, so the pair does too. What was wrong before was
+   not that they mirrored -- it was that both signs were flipped, so each sat square against the
+   line it was meant to be following. The word is right now; the count takes the other half. */
+@media (max-width: 620px) {
+  .step__n { transform: translate(-50%, -50%) rotate(var(--lean, 9.5deg)); }
+  .flow__li:first-child .step__n { transform: translate(-50%, -50%); }
+}
