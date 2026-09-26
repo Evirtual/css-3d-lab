@@ -1559,3 +1559,27 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
   animation: ckspin 0.7s linear infinite; }
 @keyframes ckspin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .ckrun--wait i { animation: none; border-top-color: var(--st-chk); } }
+
+/* ---------- the control slot: always the same width ----------
+   A running row carries two controls where an idle one carries a single play button, and the grid
+   column sized itself to the contents -- so the moment a check started, its name was squeezed into
+   whatever was left and "Box" wrapped to one letter a line. The slot is a fixed width now: the
+   names line up down the column whatever any row is doing, and starting a check does not move them. */
+.ckhead { display: grid; grid-template-columns: 70px minmax(0, 1fr); align-items: center; gap: 10px; }
+.ckhead .ckrun { grid-row: 1; }
+.ckhead .ckrun:first-child { grid-column: 1; justify-self: start; }
+.ckhead .ckrun:nth-child(2) { grid-column: 1; justify-self: start; margin-left: 36px; }
+.ckhead .ckname { grid-column: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 640px) {
+  /* no room for a reserved slot at phone width: the controls go above the name instead of beside it */
+  .ckhead { grid-template-columns: 1fr; gap: 4px; }
+  .ckhead .ckrun, .ckhead .ckrun:nth-child(2) { grid-row: 1; grid-column: 1; margin-left: 0; }
+  .ckhead .ckrun:nth-child(2) { margin-left: 36px; }
+  .ckhead .ckname { grid-row: 2; grid-column: 1; }
+}
+
+/* The row's name column is 7.5em, which fitted a name and a single small button. Reserving a fixed
+   slot for two controls inside that left the name a few pixels and it truncated to "B…". The column
+   is widened here, and only here: these rows are the ones that carry controls. */
+.ckbars .bd li { grid-template-columns: minmax(0, 12.5em) minmax(0, 1fr) 4ch; }
+.ckbars .ckhead .ckname { overflow: visible; text-overflow: clip; }
