@@ -2099,7 +2099,16 @@
    */
   let RUN_NOW = { running: null, paused: false, mine: false };
   /** What a click asked to start, until the board says it is running. Cleared either way. */
-  let STARTING = null;
+  /**
+   * The action a click asked for, until the board's answer proves it happened.
+   *
+   * Every one takes a moment: starting spawns a process, stopping kills a tree of them, and
+   * pausing waits for the model in flight to finish -- which is the point of pausing between
+   * models rather than mid-measurement. A control that looks unchanged for two seconds reads as
+   * a click that did not land, so all four wait the same way.
+   */
+  let PENDING = null; // { key, act: 'run' | 'pause' | 'resume' | 'stop' }
+  const pendingOn = (key) => (PENDING && PENDING.key === key ? PENDING.act : null);
   /**
    * Ask the board. A 404 is not an answer.
    *
@@ -2137,8 +2146,10 @@
    * that was running still showed a play button while the controls for it sat somewhere else.
    */
   function runControl(c) {
-    if (STARTING === c.key && RUN_NOW.running !== c.key) {
-      return '<span class="ckrun ckrun--wait" role="status" aria-label="Starting"><i></i></span>';
+    const waiting = pendingOn(c.key);
+    if (waiting) {
+      const said = { run: 'Starting', pause: 'Pausing after the model it is on', resume: 'Resuming', stop: 'Stopping' }[waiting] ?? 'Working';
+      return `<span class="ckrun ckrun--wait" role="status" aria-label="${esc(said)}" title="${esc(said)}"><i></i></span>`;
     }
     const mine = RUN_NOW.running === c.key;
     if (mine) {
@@ -2158,15 +2169,30 @@
       const bar = $('runbar'); if (bar) bar.hidden = false;
       const st = $('run-state');
       const on = !!body.running;
-      const was = `${RUN_NOW.running}|${RUN_NOW.paused}|${STARTING}`;
-      if (body.running) STARTING = null;
+      const was = `${RUN_NOW.running}|${RUN_NOW.paused}|${PENDING ? PENDING.act : ''}`;
+      // Each wait ends on the fact it was waiting for, not on a timer.
+      if (PENDING) {
+        // A start waits until the LEDGER has seen it, not just the server. The server says
+        // running the instant it spawns, but the check takes seconds to open a browser and write
+        // anything -- and a row that flips straight to pause/stop while nothing is happening is
+        // precisely the delay the spinner is for.
+        //
+        // The entry has to be a LIVE one. Accepting any entry was satisfied instantly by the last
+        // run's leftover record: trusting a file without asking whether it is current, which is the
+        // fault this whole board exists to catch.
+        const done = PENDING.act === 'run' ? (body.running === PENDING.key && L?.running?.[PENDING.key]?.alive === true)
+          : PENDING.act === 'stop' ? !body.running
+          : PENDING.act === 'pause' ? !!body.paused
+          : !body.paused;
+        if (done) PENDING = null;
+      }
       RUN_NOW = { running: body.running ?? null, paused: !!body.paused, mine: !!body.mine };
       // Only when it actually changes: this polls every three seconds, and redrawing the bars on
       // every poll would fight the page's own rebuild and lose any disclosure somebody had opened.
       // renderStage draws the bars that are actually on screen. renderCheckBars fills #checkbars,
       // which is a different container further down -- calling that one redrew nothing anybody
       // could see, and the empty catch hid the fact that it had not worked.
-      if (L && was !== `${RUN_NOW.running}|${RUN_NOW.paused}|${STARTING}`) renderStage();
+      if (L && was !== `${RUN_NOW.running}|${RUN_NOW.paused}|${PENDING ? PENDING.act : ''}`) renderStage();
       if (st) {
         const where = body.mine ? '' : ' (started outside this page)';
         const howFar = body.done != null && body.total != null ? ` ${body.done}/${body.total}` : '';
@@ -2207,7 +2233,7 @@
     try {
       await api(path + (check ? `?check=${encodeURIComponent(check)}` : ''), 'POST');
     } catch (e) {
-      STARTING = null;
+      PENDING = null;
       const m = /^409 /.test(String(e.message)) ? 'Something is already running.' : String(e.message);
       const st = $('run-state');
       if (st) { st.textContent = m; st.className = 'runbar__state is-paused'; }
@@ -2217,13 +2243,18 @@
   document.addEventListener('click', (e) => {
     const one = e.target.closest('[data-run]');
     if (one && !one.disabled) {
-      STARTING = one.dataset.run;
+      PENDING = { key: one.dataset.run, act: 'run' };
       renderStage();
       runDo('/api/run', one.dataset.run);
       return;
     }
     const act = e.target.closest('[data-act]');
-    if (act) { runDo('/api/' + act.dataset.act); return; }
+    if (act) {
+      PENDING = { key: RUN_NOW.running, act: act.dataset.act };
+      renderStage();
+      runDo('/api/' + act.dataset.act);
+      return;
+    }
     if (e.target.closest('#run-all')) runDo('/api/run', 'all');
     else if (e.target.closest('#run-stop')) runDo('/api/stop');
     else if (e.target.closest('#run-pause')) runDo('/api/pause');

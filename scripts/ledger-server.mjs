@@ -38,6 +38,24 @@ const RUNNABLE = new Map(REGISTRY.map((c) => [c.key, ['scripts/capture-check.mjs
 RUNNABLE.set('all', ['scripts/verify.mjs']);
 
 /**
+ * Every model id there is, read once, so an id that arrived from the page can be checked against
+ * something real before it becomes an argument.
+ *
+ * Same rule as the check names: the page may ASK for anything, and only a name that exists in this
+ * repository is ever passed on. Nothing reaches a shell either way, but an unchecked id would still
+ * let a caller put arbitrary text on a command line, and there is no reason to allow that.
+ */
+let KNOWN_MODELS = null;
+function knownModels() {
+  if (KNOWN_MODELS) return KNOWN_MODELS;
+  try {
+    const ids = JSON.parse(readFileSync(join(ROOT, 'src', 'generated', 'model-ids.json'), 'utf8'));
+    KNOWN_MODELS = new Set(ids.map((d) => d.id));
+  } catch { KNOWN_MODELS = new Set(); }
+  return KNOWN_MODELS;
+}
+
+/**
  * Pausing is a flag file, not a suspended process.
  *
  * Suspending works on Linux and macOS and has no native equivalent on Windows, and it would stop a
@@ -65,18 +83,24 @@ let running = null; // { what, startedAt, child }
  * the same either way: something is running, and here is what.
  */
 function state() {
-  if (running) return { running: running.what, startedAt: running.startedAt, pid: running.child.pid, paused: paused(), mine: true };
+  if (running) return { running: running.what, label: running.label, models: running.models ?? [], startedAt: running.startedAt, pid: running.child.pid, paused: paused(), mine: true };
   const other = runningCheck(ROOT);
   // Not ours, so there is no pid here to stop: the buttons say so rather than offering a Stop that
   // would do nothing.
-  if (other) return { running: other.check, startedAt: null, pid: null, paused: paused(), mine: false, done: other.done, total: other.total };
-  return { running: null, startedAt: null, pid: null, paused: paused(), mine: false };
+  if (other) return { running: other.check, label: other.check, models: [], startedAt: null, pid: null, paused: paused(), mine: false, done: other.done, total: other.total };
+  return { running: null, label: null, models: [], startedAt: null, pid: null, paused: paused(), mine: false };
 }
 
-function start(what) {
+function start(what, models = []) {
   if (running) return { ok: false, why: `${running.what} is already running` };
-  const argv = RUNNABLE.get(what);
-  if (!argv) return { ok: false, why: `not a check: ${String(what).slice(0, 40)}` };
+  const base = RUNNABLE.get(what);
+  if (!base) return { ok: false, why: `not a check: ${String(what).slice(0, 40)}` };
+  const known = knownModels();
+  const bad = models.filter((id) => !known.has(id));
+  if (bad.length) return { ok: false, why: `not a model: ${bad.slice(0, 3).join(', ')}` };
+  // exports over a named model is a defaults run: the full matrix is 38 minutes for one model
+  const args = what === 'exports' && models.length ? ['--defaults', ...models] : models;
+  const argv = [...base, ...args];
   // No shell, and argv comes from the registry rather than from the page.
   setPaused(false);
   // detached on anything but Windows, so the child leads its own process group: stop() signals
@@ -84,8 +108,11 @@ function start(what) {
   // signal went nowhere, the fallback killed Node alone, and every browser it had opened stayed
   // up holding memory. Windows has no process groups to speak of; taskkill /T walks the tree.
   const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: 'ignore', detached: process.platform !== 'win32' });
-  running = { what, startedAt: new Date().toISOString(), child };
-  console.log(`${new Date().toTimeString().slice(0, 8)} board: started ${what} (pid ${child.pid})`);
+  const label = models.length === 1 ? `${what} on ${models[0]}`
+    : models.length ? `${what} on ${models.length} models`
+    : what;
+  running = { what, label, models, startedAt: new Date().toISOString(), child };
+  console.log(`${new Date().toTimeString().slice(0, 8)} board: started ${label} (pid ${child.pid})`);
   child.on('close', (code) => {
     console.log(`${new Date().toTimeString().slice(0, 8)} board: ${what} ended, exit ${code}`);
     running = null;
@@ -130,7 +157,8 @@ export function serve(port = 5178) {
     if (url.pathname === '/api/state') return json(res, 200, state());
     if (url.pathname === '/api/run' && req.method === 'POST') {
       const what = url.searchParams.get('check') ?? '';
-      const r = start(what);
+      const models = (url.searchParams.get('models') ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+      const r = start(what, models);
       return json(res, r.ok ? 200 : 409, r);
     }
     if (url.pathname === '/api/pause' && req.method === 'POST') return json(res, 200, setPaused(true));

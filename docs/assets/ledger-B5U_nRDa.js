@@ -2507,7 +2507,16 @@
 		mine: false
 	};
 	/** What a click asked to start, until the board says it is running. Cleared either way. */
-	let STARTING = null;
+	/**
+	* The action a click asked for, until the board's answer proves it happened.
+	*
+	* Every one takes a moment: starting spawns a process, stopping kills a tree of them, and
+	* pausing waits for the model in flight to finish -- which is the point of pausing between
+	* models rather than mid-measurement. A control that looks unchanged for two seconds reads as
+	* a click that did not land, so all four wait the same way.
+	*/
+	let PENDING = null;
+	const pendingOn = (key) => PENDING && PENDING.key === key ? PENDING.act : null;
 	/**
 	* Ask the board. A 404 is not an answer.
 	*
@@ -2551,7 +2560,16 @@
 	* that was running still showed a play button while the controls for it sat somewhere else.
 	*/
 	function runControl(c) {
-		if (STARTING === c.key && RUN_NOW.running !== c.key) return "<span class=\"ckrun ckrun--wait\" role=\"status\" aria-label=\"Starting\"><i></i></span>";
+		const waiting = pendingOn(c.key);
+		if (waiting) {
+			const said = {
+				run: "Starting",
+				pause: "Pausing after the model it is on",
+				resume: "Resuming",
+				stop: "Stopping"
+			}[waiting] ?? "Working";
+			return `<span class="ckrun ckrun--wait" role="status" aria-label="${esc(said)}" title="${esc(said)}"><i></i></span>`;
+		}
 		if (RUN_NOW.running === c.key) return (RUN_NOW.paused ? "<button type=\"button\" class=\"ckrun ckrun--go\" data-act=\"resume\" title=\"Resume\" aria-label=\"Resume\">&#9654;</button>" : "<button type=\"button\" class=\"ckrun ckrun--hold\" data-act=\"pause\" title=\"Pause after the model it is on\" aria-label=\"Pause\">&#10074;&#10074;</button>") + "<button type=\"button\" class=\"ckrun ckrun--stop\" data-act=\"stop\" title=\"Stop\" aria-label=\"Stop\">&#9632;</button>";
 		const busy = !!RUN_NOW.running;
 		return `<button type="button" class="ckrun" data-run="${esc(c.key)}" title="${busy ? "Another check is running" : "Run this check on its own"}" aria-label="Run ${esc(c.title)}"${busy ? " disabled" : ""}>&#9654;</button>`;
@@ -2564,14 +2582,16 @@
 			if (bar) bar.hidden = false;
 			const st = $("run-state");
 			const on = !!body.running;
-			const was = `${RUN_NOW.running}|${RUN_NOW.paused}|${STARTING}`;
-			if (body.running) STARTING = null;
+			const was = `${RUN_NOW.running}|${RUN_NOW.paused}|${PENDING ? PENDING.act : ""}`;
+			if (PENDING) {
+				if (PENDING.act === "run" ? body.running === PENDING.key && L?.running?.[PENDING.key]?.alive === true : PENDING.act === "stop" ? !body.running : PENDING.act === "pause" ? !!body.paused : !body.paused) PENDING = null;
+			}
 			RUN_NOW = {
 				running: body.running ?? null,
 				paused: !!body.paused,
 				mine: !!body.mine
 			};
-			if (L && was !== `${RUN_NOW.running}|${RUN_NOW.paused}|${STARTING}`) renderStage();
+			if (L && was !== `${RUN_NOW.running}|${RUN_NOW.paused}|${PENDING ? PENDING.act : ""}`) renderStage();
 			if (st) {
 				const where = body.mine ? "" : " (started outside this page)";
 				const howFar = body.done != null && body.total != null ? ` ${body.done}/${body.total}` : "";
@@ -2602,7 +2622,7 @@
 		try {
 			await api(path + (check ? `?check=${encodeURIComponent(check)}` : ""), "POST");
 		} catch (e) {
-			STARTING = null;
+			PENDING = null;
 			const m = /^409 /.test(String(e.message)) ? "Something is already running." : String(e.message);
 			const st = $("run-state");
 			if (st) {
@@ -2615,13 +2635,21 @@
 	document.addEventListener("click", (e) => {
 		const one = e.target.closest("[data-run]");
 		if (one && !one.disabled) {
-			STARTING = one.dataset.run;
+			PENDING = {
+				key: one.dataset.run,
+				act: "run"
+			};
 			renderStage();
 			runDo("/api/run", one.dataset.run);
 			return;
 		}
 		const act = e.target.closest("[data-act]");
 		if (act) {
+			PENDING = {
+				key: RUN_NOW.running,
+				act: act.dataset.act
+			};
+			renderStage();
 			runDo("/api/" + act.dataset.act);
 			return;
 		}
