@@ -1461,20 +1461,37 @@
     }).join('');
     const shownNote = g.models.length !== n ? `, ${g.models.length} match` : '';
     return `<tr class="grow" style="--gc:${gcFor(g.key)}"><th colspan="${colCount()}" scope="rowgroup"><div class="grow__in">
-      <button type="button" class="grow__btn" data-grp="${esc(g.key)}" aria-expanded="${opened}">${CHEVRON}${esc(g.label)} <span class="n">· ${n}${shownNote}</span></button>
+      <button type="button" class="grow__btn" data-grp="${esc(g.key)}" aria-expanded="${opened}">${CHEVRON}${esc(g.label)} <span class="n">· ${n}${shownNote}</span></button>${runBtn('all', idsOfGroup(g.key), `Run every check on ${g.label}`)}
       <span class="grow__bar" role="img" aria-label="${esc(`${ap} approved, ${ch} awaiting review, ${cv} to check, of ${n}`)}">${seg(ap, 'var(--st-ok)', 'approved')}${seg(ch, 'var(--st-chk)', 'awaiting review')}${seg(cv, 'var(--st-conv)', 'to check')}</span>
       <span class="grow__meta">${ap} approved · ${ch} awaiting review · ${cv} to check</span>
       ${probs ? `<span class="grow__probs">${probs}</span>` : ''}</div></th></tr>`;
   }
+  /**
+   * A run button for part of the table.
+   *
+   * Everything used to run over all 135 models or nothing, which is the wrong size for most of what
+   * you actually want: one model has changed, or one group, or one check is red and the rest are
+   * fine. `what` is a check key or 'all'; `ids` are the models it covers.
+   */
+  function runBtn(what, ids, label, cls = 'rowrun') {
+    if (!RUN_OK) return '';
+    const key = `${what}:${ids.join(',')}`;
+    if (PENDING && PENDING.key === key) return `<span class="${cls} ckrun--wait" role="status" aria-label="Starting"><i></i></span>`;
+    const busy = !!RUN_NOW.running;
+    return `<button type="button" class="${cls}" data-run-what="${esc(what)}" data-run-ids="${esc(ids.join(','))}" title="${esc(busy ? 'Something is already running' : label)}" aria-label="${esc(label)}"${busy ? ' disabled' : ''}>&#9654;</button>`;
+  }
+  /** Every model id in a group, in the order the table shows them. */
+  const idsOfGroup = (key) => (L?.models ?? []).filter((m) => (m.group ?? '') === key).map((m) => m.id);
+
   function modelRow(m, flat) {
     const last = m.commits.find((x) => x.matchedBy.includes('diff')) ?? m.commits[0];
     const glabel = m.groupLabel ?? m.group ?? '';
     const short = glabel.split(/\s*[&,]\s*|\s+/)[0];
     let sd = 0; for (const ch of m.id) sd = (sd * 31 + ch.charCodeAt(0)) >>> 0; // the row's own place in the sweep
     return `<tr class="row${flash.has(m.id) ? ' flash' : ''}" style="--gc:${gcFor(m.group ?? '')};--sweep-d:-${sd % 9}s" tabindex="0" data-id="${esc(m.id)}" aria-expanded="${open.has(m.id)}">
-        <td class="model"><div class="mt"><b data-tip data-tiptext="${esc(`${m.title} (${m.id}), group: ${glabel || 'none'}`)}">${esc(m.title)}</b><code>${esc(m.id)}</code>${flat && glabel ? `<span class="gchip" data-tip data-tiptext="${esc(`Group: ${glabel}`)}" aria-label="${esc(`group: ${glabel}`)}">${esc(short)}</span>` : ''}</div></td>
+        <td class="model"><div class="mt">${runBtn('all', [m.id], `Run every check on ${m.title}`)}<b data-tip data-tiptext="${esc(`${m.title} (${m.id}), group: ${glabel || 'none'}`)}">${esc(m.title)}</b><code>${esc(m.id)}</code>${flat && glabel ? `<span class="gchip" data-tip data-tiptext="${esc(`Group: ${glabel}`)}" aria-label="${esc(`group: ${glabel}`)}">${esc(short)}</span>` : ''}</div></td>
         <td class="st">${chipFor(m.status, justApproved.has(m.id))}</td>
-        ${COLS.map(([k, label]) => `<td class="c" data-label="${esc(label)}">${checkMark(k, m)}</td>`).join('')}
+        ${COLS.map(([k, label]) => `<td class="c" data-label="${esc(label)}">${checkMark(k, m)}${runBtn(k, [m.id], `Run ${label} on ${m.title}`, 'cellrun')}</td>`).join('')}
         <td class="rvw c" data-label="Reviews"><span class="rv">${reviewMark(m, 'visual')}${reviewMark(m, 'text')}</span></td>
         <td class="num last">${last ? `<span data-tip data-tiptext="${esc(`${new Date(last.date).toLocaleString()} · ${last.hash}: ${last.subject}`)}" data-ago-short="${esc(last.date)}">${esc(fmtAgeShort(age(last.date)))}</span>` : '<span class="muted">none found</span>'}</td>
         <td class="num ncom">${m.commits.length}</td></tr>`;
@@ -2180,7 +2197,12 @@
         // The entry has to be a LIVE one. Accepting any entry was satisfied instantly by the last
         // run's leftover record: trusting a file without asking whether it is current, which is the
         // fault this whole board exists to catch.
-        const done = PENDING.act === 'run' ? (body.running === PENDING.key && L?.running?.[PENDING.key]?.alive === true)
+        // A whole-check run waits for the ledger to see it; a part-run waits for the board, whose
+        // label already names the models and which is the only thing that knows about them.
+        const askedFor = String(PENDING.key).split(':')[0];
+        const isPart = String(PENDING.key).includes(':');
+        const done = PENDING.act === 'run'
+          ? (isPart ? body.running === askedFor : (body.running === PENDING.key && L?.running?.[PENDING.key]?.alive === true))
           : PENDING.act === 'stop' ? !body.running
           : PENDING.act === 'pause' ? !!body.paused
           : !body.paused;
@@ -2192,7 +2214,7 @@
       // renderStage draws the bars that are actually on screen. renderCheckBars fills #checkbars,
       // which is a different container further down -- calling that one redrew nothing anybody
       // could see, and the empty catch hid the fact that it had not worked.
-      if (L && was !== `${RUN_NOW.running}|${RUN_NOW.paused}|${PENDING ? PENDING.act : ''}`) renderStage();
+      if (L && was !== `${RUN_NOW.running}|${RUN_NOW.paused}|${PENDING ? PENDING.act : ''}`) { renderStage(); renderRows(); }
       if (st) {
         const where = body.mine ? '' : ' (started outside this page)';
         const howFar = body.done != null && body.total != null ? ` ${body.done}/${body.total}` : '';
@@ -2228,10 +2250,10 @@
       return null;
     }
   }
-  async function runDo(path, check) {
+  async function runDo(path, check, models = []) {
     // A 409 is the board answering -- "something is already running" -- so it is shown, not thrown.
     try {
-      await api(path + (check ? `?check=${encodeURIComponent(check)}` : ''), 'POST');
+      await api(path + (check ? `?check=${encodeURIComponent(check)}${models.length ? `&models=${encodeURIComponent(models.join(','))}` : ''}` : ''), 'POST');
     } catch (e) {
       PENDING = null;
       const m = /^409 /.test(String(e.message)) ? 'Something is already running.' : String(e.message);
@@ -2241,6 +2263,14 @@
     await runState();
   }
   document.addEventListener('click', (e) => {
+    const part = e.target.closest('[data-run-what]');
+    if (part && !part.disabled) {
+      const ids = (part.dataset.runIds ?? '').split(',').filter(Boolean);
+      PENDING = { key: `${part.dataset.runWhat}:${ids.join(',')}`, act: 'run' };
+      renderRows(); renderStage();
+      runDo('/api/run', part.dataset.runWhat, ids);
+      return;
+    }
     const one = e.target.closest('[data-run]');
     if (one && !one.disabled) {
       PENDING = { key: one.dataset.run, act: 'run' };
