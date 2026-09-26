@@ -61,9 +61,10 @@ one takes five things, all in the same change:
 
 **What no check can judge is left to a person.** Whether the 3D is correct (faces meet, nothing
 shows through that should not, the light comes from one side), and whether the motion reads as the
-thing it is meant to be (a book that opens like a book, a coin that spins like a coin), are judged
-in a close-up visual review, recorded in `docs/reviews/` or a `Reviewed-by:` commit. The checks
-prove the outcomes above; they do not prove a model is good.
+thing it is meant to be (a book that opens like a book, a coin that spins like a coin), are for a
+person to judge by watching it. That judgement is not recorded here and does not gate anything:
+this ledger holds what a machine can measure on its own. The checks prove the outcomes above;
+they do not prove a model is good, and they do not pretend to.
 
 ## The canvas is the body
 
@@ -306,8 +307,8 @@ is a fixed colour on the bare stage cannot reach 4.5:1 on both stages: it inheri
 **One base unit, in vmin, is part of the contract.** `check-models` also fails a model whose
 snippet CSS does not set `--u` to a value in `vmin` (ground rule 1), and says which unit it has
 when it is set in another. It used to be the ledger's "Not converted" stage; the ledger now has
-three stages, To check, Awaiting review and Approved, and a model without `--u` in vmin is held by
-the contract check like any other failure.
+two stages, To check and Approved, and a model without `--u` in vmin is held by the contract check
+like any other failure.
 
 **A stricter rule makes old results stale.** Every check in `scripts/checks-registry.mjs` has a
 `ruleVersion` and the history behind it. Bump it whenever a rule's meaning changes (a limit, a new

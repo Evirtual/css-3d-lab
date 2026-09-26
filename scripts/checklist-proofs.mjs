@@ -116,13 +116,64 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       // been accepted by the user is not, so this item is not ticked off a read alone
       return N(`${r.found}. But the item also asks that each WAIVED or OWN-TEXT line has been fixed or accepted by the user${listed ? ` (${listed} page(s) carry listed findings)` : ''}, which needs a person; run npm run check-seo -- --strict once they are all fixed`);
     }],
+    /*
+     * The two items that wait for a person, and the one rule that applies to them anyway.
+     *
+     * A person reads the article and says it is ready; a person says to push. Neither is a thing
+     * a script can decide, and neither is trying to be. But both are claims ABOUT A STATE -- this
+     * article, describing this code, at this commit -- and the rest of this ledger already holds
+     * every verdict to the same rule: a verdict dies when the thing it judged changes.
+     *
+     * These two were the only claims on the page exempt from it. They were written once and stayed
+     * ticked through every commit after, so "the person said to push" went on being true while the
+     * thing they had said it about was rewritten underneath them.
+     *
+     * When the tick was written is not guessed: git is asked when that exact line last changed.
+     * The tick holds if that is HEAD and nothing is uncommitted. Anything else and it is a
+     * statement about code that is not the code being pushed, and it says so and how far back.
+     * Nobody is asked to write a hash down; the claim expires by itself.
+     */
+    ...[
+      [/^The person publishing has read the release article/, 'read the article and called it ready'],
+      [/^The person publishing has said to push/, 'said to push'],
+    ].map(([re, what]) => [re, KEYS.index, (it) => {
+      const line = Number(it?.line);
+      if (!Number.isFinite(line)) return N('the item has no line number, so when it was ticked cannot be read');
+      let at = null;
+      try {
+        const out = git('log', '-1', '--format=%H', `-L${line},${line}:docs/RELEASE-CHECKLIST.md`);
+        at = (out.split("\n")[0] || "").trim() || null;
+      } catch { return N('git could not read the history of this line'); }
+      if (!at) return N('this line has no commit history yet, so there is nothing to date the tick from');
+      const short = at.slice(0, 7);
+      const dirty = git('status', '--porcelain').split('\n').filter(Boolean).length;
+      let behind = 0;
+      try { behind = Number(git('rev-list', '--count', `${at}..HEAD`).trim()) || 0; } catch { /* leave it */ }
+      if (!behind && !dirty) return T(`${what} at ${short}, which is HEAD, with nothing uncommitted`);
+      const why = [
+        behind ? `${behind} commit${behind === 1 ? '' : 's'} have landed since` : null,
+        dirty ? `${dirty} path(s) are uncommitted` : null,
+      ].filter(Boolean).join(', ');
+      return F(`${what} at ${short}; ${why}. It is a claim about code that is not the code being pushed, so it does not carry: read and say it again on what is going out`);
+    }]),
     [/^No contract result is stale or failing/, () => { const c = counts.checks.models ?? {}; const keys = Object.keys(c); return keys.length === 1 && c.pass === n ? T(`"pass":${n}`) : F(JSON.stringify(c)); }],
     [/^check-stages has judged every model/, () => { const ok = models.filter((m) => m.checks.stages?.status === 'pass' && !m.checks.stages.stale).length; return ok === n ? T(`from the recorded results: ${n} of ${n} pass on the current code`) : F(`from the recorded results: ${ok} of ${n} have a fresh pass (the proof itself, a full capture run, is not run here)`); }],
+    /*
+     * This used to require every flagged model to have a visual review recorded against it, which
+     * is a thing that can no longer happen: reviews left this ledger. The proof would have failed
+     * for ever, on a condition nobody could satisfy.
+     *
+     * What it proves now is what a script can prove: that the check ran on every model, on the
+     * code as it is. What it FOUND, including anything it flagged, is reported and counted; a
+     * person judging a flagged animation is a person watching the real thing, and that happens
+     * on what is shipped.
+     */
     [/^check-motion has run over every model/, () => {
       const ran = models.filter((m) => m.checks.motion && m.checks.motion.status !== 'never' && !m.checks.motion.stale);
       const flagged = ran.filter((m) => ['flagged', 'broke'].includes(m.checks.motion.status));
-      const unseen = flagged.filter((m) => !(m.reviews ?? []).some((r) => r.kind === 'visual'));
-      return ran.length === n && !unseen.length ? T(`from the recorded results: ${n} of ${n} ran on the current code; ${flagged.length} flagged, each with a visual review`) : F(`from the recorded results: ${ran.length} of ${n} ran on the current code; ${unseen.length} flagged model(s) without a visual review`);
+      const said = `from the recorded results: ${ran.length} of ${n} ran on the current code`
+        + (flagged.length ? `; ${flagged.length} flagged for a person to look at, which holds nothing back` : '; none flagged');
+      return ran.length === n ? T(said) : F(said);
     }],
     [/^Recordings and snapshots match the dialog's canvas at every setting/, () => N('check-exports over its sample takes many minutes of browser work')],
     [/^Snapshots match the screen/, () => N('npm run compare captures in a browser: slow')],
@@ -269,7 +320,9 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       const hit = key != null ? cache?.get(it.item) : null;
       if (hit && hit.key === key) ev = hit.ev;
       else {
-        try { ev = run(); } catch (e) { ev = F(`its proof could not run here: ${e.message.split('\n')[0]}`); }
+        // the item itself, for the few proofs that need to know WHERE it is written: the two
+        // human items date their tick from the history of their own line
+        try { ev = run(it); } catch (e) { ev = F(`its proof could not run here: ${e.message.split('\n')[0]}`); }
         if (key != null && cache) cache.set(it.item, { key, ev });
       }
     }
@@ -307,6 +360,11 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       [/^The sitemap dates are regenerated/, ['src/models', 'scripts/generate-pages.mjs']],
       [/^A local production build with the variable/, ['src/capture-client.ts', 'scripts/generate-pages.mjs', 'vite.config.ts']],
       [/^The Worker in worker\//, ['server/render.mjs', 'worker']],
+      // These three had no entry at all, so nothing could ever stale them: they were ticked once
+      // and exempt by omission rather than by anything true about them.
+      [/^View zoom is gone from the editing view/, ['src/editor.ts', 'src/zoom.ts', 'src/live-edit.ts', 'src/model-page.ts', 'src/main.ts']],
+      [/^Both renderers draw the same picture/, ['server/render.mjs', 'src/capture-scene.ts', 'src/capture-client.ts', 'worker', 'scripts/check-renderers.cjs']],
+      [/^`check-exports` does not run shards side by side/, ['scripts/check-exports.mjs', 'scripts/verify.mjs', 'scripts/capture-check.mjs']],
       // These are about the outside world, not this tree: no file here can stale them.
       [/^The remote has nothing main lacks/, []],
       [/^The Worker answers the site/, []],
@@ -337,6 +395,28 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
           const n = execFileSync('git', ['rev-list', '--count', `${hash}..HEAD`], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
           if (/^\d+$/.test(n)) { provedAt = hash; behind = Number(n); break; }
         } catch { /* not a commit in this history: try the next hash in the line */ }
+      }
+      /*
+       * An item that names no commit is still dated: git knows when its own line last changed.
+       *
+       * Only items that happened to write a hash into their own words were ever held to the
+       * expiry rule below. Every other tick was exempt by accident -- not because it could not go
+       * stale, but because nobody had written down when it was made. So they stayed ticked through
+       * every commit after, which is the one thing this page exists not to do.
+       *
+       * The line's own history is the honest answer and needs no bookkeeping: whoever ticked it
+       * committed that tick, and that commit is when the claim was made.
+       */
+      if (!provedAt && Number.isFinite(Number(it.line))) {
+        try {
+          const out = execFileSync('git', ['log', '-1', '--format=%H', `-L${it.line},${it.line}:docs/RELEASE-CHECKLIST.md`],
+            { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+          const hash = (out.split('\n')[0] || '').trim();
+          if (/^[0-9a-f]{40}$/.test(hash)) {
+            const n = execFileSync('git', ['rev-list', '--count', `${hash}..HEAD`], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+            if (/^\d+$/.test(n)) { provedAt = hash.slice(0, 7); behind = Number(n); }
+          }
+        } catch { /* no history for this line yet: nothing to date it from, so leave it alone */ }
       }
     }
     // and then: did anything it depends on change since it was proven?

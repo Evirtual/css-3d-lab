@@ -6,7 +6,7 @@
  * Every status in it is read from a source, never typed:
  *  - the model list is src/models/index.ts `demos`, loaded the way the checks load it;
  *  - every model is in one of three stages: To check (an automated check is not cleared on its
- *    current code), Awaiting review (every check clear, its reviews do not yet approve it) and
+ *    current code) and Approved (every check clear on the current code). What a person thinks of a
  *    Approved. Whether its snippet sets its base unit --u in vmin is not a stage of its own: the
  *    contract check (check-models) fails a model that does not, so it is To check, held there;
  *  - `commits` come from git: a commit belongs to a model when its diff touches the model's own
@@ -14,7 +14,7 @@
  *    names the model's id or title — each commit says which of those matched;
  *  - `checks` are read from docs/checks/<check>.json, which scripts/capture-check.mjs writes
  *    from a check's own output. A check that never reported a model says `never`;
- *  - `approved` needs four facts and names each one that is missing.
+ *  - `approved` names every check that is not clear, so a model held back says why.
  * labelled as their own record.
  *
  * scripts/ledger-watch.mjs imports buildLedger() and calls it whenever HEAD, a check result or a
@@ -75,46 +75,42 @@ export const GATES = MODEL_CHECKS.map((c) => ({ key: c.key, name: c.name, label:
 export const GATE_KINDS = [
   { key: 'never', label: 'not run yet', means: 'no captured run has reported it yet' },
   { key: 'broke', label: "didn't run (test crashed)", means: 'the test itself crashed or timed out before it judged the model, so the model was never actually tested: not a model failure; it needs a re-run' },
-  { key: 'flagged', label: 'flagged, needs a person', means: 'the check flagged something it cannot judge alone; a person has to look, and a fresh visual review can mark each flag a false alarm' },
+  { key: 'flagged', label: 'flagged, needs a person', means: 'the check flagged something it cannot judge alone, so a person has to look. It does not hold the model back: looking is a review, and reviews happen on the real product rather than here' },
   { key: 'failed', label: 'failed', means: 'the latest result is a failure' },
   { key: 'stale-pass', label: 'passed on older code', means: 'it passed (or its flags were cleared), but something it judged has changed since, so it needs a re-run' },
 ];
 /** A gate's verdict from a check result: null when cleared, else one of GATE_KINDS. */
 export function gateKind(key, c) {
   if (c.status === 'never' || c.status === 'untested') return 'never';
-  const passed = c.status === 'pass' || (key === 'motion' && c.status === 'flagged' && c.openFlags === 0);
+  /*
+   * A flag does not hold a model back.
+   *
+   * A flag means the check saw something it cannot judge alone and wants a person to look. The
+   * only way one was ever cleared was a fresh visual review saying "false alarm" -- and reviews
+   * are no longer part of this ledger: they happen on the real product, by a person, and they
+   * are not reliable enough to hold up a release. With reviews gone a flag could never be
+   * cleared at all, so leaving it gating would hold 27 models here for ever with nothing anybody
+   * could do about it from this page. The flag is still drawn, still counted and still says what
+   * it saw. It just is not a gate.
+   *
+   * To put it back: return 'flagged' below instead of treating it as a pass.
+   */
+  const passed = c.status === 'pass' || c.status === 'flagged';
   if (passed) return c.stale ? 'stale-pass' : null;
-  if (c.status === 'flagged') return 'flagged';
   if (c.status === 'broke' || c.status === 'error') return 'broke';
   return 'failed';
 }
-/** What still stands between a model whose every check is clear and approval, per review kind. */
-const REVIEW_HOLDS = [
-  { key: 'none', label: 'none yet', means: 'no review of this kind has been recorded' },
-  { key: 'stale', label: 'stale', means: 'every review of this kind is on code that has changed since' },
-  { key: 'problem', label: 'found a problem', means: 'the latest fresh review of this kind says "problem"' },
-];
-/** The check whose pass counts as "checked" and towards approval: scripts/check-models.mjs judges a model against docs/VIEW-CONTRACT.md. */
-const CONTRACT = 'models';
-/**
- * How a review is recorded in git. A commit is a REVIEW of a model when it touches the model and
- * carries a `Reviewed-by:` trailer, or its subject starts with "Review". It is a TEXT REVIEW when
- * it carries a `Text-reviewed-by:` trailer, or its subject starts with "Text review" or
- * "Review the text". These are the only markers the ledger accepts; a commit without one is not a
- * review, however it is worded.
- */
-const REVIEW = { trailer: /^Reviewed-by:/im, subject: /^Review\b/i };
-const TEXT_REVIEW = { trailer: /^Text-reviewed-by:/im, subject: /^(Text review|Review the text)\b/i };
-
+/** Everything the build could not work out, collected as it goes and shown on the page. */
 let notes = [];
 
+/** The check whose pass is the view contract itself: scripts/check-models.mjs judges a model against docs/VIEW-CONTRACT.md. */
+const CONTRACT = 'models';
 /**
  * The exclusive buckets: every model is in exactly one, and they must sum to the model count.
- * Two of them are split further, each model under exactly one reason, so those sum to their bucket.
- * For "checked, awaiting approval" a model missing several things is counted once, under the first
- * reason that applies in the order written here.
+ * "To check" is split further, each model under exactly one reason, so those sum to their bucket:
+ * a model held by several checks is counted once, under the first that applies in gate order.
  */
-/** A gate kind's words for one check (exports judges the default settings; motion's pass can be flags cleared). */
+/** A gate kind's words for one check (exports judges the default settings; motion's flags are reported, not gated). */
 const kindLabel = (g, k) => (g === 'exports' && k.key === 'never' ? 'not run at the default settings yet' : g === 'motion' && k.key === 'stale-pass' ? 'clear on older code' : k.label);
 function GATES_PARTS() {
   return GATES.flatMap((g) => GATE_KINDS.map((k) => ({
@@ -126,14 +122,15 @@ function GATES_PARTS() {
 export const BUCKETS = [
   { key: 'to check', label: 'To check', means: `not every automated check (${GATES.map((g) => g.name).join(', ')}) is cleared on the code as it is now; a snippet that does not set --u in vmin fails the contract check, so it is here too`,
     parts: GATES_PARTS() },
-  { key: 'checked', label: 'Awaiting review', means: 'every automated check cleared on the current code, but its reviews do not yet approve it',
-    parts: [
-      { key: 'no-visual', label: 'no visual review', means: 'no visual review at all' },
-      { key: 'no-text', label: 'no text review', means: 'no text review at all' },
-      { key: 'stale-review', label: 'stale review', means: 'every review of one kind is on older code' },
-      { key: 'problem', label: 'a review found a problem', means: 'the latest fresh review of one kind says "problem"' },
-    ] },
-  { key: 'approved', label: 'Approved', means: 'every automated check cleared, plus a fresh visual and a fresh text review, neither "problem"' },
+  /*
+   * There used to be a stage between these two, "Awaiting review": every check clear, waiting on
+   * a fresh visual and a fresh text review. It is gone, and so is reviewing from this ledger.
+   * A review is a person looking at the real product; recorded here it was a commit trailer or a
+   * JSON file that said a review had happened, which is not the same thing as one having happened
+   * -- and it held every model short of shipping on a record nobody trusted. Reviewing still
+   * matters. It happens on what is shipped, by a person, and it does not gate the push.
+   */
+  { key: 'approved', label: 'Approved', means: 'every automated check cleared on the code as it is now' },
 ];
 
 /**
@@ -285,8 +282,6 @@ function history(ids, titles) {
         files: t ? [...t.files] : [],
         modelsTouched: c.touched.size,
         addsU: Boolean(t?.addsU),
-        review: REVIEW.trailer.test(c.body) || REVIEW.subject.test(c.subject),
-        textReview: TEXT_REVIEW.trailer.test(c.body) || TEXT_REVIEW.subject.test(c.subject),
       });
     }
   }
@@ -340,55 +335,6 @@ function atRisk() {
     out.push({ path, code, kind, modifiedAt: mtime });
   }
   return out.sort((a, b) => String(a.modifiedAt ?? '').localeCompare(String(b.modifiedAt ?? '')));
-}
-
-/* ---------- reviews: commit markers and the review log ---------- */
-const REVIEW_DIR = join(ROOT, 'docs', 'reviews');
-const KINDS = ['text', 'visual'];
-const VERDICTS = ['fine', 'fixed', 'problem'];
-/**
- * docs/reviews/*.json, written by review agents. A file holds one entry, an array of them, or
- * { entries: [...] }. An entry is { model, kind: "text" | "visual", reviewer,
- * verdict: "fine" | "fixed" | "problem", reviewedAt, commit }, where commit is the HEAD the
- * reviewer read. A visual entry may carry motionFlagsResolved: [{ flag, reason }] (or strings, with
- * one motionFlagsReason for all): check-motion flags this reviewer looked at and judged false
- * alarms. A flag is matched when its text contains `flag`. A "fixed" entry may carry fixCommit, the commit holding the fix; staleness is
- * then judged from that commit, so the fix itself does not make the review stale. An entry that does not fit is left out, and the notes say which and why.
- */
-function readReviewLog(known) {
-  const entries = [];
-  let files = [];
-  try { files = readdirSync(REVIEW_DIR).filter((f) => f.endsWith('.json')).sort(); } catch { return { entries, files: 0 }; }
-  for (const f of files) {
-    let data;
-    try { data = JSON.parse(readFileSync(join(REVIEW_DIR, f), 'utf8')); } catch (e) { notes.push(`docs/reviews/${f} is not valid JSON, so none of its reviews count: ${e.message}`); continue; }
-    const list = Array.isArray(data) ? data : Array.isArray(data?.entries) ? data.entries : [data];
-    list.forEach((e, i) => {
-      const where = `docs/reviews/${f}${list.length > 1 ? ` entry ${i + 1}` : ''}`;
-      const bad = [];
-      if (!known.has(e?.model)) bad.push(`"${e?.model}" is not a model id`);
-      if (!KINDS.includes(e?.kind)) bad.push(`kind "${e?.kind}" is not text or visual`);
-      if (!VERDICTS.includes(e?.verdict)) bad.push(`verdict "${e?.verdict}" is not fine, fixed or problem`);
-      if (typeof e?.commit !== 'string' || !/^[0-9a-f]{4,40}$/i.test(e.commit)) bad.push('no commit (the HEAD the reviewer read)');
-      if (!e?.reviewer) bad.push('no reviewer');
-      if (!Number.isFinite(Date.parse(e?.reviewedAt))) bad.push('no valid reviewedAt');
-      if (bad.length) { notes.push(`${where} was left out: ${bad.join('; ')}`); return; }
-      const fix = typeof e.fixCommit === 'string' && /^[0-9a-f]{4,40}$/i.test(e.fixCommit) ? e.fixCommit.toLowerCase() : null;
-      if (e.fixCommit != null && !fix) notes.push(`${where}: fixCommit "${e.fixCommit}" is not a commit hash, so staleness is judged from commit instead`);
-      let resolved = null;
-      if (e.motionFlagsResolved != null) {
-        const list = Array.isArray(e.motionFlagsResolved) ? e.motionFlagsResolved : [];
-        resolved = list.map((x) => (typeof x === 'string' ? { flag: x, reason: e.motionFlagsReason ?? null } : { flag: x?.flag, reason: x?.reason ?? e.motionFlagsReason ?? null }))
-          .filter((x) => typeof x.flag === 'string' && x.flag.trim());
-        const noReason = resolved.filter((x) => !x.reason);
-        if (e.kind !== 'visual') { notes.push(`${where}: motionFlagsResolved is only read from visual reviews, so it is ignored here`); resolved = null; }
-        else if (!Array.isArray(e.motionFlagsResolved) || resolved.length !== list.length) notes.push(`${where}: motionFlagsResolved must be a list of { flag, reason } or of strings; the entries that are not were left out`);
-        if (resolved && noReason.length) { notes.push(`${where}: ${noReason.length} motion flag(s) marked resolved without a reason were left out`); resolved = resolved.filter((x) => x.reason); }
-      }
-      entries.push({ motionFlagsResolved: resolved, model: e.model, kind: e.kind, reviewer: String(e.reviewer), verdict: e.verdict, reviewedAt: e.reviewedAt, commit: e.commit.toLowerCase(), fixCommit: fix, file: `docs/reviews/${f}`, ...(e.fingerprints ? { fingerprints: e.fingerprints } : {}) });
-    });
-  }
-  return { entries, files: files.length };
 }
 
 /**
@@ -523,12 +469,11 @@ else {
 notes.push(...hist.notes);
 const { perModel, commitCount, headLines, order, shortIndex, headSources } = hist;
 lap('sources + git replay');
-const reviewLog = readReviewLog(new Set(ids));
 // the docs' last commits change only with HEAD or the docs folder's contents
 const docsKey = `${headFull}\u0000${(() => { try { return readdirSync(join(ROOT, 'docs')).join('|'); } catch { return ''; } })()}`;
 let docs;
 if (cache?.docs?.key === docsKey) docs = cache.docs.value; else { docs = docList(); if (cache) cache.docs = { key: docsKey, value: docs }; }
-lap('reviews + docs');
+lap('docs');
 const readiness = { checklist: readChecklist(), docs, atRisk: atRisk(), at: new Date().toISOString() };
 lap('checklist read + git status');
 const checkFiles = readChecks();
@@ -544,10 +489,10 @@ const head = git(['rev-parse', '--short', headFull]).trim();
 
 lap('checks');
 // every result and review judged against what it looked at (scripts/fingerprint.mjs); null lookups mean the old own-source rule
-const staleIx = await stalenessIndex({ checkFiles, reviews: [
-  ...[...perModel].flatMap(([id, list]) => list.flatMap((c) => [...(c.review ? [{ kind: 'visual', id, commit: c.hash }] : []), ...(c.textReview ? [{ kind: 'text', id, commit: c.hash }] : [])])),
-  ...reviewLog.entries.map((e) => ({ kind: e.kind, id: e.model, commit: e.fixCommit ?? e.commit, fingerprints: e.fingerprints })),
-] });
+// Only check results are judged for staleness now. The other half of this index was reviews --
+// which commit a person read, and whether anything they looked at has changed since. Nothing
+// records that any more, so there is nothing to judge.
+const staleIx = await stalenessIndex({ checkFiles, reviews: [] });
 if (staleIx.error) notes.push(`staleness fell back to each model's own source text, because the fingerprints could not be worked out: ${staleIx.error}`);
 lap('staleness');
 const models = demos.map((d) => {
@@ -585,37 +530,7 @@ const models = demos.map((d) => {
     checks[name] = { status: r.status, summary: r.summary, detail: r.detail, ranAt: r.ranAt, runId: r.runId, commit: r.commit, ruleVersion: r.ruleVersion ?? null, args: r.args, stale: stale.length > 0, staleWhy: stale, staleBasis: judged?.basis ?? null };
   }
 
-  const contract = checks[CONTRACT];
   const ctx = { order, shortIndex, perModel, headFp: headSources.get(d.id)?.fingerprint ?? null, workFp: src?.fingerprint ?? null };
-  const reviews = [
-    ...commits.filter((c) => c.review && c.matchedBy.includes('diff') && c.hash !== converting?.hash)
-      .map((c) => ({ kind: 'visual', source: 'commit', commit: c.hash, reviewedAt: c.date, reviewer: null, verdict: null, subject: c.subject })),
-    ...commits.filter((c) => c.textReview)
-      .map((c) => ({ kind: 'text', source: 'commit', commit: c.hash, reviewedAt: c.date, reviewer: null, verdict: null, subject: c.subject })),
-    ...reviewLog.entries.filter((e) => e.model === d.id).map(({ model, ...e }) => ({ ...e, source: 'log' })),
-  ].map((r) => { const against = r.fixCommit ?? r.commit; const j = staleIx.review(r.kind, d.id, against, r.fingerprints); const s = j ? { stale: j.stale, why: j.why.join('; ') || null } : changedSince(against, d.id, ctx); return { ...r, judgedAgainst: against, stale: s.stale, staleWhy: s.why, staleBasis: j?.basis ?? null, ruledBy: j?.ruled?.length ? j.ruled : null }; })
-    .sort((a, b) => Date.parse(b.reviewedAt) - Date.parse(a.reviewedAt));
-  // the latest fresh review of a kind decides; a stale one says nothing about the code as it is
-  const judge = (kind, how) => {
-    const list = reviews.filter((r) => r.kind === kind);
-    if (!list.length) return `no ${kind} review (${how}) for it`;
-    const fresh = list.filter((r) => !r.stale);
-    if (!fresh.length) return `its ${kind} review${list.length > 1 ? 's are all' : ' is'} stale: ${list[0].staleWhy}`;
-    if (fresh[0].verdict === 'problem') return `the latest ${kind} review (${fresh[0].reviewer}, ${fresh[0].reviewedAt.slice(0, 10)}) found a problem`;
-    return null;
-  };
-  // motion flags a fresh visual review has judged false alarms
-  const clearedBy = reviews.filter((x) => x.kind === 'visual' && !x.stale && x.motionFlagsResolved?.length);
-  const mo = checks.motion;
-  if (mo.status === 'flagged') {
-    const flags = mo.detail?.length ? mo.detail : [mo.summary || 'flagged'];
-    mo.flags = flags.map((f) => {
-      const by = clearedBy.find((rv) => rv.motionFlagsResolved.some((x) => f.includes(x.flag)));
-      const how = by?.motionFlagsResolved.find((x) => f.includes(x.flag));
-      return { flag: f, resolved: Boolean(by), by: by ? `${by.reviewer}, ${String(by.reviewedAt).slice(0, 10)}` : null, reason: how?.reason ?? null };
-    });
-    mo.openFlags = mo.flags.filter((f) => !f.resolved).length;
-  }
   // each gate: ok, or why not (stale-pass / failed / never)
   const gates = {};
   for (const g of GATES) {
@@ -636,45 +551,25 @@ const models = demos.map((d) => {
       const why = ruled ? `under an older version of the check's rule (${ruled[1]}), not the one it is held to now` : 'on source that has changed since';
       missing.push(`the ${g.label} ${g.key === 'motion' && c.status === 'flagged' ? 'was cleared' : 'passed'}, but ${why}`);
     }
-    else if (k === 'flagged') missing.push(`the ${g.label} has ${c.openFlags ?? 'some'} open flag(s) no fresh visual review marks as a false alarm; a person has to look`);
+    // a flag is not a gate: gateKind never returns it, so nothing here has to explain one
     else if (k === 'broke') missing.push(`the ${g.label} did not run on it: its test crashed or timed out before judging the model (${c.summary || c.status}), so the model was never tested; it needs a re-run`);
     else if (k === 'failed') missing.push(`the ${g.label}'s last result is "${c.status}"`);
   }
-  const visualGap = judge('visual', 'a docs/reviews/ entry, or a commit touching it with a Reviewed-by: trailer or a "Review …" subject, other than the converting commit');
-  const textGap = judge('text', 'a docs/reviews/ entry, or a commit with a Text-reviewed-by: trailer or a "Text review …" subject');
-  if (visualGap) missing.push(visualGap);
-  if (textGap) missing.push(textGap);
-  const approved = missing.length === 0;
-  const checked = allClear;
-  const status = approved ? 'approved' : checked ? 'checked' : 'to check';
+  // Approved is every automated check cleared on the code as it is now. Nothing else: the two
+  // review gaps that used to be added to `missing` here are no longer this page's business.
+  const approved = allClear;
+  const status = approved ? 'approved' : 'to check';
   // which reason, inside its bucket (see BUCKETS for the order)
   let part = null;
   if (status === 'to check') part = firstGap ? `${firstGap.key}:${gates[firstGap.key].kind}` : 'unexplained';
-  if (status === 'checked') {
-    const of = (k) => reviews.filter((r) => r.kind === k);
-    const fresh = (k) => of(k).filter((r) => !r.stale);
-    part = !of('visual').length ? 'no-visual'
-      : !of('text').length ? 'no-text'
-      : !fresh('visual').length || !fresh('text').length ? 'stale-review'
-      : fresh('visual')[0].verdict === 'problem' || fresh('text')[0].verdict === 'problem' ? 'problem'
-      : 'unexplained'; // cannot happen while approval is defined as it is; shown, and fails the balance, if it ever does
-  }
+
   // everything holding the model back, overlapping: what the page's "What's holding models back"
-  // counts and filters by. Reviews are listed only once every check is clear (a model still held by
-  // a check has its reviews judged again after the fix).
+  // counts and filters by. Checks only: a review is not a thing this page holds anybody to.
   const holds = [];
   for (const g of GATES) if (gates[g.key].kind) holds.push(`${g.key}:${gates[g.key].kind}`);
-  if (checked) {
-    for (const k of ['visual', 'text']) {
-      const list = reviews.filter((r) => r.kind === k), fresh = list.filter((r) => !r.stale);
-      const h = !list.length ? 'none' : !fresh.length ? 'stale' : fresh[0].verdict === 'problem' ? 'problem' : null;
-      if (h) holds.push(`review:${k}:${h}`);
-    }
-  }
 
   return {
     id: d.id, title: d.title, group: d.group, part, holds, groupLabel: groups.find((g) => g.key === d.group)?.label ?? null, tags: d.tags ?? [], status,
-    reviews,
     snippet: snippet ? { file: snippet.file, line: snippet.line, foundBy: snippet.found } : null,
     fingerprint: src?.fingerprint ?? null,
     convertingCommit: converting ? converting.hash : null,
@@ -780,19 +675,12 @@ const ledger = {
     gateKinds: `Each gate not cleared is one of: ${GATE_KINDS.map((k) => `${k.label} (${k.means})`).join('; ')}`,
     // the same, as data, for the page's "What's holding models back" and its definitions
     holdKinds: GATE_KINDS.map(({ key, label, means }) => ({ key, label, means })),
-    reviewHolds: REVIEW_HOLDS.map(({ key, label, means }) => ({ key, label, means })),
-    gates: 'checked = every gate cleared on the current code, in this order: ' + GATES.map((g) => g.label).join(', ') + '. Motion is clear when the latest run is smooth or every flag is named as a false alarm in a fresh visual review (motionFlagsResolved); exports means the default settings only',
-    review: 'a visual review: a docs/reviews/ entry of kind "visual", or a commit touching the model (by diff), not its converting commit, with a Reviewed-by: trailer or a subject starting "Review"',
-    textReview: 'a text review: a docs/reviews/ entry of kind "text", or a commit matched to the model with a Text-reviewed-by: trailer or a subject starting "Text review" / "Review the text"',
-    staleness: STALENESS_TEXT,
-    reviewLog: `docs/reviews/*.json: ${reviewLog.files} file(s), ${reviewLog.entries.length} valid entr${reviewLog.entries.length === 1 ? 'y' : 'ies'}. A review is stale when something it judged changed after it (see staleness); approval needs the latest fresh review of each kind not to be "problem"`,
-    readiness: 'docs/RELEASE-CHECKLIST.md lines `- [ ] item — proof`; each file directly under docs/ plus README.md with `git log -1`; at risk: `git status --porcelain --untracked-files=all` with each file\'s modification time, as of this build',
+    gates: 'approved = every gate cleared on the current code, in this order: ' + GATES.map((g) => g.label).join(', ') + '. Motion is clear when the latest run is smooth on the current code; what it flags it cannot judge alone, and a flag is reported rather than gated, because judging one is a person watching the real thing.md lines `- [ ] item — proof`; each file directly under docs/ plus README.md with `git log -1`; at risk: `git status --porcelain --untracked-files=all` with each file\'s modification time, as of this build',
     watcher: 'docs/ledger-watch.json, written by scripts/ledger-watch.mjs: its heartbeat, so the page can tell a quiet project from a watcher that has stopped',
   },
   counts: {
     models: models.length,
     toCheck: count((m) => m.status === 'to check'),
-    checked: count((m) => m.status === 'checked' || m.status === 'approved'),
     approved: count((m) => m.approved),
     byStatus: Object.fromEntries(BUCKETS.map((b) => [b.key, count((m) => m.status === b.key)])),
     buckets: BUCKETS.map((b) => {
@@ -804,14 +692,12 @@ const ledger = {
       const sum = parts.reduce((s, p) => s + p.count, 0);
       return { ...b, count: n, parts, partsSum: sum, partsBalance: sum === n && !odd };
     }),
-    held: count((m) => m.status === 'to check'),
     // everything holding models back, one entry per reason, OVERLAPPING: a model held by two checks
     // is in both. `alone` is how many are held by that reason and nothing else. In the page's order:
     // the checks' reasons by size (ties in gate order), then reviews.
     blockers: (() => {
       const defs = [
         ...GATES.flatMap((g, gi) => GATE_KINDS.map((k, ki) => ({ key: `${g.key}:${k.key}`, scope: 'check', check: g.key, kind: k.key, label: kindLabel(g.key, k), means: k.means, order: gi * 10 + ki }))),
-        ...['visual', 'text'].flatMap((rk) => REVIEW_HOLDS.map((h) => ({ key: `review:${rk}:${h.key}`, scope: 'review', review: rk, kind: h.key, label: h.label, means: h.means }))),
       ];
       const out = defs.map((d) => {
         const held = models.filter((m) => m.holds.includes(d.key));
@@ -823,7 +709,6 @@ const ledger = {
     })(),
     // running totals, for anyone who wants them; never the same names as the buckets
     reachedAtLeast: [
-      { label: 'reached at least "awaiting review"', count: count((m) => m.status === 'checked' || m.status === 'approved') },
       { label: 'reached "approved"', count: count((m) => m.status === 'approved') },
     ],
     checks: Object.fromEntries(MODEL_KEYS.map((c) => {
@@ -831,14 +716,6 @@ const ledger = {
       for (const m of models) { const r = m.checks[c]; const k = r.status === 'never' ? 'never' : `${r.status}${r.stale ? ' (stale)' : ''}`; tally[k] = (tally[k] ?? 0) + 1; }
       return [c, tally];
     })),
-    reviewCommits: count((m) => m.commits.some((c) => c.review)),
-    textReviewCommits: count((m) => m.commits.some((c) => c.textReview)),
-    reviewLogEntries: reviewLog.entries.length,
-    reviewed: Object.fromEntries(KINDS.map((k) => [k, {
-      fresh: count((m) => m.reviews.some((r) => r.kind === k && !r.stale)),
-      staleOnly: count((m) => m.reviews.some((r) => r.kind === k) && !m.reviews.some((r) => r.kind === k && !r.stale)),
-      problem: count((m) => m.reviews.find((r) => r.kind === k && !r.stale)?.verdict === 'problem'),
-    }])),
   },
   notes,
   models,
@@ -881,7 +758,7 @@ lap('balance'); ledger.build.phases = phases;
 const wrote = writeAtomic(OUT, JSON.stringify(ledger, null, 1), { log: quiet ? null : console.error });
 const c = ledger.counts;
 if (!quiet) {
-  console.log(`docs/ledger.json: ${c.models} models — ${c.toCheck} to check, ${c.checked - c.approved} awaiting review, ${c.approved} approved.`);
+  console.log(`docs/ledger.json: ${c.models} models — ${c.toCheck} to check, ${c.approved} approved.`);
   for (const name of MODEL_KEYS) console.log(`  ${name.padEnd(7)} ${Object.entries(c.checks[name]).map(([k, v]) => `${v} ${k}`).join(', ')}`);
   for (const n of notes) console.log(`  note: ${n}`);
 }

@@ -90,7 +90,7 @@ export const REGISTRY = [
     ruleVersion: 1,
     rules: [{ v: 1, from: null, what: 'as first recorded' }],
     title: 'Motion flags (check-motion)', label: 'motion check (check-motion)',
-    rule: 'cleared when its latest run is smooth on the current code, or every flag that run raised is named as a false alarm, with a reason, in a fresh visual review (motionFlagsResolved); "broke" cannot be cleared by a review',
+    rule: 'cleared when its latest run is smooth on the current code. What it flags it cannot judge alone, and nothing here judges it either: a flag is reported and counted, and it holds no model back, because deciding whether a flagged animation is wrong is a person watching the real thing. "broke" is not a verdict on the model: the test crashed before judging it, and it needs a re-run',
     steps: [
       { key: 'loop', label: 'the loop', proves: 'one period of the model\'s longest endless animation is filmed frame by frame and no frame flickers or draws wrong' },
       { key: 'hover', label: 'hover', proves: 'every hover target the model\'s own CSS names gets a real pointer on it and away again, and what that starts is filmed' },

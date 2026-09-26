@@ -6,13 +6,13 @@
  * Every 3 seconds it compares, without reading any file's contents:
  *  - the commit refs/heads/main points to, read from .git/refs/heads/main (or .git/packed-refs).
  *    Not a git hook: agents commit with `git commit-tree` + `git update-ref`, which runs no hooks;
- *  - the modification time and size of docs/checks/*.json, docs/reviews/*.json and
+ *  - the modification time and size of docs/checks/*.json and
  *    docs/ledger-queue.json;
  *  - the modification time and size of every model file (src/models/**, src/styles/models/**),
  *    of docs/*.md and of README.md;
  *  - the modification time and size of the render-path files (scripts/fingerprint.mjs
  *    RENDER_FILES: the model frame, the export and share-image code), since a change there can
- *    make a check result or a review stale.
+ *    make a check result stale.
  * The "at risk" list (git status) is refreshed by every rebuild, not watched on its own: running
  * git status every 3 s would not be free.
  * When any of them differs it runs buildLedger() from scripts/ledger.mjs in this process. One build
@@ -89,8 +89,7 @@ function look() {
   return {
     head: mainRef(),
     checks: jsonStamps(join(ROOT, 'docs', 'checks')),
-    reviews: jsonStamps(join(ROOT, 'docs', 'reviews')),
-    queue: stamp(join(ROOT, 'docs', 'ledger-queue.json')),
+      queue: stamp(join(ROOT, 'docs', 'ledger-queue.json')),
     docs: `${jsonStamps(join(ROOT, 'docs'), '.md')}|README.md=${stamp(join(ROOT, 'README.md'))}`,
     models: MODEL_DIRS.flatMap((d) => statTree(d, [])).join('|'),
     render: RENDER_FILES.map((f) => `${f}=${stamp(join(ROOT, f))}`).join('|'),
@@ -159,7 +158,7 @@ async function build(why) {
     const reused = [r.reusedGitReplay && 'git', r.reusedModelLoad && 'models'].filter(Boolean);
     const run = Object.entries(r.running).filter(([, p]) => p).map(([k, p]) => ` · ${k} running ${p.done}/${p.total ?? '?'}${p.alive === false ? ' (process gone)' : ''}`).join('');
     lastBuild = { at: new Date().toISOString(), reason: why, ms: r.ms, ok: true, head: r.head, codeVersion: lib.LOADED_CODE, balanced: r.balanced };
-    console.log(`${clock()} rebuilt (${why}) in ${(r.ms / 1000).toFixed(1)} s${reused.length ? `, reused ${reused.join('+')}` : ''}: ${c.toCheck} to check, ${c.checked - c.approved} awaiting review, ${c.approved} approved, of ${c.models}${run}${r.notes.length ? ` · ${r.notes.length} note(s)` : ''}${r.balanced === false ? ' · DOES NOT BALANCE' : ''} [code ${lib.LOADED_CODE}]`);
+    console.log(`${clock()} rebuilt (${why}) in ${(r.ms / 1000).toFixed(1)} s${reused.length ? `, reused ${reused.join('+')}` : ''}: ${c.toCheck} to check, ${c.approved} approved, of ${c.models}${run}${r.notes.length ? ` · ${r.notes.length} note(s)` : ''}${r.balanced === false ? ' · DOES NOT BALANCE' : ''} [code ${lib.LOADED_CODE}]`);
   } catch (e) {
     lastBuild = { at: new Date().toISOString(), reason: why, ok: false, error: e.message.split('\n')[0], codeVersion: lib.LOADED_CODE };
     console.log(`${clock()} build FAILED (${why}): ${lastBuild.error}`);
@@ -191,7 +190,7 @@ process.on('SIGBREAK', stop);
 
 if (!existsSync(GIT)) { console.error(`ledger-watch: no .git directory at ${GIT}`); process.exit(2); }
 seen = look();
-console.log(`${clock()} ledger-watch: pid ${process.pid}, looking every ${TICK / 1000} s at main (${seen.head?.slice(0, 7) ?? 'unreadable'}), docs/checks, docs/reviews, the queue and the model files.`);
+console.log(`${clock()} ledger-watch: pid ${process.pid}, looking every ${TICK / 1000} s at main (${seen.head?.slice(0, 7) ?? 'unreadable'}), docs/checks, the queue and the model files.`);
 beat();
 setInterval(beat, BEAT).unref();
 setInterval(tick, TICK);

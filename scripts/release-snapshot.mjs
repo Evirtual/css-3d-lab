@@ -12,7 +12,7 @@
  * what the checks said on the commit that was released.
  *
  * So this writes one line per model per check — status, the rule version it was judged under, and
- * when it ran — plus each model's review verdicts and the ledger's counts. No arguments, no
+ * when it ran — plus the ledger's counts. No arguments, no
  * details, no fingerprints. scripts/ledger.mjs reads it when a check has no live result and marks
  * every result that came from it, so docs/ledger.html can show it as the state at the last
  * release and never as a fresh run.
@@ -90,10 +90,10 @@ for (const m of ledger.models) {
     if (!c || !c.status) continue;
     checks[key] = { status: c.status, ruleVersion: c.ruleVersion ?? null, ranAt: when(c.ranAt) };
   }
-  const reviews = (m.reviews ?? [])
-    .filter((r) => !r.stale)
-    .map((r) => ({ kind: r.kind, verdict: r.verdict, reviewedAt: when(r.reviewedAt), reviewer: r.reviewer }));
-  models[m.id] = { status: m.status, checks, ...(reviews.length ? { reviews } : {}) };
+  // The snapshot used to carry each model's fresh review verdicts beside its check results. It
+  // does not any more: the ledger records what the machine measured, and what a person thinks of
+  // a model is not that. A snapshot of an opinion is a record that it was held, not that it held.
+  models[m.id] = { status: m.status, checks };
 }
 
 const snapshot = {
@@ -103,7 +103,6 @@ const snapshot = {
   counts: {
     models: ledger.counts.models,
     toCheck: ledger.counts.toCheck,
-    checked: ledger.counts.checked,
     approved: ledger.counts.approved,
   },
   // the rule each check was at when the snapshot was taken, so a later run under a newer rule is
@@ -124,8 +123,7 @@ function render(snap) {
   const top = JSON.stringify(head, null, 1).replace(/\n}$/, '');
   const body = Object.entries(ms).map(([id, m]) => {
     const checks = Object.entries(m.checks).map(([k, c]) => `   ${JSON.stringify(k)}: ${JSON.stringify(c)}`).join(',\n');
-    const reviews = m.reviews ? `,\n  "reviews": [\n${m.reviews.map((r) => `   ${JSON.stringify(r)}`).join(',\n')}\n  ]` : '';
-    return ` ${JSON.stringify(id)}: {\n  "status": ${JSON.stringify(m.status)},\n  "checks": {\n${checks}\n  }${reviews}\n }`;
+    return ` ${JSON.stringify(id)}: {\n  "status": ${JSON.stringify(m.status)},\n  "checks": {\n${checks}\n  }\n }`;
   }).join(',\n');
   return `${top},\n "models": {\n${body}\n }\n}\n`;
 }

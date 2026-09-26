@@ -232,11 +232,15 @@ reading "not run yet". Nothing is assumed about it. Then:
 1. **To check** — until every automated check above has a pass recorded on the code as it is now.
    The row says which check is missing, and a check you ran without `npm run capture` records
    nothing: the ledger only reads what was captured.
-2. **Awaiting review** — every check is green, and a person has not looked yet. No check decides
-   whether the 3D is right or whether the motion reads as the thing it is meant to be; that is why
-   this stage exists.
-3. **Approved** — the checks are green on the current code *and* a visual review and a text review
-   are recorded against it in `docs/reviews/`, each with the name of whoever made the ruling.
+2. **Approved** — every check has a pass recorded on the code as it is now. Nothing else: no
+   sign-off, no record of anyone having looked.
+
+There used to be a third stage between these, Awaiting review, and a model reached Approved only
+once a visual review and a text review were recorded against it in `docs/reviews/`. That is gone.
+This ledger holds what a machine can measure and confirm by itself, and whether a model is any
+good is not that: it is a person watching the real thing, which happens on what is shipped. Two
+items on the release checklist wait for a person — that the article has been read, and that the
+word has been given to push — and they are the only two.
 
 Edit the model afterwards and its ticks go grey, naming what changed and at which commit: the
 resolved snippet, the files that draw it, its own words, or the rule a check was judged under. Run

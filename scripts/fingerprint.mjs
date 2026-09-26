@@ -435,14 +435,13 @@ export function contains(a, b) {
 
 /* ---------- staleness: what a result judged, then and now ---------- */
 /** The rule in words, for the ledger's definitions dialog. */
-export const STALENESS_TEXT = 'A result or review is stale when something it judged has changed since, and only then. '
+export const STALENESS_TEXT = 'A result is stale when something it judged has changed since, and only then. '
   + 'What each depends on: the contract, stage and motion checks: the RESOLVED snippet (html, css and js as the site loads them, shared constants such as CUBE_FACES filled in), how the model is played (the ways interaction.ts gives it from its tags), and that check\'s render path; '
   + 'the export check: the same, its render path adding the capture and recording code; the share-preview check: the same plus the text (the title is drawn in the image); the box-sizing check: the snippet, its boxSizing mark and the standalone file; the contrast check: the snippet, how it is played and the standalone file; '
-  + 'a visual review: the snippet, how it is played, and the model frame; a text review: the text (title, description, how, technique, tags, category) and the snippet it describes. '
   + `The render paths: ${Object.entries(RENDER_PATHS).map(([k, list]) => `${k}: ${list.map(partLabel).join(', ')}`).join('; ')}. `
   + 'A check\'s own script is not part of it, but its rule version is: a result judged under an older version of the check\'s rule (scripts/checks-registry.mjs, ruleVersion) is stale, "rule changed (vN → vM)". New results record these fingerprints (capture-check writes them; reviewers add `node scripts/fingerprint.mjs <id> --kind visual|text`); an older one that names only a commit is judged by the model as it was at that commit, rebuilt from git. '
   + 'The reason says what changed and at which commit: "render changed at <commit>", "text changed (description) at <commit>", "shared file <file> changed at <commit>", or "(not committed yet)". '
-  + 'Rulings (scripts/fingerprint.mjs, RULINGS): a commit ruled to change nothing a kind of review judged does not stale a review of that kind by itself; the review is judged again from the model as it was at that commit, and the ledger names the ruling on every review that relies on it.';
+  + '';
 const WORD = { boxmark: 'its boxSizing mark changed', snippet: 'render changed', play: 'how it is played changed (interaction.ts)', text: 'text changed' };
 
 /**
