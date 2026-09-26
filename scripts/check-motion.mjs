@@ -610,16 +610,34 @@ async function filmOn(id, demo) {
     // which their own time allows; script time is not turned back
     loop.fine = new Map();
     const at = (i) => Math.round((timing.loop * i) / n);
-    for (const { frame: i } of judge(loop.frames.map((f) => f.grid), loop.cyclic).flicker) {
-      const from = at(i - 1), to = at(i + 1), steps = Math.max(2, Math.ceil((to - from) / FINE));
+    const fineSeq = async (from, to) => {
+      const steps = Math.max(2, Math.ceil((to - from) / FINE));
       const seq = [];
       for (let s = 0; s <= steps; s++) {
         await inFrame(seekLoop, { V, start, at: from + Math.round(((to - from) * s) / steps) });
         await tick(0);
         seq.push((await shoot(clip)).grid);
       }
-      loop.fine.set(i, seq);
-    }
+      return seq;
+    };
+    const first = judge(loop.frames.map((f) => f.grid), loop.cyclic);
+    for (const { frame: i } of first.flicker) loop.fine.set(i, await fineSeq(at(i - 1), at(i + 1)));
+    /*
+     * A pop candidate is filmed again too, and only between the two frames it is a jump BETWEEN.
+     *
+     * The loop is filmed in PER_LOOP even steps across its own length, so a long loop is sampled
+     * coarsely -- wordcube's 9s loop is 375ms a frame. The rule further down already holds that
+     * frames 70-100ms apart are too far apart to tell a jump in the model from a fast transition,
+     * and 375ms is far past that. wordcube and cubeletters each reported four evenly spaced pops
+     * (5->6, 11->12, 17->18, 23->0) and the strip shows the frame before every one of them caught
+     * mid-flip: a four-word cube turning between its words, animated, just faster than the camera.
+     *
+     * Dropping pops on any loop over 2.4s would have been the cheap answer and would have blinded
+     * the check to every real jump in a long loop. Filmed 16ms at a time, a turn is a ramp and a
+     * cut is still a cut -- the same treatment a flicker candidate has always had.
+     */
+    loop.finePop = new Map();
+    for (const p of first.pops) loop.finePop.set(p.from, await fineSeq(at(p.from), at(p.from + 1)));
     // everything after this is filmed with the loop's CSS held still on its first frame; script
     // time goes on
     await inFrame(holdLoop, start);
@@ -860,6 +878,16 @@ async function filmOn(id, demo) {
     // frames 70-100ms of page time apart are too far apart for a quick transition between two
     // of them to be anything but a jump in the picture, not in the model: no pops from those
     if (r.coarse) j.pops = [];
+    // and a pop the loop filmed again 16ms at a time is kept only if it is STILL a pop there:
+    // a fast turn becomes a ramp at that spacing, a cut stays a cut (see loop.finePop)
+    j.poppedSmooth = [];
+    if (r.finePop) j.pops = j.pops.filter((p) => {
+      const seq = r.finePop.get(p.from);
+      if (!seq || seq.length < 4) return true;
+      if (judge(seq, false, true).pops.length) return true;
+      j.poppedSmooth.push({ from: p.from, to: p.to, steps: seq.length - 1 });
+      return false;
+    });
     return j;
   });
   const files = await strips(id, runs, judged, notes);
@@ -877,6 +905,7 @@ async function strips(id, runs, judged, notes) {
       judged[r].flicker.length ? `flicker at ${judged[r].flicker.map((f) => `${f.frame} (${f.cells} cells)`).join(', ')}` : '',
       judged[r].pops.length ? `pop ${judged[r].pops.map((p) => `${p.from}→${p.to} (${p.change} vs mean ${p.mean})`).join(', ')}` : '',
       judged[r].dismissed.length ? `not flicker, only fast motion when filmed ${FINE}ms at a time: ${judged[r].dismissed.map((f) => f.frame).join(', ')}` : '',
+      judged[r].poppedSmooth?.length ? `not a pop, only fast motion when filmed ${FINE}ms at a time: ${judged[r].poppedSmooth.map((p) => `${p.from}→${p.to}`).join(', ')}` : '',
       ...notes.filter((n) => n.run === run.name).map((n) => n.text),
     ].filter(Boolean).join('; ');
     const tiles = run.frames.map((f, i) => `<figure class="${bad.get(i) ?? ''}"><img src="data:image/png;base64,${f.png.toString('base64')}"><figcaption>${i} · ${run.labels[i]}</figcaption></figure>`).join('');
