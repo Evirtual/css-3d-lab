@@ -16,5 +16,11 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts"],
+  // The ledger page is checked on its own, by tsconfig.ledger.json. It is a .ts file that has
+  // never been typed -- it was split out of one HTML file and kept its JavaScript -- and leaving it
+  // in here meant `npm run build` failed with 980 errors before it reached the app at all, so the
+  // app could not be built by anyone who cloned this. Typing it is a job of its own; failing the
+  // app's build in the meantime helps nobody.
+  "exclude": ["src/ledger"]
 }
