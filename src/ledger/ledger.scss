@@ -2528,3 +2528,238 @@ html:has(.cldlg[open]) { overflow: hidden; scrollbar-gutter: auto; }
   /* and the whole-suite control beside it reads as the row's own heading */
   .suite--tools { gap: 8px; }
 }
+
+/* ================================================================================================
+   ON A PHONE BOTH THE WORD AND THE COUNT STAND UP
+
+   An arrow is about 37px wide and 92px tall there. Across, nothing fits; down, both do -- so both
+   are turned, and they share the height: the word at the top of the chevron, the count at the
+   bottom of it. Each is tilted by the angle that line actually has, atan(notch / height/2), so
+   they run parallel to it rather than nearly parallel.
+
+   The count is the thing being read, so it is the larger of the two and in the plain ink; the word
+   is small and quiet above it, saying which check the count belongs to.
+   ================================================================================================ */
+@media (max-width: 620px) {
+  .step__body { height: 108px; }
+  .step__text, .step--1 .step__text {
+    flex-direction: column; align-items: center; justify-content: space-between;
+    gap: 2px; padding: 6px 1px 6px 3px;
+  }
+  .step__label, .step__n {
+    writing-mode: vertical-rl; rotate: 180deg;
+    transform: rotate(var(--lean, 11.1deg)); transform-origin: 50% 50%;
+    flex: 0 1 auto; min-height: 0; text-align: center; white-space: nowrap;
+  }
+  /* the word: small, quiet, at the top of the slope */
+  .step__label {
+    order: 0; font-size: 8.5px; letter-spacing: 0.05em;
+    overflow: hidden; text-overflow: clip;
+  }
+  /* the count: the thing being read, at the bottom of it */
+  .step__n {
+    order: 1; font-size: clamp(14px, 4.4vw, 18px); line-height: 1;
+    font-variant-numeric: tabular-nums; color: var(--text);
+  }
+  /* the first arrow has no chevron on its left, so nothing to be parallel to */
+  .flow__li:first-child .step__label, .flow__li:first-child .step__n { transform: none; }
+}
+
+/* ---------- the lean is whatever the shape earns ----------
+   The arrow got taller when both the word and the count stood up in it, and a taller arrow has a
+   shallower chevron: 9px over 108px is 9.5deg, not the 11.1deg that 9px over 92px earned. */
+@media (max-width: 620px) { .flowwrap { --lean: 12.5deg; } }   /* 12px notch over 108px */
+@media (max-width: 520px) { .flowwrap { --lean: 9.5deg; } }    /* 9px notch over 108px */
+
+/* ---------- run over every model: a row of buttons, not a row of pairs ----------
+   It was a small round button with a word printed beside it -- two things to aim at, of which only
+   one did anything. Each is one control now: the play mark and the name it runs, in a pill you can
+   hit anywhere. They read as the things you press, which is what they are. */
+.colrun {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-height: 32px; padding: 0 12px 0 9px; box-sizing: border-box;
+  border-radius: 999px; cursor: pointer; line-height: 1;
+  font: 650 12.5px/1 var(--font); letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--st-chk) 92%, var(--text));
+  background: color-mix(in srgb, var(--st-chk) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--st-chk) 34%, transparent);
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
+}
+.colrun .ri { width: 12px; height: 12px; flex: none; }
+.colrun:hover:not([disabled]) { color: var(--bg); background: var(--st-chk); border-color: var(--st-chk); }
+.colrun:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent); }
+.colrun[disabled] {
+  cursor: default; color: var(--muted); opacity: 0.45;
+  background: transparent; border-color: var(--border);
+}
+
+@media (max-width: 760px) {
+  .colruns {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
+    margin: 12px 0 0; padding: 12px;
+    border: 1px solid var(--border); border-radius: 14px;
+    background: color-mix(in srgb, var(--surface-solid) 70%, transparent);
+  }
+  .colruns[hidden] { display: none; }
+  .colruns__h {
+    flex: 1 1 100%; margin: 0 0 3px;
+    font: 700 10px/1 var(--font); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
+  }
+}
+
+/* ---------- the turned text reads downward, and sits on the middle of its arrow ----------
+   It carried `rotate: 180deg`, which with vertical-rl makes the letters run bottom to top -- the
+   word upside down relative to the one you showed me. Off, so both read from the top down.
+
+   And both are centred across the arrow: the column centres them, the padding is even so nothing
+   pulls them off it, and the tilt turns about their own middle so it leans the text without
+   sliding it sideways. */
+@media (max-width: 620px) {
+  .step__text, .step--1 .step__text {
+    align-items: center; justify-content: space-between;
+    padding: 7px 2px; gap: 3px;
+  }
+  .step__label, .step__n {
+    rotate: none;
+    writing-mode: vertical-rl; text-orientation: mixed;
+    transform: rotate(var(--lean, 9.5deg)); transform-origin: 50% 50%;
+    align-self: center; margin: 0;
+  }
+  .step__label { order: 0; color: color-mix(in srgb, var(--text) 78%, transparent); }
+  .step__n { order: 1; }
+}
+
+/* ---------- the turned text needs a flex box to be centred in ----------
+   `align-items: center` was set and doing nothing: an earlier rule had left .step__text as
+   `display: block`, where alignment properties are inert. Every word and count sat 16px left of
+   the middle of its arrow. */
+@media (max-width: 620px) {
+  .step__text, .step--1 .step__text { display: flex !important; }
+}
+
+/* ---------- the run row looks like the rest of this page ----------
+   It had a style of its own -- green pills in a tinted box -- which is why it read as something
+   bolted on. These are the group chips: the same border, the same radius, the same weight, the
+   same way of showing they are pressed. The only thing that marks them out is what they carry,
+   which is a play mark. */
+.colrun {
+  flex: none; display: inline-flex; align-items: center; gap: 6px;
+  min-height: 30px; padding: 5px 13px 5px 10px; box-sizing: border-box;
+  border: 1px solid var(--border-strong); border-radius: 999px;
+  background: none; color: var(--text);
+  font: 650 13px/1 var(--font); letter-spacing: 0;
+  cursor: pointer; white-space: nowrap;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.colrun .ri { width: 11px; height: 11px; flex: none; color: var(--st-chk); }
+.colrun:hover:not([disabled]) { border-color: var(--st-chk); background: color-mix(in srgb, var(--st-chk) 10%, transparent); }
+.colrun:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent); }
+.colrun[disabled] { cursor: default; opacity: 0.4; border-color: var(--border); }
+.colrun[disabled] .ri { color: var(--muted); }
+/* the whole run reads as the one that covers the others */
+.colrun--all { border-color: color-mix(in srgb, var(--st-chk) 55%, transparent); font-weight: 750; }
+
+@media (max-width: 760px) {
+  .colruns {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin: 16px 0 0; padding: 0;
+    border: 0; background: none;
+  }
+  .colruns[hidden] { display: none; }
+  .colruns__h {
+    flex: 1 1 100%; margin: 0;
+    font: 700 10.5px/1 var(--font); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
+  }
+  /* it has the whole run in it now, so the toolbar's copy would be the same button twice */
+  .suite--tools { display: none; }
+}
+
+/* ---------- the run row is not the search bar's lid ----------
+   They sat flush against each other, so the chips read as the top row of the filter panel rather
+   than as their own thing. A gap under it, the same one it has above. */
+@media (max-width: 760px) {
+  .colruns { margin-bottom: 16px; }
+}
+
+/* ---------- the word leans, the count does not ----------
+   Standing both of them up was one turn too many: the count is the thing being read, and a number
+   on its side is read slower than one lying flat, every time. So the count sits straight, and only
+   the word above it is turned -- leaning left, along the slope of the lines running through the
+   scene behind it, which is what makes it look like it belongs in the picture rather than laid on
+   top of it. */
+@media (max-width: 620px) {
+  .step__text, .step--1 .step__text {
+    display: flex !important; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+    padding: 6px 2px;
+  }
+  /* the word: flat text, turned as a whole, so its letters stay upright to each other */
+  .step__label {
+    order: 0; writing-mode: horizontal-tb; rotate: none;
+    transform: rotate(-45deg); transform-origin: 50% 50%;
+    flex: none; width: auto; max-width: none; overflow: visible;
+    font-size: 8px; letter-spacing: 0.04em; line-height: 1;
+    color: color-mix(in srgb, var(--text) 80%, transparent);
+    /* turned 45deg a word takes about 0.7 of its length in each direction; this is the room for it */
+    margin: 10px 0 6px;
+  }
+  /* the count: flat, centred, and the largest thing in the arrow */
+  .step__n {
+    order: 1; writing-mode: horizontal-tb; rotate: none; transform: none;
+    flex: none; text-align: center;
+    font-size: clamp(14px, 4.6vw, 19px); line-height: 1;
+  }
+  .flow__li:first-child .step__label { transform: rotate(-45deg); }
+}
+
+/* ---------- a turned word needs room booked for where it ends up ----------
+   A transform does not change the box the layout reserves. The word's box is its unrotated size --
+   about 45 by 10 -- so the count was placed under a 10px-tall strip while the word actually swept
+   37px down through it, and six of the ten collided.
+
+   The word gets a box as tall as its turn needs, and is centred in it, so the count sits clear
+   below whatever the longest name happens to be. */
+@media (max-width: 620px) {
+  .step__label {
+    display: grid; place-items: center;
+    width: 100%; height: 42px; margin: 0;
+    line-height: 1;
+  }
+  .step__text, .step--1 .step__text { gap: 0; }
+}
+
+/* ---------- the word is placed, the count flows ----------
+   Giving the word a full-width box to book its room backfired: the transform turns the BOX, so a
+   46 by 42 box at 45deg swept a 60px diagonal that spilled out of the arrow sideways and straight
+   through the count underneath.
+
+   So the word shrink-wraps itself and is placed, not flowed: pinned to a point near the top of the
+   arrow and turned about that point, it takes no part in the layout at all and cannot push anything
+   or be pushed. The count is then the only thing flowing, which is why it sits right. */
+@media (max-width: 620px) {
+  .step__text, .step--1 .step__text {
+    position: relative;
+    display: block !important; padding: 0;
+  }
+  .step__label {
+    position: absolute; top: 34px; left: 50%;
+    width: max-content; height: auto; margin: 0; padding: 0;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    transform-origin: 50% 50%;
+    font-size: 8px; letter-spacing: 0.04em; line-height: 1;
+    white-space: nowrap; overflow: visible;
+    color: color-mix(in srgb, var(--text) 82%, transparent);
+    pointer-events: none;
+  }
+  .step__n {
+    position: absolute; left: 0; right: 0; bottom: 12px;
+    margin: 0; text-align: center;
+    font-size: clamp(14px, 4.6vw, 19px); line-height: 1;
+  }
+}
+
+/* ---------- the filter bar is not stuck to the heading above it ----------
+   Its top margin came off when the sticky offset was being sorted out, which left "Collapse all"
+   sitting directly on the search field. The gap is back; it is margin, so it is space in the flow
+   above the bar and has nothing to do with where the bar rests once it sticks. */
+.fbar { margin-top: 14px; }

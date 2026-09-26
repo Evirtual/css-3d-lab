@@ -1699,7 +1699,13 @@ function icon(name) {
 	* you actually want: one model has changed, or one group, or one check is red and the rest are
 	* fine. `what` is a check key or 'all'; `ids` are the models it covers.
 	*/
-	function runBtn(what, ids, label, cls = "rowrun") {
+	/**
+	* @param text  words to put INSIDE the button. Without it the button is the icon alone, which
+	*   is right in a table cell where the column says what it runs. In a list with no column to
+	*   read, the name has to be part of the control: an icon beside a word is two things to aim
+	*   at, of which only one works.
+	*/
+	function runBtn(what, ids, label, cls = "rowrun", text = "") {
 		if (!RUN_OK) return "";
 		const key = runKey(what, ids);
 		if (PENDING && PENDING.key === key) return `<span class="${cls} ckrun--wait" role="status" aria-label="Starting"><i></i></span>`;
@@ -1709,7 +1715,7 @@ function icon(name) {
 			return holdAndStop(cls, what);
 		}
 		const why = blockedBy(what, ids);
-		return `<button type="button" class="${cls}" data-run-what="${esc(what)}" data-run-ids="${esc(ids.join(","))}" title="${esc(why ?? label)}" aria-label="${esc(label)}"${why ? " disabled" : ""}>${PLAY}</button>`;
+		return `<button type="button" class="${cls}${text ? " ckrun--said" : ""}" data-run-what="${esc(what)}" data-run-ids="${esc(ids.join(","))}" title="${esc(why ?? label)}" aria-label="${esc(label)}"${why ? " disabled" : ""}>${PLAY}${text ? `<span>${esc(text)}</span>` : ""}</button>`;
 	}
 	const sameIds = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 	/**
@@ -2281,7 +2287,7 @@ function icon(name) {
 			return;
 		}
 		el.hidden = false;
-		el.innerHTML = "<span class=\"colruns__h\">Run over every model</span>" + COLS.map(([k, label]) => `<span class="colruns__one">${runBtn(k, [], `Run ${label} on every model`, "cellrun")}<b>${esc(label)}</b></span>`).join("");
+		el.innerHTML = "<span class=\"colruns__h\">Run over every model</span>" + runBtn("all", [], "Run every check over every model", "colrun colrun--all", "Every check") + COLS.map(([k, label]) => runBtn(k, [], `Run ${label} on every model`, "colrun", label)).join("");
 	}
 	/** Opens the definitions at one check's entry. */
 	function openDef(key) {
