@@ -51,7 +51,18 @@ writeFileSync(join(ROOT, 'src', 'fonts', 'capture-fonts.ts'),
   + `  if (css) return;\n`
   + `  try {\n`
   + `    const parts = await Promise.all(FACES.map(async (f) => {\n`
-  + `      const r = await fetch(new URL(\`fonts/\${f.file}\`, document.baseURI).href);\n`
+  + `      // Resolved against this MODULE, not the document.\n`
+  + `      //\n`
+  + `      // document.baseURI is the page, and this site is built with relative asset paths so it can\n`
+  + `      // live under any prefix. From a model page at /models/<id>/ that asked the server for\n`
+  + `      // /models/<id>/fonts/inter-latin-400.woff2 -- a 404, checked against the live site. The\n`
+  + `      // fetch threw, css stayed empty, and every export made from a model page shipped with no\n`
+  + `      // faces embedded: exactly the bug these fonts were added for, still there in the one place\n`
+  + `      // exports are made. It only ever worked from the home page, which is where it was tried.\n`
+  + `      //\n`
+  + `      // The bundle puts this module under <base>/assets/ and the fonts under <base>/fonts/, so\n`
+  + `      // ../fonts/ from here is right under any prefix and from any page that loads it.\n`
+  + `      const r = await fetch(new URL(\`../fonts/\${f.file}\`, import.meta.url).href);\n`
   + `      if (!r.ok) throw new Error(\`\${r.status} \${f.file}\`);\n`
   + `      const b = new Uint8Array(await r.arrayBuffer());\n`
   + `      let s = '';\n`

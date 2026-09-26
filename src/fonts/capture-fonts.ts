@@ -15,7 +15,18 @@ export async function ensureCaptureFonts(): Promise<void> {
   if (css) return;
   try {
     const parts = await Promise.all(FACES.map(async (f) => {
-      const r = await fetch(new URL(`fonts/${f.file}`, document.baseURI).href);
+      // Resolved against this MODULE, not the document.
+      //
+      // document.baseURI is the page, and this site is built with relative asset paths so it can
+      // live under any prefix. From a model page at /models/<id>/ that asked the server for
+      // /models/<id>/fonts/inter-latin-400.woff2 -- a 404, checked against the live site. The
+      // fetch threw, css stayed empty, and every export made from a model page shipped with no
+      // faces embedded: exactly the bug these fonts were added for, still there in the one place
+      // exports are made. It only ever worked from the home page, which is where it was tried.
+      //
+      // The bundle puts this module under <base>/assets/ and the fonts under <base>/fonts/, so
+      // ../fonts/ from here is right under any prefix and from any page that loads it.
+      const r = await fetch(new URL(`../fonts/${f.file}`, import.meta.url).href);
       if (!r.ok) throw new Error(`${r.status} ${f.file}`);
       const b = new Uint8Array(await r.arrayBuffer());
       let s = '';
