@@ -1727,7 +1727,19 @@ import { icon } from '../icons.ts';
     const key = runKey(what, ids);
     if (PENDING && PENDING.key === key) return `<span class="${cls} ckrun--wait" role="status" aria-label="Starting"><i></i></span>`;
     const r = runOf(what);
-    if (r && r.mine && sameIds(r.models ?? [], ids)) {
+    /*
+     * A run the board did not start is still a run.
+     *
+     * This asked for r.mine, which is true only of a run this board spawned and has a pid for.
+     * So a check started from a terminal -- `npm run capture -- motion` -- left its column
+     * heading showing a play button while its own progress bar sat two rows below saying
+     * 30/135. The page knew. It drew the wrong thing anyway.
+     *
+     * Ownership decides who can PAUSE or STOP it, and nothing else: there is no pid for a run
+     * somebody began in a terminal, and a Stop that does nothing is worse than no Stop. Saying
+     * a check is running is not a control. It is the truth about the machine either way.
+     */
+    if (r && sameIds(r.models ?? [], ids)) {
       /*
        * Who carries pause and stop.
        *
@@ -1745,7 +1757,11 @@ import { icon } from '../icons.ts';
       // second is amber, because the mark underneath it is a verdict about to be replaced. It says
       // so in the class and not in where it sits, so a heading, a group and a row all read alike.
       if (cls === 'cellrun') return `<span class="${cls} ckrun--wait ckrun--busy" role="status" aria-label="Being checked now" title="Being checked now"><i></i></span>`;
-      return holdAndStop(cls, what);
+      // pause and stop need a pid; without one the honest thing is to say it is running and
+      // leave it at that, rather than offer a control that would do nothing
+      return r.mine
+        ? holdAndStop(cls, what)
+        : `<span class="${cls} ckrun--wait ckrun--busy" role="status" aria-label="Being checked now, started outside this board" title="Being checked now. It was started outside this board, so it cannot be paused or stopped from here."><i></i></span>`;
     }
     /*
      * Why this button cannot be pressed, if it cannot.
@@ -1774,7 +1790,19 @@ import { icon } from '../icons.ts';
    * board would show verdicts for models nothing had judged.
    */
   function blockedBy(what, ids) {
+    /*
+     * A check that measures speed cannot share the machine.
+     *
+     * Every other check runs on a clock it controls, so what it measures is the same however
+     * busy the laptop is. check-perf deliberately does not -- frame times are the thing it is
+     * measuring -- so a second browser drawing beside it reads as a slow model. The registry
+     * says which checks are like that (`alone`), the board refuses them for the same reason,
+     * and this is the page saying so on the button rather than after the press.
+     */
+    const alone = new Set(CHECK_LIST.filter((c) => c.alone).map((c) => c.key));
     for (const r of RUN_NOW.runs) {
+      if (alone.has(r.what)) return `${CHECK_NAMES[r.what] ?? r.what} is running and has the machine to itself: it measures how fast a model draws, so anything running beside it lands in its numbers`;
+      if (alone.has(what)) return `${CHECK_NAMES[what] ?? what} measures how fast a model draws, so it waits for an idle machine — ${CHECK_NAMES[r.what] ?? r.what} is running`;
       if (r.what === 'all') return 'the whole run is going, and it covers every check on every model';
       if (what === 'all') {
         return ids.length

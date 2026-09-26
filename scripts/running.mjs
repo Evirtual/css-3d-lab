@@ -69,6 +69,19 @@ export function runsNow(root, notes = []) {
   return out;
 }
 
+/**
+ * Every check running outside this board, not just the first one found.
+ *
+ * runningCheck below returns one, which was right while a board ran one check at a time. Two
+ * checks started from a terminal -- motion and stages together -- had only the first reported,
+ * so the second one's column drew a play button over its own progress bar.
+ */
+export function runningChecks(root) {
+  return Object.entries(runsNow(root))
+    .filter(([, run]) => run && run.alive)
+    .map(([key, run]) => ({ check: key, done: run.done ?? null, total: run.total ?? null, pid: run.pid ?? null }));
+}
+
 /** The one check actually running now, or null. A crashed claim is not one. */
 export function runningCheck(root) {
   for (const [key, run] of Object.entries(runsNow(root))) {

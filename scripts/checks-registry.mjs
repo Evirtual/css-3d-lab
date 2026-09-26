@@ -193,6 +193,19 @@ export const REGISTRY = [
   },
   {
     key: 'perf', script: 'check-perf.mjs', scope: 'model', name: 'performance', short: 'Perf',
+    /*
+     * The one check that cannot share the machine.
+     *
+     * Every other check here runs on a clock it controls -- check-motion installs
+     * Playwright's page.clock and steps it 16ms at a time, so what it measures is the same
+     * however long a frame takes to photograph. This one deliberately does not: frame times
+     * ARE the thing being measured, so it runs on the real clock and anything else drawing at
+     * the same time lands in its numbers as a slow model.
+     *
+     * So it waits for an empty machine, and nothing starts beside it. Both the board and the
+     * page read this flag, which is why it lives here and not in either of them.
+     */
+    alone: true,
     ruleVersion: 1,
     rules: [{ v: 1, from: null, what: 'as first recorded: at the card\'s own 340 × 280, at most 250 elements at rest, frame time at the 95th at most 40ms over two seconds of the model running, its main interaction answered within 120ms, and thirty of that interaction adding at most 8 elements after the first five and never reaching 300 at the peak' }],
     title: 'What a model costs to run (check-perf)', label: 'performance check (check-perf)',
@@ -318,4 +331,4 @@ export const inRunOrder = (list) => [...list].sort((a, b) => {
   return (i < 0 ? 99 : i) - (j < 0 ? 99 : j);
 });
 
-export const forPage = (root) => inRunOrder(REGISTRY).map((c) => ({ key: c.key, script: `scripts/${c.script}`, scope: c.scope, name: c.name, short: c.short, title: c.title, label: c.label, rule: c.rule, ruleVersion: c.ruleVersion, rules: c.rules, steps: c.steps ?? [], ...(c.scope === 'site' ? { pages: pagesFor(c, root) } : {}) }));
+export const forPage = (root) => inRunOrder(REGISTRY).map((c) => ({ key: c.key, script: `scripts/${c.script}`, scope: c.scope, name: c.name, short: c.short, title: c.title, label: c.label, rule: c.rule, ruleVersion: c.ruleVersion, rules: c.rules, steps: c.steps ?? [], alone: c.alone ?? false, ...(c.scope === 'site' ? { pages: pagesFor(c, root) } : {}) }));

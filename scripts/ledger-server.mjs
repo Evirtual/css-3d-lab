@@ -44,7 +44,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
-import { runningCheck } from './running.mjs';
+import { runningCheck, runningChecks } from './running.mjs';
 import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 
 const DOCS = join(ROOT, 'docs');
@@ -111,21 +111,33 @@ function state() {
   // flags the check's own result file while it works. Reporting only what THIS process spawned put
   // "Nothing running" on the page directly above the ledger's own "media running 58/135" -- two
   // notions of running on one screen, which is the confusion the board exists to remove.
-  const other = runningCheck(ROOT);
   // Not ours, so there is no pid here to stop: the page offers pause, which is a file both watch,
-  // and does not offer a Stop that would do nothing.
-  if (other && !runs.has(other.check)) out.runs.push({ what: other.check, label: other.check, models: [], startedAt: null, pid: null, mine: false, done: other.done, total: other.total });
+  // and does not offer a Stop that would do nothing. All of them, not the first found: two checks
+  // started from a terminal had only one reported, and the other column drew a play button over
+  // its own progress bar.
+  for (const other of runningChecks(ROOT)) if (!runs.has(other.check)) out.runs.push({ what: other.check, label: other.check, models: [], startedAt: null, pid: null, mine: false, done: other.done, total: other.total });
   return out;
 }
 
 /** Why this run cannot start, in the words the page will show, or null if it can. */
+// the checks that cannot share the machine, from the one place that says so
+const ALONE = new Set(REGISTRY.filter((c) => c.alone).map((c) => c.key));
+
 function refuse(what) {
   if (runs.has(what)) return `${what} is already running`;
+  // a check that measures speed needs an idle machine, in both directions
+  const busy = [...runs.keys()].find((k) => ALONE.has(k));
+  if (busy) return `${busy} is running and has to have the machine to itself: it measures how fast a model draws, so anything running beside it lands in its numbers`;
+  if (ALONE.has(what) && runs.size) return `${what} measures how fast a model draws, so it waits for an idle machine: ${[...runs.keys()].join(' and ')} ${runs.size === 1 ? 'is' : 'are'} running`;
   if (runs.has('all')) return 'the whole run is going: it covers every check, so nothing can run beside it';
   if (what === 'all' && runs.size) return `${[...runs.keys()].join(' and ')} ${runs.size === 1 ? 'is' : 'are'} running: the whole run covers every check, so it waits for them`;
   if (runs.size >= MAX_RUNS) return `${runs.size} checks are already running, which is the limit on this machine`;
-  const other = runningCheck(ROOT);
-  if (other && (other.check === what || what === 'all')) return `${other.check} is running, started outside this board`;
+  const outside = runningChecks(ROOT);
+  const aloneOutside = outside.find((o) => ALONE.has(o.check));
+  if (aloneOutside) return `${aloneOutside.check} is running, started outside this board, and it has to have the machine to itself`;
+  if (ALONE.has(what) && outside.length) return `${outside.map((o) => o.check).join(' and ')} ${outside.length === 1 ? 'is' : 'are'} running, started outside this board: ${what} measures how fast a model draws and waits for an idle machine`;
+  const other = outside.find((o) => o.check === what) ?? (what === 'all' ? outside[0] : null);
+  if (other) return `${other.check} is running, started outside this board`;
   return null;
 }
 
