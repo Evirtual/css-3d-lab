@@ -78,7 +78,7 @@
  * "ran under memory pressure" in the same kind of note when it had to go on anyway; and a crash
  * inside Playwright is said on stderr with exit 3, the sections printed before it kept.
  */
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer as createVite } from 'vite';
@@ -88,6 +88,8 @@ import { exportServer } from '../server/dev.mjs';
 import { DEFAULTS } from './export-defaults.mjs';
 
 const SAMPLE = ['candles', 'dice', 'paycard', 'cube', 'browser', 'coverflow', 'switch', 'starfield'];
+/** Every model the site builds, for the --defaults run. Read the same way the board reads it. */
+const everyModel = () => JSON.parse(readFileSync(new URL('../src/generated/model-ids.json', import.meta.url), 'utf8')).map((d) => d.id);
 const IMAGE_SHAPES = ['1:1', '4:3', '3:2', '16:9', '9:16', 'auto'];
 const SIZES = (process.env.SIZES || '800,1600,3200').split(',').map(Number);
 const VIDEO_SHAPES = ['9:16', '1:1', '16:9'];
@@ -119,7 +121,23 @@ if (defaultsOnly && quick) { console.error('--defaults and --quick ask for diffe
 const jsonOut = opt('--json');
 const only = new Set((opt('--only') ?? 'dims,picture,slider,drift,formats').split(','));
 const ids = args.filter((a, i) => !a.startsWith('--') && !['--json', '--only'].includes(args[i - 1]));
-const models = ids.length ? ids : SAMPLE;
+/*
+ * --defaults with no ids means EVERY model, not the sample.
+ *
+ * The sample belongs to the full run: eleven minutes a model, a proof of the pipeline, which only
+ * makes sense over a handful. --defaults is the other job entirely -- the per-model verdict that
+ * the board records for all 135 -- and falling back to eight there has now gone wrong twice.
+ *
+ * First it left 127 export verdicts sitting two days stale through a week of font changes while
+ * the column read a confident 8. Then, on 2026-09-27, it swallowed an overnight run: `capture --
+ * exports --defaults` finished in 4.1 minutes saying "0 mismatches", which is true of the eight it
+ * chose and says nothing about the other 127. A run that quietly does a fifteenth of the work and
+ * reports success is worse than one that fails.
+ *
+ * scripts/ledger-server.mjs already passes every id for this reason. Now the check does not need
+ * to be told.
+ */
+const models = ids.length ? ids : defaultsOnly ? everyModel() : SAMPLE;
 const D = DEFAULTS;
 const imageShapes = defaultsOnly ? [D.image.shape] : IMAGE_SHAPES;
 const sizes = defaultsOnly ? [D.image.size] : quick ? [800] : SIZES;
