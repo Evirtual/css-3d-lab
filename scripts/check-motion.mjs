@@ -819,6 +819,20 @@ async function filmOn(id, demo) {
 
   // keyboard focus, where the model styles :focus or :focus-visible
   for (const part of parts.focus) {
+    /*
+     * Start from nothing focused.
+     *
+     * The drag lap and the click run come first, and a model may take focus during them --
+     * swipe calls root.focus() itself the moment the pointer touches it. The focus run then
+     * opened on a card that was ALREADY wearing its ring, so focusing it changed nothing and
+     * was reported as showing nothing. The ring was there the whole time, in frame 0 of the
+     * strip; what the run measured was its own leftovers.
+     *
+     * A run has to start from the state it says it starts from, or it is measuring the run
+     * before it.
+     */
+    await inFrame(blurAll);
+    await page.waitForTimeout(160);
     // a key press first, so the browser treats the focus as keyboard focus (:focus-visible)
     await through(`focus ${part.name}`, async () => { await page.keyboard.press('Shift'); await inFrame(focusPart, part.i); }, false, part.box);
     const state = await inFrame(stateOf, part.i);
