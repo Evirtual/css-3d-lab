@@ -155,7 +155,7 @@ button, input { font: inherit; color: inherit; }
 .mk[style*="--age"] { opacity: calc(1 - 0.26 * var(--age)); filter: saturate(calc(1 - 0.78 * var(--age))); }
 /* ---------- the run bar: what is running, and the buttons that change that ---------- */
 .runbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
-  margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 .runbar__state { font-size: 14px; color: var(--muted); }
 .runbar__state.is-on { color: var(--st-chk); font-weight: 700; }
 .runbar__state.is-paused { color: var(--st-warn); font-weight: 700; }
@@ -167,8 +167,8 @@ button, input { font: inherit; color: inherit; }
 .btn--stop { border-color: color-mix(in srgb, var(--st-bad) 55%, transparent); }
 /* one per check row, beside its name */
 .ckrun { margin-left: 6px; padding: 1px 7px; font: 700 11px/1.5 var(--font); color: var(--muted);
-  background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
-.ckrun:hover { color: var(--ink); border-color: var(--st-chk); }
+  background: transparent; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
+.ckrun:hover { color: var(--text); border-color: var(--st-chk); }
 .ckrun[disabled] { opacity: 0.4; cursor: default; }
 
 .s-none { --c: var(--st-none); }
@@ -1392,9 +1392,9 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .cl .found { display: block; margin-top: 2px; }
 .proofbox { margin-top: 6px; }
 .proofbox > summary { display: inline-block; cursor: pointer; font-size: 12px; color: var(--muted);
-  padding: 2px 9px; border: 1px solid var(--line); border-radius: 999px; list-style: none; }
+  padding: 2px 9px; border: 1px solid var(--border); border-radius: 999px; list-style: none; }
 .proofbox > summary::-webkit-details-marker { display: none; }
-.proofbox > summary:hover { color: var(--ink); border-color: var(--accent-2); }
+.proofbox > summary:hover { color: var(--text); border-color: var(--accent-2); }
 .proofbox[open] > summary { margin-bottom: 6px; }
 /* the proof itself: a measured line length, because it is prose and it is long */
 .proofbox .proofline { display: block; max-width: 78ch; font-size: 13px; line-height: 1.55; color: var(--muted); }
@@ -1437,10 +1437,10 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
    gone, an instrument that failed. Worth seeing, and worth being told what it is. */
 .notesbtn { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px;
   font: 600 12px/1.7 var(--font); color: var(--muted); background: transparent;
-  border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
+  border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
 .notesbtn b { color: var(--st-warn); font-weight: 800; font-variant-numeric: tabular-nums; }
-.notesbtn:hover { color: var(--ink); border-color: color-mix(in srgb, var(--st-warn) 55%, transparent); }
-.notesbtn[aria-expanded="true"] { color: var(--ink); border-color: var(--st-warn); }
+.notesbtn:hover { color: var(--text); border-color: color-mix(in srgb, var(--st-warn) 55%, transparent); }
+.notesbtn[aria-expanded="true"] { color: var(--text); border-color: var(--st-warn); }
 /* nothing to report is not worth a control: it hides itself rather than saying "0 notes" */
 .notesbtn[hidden] { display: none; }
 
@@ -1451,9 +1451,65 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .ckhead { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
 .ckrun { flex: none; width: 22px; height: 22px; padding: 0; display: inline-grid; place-items: center;
   font-size: 9px; line-height: 1; color: var(--muted); background: transparent;
-  border: 1px solid var(--line); border-radius: 50%; cursor: pointer; }
+  border: 1px solid var(--border); border-radius: 50%; cursor: pointer; }
 .ckrun:hover:not([disabled]) { color: var(--st-chk); border-color: var(--st-chk);
   background: color-mix(in srgb, var(--st-chk) 12%, transparent); }
 .ckrun:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent); }
 /* while anything is running, every one of them is off: two checks at once is what the runner exists to prevent */
 .ckrun[disabled] { opacity: 0.3; cursor: default; }
+
+/* ---------- notices: what happened, one line each ----------
+   A run that stopped used to sit in the progress panel with a bar at 0/135 beside the words "its
+   process is gone" -- a measurement of something that is not being measured. It is news, so it
+   reads as news, and it can be dismissed: the page redraws every few seconds, and a notice you
+   cannot get rid of is one you stop seeing. */
+.notices { display: grid; gap: 8px; margin: 0 0 14px; }
+.notices[hidden] { display: none; }
+.notice { position: relative; display: grid; gap: 2px; padding: 11px 42px 11px 14px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.notice--stopped { border-color: color-mix(in srgb, var(--hot) 45%, transparent);
+  background: color-mix(in srgb, var(--hot) 8%, var(--surface)); }
+.notice__what { font-size: 14px; }
+.notice--stopped .notice__what b { color: var(--hot); }
+.notice__why { font-size: 13px; color: var(--muted); }
+.notice__x { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; padding: 0;
+  display: grid; place-items: center; font-size: 17px; line-height: 1; color: var(--muted);
+  background: transparent; border: 1px solid transparent; border-radius: 8px; cursor: pointer; }
+.notice__x:hover { color: var(--text); border-color: var(--border); }
+
+/* ---------- the checklist box: an actual box ----------
+   Only the colour of .box was ever set -- border-color and color, per state -- and nothing gave it
+   a shape, so each item showed a bare glyph beside a list bullet. It is a checkbox now, and the
+   bullet goes: the box IS the marker. */
+.cl { list-style: none; margin: 0; padding: 0; }
+.cl li { display: grid; grid-template-columns: 20px 1fr auto; gap: 10px; align-items: start;
+  padding: 10px 0; border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+.cl li:first-child { border-top: 0; }
+.cl .box { width: 18px; height: 18px; margin-top: 2px; display: grid; place-items: center;
+  font: 700 12px/1 var(--font); border: 1.5px solid var(--border); border-radius: 5px;
+  color: var(--muted); background: color-mix(in srgb, var(--border) 18%, transparent); }
+/* done: filled, so a finished row reads at a glance down the column */
+.cl li.st-true .box, .cl li.st-true-ticked .box { background: var(--accent-2); color: var(--bg); border-color: var(--accent-2); }
+.cl li.st-false .box, .cl li.st-conflict .box { background: var(--hot); color: #fff; border-color: var(--hot); }
+
+/* ---------- the notes popover ----------
+   #notes-pop had no rules at all, so the notes appeared as loose text under the header with an
+   unstyled close button sitting in the layout. It is a panel anchored to the button now. */
+.notes-anchor { position: relative; }
+.notes-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 40; width: min(520px, calc(100vw - 32px));
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-solid);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.45); display: grid; gap: 8px; }
+.notes-pop[hidden] { display: none; }
+.notes-pop p, .notes-pop li { font-size: 13px; line-height: 1.55; color: var(--muted); margin: 0; }
+.notes-pop b { color: var(--text); }
+.notes-pop button { justify-self: end; padding: 3px 11px; font: 600 12px/1.7 var(--font);
+  color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
+.notes-pop button:hover { color: var(--text); border-color: var(--accent-2); }
+
+/* ---------- the per-check run button, again ----------
+   22 pixels and a hairline border did not read as something you press. It is bigger, it carries
+   its own fill, and it says what it does on hover rather than only in a tooltip. */
+.ckrun { width: 30px; height: 30px; font-size: 11px; color: var(--st-chk);
+  border: 1px solid color-mix(in srgb, var(--st-chk) 40%, transparent);
+  background: color-mix(in srgb, var(--st-chk) 12%, transparent); }
+.ckrun:hover:not([disabled]) { color: var(--bg); background: var(--st-chk); border-color: var(--st-chk); }

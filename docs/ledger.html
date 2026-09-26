@@ -456,8 +456,8 @@
   .step__sub { grid-column: 1; }
 }
 </style>
-  <script type="module" crossorigin src="./assets/ledger-Mffx1CQd.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/ledger-DT60t48z.css">
+  <script type="module" crossorigin src="./assets/ledger--GpFaRSE.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/ledger-FETIzxFg.css">
 </head>
 <body>
 <main>
@@ -494,6 +494,11 @@
     <div class="flowwrap" id="stats"></div>
     <!-- what is running now: first thing under the stages, where it is seen -->
     <div class="ovsub ovsub--run"><h3 id="run-h">Running now</h3><p id="run-note"></p></div>
+    <!-- What happened, rather than what is happening. A run that stopped does not belong in a
+         progress panel: there is no progress, and a bar at 0/135 next to the words "its process
+         is gone" is a contradiction on one line. It is news, so it goes here and the panel above
+         holds only what is actually moving. -->
+    <div id="notices" class="notices" role="status" aria-live="polite"></div>
     <div id="runnow"></div>
     <!-- Only ever shown when something is there to run it: a copy of this page opened from a file,
          or served from anywhere but the board, has no server behind it and no buttons. -->

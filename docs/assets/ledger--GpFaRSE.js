@@ -848,12 +848,12 @@
 	}
 	const openRuns = /* @__PURE__ */ new Set();
 	function renderRunning() {
-		const runs = Object.entries(L.running ?? {}).filter(([, p]) => p);
+		const all = Object.entries(L.running ?? {}).filter(([, p]) => p);
+		const runs = all.filter(([, p]) => p.alive !== false);
+		drawNotices(all.filter(([, p]) => p.alive === false));
 		{
-			const live = runs.filter(([, p]) => p.alive !== false).length;
-			const dead = runs.length - live;
 			const h = document.getElementById("run-h");
-			if (h) h.textContent = live ? "Running now" : dead ? dead === 1 ? "A run that stopped" : "Runs that stopped" : "Running now";
+			if (h) h.textContent = "Running now";
 		}
 		$("run-note").innerHTML = runs.length ? `From each check's result file, as the ledger built ${agoSpan(L.generatedAt)} read it.` : "";
 		const head = document.querySelector(".ovsub--run");
@@ -897,6 +897,53 @@
       </li>`;
 		}).join("")}</ul>`;
 	}
+	/**
+	* Notices: things that happened and are worth one line, not a panel.
+	*
+	* Dismissing one remembers it by its run id, so the same stopped run does not come back on
+	* the next rebuild -- the page redraws itself every few seconds, and a notice you cannot get
+	* rid of is a notice you stop reading.
+	*/
+	const DISMISSED = "ledger.notices.dismissed";
+	const seenNotices = () => {
+		try {
+			return new Set(JSON.parse(localStorage.getItem(DISMISSED) ?? "[]"));
+		} catch {
+			return /* @__PURE__ */ new Set();
+		}
+	};
+	const dismissNotice = (id) => {
+		try {
+			const d = seenNotices();
+			d.add(id);
+			localStorage.setItem(DISMISSED, JSON.stringify([...d].slice(-40)));
+		} catch {}
+	};
+	function drawNotices(stopped) {
+		const box = $("notices");
+		if (!box) return;
+		const seen = seenNotices();
+		const items = stopped.map(([key, p]) => ({
+			key,
+			p,
+			id: p.runId ?? `${key}:${p.startedAt ?? ""}`
+		})).filter((n) => !seen.has(n.id));
+		box.hidden = !items.length;
+		box.innerHTML = items.map(({ key, p, id }) => {
+			const c = CHECK_LIST.find((x) => x.key === key);
+			const name = c ? c.short : key;
+			const far = p.total ? `${p.done ?? 0} of ${p.total}` : `${p.done ?? 0}`;
+			return `<div class="notice notice--stopped" data-notice="${esc(id)}"><span class="notice__what"><b>${esc(name)}</b> stopped after ${esc(far)}</span><span class="notice__why">its process (pid ${esc(p.pid ?? "?")}) is gone, so the rest never reported. Run it again when you are ready.</span><button type="button" class="notice__x" data-dismiss="${esc(id)}" aria-label="Dismiss">&times;</button></div>`;
+		}).join("");
+	}
+	$("notices")?.addEventListener("click", (e) => {
+		const b = e.target.closest("[data-dismiss]");
+		if (!b) return;
+		dismissNotice(b.dataset.dismiss);
+		b.closest(".notice")?.remove();
+		const box = $("notices");
+		if (box && !box.querySelector(".notice")) box.hidden = true;
+	});
 	$("runnow").addEventListener("click", (e) => {
 		const b = e.target.closest("[data-runids]");
 		if (!b) return;
