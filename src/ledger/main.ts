@@ -1840,7 +1840,9 @@
         const said = x.result === 'not-evaluated' ? `<span class="muted found">Not evaluated here: ${esc(x.why)}.</span>` : `<span class="found${x.result === 'false' ? ' bad' : ''}">Found: ${esc(x.found)}</span>`;
         return `<li class="st-${esc(x.state ?? 'not-evaluated')}"><span class="box" aria-hidden="true">${mark}</span>
           <div><b>${esc(x.item)}</b> <span class="chip ${waitsCls}">${esc(waits)}</span>${when}<br>${said}
-            ${x.proof ? `<br><span class="proofline">Proof: ${esc(x.proof)}</span>` : '<br><span class="proofline">No way to prove it is written down.</span>'}</div>
+            ${x.proof
+              ? `<details class="proofbox"><summary>Proof (${Math.round(x.proof.length / 5)} words)</summary><span class="proofline">${esc(x.proof)}</span></details>`
+              : '<span class="proofline proofline--none">No way to prove it is written down.</span>'}</div>
           <code class="muted">:${x.line}</code></li>`;
       }).join('')}</ul>`;
     }).join('');

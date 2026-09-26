@@ -1380,3 +1380,22 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 #runnow .run__meta { font-size: 16px; }
 #runnow .run { padding: 16px 20px; }
 #run-h { font-size: 15px; }
+
+/* ---------- the release checklist: a claim, a verdict, and the proof only when asked ----------
+   The dialog held 66 items and 35,933 characters, the longest single item 2,062 of them: a
+   document with tick boxes, not a list anybody reads. The claim and what it found stay in view.
+   The proof -- which is the long part, and the part you want only when you disagree -- goes
+   behind a disclosure that says how much of it there is. */
+.cl li { align-items: start; }
+.cl li > div { min-width: 0; }
+.cl b { display: block; margin-bottom: 4px; line-height: 1.35; }
+.cl .found { display: block; margin-top: 2px; }
+.proofbox { margin-top: 6px; }
+.proofbox > summary { display: inline-block; cursor: pointer; font-size: 12px; color: var(--muted);
+  padding: 2px 9px; border: 1px solid var(--line); border-radius: 999px; list-style: none; }
+.proofbox > summary::-webkit-details-marker { display: none; }
+.proofbox > summary:hover { color: var(--ink); border-color: var(--accent-2); }
+.proofbox[open] > summary { margin-bottom: 6px; }
+/* the proof itself: a measured line length, because it is prose and it is long */
+.proofbox .proofline { display: block; max-width: 78ch; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.proofline--none { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); }
