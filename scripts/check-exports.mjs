@@ -870,7 +870,14 @@ async function checkVideos(id) {
       clearChip: !document.querySelector('.maker [data-pick="movie"][data-value="webm-clear"]')?.disabled,
       vp9alpha: await ask('vp09.00.10.08', 480, 854, 'keep'),
       h264: { '2160x3840': await own(2160, 3840), '2160x2160': await own(2160, 2160), '3840x2160': await own(3840, 2160), '1080x1920': await own(1080, 1920) },
-      fourK: !document.querySelector('.maker [data-pick="quality"][data-value="2160"]')?.hasAttribute('data-off'),
+      // !undefined is true, so while the chip EXISTED this read "offered" when it was not disabled --
+      // and the day the chip was taken away altogether it went on reading "offered", about a chip
+      // that is not there. The same shape as the 480 filter that could only ever match 4K.
+      fourK: !!document.querySelector('.maker [data-pick="quality"][data-value="2160"]:not([data-off])'),
+      // Every size the dialog actually puts on screen. A size that is not here cannot be picked, and
+      // asking for it left the dialog on whatever it had (1080) and then failed the file for being
+      // 1080 -- the app was blamed three times a model for answering exactly as it should.
+      offered: [...document.querySelectorAll('.maker [data-pick="quality"]')].map((c) => Number(c.dataset.value)),
       // the sizes the dialog shows but does not offer (data-off: "coming later", or too big for
       // the render service): no file can be asked for at those, and the app says which they are.
       // The chip's own title is the sentence the app gives a visitor, so that is the reason to
@@ -901,6 +908,11 @@ async function checkVideos(id) {
         const off = env.off.find((o) => o.quality === q);
         if (off) {
           untestable.push(`${id}: ${q}p video — the dialog shows it disabled ("${off.why}"), so no file is asked for`);
+          continue;
+        }
+        // Not shown at all is not the same as shown and disabled, and neither is a fault in the app.
+        if (env.offered && !env.offered.includes(q)) {
+          untestable.push(`${id}: ${q}p video — the dialog does not offer this size, so no file is asked for`);
           continue;
         }
         await pick('quality', q);
