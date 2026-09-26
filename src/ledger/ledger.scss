@@ -3007,3 +3007,18 @@ td.c:has(.ckrun--busy) { background: color-mix(in srgb, var(--st-warn) 14%, tran
 #tbl tr.grow > th, #tbl tr.grow > td { box-shadow: var(--shadow); }
 /* the group's colour keeps its stripe: box-shadow above replaced the inset that drew it */
 #tbl tr.grow > th.model { box-shadow: inset 4px 0 0 var(--gc, var(--accent)), var(--shadow); }
+
+/* ---------- a cell that cannot be run says so, instead of going blank ----------
+   Hovering a cell swaps its mark for its run button. When the button is disabled -- which is
+   exactly what happens to every cell in a column while that column is running -- the button was
+   `display: none`, so the swap put nothing in the mark's place and the cell emptied under the
+   pointer. The one moment you most want an answer is the one where the cell had none.
+
+   The group rows and the column headings already show theirs, greyed: the button is there, it
+   cannot be pressed, and its tooltip says which run is in the way. A model's cell does the same
+   now, at the opacity the column-run list uses for the same state -- 0.22 is right on a row with
+   nothing behind it, and nearly invisible in the middle of a cell. */
+td.c .cellrun[disabled] { display: inline-grid; opacity: 0; }
+td.c:hover .cellrun[disabled],
+td.c:focus-within .cellrun[disabled],
+td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
