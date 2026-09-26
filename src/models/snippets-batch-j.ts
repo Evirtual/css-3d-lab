@@ -1317,7 +1317,10 @@ ${lines(EVENTS.length, (i) => `<div class="card" style="--i:${i};--s:${i % 2 ? 1
 }
 
 .card span {
-  color: #b8bddd; /* lighter than the muted #949bc0, so it reads on a card dimmed with distance */
+  /* #bec2e0, not #b8bddd: the cards further back are dimmed with brightness, and at that dimming
+     the old colour measured 4.35:1 against the card behind it, under the 4.5:1 AA asks for. This
+     lands at 4.58:1 dimmed, and is still lighter than the muted #949bc0 used elsewhere. */
+  color: #bec2e0;
   font-size: calc(15 * var(--u));
   font-weight: 700;
   white-space: nowrap;
