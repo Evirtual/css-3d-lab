@@ -1109,7 +1109,7 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 #tbl th, #tbl td { padding: 7px 6px; vertical-align: middle; }
 /* The header does not tuck away: every column heading carries the button that runs its check over
    every model, and a control you have to scroll up to find is one you cannot find. What does go on
-   the way down is the searching and the run bar -- see 'what goes away on the way down' at the end
+   the way down is the searching and its filters -- see 'what goes away on the way down' at the end
    of this file, which is also where this top is finally written. */
 #tbl thead th { position: sticky; top: calc(var(--stick-head, 0px)); z-index: 3; background: var(--surface-solid); box-shadow: inset 0 -1px 0 var(--border); }
 #tbl th.c, #tbl td.c { width: 1%; text-align: center; white-space: nowrap; }
@@ -2934,28 +2934,28 @@ td.c:has(.ckrun--busy) { background: color-mix(in srgb, var(--st-warn) 14%, tran
 }
 #tbl tr.grow > th, #tbl tr.grow > td {
   top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px)
-            + var(--suite-h, 0px) * var(--show, 1));
+            + var(--suite-h, 0px));
 }
 #tbl tr.row[aria-expanded="true"] > td {
   top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px)
-            + var(--suite-h, 0px) * var(--show, 1) + var(--grow-h, 0px));
+            + var(--suite-h, 0px) + var(--grow-h, 0px));
 }
 
 /* ---------- what goes away on the way down ----------
-   --show is 0 while the two are tucked, which is what takes their height out of every sum above.
-   They still have to leave the screen themselves: the search bar rises into the gap it floats in,
-   the run bar loses the stacking order it was given to keep it off the group heading, and neither
-   can be clicked while it is on its way out. Both come back together on the first upward scroll,
-   so the search box is never more than a flick away and the count is never hidden for long. */
-.fbar, #tbl tr.suiterun > td { transition: opacity 0.16s ease, translate 0.16s ease; }
+   The search and its filters, and only those. --show is 0 while they are away, which is what takes
+   their height -- and the gap they float in -- out of every sum above; the bar itself rises into
+   that gap and cannot be clicked on its way out. One upward scroll brings it back, so the search
+   box is never more than a flick away.
+
+   The run bar stays. It was going too, and it should not: it is the one thing on this page that is
+   still changing while you read, and it is the reason the page is open at all. A count you have to
+   scroll back up to see is a count you check less often than it changes. */
+.fbar { transition: opacity 0.16s ease, translate 0.16s ease; }
 .tucked .fbar {
   opacity: 0; pointer-events: none;
   translate: 0 calc(-1 * (var(--fbar-h, 0px) + var(--stick-top, 0px)));
 }
-.tucked #tbl tr.suiterun > td { opacity: 0; pointer-events: none; z-index: 0; }
-@media (prefers-reduced-motion: reduce) {
-  .fbar, #tbl tr.suiterun > td { transition: none; }
-}
+@media (prefers-reduced-motion: reduce) { .fbar { transition: none; } }
 
 @media (max-width: 760px) {
   /* ---------- a bar on a phone is a bar across the phone ----------
