@@ -846,6 +846,19 @@ input:nth-of-type(6):checked ~ .controls label:nth-of-type(6) {
   color: #fff;
 }
 
+/* the face already showing answers the pointer too: the rule above sets the background SHORTHAND,
+   so its gradient is an IMAGE painted over the colour .controls label:hover sets, and the one
+   label already chosen was the one label that did nothing under the pointer. Darker, so white
+   keeps passing on it. */
+input:nth-of-type(1):checked ~ .controls label:nth-of-type(1):hover,
+input:nth-of-type(2):checked ~ .controls label:nth-of-type(2):hover,
+input:nth-of-type(3):checked ~ .controls label:nth-of-type(3):hover,
+input:nth-of-type(4):checked ~ .controls label:nth-of-type(4):hover,
+input:nth-of-type(5):checked ~ .controls label:nth-of-type(5):hover,
+input:nth-of-type(6):checked ~ .controls label:nth-of-type(6):hover {
+  background-image: linear-gradient(135deg, #5730dd, #b31859);
+}
+
 /* and once more for the keyboard: the block's focus ring, on the label of the focused radio */
 input:nth-of-type(1):focus-visible ~ .controls label:nth-of-type(1),
 input:nth-of-type(2):focus-visible ~ .controls label:nth-of-type(2),

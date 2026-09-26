@@ -1088,6 +1088,16 @@ stage.addEventListener('pointercancel', leave);`,
   color: #fff;
 }
 
+/* and it answers the pointer: this selector far outweighs the block's label:hover, so the tab you
+   are already on was the one tab that did nothing. Darker again -- #5537c4 takes white further
+   past the 5.9:1 above, never back towards it. */
+.tabs input:nth-of-type(1):checked ~ .tabs-nav label:nth-of-type(1):hover,
+.tabs input:nth-of-type(2):checked ~ .tabs-nav label:nth-of-type(2):hover,
+.tabs input:nth-of-type(3):checked ~ .tabs-nav label:nth-of-type(3):hover,
+.tabs input:nth-of-type(4):checked ~ .tabs-nav label:nth-of-type(4):hover {
+  background: #5537c4;
+}
+
 .tabs input:nth-of-type(1):focus-visible ~ .tabs-nav label:nth-of-type(1),
 .tabs input:nth-of-type(2):focus-visible ~ .tabs-nav label:nth-of-type(2),
 .tabs input:nth-of-type(3):focus-visible ~ .tabs-nav label:nth-of-type(3),
