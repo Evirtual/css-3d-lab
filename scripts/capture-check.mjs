@@ -649,6 +649,10 @@ function expectedTotal() {
       ? { total: demoIds.length, totalIsEstimate: true, totalFrom: 'every model (--all)' }
       : { total: converted.length, totalIsEstimate: true, totalFrom: 'the converted models (snippet CSS with --u:), as check-motion runs with no ids' };
     if (check === 'exports') {
+      // --defaults with no ids is every model (check-exports: everyModel), and the bar has to say
+      // so. It read the SAMPLE list for both, so a 135-model run opened claiming 8 and finished
+      // "8/8" -- a full night's work reported as a fifteenth of it, complete.
+      if (args.includes('--defaults')) return { total: demoIds.length, totalIsEstimate: true, totalFrom: 'every model, as --defaults runs with no ids' };
       const list = /const SAMPLE = \[([^\]]*)\]/.exec(readFileSync(join(ROOT, 'scripts', CHECKS.exports), 'utf8'));
       if (list) return { total: (list[1].match(/'[^']+'/g) ?? []).length, totalIsEstimate: true, totalFrom: 'check-exports\' own SAMPLE list, as it runs with no ids' };
     }
