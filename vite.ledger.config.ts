@@ -16,9 +16,31 @@
  * emptyOutDir is off. Vite would otherwise clear the folder and take the results with it.
  */
 import { defineConfig } from 'vite';
-import { resolve } from 'node:path';
+import { resolve, join } from 'node:path';
+import { readdirSync, rmSync } from 'node:fs';
+
+/**
+ * Clears the previous build's hashed files, and only those.
+ *
+ * emptyOutDir is off for the reason above, and the cost of that is every build leaving its old
+ * ledger-[hash] files behind: after three builds docs/assets held five, of which the page
+ * referenced two and nothing referenced the other three. They would have been committed and served
+ * for ever. So this build's own output is cleared by name, and nothing else in docs/ is touched.
+ */
+function clearLedgerAssets() {
+  return {
+    name: 'clear-ledger-assets',
+    buildStart() {
+      const dir = join(import.meta.dirname, 'docs', 'assets');
+      try {
+        for (const f of readdirSync(dir)) if (/^ledger-.*\.(js|css)$/.test(f)) rmSync(join(dir, f));
+      } catch { /* no assets folder yet, which is the same as a clean one */ }
+    },
+  };
+}
 
 export default defineConfig({
+  plugins: [clearLedgerAssets()],
   root: resolve(import.meta.dirname, 'src/ledger'),
   // Relative, because the page is opened from a server AND straight from a file. An absolute base
   // would look for /assets/... on the filesystem root and find nothing.
