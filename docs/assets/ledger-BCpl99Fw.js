@@ -1320,6 +1320,7 @@ function icon(name) {
 			stickyOffsets();
 		}
 		renderSuite();
+		paintHeadRuns();
 		if (!Array.isArray(c.blockers) && !String(blk).startsWith("status:")) blk = null;
 		renderOverview();
 		renderRules();
@@ -1651,6 +1652,31 @@ function icon(name) {
 	* minute, and a tick restored from last week would quietly narrow a run you thought was whole.
 	*/
 	const PICKED = /* @__PURE__ */ new Set();
+	/**
+	* A column heading runs over what is ticked, wherever those models are.
+	*
+	* A group's buttons have always meant "the ticked ones in this group, or all of it if none are"
+	* (targetOf). The column heading did not look at ticks at all: it meant every model, always. So
+	* thirteen models spread over four groups -- which is what one evening's editing looks like --
+	* could only be run a cell at a time, or four group presses, for each of five checks.
+	*
+	* The ticks are already global; only the heading was ignoring them. It says which it means, so
+	* a run of thirteen can never be mistaken for a run of everything.
+	*
+	* Written here rather than into the head's own html because that html is rebuilt only when it
+	* changes, and a tick must not pull an open tooltip out from under the reader.
+	*/
+	function paintHeadRuns() {
+		if (!RUN_OK) return;
+		const ids = [...PICKED];
+		for (const th of $("thead").querySelectorAll("th.c")) {
+			const k = th.querySelector(".colh")?.dataset.def;
+			const slot = th.querySelector(".colh__run");
+			if (!k || !slot) continue;
+			const title = CHECK_NAMES[k] ?? k;
+			slot.innerHTML = runBtn(k, ids, ids.length ? `Run ${title} on the ${ids.length} ticked model${ids.length === 1 ? "" : "s"}` : `Run ${title} on every model`, "cellrun");
+		}
+	}
 	/** What a group's buttons will actually run over: the ticked ones, or all of them if none are. */
 	function targetOf(g) {
 		const all = g.models.map((m) => m.id);
@@ -1784,6 +1810,7 @@ function icon(name) {
 			e.stopPropagation();
 			tick.checked ? PICKED.add(tick.dataset.pick) : PICKED.delete(tick.dataset.pick);
 			renderRows();
+			paintHeadRuns();
 			return;
 		}
 		const gtick = e.target.closest("[data-pick-grp]");
@@ -1792,6 +1819,7 @@ function icon(name) {
 			const ids = (view0(gtick.dataset.pickGrp) ?? []).map((m) => m.id);
 			for (const id of ids) gtick.checked ? PICKED.add(id) : PICKED.delete(id);
 			renderRows();
+			paintHeadRuns();
 			return;
 		}
 		const un = e.target.closest("[data-untick]");
@@ -1799,6 +1827,7 @@ function icon(name) {
 			e.stopPropagation();
 			for (const m of view0(un.dataset.untick) ?? []) PICKED.delete(m.id);
 			renderRows();
+			paintHeadRuns();
 			return;
 		}
 		const bad = e.target.closest("[data-show-bad]");
