@@ -64,6 +64,11 @@ var PATHS = {
 	play: "<polygon points=\"6 3 20 12 6 21 6 3\"/>",
 	pause: "<rect x=\"14\" y=\"4\" width=\"4\" height=\"16\" rx=\"1\"/><rect x=\"6\" y=\"4\" width=\"4\" height=\"16\" rx=\"1\"/>",
 	stop: "<rect x=\"5\" y=\"5\" width=\"14\" height=\"14\" rx=\"2\"/>",
+	alert: "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/>",
+	checklist: "<path d=\"m3 17 2 2 4-4\"/><path d=\"m3 7 2 2 4-4\"/><path d=\"M13 6h8\"/><path d=\"M13 12h8\"/><path d=\"M13 18h8\"/>",
+	info: "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>",
+	note: "<path d=\"M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z\"/><path d=\"M15 21v-5a1 1 0 0 1 1-1h5\"/>",
+	book: "<path d=\"M12 7v14\"/><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/>",
 	sun: "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2\"/><path d=\"M12 20v2\"/><path d=\"m4.93 4.93 1.41 1.41\"/><path d=\"m17.66 17.66 1.41 1.41\"/><path d=\"M2 12h2\"/><path d=\"M20 12h2\"/><path d=\"m6.34 17.66-1.41 1.41\"/><path d=\"m19.07 4.93-1.41 1.41\"/>",
 	moon: "<path d=\"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z\"/>",
 	maximize: "<path d=\"M8 3H5a2 2 0 0 0-2 2v3\"/><path d=\"M21 8V5a2 2 0 0 0-2-2h-3\"/><path d=\"M3 16v3a2 2 0 0 0 2 2h3\"/><path d=\"M16 21h3a2 2 0 0 0 2-2v-3\"/>",
@@ -1127,14 +1132,23 @@ function icon(name) {
 		btn.innerHTML = `<b>${shown.length}</b> note${shown.length === 1 ? "" : "s"}${hid ? ` <small>· ${hid} dismissed</small>` : ""}`;
 		btn.setAttribute("aria-expanded", String(notesOpen));
 		btn.classList.toggle("is-quiet", !shown.length);
+		paintNavIcons();
 		const pop = $("notes-pop");
 		pop.hidden = !notesOpen || !NOTES.length;
 		pop.innerHTML = (shown.length ? shown.map((n) => `<div class="note"><div class="note__body">${n.html}</div><button type="button" class="note__x" data-dismiss="${esc(n.key)}" aria-label="Dismiss this note" title="Dismiss this note">${XICON}</button></div>`).join("") : "<p class=\"muted\" style=\"margin:4px 2px\">Every note is dismissed.</p>") + (hid ? `<p style="margin:8px 2px 2px"><button type="button" class="linkish" data-undismiss>Show the ${hid} dismissed note${hid === 1 ? "" : "s"}</button> <span class="muted" style="font-size:12px">A dismissed note comes back by itself if what it says changes.</span></p>` : "");
 	}
+	function paintNavIcons() {
+		for (const el of document.querySelectorAll("[data-nav]")) {
+			if (el.querySelector(":scope > .nav__i")) continue;
+			el.innerHTML = `<span class="nav__i" aria-hidden="true">${icon(el.getAttribute("data-nav"))}</span><span class="nav__t">${el.innerHTML}</span>`;
+		}
+	}
+	paintNavIcons();
 	$("notes-btn").addEventListener("click", (e) => {
 		e.stopPropagation();
 		notesOpen = !notesOpen;
 		renderNotes();
+		paintNavIcons();
 	});
 	$("notes-pop").addEventListener("click", (e) => {
 		e.stopPropagation();
@@ -1294,7 +1308,7 @@ function icon(name) {
 		}] : notes;
 		$("notices").innerHTML = releaseNotice();
 		renderNotes();
-		const theadHtml = `<th class="model" scope="col"><span class="colh__wrap colh__wrap--model"><span class="suite" id="suite"></span><span class="colh colh--plain">Model</span></span></th><th class="st" scope="col">Status</th>${COLS.map(([k, label]) => {
+		const theadHtml = `<th class="model" scope="col"><span class="colh__wrap colh__wrap--model"><span class="suite" id="suite" data-suite></span><span class="colh colh--plain">Model</span></span></th><th class="st" scope="col">Status</th>${COLS.map(([k, label]) => {
 			const note = NOTES.find((n) => n.col === k);
 			const title = CHECK_NAMES[k] ?? k;
 			return `<th class="c${RUN_NOW.runs.some((r) => r.what === k) ? " is-running-col" : ""}" scope="col"><span class="colh__wrap"><button type="button" class="colh" data-def="${esc(k)}" data-tip data-tiptext="${esc(`${title}. Click for its definition.`)}" aria-label="${esc(`${title}: open its definition`)}">${esc(label)}</button>${note ? helpIcon(`col-${k}`, `About the ${label} column`, note.html) : ""}${RUN_OK ? `<span class="colh__run">${runBtn(k, [], `Run ${title} on every model`, "cellrun")}</span>` : ""}</span></th>`;
@@ -1309,12 +1323,14 @@ function icon(name) {
 		renderOverview();
 		renderRules();
 		renderSiteChecks();
+		renderColRuns();
 		renderMarkLegend();
 		if (group !== "all" && !(L.groups ?? []).some((g) => g.key === group)) group = "all";
 		for (const t of [...tags]) if (!(L.tags ?? []).includes(t)) tags.delete(t);
 		renderFilterChips();
 		renderRows();
 		renderReadiness();
+		paintNavIcons();
 	}
 	/**
 	* The gallery's filter bar, filled in: status tabs, the Tags button, group and tag chips. Each
@@ -2247,6 +2263,26 @@ function icon(name) {
         ${runBtn(c.key, [], `Run ${c.title}`, "cellrun")}</span>`;
 		}).join("");
 	}
+	/**
+	* The per-check run buttons, for the width where there are no column headings to hold them.
+	*
+	* A heading carries the button that runs its check over every model. Below 760px the table is
+	* a list of cards, the headings are not drawn, and those nine controls went with them -- so on
+	* a phone you could run one check on one model, or everything on everything, and nothing in
+	* between. This is the same nine buttons and the same runBtn, in a row of their own, with each
+	* check named because there is no column above to say which is which.
+	*/
+	function renderColRuns() {
+		const el = $("colruns");
+		if (!el) return;
+		if (!RUN_OK || !COLS.length) {
+			el.hidden = true;
+			el.innerHTML = "";
+			return;
+		}
+		el.hidden = false;
+		el.innerHTML = "<span class=\"colruns__h\">Run over every model</span>" + COLS.map(([k, label]) => `<span class="colruns__one">${runBtn(k, [], `Run ${label} on every model`, "cellrun")}<b>${esc(label)}</b></span>`).join("");
+	}
 	/** Opens the definitions at one check's entry. */
 	function openDef(key) {
 		const d = $("rules-dialog");
@@ -2485,18 +2521,11 @@ function icon(name) {
 	* keeps only the two buttons that change it.
 	*/
 	function renderSuite() {
-		const el = $("suite");
-		if (!el) return;
-		if (!RUN_OK) {
-			el.innerHTML = "";
-			return;
-		}
+		const slots = document.querySelectorAll("[data-suite]");
+		if (!slots.length) return;
 		const all = runOf("all");
-		if (all) {
-			el.innerHTML = all.mine ? holdAndStop("cellrun", "all") : "";
-			return;
-		}
-		el.innerHTML = runBtn("all", [], "Run every check over every model", "cellrun");
+		const html = !RUN_OK ? "" : all ? all.mine ? holdAndStop("cellrun", "all") : "" : runBtn("all", [], "Run every check over every model", "cellrun");
+		for (const el of slots) el.innerHTML = html;
 	}
 	/** Everything a press changes, drawn once. Four separate calls per click redrew the table four times. */
 	function redrawControls() {
@@ -2505,6 +2534,7 @@ function icon(name) {
 		if (L) {
 			renderRows();
 			renderSiteChecks();
+			renderColRuns();
 		}
 	}
 	const sigOf = () => `${RUN_NOW.runs.map((r) => `${r.what}@${(r.models ?? []).join("+")}`).sort().join("|")}|${RUN_NOW.paused}|${PENDING ? `${PENDING.key}:${PENDING.act}` : ""}`;

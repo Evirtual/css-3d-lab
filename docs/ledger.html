@@ -456,8 +456,8 @@
   .step__sub { grid-column: 1; }
 }
 </style>
-  <script type="module" crossorigin src="./assets/ledger-5NzxqAIN.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/ledger-DkzVBqjz.css">
+  <script type="module" crossorigin src="./assets/ledger-Dr51ST4C.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/ledger-C9RtFmtH.css">
 </head>
 <body>
 <main>
@@ -466,21 +466,24 @@
       <!-- The page is the Ledger. A pill in front of it saying which project this is, on a page that
            only ever describes one project, was reading first and saying least. -->
       <h1><span>Ledger</span></h1>
-      <div class="hero__btns">
-        <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" hidden>What’s holding models back</button>
-        <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" hidden>Release checklist</button>
-        <button class="btn" id="theme" type="button">Theme: auto</button>
+      <!-- On a phone these six wrapped into four ragged rows and took more of the screen than
+           the thing the page is about. They go behind one button there, and stay laid out here
+           on anything wider. Same buttons, same ids, same handlers: only where they sit moves. -->
+      <div class="hero__btns" id="hero-tools">
+        <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" data-nav="alert" hidden>What’s holding models back</button>
+        <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" data-nav="checklist" hidden>Release checklist</button>
+        <button class="btn" id="theme" type="button" data-nav="sun">Theme: auto</button>
         <!-- The way out of this page. A ledger explains what has been proved; it does not explain
              what any of it is for, how to run a check, or what to do first after cloning. That is
              docs/index.html, and it links back here. -->
-        <a class="btn" href="index.html">Docs</a>
+        <a class="btn" href="index.html" data-nav="book">Docs</a>
         <!-- These two were over the stage strip: a link and a badge sitting on top of the part of
              the page that is about models, though neither is about a model. They are about the
              page itself -- how it counts, and what it could not work out -- so they are header
              furniture like everything else here. -->
-        <button type="button" class="btn" id="rules-btn" aria-haspopup="dialog">How these are counted</button>
+        <button type="button" class="btn" id="rules-btn" aria-haspopup="dialog" data-nav="info">How these are counted</button>
         <span class="notes-anchor">
-          <button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" data-tip data-tiptext="Things the ledger could not work out while it built this page: a file it could not read, a run whose process had gone, an instrument that failed. Click to read them."><b>0</b> note</button>
+          <button type="button" id="notes-btn" class="notesbtn" data-nav="note" aria-expanded="false" aria-controls="notes-pop" data-tip data-tiptext="Things the ledger could not work out while it built this page: a file it could not read, a run whose process had gone, an instrument that failed. Click to read them."><b>0</b> note</button>
           <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
         </span>
       </div>
@@ -525,9 +528,18 @@
     <div class="tblhead">
       <h2 id="tbl-h">All models</h2>
       <div class="tbltools__acts" id="grp-acts">
+        <!-- Run every check lives in the Model column heading, with the per-check buttons in the
+             other headings. Below 760px the table is a list of cards and there is no heading row
+             to put it in, so it has a second home here. Both are filled from the same place and
+             only one is ever shown. -->
+        <span class="suite suite--tools" data-suite></span>
         <button type="button" class="btn" id="fold-all">Expand all</button>
       </div>
     </div>
+    <!-- Every check has a run button in its column heading. Below 760px the table is a list of
+         cards and there are no headings, so the same nine buttons are a row of their own here.
+         Shown only at that width: where there are headings, they belong in them. -->
+    <div class="colruns" id="colruns" hidden></div>
     <div class="fbar" id="filters" role="search" aria-label="Filters">
       <div class="fbar__row">
         <label class="search">

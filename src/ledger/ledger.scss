@@ -385,14 +385,18 @@ button, input { font: inherit; color: inherit; }
 .step, .flow__scene {
   --flat: color-mix(in srgb, var(--c) calc(var(--sw-f) + var(--sw-lift)), var(--sw-sky-base));
   --sky: var(--flat);
-  /* the whole strip in one gradient: a plateau over each arrow's words, the change across each gate.
-     The two changes are centred on the chevron tips, which sit at 34.7% and 67.4% of the strip over
-     every width this layout runs at. Both ends of a change are a colour measured at its own cap, so
-     every pixel between them clears 4.5:1 too and a word may sit anywhere along one. */
-  --ramp: linear-gradient(90deg,
-    color-mix(in srgb, var(--accent) calc(var(--sw-f1) + var(--sw-lift)), var(--sw-sky-base)) 0 25.7%,
-    color-mix(in srgb, var(--hot) calc(var(--sw-f2) + var(--sw-lift)), var(--sw-sky-base)) 43.7% 58.4%,
-    color-mix(in srgb, var(--warm) calc(var(--sw-f3) + var(--sw-lift)), var(--sw-sky-base)) 76.4% 100%);
+  /*
+   * There used to be a --ramp here: the whole strip washed in one gradient, a flat colour over each
+   * arrow's words and the change from one to the next centred on the chevron between them. Its
+   * stops were written at 25.7%, 43.7-58.4% and 76.4%, because that is where the tips of THREE
+   * arrows fall. There are ten. The three bands stopped landing on any join and became a wash
+   * across the middle of arbitrary arrows, flattening the scene underneath for no reason any
+   * longer true.
+   *
+   * The scene draws its own light -- the sky panels, the sun, the floor -- and it does it per
+   * arrow from each one's own share. That was always the better picture; the wash was sitting on
+   * top of it.
+   */
 }
 /* the notch of one tab is the exact negative of the tip before it, so they interlock with no seam */
 .step {
@@ -434,12 +438,8 @@ button, input { font: inherit; color: inherit; }
     /* the outline of the three interlocking arrows together: a flat left end, one point on the right.
        Everything the scene draws is inside it, so nothing -- wave, floor or sun -- passes the point. */
     clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%);
-    /* ONE field for the whole strip, in the strip's own coordinates: flat violet across the first
-       arrow's words, flat pink across the second's, flat amber across the third's, and the change from
-       one to the next happening at the chevron between them. Painted here rather than once per arrow,
-       because a gradient written per panel meets its neighbour part-way along its own ramp and leaves
-       a step at the join -- which is what the first cut of this did. */
-    background: var(--ramp);
+    /* No field painted here: the scene draws its own, and each arrow takes its colour from its own
+       step. The flat wash that used to sit here was cut for three arrows and there are ten. */
   }
 }
 /* ---------- the floor ----------
@@ -2109,3 +2109,422 @@ td.c:has(.ckrun--wait) { background: color-mix(in srgb, var(--st-warn) 14%, tran
 .ckrun--wait { border-color: transparent; background: transparent; }
 td.c .cellrun.ckrun--wait { border-color: transparent; }
 .ckrun--wait i { width: 100%; height: 100%; border-width: 2px; }
+
+/* ================================================================================================
+   NARROW SCREENS: THE SAME STRIP, SMALLER
+
+   Below 900px the strip used to turn on its side -- one arrow per row, each drawing its own sky,
+   its own floor and its own wave, because three stacked arrows are not one horizon. That was right
+   for three. There are ten now, and ten full-width bands stacked down the page is not a funnel, it
+   is a list of ten pictures.
+
+   So the shape does not change with the screen any more: it is the same horizon, the same ten
+   arrows in the same order, and on a narrow screen you scroll it sideways. A funnel read left to
+   right is the thing being shown; turning it into a column loses what it was for.
+   ================================================================================================ */
+@media (max-width: 900px) {
+  .panel--strip { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+  /* wide enough that a word and a number fit in each arrow; narrower than this and it scrolls */
+  .flowwrap { min-width: 720px; --notch: 18px; --deck: 28px; }
+  .flow { flex-direction: row; }
+  .flow__li { margin: 0 0 0 calc(var(--notch) * -1); }
+  .flow__li:first-child { margin-left: 0; }
+  /* the desktop chevron, pointing right, and the one shared scene behind all ten */
+  .step, .step--1 { clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%, var(--notch) 50%); }
+  .step--1 { clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%); }
+  .step__body { height: 112px; background:
+      linear-gradient(to top, color-mix(in srgb, var(--c) 40%, transparent) 0 3px, transparent 3px),
+      linear-gradient(var(--tint), var(--tint)),
+      var(--sky); }
+  .step__wrap { display: none; }          /* no per-arrow scene: there is one horizon again */
+  .flow__scene { display: block; }
+  .step { --sky: transparent; }
+  .step__text, .step--1 .step__text {
+    display: block; padding: calc(var(--notch) + 2px) 10px calc(var(--notch) + 2px) 16px;
+  }
+  .step__label { display: block; font-size: 9px; letter-spacing: 0.06em; }
+  .step__n { display: block; font-size: 19px; }
+  .flow__li:last-child { flex: 1.3 1 0; }
+}
+
+/* ================================================================================================
+   THE HEADER AT EVERY WIDTH
+
+   The name sat on one row with the buttons pushed to its right, and as the window narrowed they
+   broke into a ragged right-aligned stack under the title, reading as if they belonged to it. The
+   name keeps its own line; everything you can press flows from the left underneath, in reading
+   order, wrapping where it must.
+   ================================================================================================ */
+@media (max-width: 860px) {
+  .hero .top { flex-direction: column; align-items: stretch; gap: 10px; }
+  .hero__btns { justify-content: flex-start; width: 100%; }
+  .statusline { gap: 6px 12px; }
+  header .sitechk { margin: 8px 0 0; width: 100%; }
+}
+@media (max-width: 520px) {
+  /* at this width a row of pills is a column of pills whatever we do, so they get full width and
+     the same height, rather than three ragged rows of different lengths */
+  .hero__btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hero__btns > .btn, .hero__btns > .notes-anchor, .hero__btns > .notes-anchor > .notesbtn { width: 100%; }
+  .hero__btns > #blk-btn, .hero__btns > #cl-btn { grid-column: 1 / -1; }
+}
+
+/* ---------- only one of the two suite slots is ever shown ----------
+   The Model heading carries it where there is a heading row; the toolbar carries it where the table
+   is a list of cards and there is not. */
+.suite--tools { display: none; }
+@media (max-width: 760px) {
+  .suite--tools { display: inline-flex; align-items: center; }
+  .suite--tools::before {
+    content: "Run every check"; margin-right: 8px;
+    font: 600 12.5px/1 var(--font); color: var(--muted); white-space: nowrap;
+  }
+  .suite--tools:empty { display: none; }
+}
+
+/* ================================================================================================
+   ONE STRIP, ONE LAYOUT, EVERY WIDTH
+
+   The words sat in a two-column grid on a wide screen -- name on the left, count pushed to the
+   right -- and stacked, name over count, on a narrow one. The stacked one reads better: ten arrows
+   are ten small columns, and a number directly under the word it belongs to is read in one glance
+   instead of tracked across a gap. So that is the layout now, at every width.
+
+   And it does not scroll. A funnel you have to drag sideways to finish reading is a funnel you
+   read half of. Ten arrows share whatever width there is, and the words shrink to fit: at a phone's
+   width a long one is clipped rather than the strip being made wider than the screen.
+   ================================================================================================ */
+.step__text, .step--1 .step__text {
+  display: block;
+  padding: calc(var(--notch) + 4px) 10px calc(var(--notch) + 4px) 18px;
+}
+.step__label {
+  display: block; min-width: 0;
+  font-size: clamp(7.5px, 0.85vw, 10px); letter-spacing: 0.06em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.step__n { display: block; font-size: clamp(15px, 1.9vw, 24px); line-height: 1.15; }
+.step--end .step__label { font-size: clamp(7.5px, 0.9vw, 10.5px); }
+.step--end .step__n { font-size: clamp(16px, 2.1vw, 26px); }
+
+@media (max-width: 900px) {
+  /* no sideways drag: the strip is the width of the screen and the ten share it */
+  .panel--strip { overflow: visible; }
+  .flowwrap { min-width: 0; --notch: 12px; }
+  .step__body { height: 104px; }
+  .step__text, .step--1 .step__text { padding: calc(var(--notch) + 3px) 5px calc(var(--notch) + 3px) 11px; }
+  .flow__li:last-child { flex: 1.15 1 0; }
+}
+@media (max-width: 520px) {
+  .flowwrap { --notch: 9px; }
+  .step__body { height: 92px; }
+  .step__text, .step--1 .step__text { padding: calc(var(--notch) + 2px) 3px calc(var(--notch) + 2px) 8px; }
+  .step__label { letter-spacing: 0.02em; }
+}
+
+
+/* ================================================================================================
+   BELOW 1000px: THE CONTROLS ARE A BAR ALONG THE BOTTOM
+
+   Six pills wrapped onto a second row at about 920px and onto four by phone width, taking more of
+   the screen than the thing the page is about. Below 1000px they are icons at the bottom of the
+   window instead -- where a phone puts what you reach for, within reach of a thumb -- and the
+   header keeps only what it is telling you: the commit, whether the watcher is live, and how the
+   site's own two checks stand.
+
+   Same six controls, same ids, same handlers. Each keeps its words as its text, so a screen reader
+   announces the label and a wide screen shows it; only the icon is added.
+   ================================================================================================ */
+.nav__i { display: none; }
+.hero__menu { display: none; }
+
+@media (max-width: 1000px) {
+  /* the bar itself */
+  #hero-tools {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 80;
+    display: flex; justify-content: space-around; align-items: stretch; gap: 0;
+    width: auto; margin: 0; padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
+    border: 0; border-top: 1px solid var(--border-strong); border-radius: 0;
+    background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
+    backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow: 0 -10px 30px rgb(0 0 0 / 0.45);
+  }
+  /* nothing is hidden in a bar: a control with nothing to say is dimmed, not removed, so the
+     six never shuffle position under a thumb that has learnt where they are */
+  #hero-tools > .btn[hidden], #hero-tools .notesbtn[hidden] { display: flex; opacity: 0.35; pointer-events: none; }
+  #hero-tools > .btn, #hero-tools > .notes-anchor, #hero-tools .notesbtn {
+    flex: 1 1 0; min-width: 0; min-height: 46px; padding: 4px 2px;
+    flex-direction: column; justify-content: center; gap: 3px;
+    border: 0; border-radius: 10px; background: none; box-shadow: none;
+  }
+  #hero-tools .nav__i { display: grid; place-items: center; }
+  #hero-tools .nav__i .icon { width: 20px; height: 20px; }
+  /* the words stay, small, under the icon: an icon alone is a guess */
+  #hero-tools .nav__t {
+    display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 9.5px; font-weight: 600; letter-spacing: 0.01em; color: var(--muted);
+  }
+  /* the counts these carry are for the wide layout; the bar has no room and the panels say them */
+  #hero-tools .nav__t small, #hero-tools .notesbtn small { display: none; }
+  /* .clfill IS the checklist button, not the bar drawn inside it: hiding it hid the button.
+     The decoration is the ::before; that is what has no room in a 60px slot. */
+  #hero-tools .clbar { display: none; }
+  #hero-tools .clfill::before { display: none; }
+  #hero-tools > .btn:active, #hero-tools .notesbtn:active { background: color-mix(in srgb, var(--accent-2) 16%, transparent); }
+
+  /* notes open upward, out of a bar that is already at the bottom */
+  #hero-tools .notes-anchor { position: relative; display: flex; }
+  #hero-tools .notes-pop {
+    position: fixed; left: 8px; right: 8px; bottom: calc(100% + 0px); top: auto; width: auto;
+    max-height: 60vh; overflow-y: auto;
+  }
+
+  /* and the page is not hidden under the bar */
+  body { padding-bottom: 70px; }
+  .hero .top { flex-direction: column; align-items: stretch; gap: 8px; }
+  header .sitechk { margin: 8px 0 0; }
+}
+
+/* ---------- the arrow's words on a narrow screen ----------
+   At 47px an arrow has room for a number OR a word, not both side by side and barely both stacked:
+   "CONTRACT" clipped and the count sat under it with nothing to spare. The word turns on its side.
+   It costs the strip no width at all that way -- a rotated word is as wide as its letters are tall
+   -- so the number gets the whole arrow, at a size you can actually read, and the label runs up
+   beside it like the spine of a book. */
+@media (max-width: 620px) {
+  .step__text, .step--1 .step__text {
+    flex-direction: row; align-items: center; gap: 4px;
+    padding: 4px 2px 4px 7px;
+  }
+  .step__label {
+    writing-mode: vertical-rl; rotate: 180deg;
+    flex: none; max-height: 100%;
+    font-size: 8px; letter-spacing: 0.04em;
+  }
+  .step__n { flex: 1 1 auto; text-align: center; font-size: clamp(14px, 4.4vw, 19px); }
+}
+
+/* ---------- the words are centred both ways ----------
+   Horizontal centring came out when the ask turned out to be vertical; it was wanted as well. It
+   goes back here, with `align-items` rather than the fat side padding it had the first time -- that
+   padding was 29px on a 47px arrow, which is what clipped the numbers on a phone. Centring costs no
+   width, so the narrow layout below is untouched. */
+@media (min-width: 621px) {
+  .step__text, .step--1 .step__text { align-items: center; text-align: center; }
+}
+
+/* ---------- the bar is sized by its contents, not stretched between two edges ----------
+   A leftover `top: 100%` from the dropdown this replaced was still in play. With `bottom: 0` set as
+   well, the two edges decided the height between them -- 100% of the viewport down to the bottom of
+   it -- which is nothing. The bar was there, pinned correctly, and nine pixels tall. */
+@media (max-width: 1000px) {
+  #hero-tools { top: auto; height: auto; }
+}
+
+/* ================================================================================================
+   THE HEADER, READABLE, AND STACKING THE SAME WAY AT EVERY WIDTH
+
+   It was one row that wrapped wherever it ran out of room, so at some widths the last control --
+   usually the notes badge -- ended up alone on a line of its own, right-aligned, looking like it
+   had come loose. And the line that carries the actual news, the commit and whether the watcher is
+   live, was the smallest and faintest thing in the box.
+
+   Three bands now, always in this order, each wrapping within itself: the name and what you can
+   press; the state of this build; the site's own two checks. Nothing reflows into a band above it.
+   ================================================================================================ */
+.hero .top { align-items: flex-start; row-gap: 10px; }
+.hero h1 { flex: none; }
+.hero__btns { flex: 1 1 320px; justify-content: flex-end; row-gap: 8px; }
+
+/* the line that says what this build is: the biggest thing in the header after the name */
+.statusline { margin-top: 12px; font-size: 13.5px; row-gap: 4px; }
+.statusline .meta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.statusline code { font-size: 12.5px; }
+/* the separators between its parts were doing the work of spacing; spacing does it better */
+.statusline .live { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+
+@media (max-width: 1240px) {
+  /* before anything wraps raggedly, the controls take a line of their own and fill it from the left */
+  .hero .top { flex-direction: column; align-items: stretch; }
+  .hero__btns { flex: 1 1 auto; justify-content: flex-start; }
+}
+@media (max-width: 1000px) {
+  /* and below this they are the bar at the bottom, so the header is information only */
+  .hero .top { display: block; }
+  .statusline { margin-top: 10px; }
+}
+
+/* ---------- where the words do not fit, the icons carry it ----------
+   Six labels across a phone leaves each about nine characters, so every one was an ellipsis: "What's
+   holding mod...", "How these are cou...". A truncated label is worse than none -- it takes the room
+   AND does not say the thing. The icons get the space and a size you can hit.
+
+   The words are not deleted, only taken off the screen: they stay in the element as its text, which
+   is what a screen reader announces and what the tooltip and the wide layout use. A bar of icons
+   with no accessible names would be six mystery buttons to anyone not looking at it. */
+@media (max-width: 620px) {
+  #hero-tools .nav__t {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  }
+  #hero-tools > .btn, #hero-tools > .notes-anchor, #hero-tools .notesbtn {
+    min-height: 52px; padding: 6px 2px;
+  }
+  #hero-tools .nav__i .icon { width: 23px; height: 23px; }
+  /* the notes count is the one number worth keeping: it is why you would press it */
+  #hero-tools .notesbtn b {
+    position: absolute; top: 5px; left: 50%; margin-left: 5px;
+    min-width: 15px; padding: 0 3px; border-radius: 999px;
+    background: var(--st-warn); color: var(--bg);
+    font: 800 9.5px/15px var(--font); text-align: center;
+  }
+  #hero-tools .notesbtn { position: relative; }
+  #hero-tools .notesbtn.is-quiet b { display: none; }
+}
+
+/* ---------- the filter bar rests against the top edge ----------
+   It rested 16px down, with that strip left transparent so the rows showed through it. Scrolling
+   past it, the gap reads as the bar having come loose from the top of the window rather than as
+   breathing room -- and it is 16px of the screen given to nothing on a phone, where the list is
+   the whole point. It rests flush now, at every width, and stays sticky on a phone too: a filter
+   you have scrolled away from is a filter you cannot tell is on. */
+:root { --stick-top: 0px; }
+@media (max-width: 1099px) { :root { --stick-top: 0px; } }
+.fbar { margin-top: 0; position: sticky; }
+.fbar.is-stuck::after { content: none; }
+
+/* ---------- the strip ends with a straight cut ----------
+   Everything came to a point on the right, and the wrapper hung its own width past the panel to
+   make room for it. That point said "and then you are out the other side", which was worth
+   something when the strip was three stages a model travelled through. It is ten checks and a
+   destination now: the chevrons between them still carry the order, but the last one is the end of
+   a list, not a door. The last arrow keeps its notch on the left and is cut straight down on the
+   right, and the strip finishes flush with the table under it. */
+.flowwrap { margin-right: 0 !important; clip-path: none !important; }
+.flow__li:last-child .step,
+.flow__li:last-child .step--1 {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, var(--notch) 50%) !important;
+}
+.flow__scene { clip-path: none !important; }
+
+/* ================================================================================================
+   AN OPEN DIALOG IS THE OVERLAY, AND IT IS WHAT SCROLLS
+
+   The dialog was a floating panel with a scrolling body inside it, over a page that still scrolled
+   behind. So there were two scrollbars and the wheel went to whichever the pointer was over: read
+   to the bottom of the definitions, keep going, and the page underneath moved instead.
+
+   This is the pattern the app already uses for its model viewer (src/styles/_layout.scss): the
+   dialog covers the screen and is the only thing that scrolls, the page behind is locked, and the
+   glass panel inside it is a sheet that centres when it fits and scrolls from the top when it does
+   not. `scrollbar-gutter: stable` keeps the page's scrollbar space reserved so locking it does not
+   shift the layout sideways, and gives the space back while a dialog is open so the dialog's own
+   scrollbar is the one at the right edge.
+   ================================================================================================ */
+html { scrollbar-gutter: stable; }
+html:has(.cldlg[open]) { overflow: hidden; scrollbar-gutter: auto; }
+
+.cldlg {
+  /* the dialog is the overlay: the whole screen, transparent, and the scroller */
+  width: 100%; max-width: none; height: 100%; max-height: none; margin: 0;
+  padding: 28px 12px 24px;
+  overflow: hidden auto; overscroll-behavior: contain;
+  border: 0; border-radius: 0; background: none; backdrop-filter: none; box-shadow: none;
+}
+/* a column, so the sheet's auto margins centre it when it fits and collapse when it does not --
+   which is what stops a tall one being cut off at the top */
+.cldlg[open] { display: flex; flex-direction: column; }
+.cldlg__box {
+  flex: none; width: min(860px, 100%); margin: auto;
+  border: 1px solid var(--glass-edge); border-radius: 22px;
+  background: var(--glass); backdrop-filter: blur(26px) saturate(1.6);
+  box-shadow: 0 40px 120px -20px rgb(0 0 0 / 0.8), inset 0 1px 0 var(--glass-edge);
+  overflow: hidden;
+}
+/* the body no longer scrolls on its own: the dialog around it does, so there is one scrollbar */
+.cldlg__body { overflow: visible; max-height: none; }
+/* the heading stays put while its own dialog scrolls past it */
+.cldlg__head {
+  position: sticky; top: 0; z-index: 2;
+  background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+}
+@media (max-width: 620px) {
+  .cldlg { padding: 12px 8px 20px; }
+  .cldlg__box { border-radius: 16px; }
+}
+
+/* ---------- the filter bar rests a little below the top edge ----------
+   It floats rather than touching the window, at every width including a phone. The gap is left
+   empty on purpose: it used to hold a pane of near-opaque glass, which with the panel scrolled away
+   behind it read as a black band. Whatever is passing underneath shows through instead. */
+:root { --stick-top: 16px; }
+@media (max-width: 1099px) { :root { --stick-top: 16px; } }
+.fbar { margin-top: 0; position: sticky; top: var(--stick-top); }
+.fbar.is-stuck::after { content: none; }
+
+/* ================================================================================================
+   ON A PHONE THE LABEL LIES ALONG THE CHEVRON
+
+   Ten arrows across a phone gives each about 37px. A word will not fit across that, and stood
+   straight up it did not fit either: the arrow is 92px tall and "ACCESS" upright clipped to "…ESS".
+
+   So the word lies along the chevron that divides it from the arrow before it, and the count sits
+   above. The angle is not chosen, it is measured: the notch runs from the arrow's top-left corner
+   to a point one notch in at half its height, so the line leans atan(notch / (height / 2)) off
+   vertical. At 9px and 92px that is 11.1deg, and at 12px and 104px it is 13deg. Each width below
+   sets the tilt its own shape earns, so the word is parallel to the line beside it rather than
+   nearly parallel, which is the thing the eye catches.
+   ================================================================================================ */
+@media (max-width: 620px) {
+  .step__text, .step--1 .step__text {
+    flex-direction: column; align-items: center; justify-content: flex-start;
+    gap: 0; padding: 5px 2px 4px;
+  }
+  /* the count first, reading straight across, because it is the thing being read */
+  .step__n {
+    flex: none; order: 0; text-align: center;
+    font-size: clamp(13px, 4.2vw, 18px); line-height: 1.05;
+  }
+  /* and the word under it, down the slope of its own chevron */
+  .step__label {
+    flex: 1 1 auto; order: 1; min-height: 0;
+    writing-mode: vertical-rl; rotate: 180deg;
+    transform: rotate(var(--lean, 11.1deg));
+    transform-origin: 50% 40%;
+    margin-top: 1px;
+    font-size: 8px; letter-spacing: 0.03em;
+    overflow: hidden; text-overflow: clip;
+  }
+  /* the first arrow has no chevron on its left, so its word stands straight */
+  .flow__li:first-child .step__label { transform: none; }
+  /* 12px notch over a 104px body: 13deg */
+  .flowwrap { --lean: 13deg; }
+}
+@media (max-width: 520px) {
+  /* 9px notch over a 92px body: 11.1deg */
+  .flowwrap { --lean: 11.1deg; }
+}
+
+/* ---------- the per-check run buttons, where there are no headings to hold them ---------- */
+.colruns { display: none; }
+@media (max-width: 760px) {
+  .colruns {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px;
+    margin: 10px 0 0; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: color-mix(in srgb, var(--muted) 6%, transparent);
+  }
+  .colruns[hidden] { display: none; }
+  .colruns__h {
+    flex: 1 1 100%; margin-bottom: 2px;
+    font: 700 10px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  }
+  .colruns__one { display: inline-flex; align-items: center; gap: 5px; }
+  .colruns__one b { font: 600 11.5px/1 var(--font); color: var(--text); }
+  /* these have no mark to replace, so they are simply there */
+  .colruns .cellrun { position: static; margin: 0; opacity: 1; width: 22px; height: 22px; }
+  .colruns .cellrun[disabled] { display: inline-grid; }
+  /* and the whole-suite control beside it reads as the row's own heading */
+  .suite--tools { gap: 8px; }
+}

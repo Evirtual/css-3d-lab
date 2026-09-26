@@ -1191,6 +1191,7 @@ import { icon } from '../icons.ts';
     btn.innerHTML = `<b>${shown.length}</b> note${shown.length === 1 ? '' : 's'}${hid ? ` <small>· ${hid} dismissed</small>` : ''}`;
     btn.setAttribute('aria-expanded', String(notesOpen));
     btn.classList.toggle('is-quiet', !shown.length);
+    paintNavIcons();
     const pop = $('notes-pop');
     pop.hidden = !notesOpen || !NOTES.length;
     pop.innerHTML = (shown.length
@@ -1198,7 +1199,39 @@ import { icon } from '../icons.ts';
       : '<p class="muted" style="margin:4px 2px">Every note is dismissed.</p>')
       + (hid ? `<p style="margin:8px 2px 2px"><button type="button" class="linkish" data-undismiss>Show the ${hid} dismissed note${hid === 1 ? '' : 's'}</button> <span class="muted" style="font-size:12px">A dismissed note comes back by itself if what it says changes.</span></p>` : '');
   }
-  $('notes-btn').addEventListener('click', (e) => { e.stopPropagation(); notesOpen = !notesOpen; renderNotes(); });
+  /*
+   * The header's controls carry an icon, for the width where they are a bar along the bottom.
+   *
+   * On a phone these six wrapped into four rows and pushed the thing the page is about below the
+   * fold. They sit at the bottom of the screen there, as icons, the way a phone puts the things
+   * you reach for within reach of a thumb -- and the header keeps only what it is telling you:
+   * the commit, whether the watcher is live, and how the site's own two checks stand.
+   *
+   * They are the same six controls with the same ids and the same handlers. The icon is added
+   * here rather than written into the markup so the label stays the element's text: that is what
+   * a screen reader announces, and what is shown on a wide screen.
+   */
+  /*
+   * Run again after anything that rewrites one of these.
+   *
+   * Three of the six write their own label as the page builds -- the blockers button counts what
+   * is holding models back, the checklist button counts what is done, the notes button counts
+   * notes -- and each does it by replacing its innerHTML. Adding the icon once at startup put it
+   * inside markup that the first render threw away, so three of the six were icons for about a
+   * second and blanks after that.
+   *
+   * It is idempotent: a control that already has its icon is left alone, so calling this after
+   * every render costs a query and nothing else.
+   */
+  function paintNavIcons() {
+    for (const el of document.querySelectorAll('[data-nav]')) {
+      if (el.querySelector(':scope > .nav__i')) continue;
+      const name = el.getAttribute('data-nav');
+      el.innerHTML = `<span class="nav__i" aria-hidden="true">${icon(name)}</span><span class="nav__t">${el.innerHTML}</span>`;
+    }
+  }
+  paintNavIcons();
+  $('notes-btn').addEventListener('click', (e) => { e.stopPropagation(); notesOpen = !notesOpen; renderNotes(); paintNavIcons(); });
   $('notes-pop').addEventListener('click', (e) => {
     e.stopPropagation();
     const x = e.target.closest('[data-dismiss]');
@@ -1304,7 +1337,7 @@ import { icon } from '../icons.ts';
       return { pass: c.tally.pass ?? 0, of, said: `${c.title}, over all ${of} models: ${split || 'nothing counted'}.` };
     };
     // short headers: each names its check in the tooltip and opens its definition
-    const theadHtml = `<th class="model" scope="col"><span class="colh__wrap colh__wrap--model"><span class="suite" id="suite"></span><span class="colh colh--plain">Model</span></span></th><th class="st" scope="col">Status</th>${COLS.map(([k, label]) => {
+    const theadHtml = `<th class="model" scope="col"><span class="colh__wrap colh__wrap--model"><span class="suite" id="suite" data-suite></span><span class="colh colh--plain">Model</span></span></th><th class="st" scope="col">Status</th>${COLS.map(([k, label]) => {
       const note = NOTES.find((n) => n.col === k); // why the column reads as it does, even after the note is dismissed
       const title = CHECK_NAMES[k] ?? k;
       const going = RUN_NOW.runs.some((r) => r.what === k);
@@ -1321,6 +1354,7 @@ import { icon } from '../icons.ts';
     renderOverview();
     renderRules();
     renderSiteChecks();
+    renderColRuns();
     renderMarkLegend();
 
     // a group or tag chosen earlier that no longer exists would hide everything without saying why
@@ -1329,6 +1363,7 @@ import { icon } from '../icons.ts';
     renderFilterChips();
     renderRows();
     renderReadiness();
+    paintNavIcons();
   }
 
   /**
@@ -2214,6 +2249,23 @@ import { icon } from '../icons.ts';
         ${runBtn(c.key, [], `Run ${c.title}`, 'cellrun')}</span>`;
     }).join('');
   }
+  /**
+   * The per-check run buttons, for the width where there are no column headings to hold them.
+   *
+   * A heading carries the button that runs its check over every model. Below 760px the table is
+   * a list of cards, the headings are not drawn, and those nine controls went with them -- so on
+   * a phone you could run one check on one model, or everything on everything, and nothing in
+   * between. This is the same nine buttons and the same runBtn, in a row of their own, with each
+   * check named because there is no column above to say which is which.
+   */
+  function renderColRuns() {
+    const el = $('colruns'); if (!el) return;
+    if (!RUN_OK || !COLS.length) { el.hidden = true; el.innerHTML = ''; return; }
+    el.hidden = false;
+    el.innerHTML = '<span class="colruns__h">Run over every model</span>'
+      + COLS.map(([k, label]) => `<span class="colruns__one">${runBtn(k, [], `Run ${label} on every model`, 'cellrun')}<b>${esc(label)}</b></span>`).join('');
+  }
+
   /** Opens the definitions at one check's entry. */
   function openDef(key) {
     const d = $('rules-dialog');
@@ -2449,17 +2501,21 @@ import { icon } from '../icons.ts';
    * keeps only the two buttons that change it.
    */
   function renderSuite() {
-    const el = $('suite'); if (!el) return;
-    if (!RUN_OK) { el.innerHTML = ''; return; }
+    // Two slots, one answer: the Model column heading, and the table toolbar for the widths
+      // where there is no heading row. Whichever is on screen shows the same control.
+    const slots = document.querySelectorAll('[data-suite]');
+    if (!slots.length) return;
     const all = runOf('all');
-    if (all) { el.innerHTML = all.mine ? holdAndStop('cellrun', 'all') : ''; return; }
-    el.innerHTML = runBtn('all', [], 'Run every check over every model', 'cellrun');
+    const html = !RUN_OK ? ''
+      : all ? (all.mine ? holdAndStop('cellrun', 'all') : '')
+      : runBtn('all', [], 'Run every check over every model', 'cellrun');
+    for (const el of slots) el.innerHTML = html;
   }
   /** Everything a press changes, drawn once. Four separate calls per click redrew the table four times. */
   function redrawControls() {
     sortBars();
     renderSuite();
-    if (L) { renderRows(); renderSiteChecks(); }
+    if (L) { renderRows(); renderSiteChecks(); renderColRuns(); }
   }
   const sigOf = () => `${RUN_NOW.runs.map((r) => `${r.what}@${(r.models ?? []).join('+')}`).sort().join('|')}|${RUN_NOW.paused}|${PENDING ? `${PENDING.key}:${PENDING.act}` : ''}`;
 
