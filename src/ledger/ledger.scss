@@ -1074,13 +1074,23 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
    which repaints the mark and everything under it every frame -- with the table drawn in full that one
    rule was worth about half the page's frame budget while scrolling. It is a pseudo-element now, moved
    by transform and opacity only, so the compositor carries it and nothing repaints. */
-.mk.is-running { position: relative; }
-.mk.is-running::before {
-  content: ''; position: absolute; inset: -2px; border-radius: 50%;
-  border: 2px solid color-mix(in srgb, var(--accent-2) 55%, transparent);
-  animation: mkpulse 1.4s ease-in-out infinite;
+/* One ring, and it means one thing: this model is being checked right now.
+
+   There were three. A teal ring that pulsed, on whichever model the run had last FINISHED; an
+   amber one that turned, inset 3px, on the mark; and another amber one inset 4px on the mark
+   inside a cell, which outranked it. Two of them could be on screen at once, a row apart,
+   saying the same words about different models.
+
+   Amber, because that is what this page means by a verdict about to be replaced -- the tint on
+   the cell underneath is the same colour. It turns rather than pulses, because it is waiting on
+   something, and the legend shows this exact mark beside "running on it now". */
+.mk.is-running { position: relative; --c: var(--st-warn); }
+.mk.is-running::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid transparent; border-top-color: var(--st-warn);
+  border-right-color: color-mix(in srgb, var(--st-warn) 35%, transparent);
+  animation: ckspin 0.85s linear infinite;
 }
-@keyframes mkpulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.34); opacity: 0.2; } }
 .mk svg { display: block; }
 .marks-legend .mk svg { width: 10px; height: 10px; }
 /* one row, in the same scroller the groups and tags rows use: it fades and shows an arrow where there
@@ -1221,7 +1231,7 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .chip--act { cursor: pointer; font: inherit; }
 .chip--act:hover { box-shadow: 0 0 0 2px color-mix(in srgb, var(--hot) 40%, transparent); }
 .chip__aside { font-weight: 600; opacity: 0.85; }
-@media (prefers-reduced-motion: reduce) { .mk.is-running::before { animation: none; } .grow__btn svg { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .grow__btn svg { transition: none; } }
 /* narrower models panel: the last-commit columns give way first (each row's detail lists its commits) */
 @container models (max-width: 960px) { #tbl .last, #tbl .ncom { display: none; } }
 /* phones and narrow windows: each model is a card, its checks a wrap of labelled marks */
@@ -1578,12 +1588,8 @@ td.c:has(.ckrun--stop) .cellrun { width: 17px; height: 17px; }
    cell is the OLD verdict -- true a minute ago, about to be replaced, and drawn exactly like one
    that was just confirmed. So it is marked as being worked on: the mark goes amber and turns, and
    nobody reads a green tick that is in the middle of being re-decided. */
-.mk.is-checking { --c: var(--st-warn); position: relative; }
-.mk.is-checking::after { content: ""; position: absolute; inset: -3px; border-radius: 50%;
-  border: 2px solid transparent; border-top-color: var(--st-warn);
-  animation: ckspin 0.85s linear infinite; }
+/* the cell says it too, behind the mark; the ring itself is drawn once, on .mk.is-running */
 td.c.is-checking { background: color-mix(in srgb, var(--st-warn) 13%, transparent); }
-@media (prefers-reduced-motion: reduce) { .mk.is-checking::after { animation: none; opacity: 0.6; } }
 
 /* ---------- the tick that says which models a group's buttons act on ----------
    The browser's own checkbox, whatever accent-color you give it, is a different shape and size on
@@ -1693,11 +1699,7 @@ td.c.is-checking { background: color-mix(in srgb, var(--st-warn) 13%, transparen
    they are two different facts. Which model the run is ON is inferred from the last one it
    finished, so only that one gets the spinner; the rest are simply waiting, and say so quietly. */
 td.c.is-checking { background: color-mix(in srgb, var(--st-warn) 14%, transparent); }
-td.c.is-checking .mk { --c: var(--st-warn); position: relative; }
-td.c.is-checking .mk::after { content: ""; position: absolute; inset: -4px; border-radius: 50%;
-  border: 2px solid transparent; border-top-color: var(--st-warn); border-right-color: color-mix(in srgb, var(--st-warn) 35%, transparent);
-  animation: ckspin 0.85s linear infinite; }
-@media (prefers-reduced-motion: reduce) { td.c.is-checking .mk::after { animation: none; opacity: 0.7; } }
+@media (prefers-reduced-motion: reduce) { .mk.is-running::after { animation: none; opacity: 0.7; } }
 /* in the queue: its verdict is about to be re-decided, so it is drawn as something on its way out */
 td.c.is-waiting .mk { opacity: 0.4; filter: saturate(0.4); }
 

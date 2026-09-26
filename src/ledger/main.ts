@@ -261,7 +261,16 @@ import { icon } from '../icons.ts';
     const [kind, word] = markKind(r);
     const title = CHECK_NAMES[key] ?? key;
     const run = L.running?.[key];
-    const now = isLive(key) && run.last === m.id;
+    /*
+     * Which model is being checked, asked once.
+     *
+     * This used to be `run.last === m.id`, and run.last is the model the run last FINISHED --
+     * so the ring landed on a model that had already reported, one row from the one actually
+     * being worked on, and the legend called it "running on it now". runStateOf infers the one
+     * in flight (the next in order that has not reported) and the cell was already tinted from
+     * it. One inference, so the mark and the cell it sits in cannot point at different models.
+     */
+    const now = runStateOf(key, m) === 'is-checking';
     const when = r && r.status !== 'never' ? ` Ran ${r.ranAt ? `${new Date(r.ranAt).toLocaleString()}, ${fmtAgeShort(age(r.ranAt))}` : 'at an unknown time'}${r.commit ? ` at ${r.commit}` : ''}.` : ' No captured run has reported this model.';
     // nothing has run here, but the committed snapshot has a verdict: said as the last release's
     // state, with the commit it was taken at, and never folded into the mark, which stays "not run yet"
@@ -1740,7 +1749,20 @@ import { icon } from '../icons.ts';
      * somebody began in a terminal, and a Stop that does nothing is worse than no Stop. Saying
      * a check is running is not a control. It is the truth about the machine either way.
      */
-    if (r && sameIds(r.models ?? [], ids)) {
+    /*
+     * A cell never takes this branch.
+     *
+     * It used to, when the run named exactly this model -- so running Share on ONE model put a
+     * spinner where its mark had been, while running the whole Share column left the mark in
+     * place and drew a ring round it. The same fact, two pictures, decided by nothing but
+     * whether the run happened to name the model or cover everything.
+     *
+     * The ring is the right one. The mark under it is the old verdict, and being able to read it
+     * while it is re-decided is the whole reason for marking it rather than hiding it. So a cell
+     * falls through to the disabled button below, which says which run is in the way, and the
+     * mark wears the ring from runStateOf either way.
+     */
+    if (r && sameIds(r.models ?? [], ids) && cls !== 'cellrun') {
       /*
        * Who carries pause and stop.
        *
@@ -1757,7 +1779,6 @@ import { icon } from '../icons.ts';
       // board has not answered yet, ckrun--busy is a check actually running over this model. The
       // second is amber, because the mark underneath it is a verdict about to be replaced. It says
       // so in the class and not in where it sits, so a heading, a group and a row all read alike.
-      if (cls === 'cellrun') return `<span class="${cls} ckrun--wait ckrun--busy" role="status" aria-label="Being checked now" title="Being checked now"><i></i></span>`;
       // pause and stop need a pid; without one the honest thing is to say it is running and
       // leave it at that, rather than offer a control that would do nothing
       return r.mine

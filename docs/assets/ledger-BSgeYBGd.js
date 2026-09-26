@@ -299,8 +299,8 @@ function icon(name) {
 		const r = m.checks[key];
 		const [kind, word] = markKind(r);
 		const title = CHECK_NAMES[key] ?? key;
-		const run = L.running?.[key];
-		const now = isLive(key) && run.last === m.id;
+		L.running?.[key];
+		const now = runStateOf(key, m) === "is-checking";
 		const when = r && r.status !== "never" ? ` Ran ${r.ranAt ? `${new Date(r.ranAt).toLocaleString()}, ${fmtAgeShort(age(r.ranAt))}` : "at an unknown time"}${r.commit ? ` at ${r.commit}` : ""}.` : " No captured run has reported this model.";
 		const s = r?.status === "never" ? r.snapshot : null;
 		const rel = s ? ` At the last release (commit ${L.release?.head ?? "?"}) this check said "${s.status}"${s.ranAt ? `, run ${new Date(s.ranAt).toLocaleString()}` : ""}. That is the committed snapshot (${L.release?.file ?? "docs/release-snapshot.json"}), not a run on this machine.` : "";
@@ -1717,10 +1717,7 @@ function icon(name) {
 		const key = runKey(what, ids);
 		if (PENDING && PENDING.key === key) return `<span class="${cls} ckrun--wait" role="status" aria-label="Starting"><i></i></span>`;
 		const r = runOf(what);
-		if (r && sameIds(r.models ?? [], ids)) {
-			if (cls === "cellrun") return `<span class="${cls} ckrun--wait ckrun--busy" role="status" aria-label="Being checked now" title="Being checked now"><i></i></span>`;
-			return r.mine ? holdAndStop(cls, what) : `<span class="${cls} ckrun--wait ckrun--busy" role="status" aria-label="Being checked now, started outside this board" title="Being checked now. It was started outside this board, so it cannot be paused or stopped from here."><i></i></span>`;
-		}
+		if (r && sameIds(r.models ?? [], ids) && cls !== "cellrun") return r.mine ? holdAndStop(cls, what) : `<span class="${cls} ckrun--wait ckrun--busy" role="status" aria-label="Being checked now, started outside this board" title="Being checked now. It was started outside this board, so it cannot be paused or stopped from here."><i></i></span>`;
 		const why = blockedBy(what, ids);
 		return `<button type="button" class="${cls}${text ? " ckrun--said" : ""}" data-run-what="${esc(what)}" data-run-ids="${esc(ids.join(","))}" title="${esc(why ?? label)}" aria-label="${esc(label)}"${why ? " disabled" : ""}>${PLAY}${text ? `<span>${esc(text)}</span>` : ""}</button>`;
 	}
