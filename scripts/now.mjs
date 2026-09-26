@@ -83,6 +83,17 @@ function recorded() {
  * `tasklist` is deliberately not a fallback. Asked at 15:34 it returned two lines for the entire
  * machine and no error, which is worse than timing out: a confident empty answer.
  */
+/**
+ * Whether a run has been told to wait.
+ *
+ * A pause is a file, so it survives the thing that set it -- which is the point, and also the
+ * danger: on 2026-09-26 a tool crashed straight after writing it and a live run sat paused with
+ * nothing saying so. A paused run and a hung run look identical from outside, and only one of them
+ * needs somebody to come and do something. So this is read wherever "is it running" is answered.
+ */
+const PAUSED_FILE = join(ROOT, '.media-tmp', 'runs', 'paused');
+const pausedSince = () => { try { return readFileSync(PAUSED_FILE, 'utf8').trim() || 'an unrecorded time'; } catch { return null; } };
+
 function processes() {
   const parseWin = (out) => out.split('\n').filter(Boolean).map((l) => {
     const [pid, rss, started, ...rest] = l.trim().split('|');
@@ -425,8 +436,17 @@ function alive() {
 
 if (process.argv.includes('--alive')) {
   const a = alive();
-  process.stdout.write(`${a.ok === true ? 'ALIVE' : a.ok === false ? 'STOPPED' : 'UNKNOWN'} (${a.how}): ${a.why}\n`);
-  process.exit(a.ok === true ? 0 : a.ok === false ? 1 : 2);
+  const held = pausedSince();
+  // PAUSED is its own answer. It is not ALIVE, because nothing is being measured; and it is not
+  // STOPPED, because the run is still there waiting to be let go. Either word sends somebody to do
+  // the wrong thing. On 2026-09-26 a tool crashed just after writing the flag, and a live run sat
+  // waiting with nothing anywhere saying so.
+  const word = held ? 'PAUSED' : a.ok === true ? 'ALIVE' : a.ok === false ? 'STOPPED' : 'UNKNOWN';
+  const why = held
+    ? `a run is waiting: .media-tmp/runs/paused was written at ${held}. Delete it, or press Resume on the ledger. Underneath: ${a.why}`
+    : a.why;
+  process.stdout.write(`${word} (${a.how}): ${why}\n`);
+  process.exit(held ? 3 : a.ok === true ? 0 : a.ok === false ? 1 : 2);
 }
 
 await draw();

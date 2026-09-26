@@ -36,7 +36,6 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
   const KEYS = {
     index: () => `${H}|${mtime('.git/index')}`,
     head: () => H,
-    queue: () => `${H}|${mtime('docs/ledger-queue.json')}`,
     dist: () => `${mtime('dist')}|${mtime('dist/index.html')}`,
     readme: () => `${H}|${mtime('.git/index')}|${mtime('README.md')}|${mtime('package.json')}`,
   };
@@ -79,11 +78,6 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       let pkg = ''; try { pkg = git('show', 'HEAD:package.json'); } catch {}
       const entry = /"verify"\s*:/.test(pkg);
       return tracked.length === 2 && entry ? T('both are tracked, and HEAD:package.json has "verify"') : F(`tracked: ${tracked.join(', ') || 'neither'}; "verify" in HEAD:package.json: ${entry ? 'yes' : 'no'}`);
-    }],
-    [/^The lead's queue has nothing running/, KEYS.queue, () => {
-      let running = []; try { running = (JSON.parse(read('docs/ledger-queue.json')).items ?? []).filter((i) => i.status === 'running'); } catch { return F('docs/ledger-queue.json could not be read'); }
-      const committed = exits0('diff', '--quiet', 'HEAD', '--', 'docs/ledger-queue.json');
-      return !running.length && committed ? T('no running item, and the file matches HEAD') : F(`${running.length} running (${running.map((i) => i.name).slice(0, 3).join('; ') || 'none'}); file matches HEAD: ${committed ? 'yes' : 'no'}`);
     }],
     [/^Local-only files stay local/, KEYS.index, () => { const t = git('ls-files', 'hero-options.html', 'og-preview.html', 'harness-tmp').trim(); return t ? F(`tracked: ${t.split('\n').join(', ')}`) : T('none of them is tracked'); }],
     [/^The remote has nothing main lacks/, () => N('needs git fetch, which uses the network')],

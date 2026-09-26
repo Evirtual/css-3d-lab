@@ -104,6 +104,29 @@ function argsFor(key) {
   return ['--defaults', ...ids];
 }
 
+/**
+ * What a check needs in place before it can judge anything.
+ *
+ * check-media compares each model's share image against a fresh render, so the images have to exist
+ * -- and `npm run build` empties dist/, which is where they live. The old gate made them first and
+ * said so. Rewriting the runner dropped that, and check-media then failed all 135 models for a
+ * missing file on 2026-09-26 at 14:29, twice in one day: once because a rebuild wiped them, and once
+ * because the step that remade them had been deleted.
+ *
+ * A check that cannot run is not a check that failed, so this is not left to luck.
+ */
+const PREPARE = { media: ['scripts/generate-media.mjs'] };
+
+function prepare(key) {
+  const argv = PREPARE[key];
+  if (!argv) return Promise.resolve(0);
+  console.log(`        first: ${argv[0]} (check-${key} reads what it makes)`);
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: 'ignore' });
+    child.on('close', resolve);
+  });
+}
+
 function spawnStep(key) {
   return new Promise((resolve) => {
     const argv = NO_RECORD.has(key) ? ['scripts/qa.mjs', ...models] : ['scripts/capture-check.mjs', key, ...argsFor(key), ...models];
@@ -150,6 +173,7 @@ for (const [i, key] of run.entries()) {
   const c = listed.get(key) ?? { name: 'page errors on the built site (no per-model record)' };
   const at = Date.now();
   console.log(`\n[${i + 1}/${run.length}] ${hhmm()}  ${key} — ${c.name}${key === 'exports' && !models.length ? ' (every model, at the dialog\'s defaults)' : ''}`);
+  await prepare(key);
   const { code } = await spawnStep(key);
   sweep();
   const t = tally(key);

@@ -22,13 +22,14 @@
     "verify": "node scripts/verify.mjs",
     "ledger": "node scripts/ledger.mjs",
     "ledger:watch": "node scripts/ledger-watch.mjs",
-    "queue": "node scripts/queue.mjs",
     "capture": "node scripts/capture-check.mjs",
     "now": "node scripts/now.mjs",
     "signoff": "node scripts/signoff.mjs",
     "check-live": "node scripts/check-live.mjs",
     "capture-payload": "node scripts/capture-payload.cjs",
-    "check-renderers": "node scripts/check-renderers.cjs"
+    "check-renderers": "node scripts/check-renderers.cjs",
+    "board": "node scripts/ledger-watch.mjs",
+    "build:ledger": "vite build --config vite.ledger.config.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.1",

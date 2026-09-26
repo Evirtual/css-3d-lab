@@ -36,6 +36,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './model-sources.mjs';
 import { RENDER_FILES } from './fingerprint.mjs';
+import { serve, isRunning } from './ledger-server.mjs';
 
 /* ---------- the build code, reloaded whenever it changes on disk ---------- */
 let lib = await import('./ledger.mjs');
@@ -195,3 +196,10 @@ beat();
 setInterval(beat, BEAT).unref();
 setInterval(tick, TICK);
 build('start');
+
+/* ---------- the page, and the buttons on it ----------
+   Serving docs/ here means a person who cloned this repository needs one command and no second
+   server: the address below IS the ledger, and the buttons on it run the checks. PORT=... moves it. */
+const port = Number(process.env.PORT ?? 5178);
+const board = await serve(port);
+if (board) console.log(clock() + " the ledger is at http://127.0.0.1:" + board.port + "/ledger.html — the buttons on it run the checks");

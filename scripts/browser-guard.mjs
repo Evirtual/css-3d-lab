@@ -55,6 +55,9 @@
  *   C3D_FAULT=crash-after:3 throw an unhandled rejection after the 3rd model (a test of 4)
  */
 import { freemem } from 'node:os';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { ROOT } from './model-sources.mjs';
 
 /**
  * How many headless browsers may be open at once, anywhere this number is read. Default 2: a
@@ -122,6 +125,27 @@ const fault = (() => {
   const m = /^(kill-after|kill-during|crash-after):(\d+)$/.exec(process.env.C3D_FAULT ?? '');
   return m ? { kind: m[1], n: Number(m[2]), done: false } : null;
 })();
+
+/**
+ * Waits here while the run is paused.
+ *
+ * Cooperative on purpose. Suspending the process would work on Linux and macOS and has no native
+ * equivalent on Windows, and it would freeze a check in the middle of driving a browser, which is
+ * how you end up with wedged browsers holding memory. Every check goes through run() once per
+ * model, so this waits at the one moment when nothing is half-done: between two models.
+ *
+ * The flag is a file so that anything can set it -- the page, a script, or a person with a text
+ * editor -- without needing to find the process.
+ */
+const PAUSE_FILE = join(ROOT, '.media-tmp', 'runs', 'paused');
+let saidPaused = false;
+async function pauseHere(id) {
+  if (!existsSync(PAUSE_FILE)) { saidPaused = false; return; }
+  if (!saidPaused) { console.log(`paused before ${id}; delete .media-tmp/runs/paused to go on`); saidPaused = true; }
+  while (existsSync(PAUSE_FILE)) await new Promise((r) => setTimeout(r, 1000));
+  console.log(`resumed at ${id}`);
+  saidPaused = false;
+}
 
 export class BrowserGuard {
   /**
@@ -218,6 +242,7 @@ export class BrowserGuard {
    * error that is not the browser's, with .notes on it.
    */
   async run(id, fn) {
+    await pauseHere(id);
     const notes = [];
     const pressure = await this.memory(id);
     if (pressure) notes.push(pressure);

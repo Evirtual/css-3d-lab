@@ -15,8 +15,6 @@
  *  - `checks` are read from docs/checks/<check>.json, which scripts/capture-check.mjs writes
  *    from a check's own output. A check that never reported a model says `never`;
  *  - `approved` needs four facts and names each one that is missing.
- * The queue of running and planned work is docs/ledger-queue.json, which the lead session and its
- * agents report through scripts/queue.mjs. It is not read here: the page shows it separately,
  * labelled as their own record.
  *
  * scripts/ledger-watch.mjs imports buildLedger() and calls it whenever HEAD, a check result or a
@@ -779,7 +777,6 @@ const ledger = {
     textReview: 'a text review: a docs/reviews/ entry of kind "text", or a commit matched to the model with a Text-reviewed-by: trailer or a subject starting "Text review" / "Review the text"',
     staleness: STALENESS_TEXT,
     reviewLog: `docs/reviews/*.json: ${reviewLog.files} file(s), ${reviewLog.entries.length} valid entr${reviewLog.entries.length === 1 ? 'y' : 'ies'}. A review is stale when something it judged changed after it (see staleness); approval needs the latest fresh review of each kind not to be "problem"`,
-    queue: 'docs/ledger-queue.json is reported by the lead session and its agents through scripts/queue.mjs and is not read by this script',
     readiness: 'docs/RELEASE-CHECKLIST.md lines `- [ ] item — proof`; each file directly under docs/ plus README.md with `git log -1`; at risk: `git status --porcelain --untracked-files=all` with each file\'s modification time, as of this build',
     watcher: 'docs/ledger-watch.json, written by scripts/ledger-watch.mjs: its heartbeat, so the page can tell a quiet project from a watcher that has stopped',
   },

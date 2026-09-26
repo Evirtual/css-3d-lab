@@ -622,7 +622,14 @@ function expectedTotal() {
     const src = workingSources();
     const demoIds = [...src].filter(([, m]) => m.parts.some((p) => p.kind === 'demo' || (p.whole && p.file.includes('/charts/')))).map(([id]) => id);
     const converted = demoIds.filter((id) => src.get(id)?.snippet?.css.includes('--u:'));
-    if (['models', 'stages', 'media', 'access', 'boxsizing', 'contrast', 'perf'].includes(check)) return { total: demoIds.length, totalIsEstimate: true, totalFrom: `every model with a gallery entry in src/models, as check-${check} runs with no ids` };
+    // NOT an estimate. These checks iterate `demos` from src/models/index.ts, which is the gallery
+    // itself, and this is that same list counted. Calling it an estimate put "the total is an
+    // estimate: every model with a gallery entry in src/models, as check-media runs with no ids"
+    // on the page beside a progress bar -- a hedge about a number that is known exactly, which
+    // reads as if the run did not know what it was checking. It does.
+    if (['models', 'stages', 'media', 'access', 'boxsizing', 'contrast', 'perf'].includes(check)) {
+      return { total: demoIds.length, totalIsEstimate: false, totalFrom: `every model in the gallery (src/models/index.ts): ${demoIds.length}` };
+    }
     const site = REGISTRY.find((c) => c.key === check && c.scope === 'site');
     if (site) return { total: pagesFor(site), totalIsEstimate: true, totalFrom: 'the page count scripts/checks-registry.mjs gives' };
     if (check === 'motion') return args.includes('--all')
