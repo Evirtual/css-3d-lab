@@ -709,6 +709,9 @@ function writeProgress() {
   const printsNow = fingerprints();
   const models = { ...(o.models ?? {}) };
   const done = reportedNow();
+  // stages has no verdict to write yet: it only judges in the report it prints at the end (see
+  // the header above). Its progress count is models STARTED, and the registry says so too, so
+  // the bar on the page can tell a reader why the column is not moving.
   if (check !== 'stages') for (const [id, r] of done) models[id] = entry({ ...r, id }, printsNow);
   const started = Object.keys(results).length;
   writeOut({

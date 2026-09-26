@@ -76,6 +76,19 @@ export const REGISTRY = [
     ],
   },
   {
+    /*
+     * Its verdicts exist only in the report it prints at the end.
+     *
+     * check-stages measures a model on every surface the site shows it on and the numbers have
+     * to agree, so there is nothing to say about a model until the run is over. capture-check
+     * knows this (`if (check !== 'stages')` in writeProgress) and writes no result mid-run:
+     * the progress count is models it has STARTED measuring, not models decided.
+     *
+     * The page did not know. A bar reading 78/135 sat above a column where nothing had changed
+     * for an hour, every mark still this morning's and honestly stale, and no way to tell
+     * whether the run was working or wedged. A count has to mean what the screen shows.
+     */
+    reportsAtEnd: true,
     key: 'stages', script: 'check-stages.mjs', scope: 'model', name: 'stages', short: 'Stages',
     ruleVersion: 3,
     rules: [
@@ -331,4 +344,4 @@ export const inRunOrder = (list) => [...list].sort((a, b) => {
   return (i < 0 ? 99 : i) - (j < 0 ? 99 : j);
 });
 
-export const forPage = (root) => inRunOrder(REGISTRY).map((c) => ({ key: c.key, script: `scripts/${c.script}`, scope: c.scope, name: c.name, short: c.short, title: c.title, label: c.label, rule: c.rule, ruleVersion: c.ruleVersion, rules: c.rules, steps: c.steps ?? [], alone: c.alone ?? false, ...(c.scope === 'site' ? { pages: pagesFor(c, root) } : {}) }));
+export const forPage = (root) => inRunOrder(REGISTRY).map((c) => ({ key: c.key, script: `scripts/${c.script}`, scope: c.scope, name: c.name, short: c.short, title: c.title, label: c.label, rule: c.rule, ruleVersion: c.ruleVersion, rules: c.rules, steps: c.steps ?? [], alone: c.alone ?? false, reportsAtEnd: c.reportsAtEnd ?? false, ...(c.scope === 'site' ? { pages: pagesFor(c, root) } : {}) }));
