@@ -46,7 +46,7 @@ import { freemem } from 'node:os';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './model-sources.mjs';
-import { REGISTRY, RUN_ORDER } from './checks-registry.mjs';
+import { REGISTRY, RUN_ORDER, PREPARE } from './checks-registry.mjs';
 
 const args = process.argv.slice(2);
 const fast = args.includes('--fast');
@@ -146,7 +146,7 @@ function argsFor(key) {
  *
  * A check that cannot run is not a check that failed, so this is not left to luck.
  */
-const PREPARE = { media: ['scripts/generate-media.mjs'] };
+
 
 function prepare(key) {
   const argv = PREPARE[key];

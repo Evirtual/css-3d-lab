@@ -41,6 +41,17 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+/**
+ * What a check needs BUILT before it can judge anything.
+ *
+ * check-media does not look at models; it looks at the share images in dist/media, and something
+ * has to make those first. It lived in scripts/verify.mjs only -- so the gate built them and the
+ * board did not, and the same check gave two answers depending on where it was started from.
+ * It sits here because this file is the one both of them already read and it does nothing on
+ * import: a list of what to run cannot live in a script that runs something.
+ */
+export const PREPARE = { media: ['scripts/generate-media.mjs'] };
+
 export const REGISTRY = [
   {
     key: 'models', script: 'check-models.mjs', scope: 'model', name: 'contract', short: 'Contract',

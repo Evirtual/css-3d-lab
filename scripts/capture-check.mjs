@@ -99,7 +99,7 @@ import { join } from 'node:path';
 import { fingerprints, ROOT, workingSources } from './model-sources.mjs';
 import { fingerprintsNow, recordFor } from './fingerprint.mjs';
 import { DEFAULTS, DEFAULTS_TEXT, isDefault } from './export-defaults.mjs';
-import { REGISTRY, pagesFor, ruleVersionOf, stepsOf } from './checks-registry.mjs';
+import { REGISTRY, pagesFor, ruleVersionOf, stepsOf , PREPARE } from './checks-registry.mjs';
 
 const CHECKS = Object.fromEntries(REGISTRY.map((c) => [c.key, c.script]));
 const [check, ...rest] = process.argv.slice(2);
@@ -763,6 +763,38 @@ if (args.includes('--steps')) {
   const loose = Object.entries(steps.unattributed);
   if (loose.length) console.error(`  ${loose.length} line(s) could not be placed under a sub-step, and are counted apart: ${loose.slice(0, 3).map(([l, n]) => `"${l}" ×${n}`).join('; ')}`);
   process.exit(0);
+}
+
+/* ---------- what a check needs made before it can judge anything ----------
+ *
+ * check-media does not look at models. It looks at the share images in dist/media, and something
+ * has to make those first. scripts/verify.mjs knew that and ran generate-media before it; this
+ * did not, and this is what the BOARD runs.
+ *
+ * So the same check gave two answers depending on where it was started from. On 2026-09-26 the
+ * Share column read 134 failures, every one of them "no image: dist/media/<id>.jpg does not
+ * exist" -- a true statement about a folder that had not been built yet, and nothing at all about
+ * the models. The gate would have passed the same check minutes later.
+ *
+ * One list now, exported from here, and verify.mjs uses it too. A check that reads something
+ * built gets it built, whoever asked for the check.
+ */
+
+async function prepareFor(key) {
+  const argv = PREPARE[key];
+  if (!argv) return 0;
+  console.log(`first: ${argv[0]} (check-${key} reads what it makes)`);
+  return await new Promise((resolve) => {
+    const kid = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: ['ignore', 'inherit', 'inherit'] });
+    kid.on('close', (code) => resolve(code ?? 1));
+  });
+}
+const prep = await prepareFor(check);
+if (prep !== 0) {
+  // Not a verdict on any model: nothing was judged. Say so and stop, rather than run the check
+  // over a folder that was not made and record 135 failures that mean nothing.
+  console.error(`capture-check: ${PREPARE[check][0]} exited ${prep}, so ${check} was not run: it judges what that makes.`);
+  process.exit(prep);
 }
 
 /* ---------- run it ---------- */

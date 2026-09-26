@@ -2278,9 +2278,6 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
 //   Its look is the export dialog's Model size slider: the same markup and the same classes
 // (maker__set, its legend and hint, maker__slider and its output, maker__zoom), so the two cannot
 // drift apart. Only where it sits is its own, below.
-.stage-wrap[data-view-zoomed] > .stage > .live-frame {
-  scale: var(--view-zoom, 1);
-}
 
 // lent to the export dialog: the size is the dialog's (its --zoom), so the page's is off there
 .stage[data-in-maker] > .live-frame {
