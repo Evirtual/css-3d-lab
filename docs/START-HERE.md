@@ -43,7 +43,7 @@ about a number that has to add up, and a result that has to expire.
 |---|---|
 | **You get** | every model's code, the site, the checks, the ledger page, the docs, and `docs/release-snapshot.json` — one line per model per check from the last release |
 | **You do not get** | `docs/checks/` — the raw run records. They are gitignored: megabytes of one machine's workings, and **someone else's run is not your result** |
-| **You do not get** | a filled-in lead's record. `docs/ledger-queue.json` ships empty on purpose — it is a working board for *your* work, not a log of the last person's |
+| **You do not get** | somebody else's results. Every verdict on the board is one your own machine measured; a fresh clone starts with none, and the buttons are how you get them |  *your* work, not a log of the last person's |
 
 So on a fresh clone the ledger reads **"not run yet"** for every bar and puts all 135 models under
 "To check". That is correct, not a fault. Bars fill in as *you* capture checks.
@@ -69,27 +69,40 @@ That is the whole app. Open the port it prints and you have the gallery.
 ### Run the ledger
 
 The ledger is a **local tool**. Nothing about it is hosted — no account, no service, no shared
-database. The page is `docs/ledger.html` in this repository and the numbers on it are whatever your
-machine has measured.
+database. The numbers on it are whatever your machine has measured.
+
+One command:
 
 ```bash
-npm run dev                       # leave this running
-npm run capture -- contrast       # run one check and record it
-npm run ledger                    # rebuild docs/ledger.json from what has been recorded
+npm run board
 ```
 
-Then open **<http://localhost:5183/docs/ledger.html>**.
+It prints an address. Open it, and you have the board: every model, every check, and a button on
+each row to run that check — or one at the top to run them all. Pause, resume and stop are on the
+row that is running. Nothing starts on its own; nothing runs unless you press something.
 
-Two more worth having in their own terminals:
+You do not need an AI, and you do not need to know which script does what. That is the point: a
+person who cloned this repository should be able to ask "is this ready to ship" and be answered.
+
+Worth having in a second terminal, though the board answers most of it:
 
 ```bash
-npm run ledger:watch              # rebuild whenever something it reads changes
 npm run now -- --watch            # what is actually running, MEASURED
 ```
 
-`npm run now` is the counterpart to the lead's record on the page. The record is **reported** — it
-knows only what a script told it. `now` asks the machine: which check is on which model, whether
-the ports answer, how far a run has got, how much memory is left. It only reads.
+The page is built from `src/ledger/` — TypeScript and Sass, like the app — with
+`npm run build:ledger`. It used to be one 4,244-line file of markup, styles and behaviour edited by
+hand, which is why two separate mistakes in one afternoon only showed up when somebody loaded it.
+
+`npm run now` asks the machine rather than reading a report: which check is on which model, whether
+the ports answer, how far a run has got, how much memory is left. It only reads. When it cannot
+look, it says so — "could not look" and "nothing is running" are opposite facts, and it answers
+`ALIVE`, `STOPPED`, `PAUSED` or `UNKNOWN` with an exit code for each.
+
+There used to be a second, hand-kept record beside it: `npm run queue` wrote what an agent was
+working on into `docs/ledger-queue.json`, shown on the page as "reported, not measured". It mattered
+while fifty-three helpers were running and nothing else could say what they were doing. It is gone.
+Agents report in the session running them; the ledger holds only what was measured.
 
 > **PowerShell:** npm ships three launchers and PowerShell picks `npm.ps1`, which a `Restricted`
 > execution policy refuses to load. Use `npm.cmd run ...`, or call node directly
