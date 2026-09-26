@@ -3455,16 +3455,18 @@ ul.missing {
   z-index: 4;
 }
 
-/* one curve for the header and everything that pins under it, so the top never jumps */
-#tbl thead th, #tbl tr.grow > th, #tbl tr.row[aria-expanded=true] > td {
-  transition: top 0.2s cubic-bezier(0.3, 0.8, 0.3, 1);
-}
+/* ---------- nothing in the sticky stack animates its top any more ----------
+   This was one curve for the header and everything pinned under it, so that the tuck -- the header
+   sliding up behind the filter bar on the way down -- moved the whole stack together instead of
+   snapping it. The tuck was taken out when every heading grew the button that runs its check:
+   --head-off is now permanently nought and nothing changes it (see onScroll in main.ts).
 
-@media (prefers-reduced-motion: reduce) {
-  #tbl thead th, #tbl tr.grow > th, #tbl tr.row[aria-expanded=true] > td {
-    transition: none;
-  }
-}
+   What was left was a 200ms glide on a number that nobody meant to change, and there is one that
+   changes constantly: the run bar's height, which feeds --suite-h and moves everything below it.
+   That bar re-renders every few seconds with new words -- "about 30 min left · radial" -- and at
+   phone width those words wrap to a different number of lines, so --suite-h stepped up and down
+   and the group row spent its life in transit between two offsets, drifting behind the bar rather
+   than sitting under it. A measured offset wants to be applied, not animated towards. */
 /* Whatever the row is painted, the model cell is painted the same. It is sticky, so it carries an opaque
    background of its own -- otherwise the columns would slide visibly under it -- and that background
    used to win over the row's tint, splitting every row in two down the model column. Each of the row's
@@ -7528,5 +7530,36 @@ td.c:has(.ckrun--busy) {
     order: 4;
     flex: 1 1 100%;
     white-space: normal;
+  }
+}
+/* ---------- a bar on a phone is always the same height ----------
+   The run bar is pinned, and everything under it is placed from its measured height, so every time
+   it changed height the whole table below it stepped. It changed height often: `flex-wrap: wrap`
+   decides where to break from each item's CONTENT width, not from what it could shrink to, so as
+   the words changed -- "about 30 min left · radial", then a longer model's name -- the pause and
+   stop buttons were pushed onto a line of their own and back again.
+
+   The words are the part that can give: a base of nought means the line never breaks because of
+   them, and they ellipsise instead, which .pg__meta was already set up to do. Two lines, always:
+   the name, the count, the words and the buttons; then the track. */
+@media (max-width: 760px) {
+  .pg__meta {
+    flex: 1 1 0;
+  }
+}
+/* ---------- on a phone the pinned rows had nothing to travel in ----------
+   Below 760px the table stops being a table -- #tbl and its tbody become blocks and each row is a
+   card -- and that is what stopped the run bar and the group heading pinning at all. A sticky box
+   can only move inside its containing block, and once tr.grow is `display: block` its th IS inside
+   that one row: a box the height of itself, with nowhere to travel. Both were still `position:
+   sticky`, still carrying the right offsets, and both simply scrolled away with the rows.
+
+   `display: contents` takes the row box out of the way, so the heading and the bar become children
+   of the tbody and can travel the length of the table, which is what they do on a wide screen. The
+   row was carrying no paint of its own -- the background and the group's colour are on the cells --
+   so there is nothing to lose with it. */
+@media (max-width: 760px) {
+  #tbl tr.grow, #tbl tr.suiterun {
+    display: contents;
   }
 }
