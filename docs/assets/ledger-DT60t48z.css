@@ -4692,3 +4692,162 @@ ul.missing {
   font-size: 13px;
   color: var(--muted);
 }
+
+/* ---------- a run that stopped ----------
+   It used to append " · stopped" to the name, which wrapped onto its own line under the big type
+   in the panel and left the name reading "Perf ·" with a dangling separator. It is a chip now, so
+   it sits beside the name at any width and reads as a state rather than as part of the title. */
+.run__stopped {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font: 700 11px/1.7 var(--font);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--hot);
+  background: color-mix(in srgb, var(--hot) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hot) 45%, transparent);
+  vertical-align: middle;
+}
+
+/* the bar of a run that is not running: no colour left in it, because nothing is advancing */
+.run.gone .run__track {
+  opacity: 0.5;
+}
+
+.ss__now--gone {
+  background: color-mix(in srgb, var(--hot) 22%, transparent);
+  color: var(--hot);
+}
+
+/* ---------- the big run panel: name, bar and count on one line ----------
+   #runnow sets the name to 22px, which pushed the count onto a line of its own and left the bar
+   floating beside the title with nothing after it. The three belong together: what is running,
+   how far it has got, and the number that says the same thing exactly. */
+#runnow .run {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+/* the chip sits BESIDE the name, not under it: both were in column 1, so the grid stacked them */
+#runnow .run__name {
+  grid-column: 1;
+}
+
+#runnow .run__stopped {
+  grid-column: 2;
+  margin-left: 0;
+}
+
+#runnow .run__track {
+  grid-column: 3;
+}
+
+#runnow .run__n {
+  grid-column: 4;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#runnow .run__meta, #runnow .run__ids, #runnow .sspanel {
+  grid-column: 1/-1;
+}
+
+@media (max-width: 720px) {
+  /* at phone width there is no room for three across: the count goes under the bar, not beside it */
+  #runnow .run {
+    grid-template-columns: 1fr auto;
+  }
+  #runnow .run__track {
+    grid-column: 1/-1;
+    order: 3;
+  }
+  #runnow .run__n {
+    grid-column: 2;
+  }
+}
+/* ---------- the note count, beside "How these are counted" ----------
+   It had no style of its own and no tooltip, so it sat in the corner as bare text with a number
+   in it, next to a button that looks like a button, saying a word nobody had defined. A note is
+   something the ledger could not work out: a file it could not read, a run whose process had
+   gone, an instrument that failed. Worth seeing, and worth being told what it is. */
+.notesbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px;
+  font: 600 12px/1.7 var(--font);
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.notesbtn b {
+  color: var(--st-warn);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.notesbtn:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--st-warn) 55%, transparent);
+}
+
+.notesbtn[aria-expanded=true] {
+  color: var(--ink);
+  border-color: var(--st-warn);
+}
+
+/* nothing to report is not worth a control: it hides itself rather than saying "0 notes" */
+.notesbtn[hidden] {
+  display: none;
+}
+
+/* ---------- the per-check run button ----------
+   It sits with the check name in one grid cell. On its own it became the row's first grid item
+   and claimed a 97px column, which pushed the bar and the count across and made a one-character
+   control 92px wide. */
+.ckhead {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.ckrun {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.ckrun:hover:not([disabled]) {
+  color: var(--st-chk);
+  border-color: var(--st-chk);
+  background: color-mix(in srgb, var(--st-chk) 12%, transparent);
+}
+
+.ckrun:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent);
+}
+
+/* while anything is running, every one of them is off: two checks at once is what the runner exists to prevent */
+.ckrun[disabled] {
+  opacity: 0.3;
+  cursor: default;
+}

@@ -231,7 +231,7 @@
 		let head = "";
 		if (run) {
 			const named = run.step ? steps.find((s) => s.key === run.step) : null;
-			head = named ? `<p><span class="ss__now">Running now</span> <b>${esc(named.label)}</b> <span class="muted">· ${esc(run.stepFrom ?? "from the check's own output")}</span></p>` : `<p><span class="ss__now">Running now</span> ${run.last ? `${c.unit === "pages" ? "page" : "model"} <code>${esc(run.last)}</code>. ` : ""}This check does not say which part it is on while it runs, so the list below is what the run covers, not where it has got to.</p>`;
+			head = named ? `<p><span class="ss__now${run.alive === false ? " ss__now--gone" : ""}">${run.alive === false ? "Stopped" : "Running now"}</span> <b>${esc(named.label)}</b> <span class="muted">· ${esc(run.stepFrom ?? "from the check's own output")}</span></p>` : `<p><span class="ss__now${run.alive === false ? " ss__now--gone" : ""}">${run.alive === false ? "Stopped" : "Running now"}</span> ${run.last ? `${c.unit === "pages" ? "page" : "model"} <code>${esc(run.last)}</code>. ` : ""}This check does not say which part it is on while it runs, so the list below is what the run covers, not where it has got to.</p>`;
 		}
 		if (!t) head += `<p><b>No sub-step results recorded yet.</b> <code>${esc(file)}</code> was written before the checks read their own parts back${c.captured ? "" : ", and this check has never been captured"}. The list below is what it covers; the counts appear once it runs again (or after <code>npm run capture -- ${esc(c.key)} --steps</code>, which re-reads the file without running the check).</p>`;
 		const rows = steps.map((s) => {
@@ -849,6 +849,12 @@
 	const openRuns = /* @__PURE__ */ new Set();
 	function renderRunning() {
 		const runs = Object.entries(L.running ?? {}).filter(([, p]) => p);
+		{
+			const live = runs.filter(([, p]) => p.alive !== false).length;
+			const dead = runs.length - live;
+			const h = document.getElementById("run-h");
+			if (h) h.textContent = live ? "Running now" : dead ? dead === 1 ? "A run that stopped" : "Runs that stopped" : "Running now";
+		}
 		$("run-note").innerHTML = runs.length ? `From each check's result file, as the ledger built ${agoSpan(L.generatedAt)} read it.` : "";
 		const head = document.querySelector(".ovsub--run");
 		if (head) head.hidden = !runs.length;
@@ -873,7 +879,7 @@
 			};
 			const ssN = (c.steps ?? []).length, ssId = `run:${key}`, ssSeen = ssN > 0 && ssIsOpen(ssId);
 			return `<li class="run${gone ? " gone" : ""}">
-        <span class="run__name" data-tip data-tiptext="${esc(title)}">${esc(short)}${gone ? " · stopped" : ""}</span>
+        <span class="run__name" data-tip data-tiptext="${esc(title)}">${esc(short)}</span>${gone ? "<span class=\"run__stopped\">stopped</span>" : ""}
         <span class="run__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? "?"}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><span style="width:${pct}%"></span></span>
         <span class="run__n">${esc(p.done)} / ${esc(p.total ?? "?")}</span>
         <span class="run__meta">
@@ -2266,7 +2272,7 @@
 			const ssOpened = ssShown && ssIsOpen(ssId);
 			const ssBtn = ssShown ? ssToggle(ssId, ssOpened ? "hide what it covers" : `what it covers (${nSteps})`, ssOpened) : "";
 			const ssRun = L.running?.[c.key] ?? null;
-			return `<li>${RUN_OK ? `<button type="button" class="ckrun" data-run="${esc(c.key)}" title="Run this check on its own">&#9654;</button>` : ""}<button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
+			return `<li><span class="ckhead">${RUN_OK ? `<button type="button" class="ckrun" data-run="${esc(c.key)}" title="Run this check on its own" aria-label="Run ${esc(c.title)}">&#9654;</button>` : ""}<button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button></span>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
         <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ""}</span>${pills}${relPill}${ssBtn}</span>${ssOpened ? ssPanel(c, ssId, ssRun) : ""}</li>`;
 		}).join("")}</ul>`;
 	}
@@ -2541,7 +2547,7 @@
 		}[w.kind];
 		const checked = `Page checked ${lastFetchAt ? fmtAge((Date.now() - lastFetchAt) / 1e3) : "never"}${document.hidden ? " (paused while the tab is hidden)" : `, every ${POLL_MS / 1e3} s`}. Ledger updated ${fmtAge(dataAge)}.`;
 		const short = w.kind === "alive" ? "watcher live" : wText;
-		$("live").innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span>` + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge))}</span>` : "");
+		$("live").innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span>` + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge).replace(/ ago$/, ""))}</span>` : "");
 		const min = (s) => `${Math.max(1, Math.round(s / 60))} min`;
 		let note = "";
 		if (fetchError) note = `<div class="notice bad"><b class="big">Could not refresh.</b> ${esc(fetchError)}. What you see was fetched ${esc(lastChangeAt ? fmtAge((Date.now() - lastChangeAt) / 1e3).replace(/\d+ s ago/, "under a minute ago") : "earlier")}.</div>`;

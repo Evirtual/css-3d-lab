@@ -117,8 +117,8 @@
     if (run) {
       const named = run.step ? steps.find((s) => s.key === run.step) : null;
       head = named
-        ? `<p><span class="ss__now">Running now</span> <b>${esc(named.label)}</b> <span class="muted">· ${esc(run.stepFrom ?? 'from the check\'s own output')}</span></p>`
-        : `<p><span class="ss__now">Running now</span> ${run.last ? `${c.unit === 'pages' ? 'page' : 'model'} <code>${esc(run.last)}</code>. ` : ''}This check does not say which part it is on while it runs, so the list below is what the run covers, not where it has got to.</p>`;
+        ? `<p><span class="ss__now${run.alive === false ? ' ss__now--gone' : ''}">${run.alive === false ? 'Stopped' : 'Running now'}</span> <b>${esc(named.label)}</b> <span class="muted">· ${esc(run.stepFrom ?? 'from the check\'s own output')}</span></p>`
+        : `<p><span class="ss__now${run.alive === false ? ' ss__now--gone' : ''}">${run.alive === false ? 'Stopped' : 'Running now'}</span> ${run.last ? `${c.unit === 'pages' ? 'page' : 'model'} <code>${esc(run.last)}</code>. ` : ''}This check does not say which part it is on while it runs, so the list below is what the run covers, not where it has got to.</p>`;
     }
     if (!t) head += `<p><b>No sub-step results recorded yet.</b> <code>${esc(file)}</code> was written before the checks read their own parts back${c.captured ? '' : ', and this check has never been captured'}. The list below is what it covers; the counts appear once it runs again (or after <code>npm run capture -- ${esc(c.key)} --steps</code>, which re-reads the file without running the check).</p>`;
     const rows = steps.map((s) => {
@@ -777,6 +777,15 @@
   const openRuns = new Set();
   function renderRunning() {
     const runs = Object.entries(L.running ?? {}).filter(([, p]) => p);
+    // The heading told the truth only while something was live. A crashed run left it reading
+    // "Running now" above a panel whose own text said the process was gone -- the two halves of one
+    // box disagreeing. It now says which of the two it is holding.
+    {
+      const live = runs.filter(([, p]) => p.alive !== false).length;
+      const dead = runs.length - live;
+      const h = document.getElementById('run-h');
+      if (h) h.textContent = live ? 'Running now' : dead ? (dead === 1 ? 'A run that stopped' : 'Runs that stopped') : 'Running now';
+    }
     $('run-note').innerHTML = runs.length ? `From each check's result file, as the ledger built ${agoSpan(L.generatedAt)} read it.` : '';
     /* Nothing running is the normal state, and a heading over a sentence saying so is a row of the
        page spent on no news: the heading goes with it. */
@@ -795,7 +804,7 @@
       const c = CHECK_LIST.find((x) => x.key === key) ?? { key, short, title, steps: [], unit: 'models' };
       const ssN = (c.steps ?? []).length, ssId = `run:${key}`, ssSeen = ssN > 0 && ssIsOpen(ssId);
       return `<li class="run${gone ? ' gone' : ''}">
-        <span class="run__name" data-tip data-tiptext="${esc(title)}">${esc(short)}${gone ? ' · stopped' : ''}</span>
+        <span class="run__name" data-tip data-tiptext="${esc(title)}">${esc(short)}</span>${gone ? '<span class="run__stopped">stopped</span>' : ''}
         <span class="run__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? '?'}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><span style="width:${pct}%"></span></span>
         <span class="run__n">${esc(p.done)} / ${esc(p.total ?? '?')}</span>
         <span class="run__meta">
@@ -1887,7 +1896,7 @@
       // the same panel "Running now" draws, off the same record: while this check runs it says so
       // here too, and when the run ends the counts it left stay
       const ssRun = L.running?.[c.key] ?? null;
-      return `<li>${RUN_OK ? `<button type="button" class="ckrun" data-run="${esc(c.key)}" title="Run this check on its own">&#9654;</button>` : ''}<button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
+      return `<li><span class="ckhead">${RUN_OK ? `<button type="button" class="ckrun" data-run="${esc(c.key)}" title="Run this check on its own" aria-label="Run ${esc(c.title)}">&#9654;</button>` : ''}<button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button></span>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
         <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}</span>${pills}${relPill}${ssBtn}</span>${ssOpened ? ssPanel(c, ssId, ssRun) : ''}</li>`;
     }).join('')}</ul>`;
   }
@@ -2124,7 +2133,7 @@
     // "watcher live" is the only state short enough to shorten: every other one says what is wrong
     const short = w.kind === 'alive' ? 'watcher live' : wText;
     $('live').innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span>`
-      + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge))}</span>` : '');
+      + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge).replace(/ ago$/, ''))}</span>` : '');
 
     // the plain-words notice: minute granularity, rewritten only when it changes (it is aria-live)
     const min = (s) => `${Math.max(1, Math.round(s / 60))} min`;
