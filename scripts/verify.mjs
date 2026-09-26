@@ -46,7 +46,7 @@ import { freemem } from 'node:os';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './model-sources.mjs';
-import { REGISTRY } from './checks-registry.mjs';
+import { REGISTRY, RUN_ORDER } from './checks-registry.mjs';
 
 const args = process.argv.slice(2);
 const fast = args.includes('--fast');
@@ -54,7 +54,22 @@ const noBuild = args.includes('--no-build');
 const models = args.filter((a) => !a.startsWith('--'));
 
 /** Cheapest first, so a failure shows up before the long ones have been paid for. */
-const ORDER = ['boxsizing', 'contrast', 'access', 'media', 'qa', 'perf', 'models', 'motion', 'stages', 'exports', 'app', 'seo'];
+/**
+ * The order, from the registry, with qa put where it belongs.
+ *
+ * It used to be a second copy of the list kept here, which drifted from the one the page shows:
+ * the board listed Contract first, under a heading reading "in gate order", while this began with
+ * Box. One list now, in scripts/checks-registry.mjs, so the page cannot describe a sequence that
+ * does not happen.
+ *
+ * qa is not a registry check -- it records no per-model verdicts -- so it has no place in that
+ * list and is inserted after media, where it costs two minutes before anything expensive starts.
+ */
+const ORDER = (() => {
+  const keys = [...RUN_ORDER];
+  keys.splice(keys.indexOf('perf'), 0, 'qa');
+  return keys;
+})();
 /**
  * qa is not in the registry, so it has no per-model verdicts and nothing on the board.
  * It still runs -- it catches page errors on the BUILT site, which nothing else looks at -- and its

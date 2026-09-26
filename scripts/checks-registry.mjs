@@ -285,4 +285,23 @@ export function pagesFor(check, root = process.cwd()) {
 export const stepsOf = (key) => byKey(key)?.steps ?? [];
 
 /** What the page needs to draw each check: everything above except code. */
-export const forPage = (root) => REGISTRY.map((c) => ({ key: c.key, script: `scripts/${c.script}`, scope: c.scope, name: c.name, short: c.short, title: c.title, label: c.label, rule: c.rule, ruleVersion: c.ruleVersion, rules: c.rules, steps: c.steps ?? [], ...(c.scope === 'site' ? { pages: pagesFor(c, root) } : {}) }));
+/**
+ * The order the checks run in, and therefore the order the page lists them in.
+ *
+ * Cheapest first. A run that is going to fail should fail in the six minutes boxsizing takes, not
+ * after the fifty-three that stages needs or the seventy that exports does -- and the ones at the
+ * end are the ones you would pay for twice if something earlier was already broken.
+ *
+ * This is the ONLY place the order is written. The runner had its own copy and the page had the
+ * array order of the registry, so the board listed Contract first under a heading reading "in gate
+ * order" while the gate actually began with Box -- a page describing a sequence nobody ran.
+ */
+export const RUN_ORDER = ['boxsizing', 'contrast', 'access', 'media', 'perf', 'models', 'motion', 'stages', 'exports', 'app', 'seo'];
+
+/** The registry, in the order it runs. Anything not named above keeps its place at the end. */
+export const inRunOrder = (list) => [...list].sort((a, b) => {
+  const i = RUN_ORDER.indexOf(a.key), j = RUN_ORDER.indexOf(b.key);
+  return (i < 0 ? 99 : i) - (j < 0 ? 99 : j);
+});
+
+export const forPage = (root) => inRunOrder(REGISTRY).map((c) => ({ key: c.key, script: `scripts/${c.script}`, scope: c.scope, name: c.name, short: c.short, title: c.title, label: c.label, rule: c.rule, ruleVersion: c.ruleVersion, rules: c.rules, steps: c.steps ?? [], ...(c.scope === 'site' ? { pages: pagesFor(c, root) } : {}) }));
