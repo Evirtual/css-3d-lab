@@ -41,6 +41,20 @@ function clearLedgerAssets() {
 
 export default defineConfig({
   plugins: [clearLedgerAssets()],
+  /*
+   * The dev server is the board's page, served from source.
+   *
+   * npm run board:dev runs this beside scripts/ledger-watch.mjs. Vite compiles the TypeScript and
+   * the Sass and reloads them in place; everything that is actually the BOARD -- the state of what
+   * is running, the run buttons, the ledger's own data -- is passed through to it, so the page on
+   * this port is the real thing rather than a mock of it. Without the proxy the page would ask its
+   * own dev server for /api/state, get the dev server's index page with a 200, and decide from
+   * that that no board was there.
+   */
+  server: {
+    proxy: Object.fromEntries(['/api', '/ledger.json', '/ledger-watch.json', '/checks', '/reviews']
+      .map((path) => [path, { target: `http://127.0.0.1:${process.env.PORT ?? 5178}`, changeOrigin: false }])),
+  },
   root: resolve(import.meta.dirname, 'src/ledger'),
   // Relative, because the page is opened from a server AND straight from a file. An absolute base
   // would look for /assets/... on the filesystem root and find nothing.

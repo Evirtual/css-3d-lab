@@ -153,23 +153,8 @@ button, input { font: inherit; color: inherit; }
    Presentational on purpose: age never fails a check and never gates a release. */
 .mk { --age: 0; }
 .mk[style*="--age"] { opacity: calc(1 - 0.26 * var(--age)); filter: saturate(calc(1 - 0.78 * var(--age))); }
-/* ---------- the run bar: what is running, and the buttons that change that ---------- */
-.runbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
-  margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.runbar__state { font-size: 14px; color: var(--muted); }
-.runbar__state.is-on { color: var(--st-chk); font-weight: 700; }
-.runbar__state.is-paused { color: var(--st-warn); font-weight: 700; }
-.runbar__acts { display: flex; gap: 8px; flex-wrap: wrap; }
-/* .btn sets its own display, which beats the browsers [hidden] rule, so a hidden button stayed on
-   screen and offered a Stop for a run this page cannot stop. Say it here, where .btn cannot win. */
-.runbar [hidden] { display: none; }
 .btn--run { border-color: color-mix(in srgb, var(--st-chk) 55%, transparent); }
 .btn--stop { border-color: color-mix(in srgb, var(--st-bad) 55%, transparent); }
-/* one per check row, beside its name */
-.ckrun { margin-left: 6px; padding: 1px 7px; font: 700 11px/1.5 var(--font); color: var(--muted);
-  background: transparent; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
-.ckrun:hover { color: var(--text); border-color: var(--st-chk); }
-.ckrun[disabled] { opacity: 0.4; cursor: default; }
 
 .s-none { --c: var(--st-none); }
 .s-conv { --c: var(--st-conv); }
@@ -722,41 +707,21 @@ button, input { font: inherit; color: inherit; }
 .runs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .run { display: grid; grid-template-columns: minmax(0, 10em) minmax(60px, 1fr) auto; gap: 4px 12px; align-items: center; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--accent-2) 7%, transparent); font-size: 14px; }
 .run.gone { border-color: color-mix(in srgb, var(--hot) 55%, transparent); background: color-mix(in srgb, var(--hot) 9%, transparent); }
-.run__name { font-weight: 700; overflow-wrap: anywhere; }
-.run__track { height: 8px; border-radius: 999px; background: var(--track); overflow: hidden; }
-.run__track span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.4s; }
 .run.gone .run__track span { background: var(--hot); }
-.run__n { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.run__meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12.5px; color: var(--muted); }
-.run__meta b { color: var(--text); font-weight: 650; }
-.run__ids { grid-column: 1 / -1; }
 .qids .mid.is-done { border-color: color-mix(in srgb, var(--st-chk) 60%, transparent); color: var(--muted); }
 @media (max-width: 600px) { .run { grid-template-columns: minmax(0, 1fr) auto; } .run__track { grid-column: 1 / -1; order: 3; } .run__meta { order: 4; } .run__ids { order: 5; } }
 @media (prefers-reduced-motion: reduce) { .run__track span { transition: none; } }
 /* the picked stage's detail, under the strip */
-.stagebox { margin-top: 16px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: 14px; background: color-mix(in srgb, var(--bg) 35%, transparent); }
 /* the panel hangs from the selected tab: its top edge takes that stage's colour */
-.stagebox { border-top: 3px solid var(--stage-c, var(--border-strong)); }
-.stagebox__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px 16px; }
-.stagebox__head h3 { margin: 0; font-size: 15px; letter-spacing: -0.01em; text-transform: none; color: var(--text); }
 .stagebox__head h3 .n { margin-left: 6px; color: var(--accent-2); font-variant-numeric: tabular-nums; }
-.stagebox__means { margin: 2px 0 0; font-size: 13px; color: var(--muted); max-width: 80ch; }
 /* ---------- the stage's panel, folded to a bar ----------
    Folded it keeps the three things worth keeping: the stage's name, its count, and one line saying what
    is wrong across it. The choice is the viewer's and is remembered per stage, so moving between arrows
    does not undo it. */
-.stagebox__head { flex-wrap: nowrap; }
-.stagebox__ttl { flex: 1 1 auto; min-width: 0; }
-.stagebox__acts { flex: none; display: flex; align-items: center; gap: 8px; order: 2; }
-.stagetog { order: 3; }
 /* Narrow, the "show these in the table" button needs a line of its own. The toggle does not go with it:
    it stays on the title row, at its right end, so it sits the same distance from the top of the box
    whether the panel is open or folded. */
 @media (max-width: 600px) {
-  .stagebox__head { flex-wrap: wrap; align-items: flex-start; }
-  .stagebox__ttl { flex: 1 1 0; }
-  .stagetog { order: 2; }
-  .stagebox__acts { order: 3; flex: 1 1 100%; }
 }
 /* The toggle is the same button as the one beside it, made square: the same border, the same rounding,
    the same glass. Its height is not a number here -- it stretches to the row, so it is exactly as tall
@@ -771,27 +736,10 @@ button, input { font: inherit; color: inherit; }
   background: var(--surface); color: var(--muted); cursor: pointer;
 }
 .stagetog:hover, .leadedge:hover, .scrollrow__arrow:hover { color: var(--text); border-color: var(--accent); }
-.stagetog { flex: none; align-self: flex-start; margin-left: -8px; display: grid; place-items: center; transition: rotate 0.15s, border-color 0.2s; }
 /* An accordion points the way its content will move: down while it is closed (press and the panel
    comes down), up while it is open (press and it goes back up). One icon turned, never two swapped. */
-.stagetog { rotate: 90deg; }
-.stagetog[aria-expanded="true"] { rotate: -90deg; }
-.stagebox__brief { display: none; margin: 2px 0 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.stagebox.is-folded .stagebox__means { display: none; }
-.stagebox.is-folded .stagebox__brief { display: block; }
-.stagebox__body[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { .stagetog { transition: none; } }
 @media (max-width: 600px) { .stagebox__head { flex-wrap: wrap; } }
-.stagebox__holds { margin: 10px 0 0; font-size: 13.5px; }
-.stagebox .ckbars { margin-top: 12px; }
-.stagebox .qids { margin-top: 10px; }
-.ckbars--site:empty { display: none; }
-/* every model, one line under the panel: the counts only, their split in each tooltip */
-.allline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 14px 0 0; font-size: 13.5px; color: var(--muted); }
-.allline .label { margin-right: 4px; }
-.allline b { color: var(--text); font-variant-numeric: tabular-nums; }
-.allline [data-tip] { cursor: help; border-bottom: 1px dotted color-mix(in srgb, var(--muted) 60%, transparent); }
-.allline__sep { opacity: 0.6; }
 #blk-btn small { opacity: 0.8; font-variant-numeric: tabular-nums; }
 /* the filter a blocker set: a chip in the sticky filter bar, with one click to drop it */
 .fchip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; }
@@ -802,28 +750,8 @@ button, input { font: inherit; color: inherit; }
 .fchip__x:hover { background: rgb(255 255 255 / 0.35); }
 .fchip__x .icon { width: 14px; height: 14px; }
 .fchip__note { font-size: 12.5px; color: var(--muted); }
-.bd { list-style: none; padding: 0; margin: 0; font-size: 13px; }
-.bd li { display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 4ch; gap: 4px 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); }
-.bd li:first-child { border-top: 0; }
-.bd__name { color: var(--text); font-weight: 650; overflow-wrap: anywhere; }
-.bd li.is-empty .bd__name { color: var(--muted); font-weight: 600; }
-.bd li.odd, .bd li.odd .bd__name { color: var(--hot); }
-.bd__n { justify-self: end; font-variant-numeric: tabular-nums; font-weight: 750; color: var(--text); }
-.bd li.is-empty .bd__n { color: var(--muted); font-weight: 600; }
-.bdbar { display: flex; gap: 2px; height: 16px; border-radius: 999px; overflow: hidden; background: var(--track); }
-.bdbar i { display: grid; place-items: center; min-width: 0; height: 100%; font-style: normal; }
-.bdbar i.bdbar__rest { background: none; }
-.bdbar em { font-style: normal; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; color: #fff; text-shadow: 0 1px 1px rgb(0 0 0 / 0.35); }
-.bd__under { grid-column: 2 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
-.bdpill { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border: 1px solid var(--border); border-radius: 999px; font-size: 11.5px; color: var(--muted); }
-.bdpill i { width: 8px; height: 8px; border-radius: 50%; }
-.bdpill b { color: var(--text); font-variant-numeric: tabular-nums; }
-.bdpill.is-zero { opacity: 0.6; }
 /* The committed snapshot's number, beside a bar that has no run of its own. Dashed and in the muted
    ink, never the pass green: it is the last release's word, not a result measured here. */
-.bdpill--rel { border-style: dashed; font-style: italic; }
-.bdpill--rel b { color: var(--muted); }
-.bd__note { font-size: 12px; color: var(--muted); font-style: italic; }
 @media (max-width: 600px) { .bd li { grid-template-columns: minmax(0, 5.5em) minmax(0, 1fr) 4ch; gap: 4px 8px; } .bd__under { grid-column: 1 / -1; } }
 
 /* running check */
@@ -1040,12 +968,13 @@ th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--bor
 th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; white-space: nowrap; }
 th .chip { margin-left: 4px; vertical-align: 1px; }
 /* a hairline zebra so the eye can follow a long row across, under everything else the row paints */
-tbody tr.row:nth-of-type(even) > td { background: color-mix(in srgb, var(--muted) 5%, transparent); }
+tbody tr.row > td { background: var(--surface-solid); }
+tbody tr.row:nth-of-type(even) > td { background: color-mix(in srgb, var(--muted) 5%, var(--surface-solid)); }
 tbody tr.row { cursor: pointer; transition: background 0.15s; }
 /* hover and open take the group's own colour, and mark the row on its left edge rather than filling it */
-tbody tr.row:hover > td { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, transparent); }
+tbody tr.row:hover > td { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, var(--surface-solid)); }
 tbody tr.row:hover > td.model { box-shadow: inset 3px 0 0 var(--gc, var(--accent)); }
-tbody tr.row[aria-expanded="true"] > td { background: color-mix(in srgb, var(--gc, var(--accent)) 11%, transparent); }
+tbody tr.row[aria-expanded="true"] > td { background: color-mix(in srgb, var(--gc, var(--accent)) 11%, var(--surface-solid)); }
 tbody tr.row:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
 td.model b { font-weight: 750; letter-spacing: -0.005em; }
 td.model code { font-family: var(--mono); font-size: 12px; color: color-mix(in srgb, var(--muted) 82%, var(--text)); }
@@ -1125,8 +1054,6 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 
 /* ---------- status marks: one small mark per check, the words in the tooltip and for screen readers ---------- */
 /* a fixed review reads as a pass with a note on it: the dot is the difference, not the colour */
-.mk--fixed { position: relative; }
-.mk--fixed::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1.5px var(--surface-solid); }
 .mk:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent); }
 .row.flash .mk { animation: mkin 0.5s ease-out; }
 @keyframes mkin { from { transform: scale(0.72); opacity: 0.2; } to { transform: scale(1); opacity: 1; } }
@@ -1143,7 +1070,6 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .mk--wasrel { position: relative; }
 .mk--wasrel::before { content: ''; position: absolute; right: -1px; top: -1px; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
 .mk--broke { --c: var(--accent); background: none; border-style: dashed; color: var(--accent); }
-.mk--conv { --c: var(--st-conv); }
 /* The ring a running check draws round its mark. It used to be an animated box-shadow ON the mark,
    which repaints the mark and everything under it every frame -- with the table drawn in full that one
    rule was worth about half the page's frame budget while scrolling. It is a pseudo-element now, moved
@@ -1155,7 +1081,6 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
   animation: mkpulse 1.4s ease-in-out infinite;
 }
 @keyframes mkpulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.34); opacity: 0.2; } }
-.mk--letter { font-size: 10.5px; line-height: 1; }
 .mk svg { display: block; }
 .marks-legend .mk svg { width: 10px; height: 10px; }
 /* one row, in the same scroller the groups and tags rows use: it fades and shows an arrow where there
@@ -1191,7 +1116,12 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
    stack, so what slides up really does go behind the bar rather than over it. */
 #tbl thead th { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-off, 0px)); z-index: 3; background: var(--surface-solid); box-shadow: inset 0 -1px 0 var(--border); }
 #tbl th.c, #tbl td.c { width: 1%; text-align: center; white-space: nowrap; }
-#tbl td.model, #tbl th.model { position: sticky; left: 0; z-index: 1; background: var(--surface-solid); width: 100%; max-width: 0; }
+/* The sticky name column needs a background -- a transparent cell would have the row slide under
+   it -- but setting it HERE, with an id in the selector, beat every rule that tints a row. So the
+   row was one colour and its name cell another, meeting at the scroll shadow. The background is
+   set with the rest of the row now; this rule only makes it stick. */
+#tbl td.model, #tbl th.model { position: sticky; left: 0; z-index: 1; width: 100%; max-width: 0; }
+#tbl thead th.model { background: var(--surface-solid); }
 #tbl thead th.model { z-index: 4; }
 /* one curve for the header and everything that pins under it, so the top never jumps */
 #tbl thead th, #tbl tr.grow > th, #tbl tr.row[aria-expanded="true"] > td { transition: top 0.2s cubic-bezier(0.3, 0.8, 0.3, 1); }
@@ -1200,9 +1130,6 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
    background of its own -- otherwise the columns would slide visibly under it -- and that background
    used to win over the row's tint, splitting every row in two down the model column. Each of the row's
    three states is therefore mixed over --surface-solid here, in the same order and the same amounts. */
-#tbl tr.row:nth-of-type(even) > td.model { background: color-mix(in srgb, var(--muted) 5%, var(--surface-solid)); }
-#tbl tr.row:hover > td.model, #tbl tr.row:nth-of-type(even):hover > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 8%, var(--surface-solid)); }
-#tbl tr.row[aria-expanded="true"] > td.model, #tbl tr.row:nth-of-type(even)[aria-expanded="true"] > td.model { background: color-mix(in srgb, var(--gc, var(--accent)) 11%, var(--surface-solid)); }
 /* ---------- the open row and its panel: one box ----------
    A frame round a table row cannot be one border: the model cell is sticky, so it is painted over its
    neighbours and any single outline is cut where it begins. Each cell draws its share as an INSET
@@ -1261,7 +1188,6 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
    band as the checks, so it takes the same rotation, the same padding and the same box. Its type is
    the header row's own, as theirs is, so the two are the same size, spacing and baseline. */
 #tbl thead th.c .colh, #tbl thead th.c .colv { writing-mode: vertical-rl; rotate: 180deg; margin: 0 auto; padding: 4px 2px; }
-.colv { border-radius: 6px; font: inherit; letter-spacing: inherit; text-transform: inherit; }
 #tbl thead th.c .help { margin: 4px 0 0; }
 #tbl thead th.c br { display: none; }
 /* a check running now: a small pulsing count under its name, the rest in the tooltip */
@@ -1272,9 +1198,8 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 @media (prefers-reduced-motion: reduce) { .hrun { animation: none; } }
 #tbl td.c { padding-left: 4px; padding-right: 4px; }
 .last small { display: block; }
-.rvw .rv { gap: 4px; flex-wrap: nowrap; }
 /* a thin section row per group, sticky under the header while its rows scroll past */
-#tbl tr.grow > th { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px) + var(--head-off, 0px)); z-index: 2; padding: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--gc, var(--accent)) 17%, var(--surface-solid)), color-mix(in srgb, var(--gc, var(--accent)) 5%, var(--surface-solid)) 62%, var(--surface-solid)); box-shadow: inset 4px 0 0 var(--gc, var(--accent)); border-bottom: 1px solid var(--border-strong); text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); white-space: normal; }
+#tbl tr.grow > th { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px) + var(--head-off, 0px)); z-index: 2; padding: 0; background: color-mix(in srgb, var(--gc, var(--accent)) 14%, var(--surface-solid)); box-shadow: inset 4px 0 0 var(--gc, var(--accent)); border-bottom: 1px solid var(--border-strong); text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); white-space: normal; }
 .grow__in { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 6px 8px; }
 .grow__btn { display: inline-flex; align-items: center; gap: 8px; padding: 2px 6px 2px 2px; border: 0; border-radius: 8px; background: none; color: var(--text); font: 700 13px/1.3 var(--font); cursor: pointer; white-space: nowrap; }
 .grow__btn:hover { background: color-mix(in srgb, var(--gc, var(--accent)) 16%, transparent); }
@@ -1328,11 +1253,6 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .ckbars h3 + .bd { margin-bottom: 10px; }
 .ckname { padding: 0; border: 0; background: none; color: var(--text); font: 650 13px/1.3 var(--font); text-align: left; cursor: pointer; overflow-wrap: anywhere; }
 .ckname:hover { color: var(--accent-2); text-decoration: underline; }
-.ckbars .bd li { grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 7ch; }
-.ckbars .bd__n { white-space: nowrap; }
-.ckbars .bdbar.is-running { background-image: repeating-linear-gradient(135deg, color-mix(in srgb, var(--accent-2) 22%, transparent) 0 6px, transparent 6px 12px); background-size: 17px 17px; animation: ckrun 1s linear infinite; }
-@keyframes ckrun { to { background-position: 17px 0; } }
-@media (prefers-reduced-motion: reduce) { .ckbars .bdbar.is-running { animation: none; } }
 
 /* ---------- a check's sub-steps: what it covers, part by part, behind a disclosure ---------- */
 .sstog { display: inline-flex; align-items: center; gap: 5px; padding: 1px 9px 1px 6px; border: 1px solid var(--border); border-radius: 999px; background: none; color: var(--muted); font: 600 11.5px/1.5 var(--font); cursor: pointer; }
@@ -1365,20 +1285,10 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .substeps footer { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); }
 /* a run's row re-orders its parts on a narrow screen; the panel stays under all of them */
 .run .substeps { order: 6; }
-#runnow .substeps { font-size: 14px; }
-#runnow .substeps ol > li.ss { font-size: 14px; }
-#runnow .sstog { font-size: 13px; }
 @media (max-width: 600px) { .substeps { padding: 9px 10px; } .substeps ol > li.ss { grid-template-columns: 1.5em minmax(0, 1fr); } }
 .defs dt:target, .defs dt.is-lit { color: var(--accent-2); }
 .ovsub--run { margin-top: 14px; }
-#runnow:not(:empty) { margin-bottom: 14px; }
 /* Running now, read from across the room: bigger name, count, bar and text */
-#runnow .run__name { font-size: 22px; }
-#runnow .run__n { font-size: 26px; font-weight: 800; }
-#runnow .run__track { height: 16px; border-radius: 999px; }
-#runnow .run__track > span { border-radius: 999px; }
-#runnow .run__meta { font-size: 16px; }
-#runnow .run { padding: 16px 20px; }
 #run-h { font-size: 15px; }
 
 /* ---------- the release checklist: a claim, a verdict, and the proof only when asked ----------
@@ -1416,18 +1326,9 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
    #runnow sets the name to 22px, which pushed the count onto a line of its own and left the bar
    floating beside the title with nothing after it. The three belong together: what is running,
    how far it has got, and the number that says the same thing exactly. */
-#runnow .run { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 12px; }
 /* the chip sits BESIDE the name, not under it: both were in column 1, so the grid stacked them */
-#runnow .run__name { grid-column: 1; }
-#runnow .run__stopped { grid-column: 2; margin-left: 0; }
-#runnow .run__track { grid-column: 3; }
-#runnow .run__n { grid-column: 4; font-variant-numeric: tabular-nums; white-space: nowrap; }
-#runnow .run__meta, #runnow .run__ids, #runnow .sspanel { grid-column: 1 / -1; }
 @media (max-width: 720px) {
   /* at phone width there is no room for three across: the count goes under the bar, not beside it */
-  #runnow .run { grid-template-columns: 1fr auto; }
-  #runnow .run__track { grid-column: 1 / -1; order: 3; }
-  #runnow .run__n { grid-column: 2; }
 }
 
 /* ---------- the note count, beside "How these are counted" ----------
@@ -1443,20 +1344,6 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .notesbtn[aria-expanded="true"] { color: var(--text); border-color: var(--st-warn); }
 /* nothing to report is not worth a control: it hides itself rather than saying "0 notes" */
 .notesbtn[hidden] { display: none; }
-
-/* ---------- the per-check run button ----------
-   It sits with the check name in one grid cell. On its own it became the row's first grid item
-   and claimed a 97px column, which pushed the bar and the count across and made a one-character
-   control 92px wide. */
-.ckhead { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
-.ckrun { flex: none; width: 22px; height: 22px; padding: 0; display: inline-grid; place-items: center;
-  font-size: 9px; line-height: 1; color: var(--muted); background: transparent;
-  border: 1px solid var(--border); border-radius: 50%; cursor: pointer; }
-.ckrun:hover:not([disabled]) { color: var(--st-chk); border-color: var(--st-chk);
-  background: color-mix(in srgb, var(--st-chk) 12%, transparent); }
-.ckrun:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent); }
-/* while anything is running, every one of them is off: two checks at once is what the runner exists to prevent */
-.ckrun[disabled] { opacity: 0.3; cursor: default; }
 
 /* ---------- notices: what happened, one line each ----------
    A run that stopped used to sit in the progress panel with a bar at 0/135 beside the words "its
@@ -1502,17 +1389,12 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .notes-pop[hidden] { display: none; }
 .notes-pop p, .notes-pop li { font-size: 13px; line-height: 1.55; color: var(--muted); margin: 0; }
 .notes-pop b { color: var(--text); }
-.notes-pop button { justify-self: end; padding: 3px 11px; font: 600 12px/1.7 var(--font);
+/* Named for the link it was written for. As `.notes-pop button` it also caught the dismiss in
+   every note -- one class more specific than .note__x -- and gave it a pill border and 11px of
+   side padding inside a 24px box, which is the bordered blob that sat over each note's text. */
+.notes-pop .linkish { justify-self: end; padding: 3px 11px; font: 600 12px/1.7 var(--font);
   color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
-.notes-pop button:hover { color: var(--text); border-color: var(--accent-2); }
-
-/* ---------- the per-check run button, again ----------
-   22 pixels and a hairline border did not read as something you press. It is bigger, it carries
-   its own fill, and it says what it does on hover rather than only in a tooltip. */
-.ckrun { width: 30px; height: 30px; font-size: 11px; color: var(--st-chk);
-  border: 1px solid color-mix(in srgb, var(--st-chk) 40%, transparent);
-  background: color-mix(in srgb, var(--st-chk) 12%, transparent); }
-.ckrun:hover:not([disabled]) { color: var(--bg); background: var(--st-chk); border-color: var(--st-chk); }
+.notes-pop .linkish:hover { color: var(--text); border-color: var(--accent-2); }
 
 /* ---------- the notes inside the popover ----------
    The popover renders .note rows with a .note__x button, and only .notice (the run notices above the
@@ -1522,11 +1404,11 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 /* No border and no fill: the popover is already a panel, and a bordered row inside a bordered
    panel reads as a box in a box -- which with one note is all you see. Rows are separated from
    each other, not boxed individually. */
-.notes-pop .note { position: relative; padding: 2px 34px 2px 2px; }
+.notes-pop .note { display: grid; grid-template-columns: minmax(0, 1fr) 26px; gap: 10px; align-items: start; padding: 2px; }
 .notes-pop .note + .note { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
 .notes-pop .note > div { font-size: 13px; line-height: 1.55; color: var(--text); }
 .notes-pop .note code { font-size: 12px; }
-.note__x { position: absolute; top: -2px; right: 0; width: 24px; height: 24px; padding: 0;
+.note__x { width: 26px; height: 26px; padding: 0;
   display: grid; place-items: center; font-size: 16px; line-height: 1; color: var(--muted);
   background: transparent; border: 1px solid transparent; border-radius: 7px; cursor: pointer; }
 .note__x:hover { color: var(--text); border-color: var(--border); }
@@ -1534,77 +1416,696 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 .notesbtn.is-quiet { opacity: 0.55; }
 .notesbtn small { font-weight: 600; color: var(--muted); }
 
-/* the line that appears where the buttons would be, when no board is serving this page */
-.runbar__hint { font-size: 13px; color: var(--muted); }
-.runbar__hint code { padding: 1px 6px; border: 1px solid var(--border); border-radius: 6px;
-  font-family: var(--mono); font-size: 12px; color: var(--text); }
+/* ================================================================================================
+   ONE CLOSE, ONE CONTROL HEIGHT
 
-/* ---------- the row's controls, and the moment before a run answers ----------
-   Pause and stop sit where the play button was, next to the name, because that is the thing they
-   act on. They used to live in a bar at the bottom of the list, so the row that was running still
-   offered play while its controls were somewhere else entirely. */
-.ckrun--hold { color: var(--st-warn); border-color: color-mix(in srgb, var(--st-warn) 45%, transparent);
-  background: color-mix(in srgb, var(--st-warn) 12%, transparent); letter-spacing: 1px; }
-.ckrun--hold:hover { color: var(--bg); background: var(--st-warn); border-color: var(--st-warn); }
-.ckrun--stop { color: var(--st-bad); border-color: color-mix(in srgb, var(--st-bad) 45%, transparent);
-  background: color-mix(in srgb, var(--st-bad) 12%, transparent); font-size: 9px; }
-.ckrun--stop:hover { color: #fff; background: var(--st-bad); border-color: var(--st-bad); }
-.ckrun--go { color: var(--st-chk); border-color: color-mix(in srgb, var(--st-chk) 45%, transparent); }
+   There were five close buttons on this page -- in a dialog, on a run notice, on a note, on the
+   search box, on a filter chip -- and each had been written where it was needed, so each was a
+   different size with its border, its radius and its glyph in a different place. They all mean the
+   same thing, so they all look the same now, and the only thing that changes between them is how
+   big: the dialog's is a heading-sized control, the ones inside a row are row-sized.
 
-/* Between the click and the board saying yes. A check takes a second or two to start, and a play
-   button that stays a play button reads as a click that did not land. */
-.ckrun--wait { border-color: color-mix(in srgb, var(--st-chk) 35%, transparent); cursor: default; }
-.ckrun--wait i { width: 12px; height: 12px; border-radius: 50%; display: block;
-  border: 2px solid color-mix(in srgb, var(--st-chk) 30%, transparent); border-top-color: var(--st-chk);
-  animation: ckspin 0.7s linear infinite; }
-@keyframes ckspin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .ckrun--wait i { animation: none; border-top-color: var(--st-chk); } }
-
-/* ---------- the control slot: always the same width ----------
-   A running row carries two controls where an idle one carries a single play button, and the grid
-   column sized itself to the contents -- so the moment a check started, its name was squeezed into
-   whatever was left and "Box" wrapped to one letter a line. The slot is a fixed width now: the
-   names line up down the column whatever any row is doing, and starting a check does not move them. */
-.ckhead { display: grid; grid-template-columns: 70px minmax(0, 1fr); align-items: center; gap: 10px; }
-.ckhead .ckrun { grid-row: 1; }
-.ckhead .ckrun:first-child { grid-column: 1; justify-self: start; }
-.ckhead .ckrun:nth-child(2) { grid-column: 1; justify-self: start; margin-left: 36px; }
-.ckhead .ckname { grid-column: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 640px) {
-  /* no room for a reserved slot at phone width: the controls go above the name instead of beside it */
-  .ckhead { grid-template-columns: 1fr; gap: 4px; }
-  .ckhead .ckrun, .ckhead .ckrun:nth-child(2) { grid-row: 1; grid-column: 1; margin-left: 0; }
-  .ckhead .ckrun:nth-child(2) { margin-left: 36px; }
-  .ckhead .ckname { grid-row: 2; grid-column: 1; }
+   The same goes for anything you press: a pill button, a run button, a tick. If two controls sit
+   side by side and are two heights, every row they are in drifts by the difference.
+   ================================================================================================ */
+:root {
+  --ctl-h: 30px;        /* a control beside text: a small button, a run button, a close in a row */
+  --ctl-h-lg: 36px;     /* a control beside a heading: the dialogs' close */
+  --ctl-r: 999px;       /* round, unless it is a box that holds words */
 }
 
-/* The row's name column is 7.5em, which fitted a name and a single small button. Reserving a fixed
-   slot for two controls inside that left the name a few pixels and it truncated to "B…". The column
-   is widened here, and only here: these rows are the ones that carry controls. */
-.ckbars .bd li { grid-template-columns: minmax(0, 12.5em) minmax(0, 1fr) 4ch; }
-.ckbars .ckhead .ckname { overflow: visible; text-overflow: clip; }
+.cldlg__x, .notice__x, .note__x, .search__clear, .fchip__x {
+  flex: none; display: grid; place-items: center; box-sizing: border-box;
+  width: var(--ctl-h); height: var(--ctl-h); padding: 0; line-height: 1;
+  border: 1px solid transparent; border-radius: var(--ctl-r);
+  background: none; color: var(--muted); cursor: pointer;
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
+}
+.cldlg__x:hover, .notice__x:hover, .note__x:hover, .search__clear:hover, .fchip__x:hover {
+  color: var(--text); border-color: var(--border-strong);
+  background: color-mix(in srgb, var(--border) 45%, transparent);
+}
+.cldlg__x:focus-visible, .notice__x:focus-visible, .note__x:focus-visible,
+.search__clear:focus-visible, .fchip__x:focus-visible {
+  outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent);
+}
+/* the glyph inside is one size too, so the crosses line up wherever they are */
+.cldlg__x .icon, .notice__x .icon, .note__x .icon, .search__clear .icon, .fchip__x .icon { width: 15px; height: 15px; }
+/* beside a heading rather than beside a line of text */
+.cldlg__x { width: var(--ctl-h-lg); height: var(--ctl-h-lg); border-color: var(--border-strong); color: var(--text); }
+.cldlg__x .icon { width: 17px; height: 17px; }
+/* on a coloured chip, where the muted ink would disappear */
+.fchip__x { color: #fff; background: rgb(255 255 255 / 0.2); width: 24px; height: 24px; }
+.fchip__x:hover { color: #fff; background: rgb(255 255 255 / 0.35); border-color: transparent; }
+.fchip__x .icon { width: 13px; height: 13px; }
+/* the search box's own, which sits inside the field rather than in a row */
+.search__clear { position: absolute; top: 50%; right: 8px; translate: 0 -50%; border-radius: 9px; }
+.search__clear[hidden] { display: none; }
+/* it was absolutely placed over the words it was meant to sit beside */
+.notice__x { position: absolute; top: 9px; right: 9px; }
 
-/* ---------- running part of the table ----------
-   Everything used to run over all 135 models or nothing, which is the wrong size for most of what
-   you want: one model has changed, or one group, or one check is red and the rest are fine. The
-   buttons are small and quiet -- the table is for reading, and a row of bright controls down it
-   would read as the point of the page rather than as something you reach for. */
-.rowrun { flex: none; width: 22px; height: 22px; margin-right: 8px; padding: 0;
-  display: inline-grid; place-items: center; font-size: 8px; line-height: 1;
-  color: var(--muted); background: transparent; border: 1px solid var(--border);
-  border-radius: 50%; cursor: pointer; opacity: 0; transition: opacity 0.12s; }
-/* shown on the row you are pointing at, or whenever the keyboard reaches it */
-tr:hover .rowrun, tr:focus-within .rowrun, .grow:hover .rowrun, .rowrun:focus-visible { opacity: 1; }
-.rowrun:hover:not([disabled]) { color: var(--st-chk); border-color: var(--st-chk);
-  background: color-mix(in srgb, var(--st-chk) 12%, transparent); }
-.rowrun[disabled] { opacity: 0.25; cursor: default; }
-.grow__in .rowrun { margin-left: 8px; margin-right: 0; }
+/* ---------- everything you press is the same height ---------- */
+.btn, .btnrun, .linkish.btn, .notesbtn, .tagbtn {
+  box-sizing: border-box; min-height: var(--ctl-h);
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; line-height: 1;
+}
+/* the round ones are as tall as they are wide, so a play and a pause beside a label do not drift */
+.btnrun { width: var(--ctl-h); height: var(--ctl-h); min-height: var(--ctl-h); }
+.rowrun, .cellrun { box-sizing: border-box; }
+/* ================================================================================================
+   ONE SCALE FOR EVERY CONTROL
 
-/* one check on one model: it sits under the mark in that cell, and only on hover */
-.cellrun { display: block; margin: 3px auto 0; width: 18px; height: 18px; padding: 0;
-  font-size: 7px; line-height: 1; color: var(--muted); background: transparent;
-  border: 1px solid var(--border); border-radius: 50%; cursor: pointer; opacity: 0; }
-td.c:hover .cellrun, .cellrun:focus-visible { opacity: 1; }
-.cellrun:hover:not([disabled]) { color: var(--st-chk); border-color: var(--st-chk); }
-.cellrun[disabled] { opacity: 0; }
-.rowrun.ckrun--wait, .cellrun.ckrun--wait { opacity: 1; }
+   There were five sizes of round button on this page -- 24 in a row, 26 in a cell, 22 in a group
+   row, 20 in a column heading, 30 beside the table's control -- and a status mark at 22. So a
+   check cell swapping its mark for its button changed size as it swapped, and nothing lined up
+   down a column. Every round control in the table is now exactly the size of the mark it sits
+   with or replaces, and there is one number to change.
+   ================================================================================================ */
+:root {
+  --dot: 22px;          /* a status mark, and any round control in the table: they trade places */
+  --dot-lg: 30px;       /* a round control outside the table, beside a pill button */
+}
+
+/* ---------- the shape inside is centred by geometry, not by a font's opinion ---------- */
+.ri { width: 46%; height: 46%; display: block; pointer-events: none; }
+.btn--run .ri { width: 14px; height: 14px; }
+
+/* ---------- round controls, one definition ---------- */
+.rowrun, .cellrun, .btnrun {
+  box-sizing: border-box; flex: none; padding: 0;
+  display: inline-grid; place-items: center; place-content: center;
+  width: var(--dot); height: var(--dot); min-height: 0; border-radius: 50%;
+  line-height: 0; cursor: pointer;
+  color: color-mix(in srgb, var(--st-chk) 88%, var(--muted));
+  background: color-mix(in srgb, var(--st-chk) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--st-chk) 34%, transparent);
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
+}
+.btnrun { width: var(--dot-lg); height: var(--dot-lg); }
+.rowrun:hover:not([disabled]), .cellrun:hover:not([disabled]), .btnrun:hover:not([disabled]) {
+  color: var(--bg); background: var(--st-chk); border-color: var(--st-chk);
+}
+.rowrun:focus-visible, .cellrun:focus-visible, .btnrun:focus-visible {
+  outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent);
+}
+/* One at a time per check, so a button for a check that is already going is off and says why in
+   its tooltip. It keeps its size: a control that shrinks when unavailable moves its neighbours. */
+.rowrun[disabled], .cellrun[disabled], .btnrun[disabled] {
+  cursor: default; opacity: 0.22; color: var(--muted);
+  background: transparent; border-color: var(--border);
+}
+
+/* pause, resume and stop take the colour of what they do */
+.ckrun--hold { color: var(--st-warn); border-color: color-mix(in srgb, var(--st-warn) 45%, transparent);
+  background: color-mix(in srgb, var(--st-warn) 14%, transparent); }
+.ckrun--hold:hover:not([disabled]) { color: var(--bg); background: var(--st-warn); border-color: var(--st-warn); }
+.ckrun--stop { color: var(--st-bad); border-color: color-mix(in srgb, var(--st-bad) 45%, transparent);
+  background: color-mix(in srgb, var(--st-bad) 14%, transparent); }
+.ckrun--stop:hover:not([disabled]) { color: #fff; background: var(--st-bad); border-color: var(--st-bad); }
+.ckrun--go { color: var(--st-chk); border-color: color-mix(in srgb, var(--st-chk) 45%, transparent);
+  background: color-mix(in srgb, var(--st-chk) 14%, transparent); }
+
+/* between the press and the board's answer: the same circle, with a turning ring in it */
+.ckrun--wait { cursor: default; background: transparent;
+  border-color: color-mix(in srgb, var(--st-chk) 30%, transparent); }
+.ckrun--wait i { display: block; width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--st-chk) 28%, transparent); border-top-color: var(--st-chk);
+  animation: ckspin 0.7s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .ckrun--wait i { animation: none; } }
+
+/* ---------- where each one sits ---------- */
+.mt__run, .run__acts, .pg__acts { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+/* a name and its id align on their baselines, like the words they are; the button aligns on the
+   middle of the line, like the object it is */
+.mt__run { margin-left: 8px; align-self: center; }
+
+/* one check on one model: it takes the mark's place, at the mark's size, on the mark's centre */
+td.c { position: relative; }
+.cellrun { position: absolute; inset: 0; margin: auto; opacity: 0; }
+.cellrun[disabled] { display: none; }
+td.c:hover .mk, td.c:focus-within .mk, td.c.is-armed .mk { opacity: 0; }
+td.c:hover .cellrun, td.c:focus-within .cellrun, td.c.is-armed .cellrun { opacity: 1; }
+/* A tap is the phone's hover: the first tap on a cell swaps the mark for the button, the second
+   presses it. Without this the cell's button existed only for people with a mouse. */
+@media (hover: none) {
+  td.c:hover .mk { opacity: 1; }
+  td.c:hover .cellrun { opacity: 0; }
+}
+/* whatever is waiting or running is never hidden, wherever it is */
+.rowrun.ckrun--wait, .cellrun.ckrun--wait, .cellrun.ckrun--hold, .cellrun.ckrun--stop, .cellrun.ckrun--go { opacity: 1; }
+td.c:has(.ckrun--wait) .mk, td.c:has(.ckrun--hold) .mk, td.c:has(.ckrun--stop) .mk, td.c:has(.ckrun--go) .mk { opacity: 0; }
+/* two controls will not fit one cell side by side, so they stack on the spot the mark had */
+td.c:has(.ckrun--stop) .ckrun--hold, td.c:has(.ckrun--stop) .ckrun--go { inset: 0 0 auto 0; }
+td.c:has(.ckrun--stop) .ckrun--stop { inset: auto 0 0 0; }
+td.c:has(.ckrun--stop) .cellrun { width: 17px; height: 17px; }
+
+/* in a column heading, in a group's run row and on the site line there is no mark to replace */
+#tbl thead th.c .colh__run { display: block; margin: 7px auto 0; writing-mode: horizontal-tb; }
+#tbl thead th.c .colh__run .cellrun, .growrun td.c .cellrun, .sitechk .cellrun {
+  position: static; margin: 0 auto; opacity: 1; }
+#tbl thead th.c .colh__run .cellrun[disabled], .growrun td.c .cellrun[disabled], .sitechk .cellrun[disabled] {
+  display: inline-grid; }
+.sitechk .cellrun { margin: 0; }
+
+/* ---------- a cell whose check is being run right now ----------
+   The row's bar says the run has reached this model. Until the verdict lands, the mark in that
+   cell is the OLD verdict -- true a minute ago, about to be replaced, and drawn exactly like one
+   that was just confirmed. So it is marked as being worked on: the mark goes amber and turns, and
+   nobody reads a green tick that is in the middle of being re-decided. */
+.mk.is-checking { --c: var(--st-warn); position: relative; }
+.mk.is-checking::after { content: ""; position: absolute; inset: -3px; border-radius: 50%;
+  border: 2px solid transparent; border-top-color: var(--st-warn);
+  animation: ckspin 0.85s linear infinite; }
+td.c.is-checking { background: color-mix(in srgb, var(--st-warn) 13%, transparent); }
+@media (prefers-reduced-motion: reduce) { .mk.is-checking::after { animation: none; opacity: 0.6; } }
+
+/* ---------- the tick that says which models a group's buttons act on ----------
+   The browser's own checkbox, whatever accent-color you give it, is a different shape and size on
+   every platform -- and on this page it was a small grey square in a table of round marks. Drawn
+   here, once, so it is the same everywhere and belongs with what it sits among. */
+.pick {
+  appearance: none; -webkit-appearance: none; box-sizing: border-box; flex: none; margin: 0;
+  width: 17px; height: 17px; display: inline-grid; place-content: center;
+  border: 1.5px solid color-mix(in srgb, var(--muted) 55%, transparent); border-radius: 5px;
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+  cursor: pointer; transition: background 0.12s, border-color 0.12s;
+}
+.pick:hover { border-color: var(--accent-2); }
+.pick:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 45%, transparent); }
+.pick::before { content: ""; width: 10px; height: 10px; transform: scale(0); transition: transform 0.12s;
+  background: var(--bg); clip-path: polygon(13% 48%, 4% 58%, 37% 92%, 96% 22%, 86% 13%, 36% 72%); }
+.pick:checked { background: var(--accent-2); border-color: var(--accent-2); }
+.pick:checked::before { transform: scale(1); }
+/* some of this group, not all of it: a dash, because a tick would be a lie about the rest */
+.pick:indeterminate { background: var(--accent-2); border-color: var(--accent-2); }
+.pick:indeterminate::before { transform: scale(1); clip-path: none; width: 9px; height: 2px; border-radius: 1px; }
+@media (prefers-reduced-motion: reduce) { .pick, .pick::before { transition: none; } }
+
+/* ================================================================================================
+   THE PROGRESS BAR
+
+   One run, wherever it is drawn: under the model it is checking, in the heading of the group it is
+   working through, or beside the table's own control when it is over everything.
+   ================================================================================================ */
+.pg { display: flex; flex-wrap: nowrap; align-items: center; gap: 10px; width: 100%; min-width: 0;
+  --pg-c: var(--st-chk); }
+.pg__name { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 22px;
+  padding: 0 11px; border-radius: 999px;
+  background: color-mix(in srgb, var(--pg-c) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pg-c) 45%, transparent);
+  font: 700 11.5px/1 var(--font); letter-spacing: 0.02em; color: var(--pg-c); cursor: help; }
+/* a live dot, so a bar that has not moved for a minute still reads as running rather than stuck */
+.pg__name::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentcolor;
+  animation: pgbeat 1.4s ease-in-out infinite; }
+@keyframes pgbeat { 50% { opacity: 0.2; } }
+
+.pg__track { position: relative; flex: 1 1 auto; min-width: 60px; height: 12px;
+  border-radius: 999px; background: var(--track);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pg-c) 18%, transparent); overflow: hidden; }
+.pg__track i { position: relative; display: block; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--pg-c) 58%, var(--bg)), var(--pg-c));
+  transition: width 0.45s cubic-bezier(0.3, 0.8, 0.3, 1); }
+/* the stripes crawl the way the work is going, so the bar is moving even between models */
+.pg__track i::before { content: ""; position: absolute; inset: 0; border-radius: 999px;
+  background-image: repeating-linear-gradient(115deg, rgb(255 255 255 / 0.26) 0 7px, transparent 7px 15px);
+  background-size: 21px 100%; animation: pgcrawl 0.9s linear infinite; }
+@keyframes pgcrawl { to { background-position: 21px 0; } }
+/* and a light runs the length of what is left, so the eye knows where it is heading */
+.pg__track::after { content: ""; position: absolute; inset: 0; border-radius: 999px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--pg-c) 26%, transparent), transparent);
+  background-size: 38% 100%; background-repeat: no-repeat; animation: pgsweep 2.1s ease-in-out infinite; }
+@keyframes pgsweep { from { background-position: -40% 0; } to { background-position: 140% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .pg__track i { transition: none; }
+  .pg__track i::before, .pg__track::after { animation: none; }
+  .pg__track::after { background: none; }
+}
+
+.pg__n { flex: none; font: 750 13px/1 var(--font); font-variant-numeric: tabular-nums;
+  color: var(--text); letter-spacing: -0.01em; }
+.pg__meta { flex: 0 1 auto; min-width: 0; font-size: 11.5px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Paused is a state, not a pace. The crawl stops, the sweep stops and the colour changes: a bar
+   that keeps animating while nothing is happening is the page saying something untrue. */
+.pg.is-paused { --pg-c: var(--st-warn); }
+.pg.is-paused .pg__track i::before, .pg.is-paused .pg__track::after { animation: none; }
+.pg.is-paused .pg__track i::before { background-image: none; }
+.pg.is-paused .pg__name::before { animation: none; }
+
+/* ---------- the three places it is drawn ---------- */
+/* in a group heading, where the group's own status bar was */
+.grow__in .pg { flex: 1 1 auto; }
+/* Under a model row, where its detail would be, and across the whole of it. It had a max-width,
+   which left the track stopping short of the row it belongs to and reading as a different width
+   from the one thing it is measuring. */
+.detail--run > td { padding: 10px 14px 11px; }
+.detail--run .pg__track { height: 14px; }
+/* beside the table's control, and on the site line */
+.suite .pg, .sitechk .pg { flex: 1 1 280px; width: auto; }
+
+/* ---------- the Model heading, which runs everything ---------- */
+.modelh { display: inline-flex; align-items: center; gap: 12px; }
+#tbl thead th.model { vertical-align: bottom; padding-bottom: 8px; }
+
+/* ---------- the column headings line up ----------
+   Each label is set sideways so nine of them fit across, and a sideways label is as tall as its
+   word is long -- so "CONTRACT" pushed its button and its count lower than "BOX" did, and the row
+   of buttons under the headings stepped up and down across the table. The label gets a fixed
+   height, filled from the bottom, and everything under it starts from the same line. */
+#tbl thead th.c { vertical-align: bottom; padding-bottom: 8px; }
+#tbl thead th.c .colh, #tbl thead th.c .colv { height: 76px; align-items: flex-start; justify-content: flex-end; }
+#tbl thead th.c .colh__n { display: block; margin: 5px auto 0; writing-mode: horizontal-tb; text-align: center; }
+/* the counter for a check that is running: it belongs with the count, not floating beside the word */
+#tbl thead th.c .hrun { display: block; margin: 5px auto 0; writing-mode: horizontal-tb; }
+
+/* ---------- a cell in a run that has not reported yet ----------
+   Until a model reports, the mark in its cell is the PREVIOUS verdict: true a minute ago, about to
+   be replaced, and otherwise drawn exactly like one that was just confirmed. Two states, because
+   they are two different facts. Which model the run is ON is inferred from the last one it
+   finished, so only that one gets the spinner; the rest are simply waiting, and say so quietly. */
+td.c.is-checking { background: color-mix(in srgb, var(--st-warn) 14%, transparent); }
+td.c.is-checking .mk { --c: var(--st-warn); position: relative; }
+td.c.is-checking .mk::after { content: ""; position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid transparent; border-top-color: var(--st-warn); border-right-color: color-mix(in srgb, var(--st-warn) 35%, transparent);
+  animation: ckspin 0.85s linear infinite; }
+@media (prefers-reduced-motion: reduce) { td.c.is-checking .mk::after { animation: none; opacity: 0.7; } }
+/* in the queue: its verdict is about to be re-decided, so it is drawn as something on its way out */
+td.c.is-waiting .mk { opacity: 0.4; filter: saturate(0.4); }
+
+/* ---------- a run over every model: the table's own first row ---------- */
+.suiterun > td { padding: 9px 14px 10px; background: color-mix(in srgb, var(--st-chk) 7%, var(--surface-solid));
+  border-bottom: 1px solid color-mix(in srgb, var(--st-chk) 30%, transparent); }
+#tbl tr.suiterun > td { position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px) + var(--head-off, 0px)); z-index: 2; }
+.suiterun .pg__track { height: 14px; }
+
+/* ---------- one colour across a row, whatever the cell ----------
+   Written with the same weight as the sticky rule that used to beat it, so the name cell and the
+   check cells are the same colour at rest, on hover and when the row is open. */
+#tbl tbody tr.row > td { background: var(--surface-solid); }
+#tbl tbody tr.row:nth-of-type(even) > td { background: color-mix(in srgb, var(--muted) 5%, var(--surface-solid)); }
+#tbl tbody tr.row:hover > td { background: color-mix(in srgb, var(--gc, var(--accent)) 9%, var(--surface-solid)); }
+#tbl tbody tr.row[aria-expanded="true"] > td { background: color-mix(in srgb, var(--gc, var(--accent)) 12%, var(--surface-solid)); }
+#tbl tbody tr.detail > td { background: var(--surface-solid); }
+
+/* ---------- the icon inside a round control ----------
+   It was sized as a percentage of its parent. The parent is a grid box that centres its one child,
+   so the track it was measuring against was the child's own size -- and a percentage of something
+   whose size depends on that percentage resolves to nothing: the play triangles came out 1.9 by
+   0.9 pixels, which is why every run button looked like a plain filled dot. Sized in ems off the
+   button's own font-size instead, so it scales with the control and never with itself. */
+.rowrun, .cellrun { font-size: 11px; }
+.btnrun { font-size: 13px; }
+.ri { width: 1em; height: 1em; }
+.btn--run .ri { width: 15px; height: 15px; }
+
+/* ---------- the group's run row is in the table BODY, where a th is drawn as a heading ---------- */
+
+/* ---------- the header's buttons stay on one line's worth of rhythm ---------- */
+.hero__btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+/* the site line reads as its own thing, not as a second half of the HEAD line above it */
+header .sitechk { margin: 12px 0 0; }
+
+/* ================================================================================================
+   THE HEADER CARRIES WHAT IS TRUE OF THE PAGE
+
+   Everything about MODELS is in the table: their marks, their runs, their progress. Everything
+   about the PAGE or the SITE is here: what is holding models back, the checklist, how the numbers
+   are counted, the notes, and the two checks that judge the site rather than any model. Between
+   them the stages stand on their own, and clicking one filters the table.
+   ================================================================================================ */
+.hero__btns { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+/* the line under the title: what this is built from, whether it is live, and whether it adds up */
+.statusline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.statusline .tally { margin: 0; font-size: 12.5px; }
+.statusline .tally .tally__ok { border: 0; }
+
+/* the site's own two checks, on the header's last line */
+header .sitechk { margin: 10px 0 0; padding: 7px 12px; gap: 6px 16px;
+  border-radius: 10px; background: color-mix(in srgb, var(--muted) 7%, transparent); border-color: transparent; }
+
+/* the strip is the stages now: no caption above them and no panel below them */
+.panel--strip { padding-top: 14px; }
+.panel--strip .head { display: none; }
+
+/* ================================================================================================
+   THE HEADER, IN TWO PARTS
+
+   The name and what this page is built from on the left; everything you can press on the right.
+   They were one wrapping row, so the buttons broke onto a second line and sat under the title as
+   if they belonged to it.
+   ================================================================================================ */
+.hero .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.hero__btns { flex: 1 1 auto; justify-content: flex-end; }
+.statusline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+/* the site's own checks, at the end of that line, on the right */
+header .sitechk { margin: 0 0 0 auto; padding: 0; gap: 10px; border: 0; background: none; }
+.sitechk__one { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: help; }
+.sitechk__one b { font-weight: 700; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; font-size: 10.5px; }
+.sitechk__said { font-variant-numeric: tabular-nums; color: var(--text); }
+.sitechk__one.is-bad .sitechk__said { color: var(--st-bad); }
+.sitechk .cellrun { width: 20px; height: 20px; font-size: 10px; }
+
+/* ---------- the stages, with nothing around them ---------- */
+.panel--strip { padding: 0; border: 0; background: none; box-shadow: none; }
+.panel--strip .head { display: none; }
+
+/* ================================================================================================
+   THE COLUMN HEADINGS, LYING DOWN
+
+   They were set sideways so nine of them would fit, from when there was a Reviews column and less
+   room. There is room now: a heading reads left to right like everything else, its count sits under
+   it, and the button to run that check over every model takes the count's place when you point at
+   the column -- the same swap the cells below make.
+   ================================================================================================ */
+#tbl thead th.c { vertical-align: bottom; padding: 8px 6px; position: relative; }
+#tbl thead th.c .colh, #tbl thead th.c .colv {
+  writing-mode: horizontal-tb; rotate: none; height: auto; display: block; margin: 0 auto;
+  padding: 2px 4px; text-align: center; white-space: nowrap;
+}
+#tbl thead th.c .colh__n { display: block; margin: 4px auto 0; writing-mode: horizontal-tb; text-align: center; }
+/* the run button takes the count's place while the pointer is on the column */
+#tbl thead th.c .colh__run { position: absolute; left: 50%; bottom: 6px; translate: -50% 0;
+  margin: 0; opacity: 0; transition: opacity 0.12s; }
+#tbl thead th.c:hover .colh__n, #tbl thead th.c:focus-within .colh__n { opacity: 0; }
+#tbl thead th.c:hover .colh__run, #tbl thead th.c:focus-within .colh__run { opacity: 1; }
+#tbl thead th.c .colh__run .cellrun { width: 20px; height: 20px; font-size: 10px; }
+@media (hover: none) { #tbl thead th.c .colh__run { position: static; translate: none; opacity: 1; margin: 4px auto 0; } }
+/* the Model heading keeps its run-everything button beside the word */
+.modelh { display: inline-flex; align-items: center; gap: 12px; }
+#tbl thead th.model { vertical-align: bottom; padding-bottom: 8px; }
+
+/* ---------- the close in a notice, on its own centre ---------- */
+.notice__x, .note__x, .cldlg__x, .search__clear, .fchip__x { place-items: center; place-content: center; line-height: 0; }
+.notice__x .icon, .note__x .icon { display: block; }
+
+/* ---------- pause and stop, at the size of the thing they act on ---------- */
+.btnrun { font-size: 15px; }
+.suite .btnrun, .pg__acts .rowrun { width: 26px; height: 26px; font-size: 13px; }
+
+/* ---------- the column headings stick, as every heading in this table does ----------
+   They stopped: giving them `position: relative` so the run button could be placed over the count
+   replaced `position: sticky` from the rule above, so the Model and Status headings stayed at the
+   top of the table while the nine check headings scrolled away with the rows and came to rest in
+   the middle of the list. A sticky element is a positioned element: it is already a containing
+   block for an absolutely placed child, so the button needs nothing here. */
+#tbl thead th.c { position: sticky; }
+
+/* ---------- the site's two checks, with room between them ---------- */
+header .sitechk { gap: 8px 22px; }
+.sitechk__one { gap: 7px; }
+.sitechk .pg { flex: 0 1 280px; gap: 8px; }
+.sitechk .pg__acts { margin-left: 2px; }
+
+/* ---------- a run that has been asked for and has not started ----------
+   Between the press and the process there are seconds: a browser has to open before anything can be
+   measured, and the ledger only notices the run when it next rebuilds. The bar appears on the press
+   so the click is visibly answered, and it carries no figure -- there is nothing counted yet, and a
+   bar reading 0 of 135 would be a number this page invented. The stripes move; the fill does not. */
+.pg--starting { --pg-c: var(--accent-2); }
+.pg--starting .pg__track i { width: 100%; opacity: 0.28; }
+.pg--starting .pg__name::before { animation: pgbeat 0.9s ease-in-out infinite; }
+.pg--starting .pg__meta { font-style: italic; }
+
+/* ---------- the notes popover has to leave the header it now lives in ----------
+   The header clips its own dotted backdrop to its rounded corners with overflow: hidden, which is
+   right for the backdrop and wrong for anything that hangs below the header. The notes moved in
+   here, so the panel was cut off mid-sentence at the header's edge. The backdrop is drawn on a
+   pseudo-element that can be clipped on its own, and the header stops clipping its children. */
+.hero { overflow: visible; background: none; }
+.hero::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: var(--radius); overflow: hidden;
+  background:
+    radial-gradient(color-mix(in srgb, var(--border-strong) 45%, transparent) 1.1px, transparent 1.9px) 0 0 / 18px 18px,
+    color-mix(in srgb, var(--bg) 70%, transparent);
+}
+/* above the stage strip that follows it, so the panel is not drawn behind the arrows */
+.notes-anchor { position: relative; z-index: 60; }
+.notes-pop { z-index: 60; max-height: min(60vh, 520px); overflow-y: auto; }
+
+/* ---------- the strip, one step per check ----------
+   It was three states with three named colours and three clip-paths. It is ten steps now -- nine
+   checks in the order the gate runs them, then Approved -- so each carries its own colour inline
+   and the shapes repeat: a notch on the right for every step, and a flat left edge on the first.
+   The words shrink because ten of them share the width three used to have; the count does not,
+   because the count is the thing you are reading. */
+.flow { --notch: 14px; }
+.flow__li { min-width: 0; }
+.step { --c: var(--accent); }
+.step--end { --c: var(--warm); }
+.step__label { font-size: 9.5px; letter-spacing: 0.07em; }
+.step__n { font-size: 20px; }
+.step__sub { display: none; }
+/* the last one is the only state left, and it says what it means */
+.step--end .step__sub { display: block; font-size: 10.5px; }
+@media (max-width: 1100px) { .step__label { font-size: 9px; } .step__n { font-size: 17px; } }
+
+/* ---------- the strip sits over the table, not wider than it ----------
+   The wrapper was written to bleed past its panel's padding on both sides, from when it lived
+   inside a panel with 20px of it. The panel is gone; the bleed stayed, so the strip started 24px
+   left of the table under it and read as a different, wider thing. It lines up with the table now,
+   and the only part that leaves is the arrow tip on the right, which is the point of the shape. */
+.panel--strip { margin-top: 18px; }
+.flowwrap { margin-top: 0; margin-left: 0; margin-right: calc(-1 * var(--notch)); }
+
+/* ---------- the group's run row belongs to its group ----------
+   It carried the group's colour at half the strength of the heading above it, which at these tints
+   is close enough to the plain row colour that it read as an ordinary row with buttons in it. It
+   takes the heading's own tone, faded, and the heading's left edge, so the two read as one block:
+   the group, and the things you can run on it. */
+#tbl tr.growrun > th, #tbl tr.growrun > td {
+  background: color-mix(in srgb, var(--gc, var(--accent)) 9%, var(--surface-solid));
+  border-bottom: 1px solid color-mix(in srgb, var(--gc, var(--accent)) 24%, transparent);
+}
+
+/* ---------- a group, in one row ----------
+   The heading used to span every column, with a second row of cells under it holding the run
+   buttons. It has real cells now: the name, the tick and the bar take Model and Status, and each
+   check column holds the button that runs that check over the group. Every cell in the row has to
+   stick, and has to carry the same tint -- a heading where two cells stay and nine scroll away is
+   the bug the column headings had. */
+#tbl tr.grow > th, #tbl tr.grow > td {
+  position: sticky; top: calc(var(--stick-head, 0px) + var(--head-h, 34px) + var(--head-off, 0px));
+  z-index: 2; padding: 0 6px; vertical-align: middle;
+  background: color-mix(in srgb, var(--gc, var(--accent)) 14%, var(--surface-solid));
+  border-bottom: 1px solid var(--border-strong);
+  text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); white-space: normal;
+}
+#tbl tr.grow > th.model { z-index: 3; box-shadow: inset 4px 0 0 var(--gc, var(--accent)); padding: 0; }
+#tbl tr.grow > td.c { text-align: center; }
+/* the buttons in this row have no mark to replace, so they are simply there */
+#tbl tr.grow > td.c .cellrun { position: static; margin: 0 auto; opacity: 1; }
+#tbl tr.grow > td.c .cellrun[disabled] { display: inline-grid; }
+/* the bar and the words share what is left of the two columns the name is in */
+.grow__in { min-width: 0; }
+.grow__meta b { color: var(--text); }
+.grow__meta .linkish { margin-left: 4px; font-size: 11.5px; }
+
+/* ---------- the strip ends where the arrow ends ----------
+   The scene clipped itself to the arrow outline, but the wave is drawn wider than the strip on
+   purpose -- two half periods over, so its round end caps are always outside the frame -- and with
+   the panel gone there was nothing left to hide them. So a pale line carried on past the point.
+   The wrapper takes the same outline: flat left end, one point on the right, and nothing that any
+   layer inside it draws can leave. */
+.flowwrap {
+  clip-path: polygon(0 0, calc(100% - var(--notch)) 0, 100% 50%, calc(100% - var(--notch)) 100%, 0 100%);
+}
+
+/* ---------- Approved is the one you are aiming at ----------
+   Nine checks and a destination shared the width equally, so the destination -- the only step that
+   is a state rather than a check, and the only one with anything to explain -- had its sentence
+   broken over four lines while "Box 135" sat in the same room with two words in it. */
+.flow__li:last-child { flex: 1.75 1 0; }
+.step--end .step__label { font-size: 10.5px; }
+.step--end .step__n { font-size: 26px; }
+.step--end .step__sub { display: block; font-size: 10.5px; line-height: 1.35; max-width: 20ch; }
+
+/* ---------- the seam between one step and the next ----------
+   Ten arrows in one ramp of colour, each a little warmer than the last, so neighbours differ by a
+   few percent and the chevron between them disappeared. A straight border cannot follow a shape cut
+   by clip-path; a drop shadow can, because it traces the clipped outline. Offset left by a pixel and
+   a half, it shows only along the notched edge -- which is the join -- and is hidden everywhere the
+   step itself covers it. */
+.step { filter: drop-shadow(-1.5px 0 0 color-mix(in srgb, var(--bg) 62%, transparent)); }
+.flow__li:first-child .step { filter: none; }
+
+/* ---------- the site's two checks, actually side by side ----------
+   The gap between them was set and did nothing: the row had been left `display: block` by a later
+   rule, and gap only means anything to a flex or grid box. So App's controls ran straight into the
+   word SEO with no space at all. */
+header .sitechk { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; }
+/* a running one carries a bar and two buttons, which needs more room than a count does */
+header .sitechk .sitechk__one:has(.pg) { flex: 1 1 260px; min-width: 200px; }
+
+/* ---------- the column headings: the button, then the word ----------
+   The button was placed over the count and revealed on hover, which was the right idea while there
+   was a count to swap with. There is not any more -- the numbers moved to the arrows -- so it was
+   revealing itself over the LABEL, sitting on top of the word it belongs to, and only when the
+   pointer happened to be in the column. It is simply there now, above the word, in every column,
+   and every heading in the row sits on the same two lines. */
+#tbl thead th { vertical-align: bottom; padding-bottom: 8px; }
+#tbl thead th.c { display: table-cell; text-align: center; }
+#tbl thead th.c .colh__wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+#tbl thead th.c .colh__run {
+  position: static; translate: none; opacity: 1; margin: 0; order: -1;
+}
+#tbl thead th.c:hover .colh__run, #tbl thead th.c:focus-within .colh__run { opacity: 1; }
+/* the headings with no button keep their word on the same line as the others' words */
+#tbl thead th.st .colh, #tbl thead th.st, #tbl thead th.last, #tbl thead th.ncom { padding-bottom: 8px; }
+#tbl thead th.model .modelh { align-items: baseline; }
+
+/* ---------- the seam, softened ----------
+   A hard dark chevron between every pair read as ten separate objects. It only has to say where one
+   section ends, so it is a pale hairline: enough to measure a section by, not enough to cut the
+   strip up. */
+.step { filter: drop-shadow(-1px 0 0 color-mix(in srgb, #fff 26%, transparent)); }
+.flow__li:first-child .step { filter: none; }
+
+/* ---------- every step reads the same way ----------
+   Approved was the only one with a sentence under its number, so its label and its number sat a line
+   higher than the other nine and the row looked out of true. All ten are a word and a number now.
+   What Approved means is in its tooltip, with the count, like every other step's is. */
+.step__sub, .step--end .step__sub { display: none; }
+.step--end .step__label { font-size: 10px; }
+.step--end .step__n { font-size: 24px; }
+.flow__li:last-child { flex: 1.2 1 0; }
+
+/* ---------- the seam between sections, actually drawn ----------
+   The first attempt was a drop shadow on each step, which traces an element's painted shape. On a
+   wide screen a step paints almost nothing: the scene behind draws the field for all ten at once,
+   and the step is a transparent box with words in it. A shadow of nothing is nothing, which is why
+   only the first join ever showed -- and that one was two different colours meeting, not a line.
+
+   This is the line itself: a chevron-shaped band along each step's left edge, the outer V of its own
+   notch and an inner V two pixels in. It follows the shape exactly because it IS the shape. */
+.step { filter: none; }
+.step::before {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: color-mix(in srgb, #fff 30%, transparent);
+  clip-path: polygon(
+    0 0, 2px 0, calc(var(--notch) + 2px) 50%, 2px 100%, 0 100%, var(--notch) 50%
+  );
+}
+/* the first has no step before it to be divided from */
+.flow__li:first-child .step::before { display: none; }
+@media (prefers-contrast: more) { .step::before { background: color-mix(in srgb, #fff 55%, transparent); } }
+
+/* ---------- the seam, faint ----------
+   White at 30% read as a drawn frame around every section. It only has to let you see where one
+   ends; at this weight it does that and nothing more. */
+.step::before { background: color-mix(in srgb, #fff 14%, transparent); }
+@media (prefers-contrast: more) { .step::before { background: color-mix(in srgb, #fff 40%, transparent); } }
+
+/* ---------- the strip is a picture ----------
+   Nothing in it is pressable any more, so nothing in it should look or behave as if it were: no
+   hand cursor, no hover lift, and no focus ring on something you cannot act on. */
+.step { cursor: default; }
+.step:hover, .step:focus-visible { outline: none; }
+/* an empty meta must not leave a gap where words used to be */
+.pg__meta:empty { display: none; }
+
+/* ---------- the dismiss on a notice, on the notice's own middle ----------
+   It was pinned 9px from the top, which centres it on a one-line notice and leaves it sitting up by
+   the first line on a two-line one -- which every run notice is, because each has a headline and a
+   reason. It is centred on the box now, whatever height the words make it.
+   The glyph inside is the app's own `x` from src/icons.ts, as every close on this page is; it is
+   centred by the grid, and `display: block` stops the SVG sitting on a text baseline that has no
+   text on it. */
+.notice__x { top: 50%; right: 12px; translate: 0 -50%; }
+.notice { padding-right: 52px; }
+.cldlg__x, .notice__x, .note__x, .search__clear, .fchip__x { display: grid; place-items: center; }
+.cldlg__x > svg, .notice__x > svg, .note__x > svg, .search__clear > svg, .fchip__x > svg { display: block; }
+
+/* ---------- a notice is laid out like a note, so its close behaves like a note's ----------
+   Both are "a few words and a way to dismiss them", and they were built differently: the note put
+   its dismiss in a grid column beside the words, the notice placed its own absolutely on top of
+   them. Same shape now -- words, then the close, in its own column -- so the button sits in the
+   same place relative to the text in both, at the same size, with the same icon. */
+.notice {
+  display: grid; grid-template-columns: minmax(0, 1fr) 30px; gap: 4px 10px;
+  align-items: center; padding: 11px 14px; position: static;
+}
+.notice__what, .notice__why { grid-column: 1; }
+.notice__x { grid-column: 2; grid-row: 1 / -1; position: static; translate: none; align-self: center; }
+
+/* ---------- the group's run buttons on a phone ----------
+   The table becomes a list of cards below 760px: there are no columns, so nine buttons that mean
+   "this check, this column" have nothing to point at. The group keeps its run-everything button and
+   its tick, which are the two that still mean something without a column under them; the per-check
+   ones belong to each model's own card, where they sit beside a labelled mark. */
+@media (max-width: 760px) {
+  #tbl tr.grow > td { display: none; }
+  #tbl tr.grow > th.model { display: block; width: auto; max-width: none; }
+  #tbl tr.suiterun > td, #tbl tr.detail--run > td { display: block; }
+  /* a bar in a card wraps rather than squeezing its track to nothing */
+  .pg { flex-wrap: wrap; }
+  .pg__track { flex: 1 1 100%; order: 3; }
+  .pg__acts { margin-left: auto; }
+  /* the site's two checks stack under the header rather than crushing into its last line */
+  header .sitechk { margin: 10px 0 0; width: 100%; }
+}
+
+/* ---------- the strip reacts to nothing ----------
+   It was a row of tabs: hovering lifted a section's sky, the selected one lit up and grew a square
+   beside its name, and every one of them carried a tooltip that opened as the pointer crossed the
+   strip on its way somewhere else. None of that means anything now -- there is nothing to select
+   and nothing to press -- so a section looks the same whatever the pointer is doing. */
+.step:hover { --sw-lift: 0%; --tint: transparent; }
+.step[aria-selected="true"] { --sw-lift: 0%; --tint: transparent; }
+.step[aria-selected="true"] .step__label::before { content: none; }
+.step[aria-selected="true"] .step__label { color: inherit; }
+.step, .step * { cursor: default; user-select: none; }
+.step:focus-visible .step__label { outline: none; }
+
+/* ---------- the Model heading, shaped like the nine beside it ---------- */
+#tbl thead th.model .colh__wrap--model { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+#tbl thead th.model .suite { order: -1; }
+.colh--plain { display: block; padding: 0; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+/* nothing running, nothing to show: the slot keeps the word where it is rather than letting it jump */
+#tbl thead th.model .suite:empty { display: block; width: var(--dot); height: var(--dot); }
+
+/* ---------- the Model heading's button sits in the flow, like the others ----------
+   .cellrun is absolutely placed by default, because in a check CELL it has to land exactly on the
+   mark it replaces. In a heading there is no mark and nothing positioned to land against, so it
+   was resolving against the sticky cell and pinning itself to the top of it. Every other heading's
+   button already opts out of that; this one has to as well. */
+#tbl thead th.model .suite .cellrun { position: static; margin: 0; opacity: 1; }
+#tbl thead th.model .suite .cellrun[disabled] { display: inline-grid; }
+/* and the word lines up with the other nine words */
+#tbl thead th.c .colh, #tbl thead th.model .colh--plain { line-height: 1.2; padding-top: 0; padding-bottom: 0; }
+
+/* ---------- the column a run is working through ----------
+   Nine columns, one of them going: amber down the whole column, in the heading and in the group row
+   it was started from, so you can see at a glance which check is moving without reading the bar. */
+#tbl thead th.c.is-running-col, #tbl tr.grow > td.c.is-running-col {
+  background: color-mix(in srgb, var(--st-warn) 15%, var(--surface-solid));
+  box-shadow: inset 0 -2px 0 var(--st-warn);
+}
+#tbl thead th.c.is-running-col .colh { color: var(--st-warn); }
+
+/* ---------- the gap above the resting filter bar ----------
+   The bar rests 16px down, which keeps it off the very edge of the window. That gap used to be
+   filled with a pane of near-opaque glass -- var(--bg) at 92%, blurred -- meant as a window onto
+   the rows sliding past. With the panel behind the bar scrolled away there was nothing behind it
+   to look at, so the pane read as a black band across the top of the page. The gap stays, because
+   the bar floating slightly off the edge is the point of it; the pane goes, so what shows through
+   is whatever is actually passing underneath. */
+.fbar.is-stuck::after { content: none; }
+
+/* ---------- a cell being worked on ----------
+   Amber, turning, and not a button: the run it belongs to is stopped from its bar, not from a
+   control the size of a tick mark. The mark underneath steps aside while it turns, so the old
+   verdict is not sitting there looking current while it is being re-decided. */
+td.c .cellrun.ckrun--wait {
+  opacity: 1; cursor: default; background: transparent;
+  border-color: color-mix(in srgb, var(--st-warn) 40%, transparent);
+}
+td.c .cellrun.ckrun--wait i { border-color: color-mix(in srgb, var(--st-warn) 30%, transparent); border-top-color: var(--st-warn); }
+td.c:has(.ckrun--wait) { background: color-mix(in srgb, var(--st-warn) 14%, transparent); }
+
+/* ---------- one circle, not two ----------
+   The waiting state put a turning ring inside a button that already had a round border, so a cell
+   being worked on showed a circle inside a circle. The ring IS the indicator: the border goes. */
+.ckrun--wait { border-color: transparent; background: transparent; }
+td.c .cellrun.ckrun--wait { border-color: transparent; }
+.ckrun--wait i { width: 100%; height: 100%; border-width: 2px; }

@@ -473,54 +473,59 @@
              what any of it is for, how to run a check, or what to do first after cloning. That is
              docs/index.html, and it links back here. -->
         <a class="btn" href="index.html">Docs</a>
+        <!-- These two were over the stage strip: a link and a badge sitting on top of the part of
+             the page that is about models, though neither is about a model. They are about the
+             page itself -- how it counts, and what it could not work out -- so they are header
+             furniture like everything else here. -->
+        <button type="button" class="btn" id="rules-btn" aria-haspopup="dialog">How these are counted</button>
+        <span class="notes-anchor">
+          <button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" data-tip data-tiptext="Things the ledger could not work out while it built this page: a file it could not read, a run whose process had gone, an instrument that failed. Click to read them."><b>0</b> note</button>
+          <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
+        </span>
       </div>
     </div>
-    <p class="statusline"><span class="meta" id="meta">Loading ledger.json…</span><span class="live" id="live"></span></p>
+    <p class="statusline"><span class="meta" id="meta">Loading ledger.json…</span><span class="live" id="live"></span><span class="sitechk" id="sitechecks" hidden></span></p>
+    <!-- The two checks that judge the site rather than any model. They were at the bottom of the
+         stage panel, folded away with whichever stage happened to be open, under a heading about
+         models -- which they are not about. They gate nothing and there is no row in a table of
+         models for them, so they live in the header with the rest of what is true about the page
+         as a whole. Their progress appears in this same line. -->
   </header>
   <div id="livenote" aria-live="polite"></div>
   <div id="notices"></div>
+
 
   <!-- No heading: the headline under it ("All 135 models approved.") says what this is, and a heading
        over it only repeated that in weaker words. The section keeps its name for a screen reader. -->
 
   <section class="panel panel--strip" aria-label="Where the release stands">
-    <div class="head notes-anchor">
-      <p class="tally" id="balance" role="status"></p>
-      <div class="head__acts"><button type="button" class="linkish" id="rules-btn" aria-haspopup="dialog">How these are counted</button><button type="button" id="notes-btn" class="notesbtn" aria-expanded="false" aria-controls="notes-pop" data-tip data-tiptext="Things the ledger could not work out while it built this page: a file it could not read, a run whose process had gone, an instrument that failed. Click to read them."><b>0</b> note</button></div>
-      <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
-    </div>
+
     <!-- the four stages are tabs: exactly one is selected, and its panel is right under them -->
     <div class="flowwrap" id="stats"></div>
     <!-- what is running now: first thing under the stages, where it is seen -->
-    <div class="ovsub ovsub--run"><h3 id="run-h">Running now</h3><p id="run-note"></p></div>
     <!-- What happened, rather than what is happening. A run that stopped does not belong in a
          progress panel: there is no progress, and a bar at 0/135 next to the words "its process
          is gone" is a contradiction on one line. It is news, so it goes here and the panel above
          holds only what is actually moving. -->
     <div id="notices" class="notices" role="status" aria-live="polite"></div>
-    <div id="runnow"></div>
-    <!-- Only ever shown when something is there to run it: a copy of this page opened from a file,
-         or served from anywhere but the board, has no server behind it and no buttons. -->
-    <div id="runbar" class="runbar" hidden>
-      <span class="runbar__state" id="run-state">Nothing running</span>
-      <span class="runbar__acts">
-        <button type="button" class="btn btn--run" id="run-all">Run every check</button>
-        <button type="button" class="btn" id="run-pause" hidden>Pause</button>
-        <button type="button" class="btn" id="run-resume" hidden>Resume</button>
-        <button type="button" class="btn btn--stop" id="run-stop" hidden>Stop</button>
-      </span>
-    </div>
-    <div id="ov-stage" class="stagebox" role="tabpanel" tabindex="0"></div>
-    <!-- what applies to every stage, always shown -->
-    <div id="checkbars"></div>
-    <div class="ckbars ckbars--site" id="sitebars"></div>
+    <!-- "Running now" used to be a panel here, with a bar per running check. A run is always a run
+         OVER something -- one model, one group, everything -- and the thing it is over is a row of
+         the table, so the bar is drawn on that row instead. One place says what is happening, and
+         it is the same place that started it. -->
+    <!-- The stage panel was here: whichever of the four stages was selected, opened underneath
+         them, listing what held its models. It was a second answer to the question the table
+         below answers properly -- the table can be filtered to exactly those models, sorted,
+         searched, and each row says which check is holding it. Picking a stage now filters the
+         table, which is what everybody was using the panel to do anyway. -->
   </section>
 
   <div class="split">
   <section class="panel" aria-labelledby="tbl-h">
     <div class="tblhead">
-      <h2 id="tbl-h">All models <span class="showing" id="showing"></span></h2>
-      <div class="tbltools__acts" id="grp-acts"><button type="button" class="btn" id="fold-all">Expand all</button></div>
+      <h2 id="tbl-h">All models</h2>
+      <div class="tbltools__acts" id="grp-acts">
+        <button type="button" class="btn" id="fold-all">Expand all</button>
+      </div>
     </div>
     <div class="fbar" id="filters" role="search" aria-label="Filters">
       <div class="fbar__row">
@@ -555,6 +560,10 @@
     </div>
     <div class="table-wrap" id="tablewrap">
       <table id="tbl">
+        <!-- Every column heading runs its own check over every model, so the Model heading runs
+             every check over every model: the same rule, one column to the left. It used to be a
+             button above the table, which meant the one control the table did not contain was the
+             biggest one. -->
         <thead><tr id="thead"><th class="model">Model</th><th class="st">Status</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>

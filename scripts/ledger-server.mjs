@@ -16,8 +16,25 @@
  *
  * Only a check named in scripts/checks-registry.mjs, or the whole run. The name arrives from the
  * page and is looked up in that list; it is never passed to a shell, never interpolated into a
- * string, and anything not on the list is refused. One run at a time, so pressing a button twice
- * cannot put two of them on the same machine.
+ * string, and anything not on the list is refused.
+ *
+ * HOW MANY AT ONCE
+ *
+ * Several, but not any several. Checking one model while another model's check runs is a thing you
+ * actually want, and refusing it made the board slower than the terminal it replaced. Two rules
+ * hold, and they are not preferences:
+ *
+ *   One run per check.  Every run of a check rewrites that check's own result file, docs/checks/
+ *                       <key>.json, with the verdicts it gathered. Two runs of the same check
+ *                       finish in some order and the later one wins the whole file -- so the first
+ *                       run's work is not merged, it is deleted, and the board would show a green
+ *                       tick for models nothing had judged. This is exactly the class of lie the
+ *                       ledger exists to catch, so the second run is refused instead.
+ *   "Everything" runs alone.  The whole run walks every check in turn and rewrites every one of
+ *                       those files, so anything beside it hits the rule above sooner or later.
+ *
+ * On top of those there is a limit on how many at once, because each check drives a real browser
+ * over real models and this is somebody's laptop. BOARD_MAX_RUNS moves it; the default is two.
  *
  * It listens on 127.0.0.1 only. This is a local tool for the person sitting at the machine.
  */
@@ -71,7 +88,10 @@ function setPaused(on) {
   return { ok: true, paused: on };
 }
 
-let running = null; // { what, startedAt, child }
+/** what -> { what, label, models, startedAt, child }. Keyed by check, which is the thing that can
+    only have one of itself: see HOW MANY AT ONCE above. */
+const runs = new Map();
+const MAX_RUNS = Math.max(1, Number(process.env.BOARD_MAX_RUNS ?? 2) || 2);
 
 /**
  * A run this server did not start.
@@ -83,18 +103,37 @@ let running = null; // { what, startedAt, child }
  * the same either way: something is running, and here is what.
  */
 function state() {
-  if (running) return { running: running.what, label: running.label, models: running.models ?? [], startedAt: running.startedAt, pid: running.child.pid, paused: paused(), mine: true };
+  const mine = [...runs.values()].map((r) => ({
+    what: r.what, label: r.label, models: r.models ?? [], startedAt: r.startedAt, pid: r.child.pid, mine: true,
+  }));
+  const out = { runs: mine, paused: paused(), max: MAX_RUNS };
+  // A run this server did not start: checks are also started from a terminal, and capture-check
+  // flags the check's own result file while it works. Reporting only what THIS process spawned put
+  // "Nothing running" on the page directly above the ledger's own "media running 58/135" -- two
+  // notions of running on one screen, which is the confusion the board exists to remove.
   const other = runningCheck(ROOT);
-  // Not ours, so there is no pid here to stop: the buttons say so rather than offering a Stop that
-  // would do nothing.
-  if (other) return { running: other.check, label: other.check, models: [], startedAt: null, pid: null, paused: paused(), mine: false, done: other.done, total: other.total };
-  return { running: null, label: null, models: [], startedAt: null, pid: null, paused: paused(), mine: false };
+  // Not ours, so there is no pid here to stop: the page offers pause, which is a file both watch,
+  // and does not offer a Stop that would do nothing.
+  if (other && !runs.has(other.check)) out.runs.push({ what: other.check, label: other.check, models: [], startedAt: null, pid: null, mine: false, done: other.done, total: other.total });
+  return out;
+}
+
+/** Why this run cannot start, in the words the page will show, or null if it can. */
+function refuse(what) {
+  if (runs.has(what)) return `${what} is already running`;
+  if (runs.has('all')) return 'the whole run is going: it covers every check, so nothing can run beside it';
+  if (what === 'all' && runs.size) return `${[...runs.keys()].join(' and ')} ${runs.size === 1 ? 'is' : 'are'} running: the whole run covers every check, so it waits for them`;
+  if (runs.size >= MAX_RUNS) return `${runs.size} checks are already running, which is the limit on this machine`;
+  const other = runningCheck(ROOT);
+  if (other && (other.check === what || what === 'all')) return `${other.check} is running, started outside this board`;
+  return null;
 }
 
 function start(what, models = []) {
-  if (running) return { ok: false, why: `${running.what} is already running` };
   const base = RUNNABLE.get(what);
   if (!base) return { ok: false, why: `not a check: ${String(what).slice(0, 40)}` };
+  const no = refuse(what);
+  if (no) return { ok: false, why: no };
   const known = knownModels();
   const bad = models.filter((id) => !known.has(id));
   if (bad.length) return { ok: false, why: `not a model: ${bad.slice(0, 3).join(', ')}` };
@@ -102,7 +141,9 @@ function start(what, models = []) {
   const args = what === 'exports' && models.length ? ['--defaults', ...models] : models;
   const argv = [...base, ...args];
   // No shell, and argv comes from the registry rather than from the page.
-  setPaused(false);
+  // The pause flag is one file that every check watches, so clearing it here would resume runs the
+  // presser said nothing about. It is cleared only when there is nothing else to resume.
+  if (!runs.size) setPaused(false);
   // detached on anything but Windows, so the child leads its own process group: stop() signals
   // -pid to take the browsers with it, and that only works on a group leader. Without it the
   // signal went nowhere, the fallback killed Node alone, and every browser it had opened stayed
@@ -111,11 +152,11 @@ function start(what, models = []) {
   const label = models.length === 1 ? `${what} on ${models[0]}`
     : models.length ? `${what} on ${models.length} models`
     : what;
-  running = { what, label, models, startedAt: new Date().toISOString(), child };
+  runs.set(what, { what, label, models, startedAt: new Date().toISOString(), child });
   console.log(`${new Date().toTimeString().slice(0, 8)} board: started ${label} (pid ${child.pid})`);
   child.on('close', (code) => {
     console.log(`${new Date().toTimeString().slice(0, 8)} board: ${what} ended, exit ${code}`);
-    running = null;
+    runs.delete(what);
   });
   return { ok: true, ...state() };
 }
@@ -126,15 +167,20 @@ function start(what, models = []) {
  * A check is a Node process that opens browsers, so killing the Node alone leaves the browsers
  * behind holding memory. On Windows taskkill /T takes the tree; elsewhere the process group does.
  */
-function stop() {
-  if (!running) return { ok: false, why: 'nothing is running' };
-  const { child, what } = running;
-  setPaused(false);
-  try {
-    if (process.platform === 'win32') spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
-    else process.kill(-child.pid, 'SIGTERM');
-  } catch { try { child.kill('SIGTERM'); } catch { /* it had already gone */ } }
-  return { ok: true, stopped: what };
+function stop(what) {
+  // A named check stops that one; no name stops the lot, which is what a Stop beside "everything"
+  // means. Either way only runs this server started can be stopped: there is no pid for the others.
+  const targets = what ? [runs.get(what)].filter(Boolean) : [...runs.values()];
+  if (!targets.length) return { ok: false, why: what ? `${what} is not running here` : 'nothing is running here' };
+  for (const { child } of targets) {
+    try {
+      if (process.platform === 'win32') spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+      else process.kill(-child.pid, 'SIGTERM');
+    } catch { try { child.kill('SIGTERM'); } catch { /* it had already gone */ } }
+  }
+  // Pausing is one flag for the whole machine, so it is only lifted when the last run has gone.
+  if (targets.length === runs.size) setPaused(false);
+  return { ok: true, stopped: targets.map((t) => t.what) };
 }
 
 const json = (res, code, body) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(body)); };
@@ -164,7 +210,7 @@ export function serve(port = 5178) {
     if (url.pathname === '/api/pause' && req.method === 'POST') return json(res, 200, setPaused(true));
     if (url.pathname === '/api/resume' && req.method === 'POST') return json(res, 200, setPaused(false));
     if (url.pathname === '/api/stop' && req.method === 'POST') {
-      const r = stop();
+      const r = stop(url.searchParams.get('check') || null);
       return json(res, r.ok ? 200 : 409, r);
     }
     if (url.pathname === '/api/checks') return json(res, 200, { checks: REGISTRY.map((c) => ({ key: c.key, name: c.name, short: c.short, scope: c.scope })) });
