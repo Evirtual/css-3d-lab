@@ -1533,3 +1533,29 @@ ul.missing { margin: 4px 0; padding-left: 20px; }
 /* nothing to say: the button goes quiet rather than sitting there bright with a zero in it */
 .notesbtn.is-quiet { opacity: 0.55; }
 .notesbtn small { font-weight: 600; color: var(--muted); }
+
+/* the line that appears where the buttons would be, when no board is serving this page */
+.runbar__hint { font-size: 13px; color: var(--muted); }
+.runbar__hint code { padding: 1px 6px; border: 1px solid var(--border); border-radius: 6px;
+  font-family: var(--mono); font-size: 12px; color: var(--text); }
+
+/* ---------- the row's controls, and the moment before a run answers ----------
+   Pause and stop sit where the play button was, next to the name, because that is the thing they
+   act on. They used to live in a bar at the bottom of the list, so the row that was running still
+   offered play while its controls were somewhere else entirely. */
+.ckrun--hold { color: var(--st-warn); border-color: color-mix(in srgb, var(--st-warn) 45%, transparent);
+  background: color-mix(in srgb, var(--st-warn) 12%, transparent); letter-spacing: 1px; }
+.ckrun--hold:hover { color: var(--bg); background: var(--st-warn); border-color: var(--st-warn); }
+.ckrun--stop { color: var(--st-bad); border-color: color-mix(in srgb, var(--st-bad) 45%, transparent);
+  background: color-mix(in srgb, var(--st-bad) 12%, transparent); font-size: 9px; }
+.ckrun--stop:hover { color: #fff; background: var(--st-bad); border-color: var(--st-bad); }
+.ckrun--go { color: var(--st-chk); border-color: color-mix(in srgb, var(--st-chk) 45%, transparent); }
+
+/* Between the click and the board saying yes. A check takes a second or two to start, and a play
+   button that stays a play button reads as a click that did not land. */
+.ckrun--wait { border-color: color-mix(in srgb, var(--st-chk) 35%, transparent); cursor: default; }
+.ckrun--wait i { width: 12px; height: 12px; border-radius: 50%; display: block;
+  border: 2px solid color-mix(in srgb, var(--st-chk) 30%, transparent); border-top-color: var(--st-chk);
+  animation: ckspin 0.7s linear infinite; }
+@keyframes ckspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ckrun--wait i { animation: none; border-top-color: var(--st-chk); } }

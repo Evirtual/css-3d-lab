@@ -1928,7 +1928,7 @@
       // the same panel "Running now" draws, off the same record: while this check runs it says so
       // here too, and when the run ends the counts it left stay
       const ssRun = L.running?.[c.key] ?? null;
-      return `<li><span class="ckhead">${RUN_OK ? `<button type="button" class="ckrun" data-run="${esc(c.key)}" title="Run this check on its own" aria-label="Run ${esc(c.title)}">&#9654;</button>` : ''}<button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button></span>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
+      return `<li><span class="ckhead">${RUN_OK ? runControl(c) : ''}<button type="button" class="ckname" data-def="${esc(c.key)}" data-tip data-tiptext="${esc(`${c.title}. Click for its definition.`)}">${esc(c.short)}</button></span>${bar}<b class="bd__n" aria-label="${esc(status)}">${t.pass}/${total}</b>
         <span class="bd__under">${runChip}<span class="bd__note" style="font-style:normal">${esc(status)}${c.captured ? `, ${ran} reported` : ''}</span>${pills}${relPill}${ssBtn}</span>${ssOpened ? ssPanel(c, ssId, ssRun) : ''}</li>`;
     }).join('')}</ul>`;
   }
@@ -2090,10 +2090,67 @@
      that could run anything. So it asks once: if /api/state answers, the buttons appear; if it does
      not, they never do, and the page is exactly what it was before. */
   let RUN_OK = false;
+  /**
+   * What the board knows is running, for the renderers that draw controls.
+   *
+   * The controls only existed in the bar at the top, so a check could be running while its own row
+   * still offered a play button -- the one control that cannot be right, because pressing it asks
+   * to start a thing that has already started.
+   */
+  let RUN_NOW = { running: null, paused: false, mine: false };
+  /** What a click asked to start, until the board says it is running. Cleared either way. */
+  let STARTING = null;
+  /**
+   * Ask the board. A 404 is not an answer.
+   *
+   * This used to return whatever came back and let the caller set RUN_OK regardless, so opening the
+   * page from the Vite dev server -- which serves the page but has no /api -- showed every run
+   * button, and pressing one produced "POST /api/run 404" in the console and nothing else. The
+   * controls have to be there only when something is behind them, and a 404 means nothing is.
+   *
+   * Exactly the mistake the ledger exists to catch: a check on a response that did not check
+   * whether the response was an answer.
+   */
   const api = async (path, method = 'GET') => {
     const r = await fetch(path, { method, cache: 'no-store' });
-    return { status: r.status, body: await r.json().catch(() => ({})) };
+    if (!r.ok) throw new Error(`${r.status} from ${path}`);
+    const ct = r.headers.get('content-type') ?? '';
+    if (!ct.includes('json')) throw new Error(`${path} answered ${ct || 'nothing'}, not json`);
+    return { status: r.status, body: await r.json() };
   };
+  /**
+   * The control beside a check's name, which is whatever makes sense right now.
+   *
+   *   this one is running   stop it, and pause or resume it
+   *   another is running    nothing to offer: one at a time is the point
+   *   nothing is running    run it
+   */
+  /**
+   * The control beside a check's name. One place, next to the name, whatever the state.
+   *
+   *   starting      a spinner: the click has been sent and the board has not said yes yet
+   *   running       pause (or resume) and stop, together, where the play button was
+   *   another runs  a play button, greyed: one at a time is the whole point of the runner
+   *   idle          play
+   *
+   * The pause and stop used to live in a bar of their own at the bottom of the list, so the row
+   * that was running still showed a play button while the controls for it sat somewhere else.
+   */
+  function runControl(c) {
+    if (STARTING === c.key && RUN_NOW.running !== c.key) {
+      return '<span class="ckrun ckrun--wait" role="status" aria-label="Starting"><i></i></span>';
+    }
+    const mine = RUN_NOW.running === c.key;
+    if (mine) {
+      const pr = RUN_NOW.paused
+        ? '<button type="button" class="ckrun ckrun--go" data-act="resume" title="Resume" aria-label="Resume">&#9654;</button>'
+        : '<button type="button" class="ckrun ckrun--hold" data-act="pause" title="Pause after the model it is on" aria-label="Pause">&#10074;&#10074;</button>';
+      return pr + '<button type="button" class="ckrun ckrun--stop" data-act="stop" title="Stop" aria-label="Stop">&#9632;</button>';
+    }
+    const busy = !!RUN_NOW.running;
+    return `<button type="button" class="ckrun" data-run="${esc(c.key)}" title="${busy ? 'Another check is running' : 'Run this check on its own'}" aria-label="Run ${esc(c.title)}"${busy ? ' disabled' : ''}>&#9654;</button>`;
+  }
+
   async function runState() {
     try {
       const { body } = await api('/api/state');
@@ -2101,6 +2158,15 @@
       const bar = $('runbar'); if (bar) bar.hidden = false;
       const st = $('run-state');
       const on = !!body.running;
+      const was = `${RUN_NOW.running}|${RUN_NOW.paused}|${STARTING}`;
+      if (body.running) STARTING = null;
+      RUN_NOW = { running: body.running ?? null, paused: !!body.paused, mine: !!body.mine };
+      // Only when it actually changes: this polls every three seconds, and redrawing the bars on
+      // every poll would fight the page's own rebuild and lose any disclosure somebody had opened.
+      // renderStage draws the bars that are actually on screen. renderCheckBars fills #checkbars,
+      // which is a different container further down -- calling that one redrew nothing anybody
+      // could see, and the empty catch hid the fact that it had not worked.
+      if (L && was !== `${RUN_NOW.running}|${RUN_NOW.paused}|${STARTING}`) renderStage();
       if (st) {
         const where = body.mine ? '' : ' (started outside this page)';
         const howFar = body.done != null && body.total != null ? ` ${body.done}/${body.total}` : '';
@@ -2109,24 +2175,55 @@
         st.className = 'runbar__state' + (body.paused ? ' is-paused' : on ? ' is-on' : '');
       }
       const show = (id, yes) => { const el = $(id); if (el) el.hidden = !yes; };
-      show('run-all', !on); show('run-stop', on && body.mine);
-      show('run-pause', on && !body.paused); show('run-resume', on && body.paused);
-      document.querySelectorAll('.ckrun').forEach((b) => { b.disabled = on; });
+      // A single check carries its own controls on its row, where the thing is. The bar keeps them
+      // only for "every check", which is not one row and has nowhere else to live.
+      const whole = body.running === 'all';
+      show('run-all', !on); show('run-stop', on && body.mine && whole);
+      show('run-pause', on && whole && !body.paused); show('run-resume', on && whole && body.paused);
+
       return body;
     } catch {
+      /*
+       * No board behind this page. That happens for a good reason -- the ledger is also served by
+       * the app's dev server, and opened straight from a file -- and hiding the buttons is right,
+       * because a control for something that is not there is worse than no control.
+       *
+       * But silence sent somebody looking for a bug that was not there: the page was open on the
+       * dev server's port, the buttons were showing (a 404 used to count as the board answering),
+       * and pressing one printed 404 in a console nobody had open. So it says where the buttons
+       * are, once, instead of leaving a gap.
+       */
       RUN_OK = false;
-      const bar = $('runbar'); if (bar) bar.hidden = true;
+      const bar = $('runbar');
+      if (bar) {
+        bar.hidden = false;
+        bar.innerHTML = '<span class="runbar__state runbar__hint">Nothing can be run from this page: it is not being served by the board. Run <code>npm run board</code> and open the address it prints.</span>';
+      }
       return null;
     }
   }
   async function runDo(path, check) {
-    const { status, body } = await api(path + (check ? `?check=${encodeURIComponent(check)}` : ''), 'POST');
-    if (status !== 200 && body.why) alert(body.why);
+    // A 409 is the board answering -- "something is already running" -- so it is shown, not thrown.
+    try {
+      await api(path + (check ? `?check=${encodeURIComponent(check)}` : ''), 'POST');
+    } catch (e) {
+      STARTING = null;
+      const m = /^409 /.test(String(e.message)) ? 'Something is already running.' : String(e.message);
+      const st = $('run-state');
+      if (st) { st.textContent = m; st.className = 'runbar__state is-paused'; }
+    }
     await runState();
   }
   document.addEventListener('click', (e) => {
     const one = e.target.closest('[data-run]');
-    if (one) { runDo('/api/run', one.dataset.run); return; }
+    if (one && !one.disabled) {
+      STARTING = one.dataset.run;
+      renderStage();
+      runDo('/api/run', one.dataset.run);
+      return;
+    }
+    const act = e.target.closest('[data-act]');
+    if (act) { runDo('/api/' + act.dataset.act); return; }
     if (e.target.closest('#run-all')) runDo('/api/run', 'all');
     else if (e.target.closest('#run-stop')) runDo('/api/stop');
     else if (e.target.closest('#run-pause')) runDo('/api/pause');
