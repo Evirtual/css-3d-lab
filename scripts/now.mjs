@@ -104,9 +104,14 @@ function processes() {
     } catch (e) {
       const why = e.message.split('\n')[0];
       tried.push(`${ms / 1000}s -> ${why}`);
-      record('process list', `${ms / 1000}s budget failed: ${why}`);
     }
   }
+  // Recorded HERE, once, and only when every budget missed. Recording inside the loop counted a
+  // first budget that then escalated and answered as a failure of the tool -- which is the
+  // escalation doing exactly its job -- and the page read "the watching tools failed 37 times in
+  // the last day" off a log that was mostly the design working. Over-reporting a failure and
+  // under-reporting one cost the same thing in the end: you stop believing the number.
+  record('process list', `could not look: ${tried.join('; then ')}`);
   return { error: tried.join('; then ') };
 }
 
