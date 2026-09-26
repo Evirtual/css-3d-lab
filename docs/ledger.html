@@ -172,6 +172,16 @@ button, input { font: inherit; color: inherit; }
 /* outlined badge chips, like PURE CSS / CSS + JS */
 .chip { --c: var(--muted); display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
   color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); }
+/* A verdict fades with its age. --age is 0 the day it ran and 1 a fortnight later.
+   timeline's contrast verdict read "pass" for three days while the model was failing AA. It was not
+   wrong, it was OLD: the expiry rule fires when something CHANGES, so a model nobody touches keeps
+   its green for ever, and for ever is longer than a verdict stays true.
+   The FILL and the border go neutral, never the text -- a fresh pass and a fortnight-old one have to
+   be tellable apart at a glance, but the words inside them stay readable at every age. And the age
+   is written in words beside the label, so none of this is carried by colour alone.
+   Presentational on purpose: age never fails a check and never gates a release. */
+.mk { --age: 0; }
+.mk[style*="--age"] { opacity: calc(1 - 0.26 * var(--age)); filter: saturate(calc(1 - 0.78 * var(--age))); }
 .s-none { --c: var(--st-none); }
 .s-conv { --c: var(--st-conv); }
 .s-chk { --c: var(--st-chk); }
@@ -2271,15 +2281,11 @@ table.mini code { font-size: 12px; }
 
   /** How many table columns there are, for a row that spans them all. */
   const colCount = () => 5 + COLS.length;
-  const checkChip = (r) => {
-    if (!r || r.status === 'never') return '<span class="chip s-warn">not run yet</span>';
-    if (r.status === 'untested') return '<span class="chip s-warn" title="the run did not include the default settings">not at defaults</span>';
-    // a motion flag every one of whose flags a fresh visual review marks as a false alarm is cleared
-    const cleared = r.status === 'flagged' && r.openFlags === 0;
-    const cls = r.status === 'pass' || cleared ? (r.stale ? 's-warn' : 's-chk') : r.status === 'flagged' ? 's-warn' : r.status === 'broke' || r.status === 'error' ? 's-conv' : 's-bad';
-    const label = cleared ? 'flags cleared' : r.status === 'flagged' && r.openFlags != null ? `${r.openFlags} open flag${r.openFlags === 1 ? '' : 's'}` : { pass: 'pass', fail: 'fail', flagged: 'flagged', broke: "didn't run (test crashed)", error: "didn't run (a tab could not be run)" }[r.status] ?? r.status;
-    return `<span class="chip ${cls}" title="${esc(r.ranAt ? 'ran ' + new Date(r.ranAt).toLocaleString() : '')}">${esc(label)}${r.stale ? ' · stale' : ''}</span>`;
-  };
+  // checkChip used to live here: a verdict as a text pill. Nothing called it -- it was written,
+  // and then the grid was built out of the compact marks below instead, and the pill stayed for
+  // months rendering nothing. Deleted rather than kept "in case": dead code that LOOKS like the
+  // thing you are reading is how you end up editing the wrong one, which is exactly what happened
+  // the first time this ageing was written.
 
   /* ---------- the compact marks: each has its words in the tooltip and in its accessible name ---------- */
   // Drawn as SVG on a centred 12×12 box, not as text: a font's ✓ ✗ ~ ! – sit off the middle of the
@@ -2304,7 +2310,7 @@ table.mini code { font-size: 12px; }
     if (r.status === 'broke' || r.status === 'error') return ['broke', `${r.status === 'error' ? "didn't run (a tab could not be run)" : "didn't run (test crashed)"}${r.stale ? ' (older code)' : ''}`];
     return ['fail', `${{ fail: 'failed' }[r.status] ?? r.status}${r.stale ? ' (older code)' : ''}`];
   }
-  const markHtml = (kind, label, tipText, glyph, extra = '') => `<span class="mk mk--${kind}${extra}" role="img" aria-label="${esc(label)}" data-tip data-tiptext="${esc(tipText)}">${glyph}</span>`;
+  const markHtml = (kind, label, tipText, glyph, extra = '', style = '') => `<span class="mk mk--${kind}${extra}"${style ? ` style="${style}"` : ''} role="img" aria-label="${esc(label)}" data-tip data-tiptext="${esc(tipText)}">${glyph}</span>`;
   /** One check's mark for one model. The run in progress, if it is on this model now, pulses. */
   function checkMark(key, m) {
     const r = m.checks[key];
@@ -2312,13 +2318,17 @@ table.mini code { font-size: 12px; }
     const title = CHECK_NAMES[key] ?? key;
     const run = L.running?.[key];
     const now = run && run.alive !== false && run.last === m.id;
-    const when = r && r.status !== 'never' ? ` Ran ${r.ranAt ? new Date(r.ranAt).toLocaleString() : 'at an unknown time'}${r.commit ? ` at ${r.commit}` : ''}.` : ' No captured run has reported this model.';
+    const when = r && r.status !== 'never' ? ` Ran ${r.ranAt ? `${new Date(r.ranAt).toLocaleString()}, ${fmtAgeShort(age(r.ranAt))}` : 'at an unknown time'}${r.commit ? ` at ${r.commit}` : ''}.` : ' No captured run has reported this model.';
     // nothing has run here, but the committed snapshot has a verdict: said as the last release's
     // state, with the commit it was taken at, and never folded into the mark, which stays "not run yet"
     const s = r?.status === 'never' ? r.snapshot : null;
     const rel = s ? ` At the last release (commit ${L.release?.head ?? '?'}) this check said "${s.status}"${s.ranAt ? `, run ${new Date(s.ranAt).toLocaleString()}` : ''}. That is the committed snapshot (${L.release?.file ?? 'docs/release-snapshot.json'}), not a run on this machine.` : '';
     const text = `${title}: ${word}.${r?.summary ? ` ${r.summary}.` : ''}${when}${rel}${r?.stale ? ` Stale: ${r.staleWhy.join('; ')}.` : ''}${now ? ' Running on this model now.' : ''}`;
-    return markHtml(kind, `${title}: ${word}${s ? `, ${s.status} at the last release` : ''}${now ? ', running now' : ''}`, text, MARKS[kind][0], `${now ? ' is-running' : ''}${s ? ' mk--wasrel' : ''}`);
+    // How old the verdict is: 0 for its first day, up to 1 a fortnight later. Nothing here judges
+    // the model. It only stops "we checked" and "we checked last week" being drawn the same green.
+    const secs = r && r.status !== 'never' ? age(r.ranAt) : null;
+    const aged = secs == null ? 0 : Math.max(0, Math.min(1, (secs - 86400) / (13 * 86400)));
+    return markHtml(kind, `${title}: ${word}${s ? `, ${s.status} at the last release` : ''}${now ? ', running now' : ''}`, text, MARKS[kind][0], `${now ? ' is-running' : ''}${s ? ' mk--wasrel' : ''}`, aged ? `--age:${aged.toFixed(2)}` : '');
   }
   /** A review as a mark: V or T, coloured by its latest fresh verdict. */
   function reviewMark(m, kind) {
