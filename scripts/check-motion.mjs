@@ -393,8 +393,21 @@ function partsOf(_, heads) {
     }
     return out;
   };
-  const hover = matching(heads.hover).filter(shows).slice(0, 16).map((el) => add(el, 'hover'));
-  const focus = matching(heads.focus).filter((el) => shows(el) && el.tabIndex >= 0).slice(0, 8).map((el) => add(el, 'focus'));
+  /*
+   * A control that is switched off is MEANT to do nothing.
+   *
+   * The controls list below has always skipped `el.disabled`, but the hover and focus lists are
+   * built from the CSS's own hover targets and were filtered only on being visible. So a disabled
+   * button that a rule like `.controls button:hover` names got a pointer put on it, did nothing,
+   * and was reported as "changes nothing on screen" -- which is true, and is the behaviour asked
+   * for. timeline ships `<button data-step="-1" disabled>< Prev</button>`, and that flag survived
+   * every re-run because there was nothing wrong to fix.
+   *
+   * aria-disabled counts too: a custom control says it that way, and it means the same thing.
+   */
+  const usable = (el) => !el.disabled && el.getAttribute?.('aria-disabled') !== 'true';
+  const hover = matching(heads.hover).filter((el) => shows(el) && usable(el)).slice(0, 16).map((el) => add(el, 'hover'));
+  const focus = matching(heads.focus).filter((el) => shows(el) && usable(el) && el.tabIndex >= 0).slice(0, 8).map((el) => add(el, 'focus'));
   const found = [...scene.querySelectorAll('button, input, select, label, [role="button"], [role="switch"], [role="slider"], [role="tab"]')];
   const controls = [];
   for (const el of found) {

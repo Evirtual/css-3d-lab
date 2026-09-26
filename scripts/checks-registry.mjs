@@ -98,8 +98,9 @@ export const REGISTRY = [
   },
   {
     key: 'motion', script: 'check-motion.mjs', scope: 'model', name: 'motion', short: 'Motion',
-    ruleVersion: 1,
-    rules: [{ v: 1, from: null, what: 'as first recorded' }],
+    ruleVersion: 2,
+    rules: [{ v: 1, from: null, what: 'as first recorded' },
+      { v: 2, from: 1, what: 'a control that is disabled, or says aria-disabled, is no longer given a pointer or the keyboard. Doing nothing is what a switched-off control is for, so "changes nothing on screen" was never a finding about it. timeline was flagged on every run for its Prev button, which ships disabled' }],
     title: 'Motion flags (check-motion)', label: 'motion check (check-motion)',
     rule: 'cleared when its latest run is smooth on the current code. What it flags it cannot judge alone, and nothing here judges it either: a flag is reported and counted, and it holds no model back, because deciding whether a flagged animation is wrong is a person watching the real thing. "broke" is not a verdict on the model: the test crashed before judging it, and it needs a re-run',
     steps: [
