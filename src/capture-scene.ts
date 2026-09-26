@@ -1,5 +1,35 @@
 import { captureFontCss } from './fonts/capture-fonts';
 
+/**
+ * What the browser resolved as a monospace. Read from a laid-out element, BEFORE the override
+ * below is applied — afterwards every element answers "CaptureSans" and the two families can no
+ * longer be told apart.
+ */
+export const CAPTURE_MONO = /ui-monospace|consolas|cascadia|jetbrains|menlo|monaco|courier|monospace/i;
+
+/**
+ * Everything draws with a font that travelled with the scene. `!important` beats the inline
+ * shorthand, so the serialized declarations are left exactly as the browser resolved them.
+ *
+ * Exported because the export dialog's own preview wears these too. The file and the canvas it is
+ * supposed to be a picture of have to be drawn in the same glyphs, or the promise in
+ * docs/VIEW-CONTRACT.md is not a promise about anything. See wearCaptureFonts in src/video.ts.
+ */
+export const CAPTURE_FONT_RULES = [
+  '*,*::before,*::after{font-family:"CaptureSans",ui-sans-serif,sans-serif!important}',
+  '[data-cap-mono],[data-cap-mono]::before,[data-cap-mono]::after{font-family:"CaptureMono",ui-monospace,monospace!important}',
+];
+
+/** Tags what the browser resolved as monospace, so the two embedded families can be told apart
+ *  without editing a single declaration. `from` must still be laid out; `to` takes the marks. */
+export function tagCaptureMono(from: Element, to: Element): void {
+  const src = [from, ...from.querySelectorAll('*')];
+  const dst = [to, ...to.querySelectorAll('*')];
+  for (let i = 0; i < dst.length && i < src.length; i++) {
+    if (CAPTURE_MONO.test(getComputedStyle(src[i]).fontFamily)) (dst[i] as HTMLElement).setAttribute('data-cap-mono', '');
+  }
+}
+
 /** The browser has already resolved layout, hover, JS state and CSS. Keep that DOM intact;
  * Chromium paints it on the server. No CSS geometry or depth sorting is reimplemented here. */
 export interface CapturedAnimation {
@@ -126,22 +156,13 @@ export function captureScene(stage: HTMLElement, animated = false): CapturedScen
       }
     } catch { /* a stylesheet from another origin cannot be read; a model's own always can */ }
   }
-  // Tag what the browser resolved as a monospace, so the two embedded families can be told apart
-  // without editing a single declaration. Read from the ORIGINAL nodes, which are still laid out.
-  const MONO = /ui-monospace|consolas|cascadia|jetbrains|menlo|monaco|courier|monospace/i;
-  const monoFrom = [root, ...root.querySelectorAll('*')];
-  const monoTo = [copy, ...copy.querySelectorAll('*')];
-  for (let i = 0; i < monoTo.length && i < monoFrom.length; i++) {
-    if (MONO.test(getComputedStyle(monoFrom[i] as Element).fontFamily)) (monoTo[i] as HTMLElement).setAttribute('data-cap-mono', '');
-  }
+  // Read from the ORIGINAL nodes, which are still laid out, and mark the copy.
+  tagCaptureMono(root, copy);
   for (const el of copy.querySelectorAll('script,style,link,meta,base,iframe,object,embed')) el.remove();
   copy.style.cssText += `;position:relative;inset:auto;margin:0;width:${width}px;height:${height}px;min-height:0;box-sizing:border-box;border:0;border-radius:0;background:transparent;transform:none;translate:none;scale:none;zoom:1;overflow:hidden`;
   // The stage's decorative pseudo-layers are painted by the export compositor, not twice.
   rules.push('[data-capture-id="0"]::before,[data-capture-id="0"]::after{display:none!important}');
-  // Everything draws with a font that travelled here. !important beats the inline shorthand, so the
-  // serialized declarations are left exactly as the browser resolved them.
-  rules.push('*,*::before,*::after{font-family:"CaptureSans",ui-sans-serif,sans-serif!important}');
-  rules.push('[data-cap-mono],[data-cap-mono]::before,[data-cap-mono]::after{font-family:"CaptureMono",ui-monospace,monospace!important}');
+  rules.push(...CAPTURE_FONT_RULES);
   const body = root.tagName === 'BODY' ? copy.outerHTML : `<body style="margin:0">${copy.outerHTML}</body>`;
   return { width, height, animations, html: `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><style>${captureFontCss()}${escapeStyle(rules.join('\n'))}</style></head>${body}</html>` };
 }
