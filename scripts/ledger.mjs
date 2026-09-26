@@ -26,6 +26,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runOf } from './running.mjs';
 // Imported with this module's own query, so the watcher re-importing ledger.mjs?v=<version> gets
 // model-sources.mjs at that version too, not the copy it loaded at start.
 const { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources } = await import(`./model-sources.mjs${new URL(import.meta.url).search}`);
@@ -416,22 +417,30 @@ function readChecks() {
   return out;
 }
 
-/** Whether a process id is alive on this machine. A capture that says it is running records its pid. */
-function alive(pid) {
-  if (!Number.isInteger(pid)) return null;
-  try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; }
-}
-
-/** What each check's result file says about a run in progress, checked against the process it names. */
+/**
+ * What each check's result file says about a run in progress, checked against the process it names.
+ *
+ * The judging lives in scripts/running.mjs, because the buttons on the page need the same answer
+ * and used to work it out separately -- which is how the run bar came to say "Nothing running"
+ * directly above this board's own "media running 58/135".
+ */
+/**
+ * What each check's result file says about a run in progress, checked against the process it names.
+ *
+ * The judging lives in scripts/running.mjs, because the buttons on the page need exactly this
+ * answer and used to work it out separately -- which is how the run bar came to say "Nothing
+ * running" directly above this board's own "media running 58/135".
+ */
 function runsNow(checkFiles) {
   const out = {};
   for (const name of CHECKS) {
-    const f = checkFiles[name];
-    if (!f?.running) { out[name] = null; continue; }
-    const p = f.progress ?? {};
-    const isAlive = alive(p.pid);
-    out[name] = { ...p, alive: isAlive };
-    if (isAlive === false) notes.push(`docs/checks/${name}.json says run ${p.runId ?? '(no id)'} is still going, but its process (pid ${p.pid}) is gone: it stopped without finishing. The ${p.done ?? '?'} result(s) it wrote are kept; the rest of that run never reported.`);
+    const run = runOf(checkFiles[name]);
+    out[name] = run;
+    // A file still claiming a run whose process has gone is a crashed run, not a live one. It is
+    // said out loud rather than quietly counted as nothing.
+    if (run && run.alive === false) {
+      notes.push(`docs/checks/${name}.json says run ${run.runId ?? "(no id)"} is still going, but its process ${run.pid} has gone`);
+    }
   }
   return out;
 }

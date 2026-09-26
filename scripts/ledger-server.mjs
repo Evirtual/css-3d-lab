@@ -27,6 +27,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
+import { runningCheck } from './running.mjs';
 import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 
 const DOCS = join(ROOT, 'docs');
@@ -63,40 +64,9 @@ let running = null; // { what, startedAt, child }
  * running on one screen, which is the confusion the whole board exists to remove. So the answer is
  * the same either way: something is running, and here is what.
  */
-/**
- * Whether a process is still there. Signal 0 asks without sending anything: it throws ESRCH when
- * the process has gone, and EPERM when it exists but belongs to somebody else -- which is still an
- * answer of "it exists". No pid recorded means no evidence either way, and no evidence is not a
- * run.
- */
-function alivePid(pid) {
-  if (!Number.isInteger(pid)) return false;
-  try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; }
-}
-
-function runningElsewhere() {
-  const dir = join(ROOT, 'docs', 'checks');
-  try {
-    for (const f of readdirSync(dir)) {
-      if (!f.endsWith('.json')) continue;
-      try {
-        const j = JSON.parse(readFileSync(join(dir, f), 'utf8'));
-        // The flag alone is not evidence. capture-check sets running:true and clears it when it
-        // finishes -- so a check that was killed leaves it set for ever, and this reported "perf is
-        // running" on an idle machine minutes after everything had been stopped. The flag carries
-        // the pid that wrote it; ask the operating system whether that process is still there.
-        if (j.running && alivePid(j.progress?.pid)) {
-          return { check: f.replace(/\.json$/, ''), done: j.progress?.done ?? null, total: j.progress?.total ?? null };
-        }
-      } catch { /* a file being written this instant: the next poll sees it */ }
-    }
-  } catch { /* no checks yet */ }
-  return null;
-}
-
 function state() {
   if (running) return { running: running.what, startedAt: running.startedAt, pid: running.child.pid, paused: paused(), mine: true };
-  const other = runningElsewhere();
+  const other = runningCheck(ROOT);
   // Not ours, so there is no pid here to stop: the buttons say so rather than offering a Stop that
   // would do nothing.
   if (other) return { running: other.check, startedAt: null, pid: null, paused: paused(), mine: false, done: other.done, total: other.total };
