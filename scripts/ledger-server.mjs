@@ -137,8 +137,26 @@ function start(what, models = []) {
   const known = knownModels();
   const bad = models.filter((id) => !known.has(id));
   if (bad.length) return { ok: false, why: `not a model: ${bad.slice(0, 3).join(', ')}` };
-  // exports over a named model is a defaults run: the full matrix is 38 minutes for one model
-  const args = what === 'exports' && models.length ? ['--defaults', ...models] : models;
+  /*
+   * exports is always a defaults run, and always names its models.
+   *
+   * Two traps, and the board fell into both while the gate avoided them:
+   *
+   *   Without --defaults it runs the whole settings matrix, which is about 38 minutes for ONE
+   *   model. Pressing the Export column -- every model, no ids -- would have asked for days of
+   *   work. What the per-model verdict actually counts is the dialog's default settings, which
+   *   is what --defaults makes.
+   *
+   *   Without ids, check-exports falls back to its own eight-model sample and reports that as
+   *   the lot. That is exactly how 127 export verdicts came to sit two days stale through a week
+   *   of font changes -- the one thing exports judge -- while the column read a confident 8.
+   *
+   * scripts/verify.mjs has always done both (argsFor). This is the same rule, so the button and
+   * the gate ask for the same run.
+   */
+  const args = what === 'exports'
+    ? ['--defaults', ...(models.length ? models : [...knownModels()])]
+    : models;
   const argv = [...base, ...args];
   // No shell, and argv comes from the registry rather than from the page.
   // The pause flag is one file that every check watches, so clearing it here would resume runs the

@@ -7353,3 +7353,30 @@ html:has(.cldlg[open]) {
     transform: translate(-50%, -50%);
   }
 }
+/* ---------- the waiting ring has a size of its own ----------
+   It was `width: 100%` inside a grid box that centres its one child, so the track it measured
+   against was sized BY that child: a percentage of something that depends on the percentage, which
+   collapses. The ring came out 4px across in a 20px control -- a teal dot, not a spinner. This is
+   the same fault the play icons had at 1.9 by 0.9px, in the same kind of box.
+
+   Sized in ems off the control's own font-size, so it scales with the control and never with
+   itself: about 12px in a row button, 11px in a column heading, 15px beside the table's control. */
+.ckrun--wait i {
+  width: 1.15em;
+  height: 1.15em;
+  border-width: 2px;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--st-chk) 28%, transparent);
+  border-top-color: var(--st-chk);
+  border-radius: 50%;
+}
+
+td.c .cellrun.ckrun--wait i {
+  border-color: color-mix(in srgb, var(--st-warn) 30%, transparent);
+  border-top-color: var(--st-warn);
+}
+
+.btnrun.ckrun--wait i {
+  width: 1.1em;
+  height: 1.1em;
+}
