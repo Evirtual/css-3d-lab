@@ -301,13 +301,14 @@ function icon(name) {
 		const title = CHECK_NAMES[key] ?? key;
 		L.running?.[key];
 		const now = runStateOf(key, m) === "is-checking";
+		const starting = pendingOn(runKey(key, [m.id])) === "run";
 		const when = r && r.status !== "never" ? ` Ran ${r.ranAt ? `${new Date(r.ranAt).toLocaleString()}, ${fmtAgeShort(age(r.ranAt))}` : "at an unknown time"}${r.commit ? ` at ${r.commit}` : ""}.` : " No captured run has reported this model.";
 		const s = r?.status === "never" ? r.snapshot : null;
 		const rel = s ? ` At the last release (commit ${L.release?.head ?? "?"}) this check said "${s.status}"${s.ranAt ? `, run ${new Date(s.ranAt).toLocaleString()}` : ""}. That is the committed snapshot (${L.release?.file ?? "docs/release-snapshot.json"}), not a run on this machine.` : "";
 		const text = `${title}: ${word}.${r?.summary ? ` ${r.summary}.` : ""}${when}${rel}${r?.stale ? ` Stale: ${r.staleWhy.join("; ")}.` : ""}${now ? " Running on this model now." : ""}`;
 		const secs = r && r.status !== "never" ? age(r.ranAt) : null;
 		const aged = secs == null ? 0 : Math.max(0, Math.min(1, (secs - 86400) / 1123200));
-		return markHtml(kind, `${title}: ${word}${s ? `, ${s.status} at the last release` : ""}${now ? ", running now" : ""}`, text, MARKS[kind][0], `${now ? " is-running" : ""}${s ? " mk--wasrel" : ""}`, aged ? `--age:${aged.toFixed(2)}` : "");
+		return markHtml(kind, `${title}: ${word}${s ? `, ${s.status} at the last release` : ""}${now ? ", running now" : ""}${starting ? ", starting" : ""}`, text, MARKS[kind][0], `${now ? " is-running" : ""}${starting ? " is-starting" : ""}${s ? " mk--wasrel" : ""}`, aged ? `--age:${aged.toFixed(2)}` : "");
 	}
 	function renderMarkLegend() {
 		const items = [
@@ -1715,7 +1716,7 @@ function icon(name) {
 	function runBtn(what, ids, label, cls = "rowrun", text = "") {
 		if (!RUN_OK) return "";
 		const key = runKey(what, ids);
-		if (PENDING && PENDING.key === key) return `<span class="${cls} ckrun--wait" role="status" aria-label="Starting"><i></i></span>`;
+		if (PENDING && PENDING.key === key && cls !== "cellrun") return `<span class="${cls} ckrun--wait" role="status" aria-label="Starting"><i></i></span>`;
 		const r = runOf(what);
 		if (r && sameIds(r.models ?? [], ids) && cls !== "cellrun") return r.mine ? holdAndStop(cls, what) : `<span class="${cls} ckrun--wait ckrun--busy" role="status" aria-label="Being checked now, started outside this board" title="Being checked now. It was started outside this board, so it cannot be paused or stopped from here."><i></i></span>`;
 		const why = blockedBy(what, ids);
@@ -2466,6 +2467,7 @@ function icon(name) {
 	* a click that did not land, so all four wait the same way.
 	*/
 	let PENDING = null;
+	const pendingOn = (key) => PENDING && PENDING.key === key ? PENDING.act : null;
 	/**
 	* What a run is called, everywhere.
 	*

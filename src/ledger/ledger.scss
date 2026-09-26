@@ -3038,3 +3038,17 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 #tbl tr.suiterun > td > .pg + .pg,
 #tbl tr.detail--run > td > .pg + .pg { margin-top: 7px; }
 
+
+/* ---------- pressed, and the board has not answered yet ----------
+   The same ring the running state draws, in the colour of a press rather than of a re-decision:
+   teal for "I have asked", amber for "this verdict is being replaced". It used to be a spinner
+   standing where the mark had been, which hid a verdict that was still perfectly true -- nothing
+   is running yet. The mark stays; the ring goes round it. */
+.mk.is-starting { position: relative; }
+.mk.is-starting::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid transparent; border-top-color: var(--st-chk);
+  border-right-color: color-mix(in srgb, var(--st-chk) 35%, transparent);
+  animation: ckspin 0.85s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .mk.is-starting::after { animation: none; opacity: 0.7; } }

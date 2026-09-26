@@ -271,6 +271,8 @@ import { icon } from '../icons.ts';
      * it. One inference, so the mark and the cell it sits in cannot point at different models.
      */
     const now = runStateOf(key, m) === 'is-checking';
+    // pressed on this very cell, not yet answered: the same ring, teal rather than amber
+    const starting = pendingOn(runKey(key, [m.id])) === 'run';
     const when = r && r.status !== 'never' ? ` Ran ${r.ranAt ? `${new Date(r.ranAt).toLocaleString()}, ${fmtAgeShort(age(r.ranAt))}` : 'at an unknown time'}${r.commit ? ` at ${r.commit}` : ''}.` : ' No captured run has reported this model.';
     // nothing has run here, but the committed snapshot has a verdict: said as the last release's
     // state, with the commit it was taken at, and never folded into the mark, which stays "not run yet"
@@ -282,7 +284,7 @@ import { icon } from '../icons.ts';
     // the model. It only stops "we checked" and "we checked last week" being drawn the same green.
     const secs = r && r.status !== 'never' ? age(r.ranAt) : null;
     const aged = secs == null ? 0 : Math.max(0, Math.min(1, (secs - 86400) / (13 * 86400)));
-    return markHtml(kind, `${title}: ${word}${s ? `, ${s.status} at the last release` : ''}${now ? ', running now' : ''}`, text, MARKS[kind][0], `${now ? ' is-running' : ''}${s ? ' mk--wasrel' : ''}`, aged ? `--age:${aged.toFixed(2)}` : '');
+    return markHtml(kind, `${title}: ${word}${s ? `, ${s.status} at the last release` : ''}${now ? ', running now' : ''}${starting ? ', starting' : ''}`, text, MARKS[kind][0], `${now ? ' is-running' : ''}${starting ? ' is-starting' : ''}${s ? ' mk--wasrel' : ''}`, aged ? `--age:${aged.toFixed(2)}` : '');
   }
   function renderMarkLegend() {
     const items = [['pass', 'pass'], ['cleared', 'flags cleared'], ['stale', 'passed on older code'], ['flag', 'open flags'], ['fail', 'failed'], ['broke', "didn't run (test crashed)"], ['never', 'not run yet']];
@@ -1735,7 +1737,18 @@ import { icon } from '../icons.ts';
   function runBtn(what, ids, label, cls = 'rowrun', text = '') {
     if (!RUN_OK) return '';
     const key = runKey(what, ids);
-    if (PENDING && PENDING.key === key) return `<span class="${cls} ckrun--wait" role="status" aria-label="Starting"><i></i></span>`;
+    /*
+     * Pressed, and the board has not answered yet.
+     *
+     * Everywhere but a cell that is a spinner in the button's own place, which is right: the
+     * button is the thing you pressed. In a cell the button sits ON the mark, so the spinner
+     * covered the verdict with a hollow ring -- the same hiding that running used to do, for a
+     * state where nothing is running at all and the old verdict is still simply true.
+     *
+     * A cell says it on the mark instead (is-starting in checkMark): the same ring, in the
+     * colour of a press rather than of a re-decision, with the verdict readable underneath.
+     */
+    if (PENDING && PENDING.key === key && cls !== 'cellrun') return `<span class="${cls} ckrun--wait" role="status" aria-label="Starting"><i></i></span>`;
     const r = runOf(what);
     /*
      * A run the board did not start is still a run.
