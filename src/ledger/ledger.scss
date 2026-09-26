@@ -3022,3 +3022,14 @@ td.c .cellrun[disabled] { display: inline-grid; opacity: 0; }
 td.c:hover .cellrun[disabled],
 td.c:focus-within .cellrun[disabled],
 td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
+
+/* ---------- two runs, two bars, a line between them ----------
+   The bars for every run that belongs in one place are drawn one after another inside a single
+   cell, which was fine while only one could be going. With two, the Stages pill sat directly on
+   top of the Motion pill with nothing between them, and at a glance the pair read as one control
+   wearing two names. A gap between them, so each bar is plainly its own run.
+   Not by making the cell a flex column: a table cell told to be flex leaves the table's own
+   column sizing behind and shrinks to its contents, so both bars came out at a third of the width.
+   They are block-level boxes already and stack on their own; they only wanted a margin. */
+#tbl tr.suiterun > td > .pg + .pg,
+#tbl tr.detail--run > td > .pg + .pg { margin-top: 7px; }
