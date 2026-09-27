@@ -221,10 +221,42 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     [/^TypeScript is clean/, () => N('tsc over the project is slow')],
     [/^The build is clean/, () => N('npm run build is slow and writes dist/')],
     [/^QA on the built site finds nothing/, () => N('npm run qa needs a fresh build: slow')],
-    [/^The social preview images are made/, () => N('npm run media renders images: slow and writes files')],
+    /*
+     * Both of these said "not evaluated: it is slow and writes files" -- true of RUNNING them, and
+     * beside the point. The run already did it, and what it left behind is cheap to read. An item
+     * that stays open after the thing it asks for has happened is the checklist disagreeing with
+     * the board, and the board is the one with the evidence.
+     */
+    [/^The social preview images are made/, () => {
+      // check-media makes every share image (its prepare step) and then compares each against a
+      // fresh render of the page. So a fresh pass over every model IS the image existing and being
+      // right; nothing here re-renders anything.
+      const ok = models.filter((m) => m.checks.media?.status === 'pass' && !m.checks.media.stale).length;
+      return ok === n
+        ? T(`from the recorded results: check-media holds for ${n} of ${n} models on the current code, and it makes every share image before it compares each against a fresh render of the page`)
+        : F(`from the recorded results: ${ok} of ${n} have a fresh pass from check-media`);
+    }],
     [/^Every model's share preview is right/, () => { const ok = models.filter((m) => m.checks.media?.status === 'pass' && !m.checks.media.stale).length; return ok === n ? T(`from the recorded results: ${n} of ${n} pass check-media on the current code`) : F(`from the recorded results: ${ok} of ${n} have a fresh check-media pass`); }],
     [/^The build works on the Node the workflow uses/, () => /^v22\./.test(process.version) ? T(`node -v is ${process.version}`) : F(`node -v is ${process.version}, the workflow uses 22 (the item also allows "the build above was run on 22", not checked here)`)],
-    [/^The sitemap dates are regenerated/, () => N('its proof runs npm run generate, which writes files')],
+    /*
+     * "Regenerated and committed" is two things, and both are readable without regenerating
+     * anything: the build writes src/sitemap-dates.json, and verify builds before the steps that
+     * judge dist/. So if the file has an entry for every model page and git has nothing
+     * outstanding for it, the last build's answer is the committed one.
+     *
+     * It said "its proof runs npm run generate, which writes files" -- true of the command, and
+     * not what the item asks. The item asks about the file.
+     */
+    [/^The sitemap dates are regenerated/, () => {
+      const path = 'src/sitemap-dates.json';
+      let dates;
+      try { dates = JSON.parse(readFileSync(join(ROOT, path), 'utf8')); } catch { return F(`${path} is not there or is not readable`); }
+      const missing = models.filter((m) => !dates[`models/${m.id}/`]).map((m) => m.id);
+      const dirty = git('status', '--porcelain', '--', path).trim();
+      if (missing.length) return F(`${path} has no entry for ${missing.length} model page(s): ${missing.slice(0, 3).join(', ')}`);
+      if (dirty) return F(`${path} has changes that are not committed: ${dirty.split('\n')[0]}`);
+      return T(`${path} has an entry for all ${n} model pages and nothing uncommitted; the build writes it, and verify builds before the steps that read dist/`);
+    }],
     [/^The dev fallback address is not in the production bundle/, KEYS.dist, () => {
       if (!existsSync(join(ROOT, 'dist'))) return F('there is no dist/ to search: build first');
       const hits = walk(join(ROOT, 'dist')).filter((f) => /\.(js|html|css|json|map)$/.test(f)).filter((f) => { try { return readFileSync(f, 'utf8').includes('127.0.0.1:8787'); } catch { return false; } });
