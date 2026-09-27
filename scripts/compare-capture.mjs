@@ -15,15 +15,31 @@
 // difference over a downscaled picture and the share of pixels that differ clearly. A model that
 // comes out wrong — a missing face, a shifted glow, a lost letter — is far above both.
 //
-// The export service is started here, on the loopback address, so the run needs nothing else.
-// It always binds 127.0.0.1:8787, so stop a running `npm run export` first.
+// The export service is started here, on the loopback address, so the run needs nothing else -- but
+// if something already answers on 127.0.0.1:8787 (`npm run export`, or a service another script left
+// behind) that one is used as it stands, the way check-exports and check-worker-parity already do.
+// Binding it unconditionally is what made this step the gate's only red on 2026-09-27: a dev service
+// started three days earlier still held the port, so the step died in one second on EADDRINUSE
+// without ever taking a picture. A crash is not an answer. The port has to be 8787 either way --
+// src/capture-client.ts posts there when VITE_CAPTURE_URL is unset.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { launchChromium } from './browser.mjs';
 import { exportServer } from '../server/dev.mjs';
 
-const service = await exportServer(8787);
+async function serviceAnswers() {
+  try {
+    const r = await fetch('http://127.0.0.1:8787/capture', { method: 'OPTIONS', headers: { Origin: 'http://127.0.0.1:5173' }, signal: AbortSignal.timeout(2000) });
+    return r.status === 204;
+  } catch { return false; }
+}
+const external = await serviceAnswers();
+const service = external ? null : await exportServer(8787);
+if (!(await serviceAnswers())) { console.error('The export service does not answer on 127.0.0.1:8787.'); process.exit(2); }
+// Which service drew the right-hand picture is part of the result: an external one runs the code it
+// was started with, which is not necessarily the code in this working tree.
+console.log(`export service: ${external ? 'already running on 127.0.0.1:8787, used as is (running whatever code it was started with, not this working tree)' : 'started in this process'}`);
 
 const only = process.argv.slice(2);
 const MEAN = Number(process.env.CAPTURE_MEAN || 6); // 0–255, over the whole picture
@@ -163,7 +179,8 @@ for (const demo of list) {
 process.stdout.write('\n');
 await browser.close();
 await vite.close();
-service.close();
+// null when an external service is being used: that one is not ours to stop.
+service?.close();
 
 // the sheet of strips, for looking at what differed
 if (strips.length) {
