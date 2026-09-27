@@ -21,7 +21,15 @@
 <meta name="twitter:description" content="135 live 3D models you can turn, edit and copy, free for anyone learning. How it was built with Claude, counted from the logs.">
 <meta name="twitter:image" content="https://css3dlab.edgarasneverdauskas.com/article/cover-medium-1500x750.png">
 <meta name="twitter:image:alt" content="Dark cover with a dotted grid. On the left, the CSS 3D Lab glass cube logo and the title &quot;Learn 3D on the web by playing with it&quot;, above the line &quot;135 live models, built with Claude and counted from the logs.&quot; On the right, a screenshot of the live gallery: the headline &quot;3D on the web, no WebGL required.&quot;, a see-through 3D cube, the search and filter bar, and the first model cards.">
-<link rel="icon" href="data:,">
+<!-- The site's own mark, not a blank. `href="data:,"` is the trick for stopping the browser asking
+     for /favicon.ico, and it works -- at the cost of the one thing a favicon is for: this page sits
+     in a tab strip beside the lab it is about, and both showed the browser's empty square. The
+     files are already served from this origin for the gallery. -->
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="./assets/site.css">
 <script src="./assets/site.js" defer></script>
 </head>
