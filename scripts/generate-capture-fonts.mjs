@@ -41,6 +41,24 @@ writeFileSync(join(ROOT, 'src', 'fonts', 'capture-fonts.ts'),
   + `// Inter and JetBrains Mono, latin. Fetched when the export dialog first needs them and embedded\n`
   + `// in the captured scene as data URIs, so every renderer draws the same glyphs. See the script.\n`
   + `const FACES = ${JSON.stringify(FACES)};\n\n`
+  + `/*\n`
+  + ` * WHERE THE FILES ARE, and why this is a variable and not written inline below.\n`
+  + ` *\n`
+  + ` * vite.config's base is './', so import.meta.env.BASE_URL is './' and resolves against the\n`
+  + ` * DOCUMENT: from a model page at /models/<id>/ that asks for /models/<id>/fonts/... and 404s.\n`
+  + ` * The module is the only fixed point. The bundle puts it under <base>/assets/, so ../fonts/ is\n`
+  + ` * <base>/fonts/; in dev it is /src/fonts/, where the same files sit. Both serve the real woff2.\n`
+  + ` *\n`
+  + ` * It is a VARIABLE because vite rewrites \`new URL(<template>, import.meta.url)\` into a lookup\n`
+  + ` * over a glob of this folder, keyed by the literal it saw:\n`
+  + ` *\n`
+  + ` *   new URL({"./inter-latin-400.woff2": u1, ...}[\`../fonts/\${f.file}\`], import.meta.url)\n`
+  + ` *\n`
+  + ` * Our key is "../fonts/inter-latin-400.woff2" and the map's are "./inter-latin-400.woff2", so\n`
+  + ` * every lookup missed, undefined went into the URL, and the server answered index.html with a\n`
+  + ` * 200. A variable second argument is not a pattern vite rewrites.\n`
+  + ` */\n`
+  + `const HERE = import.meta.url;\n\n`
   + `let css = '';\n\n`
   + `/** The @font-face rules, or '' until they have been fetched. Synchronous on purpose: the scene\n`
   + ` *  is built from a laid-out DOM and cannot wait. Callers await ensureCaptureFonts() first. */\n`
@@ -51,26 +69,27 @@ writeFileSync(join(ROOT, 'src', 'fonts', 'capture-fonts.ts'),
   + `  if (css) return;\n`
   + `  try {\n`
   + `    const parts = await Promise.all(FACES.map(async (f) => {\n`
-  + `      // Resolved against this MODULE, not the document.\n`
-  + `      //\n`
-  + `      // document.baseURI is the page, and this site is built with relative asset paths so it can\n`
-  + `      // live under any prefix. From a model page at /models/<id>/ that asked the server for\n`
-  + `      // /models/<id>/fonts/inter-latin-400.woff2 -- a 404, checked against the live site. The\n`
-  + `      // fetch threw, css stayed empty, and every export made from a model page shipped with no\n`
-  + `      // faces embedded: exactly the bug these fonts were added for, still there in the one place\n`
-  + `      // exports are made. It only ever worked from the home page, which is where it was tried.\n`
-  + `      //\n`
-  + `      // The bundle puts this module under <base>/assets/ and the fonts under <base>/fonts/, so\n`
-  + `      // ../fonts/ from here is right under any prefix and from any page that loads it.\n`
-  + `      const r = await fetch(new URL(\`../fonts/\${f.file}\`, import.meta.url).href);\n`
+  + `      const r = await fetch(new URL(\`../fonts/\${f.file}\`, HERE).href);\n`
   + `      if (!r.ok) throw new Error(\`\${r.status} \${f.file}\`);\n`
   + `      const b = new Uint8Array(await r.arrayBuffer());\n`
+  + `      // A 200 is not proof that a font came back. A dev server and most static hosts answer an\n`
+  + `      // unknown path with index.html and a 200, and an HTML page base64'd into a src:url() is a\n`
+  + `      // face that never loads -- which is how this shipped inert without a word. wOF2 is woff2's\n`
+  + `      // magic number, and checking it turns a wrong picture into a message.\n`
+  + `      if (b[0] !== 0x77 || b[1] !== 0x4f || b[2] !== 0x46 || b[3] !== 0x32) {\n`
+  + `        throw new Error(\`\${f.file} is not a woff2: \${b.length} bytes starting \${[...b.subarray(0, 4)].join(',')}\`);\n`
+  + `      }\n`
   + `      let s = '';\n`
   + `      for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);\n`
   + `      return \`@font-face{font-family:"\${f.family}";font-style:normal;font-weight:\${f.weight};font-display:block;src:url(data:font/woff2;base64,\${btoa(s)}) format("woff2")}\`;\n`
   + `    }));\n`
   + `    css = parts.join('');\n`
-  + `  } catch { css = ''; }\n`
+  + `  } catch (e) {\n`
+  + `    // Said out loud, because silence here is a wrong picture: every export is then drawn with\n`
+  + `    // whatever fonts the renderer happens to have, which is the bug the fonts were added to fix.\n`
+  + `    console.error('capture fonts: not embedded, so this export is drawn with whatever fonts the renderer has —', e);\n`
+  + `    css = '';\n`
+  + `  }\n`
   + `}\n`);
 
 console.log(`capture fonts: ${FACES.length} faces, ${(bytes / 1024).toFixed(0)} KB served from public/fonts/, fetched on demand`);

@@ -3,6 +3,25 @@
 // in the captured scene as data URIs, so every renderer draws the same glyphs. See the script.
 const FACES = [{"family":"Inter","weight":400,"file":"inter-latin-400.woff2"},{"family":"Inter","weight":700,"file":"inter-latin-700.woff2"},{"family":"JetBrains Mono","weight":400,"file":"jetbrains-mono-latin-400.woff2"},{"family":"JetBrains Mono","weight":600,"file":"jetbrains-mono-latin-600.woff2"}];
 
+/*
+ * WHERE THE FILES ARE, and why this is a variable and not written inline below.
+ *
+ * vite.config's base is './', so import.meta.env.BASE_URL is './' and resolves against the
+ * DOCUMENT: from a model page at /models/<id>/ that asks for /models/<id>/fonts/... and 404s.
+ * The module is the only fixed point. The bundle puts it under <base>/assets/, so ../fonts/ is
+ * <base>/fonts/; in dev it is /src/fonts/, where the same files sit. Both serve the real woff2.
+ *
+ * It is a VARIABLE because vite rewrites `new URL(<template>, import.meta.url)` into a lookup
+ * over a glob of this folder, keyed by the literal it saw:
+ *
+ *   new URL({"./inter-latin-400.woff2": u1, ...}[`../fonts/${f.file}`], import.meta.url)
+ *
+ * Our key is "../fonts/inter-latin-400.woff2" and the map's are "./inter-latin-400.woff2", so
+ * every lookup missed, undefined went into the URL, and the server answered index.html with a
+ * 200. A variable second argument is not a pattern vite rewrites.
+ */
+const HERE = import.meta.url;
+
 let css = '';
 
 /** The @font-face rules, or '' until they have been fetched. Synchronous on purpose: the scene
@@ -15,24 +34,25 @@ export async function ensureCaptureFonts(): Promise<void> {
   if (css) return;
   try {
     const parts = await Promise.all(FACES.map(async (f) => {
-      // Resolved against this MODULE, not the document.
-      //
-      // document.baseURI is the page, and this site is built with relative asset paths so it can
-      // live under any prefix. From a model page at /models/<id>/ that asked the server for
-      // /models/<id>/fonts/inter-latin-400.woff2 -- a 404, checked against the live site. The
-      // fetch threw, css stayed empty, and every export made from a model page shipped with no
-      // faces embedded: exactly the bug these fonts were added for, still there in the one place
-      // exports are made. It only ever worked from the home page, which is where it was tried.
-      //
-      // The bundle puts this module under <base>/assets/ and the fonts under <base>/fonts/, so
-      // ../fonts/ from here is right under any prefix and from any page that loads it.
-      const r = await fetch(new URL(`../fonts/${f.file}`, import.meta.url).href);
+      const r = await fetch(new URL(`../fonts/${f.file}`, HERE).href);
       if (!r.ok) throw new Error(`${r.status} ${f.file}`);
       const b = new Uint8Array(await r.arrayBuffer());
+      // A 200 is not proof that a font came back. A dev server and most static hosts answer an
+      // unknown path with index.html and a 200, and an HTML page base64'd into a src:url() is a
+      // face that never loads -- which is how this shipped inert without a word. wOF2 is woff2's
+      // magic number, and checking it turns a wrong picture into a message.
+      if (b[0] !== 0x77 || b[1] !== 0x4f || b[2] !== 0x46 || b[3] !== 0x32) {
+        throw new Error(`${f.file} is not a woff2: ${b.length} bytes starting ${[...b.subarray(0, 4)].join(',')}`);
+      }
       let s = '';
       for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
       return `@font-face{font-family:"${f.family}";font-style:normal;font-weight:${f.weight};font-display:block;src:url(data:font/woff2;base64,${btoa(s)}) format("woff2")}`;
     }));
     css = parts.join('');
-  } catch { css = ''; }
+  } catch (e) {
+    // Said out loud, because silence here is a wrong picture: every export is then drawn with
+    // whatever fonts the renderer happens to have, which is the bug the fonts were added to fix.
+    console.error('capture fonts: not embedded, so this export is drawn with whatever fonts the renderer has —', e);
+    css = '';
+  }
 }
