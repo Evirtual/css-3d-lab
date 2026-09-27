@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5183", "--strictPort"],
       "port": 5183
+    },
+    {
+      "name": "app",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/vite/bin/vite.js", "--port", "5183", "--strictPort"],
+      "port": 5183
     }
   ]
 }
