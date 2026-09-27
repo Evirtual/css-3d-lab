@@ -309,18 +309,44 @@ function stopForeign(what) {
     : { ok: false, why: `could not stop ${runner.name} (pid ${runner.pid}): it may have finished already` };
 }
 
-function stop(what) {
-  // A named check stops that one; no name stops the lot, which is what a Stop beside "everything"
-  // means. A run this server did not start is stopped through its runner instead (stopForeign).
-  const targets = what ? [runs.get(what)].filter(Boolean) : [...runs.values()];
-  if (!targets.length && what) return stopForeign(what);
-  if (!targets.length) return { ok: false, why: what ? `${what} is not running here` : 'nothing is running here' };
-  for (const { child } of targets) {
-    try {
-      if (process.platform === 'win32') spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
-      else process.kill(-child.pid, 'SIGTERM');
-    } catch { try { child.kill('SIGTERM'); } catch { /* it had already gone */ } }
+/*
+ * Every run there is, whoever started it.
+ *
+ * "no name stops the lot" only ever meant the lot THIS SERVER started, so a Stop beside
+ * "everything" left a terminal run going and said it had stopped everything. The board exists to
+ * stop exactly that kind of sentence. Foreign runs are stopped through their runners, and a runner
+ * is killed once however many of its steps are showing.
+ */
+function stopEverything() {
+  const mine = [...runs.values()];
+  for (const { child } of mine) killTree(child.pid);
+  const seen = new Set();
+  const foreign = [];
+  for (const other of runningChecks(ROOT)) {
+    if (runs.has(other.check)) continue;
+    const pid = other.runner?.pid;
+    if (!pid || seen.has(pid)) { if (!pid) foreign.push({ check: other.check, stopped: false }); continue; }
+    seen.add(pid);
+    foreign.push({ check: other.check, run: other.runner.name, pid, stopped: killTree(pid) });
   }
+  if (mine.length) setPaused(false);
+  const left = foreign.filter((f) => !f.stopped).map((f) => f.check);
+  return {
+    ok: Boolean(mine.length || seen.size),
+    stopped: [...mine.map((t) => t.what), ...foreign.filter((f) => f.stopped).map((f) => f.check)],
+    // said rather than swallowed: a check running with nothing that claims to be running it
+    left: left.length ? left : undefined,
+    why: !mine.length && !seen.size ? 'nothing is running that this page can stop' : undefined,
+  };
+}
+
+function stop(what) {
+  // A named check stops that one; no name stops every run there is, this server's or not.
+  // A run this server did not start is stopped through its runner instead (stopForeign).
+  if (!what) return stopEverything();
+  const targets = [runs.get(what)].filter(Boolean);
+  if (!targets.length) return stopForeign(what);
+  for (const { child } of targets) killTree(child.pid);
   // Pausing is one flag for the whole machine, so it is only lifted when the last run has gone.
   if (targets.length === runs.size) setPaused(false);
   return { ok: true, stopped: targets.map((t) => t.what) };
