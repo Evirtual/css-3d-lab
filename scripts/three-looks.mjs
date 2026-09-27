@@ -28,13 +28,32 @@
 // It prints one PASS/FAIL line per thing asked, and exits 1 if any failed, so it cannot pass by
 // printing something hopeful: every line is a comparison against what the checklist item says.
 import { createServer as createVite } from 'vite';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
+import { exportServer } from '../server/dev.mjs';
 
 const cacheDir = mkdtempSync(join(tmpdir(), 'three-looks-vite-'));
 process.on('exit', () => rmSync(cacheDir, { recursive: true, force: true }));
+/*
+ * The render service. Two of these three looks download a real file -- an image and a video -- and
+ * the dialog draws both through the service on 127.0.0.1:8787, so without one this run asks its
+ * question of a dialog that cannot answer. It was run by hand until 2026-09-28, with `npm run
+ * export` already going in another window, which is why nothing here started one. As a gate step
+ * there is no other window. Detect, then start: the same order as check-exports, check-parity and
+ * compare, and for the same reason -- an external service is running the code it was started with.
+ */
+async function serviceAnswers() {
+  try {
+    const r = await fetch('http://127.0.0.1:8787/capture', { method: 'OPTIONS', headers: { Origin: 'http://127.0.0.1:5173' }, signal: AbortSignal.timeout(2000) });
+    return r.status === 204;
+  } catch { return false; }
+}
+const externalService = await serviceAnswers();
+const service = externalService ? null : await exportServer(8787);
+if (!(await serviceAnswers())) { console.error('The export service does not answer on 127.0.0.1:8787.'); process.exit(2); }
+console.log(`export service: ${externalService ? 'already running on 127.0.0.1:8787, used as is (running whatever code it was started with, not this working tree)' : 'started in this process'}`);
 const vite = await createVite({ cacheDir, logLevel: 'error', server: { host: '127.0.0.1', port: 0, hmr: false, watch: null } });
 await vite.listen();
 const base = `http://127.0.0.1:${vite.httpServer.address().port}`;
@@ -65,8 +84,21 @@ const itemNo = (key) => {
 const ITEM = {
   fourK: '4K is not offered at all while the render service cannot draw it',
   names: 'Every file the dialog hands out is named after its model',
-  zoom: 'View zoom is gone from the editing view',
 };
+/*
+ * The zoom look has no checklist item, on purpose.
+ *
+ * It had one until 4b80783 (2026-09-26), which cut the checklist from 63 items to 58 and took this
+ * one out with the reasoning "a migration that landed" -- fairly: the page-level control went on
+ * 2026-09-25 and VIEW-CONTRACT.md records that it did. The look stayed, still keyed to the deleted
+ * wording, so the guard above reported it on 2026-09-28: "a checklist item contains 'View zoom is
+ * gone from the editing view' -> none does; the look for 'zoom' tests nothing". Which is exactly
+ * what that guard is for, and the reason it is a FAILURE and never a silent skip.
+ *
+ * The three assertions are kept because a migration that landed can come back, and they cost a
+ * second. They just no longer claim to answer a line on the list. They report under [zoom].
+ */
+const UNLISTED = ['zoom'];
 for (const [name, key] of Object.entries(ITEM)) {
   if (itemNo(key) === null) {
     console.log(`  FAIL  [?] a checklist item contains "${key}" -> none does; the look for "${name}" tests nothing`);
@@ -231,7 +263,53 @@ say('zoom', Number(modelSize.min) === 25 && Number(modelSize.max) > 25, 'it runs
 
 await browser.close();
 await vite.close();
+// null when an external service is being used: that one is not ours to stop.
+service?.close();
 
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length} of ${results.length} held.`);
 if (failed.length) { console.log('Not held:'); for (const f of failed) console.log(`  [${f.item}] ${f.what} -> ${f.got}`); process.exitCode = 1; }
+
+/*
+ * WHAT THE LOOKS SAW, WRITTEN DOWN.
+ *
+ * These three answers used to be printed and thrown away, so the checklist lines they answer read
+ * "not evaluated" the moment the terminal scrolled -- which is true of RUNNING the look and says
+ * nothing about the look that just ran. The same gap left snippets, preview and compare watched by
+ * nothing for days, and it is the gap that let a check stay green for a week without running once.
+ *
+ * Grouped by the look, not by the assertion: an item holds when every assertion under it held. With
+ * the commit, so a stale answer can be refused instead of believed.
+ */
+try {
+  const { execFileSync } = await import('node:child_process');
+  const ROOT = new URL('..', import.meta.url);
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  const looks = {};
+  for (const [name, key] of [...Object.entries(ITEM), ...UNLISTED.map((n) => [n, null])]) {
+    const item = key ? itemNo(key) : null;
+    const mine = results.filter((r) => r.item === (item ?? name));
+    const held = mine.length > 0 && mine.every((r) => r.ok);
+    looks[name] = {
+      item,
+      key,
+      ok: held,
+      asked: mine.length,
+      found: mine.length === 0
+        ? 'nothing was asked about it'
+        : held
+          ? `${mine.length} look(s) held: ${mine.map((r) => r.what).join('; ')}`
+          : mine.filter((r) => !r.ok).map((r) => `${r.what} -> ${r.got}`).join('; '),
+    };
+  }
+  writeFileSync(new URL('docs/checks/looks.json', ROOT), `${JSON.stringify({
+    note: 'Written by scripts/three-looks.mjs. What only a person opening the export dialog could answer, asked once on /models/cube/: two checklist items, plus the zoom look, which no longer has one. One model, not a per-model record.',
+    at: new Date().toISOString(),
+    commit,
+    model: 'cube',
+    looks,
+  }, null, 2)}\n`);
+} catch (e) {
+  // A look that cannot write its record has still looked: say so, and change no verdict.
+  console.log(`(could not write docs/checks/looks.json: ${String(e?.message ?? e).split('\n')[0]})`);
+}

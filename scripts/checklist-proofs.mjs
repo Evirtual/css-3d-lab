@@ -131,7 +131,26 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     if (r.ok === null) return N(`${r.found} (asked ${when})`);
     return r.ok ? T(`${r.found} — asked ${when}`) : F(`${r.found} — asked ${when}`);
   };
+  /*
+   * The three that only a person opening the dialog could answer, read back from the look that
+   * asked them. scripts/three-looks.mjs printed its answers and wrote nothing until 2026-09-28, so
+   * these lines said "not evaluated" while the look sat in the terminal one screen above.
+   */
+  const looks = (() => {
+    try { return JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'looks.json'), 'utf8')); } catch { return null; }
+  })();
+  const fromLooks = (key, what) => () => {
+    if (!looks) return N(`docs/checks/looks.json is not there: nothing has looked yet (npm run looks writes it)`);
+    if (!sameCommit(looks.commit, head)) return F(`the look ran at ${String(looks.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it was looking at other code`);
+    const r = looks.looks?.[key];
+    if (!r) return N(`the recorded look did not ask about ${what}`);
+    const when = String(looks.at ?? '').slice(0, 16).replace('T', ' ');
+    return r.ok
+      ? T(`${r.found} — looked ${when} on /models/${looks.model}/`)
+      : F(`${r.found} — looked ${when} on /models/${looks.model}/`);
+  };
   const PROOFS = [
+    [/^Every file the dialog hands out is named after its model/, fromLooks('names', 'the names the dialog hands out')],
     [/^The working tree is clean/, () => atRiskList.length ? F(`${atRiskList.length} path(s) in git status, e.g. ${atRiskList.slice(0, 3).map((x) => x.path).join(', ')}`) : T('git status prints nothing')],
     [/^The main index matches HEAD/, KEYS.index, () => exits0('diff', '--cached', '--quiet', 'HEAD') ? T('git diff --cached HEAD is empty') : F(`the main index differs from HEAD in ${git('diff', '--cached', '--name-only', 'HEAD').trim().split('\n').filter(Boolean).length} path(s)`)],
     [/^scripts\/verify\.mjs and scripts\/check-exports\.mjs are committed/, KEYS.head, () => {
