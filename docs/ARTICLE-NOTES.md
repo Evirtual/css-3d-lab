@@ -320,6 +320,88 @@ already use. The lesson is not the word. It is that a check comparing two things
 cannot see a difference that only exists between machines, and will report agreement with complete
 confidence.
 
+## 16. One correct change, and three designs with nothing spare
+
+Naming `Inter` in seven charts was right, and it broke two of them.
+
+```
+treemap   contrast   4.50  ->  4.43     the AA minimum is 4.5
+candles   share      -3.3  ->  -4.25    the view contract allows 4
+```
+
+Neither had been wrong. Both had been sitting **exactly on their limit**: treemap's smallest
+label at 4.50 against a 4.5 minimum, candles at -3.3 against 4. A design on its limit is not
+passing, it is about to fail, and what tips it can be anything — a font a fraction lighter, a digit
+a fraction narrower.
+
+treemap's was the more interesting mechanism. A contrast ratio is between two colours and a font
+cannot change it, which I said out loud before checking. It can, through the labels' own
+`text-shadow`: a lighter stroke lays down less dark halo, so the pixels *behind* the words are
+paler. Its roof went from 80% of the tile colour to 72% — 4.81, with room.
+
+candles was the price labels hanging off the right edge at `left: 100%` with nothing but
+`white-space: nowrap`, so their ink reached exactly as far as the text was wide. Inter's digits are
+narrower, the right edge came in, the middle of the picture moved left. Their padding went from 6u
+to 9u. It now reads -3.7 of 4, and 91 vmin wide of 92 — a pass, and still nothing spare, because
+pushing them further clears the centring and breaches the width.
+
+The honest lesson is not "be careful with fonts". It is that a check reports the same green for a
+design with four points of margin and one with nought point nought five, and only the second one is
+a bug waiting for an excuse.
+
+## 17. The build that was never built, twice
+
+`verify` runs four steps that judge `dist/` — share, qa, app performance, seo — and never built it.
+`--no-build` has always been documented as "qa on the dist/ already there, **not a fresh build**",
+which says the default is a fresh build. It was read once, used to change a printed sentence, and
+nothing ever ran the build.
+
+So it failed all seven charts on the share check, and check-media said exactly why: *"the built
+page runs different model code from src/models now: dist/ is older than the model."* The check was
+right. verify was the one making a claim it had not earned. Six of those seven passed the moment
+they were measured against a current build.
+
+Then I fixed it, and the fix did nothing:
+
+```
+first: npm run build — media, qa, app, seo judge dist/, not the dev server
+       BUILD FAILED after 0m00s
+```
+
+`0m00s`. npm is `npm.cmd` on Windows and Node refuses to execFile a `.cmd` without a shell, so it
+threw `EINVAL` before starting. Four words that read like a broken build and were a broken spawn.
+The message now carries the error, because the duration was the only clue that anything was wrong.
+
+And in between the two I made the same mistake by hand. Testing whether the font had moved candles,
+I swapped the source and re-measured — twice, getting the same number both times, which looked like
+proof the font was innocent. `check-media` renders `dist/`, and I had not rebuilt between the
+variants. I was comparing a changed source against an unchanged build. With a build each time:
+-3.3 without Inter, -4.25 with. It had never been innocent.
+
+Three versions of one mistake inside an hour, by the check, by my fix to the check, and by me.
+
+## 18. The spinner was always one row late
+
+A small one, and the user found it by watching.
+
+`capture-check` sets `current` when a check prints a model's name, which it does when it **starts**
+on that model. The board read that as the model last *finished* and took the next one after it. So
+the spinner sat one row below the truth, and could never land on the first model at all.
+
+Over a check that takes five seconds a model it is wrong for a blink. Over exports, at half a
+minute a model, it is wrong the whole time — which is why it was noticed there and nowhere else:
+*"it doesn't start with the first, always with the second."*
+
+The fix is to stop guessing. The run now writes `progress.doing`, the started model that has not
+reported, and the board takes its word. The proof was one line of live data, `doing` and `last`
+naming the same model:
+
+```
+exports  running=true  doing="treemap"  last="treemap"
+```
+
+`last` had never meant what its name said.
+
 ## Lines worth keeping
 
 - "A hole is not less in the way than a bar." (on hiding a run bar whose row was still in the flow)
@@ -341,3 +423,9 @@ confidence.
   machines, and will report agreement with complete confidence.
 - "Local and the workers should be the same export results." (Edgaras, and the only test that
   would have caught it)
+- A design on its limit is not passing, it is about to fail. The board shows the same green for
+  four points of margin and for nought point nought five.
+- "BUILD FAILED after 0m00s" — the duration was the only thing saying it was a broken spawn and
+  not a broken build.
+- `last` had never meant what its name said.
+- Three versions of one mistake inside an hour: by the check, by my fix to the check, and by me.
