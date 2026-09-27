@@ -68,6 +68,13 @@ const models = args.filter((a) => !a.startsWith('--'));
 const ORDER = (() => {
   const keys = [...RUN_ORDER];
   keys.splice(keys.indexOf('perf'), 0, 'qa');
+  // parity is not a registry check either, and it goes straight after exports because it asks the
+  // one question exports cannot: exports compares a file against the dialog's canvas, and both are
+  // drawn on this machine. The renderer a visitor's export comes from is a Worker on Linux with a
+  // different font folder, and a check that compares two things on one machine cannot see a
+  // difference that only exists between machines. That gap shipped a card with its numbers hanging
+  // off the edge on 2026-09-25, and seven chart models on 2026-09-27, under green ticks both times.
+  keys.splice(keys.indexOf('exports') + 1, 0, 'parity');
   return keys;
 })();
 /**
@@ -75,7 +82,16 @@ const ORDER = (() => {
  * It still runs -- it catches page errors on the BUILT site, which nothing else looks at -- and its
  * line says plainly that it left no record, rather than borrowing another check's green.
  */
-const NO_RECORD = new Set(['qa']);
+const NO_RECORD = new Set(['qa', 'parity']);
+/**
+ * What the steps outside the registry are, in words, for the line this prints when each starts.
+ * That sentence used to be one hardcoded string -- qa's -- so the moment a second such step
+ * existed it would have run under qa's description.
+ */
+const OUTSIDE = {
+  qa: 'page errors on the built site (no per-model record)',
+  parity: 'the same scene drawn by both renderers, here and on the Worker (no per-model record)',
+};
 /** What `--fast` is: the checks that answer in a couple of minutes over all 135. */
 const FAST = new Set(['boxsizing', 'contrast', 'access', 'media', 'qa']);
 
@@ -160,7 +176,9 @@ function prepare(key) {
 
 function spawnStep(key) {
   return new Promise((resolve) => {
-    const argv = NO_RECORD.has(key) ? ['scripts/qa.mjs', ...models] : ['scripts/capture-check.mjs', key, ...argsFor(key), ...models];
+    const argv = key === 'parity' ? ['scripts/check-worker-parity.mjs', ...models]
+      : NO_RECORD.has(key) ? ['scripts/qa.mjs', ...models]
+      : ['scripts/capture-check.mjs', key, ...argsFor(key), ...models];
     const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true });
     let tail = '';
     const keep = (b) => { tail = (tail + b.toString()).slice(-4000); process.stdout.write(b); };
@@ -201,7 +219,7 @@ console.log(`${mb() ?? '?'} MB free at the start${noBuild ? ' (--no-build: qa re
 const began = Date.now();
 const results = [];
 for (const [i, key] of run.entries()) {
-  const c = listed.get(key) ?? { name: 'page errors on the built site (no per-model record)' };
+  const c = listed.get(key) ?? { name: OUTSIDE[key] ?? '(no per-model record)' };
   const at = Date.now();
   console.log(`\n[${i + 1}/${run.length}] ${hhmm()}  ${key} — ${c.name}${key === 'exports' && !models.length ? ' (every model, at the dialog\'s defaults)' : ''}`);
   await prepare(key);

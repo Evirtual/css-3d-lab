@@ -1,6 +1,15 @@
 /**
  * npm run check-renderers   (after: node scripts/capture-payload.cjs, then take a picture)
  *
+ * SUPERSEDED as a gate by `npm run check-parity` (scripts/check-worker-parity.mjs), which drives
+ * the dialog itself over chosen models and judges on the PICTURE. Keep this one for looking at a
+ * single payload by hand. Its bar -- same pixel size, within 10% of PNG bytes -- turned out to be
+ * inverted, because a compressed size measures entropy and not position:
+ *
+ *   treemap   2.3% byte gap   passes here, and its label is drawn off the frame
+ *   pie       6.5% byte gap   and pie is correct: ink box identical
+ *   radar    13.6% byte gap   caught, barely
+ *
  * THE CHECK THAT WAS MISSING. check-exports drives the real dialog over 135 models and passes --
  * against the LOCAL render service, every time. Nothing ever asked the OTHER renderer the same
  * question, so the gate proved the app asks correctly and never proved the service on the far end

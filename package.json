@@ -28,6 +28,7 @@
     "check-live": "node scripts/check-live.mjs",
     "capture-payload": "node scripts/capture-payload.cjs",
     "check-renderers": "node scripts/check-renderers.cjs",
+    "check-parity": "node scripts/check-worker-parity.mjs",
     "board": "node scripts/ledger-watch.mjs",
     "build:ledger": "vite build --config vite.ledger.config.ts",
     "board:dev": "node scripts/board-dev.mjs"
