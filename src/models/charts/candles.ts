@@ -163,7 +163,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   position: absolute;
   bottom: calc(calc(8 * var(--u)) + var(--t) * calc(100 * var(--u)));
   left: 100%;
-  padding-left: calc(6 * var(--u));
+  padding-left: calc(9 * var(--u));
   color: color-mix(in srgb, currentColor 65%, transparent);
   font: 700 calc(11 * var(--u))/calc(13 * var(--u)) Inter, system-ui, sans-serif; /* 4vmin, the controls' size */
   white-space: nowrap;
