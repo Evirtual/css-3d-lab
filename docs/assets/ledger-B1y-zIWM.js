@@ -1288,8 +1288,13 @@ function icon(name) {
 	function render() {
 		if (!L) return;
 		syncChecks(L.checkList);
-		const c = L.counts;
-		c.models;
+		const c = L.counts, n = c.models;
+		{
+			const live = (RUN_NOW.runs ?? []).map((r) => (CHECK_NAMES[r.what] ?? r.what).replace(/ (.*)$/, ""));
+			const on = L.running && Object.entries(L.running).find(([, v]) => v && v.alive && v.total) || null;
+			const far = on ? ` ${on[1].done ?? 0}/${on[1].total}` : "";
+			document.title = live.length ? `${live[0]}${far} · Ledger` : `${c.approved}/${n} · Ledger`;
+		}
 		L.build?.by && (`${esc(L.build.by)}`, L.build.reason && `${esc(L.build.reason)}`);
 		const full = `Built ${L.generatedAt ? new Date(L.generatedAt).toLocaleString() : "an unknown time"}${L.build?.by ? ` by ${L.build.by}${L.build.reason ? ` (${L.build.reason})` : ""}` : ""} at HEAD ${L.head}. Every status below is read from git, the model files and the captured checks.`;
 		$("meta").innerHTML = `<span tabindex="0" data-tip data-tiptext="${esc(full)}">HEAD <code>${esc(L.head)}</code></span><span class="sep">·</span><span>built ${agoSpan(L.generatedAt)}</span>`;

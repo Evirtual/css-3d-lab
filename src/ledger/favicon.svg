@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-label="Ledger">
+  <!-- The board, at the size a tab gives it: a grid of marks, one of them not green.
+       Deliberately not the site's cube. The lab and the ledger are open at once all day and the
+       tab has to say which is which. -->
+  <rect width="16" height="16" rx="3.5" fill="#0b0e18"/>
+  <g fill="#2ee6d6">
+    <rect x="2.6" y="3" width="3.4" height="2.6" rx="1.1"/>
+    <rect x="7.3" y="3" width="3.4" height="2.6" rx="1.1"/>
+    <rect x="2.6" y="6.7" width="3.4" height="2.6" rx="1.1"/>
+    <rect x="12" y="3" width="1.4" height="2.6" rx="0.7" opacity="0.5"/>
+    <rect x="12" y="6.7" width="1.4" height="2.6" rx="0.7" opacity="0.5"/>
+    <rect x="2.6" y="10.4" width="3.4" height="2.6" rx="1.1"/>
+    <rect x="12" y="10.4" width="1.4" height="2.6" rx="0.7" opacity="0.5"/>
+  </g>
+  <rect x="7.3" y="6.7" width="3.4" height="2.6" rx="1.1" fill="#ffb547"/>
+  <rect x="7.3" y="10.4" width="3.4" height="2.6" rx="1.1" fill="#2ee6d6"/>
+</svg>

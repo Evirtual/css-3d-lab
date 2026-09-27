@@ -1317,6 +1317,22 @@ import { icon } from '../icons.ts';
     if (!L) return;
     syncChecks(L.checkList);
     const c = L.counts, n = c.models;
+    /*
+     * The tab says where the board is.
+     *
+     * This page is left open for hours while a run goes, and a run is the reason it is open.
+     * "Ledger" in the tab strip told you nothing you did not already know, so you had to bring
+     * the window forward to find out whether anything had moved. A run in progress wins the
+     * title because it is the thing that is changing; otherwise the score.
+     */
+    {
+      const live = (RUN_NOW.runs ?? []).map((r) => (CHECK_NAMES[r.what] ?? r.what).replace(/ (.*)$/, ''));
+      const on = (L.running && Object.entries(L.running).find(([, v]) => v && v.alive && v.total)) || null;
+      const far = on ? ` ${on[1].done ?? 0}/${on[1].total}` : '';
+      document.title = live.length
+        ? `${live[0]}${far} · Ledger`
+        : `${c.approved}/${n} · Ledger`;
+    }
     const by = L.build?.by ? ` by <code>${esc(L.build.by)}</code>${L.build.reason ? ` (${esc(L.build.reason)})` : ''}` : '';
     const built = L.generatedAt ? new Date(L.generatedAt).toLocaleString() : 'an unknown time';
     const full = `Built ${built}${L.build?.by ? ` by ${L.build.by}${L.build.reason ? ` (${L.build.reason})` : ''}` : ''} at HEAD ${L.head}. Every status below is read from git, the model files and the captured checks.`;
