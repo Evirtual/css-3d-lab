@@ -78,7 +78,7 @@
  * "ran under memory pressure" in the same kind of note when it had to go on anyway; and a crash
  * inside Playwright is said on stderr with exit 3, the sections printed before it kept.
  */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer as createVite } from 'vite';
@@ -119,6 +119,16 @@ const quick = flag('--quick');
 const defaultsOnly = flag('--defaults');
 if (defaultsOnly && quick) { console.error('--defaults and --quick ask for different settings; give one.'); process.exit(2); }
 const jsonOut = opt('--json');
+/*
+ * --save <dir>: keep the two pictures this check compares.
+ *
+ * Every number here is a comparison between a file and the dialog's canvas, and until now neither
+ * survived the run. That is fine while the numbers agree and useless the moment they do not: a
+ * disagreement of "7.9 levels on average" cannot be argued with, confirmed or dismissed without
+ * looking at the two pictures it came from.
+ */
+const saveDir = opt('--save');
+if (saveDir) mkdirSync(saveDir, { recursive: true });
 const only = new Set((opt('--only') ?? 'dims,picture,slider,drift,formats').split(','));
 const ids = args.filter((a, i) => !a.startsWith('--') && !['--json', '--only'].includes(args[i - 1]));
 /*
@@ -738,6 +748,11 @@ async function checkImages(id) {
       if (file.error) { miss(id, 'dims', `image ${shape} ${size}`, `no file: ${file.error}`, 'app'); continue; }
       const said = captionSize(file.caption);
       const m = await measureImage(file, scr);
+      if (saveDir) {
+        const stem = `${id}-${shape.replace(':', 'x')}-${size}`;
+        writeFileSync(join(saveDir, `${stem}-file.png`), Buffer.from(file.b64, 'base64'));
+        writeFileSync(join(saveDir, `${stem}-canvas.png`), Buffer.from(scr.png, 'base64'));
+      }
       const aspect = file.width / file.height;
       entry.files[size] = { caption: file.caption, note: file.note, width: file.width, height: file.height, drawn: file.drawn, took: file.took, box: m.box, like: m.like, head: file.head };
       const gap = boxGap(m.box, scr.box);
