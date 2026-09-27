@@ -1030,23 +1030,22 @@ function icon(name) {
 		const short = whole ? "Every check" : c?.short ?? key;
 		const pct = p.total ? Math.min(100, 100 * p.done / p.total) : 0;
 		const e = etaOf(p);
-		const mine = runOf(key)?.mine ?? false;
 		const ssId = `run:${key}`;
 		const nSteps = (c?.steps ?? []).length;
 		const ssShown = Boolean(c) && nSteps > 0;
 		const ssOpened = ssShown && ssIsOpen(ssId);
-		const bar = `<span class="pg${RUN_NOW.paused && mine ? " is-paused" : ""}">
+		const bar = `<span class="pg${RUN_NOW.paused ? " is-paused" : ""}">
       <span class="pg__name" data-tip data-tiptext="${esc(`${title}, over ${over}.`)}">${esc(short)}</span>
       <span class="pg__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? "?"}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><i style="width:${pct}%"></i></span>
       <span class="pg__n">${esc(p.done)}/${esc(p.total ?? "?")}</span>
       <span class="pg__meta">${(() => {
 			const bits = [];
-			if (RUN_NOW.paused && mine) bits.push("paused");
+			if (RUN_NOW.paused) bits.push("paused");
 			else if (e) bits.push(`about ${fmtDur(e.left)} left`);
 			if (p.last) bits.push(esc(p.last));
 			return bits.join(" · ");
 		})()}</span>
-      ${mine && RUN_OK ? `<span class="pg__acts">${holdAndStop("rowrun")}</span>` : ""}
+      ${RUN_OK ? `<span class="pg__acts">${holdAndStop("rowrun", whole ? null : key)}</span>` : ""}
       ${ssShown ? ssToggle(ssId, ssOpened ? `Hide what ${title} is covering` : `What ${title} is covering (${nSteps} parts)`, ssOpened, true) : ""}</span>`;
 		if (!ssShown) return bar;
 		return `<span class="pgbox">${bar}${ssOpened ? ssPanel(c, ssId, p) : ""}</span>`;
