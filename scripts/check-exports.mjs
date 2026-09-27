@@ -511,10 +511,25 @@ function judgeAlign(a, { id, what, fault, indent }) {
   const periodic = telling.filter((t) => Math.max(Math.abs(t.dx), Math.abs(t.dy)) > SHIFT_TOL && t.moved === false).length;
   const text = `picture diff ${a.diff.toFixed(1)} (mean R,G,B ${a.rgb.map((v) => (v >= 0 ? '+' : '') + v.toFixed(1)).join(',')}) at the canvas's ${a.W}×${a.H}, ${telling.length}/9 tiles to line up, worst best-fit shift ${worst}px (±${a.R} searched)${periodic ? `, ${periodic} of them a repeat that fits as well in place` : ''}${moved.length === 1 ? `, 1 lone tile fits best at (${moved[0].dx},${moved[0].dy})px (${moved[0].best.toFixed(2)} vs ${moved[0].at0?.toFixed(2)} in place) with every other in place` : ''}`;
   const misses = [];
-  // When every tile is in place the difference is the picture's colour, not where it is: say so.
+  /*
+   * What "every tile is in place" actually proves, and what it does not.
+   *
+   * The tile search steps in WHOLE canvas pixels and forgives one (SHIFT_TOL). So tiles in place
+   * means the picture is not shifted by two pixels or more. It says nothing about anything finer,
+   * and it does not make the difference a colour.
+   *
+   * The two numbers tell those apart. diff is a mean ABSOLUTE difference; rgb is the mean SIGNED
+   * difference over the same pixels. A real colour cast moves both together -- 7 levels of
+   * darkening reads as diff 7, cast -7. crawl reads diff 7.9, cast -0.7/-0.6/-0.4: large
+   * differences that cancel, which is local detail disagreeing, not a level shift. The file is
+   * drawn at five times the canvas, so ink a quarter of a pixel wide on the canvas -- crawl's
+   * stars are gradient dots about that size -- resolves in one and not the other.
+   *
+   * The old sentence here said "so this is its colour, not its framing". It was neither.
+   */
   const [r, g, b] = a.rgb.map((v) => (v >= 0 ? '+' : '') + v.toFixed(1));
   const cast = `file less canvas: R ${r}, G ${g}, B ${b}`;
-  if (a.diff > PIC_TOL) misses.push(`the picture differs from the canvas by ${a.diff.toFixed(1)} levels on average (${cast})${telling.length && !off.length ? ' — every tile is in place, so this is its colour, not its framing' : ''}`);
+  if (a.diff > PIC_TOL) misses.push(`the picture differs from the canvas by ${a.diff.toFixed(1)} levels on average (${cast})${telling.length && !off.length ? ` — every tile fits within a pixel, so it is not shifted; and the cast is ${Math.max(...a.rgb.map(Math.abs)).toFixed(1)} against a difference of ${a.diff.toFixed(1)}, so it is not a colour shift either: the two drawings disagree about detail finer than a canvas pixel` : ''}`);
   if (off.length) misses.push(`${off.length} of ${telling.length} tiles fit best shifted: ${off.map((t) => `(${t.dx},${t.dy})px, fit ${t.best.toFixed(2)} there vs ${t.at0?.toFixed(2)} in place`).join('; ')} — the picture is offset, cropped or zoomed against the canvas`);
   say(`${indent}full canvas: ${text}`);
   if (!only.has('picture')) return;

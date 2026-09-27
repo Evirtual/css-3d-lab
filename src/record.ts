@@ -273,6 +273,17 @@ function paintFrame(
   const scale = Math.max(frame.width / img.width, frame.height / img.height);
   const w = img.width * scale;
   const h = img.height * scale;
+  /*
+   * The picture is drawn larger than it is delivered -- the service renders at ceil(scale), so a
+   * 1600px file is drawn at 1970 and comes down by 1.23x here. That reduction was using the
+   * canvas default, which is bilinear: it under-samples fine detail, and fine detail is exactly
+   * what these models are made of (crawl's stars are gradient dots about a quarter of a CSS pixel
+   * across at card size).
+   *
+   * Both of check-exports' own downscalers ask for 'high'. The file a person downloads was the
+   * one place that did not, so the check was inspecting a better reduction than the product ships.
+   */
+  ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, (frame.width - w) / 2, (frame.height - h) / 2, w, h);
 }
 
