@@ -236,13 +236,19 @@ if (willUseDist.length && !noBuild) {
   console.log(`first: npm run build — ${willUseDist.join(', ')} judge dist/, not the dev server`);
   const at = Date.now();
   try {
+    // shell: true on Windows because npm is npm.cmd there, and Node refuses to execFile a .cmd
+    // without a shell. Without it this threw EINVAL instantly -- "BUILD FAILED after 0m00s" --
+    // so the step that exists to stop dist/ going stale did nothing at all on the machine it
+    // was written on.
     execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'],
-      { cwd: ROOT, stdio: 'ignore', env: { ...process.env, FORCE_COLOR: '0' } });
+      { cwd: ROOT, stdio: 'ignore', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0' } });
     console.log(`       built in ${mins(Date.now() - at)}\n`);
-  } catch {
+  } catch (e) {
     // Not fatal here on purpose: the build's own failure is what `qa` and `seo` are for, and
-    // stopping now would skip the ten steps that do not need dist/ at all.
-    console.log(`       BUILD FAILED after ${mins(Date.now() - at)} — the dist/ steps below judge whatever is on disk\n`);
+    // stopping now would skip the ten steps that do not need dist/ at all. It says WHY, because
+    // "BUILD FAILED" on its own was how a spawn error passed for a broken build.
+    console.log(`       BUILD FAILED after ${mins(Date.now() - at)} (${String(e?.message ?? e).split('\n')[0]})`);
+    console.log(`       the dist/ steps below judge whatever is on disk\n`);
   }
 }
 
