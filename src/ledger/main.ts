@@ -1089,9 +1089,13 @@ import { icon } from '../icons.ts';
         // so for the first minute of every run the words were "no estimate yet" -- a sentence whose
         // only content is that it has no content, on every bar on the page at once.
         const bits = [];
-        if (RUN_NOW.paused) bits.push('paused');
+        // Before the check itself can start, some checks rebuild what they judge. That is minutes
+        // of real work with nothing reported yet, and a bar sitting at 0 with no word beside it
+        // reads as stuck -- which is exactly how it was read, three times.
+        if (p.preparing) bits.push(`first: ${esc(String(p.preparing).replace(/^scripts\//, ''))}`);
+        else if (RUN_NOW.paused) bits.push('paused');
         else if (e) bits.push(`about ${fmtDur(e.left)} left`);
-        if (p.last) bits.push(esc(p.last));
+        if (!p.preparing && p.last) bits.push(esc(p.last));
         return bits.join(' · ');
       })()}</span>
       ${RUN_OK ? `<span class="pg__acts">${holdAndStop('rowrun', whole ? null : key)}</span>` : ''}

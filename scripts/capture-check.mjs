@@ -619,6 +619,8 @@ function stepsThisRun() {
 }
 /** The latest sub-step the check's own output has named, or null when it names none. */
 let liveStep = null, liveStepFrom = null;
+/** The preparation script running before the check, or null: see prepareFor(). */
+let preparing = null;
 function noteStep(line) {
   if (check !== 'exports') return;
   const m = /^\s+MISMATCH (\S+) (\S+)/.exec(line);
@@ -756,6 +758,8 @@ function writeProgress() {
       // what this run covers of the check's declared sub-steps, and the latest one its output named
       steps: stepsThisRun(),
       step: liveStep,
+      // what is happening before the check itself can start
+      preparing,
       stepFrom: liveStep ? liveStepFrom : null,
       updatedAt: now(),
     },
@@ -811,14 +815,35 @@ if (args.includes('--steps')) {
  * built gets it built, whoever asked for the check.
  */
 
+/*
+ * The preparation reports itself, because otherwise the board goes blind for five minutes.
+ *
+ * check-media judges the share images, so generate-media has to rebuild all 136 of them first.
+ * That happens BEFORE the check starts, so nothing had written a progress record yet: the page
+ * said nothing was running while the laptop was at 40% CPU with a fleet of browsers open, and it
+ * said it for five minutes, every time. Asked three separate times what had gone wrong.
+ *
+ * Nothing had. The board only knows what a result file tells it, and no file was being written.
+ * Now one is, from the moment the preparation starts, so "running" means running.
+ */
 async function prepareFor(key) {
   const argv = PREPARE[key];
   if (!argv) return 0;
   console.log(`first: ${argv[0]} (check-${key} reads what it makes)`);
-  return await new Promise((resolve) => {
-    const kid = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: ['ignore', 'inherit', 'inherit'] });
-    kid.on('close', (code) => resolve(code ?? 1));
-  });
+  preparing = argv[0];
+  // kept fresh on a timer: running.mjs checks the pid is still there, and a record that stops
+  // being rewritten is how a crashed run looks
+  let beat = null;
+  if (record) { writeProgress(); beat = setInterval(writeProgress, 2000); beat.unref?.(); }
+  try {
+    return await new Promise((resolve) => {
+      const kid = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: ['ignore', 'inherit', 'inherit'] });
+      kid.on('close', (code) => resolve(code ?? 1));
+    });
+  } finally {
+    if (beat) clearInterval(beat);
+    preparing = null;
+  }
 }
 const prep = await prepareFor(check);
 if (prep !== 0) {

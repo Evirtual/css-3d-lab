@@ -1040,9 +1040,10 @@ function icon(name) {
       <span class="pg__n">${esc(p.done)}/${esc(p.total ?? "?")}</span>
       <span class="pg__meta">${(() => {
 			const bits = [];
-			if (RUN_NOW.paused) bits.push("paused");
+			if (p.preparing) bits.push(`first: ${esc(String(p.preparing).replace(/^scripts\//, ""))}`);
+			else if (RUN_NOW.paused) bits.push("paused");
 			else if (e) bits.push(`about ${fmtDur(e.left)} left`);
-			if (p.last) bits.push(esc(p.last));
+			if (!p.preparing && p.last) bits.push(esc(p.last));
 			return bits.join(" · ");
 		})()}</span>
       ${RUN_OK ? `<span class="pg__acts">${holdAndStop("rowrun", whole ? null : key)}</span>` : ""}
