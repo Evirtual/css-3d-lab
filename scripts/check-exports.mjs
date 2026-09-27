@@ -109,6 +109,27 @@ const FIRM = 0.01;
 // side. Past this, ink the file has lost is too much of the picture to excuse, however thin it is.
 const HAIR = 0.05;
 const PIC_TOL = 6; // mean luminance difference (0-255) between screen and file, downscaled
+/*
+ * How much of a level shift counts as the picture being a different colour.
+ *
+ * PIC_TOL on its own could not tell two things apart, and called both of them colour:
+ *
+ *   a real cast          every pixel moves the same way   diff 7, cast -7
+ *   detail disagreeing   pixels move both ways, cancelling  diff 7, cast -0.5
+ *
+ * The second is what two drawings of one picture at different sizes do. The file is rendered
+ * at ceil(scale) device pixels -- five times the canvas for a 1600px export -- so ink a
+ * quarter of a canvas pixel wide resolves in one and not the other. crawl is made of
+ * radial-gradient stars about that size; shadowtext stacks 21 copies its own comment calls
+ * "about one screen pixel" apart on a card.
+ *
+ * Judged by eye on 2026-09-27: the file and the canvas show the same picture, the file
+ * sharper. So a large difference that cancels is a reading, not a mismatch -- the same
+ * treatment this check already gives a hairline edge two resolutions disagree about.
+ *
+ * A genuine cast still fails, which is the point of keeping a number here at all.
+ */
+const CAST_TOL = 2; // mean SIGNED luminance shift (0-255) before the file is a different colour
 const LIVE_MS = 1200; // a live take for the size matrix
 const MAKE_MS = 20 * 60_000; // how long to wait for one export to come back (see make())
 
@@ -355,9 +376,17 @@ window.__px = {
       return x.getImageData(0, 0, W, H).data;
     };
     const p = await small(a), q = await small(b);
-    let s = 0;
-    for (let i = 0; i < p.length; i += 4) s += Math.abs((p[i]*.299+p[i+1]*.587+p[i+2]*.114) - (q[i]*.299+q[i+1]*.587+q[i+2]*.114));
-    return s / (p.length / 4);
+    // Absolute AND signed, because they answer different questions. A real difference in
+    // colour moves both together: seven levels of darkening reads as diff 7, cast -7. Two
+    // drawings of the same picture at different sizes disagree locally and cancel: diff 7,
+    // cast -0.5. Only the absolute figure was kept, so the two were indistinguishable.
+    let s = 0, signed = 0;
+    for (let i = 0; i < p.length; i += 4) {
+      const a = p[i]*.299+p[i+1]*.587+p[i+2]*.114, b = q[i]*.299+q[i+1]*.587+q[i+2]*.114;
+      s += Math.abs(a - b); signed += b - a;
+    }
+    const n = p.length / 4;
+    return { diff: s / n, cast: signed / n };
   },
 };`;
 await guard.start();
@@ -539,7 +568,14 @@ function judgeAlign(a, { id, what, fault, indent }) {
    */
   const [r, g, b] = a.rgb.map((v) => (v >= 0 ? '+' : '') + v.toFixed(1));
   const cast = `file less canvas: R ${r}, G ${g}, B ${b}`;
-  if (a.diff > PIC_TOL) misses.push(`the picture differs from the canvas by ${a.diff.toFixed(1)} levels on average (${cast})${telling.length && !off.length ? ` — every tile fits within a pixel, so it is not shifted; and the cast is ${Math.max(...a.rgb.map(Math.abs)).toFixed(1)} against a difference of ${a.diff.toFixed(1)}, so it is not a colour shift either: the two drawings disagree about detail finer than a canvas pixel` : ''}`);
+  const biggestCast = Math.max(...a.rgb.map(Math.abs));
+  if (a.diff > PIC_TOL) {
+    if (biggestCast > CAST_TOL) {
+      misses.push(`the file is a different colour from the canvas: ${a.diff.toFixed(1)} levels on average (${cast})`);
+    } else {
+      look(id, 'picture', what, `the picture differs by ${a.diff.toFixed(1)} levels on average (${cast})`, `the differences cancel, so they are local${telling.length && !off.length ? ', and every tile fits within a pixel' : ''}: the file is drawn at several times the canvas and the two disagree about detail finer than a canvas pixel, not about colour`);
+    }
+  }
   if (off.length) misses.push(`${off.length} of ${telling.length} tiles fit best shifted: ${off.map((t) => `(${t.dx},${t.dy})px, fit ${t.best.toFixed(2)} there vs ${t.at0?.toFixed(2)} in place`).join('; ')} — the picture is offset, cropped or zoomed against the canvas`);
   say(`${indent}full canvas: ${text}`);
   if (!only.has('picture')) return;
@@ -756,7 +792,7 @@ async function checkImages(id) {
       const aspect = file.width / file.height;
       entry.files[size] = { caption: file.caption, note: file.note, width: file.width, height: file.height, drawn: file.drawn, took: file.took, box: m.box, like: m.like, head: file.head };
       const gap = boxGap(m.box, scr.box);
-      say(`    ${String(size).padEnd(4)} caption "${file.caption}" -> file ${file.width}×${file.height} (${aspect.toFixed(3)}), drawn at ${file.drawn?.width ? `${file.drawn.width}×${file.drawn.height}` : file.drawn?.error ?? "?"}, model ${boxText(m.box)}, edge gap ${pc(gap)}%, picture diff ${m.like.toFixed(1)}, ${file.took.toFixed(1)}s`);
+      say(`    ${String(size).padEnd(4)} caption "${file.caption}" -> file ${file.width}×${file.height} (${aspect.toFixed(3)}), drawn at ${file.drawn?.width ? `${file.drawn.width}×${file.drawn.height}` : file.drawn?.error ?? "?"}, model ${boxText(m.box)}, edge gap ${pc(gap)}%, picture diff ${m.like.diff.toFixed(1)}, ${file.took.toFixed(1)}s`);
       if (!said || said.width !== file.width || said.height !== file.height) miss(id, 'dims', `image ${shape} ${size}`, `caption says ${file.caption}, file is ${file.width}×${file.height}`, 'app');
       if (Math.max(file.width, file.height) !== size) miss(id, 'dims', `image ${shape} ${size}`, `long side is ${Math.max(file.width, file.height)}, asked for ${size}`, 'app');
       if (Math.abs(aspect / want - 1) > 2 / Math.min(file.width, file.height) + 0.001) miss(id, 'dims', `image ${shape} ${size}`, `file aspect ${aspect.toFixed(4)}, shape ${want.toFixed(4)}`, 'app');
@@ -768,7 +804,14 @@ async function checkImages(id) {
           if (hair.ok) look(id, 'picture', `image ${shape} ${size}`, what, hair.why);
           else miss(id, 'picture', `image ${shape} ${size}`, `${what}; ${hair.why}`, scr.moving > 0.002 ? 'model (still moving after the freeze — its script, or a transition started since — so screen and file are different moments)' : 'app');
         }
-        if (m.like > PIC_TOL) miss(id, 'picture', `image ${shape} ${size}`, `downscaled picture differs from the canvas by ${m.like.toFixed(1)} levels on average`, scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app');
+        if (m.like.diff > PIC_TOL) {
+          const how = `${m.like.diff.toFixed(1)} levels on average, mean shift ${m.like.cast >= 0 ? '+' : ''}${m.like.cast.toFixed(1)}`;
+          if (Math.abs(m.like.cast) > CAST_TOL) {
+            miss(id, 'picture', `image ${shape} ${size}`, `the file is a different colour from the canvas: ${how}`, scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app');
+          } else {
+            look(id, 'picture', `image ${shape} ${size}`, `downscaled picture differs by ${how}`, `the differences cancel, so they are local: the file is drawn at several times the canvas and the two disagree about detail finer than a canvas pixel, not about colour`);
+          }
+        }
         if (m.align) {
           entry.files[size].align = m.align;
           judgeAlign(m.align, { id, what: `image ${shape} ${size}`, fault: scr.moving > 0.002 ? 'model (still moving after the freeze: its script, or a transition started since)' : 'app', indent: '         ' });
@@ -1049,7 +1092,7 @@ async function checkVideos(id) {
       const crept = Math.max(0, ...boxes.map((b) => boxGap(boxes[0], b)));
       if (live && (worst.d > 0.5 || crept > 0.005)) {
         const after = await screen();
-        const moved = await lab.evaluate(([a, b, bg]) => __px.likeness(__px.fromB64(a), __px.fromB64(b), bg), [scr.png, after.png, scr.bg]);
+        const moved = await lab.evaluate(([a, b, bg]) => __px.likeness(__px.fromB64(a), __px.fromB64(b), bg).diff, [scr.png, after.png, scr.bg]);
         const what = `an untouched model changes by up to ${worst.d.toFixed(2)} a frame, and its box wanders ${pc(crept)}% of the canvas from the first frame`;
         if (scr.moving > 0.002 || moved > 0.5) look(id, 'drift', shape, what, `the model does not stand still while its animations are held (its own script or a timer): the canvas itself differs by ${moved.toFixed(2)} levels between the shot before the take and the one after it`);
         else miss(id, 'drift', shape, `${what}, while the canvas before and after the take differs by only ${moved.toFixed(2)} levels`, 'app');
