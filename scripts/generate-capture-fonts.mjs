@@ -22,10 +22,10 @@ import { join } from 'node:path';
 import { ROOT } from './model-sources.mjs';
 
 const FACES = [
-  { family: 'CaptureSans', weight: 400, file: 'inter-latin-400.woff2' },
-  { family: 'CaptureSans', weight: 700, file: 'inter-latin-700.woff2' },
-  { family: 'CaptureMono', weight: 400, file: 'jetbrains-mono-latin-400.woff2' },
-  { family: 'CaptureMono', weight: 600, file: 'jetbrains-mono-latin-600.woff2' },
+  { family: 'Inter', weight: 400, file: 'inter-latin-400.woff2' },
+  { family: 'Inter', weight: 700, file: 'inter-latin-700.woff2' },
+  { family: 'JetBrains Mono', weight: 400, file: 'jetbrains-mono-latin-400.woff2' },
+  { family: 'JetBrains Mono', weight: 600, file: 'jetbrains-mono-latin-600.woff2' },
 ];
 
 mkdirSync(join(ROOT, 'public', 'fonts'), { recursive: true });

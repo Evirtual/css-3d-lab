@@ -126,22 +126,27 @@ export function captureScene(stage: HTMLElement, animated = false): CapturedScen
       }
     } catch { /* a stylesheet from another origin cannot be read; a model's own always can */ }
   }
-  // Tag what the browser resolved as a monospace, so the two embedded families can be told apart
-  // without editing a single declaration. Read from the ORIGINAL nodes, which are still laid out.
-  const MONO = /ui-monospace|consolas|cascadia|jetbrains|menlo|monaco|courier|monospace/i;
-  const monoFrom = [root, ...root.querySelectorAll('*')];
-  const monoTo = [copy, ...copy.querySelectorAll('*')];
-  for (let i = 0; i < monoTo.length && i < monoFrom.length; i++) {
-    if (MONO.test(getComputedStyle(monoFrom[i] as Element).fontFamily)) (monoTo[i] as HTMLElement).setAttribute('data-cap-mono', '');
-  }
+  // Nothing tags a monospace any more. That existed to tell CaptureSans from CaptureMono when the
+  // families were being overridden; the faces travel under their own names now, so an element that
+  // asked for `'JetBrains Mono', ui-monospace, …` -- which is what var(--mono) resolves to -- finds
+  // it in the scene without anybody labelling it.
   for (const el of copy.querySelectorAll('script,style,link,meta,base,iframe,object,embed')) el.remove();
   copy.style.cssText += `;position:relative;inset:auto;margin:0;width:${width}px;height:${height}px;min-height:0;box-sizing:border-box;border:0;border-radius:0;background:transparent;transform:none;translate:none;scale:none;zoom:1;overflow:hidden`;
   // The stage's decorative pseudo-layers are painted by the export compositor, not twice.
   rules.push('[data-capture-id="0"]::before,[data-capture-id="0"]::after{display:none!important}');
-  // Everything draws with a font that travelled here. !important beats the inline shorthand, so the
-  // serialized declarations are left exactly as the browser resolved them.
-  rules.push('*,*::before,*::after{font-family:"CaptureSans",ui-sans-serif,sans-serif!important}');
-  rules.push('[data-cap-mono],[data-cap-mono]::before,[data-cap-mono]::after{font-family:"CaptureMono",ui-monospace,monospace!important}');
+  /*
+   * The faces travel; the families do not change.
+   *
+   * Every element here already carries its own font-family, inlined from what the browser resolved
+   * on the page -- usually `Inter, system-ui, sans-serif`, because that is what the model document
+   * sets. The faces embedded above are Inter and JetBrains Mono under those names, so those stacks
+   * resolve to the very files the page drew with, on a Linux worker that has neither Segoe UI nor
+   * Consolas.
+   *
+   * It used to embed them as CaptureSans and CaptureMono and then force those onto every element
+   * with !important, which threw away what each element had asked for. That is why eight text
+   * models' files did not match their canvas: the file was drawn in a family the page never used.
+   */
   const body = root.tagName === 'BODY' ? copy.outerHTML : `<body style="margin:0">${copy.outerHTML}</body>`;
   return { width, height, animations, html: `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; font-src data:"><style>${captureFontCss()}${escapeStyle(rules.join('\n'))}</style></head>${body}</html>` };
 }
