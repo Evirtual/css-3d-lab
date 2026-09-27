@@ -71,6 +71,30 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
   };
   const walk = (dir) => { const out = []; const go = (d) => { let es = []; try { es = readdirSync(d, { withFileTypes: true }); } catch { return; } for (const e of es) { const f = join(d, e.name); e.isDirectory() ? go(f) : out.push(f); } }; go(dir); return out; };
 
+  /*
+   * The steps that leave no per-model record now leave a record of the RUN.
+   *
+   * These answered "not evaluated: tsc is slow", "npm run build writes dist/", "qa needs a fresh
+   * build" -- all true of running the command, and none of it about the run that just finished.
+   * verify writes docs/checks/gate.json when it ends: what ran, how it ended, when, at which
+   * commit. Reading it costs nothing and runs nothing.
+   *
+   * The record is only as good as its commit: a gate run against other code proves nothing about
+   * this one, so a stale record fails rather than passes.
+   */
+  const gate = (() => {
+    try { return JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), 'utf8')); } catch { return null; }
+  })();
+  const fromGate = (pick, what) => () => {
+    if (!gate) return N(`docs/checks/gate.json is not there: no gate run has recorded itself yet (npm run verify writes it)`);
+    if (gate.commit !== head) return F(`the last recorded gate run was at ${String(gate.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it proves nothing about this code`);
+    const r = pick(gate);
+    if (r == null) return N(`the recorded gate run did not include ${what}`);
+    return r.ok
+      ? T(`from docs/checks/gate.json: ${what} ran at ${String(gate.commit).slice(0, 7)} and passed, ${gate.finishedAt?.slice(0, 16)?.replace('T', ' ')}`)
+      : F(`from docs/checks/gate.json: ${what} ran at ${String(gate.commit).slice(0, 7)} and did not pass`);
+  };
+  const step = (key) => (g) => (g.steps ?? []).find((s) => s.key === key) ?? null;
   const PROOFS = [
     [/^The working tree is clean/, () => atRiskList.length ? F(`${atRiskList.length} path(s) in git status, e.g. ${atRiskList.slice(0, 3).map((x) => x.path).join(', ')}`) : T('git status prints nothing')],
     [/^The main index matches HEAD/, KEYS.index, () => exits0('diff', '--cached', '--quiet', 'HEAD') ? T('git diff --cached HEAD is empty') : F(`the main index differs from HEAD in ${git('diff', '--cached', '--name-only', 'HEAD').trim().split('\n').filter(Boolean).length} path(s)`)],
@@ -211,17 +235,11 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       return ran.length === n ? T(said) : F(said);
     }],
     [/^Recordings and snapshots match the dialog's canvas at every setting/, () => N('check-exports over its sample takes many minutes of browser work')],
-    [/^Snapshots match the screen/, () => N('npm run compare captures in a browser: slow')],
-    [/^Every standalone snippet runs without a script error/, () => N('snippet-check runs every snippet in a browser, after npm run generate: slow and writes files')],
-    [/^Editing a model never remounts or moves its frame/, () => N('preview-check drives a browser: slow')],
     [/^The old implementation is gone/, () => {
       let files = 0; try { files = readdirSync(join(ROOT, 'src/styles/models')).length; } catch {}
       const uses = ((read('src/styles/main.scss') ?? '').match(/@use 'models\//g) ?? []).length;
       return !files && !uses ? T('src/styles/models is empty and main.scss uses none of it') : F(`src/styles/models holds ${files} file(s); main.scss has ${uses} @use 'models/ line(s) (the item allows keeping it only if VIEW-CONTRACT.md and the README say so, which is not checked here)`);
     }],
-    [/^TypeScript is clean/, () => N('tsc over the project is slow')],
-    [/^The build is clean/, () => N('npm run build is slow and writes dist/')],
-    [/^QA on the built site finds nothing/, () => N('npm run qa needs a fresh build: slow')],
     /*
      * Both of these said "not evaluated: it is slow and writes files" -- true of RUNNING them, and
      * beside the point. The run already did it, and what it left behind is cheap to read. An item
@@ -278,6 +296,14 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
         ? F(`${off.length} model(s) name a family the captured scene does not carry, so the renderer picks its own: ${off.slice(0, 4).join(', ')}`)
         : T(`every model's text names a family the scene carries, over all ${n} — the precondition for the two renderers drawing the same picture. That they do was measured on 2026-09-27 and is recorded in the item; it needs the Worker's daily budget and is not re-run here`);
     }],
+    // tsc is not its own step: `npm run build` is generate && tsc && vite build, so one exit code
+    // answers for both lines, and both say so rather than pretending to be separate evidence.
+    [/^TypeScript is clean/, fromGate((g) => (g.build?.ran ? g.build : null), 'the build (which runs tsc)')],
+    [/^The build is clean/, fromGate((g) => (g.build?.ran ? g.build : null), 'npm run build')],
+    [/^QA on the built site finds nothing/, fromGate(step('qa'), 'qa')],
+    [/^Every standalone snippet runs without a script error/, fromGate(step('snippets'), 'snippet-check over every model')],
+    [/^Editing a model never remounts/, fromGate(step('preview'), 'preview-check')],
+    [/^Snapshots match the screen/, fromGate(step('compare'), 'compare-capture')],
     [/^The sitemap dates are regenerated/, () => {
       const path = 'src/sitemap-dates.json';
       let dates;

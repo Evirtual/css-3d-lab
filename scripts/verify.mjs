@@ -43,7 +43,7 @@
  */
 import { spawn, execFileSync } from 'node:child_process';
 import { freemem } from 'node:os';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY, RUN_ORDER, PREPARE } from './checks-registry.mjs';
@@ -75,6 +75,9 @@ const ORDER = (() => {
   // difference that only exists between machines. That gap shipped a card with its numbers hanging
   // off the edge on 2026-09-25, and seven chart models on 2026-09-27, under green ticks both times.
   keys.splice(keys.indexOf('exports') + 1, 0, 'parity');
+  // The three that were never in the gate: real scripts, each proving a release-checklist line, and
+  // none of them run by anything, so what they proved went stale the day after somebody ran it.
+  keys.splice(keys.indexOf('qa') + 1, 0, 'snippets', 'preview', 'compare');
   return keys;
 })();
 /**
@@ -82,7 +85,7 @@ const ORDER = (() => {
  * It still runs -- it catches page errors on the BUILT site, which nothing else looks at -- and its
  * line says plainly that it left no record, rather than borrowing another check's green.
  */
-const NO_RECORD = new Set(['qa', 'parity']);
+const NO_RECORD = new Set(['qa', 'parity', 'snippets', 'preview', 'compare']);
 /**
  * What the steps outside the registry are, in words, for the line this prints when each starts.
  * That sentence used to be one hardcoded string -- qa's -- so the moment a second such step
@@ -91,6 +94,9 @@ const NO_RECORD = new Set(['qa', 'parity']);
 const OUTSIDE = {
   qa: 'page errors on the built site (no per-model record)',
   parity: 'the same scene drawn by both renderers, here and on the Worker (no per-model record)',
+  snippets: 'every standalone snippet runs without a script error (no per-model record)',
+  preview: 'editing a model never remounts or moves its frame (no per-model record)',
+  compare: 'the snapshots match the screen (no per-model record)',
 };
 /** What `--fast` is: the checks that answer in a couple of minutes over all 135. */
 const FAST = new Set(['boxsizing', 'contrast', 'access', 'media', 'qa']);
@@ -176,7 +182,12 @@ function prepare(key) {
 
 function spawnStep(key) {
   return new Promise((resolve) => {
+    // snippet-check wants the ids spelled out; the other two take none or an optional filter.
+    const everyId = () => JSON.parse(readFileSync(join(ROOT, 'src', 'generated', 'model-ids.json'), 'utf8')).map((d) => d.id);
     const argv = key === 'parity' ? ['scripts/check-worker-parity.mjs', ...models]
+      : key === 'snippets' ? ['scripts/snippet-check.mjs', ...(models.length ? models : everyId())]
+      : key === 'preview' ? ['scripts/preview-check.mjs']
+      : key === 'compare' ? ['scripts/compare-capture.mjs', ...models]
       : NO_RECORD.has(key) ? ['scripts/qa.mjs', ...models]
       : ['scripts/capture-check.mjs', key, ...argsFor(key), ...models];
     // The step is told who is running it, so the board can offer a Stop that stops the RUN
@@ -235,6 +246,7 @@ console.log(`verify: ${run.length} check${run.length === 1 ? '' : 's'}, one at a
 console.log(`each one records where the ledger reads it, so the page shows it running and keeps the result`);
 console.log(`${mb() ?? '?'} MB free at the start${noBuild && willUseDist.length ? ` (--no-build: ${willUseDist.join(', ')} read the dist/ already there)` : ''}\n`);
 
+let builtOk = null;
 if (willUseDist.length && !noBuild) {
   console.log(`first: npm run build — ${willUseDist.join(', ')} judge dist/, not the dev server`);
   const at = Date.now();
@@ -245,8 +257,10 @@ if (willUseDist.length && !noBuild) {
     // was written on.
     execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'],
       { cwd: ROOT, stdio: 'ignore', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0' } });
+    builtOk = true;
     console.log(`       built in ${mins(Date.now() - at)}\n`);
   } catch (e) {
+    builtOk = false;
     // Not fatal here on purpose: the build's own failure is what `qa` and `seo` are for, and
     // stopping now would skip the ten steps that do not need dist/ at all. It says WHY, because
     // "BUILD FAILED" on its own was how a spawn error passed for a broken build.
@@ -290,4 +304,34 @@ console.log(held
   ? `GATE HOLDS: every check held over ${scope}, and every result that has a place on the board is on it.`
   : 'GATE FAILS: see the lines marked FAILS above; the board holds the detail per model.');
 console.log('Ready to ship means both: the board is green, and nothing on it is old.');
+
+/*
+ * WHAT THE GATE DID, WRITTEN DOWN.
+ *
+ * Every step's result was printed and thrown away. The checks that record per model are read back
+ * by the ledger; the ones that do not -- the build, qa, the three scripts that only ever ran by
+ * hand -- left nothing, so their release-checklist lines answered "not evaluated: it is slow",
+ * which is true of RUNNING them and says nothing about the run that just finished. The work
+ * happened. Nobody wrote it down.
+ *
+ * Small on purpose: what ran, whether it passed, when, and at which commit. It is evidence of this
+ * run, not a second copy of the board.
+ */
+try {
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  writeFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), `${JSON.stringify({
+    note: 'Written by scripts/verify.mjs. What this run ran and how each step ended. Not a second copy of the board.',
+    finishedAt: new Date().toISOString(),
+    commit,
+    scope: models.length ? models : 'every model',
+    held,
+    // the build is its own thing: it runs before the steps that judge dist/, and `npm run build`
+    // is generate && tsc && vite build, so one exit code answers for all three
+    build: { ran: builtOk !== null, ok: builtOk === true, cmd: 'npm run build (generate && tsc && vite build)' },
+    steps: results.map((r) => ({ key: r.key, ok: r.code === 0 && !(r.tally && r.tally.fail > 0), code: r.code, took: r.took })),
+  }, null, 2)}\n`);
+} catch (e) {
+  // A gate that cannot write its own record has still run: say so and do not change the verdict.
+  console.log(`(could not write docs/checks/gate.json: ${String(e?.message ?? e).split('\n')[0]})`);
+}
 process.exit(held ? 0 : 1);
