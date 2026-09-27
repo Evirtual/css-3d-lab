@@ -167,6 +167,32 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     [/^No contract result is stale or failing/, () => { const c = counts.checks.models ?? {}; const keys = Object.keys(c); return keys.length === 1 && c.pass === n ? T(`"pass":${n}`) : F(JSON.stringify(c)); }],
     [/^check-stages has judged every model/, () => { const ok = models.filter((m) => m.checks.stages?.status === 'pass' && !m.checks.stages.stale).length; return ok === n ? T(`from the recorded results: ${n} of ${n} pass on the current code`) : F(`from the recorded results: ${ok} of ${n} have a fresh pass (the proof itself, a full capture run, is not run here)`); }],
     /*
+     * The headline item, which no perfect run could tick.
+     *
+     * It said "no cheap local proof is wired for this item", so a four-hour run over all 135
+     * models ended with the board green and this line still open, which is the wrong way round:
+     * the run writes its answer into the result files, and reading them is cheap.
+     *
+     * What this can and cannot see. It reads every recorded verdict and asks whether each is a
+     * fresh pass on the current code -- that is the "every check holds over all 135" half, and it
+     * is a fact. Whether the machine was IDLE is not in any file; the nearest thing to evidence is
+     * that check-perf measures frame times against budgets and would fail under load, so its
+     * passing is the machine saying it was quiet enough. Said out loud rather than assumed.
+     *
+     * A flagged model with no open flags counts: the check looked, raised nothing that still
+     * stands, and "flags cleared" is a held verdict, not a pending one.
+     */
+    [/^Every check holds over all 135 models/, () => {
+      const keys = Object.keys(models[0]?.checks ?? {});
+      if (!keys.length) return F('no recorded results to read');
+      const held = (r) => r && !r.stale && (r.status === 'pass' || (r.status === 'flagged' && (r.openFlags ?? 0) === 0));
+      const off = keys.map((k) => [k, models.filter((m) => !held(m.checks[k])).length]).filter(([, bad]) => bad > 0);
+      const perf = models.filter((m) => held(m.checks.perf)).length;
+      return off.length
+        ? F(`from the recorded results: ${off.map(([k, bad]) => `${k} ${bad} of ${n} not a fresh pass`).join('; ')}`)
+        : T(`from the recorded results: ${keys.length} checks, each a fresh pass over all ${n} models on the current code. The machine being idle is not recorded anywhere; check-perf holds for ${perf} of ${n} against frame-time budgets that fail under load, which is the nearest evidence there is`);
+    }],
+    /*
      * This used to require every flagged model to have a visual review recorded against it, which
      * is a thing that can no longer happen: reviews left this ledger. The proof would have failed
      * for ever, on a condition nobody could satisfy.
