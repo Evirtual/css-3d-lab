@@ -5513,6 +5513,23 @@ header .sitechk {
    Inside the status line it had to share a wrapping row of small things with the counts, so the
    bar, its label, its count and its two buttons pushed that line apart and the header lost its
    shape. Out here it has the whole width and nothing has to move to make room. */
+/* A bar plus its "what it is covering" disclosure. .pg is a nowrap flex row, so the panel cannot
+   be a child of it: this wraps both and stacks them. */
+.pgbox {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.pgbox__ss {
+  display: block;
+  margin-top: 7px;
+}
+
+.pgbox .substeps {
+  margin-top: 8px;
+}
+
 .siteruns {
   margin: 16px 0 14px;
   display: grid;

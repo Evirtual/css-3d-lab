@@ -169,6 +169,9 @@ import { icon } from '../icons.ts';
     // aria-expanded on hover, so the attribute is not this disclosure's alone
     ssOpen[id] = !ssIsOpen(id);
     ssSave();
+    // Redraw now rather than on the next poll: three seconds between a click and the panel opening
+    // reads as a button that does not work.
+    redrawControls();
     document.querySelector(`[data-ss="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
   });
 
@@ -1050,7 +1053,23 @@ import { icon } from '../icons.ts';
     // Only a run this board started can be stopped from here: there is no pid for one
     // somebody began in a terminal, and a Stop that does nothing is worse than no Stop.
     const mine = runOf(key)?.mine ?? false;
-    return `<span class="pg${RUN_NOW.paused && mine ? ' is-paused' : ''}">
+    /*
+     * "What it is covering", back where it was.
+     *
+     * ssPanel and ssToggle survived the rewrite of 2026-09-26 that moved every run into the table;
+     * their two callers did not. So the panel, its click handler, the open/closed state kept per
+     * visitor and the CSS for all of it sat in the file with nothing rendering them, and a bar
+     * showed a percentage and no way to ask what the percentage was of. Noticed from the outside:
+     * "on every progress bar it does give the what is happening dropdown".
+     *
+     * It is drawn for site checks too -- ssPanel already says "no finding" rather than "pass" for
+     * them -- which is what App and SEO were missing.
+     */
+    const ssId = `run:${key}`;
+    const nSteps = (c?.steps ?? []).length;
+    const ssShown = Boolean(c) && nSteps > 0;
+    const ssOpened = ssShown && ssIsOpen(ssId);
+    const bar = `<span class="pg${RUN_NOW.paused && mine ? ' is-paused' : ''}">
       <span class="pg__name" data-tip data-tiptext="${esc(`${title}, over ${over}.`)}">${esc(short)}</span>
       <span class="pg__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? '?'}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><i style="width:${pct}%"></i></span>
       <span class="pg__n">${esc(p.done)}/${esc(p.total ?? '?')}</span>
@@ -1065,6 +1084,11 @@ import { icon } from '../icons.ts';
         return bits.join(' · ');
       })()}</span>
       ${mine && RUN_OK ? `<span class="pg__acts">${holdAndStop('rowrun')}</span>` : ''}</span>`;
+    if (!ssShown) return bar;
+    return `<span class="pgbox">${bar}`
+      + `<span class="pgbox__ss">${ssToggle(ssId, ssOpened ? 'hide what it is covering' : `what it is covering (${nSteps})`, ssOpened)}</span>`
+      + (ssOpened ? ssPanel(c, ssId, p) : '')
+      + `</span>`;
   }
 
   /**

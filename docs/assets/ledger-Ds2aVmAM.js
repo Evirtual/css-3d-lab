@@ -223,10 +223,84 @@ function icon(name) {
 	const ssDefault = (id) => id.startsWith("run:");
 	/** Open, if this visitor has said so before; otherwise the block's own default. */
 	const ssIsOpen = (id, dflt = ssDefault(id)) => typeof ssOpen?.[id] === "boolean" ? ssOpen[id] : dflt;
+	const SS_STATES = [
+		[
+			"pass",
+			"pass",
+			"var(--k-pass)"
+		],
+		[
+			"fail",
+			"fail",
+			"var(--k-fail)"
+		],
+		[
+			"flag",
+			"flagged",
+			"var(--k-flag)"
+		],
+		[
+			"listed",
+			"listed, not failed",
+			"var(--st-conv)"
+		],
+		[
+			"skip",
+			"skipped",
+			"var(--k-never)"
+		],
+		[
+			"notRecorded",
+			"not recorded",
+			"var(--k-broke)"
+		]
+	];
 	const PLAY = icon("play");
 	const PAUSE = icon("pause");
 	const STOP = icon("stop");
 	const ssChevron = "<svg viewBox=\"0 0 12 12\" width=\"9\" height=\"9\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4.5 2 8.5 6l-4 4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>";
+	const ssToggle = (id, label, open) => `<button type="button" class="sstog" data-ss="${esc(id)}" aria-expanded="${open}" aria-controls="ss-${esc(id)}">${ssChevron}${esc(label)}</button>`;
+	/**
+	* The open panel. `c` is a checkList entry; `run` its progress record when one is going, whose
+	* `steps` say what THIS run covers and whose `step` is the latest part its output named.
+	* The one panel there is: "Running now" and the check bars both draw this, off the same
+	* checkList entry and the same `running` record, so a check reads the same while it runs and
+	* after. They differ in one thing only: a run's panel starts open, a bar's starts closed.
+	*/
+	function ssPanel(c, id, run) {
+		const steps = c.steps ?? [];
+		const file = `docs/checks/${c.key}.json`;
+		const box = (inner) => `<div class="substeps" id="ss-${esc(id)}">${inner}</div>`;
+		if (!steps.length) return box(`<p><b>Not listed yet.</b> ${esc(c.title)} does not say what it covers in <code>scripts/checks-registry.mjs</code>, so there is nothing to show here.</p>`);
+		const t = c.stepTotals;
+		const passWord = c.scope === "site" ? "no finding" : "pass";
+		let head = "";
+		if (run) {
+			const named = run.step ? steps.find((s) => s.key === run.step) : null;
+			head = named ? `<p><span class="ss__now${run.alive === false ? " ss__now--gone" : ""}">${run.alive === false ? "Stopped" : "Running now"}</span> <b>${esc(named.label)}</b> <span class="muted">· ${esc(run.stepFrom ?? "from the check's own output")}</span></p>` : `<p><span class="ss__now${run.alive === false ? " ss__now--gone" : ""}">${run.alive === false ? "Stopped" : "Running now"}</span> ${run.last ? `${c.unit === "pages" ? "page" : "model"} <code>${esc(run.last)}</code>. ` : ""}This check does not say which part it is on while it runs, so the list below is what the run covers, not where it has got to.</p>`;
+		}
+		if (!t) head += `<p><b>No sub-step results recorded yet.</b> <code>${esc(file)}</code> was written before the checks read their own parts back${c.captured ? "" : ", and this check has never been captured"}. The list below is what it covers; the counts appear once it runs again (or after <code>npm run capture -- ${esc(c.key)} --steps</code>, which re-reads the file without running the check).</p>`;
+		const rows = steps.map((s) => {
+			const mine = t?.totals?.[s.key];
+			const inRun = run?.steps?.[s.key];
+			const now = Boolean(run && run.step === s.key);
+			const bits = [];
+			if (s.implemented === false) bits.push("<span class=\"ss__none\">not implemented yet</span>");
+			else if (mine) {
+				if (!SS_STATES.some(([k]) => mine[k] > 0)) bits.push(`<span class="ss__none">not recorded yet</span>`);
+				else bits.push(`<span class="ss__counts">${SS_STATES.filter(([k]) => mine[k] > 0).map(([k, label, col]) => `<span class="ss__c"><i style="background:${col}"></i>${esc(k === "pass" ? passWord : label)} <b>${mine[k]}</b></span>`).join("")}</span>`);
+			}
+			const why = [];
+			for (const [reason, n] of Object.entries(mine?.skipped ?? {}).sort((a, b) => b[1] - a[1]).slice(0, 3)) why.push(`<span class="ss__why"><b>${n} skipped:</b> ${esc(reason)}</span>`);
+			if (inRun && inRun.in === false) why.push(`<span class="ss__why"><b>left out of this run:</b> ${esc(inRun.why ?? "the arguments it was given do not make it")}</span>`);
+			else if (inRun) why.push("<span class=\"ss__why\">in this run</span>");
+			return `<li class="ss${now ? " is-now" : ""}"><div class="ss__head"><span class="ss__name">${esc(s.label)}</span>${bits.join("")}${now ? "<span class=\"ss__now\">on this now</span>" : ""}</div>
+        <span class="ss__proves">${esc(s.proves ?? "")}</span>${why.length ? `<span class="ss__counts">${why.join("")}</span>` : ""}</li>`;
+		}).join("");
+		const loose = Object.entries(t?.unattributed ?? {});
+		const foot = t ? `<footer>Over the <b>${t.entries}</b> ${c.unit === "pages" ? "page" : "model"} result${t.entries === 1 ? "" : "s"} recorded in <code>${esc(file)}</code> — every result the file holds, not only the ${esc(c.unit === "pages" ? "pages" : "models")} the bar above counts. Read from each result's own lines; a part no line speaks to is counted “not recorded”, never as a pass.${loose.length ? ` ${loose.reduce((n, x) => n + x[1], 0)} line(s) could not be placed under a part and are counted under none of them.` : ""}${c.scope === "site" ? " A rule’s “no finding” count is pages the run reported nothing under it — not proof the rule applies to each of them." : ""}</footer>` : "";
+		return box(`${head}<ol>${rows}</ol>${foot}`);
+	}
 	/** Clicking a disclosure remembers the choice and redraws the block it belongs to. */
 	document.addEventListener("click", (e) => {
 		const b = e.target.closest?.("[data-ss]");
@@ -235,6 +309,7 @@ function icon(name) {
 		const id = b.dataset.ss;
 		ssOpen[id] = !ssIsOpen(id);
 		ssSave();
+		redrawControls();
 		document.querySelector(`[data-ss="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
 	});
 	/** How many table columns there are, for a row that spans them all. */
@@ -956,7 +1031,11 @@ function icon(name) {
 		const pct = p.total ? Math.min(100, 100 * p.done / p.total) : 0;
 		const e = etaOf(p);
 		const mine = runOf(key)?.mine ?? false;
-		return `<span class="pg${RUN_NOW.paused && mine ? " is-paused" : ""}">
+		const ssId = `run:${key}`;
+		const nSteps = (c?.steps ?? []).length;
+		const ssShown = Boolean(c) && nSteps > 0;
+		const ssOpened = ssShown && ssIsOpen(ssId);
+		const bar = `<span class="pg${RUN_NOW.paused && mine ? " is-paused" : ""}">
       <span class="pg__name" data-tip data-tiptext="${esc(`${title}, over ${over}.`)}">${esc(short)}</span>
       <span class="pg__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? "?"}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><i style="width:${pct}%"></i></span>
       <span class="pg__n">${esc(p.done)}/${esc(p.total ?? "?")}</span>
@@ -968,6 +1047,8 @@ function icon(name) {
 			return bits.join(" · ");
 		})()}</span>
       ${mine && RUN_OK ? `<span class="pg__acts">${holdAndStop("rowrun")}</span>` : ""}</span>`;
+		if (!ssShown) return bar;
+		return `<span class="pgbox">${bar}<span class="pgbox__ss">${ssToggle(ssId, ssOpened ? "hide what it is covering" : `what it is covering (${nSteps})`, ssOpened)}</span>` + (ssOpened ? ssPanel(c, ssId, p) : "") + `</span>`;
 	}
 	/**
 	* Notices: things that happened and are worth one line, not a panel.
