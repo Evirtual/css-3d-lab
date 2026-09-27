@@ -991,6 +991,21 @@ async function checkVideos(id) {
     };
   });
   say(`  video tab: ${animations} animations; own loop ${env.loop}s (${env.loopChip ? 'offered' : 'not offered'}); WebM clear chip ${env.clearChip ? 'enabled' : 'disabled'}; VP9+alpha encodable here: ${env.vp9alpha}; H.264 the app asks for, and encodable here: ${Object.entries(env.h264).map(([k, v]) => `${k} ${v}`).join(', ')}; 4K chip ${env.fourK ? 'offered' : 'not offered'}${env.off.length ? `; sizes the dialog shows disabled, so no file is asked for: ${env.off.map((o) => `${o.quality}p ("${o.why}")`).join(', ')}` : ''}`);
+  /*
+   * The 4K chip was READ and never judged.
+   *
+   * "4K is not offered at all while the render service cannot draw it" was a release-checklist
+   * line, verified by hand on 2026-09-23 and watched by nothing since: this printed whether the
+   * chip was there and moved on, so a chip coming back would have gone out under a green column.
+   * It is a fact this check already has in its hand; holding it to it costs nothing.
+   *
+   * The condition is not "never 4K" -- it is "not while the machine drawing it cannot". If the
+   * renderer can encode 2160, offering it is right; the check follows h264, not a fixed answer.
+   */
+  if (only.has('formats') || only.has('dims')) {
+    const can4k = Boolean(env.h264?.['2160x3840'] === 'yes' || env.h264?.['3840x2160'] === 'yes');
+    if (env.fourK && !can4k) miss(id, 'dims', 'video 4K', 'the dialog offers a 4K chip and this renderer cannot encode 2160: a file asked for here does not come back', 'app');
+  }
   const row = { id, kind: 'video', env, shapes: {} };
   results.push(row);
 

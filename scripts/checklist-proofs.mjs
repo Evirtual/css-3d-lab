@@ -304,6 +304,20 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     [/^Every standalone snippet runs without a script error/, fromGate(step('snippets'), 'snippet-check over every model')],
     [/^Editing a model never remounts/, fromGate(step('preview'), 'preview-check')],
     [/^Snapshots match the screen/, fromGate(step('compare'), 'compare-capture')],
+    /*
+     * Nothing watched this one. Now check-exports does, so its holding is the answer.
+     *
+     * The chip was read and printed on every model and held to nothing, so the line was verified by
+     * hand on 2026-09-23 and true only of that day. From rule v9 the check FAILS when the dialog
+     * offers 2160 and the renderer cannot encode it -- so a fresh export pass over every model is
+     * the condition holding, and it is re-earned on every run rather than remembered.
+     */
+    [/^4K is not offered at all/, () => {
+      const ok = models.filter((m) => m.checks.exports?.status === 'pass' && !m.checks.exports.stale).length;
+      return ok === n
+        ? T(`from the recorded results: check-exports holds for ${n} of ${n} models on the current code, and from rule v9 it fails a model whose dialog offers 4K while the renderer cannot encode 2160`)
+        : F(`from the recorded results: ${ok} of ${n} have a fresh export pass, so the 4K condition is not proven on the current code`);
+    }],
     [/^The sitemap dates are regenerated/, () => {
       const path = 'src/sitemap-dates.json';
       let dates;
