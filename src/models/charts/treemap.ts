@@ -187,7 +187,12 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
   border: var(--edge);
   /* over the chart's own dark, not see-through: on the light stage the roof went pale under its
      light words */
-  background: color-mix(in srgb, var(--c) 80%, #0b0d18);
+  /* 72%, not 80%: the labels are #eceefb and the smallest are 8.1px, so they need 4.5:1. At 80%
+     the darkest tile gave exactly 4.50 -- the minimum, with nothing spare -- and changing the
+     family to Inter took it to 4.43, because the labels' text-shadow is what darkens the pixels
+     behind them and a lighter stroke lays down less of it. 72% gives 5.13 on that tile, which a
+     font can move without breaking. */
+  background: color-mix(in srgb, var(--c) 72%, #0b0d18);
   box-shadow:
     inset 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--c) 30%, transparent),
     0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 22%, transparent);

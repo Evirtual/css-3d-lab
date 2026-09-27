@@ -212,9 +212,39 @@ function tally(key) {
   return out;
 }
 
+/**
+ * The steps that judge `dist/` rather than the dev server, and the build that has to come first.
+ *
+ * --no-build has always been documented as "qa on the dist/ already there, not a fresh build",
+ * which says the default is a fresh build. It was not: the flag was read once, used to change a
+ * printed sentence, and nothing ever ran `npm run build`. So these four judged whatever build
+ * happened to be on disk, at whatever age.
+ *
+ * On 2026-09-27 that failed all seven chart models on the share check -- correctly, and for a
+ * reason that had nothing to do with them: "the built page runs different model code from
+ * src/models now: dist/ is older than the model". The models had been edited forty minutes
+ * earlier. check-media was right, verify was the one making a claim it had not earned.
+ */
+const NEEDS_DIST = new Set(['media', 'qa', 'app', 'seo']);
+const willUseDist = run.filter((k) => NEEDS_DIST.has(k));
+
 console.log(`verify: ${run.length} check${run.length === 1 ? '' : 's'}, one at a time, ${models.length ? `${models.length} model(s)` : 'every model'}`);
 console.log(`each one records where the ledger reads it, so the page shows it running and keeps the result`);
-console.log(`${mb() ?? '?'} MB free at the start${noBuild ? ' (--no-build: qa reads the dist/ already there)' : ''}\n`);
+console.log(`${mb() ?? '?'} MB free at the start${noBuild && willUseDist.length ? ` (--no-build: ${willUseDist.join(', ')} read the dist/ already there)` : ''}\n`);
+
+if (willUseDist.length && !noBuild) {
+  console.log(`first: npm run build — ${willUseDist.join(', ')} judge dist/, not the dev server`);
+  const at = Date.now();
+  try {
+    execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'],
+      { cwd: ROOT, stdio: 'ignore', env: { ...process.env, FORCE_COLOR: '0' } });
+    console.log(`       built in ${mins(Date.now() - at)}\n`);
+  } catch {
+    // Not fatal here on purpose: the build's own failure is what `qa` and `seo` are for, and
+    // stopping now would skip the ten steps that do not need dist/ at all.
+    console.log(`       BUILD FAILED after ${mins(Date.now() - at)} — the dist/ steps below judge whatever is on disk\n`);
+  }
+}
 
 const began = Date.now();
 const results = [];

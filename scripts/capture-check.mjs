@@ -727,6 +727,19 @@ function writeProgress() {
   const models = { ...(o.models ?? {}) };
   const done = reportedNow();
   for (const [id, r] of done) models[id] = entry({ ...r, id }, printsNow);
+  /*
+   * The model under way, stated rather than inferred.
+   *
+   * A check prints a model's name when it STARTS on it, and that line puts the id into `results`
+   * as 'unreported'. So the started ids that have not reported a verdict are the ones in flight.
+   *
+   * The board used to work this out from `last`, which already named the model being worked on,
+   * and then took the NEXT one after it -- so the spinner sat one row further down than the truth
+   * and could never land on the first model at all. Over a fast check that is wrong for a moment;
+   * over exports, at half a minute a model, it is wrong on screen the whole time.
+   */
+  const reported = new Set(done.map(([id]) => id));
+  const doing = Object.keys(results).filter((id) => !reported.has(id)).at(-1) ?? null;
   const started = Object.keys(results).length;
   writeOut({
     check,
@@ -739,6 +752,7 @@ function writeProgress() {
       counts: check === 'stages' ? 'models started (check-stages gives its verdicts only at the end)' : 'models reported',
       ...expected,
       last: current ?? done.at(-1)?.[0] ?? null,
+      doing,
       // what this run covers of the check's declared sub-steps, and the latest one its output named
       steps: stepsThisRun(),
       step: liveStep,

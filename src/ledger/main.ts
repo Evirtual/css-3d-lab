@@ -249,6 +249,11 @@ import { icon } from '../icons.ts';
      * is that until a model reports, the mark in its cell is the PREVIOUS verdict: true a minute
      * ago, about to be replaced, and otherwise drawn exactly like one just confirmed.
      */
+    // The run says which model it is on (capture-check: progress.doing), so take its word for it.
+    // What follows is the old guess, kept for a result file written before runs said so: `last`
+    // already named the model being worked on, and stepping one past it put the spinner a row
+    // below the truth and never on the first model.
+    if (p.doing) return p.doing === m.id ? 'is-checking' : 'is-waiting';
     const order = ids.length ? ids : L.models.map((x) => x.id);
     const at = p.last ? order.indexOf(p.last) : -1;
     const done = doneInRun(key, p);
