@@ -85,9 +85,26 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
   const gate = (() => {
     try { return JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), 'utf8')); } catch { return null; }
   })();
+  /**
+   * Are these the same commit, when either side may be abbreviated? Git's own rule: a short sha
+   * identifies the commit it is a prefix of. Seven characters minimum, so an empty or truncated
+   * value can never match everything.
+   */
+  const sameCommit = (a, b) => {
+    const x = String(a ?? '').trim();
+    const y = String(b ?? '').trim();
+    const n = Math.min(x.length, y.length);
+    return n >= 7 && x.slice(0, n) === y.slice(0, n);
+  };
   const fromGate = (pick, what) => () => {
     if (!gate) return N(`docs/checks/gate.json is not there: no gate run has recorded itself yet (npm run verify writes it)`);
-    if (gate.commit !== head) return F(`the last recorded gate run was at ${String(gate.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it proves nothing about this code`);
+    // head is `rev-parse --short` (seven characters) and gate.json records the full forty, so a
+    // plain !== between them is true even when they are the same commit. That is what this line was,
+    // and it printed the result: "the last recorded gate run was at d00ed98, and HEAD is d00ed98: it
+    // proves nothing about this code". Six checklist items could not go green by any means -- the
+    // gate held all seventeen steps at that very commit -- and the sentence saying so contradicted
+    // itself in its own words. Compare on the shorter length, whichever side is abbreviated.
+    if (!sameCommit(gate.commit, head)) return F(`the last recorded gate run was at ${String(gate.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it proves nothing about this code`);
     const r = pick(gate);
     if (r == null) return N(`the recorded gate run did not include ${what}`);
     return r.ok
