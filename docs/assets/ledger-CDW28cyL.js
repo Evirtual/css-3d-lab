@@ -1283,6 +1283,8 @@ function icon(name) {
 		tipFor = btn;
 		tipPinned = pin;
 		btn.setAttribute("aria-expanded", "true");
+		const host = btn.closest("dialog[open]") ?? document.body;
+		if (tip.parentElement !== host) host.appendChild(tip);
 		tip.innerHTML = text.innerHTML;
 		tip.hidden = false;
 		placeTip();
@@ -1295,8 +1297,14 @@ function icon(name) {
 		const a = tipFor.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight, gap = 10;
 		const below = a.bottom + gap + h <= innerHeight - 8 || a.top - gap - h < 8;
 		const left = Math.min(Math.max(8, a.left + a.width / 2 - w / 2), innerWidth - w - 8);
-		tip.style.left = `${left}px`;
-		tip.style.top = `${below ? a.bottom + gap : a.top - gap - h}px`;
+		const top = below ? a.bottom + gap : a.top - gap - h;
+		const host = tip.parentElement;
+		const o = host && host !== document.body ? host.getBoundingClientRect() : {
+			left: 0,
+			top: 0
+		};
+		tip.style.left = `${left - o.left}px`;
+		tip.style.top = `${top - o.top}px`;
 		tip.dataset.side = below ? "below" : "above";
 		tip.style.setProperty("--arrow-x", `${Math.min(Math.max(12, a.left + a.width / 2 - left), w - 12)}px`);
 	}
@@ -1305,6 +1313,19 @@ function icon(name) {
 		tipFor = null;
 		tipPinned = false;
 		tip.hidden = true;
+	}
+	let ptr = null;
+	document.addEventListener("pointermove", (e) => {
+		if (e.pointerType === "mouse") ptr = {
+			x: e.clientX,
+			y: e.clientY
+		};
+	}, { passive: true });
+	function reTip() {
+		if (!ptr || tipPinned) return;
+		const under = document.elementFromPoint(ptr.x, ptr.y)?.closest?.(".help, [data-tip]");
+		if (under) showTip(under);
+		else if (tipFor && !tipFor.isConnected) hideTip();
 	}
 	document.addEventListener("pointerover", (e) => {
 		const b = e.target.closest?.(".help, [data-tip]");
@@ -2721,6 +2742,7 @@ function icon(name) {
 			paintMachine();
 			if (was !== sigOf()) redrawControls();
 			else renderSuite();
+			reTip();
 			return body;
 		} catch {
 			RUN_OK = false;

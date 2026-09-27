@@ -1314,6 +1314,16 @@ import { icon } from '../icons.ts';
     if (tipFor && tipFor !== btn) tipFor.setAttribute('aria-expanded', 'false');
     tipFor = btn; tipPinned = pin;
     btn.setAttribute('aria-expanded', 'true');
+    /*
+     * The tip moves INTO an open modal, rather than living in <body> for ever.
+     *
+     * A dialog opened with showModal() is painted in the top layer, which is above everything in
+     * the document however high its z-index. So a tip anchored to something inside one was built,
+     * positioned and shown correctly, and drawn underneath the dialog: the "why?" beside
+     * "temperature no reading" did nothing at all, twice, with no error to find.
+     */
+    const host = btn.closest('dialog[open]') ?? document.body;
+    if (tip.parentElement !== host) host.appendChild(tip);
     tip.innerHTML = text.innerHTML;
     tip.hidden = false;
     placeTip();
@@ -1323,14 +1333,40 @@ import { icon } from '../icons.ts';
     const a = tipFor.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight, gap = 10;
     const below = a.bottom + gap + h <= innerHeight - 8 || a.top - gap - h < 8;
     const left = Math.min(Math.max(8, a.left + a.width / 2 - w / 2), innerWidth - w - 8);
-    tip.style.left = `${left}px`;
-    tip.style.top = `${below ? a.bottom + gap : a.top - gap - h}px`;
+    const top = below ? a.bottom + gap : a.top - gap - h;
+    /*
+     * These are viewport coordinates, and a `fixed` element only uses them while nothing above it
+     * has made itself a containing block. .cldlg has `backdrop-filter`, which does exactly that --
+     * so once the tip moved inside a dialog to get above the top layer, the same numbers were read
+     * against the dialog's own box and the tip landed 4,600px down the page.
+     */
+    const host = tip.parentElement;
+    const o = host && host !== document.body ? host.getBoundingClientRect() : { left: 0, top: 0 };
+    tip.style.left = `${left - o.left}px`;
+    tip.style.top = `${top - o.top}px`;
     tip.dataset.side = below ? 'below' : 'above';
     tip.style.setProperty('--arrow-x', `${Math.min(Math.max(12, a.left + a.width / 2 - left), w - 12)}px`);
   }
   function hideTip() {
     tipFor?.setAttribute('aria-expanded', 'false');
     tipFor = null; tipPinned = false; tip.hidden = true;
+  }
+  /*
+   * A tip survives the page redrawing under a still cursor.
+   *
+   * The run bars are rewritten on every poll, so the element the pointer was over is removed and
+   * the tip goes with it. The pointer has not moved, so no pointerover fires on the replacement
+   * and the tip never comes back: hovering a disabled Stop showed its reason for a moment and then
+   * nothing, which reads as a control that does not explain itself. The last pointer position is
+   * remembered and the tip re-anchored to whatever is under it afterwards.
+   */
+  let ptr = null;
+  document.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') ptr = { x: e.clientX, y: e.clientY }; }, { passive: true });
+  function reTip() {
+    if (!ptr || tipPinned) return;
+    const under = document.elementFromPoint(ptr.x, ptr.y)?.closest?.('.help, [data-tip]');
+    if (under) showTip(under);
+    else if (tipFor && !tipFor.isConnected) hideTip();
   }
   document.addEventListener('pointerover', (e) => { const b = e.target.closest?.('.help, [data-tip]'); if (b && e.pointerType === 'mouse' && !tipPinned) showTip(b); });
   document.addEventListener('pointerout', (e) => { const b = e.target.closest?.('.help, [data-tip]'); if (b && b === tipFor && e.pointerType === 'mouse' && !tipPinned && !b.contains(e.relatedTarget)) hideTip(); });
@@ -2824,6 +2860,7 @@ import { icon } from '../icons.ts';
       // which is a different container further down -- calling that one redrew nothing anybody
       // could see, and the empty catch hid the fact that it had not worked.
       if (was !== sigOf()) redrawControls(); else renderSuite();
+      reTip();
       // What is running, and the controls for it, are drawn by renderSuite() beside the table.
       // There is no separate bar any more: every run starts from the table, so a second place
       // showing its own idea of the state is a second thing to keep true.

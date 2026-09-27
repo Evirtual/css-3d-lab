@@ -1777,6 +1777,32 @@ header .sitechk { margin: 0 0 0 auto; padding: 0; gap: 10px; border: 0; backgrou
 .sitechk .cellrun { width: 20px; height: 20px; font-size: 10px; }
 .sitechk__one.is-running .sitechk__said { color: var(--st-warn); }
 
+/* ---------- the tooltip ----------
+   It had none. main.ts builds it, positions it against the element, flips it above or below,
+   places an arrow with --arrow-x, pins it, and wires aria-expanded and aria-describedby -- and
+   nothing in any stylesheet selected `.tip`, so all of that produced a line of unstyled text at
+   the end of <body>, off the bottom of the page. Every data-tip on the board was silent.
+   Found by someone trying to read two of them: "nothing shows up". */
+.tip {
+  position: fixed; z-index: 90; max-width: min(340px, calc(100vw - 24px));
+  padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--border-strong, var(--border));
+  background: var(--surface-solid, var(--surface));
+  color: var(--text); font: 500 12.5px/1.5 var(--font);
+  box-shadow: 0 14px 40px -12px rgb(0 0 0 / 0.65);
+  pointer-events: none; /* it is never the thing you are reaching for */
+}
+.tip[hidden] { display: none; }
+/* the arrow, on whichever side it ended up */
+.tip::after {
+  content: ''; position: absolute; left: var(--arrow-x, 50%); width: 9px; height: 9px;
+  margin-left: -5px; transform: rotate(45deg);
+  background: var(--surface-solid, var(--surface));
+  border: 1px solid var(--border-strong, var(--border));
+}
+.tip[data-side="below"]::after { top: -5px; border-right: 0; border-bottom: 0; }
+.tip[data-side="above"]::after { bottom: -5px; border-left: 0; border-top: 0; }
+
 /* The machine chip, beside "watcher live" and built like it: a dot and a few words. */
 .machine { display: inline-flex; align-items: center; gap: 6px; font: inherit; color: inherit;
   text-decoration: none; border: 0; background: none; padding: 0; cursor: pointer;
