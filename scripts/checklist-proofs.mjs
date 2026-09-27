@@ -15,6 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { REGISTRY } from './checks-registry.mjs';
+import { workingSources } from './model-sources.mjs';
 // read-only: git's own read commands over the committed snapshot. Importing it writes nothing.
 import { snapshotStatus } from './release-snapshot.mjs';
 
@@ -247,6 +248,36 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
      * It said "its proof runs npm run generate, which writes files" -- true of the command, and
      * not what the item asks. The item asks about the file.
      */
+    /*
+     * The same scan check-parity runs, so a tick here cannot outlive the thing it claims.
+     *
+     * It proves the precondition and says so: every model's text names a family that travels with
+     * the captured scene, which is what stops a renderer choosing its own. Whether the two
+     * renderers then draw the same pixels was MEASURED on 2026-09-27 and is written into the item;
+     * it needs the Worker's daily budget and is not re-run from here.
+     */
+    [/^Both renderers draw the same picture/, () => {
+      const EMBEDDED = /\bInter\b|\bJetBrains Mono\b/i;
+      const CSS_WIDE = /^\s*(inherit|initial|unset|revert|revert-layer)\s*$/i;
+      const NAMES = /[A-Za-z][\w -]*(?=\s*(?:,|$))/;
+      const KNOWN = new Set(['perfume']); // measured and listed in scripts/check-worker-parity.mjs
+      const srcs = workingSources();
+      const loose = [];
+      for (const m of models) {
+        const src = srcs.get(m.id);
+        const text = typeof src?.snippet === 'string' ? src.snippet : '';
+        for (const f of text.matchAll(/font(?:-family)?:\s*([^;{}]+);/g)) {
+          const v = f[1].trim();
+          if (EMBEDDED.test(v) || CSS_WIDE.test(v) || !NAMES.test(v)) continue;
+          if (!KNOWN.has(m.id)) loose.push(m.id);
+          break;
+        }
+      }
+      const off = [...new Set(loose)];
+      return off.length
+        ? F(`${off.length} model(s) name a family the captured scene does not carry, so the renderer picks its own: ${off.slice(0, 4).join(', ')}`)
+        : T(`every model's text names a family the scene carries, over all ${n} — the precondition for the two renderers drawing the same picture. That they do was measured on 2026-09-27 and is recorded in the item; it needs the Worker's daily budget and is not re-run here`);
+    }],
     [/^The sitemap dates are regenerated/, () => {
       const path = 'src/sitemap-dates.json';
       let dates;
