@@ -1812,8 +1812,11 @@ header .sitechk { margin: 0 0 0 auto; padding: 0; gap: 10px; border: 0; backgrou
    be a child of it: this wraps both and stacks them. */
 .pgbox { display: block; width: 100%; min-width: 0; }
 .pgbox .substeps { margin-top: 8px; }
-/* the chevron alone, first in the bar's row: a round target, no words, no width taken from the track */
-.sstog--icon { flex: none; gap: 0; width: 22px; height: 22px; padding: 0; justify-content: center; }
+/* The chevron alone, last in the bar's row: a round target, no words, no width off the track.
+   26px and a 12px glyph so it matches the hold and stop buttons it sits beside (.pg__acts .rowrun)
+   -- at 22 it read as a lesser control than the two next to it, which it is not. */
+.sstog--icon { flex: none; gap: 0; width: 26px; height: 26px; padding: 0; justify-content: center; }
+.sstog--icon svg { width: 12px; height: 12px; }
 
 .siteruns { margin: 16px 0 14px; display: grid; gap: 8px; }
 .siteruns .pg { flex: 1 1 auto; width: auto; }
