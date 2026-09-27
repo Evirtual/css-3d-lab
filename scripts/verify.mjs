@@ -144,7 +144,8 @@ const sweep = () => {
 };
 
 const hhmm = () => new Date().toTimeString().slice(0, 5);
-const mins = (ms) => `${Math.floor(ms / 60000)}m${String(Math.round((ms % 60000) / 1000)).padStart(2, '0')}s`;
+// One rounding, not two: rounding the remainder on its own turns 241m59.7s into "241m60s".
+const mins = (ms) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}m${String(s % 60).padStart(2, "0")}s`; };
 
 /**
  * exports at the dialog's DEFAULTS over every model.
