@@ -77,6 +77,14 @@ top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
   paints no backdrop and inherits its text colour. A full-canvas scene paints its own background,
   since the background is the scene (VIEW-CONTRACT.md, rule 8). Pasted into an empty file, the snippet gets a dark page
   (`#0b0d18`, text `#eceefb`).
+- **Any text names a family the export carries: `Inter` or `JetBrains Mono`.** Write
+  `font: 600 4vmin Inter, system-ui, sans-serif`, never `system-ui, sans-serif` on its own. The
+  export sends the scene to a render service to be drawn, and only those two faces travel with it;
+  anything else is drawn in whatever that machine has installed, which is not what you saw. The
+  service is a Worker on Linux, so `system-ui` there is neither Segoe UI nor San Francisco. Seven
+  charts got this wrong and their labels came back up to 7.8% out of place, one of them drawn off
+  the edge of the picture — and nothing on this laptop could see it, because here the dialog and
+  the render service share a font folder. `npm run check-parity` is what catches it now.
 - Plain CSS only (no Sass), hard-coded accent colours (violet `#8b6cff`, teal `#2ee6d6`, pink
   `#ff4d9d`, amber `#ffb547`), generic class names (`.scene`, `.cube`...). Expand any loop by hand
   or, better, drive it with `style="--i:3"` + `calc()` so the CSS stays short.
