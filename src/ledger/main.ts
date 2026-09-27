@@ -2467,7 +2467,23 @@ import { icon } from '../icons.ts';
         const named = [...proof.matchAll(/(?:re-?run|re-?checked|redeployed|drafted|taken)\b[^.]{0,40}?(20\d\d-\d\d-\d\d)/gi)].pop();
         const all = [...proof.matchAll(/\b(20\d\d-\d\d-\d\d)\b/g)].pop();
         const ran = named ?? all;
-        const when = ran ? ` <span class="clwhen">run ${ran[1]}</span>` : '';
+        /*
+         * A COMPUTED PROOF WEARS THE TIME IT WAS COMPUTED, NOT A DATE OUT OF THE PROSE.
+         *
+         * This date is scraped from the item's own note in the markdown -- "re-run 2026-09-25", a
+         * sentence somebody typed. For an item whose proof actually RAN, that is the wrong date by
+         * weeks: the answer on screen was worked out when the ledger was built, seconds ago, and
+         * it was being labelled with the oldest date in the line. The freshest thing on the page
+         * looked like the stalest, and the panel read as dead while the table beside it moved.
+         *
+         * Proven or disproven: say when it was checked, and let it tick (data-ago).
+         * Not evaluated: the note's date is the only evidence there is, so it stays -- and says
+         * "noted" rather than "run", because nothing ran.
+         */
+        const live = x.result === 'true' || x.result === 'false';
+        const when = live
+          ? ` <span class="clwhen">checked ${agoSpan(L.generatedAt)}</span>`
+          : ran ? ` <span class="clwhen">noted ${ran[1]}</span>` : '';
         const said = x.result === 'not-evaluated' ? `<span class="muted found">Not evaluated here: ${esc(x.why)}.</span>` : `<span class="found${x.result === 'false' ? ' bad' : ''}">Found: ${esc(x.found)}</span>`;
         return `<li class="st-${esc(x.state ?? 'not-evaluated')}"><span class="box" aria-hidden="true">${mark}</span>
           <div><b>${esc(x.item)}</b> <span class="chip ${waitsCls}">${esc(waits)}</span>${when}<br>${said}

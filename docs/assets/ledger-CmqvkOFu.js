@@ -2379,7 +2379,7 @@ function icon(name) {
 				const named = [...proof.matchAll(/(?:re-?run|re-?checked|redeployed|drafted|taken)\b[^.]{0,40}?(20\d\d-\d\d-\d\d)/gi)].pop();
 				const all = [...proof.matchAll(/\b(20\d\d-\d\d-\d\d)\b/g)].pop();
 				const ran = named ?? all;
-				const when = ran ? ` <span class="clwhen">run ${ran[1]}</span>` : "";
+				const when = x.result === "true" || x.result === "false" ? ` <span class="clwhen">checked ${agoSpan(L.generatedAt)}</span>` : ran ? ` <span class="clwhen">noted ${ran[1]}</span>` : "";
 				const said = x.result === "not-evaluated" ? `<span class="muted found">Not evaluated here: ${esc(x.why)}.</span>` : `<span class="found${x.result === "false" ? " bad" : ""}">Found: ${esc(x.found)}</span>`;
 				return `<li class="st-${esc(x.state ?? "not-evaluated")}"><span class="box" aria-hidden="true">${mark}</span>
           <div><b>${esc(x.item)}</b> <span class="chip ${waitsCls}">${esc(waits)}</span>${when}<br>${said}

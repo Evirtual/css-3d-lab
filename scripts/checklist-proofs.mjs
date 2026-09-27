@@ -310,9 +310,22 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
         }
       }
       const off = [...new Set(loose)];
+      /*
+       * NOT-EVALUATED when the scan is clean, not true.
+       *
+       * The scan proves the PRECONDITION -- no model naming a family the scene leaves behind --
+       * and the item asks something else: that the two renderers then draw the same pixels. That
+       * needs the Worker and its daily budget, so it cannot be answered from here.
+       *
+       * Returning true for it auto-ticked the item the moment the automatic stages started
+       * counting proofs, which is the failure this checklist is built to catch, produced by the
+       * checklist. A proof that cannot answer the question says so; the tick then stands or falls
+       * on a person, and right now it is correctly unticked -- the fix has never been measured
+       * against the Worker.
+       */
       return off.length
         ? F(`${off.length} model(s) name a family the captured scene does not carry, so the renderer picks its own: ${off.slice(0, 4).join(', ')}`)
-        : T(`every model's text names a family the scene carries, over all ${n} — the precondition for the two renderers drawing the same picture. That they do was measured on 2026-09-27 and is recorded in the item; it needs the Worker's daily budget and is not re-run here`);
+        : N(`the precondition holds -- every model's text names a family the scene carries, over all ${n} -- but whether the two renderers draw the same picture needs the Worker's daily budget: npm run check-parity -- --render`);
     }],
     // tsc is not its own step: `npm run build` is generate && tsc && vite build, so one exit code
     // answers for both lines, and both say so rather than pretending to be separate evidence.
