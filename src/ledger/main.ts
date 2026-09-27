@@ -1142,6 +1142,10 @@ import { icon } from '../icons.ts';
   }
   $('blk-btn').addEventListener('click', (e) => openBlockers(e.currentTarget));
   $('blk-close').addEventListener('click', () => $('blk-dialog').close());
+  $('mach-close')?.addEventListener('click', () => $('mach-dialog').close());
+  // The chip is rewritten on every poll, so the click is caught on the document rather than bound
+  // to an element that is about to be replaced.
+  document.addEventListener('click', (e) => { if (e.target.closest?.('[data-machine]')) openMachine(); });
   $('blk-dialog').addEventListener('click', (e) => { if (e.target === $('blk-dialog')) $('blk-dialog').close(); });
   $('blk-dialog').addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('blk-dialog').open) { e.preventDefault(); $('blk-dialog').close(); } });
   // focus goes back to whatever opened it, unless a blocker was picked: then it goes to the table's filter chip
@@ -2408,7 +2412,10 @@ import { icon } from '../icons.ts';
       const total = c.total ?? 0;
       const bad = (t.fail ?? 0) + (t.broke ?? 0);
       const p = bars[c.key];
-      if (p) return `<span class="sitechk__one">${runBar(c.key, p, c.unit ?? 'pages')}</span>`;
+      // Running: the chip says so and keeps its size. The bar itself is full width under the
+      // header (#siteruns), because a bar, a label, a count and two buttons do not fit in a line
+      // of small things beside the counts -- putting them there pushed the header apart.
+      if (p) return `<span class="sitechk__one is-running"><b>${esc(c.short)}</b><span class="sitechk__said">running</span></span>`;
       const said = !c.captured ? 'not run here' : total ? `${t.pass ?? 0}/${total}` : '—';
       const when = c.lastRun?.finishedAt ? ` Last run ${ago(c.lastRun.finishedAt)}${c.lastRun.commit ? ` at ${c.lastRun.commit}` : ''}.` : '';
       const tip = `${c.title}: ${said} ${c.unit ?? 'pages'} clear.${when} It judges the site, not any model, and gates nothing.`;
@@ -2416,6 +2423,16 @@ import { icon } from '../icons.ts';
         <b>${esc(c.short)}</b><span class="sitechk__said">${esc(said)}</span>
         ${runBtn(c.key, [], `Run ${c.title}`, 'cellrun')}</span>`;
     }).join('');
+    renderSiteRuns(site, bars);
+  }
+
+  /** The full-width bar under the header for whichever site check is running, or nothing. */
+  function renderSiteRuns(site, bars) {
+    const el = $('siteruns'); if (!el) return;
+    const live = site.filter((c) => bars[c.key]);
+    if (!live.length) { el.hidden = true; el.innerHTML = ''; return; }
+    el.hidden = false;
+    el.innerHTML = live.map((c) => runBar(c.key, bars[c.key], c.unit ?? 'pages')).join('');
   }
   /**
    * The per-check run buttons, for the width where there are no column headings to hold them.
@@ -2436,6 +2453,14 @@ import { icon } from '../icons.ts';
     el.innerHTML = '<span class="colruns__h">Run over every model</span>'
       + runBtn('all', [], 'Run every check over every model', 'colrun colrun--all', 'Every check')
       + COLS.map(([k, label]) => runBtn(k, [], `Run ${label} on every model`, 'colrun', label)).join('');
+  }
+
+  /** Opens the machine panel, filled from the last poll so the numbers are the ones on the chip. */
+  function openMachine() {
+    const d = $('mach-dialog'); if (!d) return;
+    $('mach-body').innerHTML = machineModal();
+    if (!d.open) { if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', ''); }
+    $('mach-close')?.focus();
   }
 
   /** Opens the definitions at one check's entry. */
@@ -2585,6 +2610,7 @@ import { icon } from '../icons.ts';
    * to start a thing that has already started.
    */
   let RUN_NOW = { runs: [], paused: false, max: 2 };
+  let MACHINE = null;
   /** The run of this check, if there is one: { what, label, models, mine, pid }. */
   const runOf = (what) => RUN_NOW.runs.find((r) => r.what === what) ?? null;
   /** What a click asked to start, until the board says it is running. Cleared either way. */
@@ -2717,6 +2743,11 @@ import { icon } from '../icons.ts';
         if (done) PENDING = null;
       }
       RUN_NOW = { runs: body.runs ?? [], paused: !!body.paused, max: body.max ?? 2 };
+      // What the machine has left, from the same poll. Kept apart from RUN_NOW's signature on
+      // purpose: free memory moves every second and redrawing the whole board for it would fight
+      // the page's own rebuild. paintMachine() touches one chip.
+      MACHINE = body.machine ?? null;
+      paintMachine();
       // Only when it actually changes: this polls every three seconds, and redrawing the bars on
       // every poll would fight the page's own rebuild and lose any disclosure somebody had opened.
       // renderStage draws the bars that are actually on screen. renderCheckBars fills #checkbars,
@@ -2786,6 +2817,72 @@ import { icon } from '../icons.ts';
   runState().then((s) => { if (s) rerender(); });
   setInterval(runState, 3000);
 
+  /*
+   * WHAT THE MACHINE HAS LEFT, beside the watcher.
+   *
+   * Every check drives a fleet of real browsers over real models, on somebody's laptop. The board
+   * already refuses some combinations, but a refusal only speaks at the moment you press a button.
+   * This is the number behind it, in the same shape as "watcher live": a dot and a few words. The
+   * dot goes amber under the floor browser-guard makes a model WAIT at, which is the number that
+   * decides whether starting a second run helps or just makes both slower.
+   */
+  function paintMachine() {
+    const el = $('machine'); if (!el) return;
+    const m = MACHINE;
+    if (!m) { el.innerHTML = ''; return; }
+    const cpu = m.cpuPercent == null ? '' : ` · CPU ${m.cpuPercent}%`;
+    const dot = m.low ? 'warn' : 'on';
+    el.innerHTML = `<span class="sep">·</span>`
+      + `<button type="button" class="machine linkish" data-machine`
+      + ` title="What this machine has left — click for what it means">`
+      + `<i class="dot ${dot}"></i>${m.memFreeGB} GB free${esc(cpu)}</button>`;
+  }
+
+  /** The modal behind that chip: the numbers, and why running two checks at once is not free. */
+  function machineModal() {
+    const m = MACHINE;
+    if (!m) return '<p>The board is not answering, so there is nothing to report about the machine.</p>';
+    const used = Math.round((m.memTotalGB - m.memFreeGB) * 10) / 10;
+    const usedPc = Math.min(100, Math.max(0, (used / m.memTotalGB) * 100));
+    const floorPc = Math.min(100, Math.max(0, ((m.memTotalGB - m.floorGB) / m.memTotalGB) * 100));
+    const cpu = m.cpuPercent;
+    return `
+      <div class="mgauges">
+        <section class="mgauge${m.low ? ' is-bad' : ''}">
+          <header><h3>Memory</h3><b>${m.memFreeGB} GB<span>free</span></b></header>
+          <div class="mbar" role="img" aria-label="${used} GB of ${m.memTotalGB} GB in use; the floor is at ${m.floorGB} GB free">
+            <i style="width:${usedPc.toFixed(1)}%"></i>
+            <u style="left:${floorPc.toFixed(1)}%" title="Under ${m.floorGB} GB free, a model waits"></u>
+          </div>
+          <footer>${used} GB in use of ${m.memTotalGB} · the floor is <b>${m.floorGB} GB</b> free</footer>
+        </section>
+        <section class="mgauge">
+          <header><h3>CPU</h3><b>${cpu == null ? '—' : `${cpu}%`}<span>${cpu == null ? 'sampling' : 'busy'}</span></b></header>
+          <div class="mbar" role="img" aria-label="${cpu == null ? 'not sampled yet' : `${cpu} per cent busy`}">
+            <i style="width:${cpu == null ? 0 : cpu}%"></i>
+          </div>
+          <footer>averaged over the last second, across ${m.cores} cores</footer>
+        </section>
+      </div>
+      <ul class="mfacts">
+        <li><b>${m.maxRuns}</b> check${m.maxRuns === 1 ? '' : 's'} at once</li>
+        <li><b>${m.maxBrowsers}</b> browser${m.maxBrowsers === 1 ? '' : 's'} per check</li>
+        <li>temperature ${m.tempC != null ? `<b>${m.tempC} °C</b>`
+          : `<b>no reading</b> <span class="mwhy" data-tip data-tiptext="${esc(m.tempWhy ?? '')}">why?</span>`}</li>
+      </ul>
+      <p>A check is not a script that reads a file. It drives real Chromium browsers over real
+      models — opening pages, recording video, decoding frames — and this is a laptop, not a farm.
+      <b>Two checks at once is not twice the work done:</b> it is the same cores and the same memory
+      split two ways.</p>
+      <p>Before every model the guard reads free memory. Under <b>${m.floorGB} GB</b> the model
+      <b>waits</b>, for up to three minutes; if memory has not come back it runs anyway and its
+      result says <i>ran under memory pressure</i>. A fresh browser is launched every 20 models, so
+      memory cannot creep across a 135-model run.</p>
+      <p><b>One check must have the machine to itself.</b> The performance check measures how many
+      milliseconds a model takes to draw, and anything else running lands in that number. The board
+      will not start it beside another check, or another check beside it.</p>`;
+  }
+
   /* ---------- live: what the watcher and the fetches say ---------- */
   const POLL_MS = 10000;
   const BEAT_DEAD_S = 90; // the watcher beats every 30 s; three missed beats is not a pause
@@ -2816,7 +2913,9 @@ import { icon } from '../icons.ts';
     // "watcher live" is the only state short enough to shorten: every other one says what is wrong
     const short = w.kind === 'alive' ? 'watcher live' : wText;
     $('live').innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span>`
-      + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge).replace(/ ago$/, ''))}</span>` : '');
+      + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge).replace(/ ago$/, ''))}</span>` : '')
+      + `<span id="machine"></span>`;
+    paintMachine();
 
     // the plain-words notice: minute granularity, rewritten only when it changes (it is aria-live)
     const min = (s) => `${Math.max(1, Math.round(s / 60))} min`;

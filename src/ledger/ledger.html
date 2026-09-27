@@ -497,8 +497,14 @@
          stage panel, folded away with whichever stage happened to be open, under a heading about
          models -- which they are not about. They gate nothing and there is no row in a table of
          models for them, so they live in the header with the rest of what is true about the page
-         as a whole. Their progress appears in this same line. -->
+         as a whole. Their RUN BAR does not: see #siteruns below. -->
   </header>
+  <!-- A running site check's bar, full width, under the header.
+       It used to replace the chip inside the status line, which is a row of small things beside
+       the counts: a progress bar with a label, a count and two buttons has nowhere near that much
+       room, so starting App or SEO pushed the line apart and the header lost its shape. The chip
+       stays where it is and says it is running; the bar gets the width it needs, here. -->
+  <div class="siteruns" id="siteruns" hidden></div>
   <div id="livenote" aria-live="polite"></div>
   <div id="notices"></div>
 
@@ -606,6 +612,22 @@
       <button type="button" class="cldlg__x" id="rules-close" aria-label="Close the definitions"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
     </div>
     <div class="cldlg__body" id="rules-body"></div>
+  </div>
+</dialog>
+
+<!-- What the machine has left, and why two checks at once is not twice the work done. Opened from
+     the chip beside "watcher live"; filled by machineModal() so the numbers are the live ones. -->
+<dialog id="mach-dialog" class="cldlg" aria-labelledby="mach-title">
+  <div class="cldlg__box">
+    <div class="cldlg__head">
+      <div>
+        <span class="eyebrow">This laptop, right now</span>
+        <h2 id="mach-title">What the machine has left</h2>
+        <p class="muted">The checks drive real browsers over real models. These are the numbers that decide whether a second run helps.</p>
+      </div>
+      <button type="button" class="cldlg__x" id="mach-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+    <div class="cldlg__body" id="mach-body"></div>
   </div>
 </dialog>
 

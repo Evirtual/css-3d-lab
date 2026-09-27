@@ -112,8 +112,16 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       const r = recordedPages('seo');
       const f = checkFiles?.seo;
       const listed = Object.values(f?.models ?? {}).filter((p) => p.listed).length;
-      // every page passing is provable from the records; whether each WAIVED / OWN-TEXT line has
-      // been accepted by the user is not, so this item is not ticked off a read alone
+      /*
+       * Every page passing is provable from the records. Whether a WAIVED or OWN-TEXT line has
+       * been accepted by a person is not -- but only while there IS one.
+       *
+       * This used to return "not evaluated" whichever way it went, so with 416 of 416 passing and
+       * not a single listed finding the item still could not be ticked, and the reason it gave was
+       * that somebody had to accept findings that do not exist. Nothing left for a person to
+       * accept is an answer, not a question.
+       */
+      if (r.result === 'true' && !listed) return T(`${r.found}, and no page carries a WAIVED or OWN-TEXT line for a person to accept`);
       return N(`${r.found}. But the item also asks that each WAIVED or OWN-TEXT line has been fixed or accepted by the user${listed ? ` (${listed} page(s) carry listed findings)` : ''}, which needs a person; run npm run check-seo -- --strict once they are all fixed`);
     }],
     /*

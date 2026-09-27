@@ -39,11 +39,13 @@
  * It listens on 127.0.0.1 only. This is a local tool for the person sitting at the machine.
  */
 import { createServer } from 'node:http';
-import { spawn } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { cpus, freemem, totalmem } from 'node:os';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
+import { MIN_FREE_GB, MAX_BROWSERS } from './browser-guard.mjs';
 import { runningCheck, runningChecks } from './running.mjs';
 import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 
@@ -102,11 +104,89 @@ const MAX_RUNS = Math.max(1, Number(process.env.BOARD_MAX_RUNS ?? 2) || 2);
  * running on one screen, which is the confusion the whole board exists to remove. So the answer is
  * the same either way: something is running, and here is what.
  */
+/*
+ * WHAT THE MACHINE HAS LEFT.
+ *
+ * Every check drives a fleet of real browsers over real models, and this is somebody's laptop. The
+ * board already refuses some combinations (see refuse()), but a refusal explains itself only at the
+ * moment you press a button. This is the number behind it, on screen the whole time.
+ *
+ * It is read here, once per poll, because the page asks this server for its state anyway. Nothing
+ * is spawned to get it: os.freemem() and os.cpus() are counters the kernel already keeps.
+ */
+/*
+ * Busy share of all cores, 0-1, sampled on a clock of its own.
+ *
+ * Measured between successive CALLS it was nonsense: two polls a millisecond apart divide a
+ * near-zero window, and a laptop running twenty Chromium renderers reported 0%. The window has to
+ * be the sampler's, not the caller's, so this ticks once a second and the reading is always the
+ * last full second. unref() so it never holds the process open.
+ */
+const CPU_MS = 1000;
+let cpuPrev = null, cpuNow = null;
+const cpuTotals = () => cpus().reduce((a, c) => {
+  for (const k of Object.keys(c.times)) a[k] = (a[k] ?? 0) + c.times[k];
+  return a;
+}, {});
+setInterval(() => { cpuPrev = cpuNow; cpuNow = cpuTotals(); }, CPU_MS).unref();
+cpuNow = cpuTotals();
+function cpuBusy() {
+  if (!cpuPrev || !cpuNow) return null;
+  const total = Object.keys(cpuNow).reduce((s, k) => s + (cpuNow[k] - (cpuPrev[k] ?? 0)), 0);
+  if (total <= 0) return null;
+  return Math.min(1, Math.max(0, 1 - (cpuNow.idle - cpuPrev.idle) / total));
+}
+
+/*
+ * Temperature, honestly.
+ *
+ * Windows exposes it through WMI's MSAcpi_ThermalZoneTemperature, which on most consumer laptops
+ * is either missing or needs administrator rights -- so this asks ONCE, keeps the answer, and says
+ * plainly that it is unavailable rather than showing a number it does not have. Spawning
+ * PowerShell on every poll to learn that again would cost more than everything else here put
+ * together.
+ */
+let temp = { c: null, why: 'not read yet' };
+let temped = false;
+function readTemp() {
+  if (temped) return;
+  temped = true;
+  if (process.platform !== 'win32') { temp = { c: null, why: 'only read on Windows so far' }; return; }
+  execFile('powershell', ['-NoProfile', '-Command',
+    "try { (Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature -ErrorAction Stop | Select-Object -First 1).CurrentTemperature } catch { '' }"],
+    { timeout: 8000, windowsHide: true }, (err, out) => {
+      const raw = Number(String(out ?? '').trim());
+      // WMI reports tenths of a kelvin
+      if (!err && Number.isFinite(raw) && raw > 0) temp = { c: Math.round((raw / 10 - 273.15) * 10) / 10, why: null };
+      else temp = { c: null, why: 'this machine does not expose it to WMI (usually needs admin, or the laptop has no ACPI thermal zone)' };
+    });
+}
+
+function machine() {
+  readTemp();
+  const free = freemem() / 2 ** 30, total = totalmem() / 2 ** 30;
+  const busy = cpuBusy();
+  return {
+    memFreeGB: Math.round(free * 10) / 10,
+    memTotalGB: Math.round(total * 10) / 10,
+    floorGB: MIN_FREE_GB,
+    // under the floor a model WAITS before it starts (browser-guard), so this is the number that
+    // decides whether a second run helps or just makes both slower
+    low: free < MIN_FREE_GB,
+    cpuPercent: busy == null ? null : Math.round(busy * 100),
+    cores: cpus().length,
+    tempC: temp.c,
+    tempWhy: temp.why,
+    maxBrowsers: MAX_BROWSERS,
+    maxRuns: MAX_RUNS,
+  };
+}
+
 function state() {
   const mine = [...runs.values()].map((r) => ({
     what: r.what, label: r.label, models: r.models ?? [], startedAt: r.startedAt, pid: r.child.pid, mine: true,
   }));
-  const out = { runs: mine, paused: paused(), max: MAX_RUNS };
+  const out = { runs: mine, paused: paused(), max: MAX_RUNS, machine: machine() };
   // A run this server did not start: checks are also started from a terminal, and capture-check
   // flags the check's own result file while it works. Reporting only what THIS process spawned put
   // "Nothing running" on the page directly above the ledger's own "media running 58/135" -- two

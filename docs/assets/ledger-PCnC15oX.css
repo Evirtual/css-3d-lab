@@ -5365,6 +5365,169 @@ header .sitechk {
   font-size: 10px;
 }
 
+.sitechk__one.is-running .sitechk__said {
+  color: var(--st-warn);
+}
+
+/* The machine chip, beside "watcher live" and built like it: a dot and a few words. */
+.machine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  color: inherit;
+  text-decoration: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.machine:hover, .machine:focus-visible {
+  color: var(--accent-2);
+}
+
+.machine .dot.warn {
+  background: var(--st-warn);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-warn) 22%, transparent);
+}
+
+/* Its panel: two gauges, because a share of something is easier to read as a bar than as a
+   number, and the floor is a place on that bar rather than a second figure to compare against. */
+.mgauges {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin: 0 0 16px;
+}
+
+.mgauge {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--text) 3%, transparent);
+}
+
+.mgauge header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mgauge h3 {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mgauge header b {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.mgauge header b span {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mgauge footer {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.mgauge.is-bad header b {
+  color: var(--st-bad);
+}
+
+.mbar {
+  position: relative;
+  height: 8px;
+  margin-top: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+.mbar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--accent-2);
+}
+
+.mgauge.is-bad .mbar i {
+  background: var(--st-bad);
+}
+
+/* the floor: a place on the bar, not another number to hold in your head */
+.mbar u {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--st-warn);
+  text-decoration: none;
+  overflow: visible;
+}
+
+.mfacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.mfacts li {
+  padding: 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mfacts li b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.mwhy {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+
+/* A running site check's bar, full width, directly under the header.
+   Inside the status line it had to share a wrapping row of small things with the counts, so the
+   bar, its label, its count and its two buttons pushed that line apart and the header lost its
+   shape. Out here it has the whole width and nothing has to move to make room. */
+.siteruns {
+  margin: 16px 0 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.siteruns .pg {
+  flex: 1 1 auto;
+  width: auto;
+}
+
+.siteruns > .suiterun, .siteruns > * {
+  width: 100%;
+}
+
 /* ---------- the stages, with nothing around them ---------- */
 .panel--strip {
   padding: 0;
