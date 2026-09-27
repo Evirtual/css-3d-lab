@@ -140,12 +140,51 @@ function render(endpoint, scene, tmp) {
  * radar and treemap, flagged the same way, came back at 2.85/4.0% and 3.20/7.8%. The measurement
  * separates them; the scan cannot. So the scan chooses what to draw twice, and the drawing judges.
  */
+/*
+ * MODELS THAT NAME SOMETHING WE DO NOT SHIP, AND ARE FINE ANYWAY.
+ *
+ * The scan asks one question -- does this model's text name a family the scene carries -- and it
+ * is the half that catches regressions, because a new model naming `system-ui` is how the seven
+ * charts happened. It costs nothing and needs no network, so it runs on every gate.
+ *
+ * The render comparison is the other half and cannot gate anything: it needs the Worker, and the
+ * Worker has a daily budget. Being blocked by a rate limit is not a quality signal. It runs with
+ * --render, and what it proves gets written here.
+ *
+ * perfume asks for Georgia and gets whatever serif Linux has. Drawn on both renderers on
+ * 2026-09-27 it came back at mean 0.66 and 0.3% of ink edge -- the worry is real and the thing
+ * worried about does not happen, so it is listed with its measurement rather than left to fail the
+ * gate every night. Anything NOT on this list that the scan flags is a new one, and fails.
+ */
+const PROVEN_FINE = new Map([
+  ['perfume', 'Georgia, and whatever serif the renderer has: drawn on both on 2026-09-27, mean 0.66, ink edge 0.3%'],
+]);
+const RENDER = flag('--render') || ids.length > 0;
+
 const loose = unpinned();
 console.log(`check-parity: ${sources.size} models scanned for a family the scene does not carry`);
-if (loose.length) {
-  for (const { id, bad } of loose) console.log(`  at risk  ${id}: ${[...new Set(bad)].join(' | ')} — drawn twice below`);
-} else {
-  console.log('  every font declaration names Inter or JetBrains Mono, both of which travel');
+const newly = [];
+for (const { id, bad } of loose) {
+  const why = PROVEN_FINE.get(id);
+  const names = [...new Set(bad)].join(' | ');
+  if (why) console.log(`  known    ${id}: ${names} — ${why}`);
+  else { console.log(`  OFF      ${id}: ${names}`); newly.push(id); }
+}
+if (!loose.length) console.log('  every font declaration names a family the scene carries');
+if (newly.length) {
+  for (const id of newly) fail.push(`${id}: names a family the scene does not carry, so the renderer picks its own`);
+}
+
+if (!RENDER) {
+  console.log('');
+  console.log(newly.length
+    ? `check-parity: ${newly.length} model(s) name a family that does not travel with the scene.`
+    : `check-parity: every model's text names a family the scene carries${loose.length ? `, apart from ${loose.length} measured and listed as fine` : ''}.`);
+  console.log('The two renderers were not asked: that needs the Worker and its daily budget, and a');
+  console.log('release should not turn on somebody else\'s rate limit. Run it with --render.');
+  // Nothing has been started yet -- the server and the browser are below -- so there is nothing
+  // to close on the way out.
+  process.exit(newly.length ? 1 : 0);
 }
 
 // Which models to actually draw twice: anything the scan flagged, then the text-heaviest, because
