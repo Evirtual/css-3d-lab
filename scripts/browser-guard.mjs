@@ -105,6 +105,20 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const gb = () => freemem() / 2 ** 30;
 const first = (e) => String(e?.message ?? e).split('\n')[0];
 
+/**
+ * A crash in the check's own code, said in a way that can be acted on: the message plus the first
+ * line of OUR code in the stack. Without it a report reads "Cannot read properties of undefined
+ * (reading 'toFixed')  [harness]", which names a bug in a two-thousand-line file and no more.
+ * Node's own frames and node_modules are skipped: the top frame of a TypeError is often inside a
+ * library, and what we can fix is the line that called it.
+ */
+export function siteOf(e) {
+  const at = String(e?.stack ?? '').split('\n').slice(1)
+    .map((l) => /([A-Za-z0-9._-]+\.m?[jt]s):(\d+):\d+/.exec(l))
+    .find((m) => m && !/^node:/.test(m[0]) && !/node_modules/.test(m.input));
+  return at ? ` (${at[1]}:${at[2]})` : '';
+}
+
 /** Whether an error is the browser's (dead, crashed, hung, unreachable) rather than the check's or the model's. */
 export function isBrowserError(e) {
   const m = String(e?.message ?? e);

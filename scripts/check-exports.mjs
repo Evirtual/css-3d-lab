@@ -83,7 +83,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { launchChromium } from './browser.mjs';
-import { BrowserGuard, crashGuard, isBrowserError } from './browser-guard.mjs';
+import { BrowserGuard, crashGuard, isBrowserError, siteOf } from './browser-guard.mjs';
 import { exportServer } from '../server/dev.mjs';
 import { DEFAULTS } from './export-defaults.mjs';
 
@@ -1092,7 +1092,10 @@ async function checkVideos(id) {
       const crept = Math.max(0, ...boxes.map((b) => boxGap(boxes[0], b)));
       if (live && (worst.d > 0.5 || crept > 0.005)) {
         const after = await screen();
-        const moved = await lab.evaluate(([a, b, bg]) => __px.likeness(__px.fromB64(a), __px.fromB64(b), bg).diff, [scr.png, after.png, scr.bg]);
+        // await, not .diff on the promise: page.evaluate awaits what the page function RETURNS, so
+        // returning the promise read right until likeness started returning {diff, cast} and .diff
+        // was appended to the promise instead of to its value.
+        const moved = await lab.evaluate(async ([a, b, bg]) => (await __px.likeness(__px.fromB64(a), __px.fromB64(b), bg)).diff, [scr.png, after.png, scr.bg]);
         const what = `an untouched model changes by up to ${worst.d.toFixed(2)} a frame, and its box wanders ${pc(crept)}% of the canvas from the first frame`;
         if (scr.moving > 0.002 || moved > 0.5) look(id, 'drift', shape, what, `the model does not stand still while its animations are held (its own script or a timer): the canvas itself differs by ${moved.toFixed(2)} levels between the shot before the take and the one after it`);
         else miss(id, 'drift', shape, `${what}, while the canvas before and after the take differs by only ${moved.toFixed(2)} levels`, 'app');
@@ -1138,8 +1141,8 @@ for (const id of models) {
     ({ notes } = await guard.run(id, async () => {
       results.length = mark.results; mismatches.length = mark.mismatches; untestable.length = mark.untestable; observations.length = mark.observations;
       say(`\n${id}`);
-      try { await checkImages(id); } catch (e) { await page?.close().catch(() => {}); if (isBrowserError(e)) throw e; miss(id, 'run', 'image tab', e.message.split('\n')[0], 'harness'); }
-      try { await checkVideos(id); } catch (e) { await page?.close().catch(() => {}); if (isBrowserError(e)) throw e; miss(id, 'run', 'video tab', e.message.split('\n')[0], 'harness'); }
+      try { await checkImages(id); } catch (e) { await page?.close().catch(() => {}); if (isBrowserError(e)) throw e; miss(id, 'run', 'image tab', e.message.split('\n')[0] + siteOf(e), 'harness'); }
+      try { await checkVideos(id); } catch (e) { await page?.close().catch(() => {}); if (isBrowserError(e)) throw e; miss(id, 'run', 'video tab', e.message.split('\n')[0] + siteOf(e), 'harness'); }
     }));
   } catch (e) {
     // the retry broke its browser too
