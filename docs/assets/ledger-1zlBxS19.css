@@ -5521,13 +5521,18 @@ header .sitechk {
   min-width: 0;
 }
 
-.pgbox__ss {
-  display: block;
-  margin-top: 7px;
-}
-
 .pgbox .substeps {
   margin-top: 8px;
+}
+
+/* the chevron alone, first in the bar's row: a round target, no words, no width taken from the track */
+.sstog--icon {
+  flex: none;
+  gap: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  justify-content: center;
 }
 
 .siteruns {

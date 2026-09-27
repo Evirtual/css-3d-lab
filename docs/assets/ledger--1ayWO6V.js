@@ -259,7 +259,7 @@ function icon(name) {
 	const PAUSE = icon("pause");
 	const STOP = icon("stop");
 	const ssChevron = "<svg viewBox=\"0 0 12 12\" width=\"9\" height=\"9\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4.5 2 8.5 6l-4 4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>";
-	const ssToggle = (id, label, open) => `<button type="button" class="sstog" data-ss="${esc(id)}" aria-expanded="${open}" aria-controls="ss-${esc(id)}">${ssChevron}${esc(label)}</button>`;
+	const ssToggle = (id, label, open, iconOnly = false) => `<button type="button" class="sstog${iconOnly ? " sstog--icon" : ""}" data-ss="${esc(id)}" aria-expanded="${open}" aria-controls="ss-${esc(id)}"${iconOnly ? ` aria-label="${esc(label)}" title="${esc(label)}"` : ""}>${ssChevron}${iconOnly ? "" : esc(label)}</button>`;
 	/**
 	* The open panel. `c` is a checkList entry; `run` its progress record when one is going, whose
 	* `steps` say what THIS run covers and whose `step` is the latest part its output named.
@@ -1046,9 +1046,10 @@ function icon(name) {
 			if (p.last) bits.push(esc(p.last));
 			return bits.join(" · ");
 		})()}</span>
-      ${mine && RUN_OK ? `<span class="pg__acts">${holdAndStop("rowrun")}</span>` : ""}</span>`;
+      ${mine && RUN_OK ? `<span class="pg__acts">${holdAndStop("rowrun")}</span>` : ""}
+      ${ssShown ? ssToggle(ssId, ssOpened ? `Hide what ${title} is covering` : `What ${title} is covering (${nSteps} parts)`, ssOpened, true) : ""}</span>`;
 		if (!ssShown) return bar;
-		return `<span class="pgbox">${bar}<span class="pgbox__ss">${ssToggle(ssId, ssOpened ? "hide what it is covering" : `what it is covering (${nSteps})`, ssOpened)}</span>` + (ssOpened ? ssPanel(c, ssId, p) : "") + `</span>`;
+		return `<span class="pgbox">${bar}${ssOpened ? ssPanel(c, ssId, p) : ""}</span>`;
 	}
 	/**
 	* Notices: things that happened and are worth one line, not a panel.

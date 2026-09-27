@@ -109,7 +109,10 @@ import { icon } from '../icons.ts';
   const ssChevron = '<svg viewBox="0 0 12 12" width="9" height="9" aria-hidden="true" focusable="false"><path d="M4.5 2 8.5 6l-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   /* No data-tip here: the page's tooltip writes aria-expanded on whatever it points at, which on a
      disclosure would both fight this button's own state and tell a screen reader the wrong thing. */
-  const ssToggle = (id, label, open) => `<button type="button" class="sstog" data-ss="${esc(id)}" aria-expanded="${open}" aria-controls="ss-${esc(id)}">${ssChevron}${esc(label)}</button>`;
+  /* `iconOnly` is the chevron alone, for a run bar: the bar is one nowrap row of a name, a track,
+     a count and its buttons, and a worded disclosure there costs more width than the track. The
+     words become the accessible name instead, so nothing is lost to a screen reader. */
+  const ssToggle = (id, label, open, iconOnly = false) => `<button type="button" class="sstog${iconOnly ? ' sstog--icon' : ''}" data-ss="${esc(id)}" aria-expanded="${open}" aria-controls="ss-${esc(id)}"${iconOnly ? ` aria-label="${esc(label)}" title="${esc(label)}"` : ''}>${ssChevron}${iconOnly ? '' : esc(label)}</button>`;
   /**
    * The open panel. `c` is a checkList entry; `run` its progress record when one is going, whose
    * `steps` say what THIS run covers and whose `step` is the latest part its output named.
@@ -1083,12 +1086,10 @@ import { icon } from '../icons.ts';
         if (p.last) bits.push(esc(p.last));
         return bits.join(' · ');
       })()}</span>
-      ${mine && RUN_OK ? `<span class="pg__acts">${holdAndStop('rowrun')}</span>` : ''}</span>`;
+      ${mine && RUN_OK ? `<span class="pg__acts">${holdAndStop('rowrun')}</span>` : ''}
+      ${ssShown ? ssToggle(ssId, ssOpened ? `Hide what ${title} is covering` : `What ${title} is covering (${nSteps} parts)`, ssOpened, true) : ''}</span>`;
     if (!ssShown) return bar;
-    return `<span class="pgbox">${bar}`
-      + `<span class="pgbox__ss">${ssToggle(ssId, ssOpened ? 'hide what it is covering' : `what it is covering (${nSteps})`, ssOpened)}</span>`
-      + (ssOpened ? ssPanel(c, ssId, p) : '')
-      + `</span>`;
+    return `<span class="pgbox">${bar}${ssOpened ? ssPanel(c, ssId, p) : ''}</span>`;
   }
 
   /**
