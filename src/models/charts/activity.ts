@@ -86,7 +86,7 @@ export const snippet: Snippet = {
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box: the same height in every model that has controls */
@@ -261,7 +261,7 @@ export const snippet: Snippet = {
   height: calc(48 * var(--u));
   border-radius: 50%;
   /* no colour of its own: the hole shows the stage, so the day takes the stage's ink */
-  font: 800 calc(15 * var(--u))/1 system-ui, sans-serif;
+  font: 800 calc(15 * var(--u))/1 Inter, system-ui, sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   pointer-events: auto;
@@ -279,7 +279,7 @@ export const snippet: Snippet = {
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   opacity: 0.7;
@@ -302,7 +302,7 @@ export const snippet: Snippet = {
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }

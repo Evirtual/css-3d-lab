@@ -84,7 +84,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 .chart * {
@@ -165,7 +165,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   left: 100%;
   padding-left: calc(6 * var(--u));
   color: color-mix(in srgb, currentColor 65%, transparent);
-  font: 700 calc(11 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif; /* 4vmin, the controls' size */
+  font: 700 calc(11 * var(--u))/calc(13 * var(--u)) Inter, system-ui, sans-serif; /* 4vmin, the controls' size */
   white-space: nowrap;
   transform: translateY(50%);
 }
@@ -176,7 +176,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
   top: calc(100% + calc(6 * var(--u)));
   left: 0;
   color: color-mix(in srgb, currentColor 65%, transparent);
-  font: 700 calc(11 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif; /* 4vmin, the controls' size */
+  font: 700 calc(11 * var(--u))/calc(13 * var(--u)) Inter, system-ui, sans-serif; /* 4vmin, the controls' size */
   transform: translateZ(calc(15 * var(--u)));
 }
 
@@ -337,7 +337,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
     0 0 calc(14 * var(--u)) color-mix(in srgb, var(--tone) 40%, transparent);
   color: ${TEXT}; /* on its own dark card, so it reads on a light stage too */
   /* 10 units is 3.6vmin: it reads on a card. Three lines of 13 + padding + border = TIP_H in the JS */
-  font: 700 calc(10 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(10 * var(--u))/calc(13 * var(--u)) Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: pre; /* three short lines: the date, then open and high, then low and close */
   opacity: 0;
@@ -367,7 +367,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   opacity: 0.7;
 }
@@ -389,7 +389,7 @@ ${RANGES.map((n) => `      <button type="button" data-days="${n}">${n}D</button>
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }

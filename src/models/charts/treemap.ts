@@ -83,7 +83,7 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box: the same height in every model that has controls */
@@ -131,7 +131,7 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
   border-radius: calc(2 * var(--u));
   background: color-mix(in srgb, var(--c) 12%, transparent);
   color: ${TEXT};
-  font: 700 calc(10 * var(--u))/1 system-ui, sans-serif;
+  font: 700 calc(10 * var(--u))/1 Inter, system-ui, sans-serif;
   outline: none;
   transform-style: preserve-3d;
   pointer-events: auto;
@@ -244,7 +244,7 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   opacity: 0.7;
@@ -267,7 +267,7 @@ ${MARKET.periods.map((p) => `      <button type="button" data-period="${p}">${p}
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }

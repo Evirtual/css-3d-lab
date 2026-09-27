@@ -102,7 +102,7 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box: the same height in every model that has controls */
@@ -179,7 +179,7 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
   padding-left: calc(6 * var(--u));
   color: inherit; /* the stage's own ink, softened with opacity: a fixed pale lavender was 2.3:1 on the light stage */
   opacity: 0.72;
-  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) Inter, system-ui, sans-serif;
 }
 
 /* A step is a still, full-height column: the hit target. It stands in the plane of the box
@@ -288,7 +288,7 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
   right: 50%;
   color: inherit; /* the stage's ink, softened: see .wall span */
   opacity: 0.72;
-  font: 700 calc(13 * var(--u))/calc(15 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(13 * var(--u))/calc(15 * var(--u)) Inter, system-ui, sans-serif;
   white-space: nowrap;
   transform-origin: 100% 0;
   transform: rotate(-38deg);
@@ -315,7 +315,7 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
     calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--c) 55%, #05060c),
     0 0 calc(14 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent);
   color: ${TEXT};
-  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(14 * var(--u)) Inter, system-ui, sans-serif;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
@@ -340,7 +340,7 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   opacity: 0.7;
@@ -363,7 +363,7 @@ ${MONTHS.map((m) => `      <button type="button" data-month="${m}">${m}</button>
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }

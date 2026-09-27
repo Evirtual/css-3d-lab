@@ -87,7 +87,7 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
-  font-family: system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
 }
 
 /* the model box: the same height in every model that has controls */
@@ -214,7 +214,7 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
   top: calc(1 * var(--u));
   left: calc(66 * var(--u));
   /* no colour of its own: the names are written on the stage, so they take the stage's ink */
-  font: 700 calc(12 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(12 * var(--u))/calc(13 * var(--u)) Inter, system-ui, sans-serif;
   white-space: nowrap;
   transform: translateX(calc(var(--v) * calc(66 * var(--u)) + calc(12 * var(--u)))) translateZ(calc(14 * var(--u)));
   transition:
@@ -258,7 +258,7 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
     calc(3 * var(--u)) calc(-3 * var(--u)) 0 color-mix(in srgb, var(--c) 55%, #05060c),
     0 0 calc(14 * var(--u)) color-mix(in srgb, var(--c) 40%, transparent);
   color: ${TEXT};
-  font: 700 calc(10 * var(--u))/calc(13 * var(--u)) system-ui, sans-serif;
+  font: 700 calc(10 * var(--u))/calc(13 * var(--u)) Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   opacity: 0;
@@ -284,7 +284,7 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
 }
 
 .controls .caption {
-  font: 500 4.5vmin/1.2 system-ui, sans-serif;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   opacity: 0.7;
@@ -307,7 +307,7 @@ ${SETS.map((s) => `      <button type="button" data-set="${s}">${s}</button>`).j
      strength: no colour of the model's, which would vanish on one of the two stages */
   background: rgb(140 150 220 / 0.2);
   color: inherit;
-  font: 600 4vmin system-ui, sans-serif;
+  font: 600 4vmin Inter, system-ui, sans-serif;
   cursor: pointer;
   transition: background-color 0.35s;
 }
