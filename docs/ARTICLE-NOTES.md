@@ -90,10 +90,10 @@ screen`), re-running never clears one, and they hold no model back. And the expi
 verdict dies when the thing it judged changes — was extended to the checklist's own ticks, which
 were sitting green over a push that had already happened.
 
-## 6. The payoff, and the best moment
+## 6. The payoff: what the board caught once it stopped lying
 
-Once the board stopped lying, it caught things it had never been able to see. Export, run properly
-over all 135 for the first time: **8 failures**, and six of them one cause.
+Export, run properly over all 135 for the first time: **8 failures**, seven of them Text models and
+one Data, which is what a font difference looks like from a distance.
 
 ```
               on screen        in the file      worst edge
@@ -105,28 +105,88 @@ wordcube     6.9 – 93.1       6.8 – 96.7            3.5%
 activity    12.2 – 88.1      12.2 – 90.4            2.4%
 ```
 
-Left edge matches, right edge runs further in the file: left-aligned text in a wider font. The
-scene sent to the renderer forces Inter onto everything (because before that the worker's Linux
-browser had neither Segoe UI nor Consolas and `4242` ran off the payment card on the live site) —
-but the dialog's frame is the real stage, still drawing in this machine's fonts. Two different
-pictures, and the one you could see was the one that was not going to be delivered. Three of them
-reach `100.0`: ink touching the file's right edge, which is text cut off in the exported picture.
+Left edge matches, right edge runs further in the file. Three of them reach `100.0` — ink touching
+the edge of the exported picture, which is text cut off.
 
-**Then the ending.** Fixing it meant touching `src/video.ts` and `src/capture-scene.ts` — both
-fingerprinted by every model's export verdict. One commit took the board from
+## 7. Being wrong in public, twice, and what it cost
+
+**The first diagnosis was wrong, and I shipped it.** I read those numbers as: the file is drawn in
+the embedded font, the dialog's canvas is drawn in this machine's font, so make the canvas use the
+embedded one too. That is a clean story and it is not what was happening.
+
+It cost eleven Stages failures to buy eight Export passes. `check-stages` measures the model on
+every surface the site shows it on, including the export dialog, and the "fix" made the dialog
+disagree with the page by 11 vmin — visible, on screen, when you open a dialog. Two checks now
+wanted opposite things, and I had picked a side without reading the other one.
+
+Four tests to find out it was not what I thought:
 
 ```
-126 approved,   9 to check
+remove fit()                     → still 11 vmin      not the re-fit
+inject faces, no family rule     → passes             not the faces
+force Inter                      → passes             the page IS already Inter
+force CaptureSans                → fails              this family is not resolving
 ```
 
-to
+That last pair is the whole answer, and it took until the next morning to see it. **The capture
+embedded Inter under an invented name — `CaptureSans` — and then forced that name onto every
+element with `!important`.** But the captured scene already carries each element's own
+`font-family`, inlined from what the browser resolved. The override threw that away and drew the
+file in a family the page had never used. Removing it:
 
 ```
-  0 approved, 135 to check
+before   22 mismatches, 8 models, worst edge 10.5%
+after    10 mismatches, 6 models, worst edge  2.7%   horizontal error gone entirely
 ```
 
-Nothing broke. The board simply stopped claiming to know something it no longer knew. A score that
-can only go up is a score that isn't measuring anything.
+And this time Stages did not move, because nothing about the preview changed.
+
+**Progress, not regress.** In between those two, at half past midnight, the right call was to
+revert my own commit and go back to a known state — eight red rather than eleven red and no
+mechanism. Nothing was pushed, so none of it ever reached a visitor; the whole argument was about
+what a local board said.
+
+## 8. The bug the detour found
+
+Chasing my own regression turned up a real one. Checked against the live site, read-only:
+
+```
+200 font/woff2   /fonts/inter-latin-400.woff2
+404 text/html    /models/shadowtext/fonts/inter-latin-400.woff2   ← what the code asked for
+```
+
+`ensureCaptureFonts` resolved the font file against `document.baseURI`, and the site is built with
+relative asset paths so it can live under any prefix. From a model page — **the only place the
+export dialog opens from** — it asks for `fonts/` under that folder, which is nothing. The fetch
+throws, the scene ships with no faces embedded, and the renderer draws with whatever it has.
+
+Which is the `4242` bug, the one the capture fonts were added for on 2026-09-25. The fix worked
+from the home page, where `baseURI` is the root, and that is where it was tried.
+
+So: a fix that was correct, committed, deployed, believed — and had never once run in the place it
+was written for. Nothing in the ledger could see it, because no check measures a model page's
+network requests. It took a wrong diagnosis and four experiments to fall over it.
+
+## 9. The same trap, twice, four hours apart
+
+`npm run capture -- exports --defaults` with no model ids falls back to the check's own eight-model
+sample. On Friday night that had already left 127 export verdicts sitting two days stale through a
+week of font changes while the column read a confident 8. I fixed it in the board, wrote a long
+comment about it — and then, at one in the morning, queued the overnight run from the command line
+with the same flag and no ids.
+
+```
+0 mismatches in 4.1 min
+capture-check: recorded 8 model result(s)
+```
+
+True of the eight it chose. Silent about the other 127. A run that quietly does a fifteenth of the
+work and reports success is worse than one that fails.
+
+Worse: `capture-check` guessed the run total by reading that same SAMPLE list out of the check's
+source, so a 135-model run opened its bar claiming `8` and would have read "8/8 finished" a
+fifteenth of the way through a 75-minute night. One place decided, another guessed, and they
+disagreed — which is the shape of nearly every bug in these notes.
 
 ## Lines worth keeping
 
@@ -137,3 +197,8 @@ can only go up is a score that isn't measuring anything.
   button was `display: none`, so hovering a cell during a run emptied it)
 - Truthful over friendly, confirmed again: the page's own "Could not refresh — what you see was
   fetched under a minute ago" was correct, and correct because I had killed the board myself.
+- "A run that quietly does a fifteenth of the work and reports success is worse than one that fails."
+- "The faces travel; the families do not change."
+- "Progress, not regress." (Edgaras, 00:40, on reverting my own commit rather than defending it)
+- A fix that was correct, committed, deployed and believed, and had never once run in the place it
+  was written for.
