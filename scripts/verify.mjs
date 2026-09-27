@@ -78,6 +78,9 @@ const ORDER = (() => {
   // The three that were never in the gate: real scripts, each proving a release-checklist line, and
   // none of them run by anything, so what they proved went stale the day after somebody ran it.
   keys.splice(keys.indexOf('qa') + 1, 0, 'snippets', 'preview', 'compare');
+  // The three that need a network: a fetch, a preflight, a variable list. Seconds, and they were
+  // the reason three checklist lines could only ever be true of the day somebody typed them.
+  keys.unshift('remote');
   return keys;
 })();
 /**
@@ -85,7 +88,7 @@ const ORDER = (() => {
  * It still runs -- it catches page errors on the BUILT site, which nothing else looks at -- and its
  * line says plainly that it left no record, rather than borrowing another check's green.
  */
-const NO_RECORD = new Set(['qa', 'parity', 'snippets', 'preview', 'compare']);
+const NO_RECORD = new Set(['qa', 'parity', 'snippets', 'preview', 'compare', 'remote']);
 /**
  * What the steps outside the registry are, in words, for the line this prints when each starts.
  * That sentence used to be one hardcoded string -- qa's -- so the moment a second such step
@@ -97,6 +100,7 @@ const OUTSIDE = {
   snippets: 'every standalone snippet runs without a script error (no per-model record)',
   preview: 'editing a model never remounts or moves its frame (no per-model record)',
   compare: 'the snapshots match the screen (no per-model record)',
+  remote: 'the remote, the Worker origins and the workflow variable (no per-model record)',
 };
 /** What `--fast` is: the checks that answer in a couple of minutes over all 135. */
 const FAST = new Set(['boxsizing', 'contrast', 'access', 'media', 'qa']);
@@ -188,6 +192,7 @@ function spawnStep(key) {
       : key === 'snippets' ? ['scripts/snippet-check.mjs', ...(models.length ? models : everyId())]
       : key === 'preview' ? ['scripts/preview-check.mjs']
       : key === 'compare' ? ['scripts/compare-capture.mjs', ...models]
+      : key === 'remote' ? ['scripts/check-remote.mjs']
       : NO_RECORD.has(key) ? ['scripts/qa.mjs', ...models]
       : ['scripts/capture-check.mjs', key, ...argsFor(key), ...models];
     // The step is told who is running it, so the board can offer a Stop that stops the RUN

@@ -95,6 +95,25 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       : F(`from docs/checks/gate.json: ${what} ran at ${String(gate.commit).slice(0, 7)} and did not pass`);
   };
   const step = (key) => (g) => (g.steps ?? []).find((s) => s.key === key) ?? null;
+  /*
+   * The three that need a network, read back from the gate step that asked them.
+   *
+   * Not asked from here: a proof runs on every ledger build, several times a minute, and a fetch
+   * or a preflight on that clock is a tax on looking at the page. scripts/check-remote.mjs runs
+   * once a gate and writes docs/checks/remote.json; this reads it, with the same rule as the
+   * gate record -- a stale answer is not an answer.
+   */
+  const remote = (() => {
+    try { return JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'remote.json'), 'utf8')); } catch { return null; }
+  })();
+  const fromRemote = (key, what) => () => {
+    if (!remote) return N(`docs/checks/remote.json is not there: no gate run has asked yet (npm run check-remote writes it)`);
+    const r = remote.checks?.[key];
+    if (!r) return N(`the recorded run did not ask about ${what}`);
+    const when = String(remote.at ?? '').slice(0, 16).replace('T', ' ');
+    if (r.ok === null) return N(`${r.found} (asked ${when})`);
+    return r.ok ? T(`${r.found} — asked ${when}`) : F(`${r.found} — asked ${when}`);
+  };
   const PROOFS = [
     [/^The working tree is clean/, () => atRiskList.length ? F(`${atRiskList.length} path(s) in git status, e.g. ${atRiskList.slice(0, 3).map((x) => x.path).join(', ')}`) : T('git status prints nothing')],
     [/^The main index matches HEAD/, KEYS.index, () => exits0('diff', '--cached', '--quiet', 'HEAD') ? T('git diff --cached HEAD is empty') : F(`the main index differs from HEAD in ${git('diff', '--cached', '--name-only', 'HEAD').trim().split('\n').filter(Boolean).length} path(s)`)],
@@ -105,7 +124,6 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       return tracked.length === 2 && entry ? T('both are tracked, and HEAD:package.json has "verify"') : F(`tracked: ${tracked.join(', ') || 'neither'}; "verify" in HEAD:package.json: ${entry ? 'yes' : 'no'}`);
     }],
     [/^Local-only files stay local/, KEYS.index, () => { const t = git('ls-files', 'hero-options.html', 'og-preview.html', 'harness-tmp').trim(); return t ? F(`tracked: ${t.split('\n').join(', ')}`) : T('none of them is tracked'); }],
-    [/^The remote has nothing main lacks/, () => N('needs git fetch, which uses the network')],
     [/^The verify gate holds/, () => N('npm run verify is hours of browser work and is written for an idle machine, so it is never run from here. Capped at C3D_MAX_BROWSERS (default 2) and one check at a time since an earlier run opened 57 browsers. The same checks are recorded green per model in the ledger at this commit, which is evidence, not this proof')],
     [/^Every model is approved/, () => counts.approved === n ? T(`${n} of ${n} approved`) : F(`${counts.approved} of ${n} approved`)],
     [/^The raw check records stay out of the repo/, () => `${KEYS.index()}|${mtime('.gitignore')}|${mtime('docs/release-snapshot.json')}`, () => {
@@ -318,6 +336,9 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
         ? T(`from the recorded results: check-exports holds for ${n} of ${n} models on the current code, and from rule v9 it fails a model whose dialog offers 4K while the renderer cannot encode 2160`)
         : F(`from the recorded results: ${ok} of ${n} have a fresh export pass, so the 4K condition is not proven on the current code`);
     }],
+    [/^The remote has nothing main lacks/, fromRemote('remoteAhead', 'the remote')],
+    [/^The Worker answers the site and refuses anyone else/, fromRemote('workerOrigins', 'the Worker origins')],
+    [/^The value the workflow reads exists in the repository/, fromRemote('workflowVariable', 'the workflow variable')],
     [/^The sitemap dates are regenerated/, () => {
       const path = 'src/sitemap-dates.json';
       let dates;
@@ -336,9 +357,7 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     }],
     [/^The Worker in worker\/ is deployed/, () => N('needs wrangler and the network')],
     [/^ALLOWED_ORIGINS names the live site/, () => { const t = read('worker/wrangler.jsonc'); if (t == null) return F('worker/wrangler.jsonc is missing'); const line = t.split('\n').find((l) => l.includes('ALLOWED_ORIGINS')) ?? ''; return line.includes('https://css3dlab.edgarasneverdauskas.com') ? T('worker/wrangler.jsonc names it') : F(`the ALLOWED_ORIGINS line is: ${line.trim() || '(none)'}`); }],
-    [/^The Worker answers the site and refuses anyone else/, () => N('needs curl against the deployed Worker: networked')],
     [/^VITE_CAPTURE_URL is passed to the Pages build/, () => { const t = read('.github/workflows/deploy.yml'); if (t == null) return F('.github/workflows/deploy.yml is missing'); const lines = t.split('\n').map((l, i) => [i + 1, l]).filter(([, l]) => l.includes('VITE_CAPTURE_URL')); return lines.length ? T(`deploy.yml mentions it on line ${lines.map(([i]) => i).join(', ')} (that it is in the build step's env is read by eye)`) : F('deploy.yml never mentions VITE_CAPTURE_URL'); }],
-    [/^The value the workflow reads exists in the repository settings/, () => N('needs gh against GitHub: networked')],
     [/^A local production build with the variable carries the endpoint/, () => N('needs a production build and the Worker URL: slow')],
     [/^The README's counts are the code's/, () => {
       const cats = { css: 0, js: 0 };
