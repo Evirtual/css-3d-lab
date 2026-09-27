@@ -70,6 +70,11 @@ const P = {
   video: { file: 'src/video.ts' },
   lazy: { file: 'src/lazy-mount.ts' },
   scene: { file: 'src/capture-scene.ts' },
+  // The faces the scene embeds. Not reachable from capture-scene.ts's own text, and the export is
+  // a picture of text: when these changed from four HTML error pages to four real woff2 files,
+  // every model's file changed and not one result went stale. The generated module carries a hash
+  // of each face's bytes, so swapping a woff2 without touching the code stales them too.
+  fonts: { file: 'src/fonts/capture-fonts.ts' },
   client: { file: 'src/capture-client.ts' },
   record: { file: 'src/record.ts' },
   render: { file: 'server/render.mjs' },
@@ -87,7 +92,7 @@ export const RENDER_PATHS = {
   // the card and the export dialog's canvas at every shape, besides the frame
   stages: [...FRAME, P.video, P.lazy],
   // the file the dialog makes: the scene captured, sent to the render service, recorded
-  exports: [...FRAME, P.video, P.scene, P.client, P.record, P.render],
+  exports: [...FRAME, P.video, P.scene, P.fonts, P.client, P.record, P.render],
   // the page standaloneDoc makes, opened on its own (check-boxsizing, check-contrast)
   file: [P.doc],
   // the share image: the og layout on the embed page, shot by generate-media through og-shot

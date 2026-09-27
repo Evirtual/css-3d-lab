@@ -134,6 +134,16 @@ const LIVE_MS = 1200; // a live take for the size matrix
 const MAKE_MS = 20 * 60_000; // how long to wait for one export to come back (see make())
 
 const args = process.argv.slice(2);
+/*
+ * The options that take a value, named once.
+ *
+ * They were named twice -- in opt() calls and again in the list the id filter skips over -- and
+ * --save was added to the first and not the second. Its directory then became a model id: the
+ * check opened /models/C:/Users/.../edge/, waited ten seconds for a dialog that was never coming,
+ * and reported two harness mismatches against a model that does not exist. An unknown --option
+ * with a value would do the same, so the filter skips the value after ANY of these.
+ */
+const VALUED = ['--json', '--only', '--save'];
 const flag = (name) => args.includes(name);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
 const quick = flag('--quick');
@@ -151,7 +161,11 @@ const jsonOut = opt('--json');
 const saveDir = opt('--save');
 if (saveDir) mkdirSync(saveDir, { recursive: true });
 const only = new Set((opt('--only') ?? 'dims,picture,slider,drift,formats').split(','));
-const ids = args.filter((a, i) => !a.startsWith('--') && !['--json', '--only'].includes(args[i - 1]));
+const ids = args.filter((a, i) => !a.startsWith('--') && !VALUED.includes(args[i - 1]));
+// A typo for a model id is a run of nothing that still says "0 mismatches". Said here, before a
+// browser starts, rather than as a ten-second selector timeout blamed on the harness.
+const unknown = ids.filter((id) => !everyModel().includes(id));
+if (unknown.length) { console.error(`No such model: ${unknown.join(', ')}`); process.exit(2); }
 /*
  * --defaults with no ids means EVERY model, not the sample.
  *
