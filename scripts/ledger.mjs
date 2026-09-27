@@ -725,6 +725,38 @@ lap('ledger object');
 if (ledger.readiness.checklist.exists) {
   const cl = ledger.readiness.checklist;
   cl.items = evaluateChecklist(cl.items, { ROOT, counts: ledger.counts, models, atRiskList: ledger.readiness.atRisk, head, checkFiles, cache: cache ? (cache.proofs ??= new Map()) : null });
+  /*
+   * THREE STAGES, AND ONLY THE MIDDLE ONE IS A PERSON.
+   *
+   * Everything before the push is run by a script; everything after it is read back off the live
+   * site by a script. Between them sit two questions a machine has no business answering: is the
+   * writing good, and do we publish.
+   *
+   * So a tick means different things in different stages, and it used to mean the same thing in
+   * all three: a box somebody typed an x into. That left the count reporting claims -- a run could
+   * turn the board green and the number would not move until a person went and ticked eight boxes,
+   * which is a person doing a machine's job and getting it wrong eventually.
+   *
+   * In the automatic stages the PROOF is the answer: done means proven, now, on this code. The x
+   * in the file is kept as `claimed`, so "somebody ticked this and the proof does not agree" is
+   * still visible -- it is just no longer what the count is made of. In Yours, the tick is the
+   * whole point and is left exactly as it was.
+   */
+  /*
+   * Three answers, not two. A proof that PASSES is the answer and no tick is needed. A proof that
+   * FAILS is the answer too, and a tick does not survive it -- that is the whole catch. But a
+   * proof that could not RUN is not an answer either way: "needs git fetch", "needs curl against
+   * the deployed Worker", "a manual check on the live site". Those were done by a person and the
+   * tick is the only evidence there is, so it stands. Treating them as undone did not make the
+   * count honest, it deleted five real verifications.
+   */
+  for (const it of cl.items) {
+    it.claimed = it.done;
+    if (it.group === 'Yours') continue;
+    if (it.result === 'true') it.done = true;
+    else if (it.result === 'false') it.done = false;
+    // not-evaluated: leave the tick as it was
+  }
   const by = (s) => cl.items.filter((x) => x.state === s).length;
   cl.proven = cl.items.filter((x) => x.result === 'true').length;
   cl.provenFalse = cl.items.filter((x) => x.result === 'false').length;
