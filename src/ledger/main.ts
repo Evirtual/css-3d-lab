@@ -1372,11 +1372,27 @@ import { icon } from '../icons.ts';
      * title because it is the thing that is changing; otherwise the score.
      */
     {
-      const live = (RUN_NOW.runs ?? []).map((r) => (CHECK_NAMES[r.what] ?? r.what).replace(/ (.*)$/, ''));
-      const on = (L.running && Object.entries(L.running).find(([, v]) => v && v.alive && v.total)) || null;
-      const far = on ? ` ${on[1].done ?? 0}/${on[1].total}` : '';
-      document.title = live.length
-        ? `${live[0]}${far} · Ledger`
+      /*
+       * The name in the tab is the one on the column, not the first word of the sentence.
+       *
+       * It used to be the check's title with `.replace(/ (.*)$/, '')` -- a regex that had lost its
+       * backslashes and so cut at the first SPACE instead of at a trailing "(check-stages)". The
+       * tab read "Same 22/135" for stages, "Pause" for access, "What" for app: the first word of a
+       * description, which names nothing. `short` is what the column heading says, so the tab and
+       * the table call the same run the same thing.
+       *
+       * The count comes from the check that is actually named, not from whichever running record
+       * happened to be first: with two runs going those were different checks, so the tab put one
+       * check's name beside another's progress.
+       */
+      const nameOf = (key) => CHECK_LIST.find((x) => x.key === key)?.short
+        ?? (CHECK_NAMES[key] ?? key).replace(/\s*\([^)]*\)\s*$/, '');
+      const first = (RUN_NOW.runs ?? [])[0] ?? null;
+      const rec = first && L.running ? L.running[first.what] : null;
+      const far = rec && rec.total ? ` ${rec.done ?? 0}/${rec.total}` : '';
+      const more = (RUN_NOW.runs ?? []).length > 1 ? ` +${RUN_NOW.runs.length - 1}` : '';
+      document.title = first
+        ? `${nameOf(first.what)}${far}${more} · Ledger`
         : `${c.approved}/${n} · Ledger`;
     }
     const by = L.build?.by ? ` by <code>${esc(L.build.by)}</code>${L.build.reason ? ` (${esc(L.build.reason)})` : ''}` : '';
