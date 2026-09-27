@@ -2712,8 +2712,25 @@ import { icon } from '../icons.ts';
     // Stop kills the process the board started. A run somebody began in a terminal is not the
     // board's to kill, so it is not offered -- but pause is, because pause is a file both watch.
     const canStop = !what || (runOf(what)?.mine ?? false);
+    /*
+     * A Stop that cannot stop is shown DISABLED, saying why, rather than left out.
+     *
+     * Leaving it out was read as the page having no way to stop anything -- "so I can not stop the
+     * process at all?". The board does know a pid for a run started in a terminal; what it does
+     * not have is the right one. The pid in the file is the CHECK, whose parent is the runner, so
+     * killing it would end this step and the runner would move straight on to the next one. A
+     * button that does something other than what its name says is worse than one that is off and
+     * explains itself.
+     */
+    // A run started elsewhere can still be stopped when it says what is running it: the runner's
+    // pid ends the whole run, not the one step, which is the only thing Stop can honestly mean.
+    const foreign = what ? runOf(what) : null;
+    const runner = foreign && !foreign.mine ? foreign.runner : null;
+    const whyNot = 'This run was started from a terminal and does not say what is running it, so there is no run to stop from here — only the one check, and the runner would move on to the next. Pause holds all of them.';
     const st = act === 'stop' ? wait('Stopping')
-      : canStop ? `<button type="button" class="${cls} ckrun--stop" data-act="stop"${what ? ` data-act-check="${esc(what)}"` : ''} title="Stop${what ? ` ${esc(CHECK_NAMES[what] ?? what)}` : ''}" aria-label="Stop">${STOP}</button>` : '';
+      : canStop ? `<button type="button" class="${cls} ckrun--stop" data-act="stop"${what ? ` data-act-check="${esc(what)}"` : ''} title="Stop${what ? ` ${esc(CHECK_NAMES[what] ?? what)}` : ''}" aria-label="Stop">${STOP}</button>`
+      : runner ? `<button type="button" class="${cls} ckrun--stop" data-act="stop" data-act-check="${esc(what)}" title="${esc(`Stop the whole ${runner.name} run — every step of it, not just ${CHECK_NAMES[what] ?? what}. It would have to start again from the beginning.`)}" aria-label="${esc(`Stop the whole ${runner.name} run`)}">${STOP}</button>`
+      : `<span class="${cls} ckrun--stop is-off" data-tip data-tiptext="${esc(whyNot)}" tabindex="0" role="img" aria-label="Stop is not available: ${esc(whyNot)}">${STOP}</span>`;
     return pr + st;
   }
 

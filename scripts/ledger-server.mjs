@@ -195,7 +195,7 @@ function state() {
   // and does not offer a Stop that would do nothing. All of them, not the first found: two checks
   // started from a terminal had only one reported, and the other column drew a play button over
   // its own progress bar.
-  for (const other of runningChecks(ROOT)) if (!runs.has(other.check)) out.runs.push({ what: other.check, label: other.check, models: [], startedAt: null, pid: null, mine: false, done: other.done, total: other.total });
+  for (const other of runningChecks(ROOT)) if (!runs.has(other.check)) out.runs.push({ what: other.check, label: other.check, models: [], startedAt: null, pid: null, mine: false, done: other.done, total: other.total, runner: other.runner ?? null });
   return out;
 }
 
@@ -277,10 +277,43 @@ function start(what, models = []) {
  * A check is a Node process that opens browsers, so killing the Node alone leaves the browsers
  * behind holding memory. On Windows taskkill /T takes the tree; elsewhere the process group does.
  */
+/** Ends a process and everything under it. A runner outlives its step, so the tree is the target. */
+function killTree(pid) {
+  try {
+    if (process.platform === 'win32') spawn('taskkill', ['/pid', String(pid), '/T', '/F'], { stdio: 'ignore' });
+    else process.kill(-pid, 'SIGTERM');
+    return true;
+  } catch {
+    try { process.kill(pid, 'SIGTERM'); return true; } catch { return false; }
+  }
+}
+
+/*
+ * Stopping a run this server did not start.
+ *
+ * A long run is started from a terminal, and until now the page could only pause it: the pid in a
+ * check's result file is the CHECK, and killing that makes the runner move straight on to the next
+ * step -- thirteen of them, so Stop would have looked broken twelve times.
+ *
+ * verify now tells each step who is running it (C3D_RUNNER / C3D_RUNNER_PID) and capture-check
+ * records that, so there is a pid for the RUN. Killing its tree ends the runner and the step it is
+ * on together, which is what Stop means to someone watching it.
+ */
+function stopForeign(what) {
+  const r = runningCheck(ROOT, what);
+  const runner = r?.runner;
+  if (!runner?.pid) return { ok: false, why: `${what} was not started from here and does not say what is running it, so there is no run to stop` };
+  const ok = killTree(runner.pid);
+  return ok
+    ? { ok: true, stopped: [what], run: runner.name, pid: runner.pid, whole: true }
+    : { ok: false, why: `could not stop ${runner.name} (pid ${runner.pid}): it may have finished already` };
+}
+
 function stop(what) {
   // A named check stops that one; no name stops the lot, which is what a Stop beside "everything"
-  // means. Either way only runs this server started can be stopped: there is no pid for the others.
+  // means. A run this server did not start is stopped through its runner instead (stopForeign).
   const targets = what ? [runs.get(what)].filter(Boolean) : [...runs.values()];
+  if (!targets.length && what) return stopForeign(what);
   if (!targets.length) return { ok: false, why: what ? `${what} is not running here` : 'nothing is running here' };
   for (const { child } of targets) {
     try {

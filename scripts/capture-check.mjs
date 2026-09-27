@@ -621,6 +621,10 @@ function stepsThisRun() {
 let liveStep = null, liveStepFrom = null;
 /** The preparation script running before the check, or null: see prepareFor(). */
 let preparing = null;
+/** Who spawned this check, when something did: verify passes its name and pid so a Stop on the
+ *  page can end the whole run instead of one step of it. */
+const runner = process.env.C3D_RUNNER && Number(process.env.C3D_RUNNER_PID) > 0
+  ? { name: process.env.C3D_RUNNER, pid: Number(process.env.C3D_RUNNER_PID) } : null;
 function noteStep(line) {
   if (check !== 'exports') return;
   const m = /^\s+MISMATCH (\S+) (\S+)/.exec(line);
@@ -760,6 +764,7 @@ function writeProgress() {
       step: liveStep,
       // what is happening before the check itself can start
       preparing,
+      runner,
       stepFrom: liveStep ? liveStepFrom : null,
       updatedAt: now(),
     },

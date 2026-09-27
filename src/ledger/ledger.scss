@@ -1817,6 +1817,9 @@ header .sitechk { margin: 0 0 0 auto; padding: 0; gap: 10px; border: 0; backgrou
    -- at 22 it read as a lesser control than the two next to it, which it is not. */
 .sstog--icon { flex: none; gap: 0; width: 26px; height: 26px; padding: 0; justify-content: center; }
 .sstog--icon svg { width: 12px; height: 12px; }
+/* a Stop that is present so it can say why it is off, rather than absent so it says nothing */
+.ckrun--stop.is-off { opacity: 0.32; cursor: help; }
+.ckrun--stop.is-off:hover, .ckrun--stop.is-off:focus-visible { opacity: 0.55; }
 
 .siteruns { margin: 16px 0 14px; display: grid; gap: 8px; }
 .siteruns .pg { flex: 1 1 auto; width: auto; }

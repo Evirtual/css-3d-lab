@@ -5542,6 +5542,16 @@ header .sitechk {
   height: 12px;
 }
 
+/* a Stop that is present so it can say why it is off, rather than absent so it says nothing */
+.ckrun--stop.is-off {
+  opacity: 0.32;
+  cursor: help;
+}
+
+.ckrun--stop.is-off:hover, .ckrun--stop.is-off:focus-visible {
+  opacity: 0.55;
+}
+
 .siteruns {
   margin: 16px 0 14px;
   display: grid;

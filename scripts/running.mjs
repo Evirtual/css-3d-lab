@@ -85,7 +85,7 @@ export function runningChecks(root) {
 /** The one check actually running now, or null. A crashed claim is not one. */
 export function runningCheck(root) {
   for (const [key, run] of Object.entries(runsNow(root))) {
-    if (run && run.alive) return { check: key, done: run.done ?? null, total: run.total ?? null, pid: run.pid ?? null };
+    if (run && run.alive) return { check: key, done: run.done ?? null, total: run.total ?? null, pid: run.pid ?? null, runner: run.runner ?? null, preparing: run.preparing ?? null };
   }
   return null;
 }

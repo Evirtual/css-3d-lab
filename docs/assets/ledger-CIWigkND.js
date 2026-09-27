@@ -2659,7 +2659,10 @@ function icon(name) {
 		const several = RUN_NOW.runs.length > 1;
 		const pr = act === "pause" ? wait("Pausing after the model it is on") : act === "resume" ? wait("Resuming") : RUN_NOW.paused ? `<button type="button" class="${cls} ckrun--go" data-act="resume" title="Resume${several ? " everything" : ""}" aria-label="Resume">${PLAY}</button>` : `<button type="button" class="${cls} ckrun--hold" data-act="pause" title="Pause${several ? " everything" : ""} after the model it is on" aria-label="Pause">${PAUSE}</button>`;
 		const canStop = !what || (runOf(what)?.mine ?? false);
-		return pr + (act === "stop" ? wait("Stopping") : canStop ? `<button type="button" class="${cls} ckrun--stop" data-act="stop"${what ? ` data-act-check="${esc(what)}"` : ""} title="Stop${what ? ` ${esc(CHECK_NAMES[what] ?? what)}` : ""}" aria-label="Stop">${STOP}</button>` : "");
+		const foreign = what ? runOf(what) : null;
+		const runner = foreign && !foreign.mine ? foreign.runner : null;
+		const whyNot = "This run was started from a terminal and does not say what is running it, so there is no run to stop from here — only the one check, and the runner would move on to the next. Pause holds all of them.";
+		return pr + (act === "stop" ? wait("Stopping") : canStop ? `<button type="button" class="${cls} ckrun--stop" data-act="stop"${what ? ` data-act-check="${esc(what)}"` : ""} title="Stop${what ? ` ${esc(CHECK_NAMES[what] ?? what)}` : ""}" aria-label="Stop">${STOP}</button>` : runner ? `<button type="button" class="${cls} ckrun--stop" data-act="stop" data-act-check="${esc(what)}" title="${esc(`Stop the whole ${runner.name} run — every step of it, not just ${CHECK_NAMES[what] ?? what}. It would have to start again from the beginning.`)}" aria-label="${esc(`Stop the whole ${runner.name} run`)}">${STOP}</button>` : `<span class="${cls} ckrun--stop is-off" data-tip data-tiptext="${esc(whyNot)}" tabindex="0" role="img" aria-label="Stop is not available: ${esc(whyNot)}">${STOP}</span>`);
 	}
 	/**
 	* The table's own control, beside "Collapse all".

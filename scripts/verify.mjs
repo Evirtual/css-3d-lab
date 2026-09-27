@@ -179,7 +179,10 @@ function spawnStep(key) {
     const argv = key === 'parity' ? ['scripts/check-worker-parity.mjs', ...models]
       : NO_RECORD.has(key) ? ['scripts/qa.mjs', ...models]
       : ['scripts/capture-check.mjs', key, ...argsFor(key), ...models];
-    const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true });
+    // The step is told who is running it, so the board can offer a Stop that stops the RUN
+    // rather than the step. Stopping one check of a thirteen-step run only makes the runner move
+    // on to the next one, which is not what Stop means to anyone watching.
+    const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0', C3D_RUNNER: 'verify', C3D_RUNNER_PID: String(process.pid) }, windowsHide: true });
     let tail = '';
     const keep = (b) => { tail = (tail + b.toString()).slice(-4000); process.stdout.write(b); };
     child.stdout.on('data', keep);
