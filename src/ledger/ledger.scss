@@ -1785,7 +1785,10 @@ header .sitechk { margin: 0 0 0 auto; padding: 0; gap: 10px; border: 0; backgrou
 .machine .dot.warn { background: var(--st-warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-warn) 22%, transparent); }
 /* Its panel: two gauges, because a share of something is easier to read as a bar than as a
    number, and the floor is a place on that bar rather than a second figure to compare against. */
-.mgauges { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin: 0 0 16px; }
+/* The top margin makes up the difference between the body's 6px top padding and its 20px sides,
+   so the gauges sit the same distance from the head as from the edges. */
+.mgauges { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin: 14px 0 16px; }
+@media (max-width: 600px) { .mgauges { margin-top: 10px; } } /* body padding there is 4px / 14px */
 .mgauge { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--text) 3%, transparent); }
 .mgauge header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .mgauge h3 { margin: 0; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
