@@ -188,10 +188,31 @@ async function judge(id, browser) {
     return { state: s, raw, noise, over: Math.max(0, raw - noise) };
   });
   let states;
-  for (let round = 0; round < 2; round++) {
+  /*
+   * A NOISE FLOOR OF EXACTLY ZERO IS NOT A MEASUREMENT OF ZERO NOISE.
+   *
+   * noise is the smallest gap between two openings of the SAME document, and it is what gets
+   * subtracted before judging. When the raster coin-toss above lands the same way for all four
+   * openings of A and the other way for all four of B, there is nothing within either group to
+   * measure and noise reads 0.00 -- so the coin-toss is counted, in full, as a real difference.
+   *
+   * That failed explode on 2026-09-28, at 0.59% over a 0.25% limit, on the twentieth model in a
+   * tiring browser. It is not a real difference: every face is position:absolute with inset:0 and
+   * no width of its own, so its border box is pinned to its parent whichever box model applies --
+   * measured, 0 of 8 elements change size under border-box. The very next run printed the same
+   * 0.59% as NOISE rather than as difference, which is the coin-toss caught landing the other way.
+   *
+   * So when a state is over the limit AND its noise floor is exactly zero, take more openings.
+   * This cannot hide a real difference: more renders only reveal noise that is there to find. A
+   * model that really does depend on outside CSS differs in every pair, its noise stays 0, and it
+   * still fails at the end of the third round. LIMIT is untouched.
+   */
+  for (let round = 0; round < 3; round++) {
     for (let k = 0; k < 2; k++) { as.push(await render(browser, doc)); bs.push(await render(browser, bbDoc)); }
     states = judgeStates();
     if (!states.some((s) => s.over > LIMIT)) break;
+    // past the second round, keep going only while the noise estimate is the degenerate one
+    if (round >= 1 && !states.some((s) => s.over > LIMIT && s.noise === 0)) break;
   }
   const worst = states.reduce((w, s) => (s.over > w.over ? s : w));
   const depends = worst.over > LIMIT;
