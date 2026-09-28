@@ -3035,9 +3035,35 @@ import { icon } from '../icons.ts';
     const checked = `Page checked ${lastFetchAt ? fmtAge((Date.now() - lastFetchAt) / 1000) : 'never'}${document.hidden ? ' (paused while the tab is hidden)' : `, every ${POLL_MS / 1000} s`}. Ledger updated ${fmtAge(dataAge)}.`;
     // "watcher live" is the only state short enough to shorten: every other one says what is wrong
     const short = w.kind === 'alive' ? 'watcher live' : wText;
+    /*
+     * A GATE IN FLIGHT SAYS SO, ABOVE EVERYTHING ELSE.
+     *
+     * The line below this used to read "Quiet, not stale: nothing the ledger reads has changed
+     * for 6 min" over a run with three hours left, because the seven gate steps that record
+     * nothing per model change nothing for the ledger to read. Quiet and busy looked identical.
+     * They are opposites, and this is the one place a person looks to tell them apart.
+     */
+    const G = (L as any).gate as null | { running: boolean; crashed: boolean; total: number; startedAt: string;
+      step: null | { index: number; key: string; short?: string | null; name: string }; done: { key: string; ok: boolean; took: string }[] };
+    let gateNote = '';
+    let gateChip = '';
+    if (G?.running) {
+      const at = G.step?.index ?? (G.done.length + 1);
+      const pct = G.total ? Math.min(100, Math.round((100 * G.done.length) / G.total)) : 0;
+      const bad = G.done.filter((d) => !d.ok);
+      /* A CHIP, NOT A BLOCK. The first version of this was a 134px notice that pushed the whole
+         board down for three hours. The run belongs beside the other live facts -- the watcher,
+         the memory, the CPU -- because that is what it is: a thing that is true right now. The
+         step name is hidden under 560px, where the row has about 115px to spare. */
+      const tip = (`gate: step ${at} of ${G.total}${G.step ? `, ` + G.step.name : ``}. ${G.done.length} finished${bad.length ? `, ${bad.length} failed: ` + bad.map((d) => d.key).join(`, `) : `, all held`}. Started ${clock(G.startedAt)}.`);
+      gateChip = (`<span class="sep">·</span><span class="gate${bad.length ? ` gate--bad` : ``}" tabindex="0" data-tip data-tiptext="${esc(tip)}" data-cl-jump="gate"><i class="dot busy"></i>gate <b>${esc(at)}/${esc(G.total)}</b>${G.step ? `<span class="gate__what">${esc(G.step.short ?? G.step.key)}</span>` : ``}<span class="gate__track"><i style="width:${pct}%"></i></span></span>`);
+    } else if (G?.crashed) {
+      gateNote = (`<div class="notice bad"><b class="big">A gate run stopped without finishing.</b> It reached step ${esc(G.step?.index ?? G.done.length)} of ${esc(G.total)}${G.step ? ` (<code>${esc(G.step.key)}</code>)` : ``} and the process is gone, so nothing is running now: this board holds whatever it had recorded by then. Start it again with <code>npm run verify</code>.</div>`);
+    }
     $('live').innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span>`
       + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge).replace(/ ago$/, ''))}</span>` : '')
-      + `<span id="machine"></span>`;
+      + `<span id="machine"></span>`
+      + gateChip;
     paintMachine();
 
     // the plain-words notice: minute granularity, rewritten only when it changes (it is aria-live)
@@ -3046,8 +3072,9 @@ import { icon } from '../icons.ts';
     if (fetchError) note = `<div class="notice bad"><b class="big">Could not refresh.</b> ${esc(fetchError)}. What you see was fetched ${esc(lastChangeAt ? fmtAge((Date.now() - lastChangeAt) / 1000).replace(/\d+ s ago/, 'under a minute ago') : 'earlier')}.</div>`;
     else if (w.kind === 'dead' && dataAge > QUIET_S) note = `<div class="notice bad"><b class="big">Stale: this page has stopped updating.</b> The ledger has not changed for ${min(dataAge)}, and the watcher that should rebuild it last reported ${min(w.beat ?? 0)} ago without recording a stop, so it has probably crashed or the laptop slept. Commits and check results since ${esc(clock(W.heartbeatAt))} are missing. Restart it with <code>npm run ledger:watch</code>.</div>`;
     else if (w.kind === 'dead') note = `<div class="notice">The watcher last reported ${min(w.beat ?? 0)} ago without recording a stop. This data is recent because it was built ${L.build?.by ? `by <code>${esc(L.build.by)}</code>` : 'another way'}, but nothing is rebuilding it. Restart the watcher with <code>npm run ledger:watch</code>.</div>`;
-    else if (w.kind === 'alive' && dataAge > QUIET_S) note = `<div class="notice info">Quiet, not stale: nothing the ledger reads has changed for ${min(dataAge)}. The watcher is alive and looking every 3 s.</div>`;
+    else if (w.kind === 'alive' && dataAge > QUIET_S && !G?.running) note = `<div class="notice info">Quiet, not stale: nothing the ledger reads has changed for ${min(dataAge)}. The watcher is alive and looking every 3 s.</div>`;
     else if ((w.kind === 'stopped' || w.kind === 'none') && dataAge > QUIET_S) note = `<div class="notice"><b class="big">Not live.</b> No watcher is running, so this is the build from ${min(dataAge)} ago and it will not change until someone runs <code>npm run ledger</code> or starts <code>npm run ledger:watch</code>.</div>`;
+    note = gateNote + note;
     // is the data built by the code that is on disk?
     const code = L.build?.code;
     if (!code) note += `<div class="notice"><b class="big">Built by old code.</b> This ledger was built by a version of <code>scripts/ledger.mjs</code> from before it recorded its own version, so it may be missing sections or counting the old way.${w.kind === 'alive' ? ' The watcher running now loaded that old code: restart it with <code>npm run ledger:watch</code>.' : ' Run <code>npm run ledger</code>.'}</div>`;

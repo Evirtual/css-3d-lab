@@ -814,6 +814,31 @@ button, input { font: inherit; color: inherit; }
    that (the faint part). The numbers are in the label; the fill is what carries across the room. An
    item whose proof fails is red at the right-hand end, so a list that is filling up and wrong does not
    look like a list that is filling up. The bar is behind the text, never over it. */
+/* THE GATE, BESIDE THE OTHER LIVE FACTS.
+
+   Not in the checklist pill: that bar counts 56 items and this counts 18 steps, and one bar
+   carrying two quantities is the fault this board already had once. The gate feeds ten of those
+   items and every column on the table, so it is its own thing and sits with the watcher, the
+   memory and the CPU -- the row of things that are true right now.
+
+   It replaced a 134px notice that pushed the whole board down for the three hours of a run. */
+.gate { display: inline-flex; align-items: center; gap: 6px; }
+.gate b { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.gate--bad b { color: var(--hot); }
+.gate__what { color: var(--muted); font-size: 12px; }
+.gate__track { display: inline-block; width: 54px; height: 4px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; }
+.gate__track i { display: block; height: 100%; border-radius: 999px; background: var(--accent-2);
+  transition: width 0.4s ease; }
+.gate--bad .gate__track i { background: var(--hot); }
+/* the dot already pulses for a live watcher; the gate borrows it */
+.dot.busy { background: var(--accent-2); animation: gatepulse 1.6s ease-in-out infinite; }
+@keyframes gatepulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .dot.busy { animation: none; } }
+/* Under 560px the live row has about 115px to spare, so the step name goes and the count stays:
+   "gate 11/18" with its track is the part that answers "is something happening". */
+@media (max-width: 560px) { .gate__what { display: none; } .gate__track { width: 38px; } }
+
 .clfill { position: relative; overflow: hidden; isolation: isolate; }
 .clfill::before {
   content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit;

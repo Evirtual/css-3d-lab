@@ -26,7 +26,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runOf } from './running.mjs';
+import { runOf, alive } from './running.mjs';
 // Imported with this module's own query, so the watcher re-importing ledger.mjs?v=<version> gets
 // model-sources.mjs at that version too, not the copy it loaded at start.
 const { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources } = await import(`./model-sources.mjs${new URL(import.meta.url).search}`);
@@ -581,8 +581,38 @@ const models = demos.map((d) => {
 
 lap('models');
 const count = (f) => models.filter(f).length;
+/*
+ * IS A GATE RUNNING, AND WHERE HAS IT GOT TO?
+ *
+ * Read from docs/checks/gate-progress.json, which scripts/verify.mjs writes at every step
+ * boundary. Without it the board could only see the checks that record per model, so the seven
+ * steps that record nothing left it saying "Quiet, not stale" over a run with hours to go.
+ *
+ * A file claiming to run is not a run: the pid is checked, the same way scripts/running.mjs judges
+ * a check's own progress. A runner killed without clearing the file leaves one that would otherwise
+ * claim to be running for ever, which is the twenty-hour lie this board already learned once.
+ */
+const gateRun = (() => {
+  let g = null;
+  try { g = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate-progress.json'), 'utf8')); } catch { return null; }
+  if (!g || typeof g !== 'object') return null;
+  const live = g.running === true && alive(g.pid);
+  return {
+    running: live,
+    crashed: g.running === true && !live,
+    pid: g.pid ?? null,
+    startedAt: g.startedAt ?? null,
+    at: g.at ?? null,
+    total: g.total ?? null,
+    scope: g.scope ?? null,
+    held: g.held ?? null,
+    step: g.step ?? null,
+    done: Array.isArray(g.done) ? g.done : [],
+  };
+})();
 const ledger = {
   generatedAt, head,
+  gate: gateRun,
   groups,
   tags: [...new Set(demos.flatMap((d) => d.tags ?? []))].sort(),
   build: { by, reason, ms: null, reusedModelLoad, reusedGitReplay, code: (() => { const onDisk = codeVersion(); return { loaded: LOADED_CODE, onDisk, stale: onDisk !== LOADED_CODE, files: CODE_FILES }; })() },

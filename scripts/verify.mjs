@@ -283,10 +283,64 @@ if (willUseDist.length && !noBuild) {
 
 const began = Date.now();
 const results = [];
+/*
+ * WHERE THE RUN HAS GOT TO, WHILE IT IS STILL GOING.
+ *
+ * Each CHECK reports its own models as it goes (scripts/capture-check.mjs writes progress on a
+ * two-second beat), so the board can say "media 58/135". Nothing reported the RUN. So the board
+ * knew a check was busy and never knew it was step 9 of 18, and during the seven steps that record
+ * nothing per model -- remote, qa, snippets, preview, compare, looks, parity -- it had nothing to
+ * read at all and said "Quiet, not stale: nothing the ledger reads has changed for 6 min" over a
+ * gate with three hours left to run. Quiet and busy look identical from the outside, which is the
+ * twenty-hour lie in miniature.
+ *
+ * Small on purpose, and written at every step boundary so a reader is never more than one step
+ * behind. pid is here for the same reason capture-check carries one: a runner that dies without
+ * clearing this leaves a file that claims to be running, and a reader can check whether the
+ * process is still alive rather than believe it.
+ */
+const PROGRESS = join(ROOT, 'docs', 'checks', 'gate-progress.json');
+const beat = (extra) => {
+  try {
+    writeFileSync(PROGRESS, `${JSON.stringify({
+      note: 'Written by scripts/verify.mjs while the gate runs. Cleared when it ends. Not a result: see gate.json for that.',
+      running: true,
+      pid: process.pid,
+      startedAt: new Date(began).toISOString(),
+      at: new Date().toISOString(),
+      total: run.length,
+      scope: models.length ? models : 'every model',
+      done: results.map((r) => ({ key: r.key, ok: r.code === 0 && !(r.tally && r.tally.fail > 0), took: r.took })),
+      ...extra,
+    }, null, 2)}
+`);
+  } catch { /* a gate that cannot say where it is still runs */ }
+};
+const endBeat = (held) => {
+  try {
+    writeFileSync(PROGRESS, `${JSON.stringify({
+      note: 'Written by scripts/verify.mjs. The run has ended; gate.json holds the result.',
+      running: false,
+      pid: process.pid,
+      startedAt: new Date(began).toISOString(),
+      at: new Date().toISOString(),
+      total: run.length,
+      held,
+      done: results.map((r) => ({ key: r.key, ok: r.code === 0 && !(r.tally && r.tally.fail > 0), took: r.took })),
+    }, null, 2)}
+`);
+  } catch { /* as above */ }
+};
 for (const [i, key] of run.entries()) {
   const c = listed.get(key) ?? { name: OUTSIDE[key] ?? '(no per-model record)' };
+  /* The registry holds two words for the same check and they are not the same word: the step is
+     run as "models" and the board calls its column Contract, "contrast" is Text, "media" is Share.
+     Reading the terminal beside the board meant holding a translation table in your head, so each
+     line carries both and there is nothing left to translate. */
+  const onTheBoard = c.short && c.short.toLowerCase() !== key ? ` (${c.short} on the board)` : '';
   const at = Date.now();
-  console.log(`\n[${i + 1}/${run.length}] ${hhmm()}  ${key} — ${c.name}${key === 'exports' && !models.length ? ' (every model, at the dialog\'s defaults)' : ''}`);
+  console.log(`\n[${i + 1}/${run.length}] ${hhmm()}  ${key}${onTheBoard} — ${c.name}${key === 'exports' && !models.length ? ' (every model, at the dialog\'s defaults)' : ''}`);
+  beat({ step: { index: i + 1, key, short: c.short ?? null, name: c.name, startedAt: new Date(at).toISOString() } });
   await prepare(key);
   const { code } = await spawnStep(key);
   sweep();
@@ -295,8 +349,9 @@ for (const [i, key] of run.entries()) {
   const line = t
     ? `${t.pass}/${t.total} pass${t.fail ? `, ${t.fail} FAILED` : ''}${t.other ? `, ${t.other} other` : ''}${t.total < t.board ? ` (of ${t.board} on the board)` : ''}`
     : code === 0 ? 'ran, no per-model record' : `exit ${code}`;
-  console.log(`[${i + 1}/${run.length}] ${hhmm()}  ${key}: ${line} — ${took}, ${mb() ?? '?'} MB free`);
+  console.log(`[${i + 1}/${run.length}] ${hhmm()}  ${key}${onTheBoard}: ${line} — ${took}, ${mb() ?? '?'} MB free`);
   results.push({ key, code, tally: t, took });
+  beat({ step: null });
 }
 
 /* ---------- one summary ---------- */
@@ -346,4 +401,5 @@ try {
   // A gate that cannot write its own record has still run: say so and do not change the verdict.
   console.log(`(could not write docs/checks/gate.json: ${String(e?.message ?? e).split('\n')[0]})`);
 }
+endBeat(held);
 process.exit(held ? 0 : 1);
