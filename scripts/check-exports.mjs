@@ -892,7 +892,7 @@ async function checkImages(id) {
         const expect = (c) => 0.5 + (c - 0.5) * k;
         const dcx = (f.l + f.r) / 2 - expect((ref.l + ref.r) / 2), dcy = (f.t + f.b) / 2 - expect((ref.t + ref.b) / 2);
         const gap = boxGap(s.file, s.screen);
-        say(`  slider ${shape} ${String(fill).padStart(3)}%${s.value !== fill ? ` -> ${s.value}% (top end ${s.top}%)` : ''}: screen ${boxText(s.screen)} footprint ${boxText(f)} (w ×${wr.toFixed(3)}, h ×${hr.toFixed(3)}, want ×${k.toFixed(3)}; centre off scaling-about-the-middle by ${pc(dcx)}%,${pc(dcy)}%), file ${boxText(s.file)} (edge gap ${pc(gap)}%, diff ${s.like.toFixed(1)})`);
+        say(`  slider ${shape} ${String(fill).padStart(3)}%${s.value !== fill ? ` -> ${s.value}% (top end ${s.top}%)` : ''}: screen ${boxText(s.screen)} footprint ${boxText(f)} (w ×${wr.toFixed(3)}, h ×${hr.toFixed(3)}, want ×${k.toFixed(3)}; centre off scaling-about-the-middle by ${pc(dcx)}%,${pc(dcy)}%), file ${boxText(s.file)} (edge gap ${pc(gap)}%, diff ${s.like.diff.toFixed(1)})`);
         if (!(gap <= TOL)) miss(id, 'slider', `${shape} ${fill}%`, `file ${boxText(s.file)} vs screen ${boxText(s.screen)} (${pc(gap)}% off)`, 'app');
         if (fill === 70) continue;
         const clipped = touches(f);
