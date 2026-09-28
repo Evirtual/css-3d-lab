@@ -757,6 +757,21 @@ if (ledger.readiness.checklist.exists) {
     else if (it.result === 'false') it.done = false;
     // not-evaluated: leave the tick as it was
   }
+  /*
+   * COUNT THE TICKS AFTER THE RULE ABOVE HAS MOVED THEM, NOT BEFORE.
+   *
+   * cl.done was counted by readChecklist() off the markdown file, before a single proof had run.
+   * The loop above then ticked and unticked items and nobody counted again, so the page held two
+   * numbers for one list: the heading counted the items (48 of 58) while the bar and its key read
+   * cl.done (38) and reported "0 ticked, not proven here" over a list with two of them. The
+   * comment forty lines down in src/ledger/main.ts warns about exactly this -- "two numbers for
+   * one list is worse than either" -- and it was describing the bug it still had.
+   *
+   * This is the reason the checklist never felt live while the table did. The table is rebuilt
+   * from its results; the checklist bar was drawing a number from before the work.
+   */
+  cl.claimedInFile = cl.done;
+  cl.done = cl.items.filter((x) => x.done).length;
   const by = (s) => cl.items.filter((x) => x.state === s).length;
   cl.proven = cl.items.filter((x) => x.result === 'true').length;
   cl.provenFalse = cl.items.filter((x) => x.result === 'false').length;
