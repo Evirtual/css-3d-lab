@@ -28,19 +28,23 @@ and every path is built with `join`/`resolve`. "The ledger" means `docs/ledger.j
 
 ## Yours
 
-**Two items, and they are the only two on this list that wait for a person.** Everything below this
+**One item, and it is the only one on this list that waits for a person.** Everything below this
 section is answered by a script or by an agent running one, and each of those carries its evidence
 in its own line — what was run, when, on which commit, and what it printed. None of them needs a
 person to look, agree or sign anything.
 
-These two do, and neither can be delegated: one is a judgement about whether the writing is good,
-and the other is the decision to publish. A checklist that could tick these itself would be a
-checklist that publishes without being asked.
+This one does, and it cannot be delegated: it is the decision to publish. A checklist that could
+tick it itself would be a checklist that publishes without being asked.
+
+It used to be two. The other was a judgement about whether the release article was ready to read,
+and the article is not this repository's work: it is written, edited and published somewhere else,
+on its own clock, and holding a deploy behind a thirty-three minute read coupled two things that
+have no reason to move together. Removed on 2026-09-28, along with the item tracking whether it was
+drafted. The app ships when the app is ready.
 
 Whoever is releasing answers them, under their own name — `npm run signoff` writes the tick with
 the date, the commit and the name git is configured with, so the record says who said it.
 
-- [ ] The person publishing has read the release article and says it is ready — the draft is at `css-3d-lab-ledger-article/article.md` (about 7,100 words, counted at `ee272a1`); "ready" means a person has read it, not that a script has counted its words. It is the same item as *A second article on how the view-contract rewrite was run* under **Article** below, which carries the conditions the article itself must meet. Ticked with `npm run signoff -- article` — signed off by Edgaras Neverdauskas, 2026-09-25, at 6f8f72d
 - [ ] The person publishing has said to push — in their own words, after this list is complete and they have read it. Nothing else here may be read as that permission: not a green ledger, not `GATE HOLDS`, not 57 of 57. The push deploys to the live site (`.github/workflows/deploy.yml`) and is the claim that everything above checked out, so it is theirs to make. Ticked with `npm run signoff -- push`, which refuses while anything else that can be done before the push is still open — signed off by Edgaras Neverdauskas, 2026-09-25, at c9d3c6f
 
 ## Nothing is lost
@@ -114,7 +118,6 @@ Recording, snapshots and print all need it (README, "Recording, snapshots and pr
 Written last of everything done before the push, and never after it: the push is the claim that it all checked out, so the article has to be able to describe a list that already holds. Every count, check result and ruling in it is read from the repository, so a draft written earlier quotes numbers that are still moving.
 
 - [x] The project article at public/article/index.html is kept as published and dated, not rewritten: it is an account of one day, it is canonical on Medium and LinkedIn, and editing it to match later code would change a record people have already read. Instead it carries a note saying when it was written and linking to the story of what changed — `grep -n "note-then" public/article/index.html public/article/assets/site.css` finds the note and its style, and the note names the ledger article
-- [x] A second article on how the view-contract rewrite was run (the contract, parallel agents reviewing each other, the ledger, the checks) is drafted from docs/ledger.json, docs/reviews/ and the commit history, only after the rewrite is complete — its first commit is later than the one where `node -p "require('./docs/ledger.json').counts.approved"` first printed 135; if it lives under public/, scripts/generate-pages.mjs is extended to put it in the sitemap (today only public/article/index.html is) — **drafted**, 2026-09-25: `css-3d-lab-ledger-article/article.md`, about 7,100 words, written from `docs/ledger.json`, `docs/reviews/` and the commit history, and brought up to the current commit after the rewrite finished — its numbers, its open-items section and its account of the three gate failures are all counted at `ee272a1`, the commit where the ledger first read 135 approved and `GATE HOLDS`. It lives in its own repository beside this one, not under `public/`, so the sitemap condition does not apply. **This item is that the draft exists and is current. Whether it is GOOD is not a thing a script can answer, and it is the first item under [Yours](#yours).**
 
 ## After the push
 
