@@ -2453,6 +2453,12 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
   }
   /* the counts these carry are for the wide layout; the bar has no room and the panels say them */
   #hero-tools .nav__t small, #hero-tools .notesbtn small { display: none; }
+  /* AND THE CHECKLIST'S NUMBERS WITH THEM.
+     The wide header gives that button its own rule so "46/56" is not crushed against the word
+     (.hero__btns #cl-btn small). In the bar that rule ties with the one above on specificity and
+     wins by sitting later in the file, so one button wore two lines of text among seven bare
+     icons -- which is what made the bar look cramped. Two ids beat one, and this is the bar. */
+  #hero-tools #cl-btn small { display: none; }
   /* .clfill IS the checklist button, not the bar drawn inside it: hiding it hid the button.
      The decoration is the ::before; that is what has no room in a 60px slot. */
   #hero-tools .clbar { display: none; }
