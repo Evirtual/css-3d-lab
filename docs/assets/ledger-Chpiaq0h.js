@@ -158,10 +158,11 @@ function icon(name) {
 		if (mode === "auto") document.documentElement.removeAttribute("data-theme");
 		else document.documentElement.setAttribute("data-theme", mode);
 		const themeLabel = mode === "auto" ? "follows the system" : mode;
+		const themeText = $("theme").querySelector(".nav__t") ?? $("theme");
+		themeText.textContent = `Theme: ${mode}`;
 		$("theme").setAttribute("aria-label", `Theme: ${themeLabel}. Click to change.`);
 		$("theme").dataset.tiptext = `Theme: ${themeLabel}. Click to change: auto, light, dark.`;
 		$("theme").dataset.tip = "";
-		$("theme").classList.add("btn--icon");
 	};
 	$("theme").addEventListener("click", () => {
 		mode = modes[(modes.indexOf(mode) + 1) % modes.length];

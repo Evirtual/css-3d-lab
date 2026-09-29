@@ -51,13 +51,20 @@ import { icon } from '../icons.ts';
   const applyTheme = () => {
     if (mode === 'auto') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', mode);
-    /* An icon, not a sentence. "Theme: auto" spent ninety pixels of a header saying what the icon
-       says, and the header was the thing that had run out of room. */
+    /*
+     * Update the LABEL, not the button.
+     *
+     * paintNavIcons wraps each header button as .nav__i (the glyph) + .nav__t (the words), so
+     * setting the button's textContent threw the icon away and the next paint put it back -- and
+     * hiding the words with CSS left a pill with no icon and no label, an empty circle in the
+     * header. Twice. The words live in .nav__t; that is the thing to write to.
+     */
     const themeLabel = mode === 'auto' ? 'follows the system' : mode;
+    const themeText = $('theme').querySelector('.nav__t') ?? $('theme');
+    themeText.textContent = `Theme: ${mode}`;
     $('theme').setAttribute('aria-label', `Theme: ${themeLabel}. Click to change.`);
     $('theme').dataset.tiptext = `Theme: ${themeLabel}. Click to change: auto, light, dark.`;
     $('theme').dataset.tip = '';
-    $('theme').classList.add('btn--icon');
   };
   $('theme').addEventListener('click', () => {
     mode = modes[(modes.indexOf(mode) + 1) % modes.length];

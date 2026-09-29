@@ -2270,19 +2270,6 @@ button, input {
   display: none;
 }
 
-.btn--icon {
-  padding-inline: 9px;
-}
-
-.btn--icon .nav__t {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 .sr-only {
   position: absolute;
   width: 1px;
