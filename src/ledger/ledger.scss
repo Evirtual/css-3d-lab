@@ -983,6 +983,8 @@ button, input { font: inherit; color: inherit; }
    The bar used to sit at 0 while the record sat at 16px, so the two columns were a card's corner out of
    line the moment the page scrolled. The script measures this rather than assuming it. */
 :root { --stick-top: 16px; }
+/* Replaced at runtime with the header's real height plus the gaps: see setStickTop in main.ts.
+   A flat number cannot work now that the header above it changes height as it collapses. */
 /* Below the split there is no second column to line up with, so the bar rests flush and there is no
    strip above it for rows to show through. */
 @media (max-width: 1099px) { :root { --stick-top: 0px; } }
@@ -2342,18 +2344,19 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
    name keeps its own line; everything you can press flows from the left underneath, in reading
    order, wrapping where it must.
    ================================================================================================ */
+/* The header used to stack here -- title on its own line, then a row of six buttons that could not
+   fit beside it. There are two buttons and a menu now, about 210px of them, so they sit beside the
+   title at every width this stylesheet cares about. What is left is the trim. */
 @media (max-width: 860px) {
-  .hero .top { flex-direction: column; align-items: stretch; gap: 10px; }
-  .hero__btns { justify-content: flex-start; width: 100%; }
   .statusline { gap: 6px 12px; }
   header .sitechk { margin: 8px 0 0; width: 100%; }
 }
 @media (max-width: 520px) {
-  /* at this width a row of pills is a column of pills whatever we do, so they get full width and
-     the same height, rather than three ragged rows of different lengths */
-  .hero__btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .hero__btns > .btn, .hero__btns > .notes-anchor, .hero__btns > .notes-anchor > .notesbtn { width: 100%; }
-  .hero__btns > #blk-btn, .hero__btns > #cl-btn { grid-column: 1 / -1; }
+  /* This made every control full width in a two-column grid, which was the right answer for six
+     buttons and the wrong one for two: the checklist stretched to 356px on a 430px screen and read
+     as a banner rather than a button. They size to their own content and wrap if they must. */
+  .hero__btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+  .hero__btns > .btn, .hero__btns > .hero__menu { width: auto; flex: 0 0 auto; }
 }
 
 /* ---------- only one of the two suite slots is ever shown ----------
@@ -2425,57 +2428,29 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
 .nav__i { display: none; }
 .hero__menu { display: none; }
 
+/* ===============================================================================================
+ * THE BOTTOM BAR IS GONE, AND THE HEADER CARRIES EVERYTHING ON A PHONE TOO.
+ *
+ * For a long time the controls became a fixed bar at the bottom below 1000px: thumb-reachable,
+ * icon-only, with hidden controls dimmed rather than removed so nothing shuffled under a thumb
+ * that had learnt where things were. It was a defensible design and it worked.
+ *
+ * What killed it was that it was a SECOND design. The header on a phone became information with
+ * no controls, the controls became a bar with no information, and every change had to be made
+ * twice and verified twice -- which is how a checklist chip ended up wearing two lines of text in
+ * a row of bare icons, and how nobody noticed for a day.
+ *
+ * Now there is one header everywhere. It holds two controls and a menu, which is little enough to
+ * fit a phone without a bar of its own, and it is sticky, so it is as reachable while scrolling as
+ * a bottom bar was -- at the top, where the rest of the page already looks.
+ * =============================================================================================== */
 @media (max-width: 1000px) {
-  /* the bar itself */
-  #hero-tools {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 80;
-    display: flex; justify-content: space-around; align-items: stretch; gap: 0;
-    width: auto; margin: 0; padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
-    border: 0; border-top: 1px solid var(--border-strong); border-radius: 0;
-    background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
-    backdrop-filter: blur(18px) saturate(1.4);
-    box-shadow: 0 -10px 30px rgb(0 0 0 / 0.45);
-  }
-  /* nothing is hidden in a bar: a control with nothing to say is dimmed, not removed, so the
-     six never shuffle position under a thumb that has learnt where they are */
-  #hero-tools > .btn[hidden], #hero-tools .notesbtn[hidden] { display: flex; opacity: 0.35; pointer-events: none; }
-  #hero-tools > .btn, #hero-tools > .notes-anchor, #hero-tools .notesbtn {
-    flex: 1 1 0; min-width: 0; min-height: 46px; padding: 4px 2px;
-    flex-direction: column; justify-content: center; gap: 3px;
-    border: 0; border-radius: 10px; background: none; box-shadow: none;
-  }
-  #hero-tools .nav__i { display: grid; place-items: center; }
-  #hero-tools .nav__i .icon { width: 20px; height: 20px; }
-  /* the words stay, small, under the icon: an icon alone is a guess */
-  #hero-tools .nav__t {
-    display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    font-size: 9.5px; font-weight: 600; letter-spacing: 0.01em; color: var(--muted);
-  }
-  /* the counts these carry are for the wide layout; the bar has no room and the panels say them */
-  #hero-tools .nav__t small, #hero-tools .notesbtn small { display: none; }
-  /* AND THE CHECKLIST'S NUMBERS WITH THEM.
-     The wide header gives that button its own rule so "46/56" is not crushed against the word
-     (.hero__btns #cl-btn small). In the bar that rule ties with the one above on specificity and
-     wins by sitting later in the file, so one button wore two lines of text among seven bare
-     icons -- which is what made the bar look cramped. Two ids beat one, and this is the bar. */
-  #hero-tools #cl-btn small { display: none; }
-  /* .clfill IS the checklist button, not the bar drawn inside it: hiding it hid the button.
-     The decoration is the ::before; that is what has no room in a 60px slot. */
-  #hero-tools .clbar { display: none; }
-  #hero-tools .clfill::before { display: none; }
-  #hero-tools > .btn:active, #hero-tools .notesbtn:active { background: color-mix(in srgb, var(--accent-2) 16%, transparent); }
-
-  /* notes open upward, out of a bar that is already at the bottom */
-  #hero-tools .notes-anchor { position: relative; display: flex; }
-  #hero-tools .notes-pop {
-    position: fixed; left: 8px; right: 8px; bottom: calc(100% + 0px); top: auto; width: auto;
-    max-height: 60vh; overflow-y: auto;
-  }
-
-  /* and the page is not hidden under the bar */
-  body { padding-bottom: 70px; }
-  .hero .top { flex-direction: column; align-items: stretch; gap: 8px; }
-  header .sitechk { margin: 8px 0 0; }
+  /* The menu is the full width of the screen here rather than a 210px card in the corner. */
+  .hero__more { left: 0; right: 0; min-width: 0; }
+  /* Room is tight, so the words under Run go: the button keeps its name. */
+  #run-btn small { display: none; }
+  /* and the page is no longer hidden under a bar that is not there */
+  body { padding-bottom: 0; }
 }
 
 /* ---------- the arrow's words on a narrow screen ----------
@@ -2510,9 +2485,7 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
    A leftover `top: 100%` from the dropdown this replaced was still in play. With `bottom: 0` set as
    well, the two edges decided the height between them -- 100% of the viewport down to the bottom of
    it -- which is nothing. The bar was there, pinned correctly, and nine pixels tall. */
-@media (max-width: 1000px) {
-  #hero-tools { top: auto; height: auto; }
-}
+/* (a rule that propped up the bottom bar's height stood here; the bar is gone, so is it) */
 
 /* ================================================================================================
    THE HEADER, READABLE, AND STACKING THE SAME WAY AT EVERY WIDTH
@@ -2564,24 +2537,17 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
    The words are not deleted, only taken off the screen: they stay in the element as its text, which
    is what a screen reader announces and what the tooltip and the wide layout use. A bar of icons
    with no accessible names would be six mystery buttons to anyone not looking at it. */
+/* The block that used to live here hid every label below 620px and enlarged the icons, because
+   the controls were a bar of eight and there was no room for words. There are two controls now
+   and a menu, so the words stay: "Checklist 47/56" and "Run" are the entire point of the header
+   on a phone, and an icon alone would be a guess at the two things that matter most.
+
+   What remains is the narrow-screen trim: the title gives up size before anything else does. */
 @media (max-width: 620px) {
-  #hero-tools .nav__t {
-    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-    overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
-  }
-  #hero-tools > .btn, #hero-tools > .notes-anchor, #hero-tools .notesbtn {
-    min-height: 52px; padding: 6px 2px;
-  }
-  #hero-tools .nav__i .icon { width: 23px; height: 23px; }
-  /* the notes count is the one number worth keeping: it is why you would press it */
-  #hero-tools .notesbtn b {
-    position: absolute; top: 5px; left: 50%; margin-left: 5px;
-    min-width: 15px; padding: 0 3px; border-radius: 999px;
-    background: var(--st-warn); color: var(--bg);
-    font: 800 9.5px/15px var(--font); text-align: center;
-  }
-  #hero-tools .notesbtn { position: relative; }
-  #hero-tools .notesbtn.is-quiet b { display: none; }
+  .hero h1 { font-size: 16px; }
+  .hero--compact h1 { font-size: 15px; }
+  .hero__btns { gap: 5px; }
+  .hero__btns .btn { padding: 5px 9px; font-size: 11.5px; }
 }
 
 /* ---------- the filter bar rests against the top edge ----------
@@ -3450,3 +3416,104 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
    see the note in main.ts about the day this chip reported 561 of anything. */
 .hero__btns #cl-btn .cl-ratio { font-variant-numeric: tabular-nums; }
 .hero__btns #cl-btn .cl-bit { white-space: nowrap; }
+
+
+/* ===============================================================================================
+ * A HEADER THAT FOLLOWS YOU, AND SHRINKS WHILE IT DOES.
+ *
+ * It was two rows and none of them sticky, so scrolling into the table took the checklist number
+ * and the Run button off the screen along with them. Now it stays, and past the title it collapses
+ * to one row carrying only the two things anybody uses while working.
+ * =============================================================================================== */
+/* (the sentinel this needed is gone: the header watches scrollY directly now) */
+.hero {
+  /*
+   * A GAP ABOVE IT, and something to hide what scrolls through the gap.
+   *
+   * Pinned flush to top: 0 the header looked welded to the window. It floats 10px down instead,
+   * which means 10px of table would slide past above it -- so ::before paints that strip in the
+   * page's own colour. The same trick .fbar.is-stuck::after has used all along; this is that
+   * pattern, not a new one.
+   */
+  position: sticky; top: var(--hero-gap); z-index: 40;
+  /* No transition on the height. It is measured either side of the class change so the scroll can
+     be corrected by the same amount in the same frame, and a transition would mean measuring a
+     size that is still on its way somewhere -- the correction would be wrong and the page would
+     drift. The shadow may fade; nothing that affects layout does. */
+  transition: box-shadow 0.18s ease;
+}
+:root { --hero-gap: 10px; }
+.hero::before {
+  content: ""; position: absolute; left: 0; right: 0;
+  /* Exactly the gap, and not one pixel more: the extra pixel was painting over the header's own
+     top border and the panel lost its top edge. */
+  /* bottom:100% anchors it exactly to the header's top edge -- top+height left it a rounding
+     error away from covering the 1px border, which is why the header kept 'losing its border'.
+     z-index:-1 puts it behind the header outright, so it can never paint over the frame again:
+     a positioned pseudo-element otherwise draws ABOVE its own element's background and border. */
+  bottom: 100%; height: var(--hero-gap); z-index: -1;
+  background: var(--bg); pointer-events: none;
+}
+/* Opaque, and blurred behind, because 135 rows scroll underneath it. --surface is 72% alpha and
+   the table read straight through it; this is the same recipe the modals and the tour card use. */
+.hero, .hero--compact { background: var(--glass); backdrop-filter: blur(26px) saturate(1.6); }
+.hero--compact { padding-top: 8px; padding-bottom: 8px; box-shadow: 0 10px 24px -18px rgb(0 0 0 / 0.9); }
+.hero--compact .statusline { display: none; }
+.hero--compact h1 { font-size: 17px; }
+.hero--compact .hero__btns .btn { padding: 4px 10px; }
+@media (prefers-reduced-motion: reduce) { .hero { transition: none; } }
+
+/* A run, along the header's own bottom edge: the one place it can be seen from anywhere on the
+   page, and it costs no height at all. */
+.hero::after {
+  content: ""; position: absolute; left: 0; bottom: -1px; height: 2px; width: var(--hero-run, 0%);
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  transition: width 0.4s ease; pointer-events: none;
+}
+
+/* ---- the menu ---- */
+.hero__menu { position: relative; display: inline-flex; }
+.hero__more {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 50;
+  display: flex; flex-direction: column; gap: 4px; min-width: 210px; padding: 8px;
+  border: 1px solid var(--glass-edge); border-radius: 14px;
+  background: var(--glass); backdrop-filter: blur(26px) saturate(1.6);
+  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.65);
+}
+.hero__more[hidden] { display: none; }
+/* Inside the menu every control is a full-width row with its words showing: there is room here,
+   which is the whole reason they were moved out of a cramped row. */
+.hero__more .btn, .hero__more .notesbtn {
+  width: 100%; justify-content: flex-start; height: auto; padding: 7px 10px;
+  border-color: transparent; background: none; font-size: 13px;
+}
+.hero__more .btn:hover, .hero__more .notesbtn:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.hero__more .btn--icon { width: 100%; height: auto; border-radius: 10px; }
+/* the icon-only buttons get their words back in here */
+.hero__more .btn--icon .nav__t {
+  position: static; width: auto; height: auto; margin: 0;
+  clip-path: none; overflow: visible; white-space: nowrap;
+}
+.hero__more .notes-anchor { display: block; width: 100%; }
+.hero__more .notes-pop { right: 0; left: auto; }
+
+
+/* The menu floats over the table, and --glass at 72% let the model rows read straight through the
+   words. Not solid though: the glass is the point, and a panel that suddenly goes opaque looks
+   like a different app. 92% keeps the blur visible behind it and the text legible in front --
+   enough transparency to still be glass, not enough to compete with what it is covering. */
+.hero__more { background: color-mix(in srgb, var(--surface-solid) 92%, transparent); }
+
+/* THE TITLE SITS ON THE SAME CENTRE LINE AS THE CONTROLS.
+   .hero .top is align-items: center, but h1 carries the document's default block margins, and a
+   margin inside a centred flex item shifts the item's box without shifting what is in it. The
+   title read high against the buttons, most visibly once the header collapsed and there was less
+   room for the eye to forgive it. */
+/* margin only. NOT display:flex -- that was the first attempt and it cut the descender off the g.
+   The title is gradient text (background-clip: text), so its painted glyphs live inside the line
+   box; turning the h1 into a flex container collapsed that box to the text's own height and the
+   tail of the g fell outside it. Zeroing the margin is all that was needed: .hero .top already
+   centres its items, and a margin on a centred flex item moves the box without moving what is
+   drawn inside it, which is why the title read high. */
+.hero .top h1 { margin: 0; line-height: 1.25; }
+.hero--compact .top { align-items: center; }
