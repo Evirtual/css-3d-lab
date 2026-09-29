@@ -479,7 +479,12 @@
         <!-- Every process this project has, offered here rather than only in a terminal. A board
              that can show you a red line and not let you answer it sends you somewhere else to
              work, which is how everything ended up going through somebody who knew the commands. -->
-        <button class="btn" id="run-btn" type="button" aria-haspopup="dialog" data-nav="play">Run…</button>
+        <!-- "Run..." did not say what was behind it. The gate's eighteen step checkboxes are the first
+           thing in this dialog, and on 2026-09-29 the person who asked for them looked at the board and
+           reported there were no gate toggles anywhere. They were one click away under a word that
+           could have meant anything. A menu button that hides its own contents is a menu nobody opens,
+           so it names them. -->
+            <button class="btn" id="run-btn" type="button" aria-haspopup="dialog" data-nav="play" data-tip data-tiptext="The gate step by step with its cost added up, every check, and every job -- all of them startable here rather than from a terminal.">Run… <small>gate, checks, jobs</small></button>
         <button class="btn" id="theme" type="button" data-nav="sun">Theme: auto</button>
         <!-- The way out of this page. A ledger explains what has been proved; it does not explain
              what any of it is for, how to run a check, or what to do first after cloning. That is

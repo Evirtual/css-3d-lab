@@ -2472,7 +2472,12 @@ import { icon } from '../icons.ts';
           const staleN = stuck.filter((x) => x.state === 'stale').length;
           const badN = stuck.filter((x) => x.state === 'conflict' || x.result === 'false').length;
           const bits = [staleN ? `${staleN} to run again` : '', badN ? `<b data-cl-jump="attention" title="Show just these">${badN} need${badN === 1 ? 's' : ''} a look</b>` : ''].filter(Boolean);
-          return `Release checklist <small>· ${cl.total - stuck.length} of ${cl.total} done${bits.length ? `, ${bits.join(', ')}` : ''}</small>`;
+          /* SHORT ENOUGH TO SIT IN A ROW WITH FOUR OTHER BUTTONS.
+       * This read "Release checklist - 45 of 56 done, 10 need a look": a sentence, in a row of
+       * buttons, which is why the header wrapped. The word Release adds nothing on a page whose
+       * only subject is this release, "of" and "done" are what a slash means, and the dialog this
+       * opens says all of it in full. The two numbers are the message; both survive. */
+      return `Checklist <small>${cl.total - stuck.length}/${cl.total}${bits.length ? `<span class="sep">·</span>` + bits.join(', ') : ''}</small>`;
         })()
       : `Release checklist <small>· ${cl.done} of ${cl.total} ticked (not evaluated: this ledger predates it)</small>`;
     $('cl-sum').innerHTML = evald
@@ -3249,7 +3254,9 @@ import { icon } from '../icons.ts';
       gateNote = (`<div class="notice bad"><b class="big">A gate run stopped without finishing.</b> It reached step ${esc(G.step?.index ?? G.done.length)} of ${esc(G.total)}${G.step ? ` (<code>${esc(G.step.key)}</code>)` : ``} and the process is gone, so nothing is running now: this board holds whatever it had recorded by then. Start it again with <code>npm run verify</code>.</div>`);
     }
     $('live').innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span>`
-      + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge).replace(/ ago$/, ''))}</span>` : '')
+      /* The line already opens with "built 7 min ago" from #meta. Saying "not rebuilt for
+         7 min" four words later is the same clock read backwards, and a third copy sat under
+         the header as a notice. One telling is enough; the age is in #meta where it belongs. */
       + `<span id="machine"></span>`
       + gateChip;
     paintMachine();
@@ -3260,7 +3267,10 @@ import { icon } from '../icons.ts';
     if (fetchError) note = `<div class="notice bad"><b class="big">Could not refresh.</b> ${esc(fetchError)}. What you see was fetched ${esc(lastChangeAt ? fmtAge((Date.now() - lastChangeAt) / 1000).replace(/\d+ s ago/, 'under a minute ago') : 'earlier')}.</div>`;
     else if (w.kind === 'dead' && dataAge > QUIET_S) note = `<div class="notice bad"><b class="big">Stale: this page has stopped updating.</b> The ledger has not changed for ${min(dataAge)}, and the watcher that should rebuild it last reported ${min(w.beat ?? 0)} ago without recording a stop, so it has probably crashed or the laptop slept. Commits and check results since ${esc(clock(W.heartbeatAt))} are missing. Restart it with <code>npm run ledger:watch</code>.</div>`;
     else if (w.kind === 'dead') note = `<div class="notice">The watcher last reported ${min(w.beat ?? 0)} ago without recording a stop. This data is recent because it was built ${L.build?.by ? `by <code>${esc(L.build.by)}</code>` : 'another way'}, but nothing is rebuilding it. Restart the watcher with <code>npm run ledger:watch</code>.</div>`;
-    else if (w.kind === 'alive' && dataAge > QUIET_S && !G?.running) note = `<div class="notice info">Quiet, not stale: nothing the ledger reads has changed for ${min(dataAge)}. The watcher is alive and looking every 3 s.</div>`;
+    /* NOT A NOTICE. This put a full-width banner under the header to announce that nothing was
+       wrong -- the third place on screen saying the same age, after "built 7 min ago" and "not
+       rebuilt for 7 min". A notice is for something a person has to act on. "watcher live" in
+       the status line already says the watcher is alive, and it costs no row. */
     else if ((w.kind === 'stopped' || w.kind === 'none') && dataAge > QUIET_S) note = `<div class="notice"><b class="big">Not live.</b> No watcher is running, so this is the build from ${min(dataAge)} ago and it will not change until someone runs <code>npm run ledger</code> or starts <code>npm run ledger:watch</code>.</div>`;
     note = gateNote + note;
     // is the data built by the code that is on disk?

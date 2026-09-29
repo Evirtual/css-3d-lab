@@ -806,7 +806,14 @@ button, input { font: inherit; color: inherit; }
 
 /* ---------- the table ---------- */
 /* ---------- the release checklist, in a dialog over the page ---------- */
-.hero__btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.hero__btns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+/* HEADER BUTTONS ARE SMALLER THAN BUTTONS IN THE PAGE.
+ * .btn is sized for the table, where a button is the thing you came to press. Up here five of
+ * them sit in a row beside a title, and at full size they were five fat pills that wrapped on a
+ * 1280px screen. Same shape, same colours, less of them: 12px type and tighter padding take the
+ * row from two lines to one without turning any of them into a mystery glyph. */
+.hero__btns .btn, .hero__btns .notesbtn { padding: 5px 11px; font-size: 12px; }
+.hero__btns .btn small { opacity: 0.85; }
 #cl-btn small { opacity: 0.8; }
 #cl-btn.has-false { border-color: color-mix(in srgb, var(--hot) 60%, transparent); }
 /* THE CHECKLIST FILLS LIKE A BATTERY. Two fills, not one, because the list has two different kinds
