@@ -325,13 +325,14 @@ function docList() {
  * A document that says of itself that it is a record of one moment.
  *
  * The page marks any document untouched for a week, to ask whether it has fallen behind the code.
- * A record of a past state cannot fall behind: docs/COMMIT-AUDIT.md describes main as it was on
- * 2026-09-20 and says so in its first lines, so its mark was wrong on the eighth day and would be
- * wrong on every day after. A warning that is always wrong teaches people to skip the ones that
- * are right.
+ * A record of a past state cannot fall behind. An audit of main as it was on 2026-09-20 stood in
+ * docs/ saying so in its first lines, and was marked on its eighth day as it would have been on
+ * every day after. A warning that is always wrong teaches people to skip the ones that are right.
+ * (That file is gone: it described code that had since been rewritten, and git keeps it. The rule
+ * is for the next one.)
  *
- * The document has to SAY it, at the top, in the form COMMIT-AUDIT.md already uses: a quoted line
- * opening with the words in bold. The phrase somewhere in the body does not count -- the release
+ * The document has to SAY it, at the top: a quoted line opening with the words in bold,
+ * "> **Historical snapshot". The phrase somewhere in the body does not count -- the release
  * checklist mentions a historical snapshot in passing, and it is the least frozen file here.
  */
 function isSnapshot(path) {

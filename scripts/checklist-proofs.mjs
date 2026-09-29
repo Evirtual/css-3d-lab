@@ -604,7 +604,6 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       const absent = wants.filter(([, re]) => !re.test(sec)).map(([w]) => w);
       return absent.length ? F(`the section is there but does not say: ${absent.join(', ')}`) : T(`"## Running the ledger" is at README.md line ${readme.slice(0, at + 1).split('\n').length}, and says all ${wants.length} things the item asks for`);
     }],
-    [/^COMMIT-AUDIT\.md is marked as a historical snapshot/, () => { const line = (read('docs/COMMIT-AUDIT.md') ?? '').replace(/\r/g, '').split('\n')[2] ?? ''; return line.startsWith('> **Historical snapshot') ? T('line 3 starts with "> **Historical snapshot"') : F(`line 3 is: ${line.slice(0, 60) || '(empty)'}`); }],
     [/^The project article at public\/article\/index\.html is corrected/, () => N('needs a person to read the article line by line')],
     // The story is kept as published and dated instead of corrected, so the proof is the note:
     // both files carry it, and it names the article that says what changed. Both are file reads.

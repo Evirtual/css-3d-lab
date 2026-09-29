@@ -104,7 +104,7 @@ export default defineConfig({
          Named one by one rather than proxying every .md, so this dev server keeps serving the
          board's own sources and only these are passed through. */
       '/START-HERE.md', '/LEDGER.md', '/ADDING-MODELS.md', '/VIEW-CONTRACT.md',
-      '/RELEASE-CHECKLIST.md', '/COMMIT-AUDIT.md', '/ARTICLE-NOTES.md', '/README.md', '/LICENSE']
+      '/RELEASE-CHECKLIST.md', '/ARTICLE-NOTES.md', '/README.md', '/LICENSE']
       .map((path) => [path, { target: `http://127.0.0.1:${process.env.PORT ?? 5178}`, changeOrigin: false }])),
   },
   root: resolve(import.meta.dirname, 'src/ledger'),
