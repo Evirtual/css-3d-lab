@@ -43,9 +43,15 @@
   .go.key{background:linear-gradient(135deg,var(--accent2),var(--pink));border-color:transparent;color:#fff}
 
   .shell{max-width:1240px;margin:0 auto;padding:26px 24px 80px;display:grid;grid-template-columns:262px 1fr;gap:34px}
+  /* One column now, so the sidebar must stop being sticky: it is 691px tall, and stuck at the top
+     of a single column it simply floats over the page it is meant to sit beside. */
   @media (max-width:900px){.shell{grid-template-columns:1fr;gap:20px}}
 
   nav{position:sticky;top:20px;align-self:start}
+  /* AFTER the rule above, not before it: both are one element selector, so source order decides.
+     Placed in the earlier media block it lost every time and the sidebar -- 691px of it -- stayed
+     stuck over the article on every phone. One column has nothing to stick beside. */
+  @media (max-width:900px){nav{position:static;top:auto}}
   nav h2{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:0 0 11px}
   nav ol{list-style:none;margin:0 0 22px;padding:0}
   nav li{margin:0 0 7px}
