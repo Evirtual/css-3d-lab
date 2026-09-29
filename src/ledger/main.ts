@@ -1,4 +1,23 @@
 import { icon } from '../icons.ts';
+
+/*
+ * TWO GLYPHS OF THE HEADER'S OWN, WITHOUT A RING ROUND THEM.
+ *
+ * On a phone the header's controls are round buttons, and the shared set's question mark and
+ * half-disc are each drawn inside a circle: a circle in a circle, twice, side by side. These are the
+ * same marks with the ring left off, so the button is the only round thing.
+ *
+ * They live here and not in src/icons.ts because that file is the site's, and every check judges
+ * it: adding to it would call four hours of results stale for a change no model can see.
+ */
+const BARE: Record<string, string> = {
+  help: '<path d="M8.5 8.5a3.6 3.6 0 0 1 7 1.2c0 2.4-3.5 3.3-3.5 5.3"/><path d="M12 19.5h.01"/>',
+  // sun and moon in one mark: the theme follows the system, which is one or the other
+  contrast: '<path d="M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/>',
+};
+const navIcon = (name: string): string => (BARE[name]
+  ? `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${BARE[name]}</svg>`
+  : icon(name as any));
 /* The ledger's behaviour, split out of docs/ledger.html and built by Vite like the app's own.
    Nothing here changed in the split. */
 
@@ -69,7 +88,7 @@ import { icon } from '../icons.ts';
        job is switching between light, dark and auto is a control that reports nothing. The
        words survive in .nav__t for a screen reader and in the tooltip for a mouse. */
     const themeIcon = $('theme').querySelector('.nav__i');
-    if (themeIcon) themeIcon.innerHTML = icon(mode === 'dark' ? 'moon' : mode === 'light' ? 'sun' : 'contrast');
+    if (themeIcon) themeIcon.innerHTML = navIcon(mode === 'dark' ? 'moon' : mode === 'light' ? 'sun' : 'contrast');
   };
   $('theme').addEventListener('click', () => {
     mode = modes[(modes.indexOf(mode) + 1) % modes.length];
@@ -1696,7 +1715,7 @@ import { icon } from '../icons.ts';
     for (const el of document.querySelectorAll('[data-nav]')) {
       if (el.querySelector(':scope > .nav__i')) continue;
       const name = el.getAttribute('data-nav');
-      el.innerHTML = `<span class="nav__i" aria-hidden="true">${icon(name)}</span><span class="nav__t">${el.innerHTML}</span>`;
+      el.innerHTML = `<span class="nav__i" aria-hidden="true">${navIcon(name)}</span><span class="nav__t">${el.innerHTML}</span>`;
     }
   }
   paintNavIcons();

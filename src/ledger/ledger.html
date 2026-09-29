@@ -496,9 +496,11 @@
           there is anything to look for. Edgaras, on a fresh clone, 2026-09-29: the things in the
           dropdown have to come out.
 
-          So there is no menu. What keeps the row short is that the read-once controls are icons:
-          Start here, how the counting works, the theme. Docs is a link and looks like one. Notes
-          and what is holding models back still only appear when they have something to say.
+          So there is no menu. All four read-once controls -- Start here, Docs, how the counting
+          works, the theme -- are one kind of thing: an icon with its words beside it where there
+          is room (a desktop), and the icon alone in a round button where there is not (a phone).
+          Docs was briefly an underlined link among round icons and looked like a stray word.
+          Notes and what is holding models back still only appear when they have something to say.
 
           Same ids, same handlers, on a phone and on a desktop.
         -->
@@ -508,7 +510,7 @@
           <button type="button" id="notes-btn" class="notesbtn" data-nav="note" aria-expanded="false" aria-controls="notes-pop" data-tip data-tiptext="Things the ledger could not work out while it built this page: a file it could not read, a run whose process had gone, an instrument that failed. Click to read them."><b>0</b> note</button>
           <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
         </span>
-        <a class="hero__link" href="index.html">Docs</a>
+        <a class="btn btn--icon" href="index.html" data-nav="book" aria-label="Docs" data-tip data-tiptext="Docs: what this project is, how to run a check, and what to do first after cloning.">Docs</a>
         <button type="button" class="btn btn--icon" id="rules-btn" aria-haspopup="dialog" data-nav="help" aria-label="How these are counted" data-tip data-tiptext="How every count on this page is worked out: what a tick means, what a column counts, and what it leaves out.">How these are counted</button>
         <button class="btn btn--icon" id="theme" type="button" data-nav="sun">Theme: auto</button>
         <!-- The way out of this page. A ledger explains what has been proved; it does not explain

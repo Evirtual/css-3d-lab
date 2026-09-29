@@ -3437,16 +3437,21 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 
 
 /* ---- no menu: the controls it held are in the row ----
-   Docs is the one that leaves the page, so it is a link and looks like one: underlined, no pill.
-   A pill beside the pills that open dialogs said it was one of them. It has the height of the
-   buttons around it so the row keeps one centre line. */
-.hero__link {
-  display: inline-flex; align-items: center; height: 30px; padding: 0 4px;
-  font-size: 12px; font-weight: 600; color: var(--text);
-  text-decoration: underline; text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--text) 45%, transparent);
+   ONE CONTROL, TWO WIDTHS. Where there is room the read-once controls are a pill with the icon and
+   its words, because four bare icons in a row are four things to hover before you know what any
+   of them is. On a phone there is no room for the words, so they are the round icon alone and the
+   words stay where a screen reader and a long press find them.
+
+   The icon-only rule above is the base; this gives the words back from 1000px up. */
+/* Docs is a link, so the browser underlined it: one underlined word in a row of pills. */
+.hero__btns a.btn { text-decoration: none; }
+@media (min-width: 1000px) {
+  .hero__btns .btn--icon { width: auto; height: 30px; padding: 0 12px 0 10px; gap: 7px; }
+  .hero__btns .btn--icon .nav__t {
+    position: static; width: auto; height: auto; margin: 0;
+    clip-path: none; overflow: visible; white-space: nowrap;
+  }
 }
-.hero__link:hover { color: var(--accent); text-decoration-color: currentColor; }
 /* the notes list opens under its button and must not run off the right edge of the panel */
 .hero__btns .notes-pop { right: 0; left: auto; }
 

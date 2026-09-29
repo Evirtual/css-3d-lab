@@ -86,6 +86,11 @@ function icon(name) {
 }
 //#endregion
 //#region src/ledger/main.ts
+var BARE = {
+	help: "<path d=\"M8.5 8.5a3.6 3.6 0 0 1 7 1.2c0 2.4-3.5 3.3-3.5 5.3\"/><path d=\"M12 19.5h.01\"/>",
+	contrast: "<path d=\"M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4\"/><path d=\"M12 2v2\"/><path d=\"M12 20v2\"/><path d=\"m4.9 4.9 1.4 1.4\"/><path d=\"m17.7 17.7 1.4 1.4\"/><path d=\"M2 12h2\"/><path d=\"M20 12h2\"/><path d=\"m6.3 17.7-1.4 1.4\"/><path d=\"m19.1 4.9-1.4 1.4\"/>"
+};
+var navIcon = (name) => BARE[name] ? `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${BARE[name]}</svg>` : icon(name);
 (() => {
 	"use strict";
 	const $ = (id) => document.getElementById(id);
@@ -167,7 +172,7 @@ function icon(name) {
 		$("theme").dataset.tiptext = `Theme: ${themeLabel}. Click to change: auto, light, dark.`;
 		$("theme").dataset.tip = "";
 		const themeIcon = $("theme").querySelector(".nav__i");
-		if (themeIcon) themeIcon.innerHTML = icon(mode === "dark" ? "moon" : mode === "light" ? "sun" : "contrast");
+		if (themeIcon) themeIcon.innerHTML = navIcon(mode === "dark" ? "moon" : mode === "light" ? "sun" : "contrast");
 	};
 	$("theme").addEventListener("click", () => {
 		mode = modes[(modes.indexOf(mode) + 1) % modes.length];
@@ -1570,7 +1575,7 @@ function icon(name) {
 	function paintNavIcons() {
 		for (const el of document.querySelectorAll("[data-nav]")) {
 			if (el.querySelector(":scope > .nav__i")) continue;
-			el.innerHTML = `<span class="nav__i" aria-hidden="true">${icon(el.getAttribute("data-nav"))}</span><span class="nav__t">${el.innerHTML}</span>`;
+			el.innerHTML = `<span class="nav__i" aria-hidden="true">${navIcon(el.getAttribute("data-nav"))}</span><span class="nav__t">${el.innerHTML}</span>`;
 		}
 	}
 	paintNavIcons();
