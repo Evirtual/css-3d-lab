@@ -19,7 +19,7 @@ import { workingSources } from './model-sources.mjs';
 // read-only: git's own read commands over the committed snapshot. Importing it writes nothing.
 import { snapshotStatus } from './release-snapshot.mjs';
 
-import { stepFingerprint, whatChanged } from './gate-paths.mjs';
+import { stepFingerprint, whatChanged, fingerprintAt } from './gate-paths.mjs';
 
 export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, cache = null }) {
   const mtime = (p) => { try { return statSync(join(ROOT, p)).mtimeMs; } catch { return 0; } };
@@ -120,8 +120,13 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
    * you have to investigate -- and when eleven lines go red for one edit, naming the file is what
    * turns eleven mysteries into one fact.
    */
-  const movedText = (was, now) => {
-    const d = whatChanged(was, now);
+  /*
+   * A record written before per-file hashes existed carries only a total -- but it carries the
+   * commit, and the files are in git at that commit. So the names are recoverable rather than
+   * lost, and an old record is not a permanently unhelpful one.
+   */
+  const movedText = (was, now, commit, key) => {
+    const d = whatChanged(was, now) ?? whatChanged(fingerprintAt(commit, key), now);
     if (!d || !d.total) return `${was?.files ?? 0} file(s) it depends on have changed`;
     const bits = [];
     if (d.edited.length) bits.push(`${d.edited.slice(0, 3).join(', ')}${d.edited.length > 3 ? ` and ${d.edited.length - 3} more` : ``} changed`);
@@ -144,7 +149,7 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     const now = stepFingerprint(fpKey ?? r.key);
     if (!now) return N(`${what} has no declared path in scripts/gate-paths.mjs, so nothing can say whether its result still applies`);
     if (now.hash !== was.hash) {
-      return F(`${what} passed at ${String(gate.commit).slice(0, 7)}, and ${movedText(was, now)} since: run it again`);
+      return F(`${what} passed at ${String(gate.commit).slice(0, 7)}, and ${movedText(was, now, gate.commit, fpKey ?? r.key)} since: run it again`);
     }
     return r.ok
       ? T(`from docs/checks/gate.json: ${what} passed ${when} at ${String(gate.commit).slice(0, 7)}, and none of the ${now.files} file(s) it depends on has changed since`)
@@ -186,7 +191,7 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     const wasFp = looks.fp;
     const nowFp = stepFingerprint('looks');
     if (wasFp?.hash && nowFp) {
-      if (wasFp.hash !== nowFp.hash) return F(`the look ran at ${String(looks.commit).slice(0, 7)}, and ${movedText(wasFp, nowFp)} since: look again`);
+      if (wasFp.hash !== nowFp.hash) return F(`the look ran at ${String(looks.commit).slice(0, 7)}, and ${movedText(wasFp, nowFp, looks.commit, 'looks')} since: look again`);
     } else if (!sameCommit(looks.commit, head)) {
       return F(`the look ran at ${String(looks.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it recorded no fingerprint, so nothing here can say whether it still applies`);
     }

@@ -28,6 +28,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const toPosix = (p) => p.split(sep).join('/');
@@ -84,6 +85,12 @@ export const STEP_PATHS = {
   matrix: [...BROWSER, 'src/models', 'src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs'],
 };
 
+/* Written by scripts/generate-pages.mjs on every run and never committed. The two loose files
+   matter as much as the folders: robots.txt came back as "newly added" against a commit made
+   twenty minutes earlier, because it is regenerated and in no commit at all. */
+const GENERATED = new Set(['public/demos', 'models', 'groups', 'embed', 'src/generated',
+  'public/robots.txt', 'public/sitemap.xml']);
+
 function walk(dir, out = []) {
   if (!existsSync(dir)) return out;
   for (const name of readdirSync(dir).sort()) {
@@ -91,6 +98,18 @@ function walk(dir, out = []) {
     // node_modules and build output are never sources; dist/ is what the build MAKES, not what
     // decides it, and hashing it would stale every step on every build
     if (/^(node_modules|dist|\.media-tmp|\.vite)$/.test(name)) continue;
+    /*
+     * AND NEITHER IS GENERATED SOURCE.
+     *
+     * scripts/generate-pages.mjs deletes and recreates public/demos, models, groups, embed and
+     * src/generated on every run. They are outputs sitting inside folders that are otherwise
+     * sources -- so hashing them meant the build's own fingerprint moved every time the build
+     * ran, and "the build is clean" would have gone stale the instant it was earned.
+     *
+     * Found by reading an old record back out of git: every one of those files came back as
+     * newly ADDED, because they are untracked and therefore in no commit at all.
+     */
+    if (GENERATED.has(toPosix(relative(ROOT, full)))) continue;
     if (statSync(full).isDirectory()) walk(full, out); else out.push(full);
   }
   return out;
@@ -143,6 +162,40 @@ export function stepFingerprint(key) {
   }
   return { files: files.length, hash: h(parts.join(String.fromCharCode(10))), each };
 }
+/**
+ * A step's fingerprint AS IT WAS AT A COMMIT, read out of git.
+ *
+ * Records written before per-file hashes existed carry only a total, so they could say that a
+ * hundred files had changed and not name one. They do carry the commit, though, and the files are
+ * in git at that commit -- so the names are recoverable rather than lost, and an old record is
+ * not a permanently unhelpful one.
+ *
+ * One `git cat-file --batch` for the lot: a process per file would be a hundred processes to
+ * answer one question. A file that did not exist at that commit is simply absent, which is what
+ * makes it read as "added" against today.
+ */
+export function fingerprintAt(commit, key) {
+  const files = filesFor(key);
+  if (!files || !commit) return null;
+  try {
+    const input = files.map((f) => `${commit}:${f}`).join(String.fromCharCode(10)) + String.fromCharCode(10);
+    const out = execFileSync('git', ['cat-file', '--batch'], { cwd: ROOT, input, maxBuffer: 1 << 30 });
+    const each = {};
+    let at = 0;
+    for (const f of files) {
+      const nl = out.indexOf(10, at);
+      if (nl < 0) break;
+      const header = out.subarray(at, nl).toString('utf8');
+      if (/ missing$/.test(header)) { at = nl + 1; continue; }   // not in that commit: reads as added today
+      const size = Number(header.split(" ").at(-1));
+      const body = out.subarray(nl + 1, nl + 1 + size).toString('utf8');
+      each[f] = h(norm(body));
+      at = nl + 1 + size + 1;
+    }
+    return { files: Object.keys(each).length, each };
+  } catch { return null; }
+}
+
 /**
  * What changed between a recorded fingerprint and now, by name.
  *
