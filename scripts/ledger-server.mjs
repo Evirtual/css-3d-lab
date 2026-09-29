@@ -45,7 +45,7 @@ import { extname, join, normalize } from 'node:path';
 import { cpus, freemem, totalmem } from 'node:os';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
-import { JOBS, JOB, blockedBy } from './jobs.mjs';
+import { JOBS, JOB, GATE_STEPS, blockedBy } from './jobs.mjs';
 import { MIN_FREE_GB, MAX_BROWSERS } from './browser-guard.mjs';
 import { runningCheck, runningChecks } from './running.mjs';
 import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
@@ -398,12 +398,24 @@ export function serve(port = 5178) {
       const r = stop(url.searchParams.get('check') || null);
       return json(res, r.ok ? 200 : 409, r);
     }
+    if (url.pathname === '/api/gate' && req.method === 'POST') {
+      /* Only step names from GATE_STEPS ever become an argument: the page may ask for anything. */
+      const asked = (url.searchParams.get('steps') ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+      const known = new Set(GATE_STEPS.map((x) => x.key));
+      const bad = asked.filter((k) => !known.has(k));
+      if (bad.length) return json(res, 400, { ok: false, why: `not a gate step: ${bad.slice(0, 3).join(', ')}` });
+      const argv = asked.length && asked.length < GATE_STEPS.length ? ['scripts/verify.mjs', '--step', asked.join(',')] : ['scripts/verify.mjs'];
+      RUNNABLE.set('job:gate-chosen', argv);
+      const r = start('job:gate-chosen', []);
+      return json(res, r.ok ? 200 : 409, r);
+    }
     if (url.pathname === '/api/jobs') {
       let machine = null;
       try { machine = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'machine.json'), 'utf8')); } catch { /* no doctor run */ }
       const { known, blocked } = blockedBy(machine);
       return json(res, 200, {
         machineKnown: known,
+        steps: GATE_STEPS,
         jobs: JOBS.map((j) => ({
           key: j.key, name: j.name, minutes: j.minutes, blurb: j.blurb, answers: j.answers,
           needs: j.needs, safe: j.safe, blockedWhy: blocked.get(j.key) ?? null,

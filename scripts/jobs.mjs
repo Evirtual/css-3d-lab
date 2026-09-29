@@ -100,6 +100,39 @@ export const JOBS = [
   },
 ];
 
+/**
+ * THE GATE, STEP BY STEP, SO A PERSON CAN PICK.
+ *
+ * Three fixed presets ("everything", "the checklist steps", "the cheap ones") answer three
+ * questions and no others. The real question is usually narrower -- one step went stale, or one
+ * step failed -- and re-running seventeen to refresh one is the cost this whole record was
+ * rebuilt to avoid. So the board offers the list and adds up what the choice costs.
+ *
+ * `short` is the board's own word for the column, because the terminal says `models` and the
+ * table says Contract, and holding that translation in your head is not a thing to ask of anyone.
+ * Minutes are from the runs of 2026-09-28/29 on an idle machine.
+ */
+export const GATE_STEPS = [
+  { key: 'remote', short: null, name: 'the remote, the Worker origins and the workflow variable', minutes: 1 },
+  { key: 'boxsizing', short: 'Box', name: 'the same drawing when the page forces border-box', minutes: 9 },
+  { key: 'contrast', short: 'Text', name: 'text readable on the dark stage', minutes: 6 },
+  { key: 'access', short: 'Access', name: 'pauses, names its controls, reachable by keyboard', minutes: 10 },
+  { key: 'media', short: 'Share', name: 'the share images exist and are right', minutes: 10 },
+  { key: 'qa', short: null, name: 'page errors on the built site', minutes: 2 },
+  { key: 'snippets', short: null, name: 'every standalone snippet runs without a script error', minutes: 4 },
+  { key: 'preview', short: null, name: 'editing a model never remounts or moves its frame', minutes: 1 },
+  { key: 'compare', short: null, name: 'the snapshot matches the screen', minutes: 6 },
+  { key: 'looks', short: null, name: 'what only opening the export dialog can answer', minutes: 2 },
+  { key: 'perf', short: 'Perf', name: 'inside the performance budgets', minutes: 16 },
+  { key: 'models', short: 'Contract', name: 'the view contract', minutes: 15 },
+  { key: 'motion', short: 'Motion', name: 'movement, with ten readings left for a person', minutes: 40 },
+  { key: 'stages', short: 'Stages', name: 'the same measurements on every surface', minutes: 55 },
+  { key: 'exports', short: 'Export', name: 'every model at the dialog defaults', minutes: 72 },
+  { key: 'parity', short: null, name: 'both renderers (a scan here; --render needs the Worker)', minutes: 1 },
+  { key: 'app', short: 'App', name: 'the app performance', minutes: 1 },
+  { key: 'seo', short: 'SEO', name: 'every page', minutes: 1 },
+];
+
 export const JOB = new Map(JOBS.map((j) => [j.key, j]));
 
 /**

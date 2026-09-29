@@ -1182,7 +1182,36 @@ import { icon } from '../icons.ts';
   $('mach-close')?.addEventListener('click', () => $('mach-dialog').close());
   $('run-btn')?.addEventListener('click', () => { void openRuns(); });
   $('run-close')?.addEventListener('click', () => $('run-dialog').close());
+  const gateCost = () => {
+    const on = [...document.querySelectorAll('#run-body [data-step]:checked')] as HTMLInputElement[];
+    const steps = (JOBS_STEPS ?? []).filter((x: any) => on.some((i) => i.dataset.step === x.key));
+    const mins = steps.reduce((a: number, x: any) => a + x.minutes, 0);
+    const out = document.getElementById('gpick-cost');
+    if (out) out.textContent = steps.length === 0 ? 'Nothing chosen' : `${steps.length} step${steps.length === 1 ? `` : `s`}, ${howLong(mins)}`;
+    const go = document.getElementById('gpick-go') as HTMLButtonElement | null;
+    if (go) go.disabled = steps.length === 0;
+  };
+  $('run-body')?.addEventListener('change', () => gateCost());
   $('run-body')?.addEventListener('click', (ev) => {
+    const pick = (ev.target as HTMLElement).closest('[data-pick]') as HTMLElement | null;
+    if (pick) {
+      const how = pick.dataset.pick;
+      for (const i of [...document.querySelectorAll('#run-body [data-step]')] as HTMLInputElement[]) {
+        i.checked = how === 'all' ? true : how === 'none' ? false : STALE_STEPS.has(i.dataset.step ?? '');
+      }
+      gateCost();
+      return;
+    }
+    if ((ev.target as HTMLElement).id === 'gpick-go') {
+      const on = [...document.querySelectorAll('#run-body [data-step]:checked')] as HTMLInputElement[];
+      const go = ev.target as HTMLButtonElement;
+      go.disabled = true;
+      go.textContent = 'Starting…';
+      void api(`/api/gate?steps=${encodeURIComponent(on.map((i) => i.dataset.step).join(','))}`, 'POST')
+        .then(({ body }: any) => { go.textContent = body?.ok === false ? 'Refused' : 'Running'; if (body?.why) go.title = body.why; })
+        .catch((e: any) => { go.textContent = 'Failed'; go.title = String(e?.message ?? e); });
+      return;
+    }
     const b = (ev.target as HTMLElement).closest('[data-job]') as HTMLButtonElement | null;
     if (!b || b.disabled) return;
     b.disabled = true;
@@ -2546,9 +2575,14 @@ import { icon } from '../icons.ts';
   function renderSiteRuns(site, bars) {
     const el = $('siteruns'); if (!el) return;
     const live = site.filter((c) => bars[c.key]);
-    if (!live.length) { el.hidden = true; el.innerHTML = ''; return; }
+    // whatever is running that is not a check at all: a job (the gate, the matrix, the live
+    // check) is about the project rather than any model, so it shows where APP and SEO do and
+    // not inside a table of models.
+    const jobs = Object.keys(bars).filter((k) => String(k).startsWith('job:'));
+    if (!live.length && !jobs.length) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
-    el.innerHTML = live.map((c) => runBar(c.key, bars[c.key], c.unit ?? 'pages')).join('');
+    el.innerHTML = jobs.map((k) => runBar(k, bars[k], 'steps')).join('')
+      + live.map((c) => runBar(c.key, bars[c.key], c.unit ?? 'pages')).join('');
   }
   /**
    * The per-check run buttons, for the width where there are no column headings to hold them.
@@ -2580,6 +2614,10 @@ import { icon } from '../icons.ts';
    * so this holds no second copy of what can be run or what it costs.
    */
   let JOBS: any[] | null = null;
+  let JOBS_STEPS: any[] | null = null;
+  /* Which steps the board already knows are stale, so "only what is stale" is the one press that
+     answers the usual question: something changed, what has to run again? */
+  const STALE_STEPS = new Set<string>();
   async function openRuns() {
     const d = $('run-dialog'); if (!d) return;
     $('run-body').innerHTML = `<p class="muted">Reading what this machine can run…</p>`;
@@ -2588,7 +2626,11 @@ import { icon } from '../icons.ts';
     try {
       const { body } = await api('/api/jobs');
       JOBS = body.jobs;
+      JOBS_STEPS = body.steps ?? [];
+      STALE_STEPS.clear();
+      for (const st of (L as any)?.gate?.done ?? []) if (st && st.ok === false) STALE_STEPS.add(st.key);
       $('run-body').innerHTML = runsList(body);
+      gateCost();
     } catch (e) {
       $('run-body').innerHTML = `<p class="notice bad">The board could not say what it can run: ${esc(String((e as any)?.message ?? e))}. It answers /api/jobs only when started with <code>npm run board</code>.</p>`;
     }
@@ -2597,8 +2639,21 @@ import { icon } from '../icons.ts';
   /** A time a person can plan around, rather than a number of minutes to convert. */
   const howLong = (m: number) => (m < 2 ? 'under a minute' : m < 60 ? `about ${m} min` : m < 90 ? 'about an hour' : `about ${Math.round(m / 60)} hours`);
 
+  /* The gate is not one job with three shapes: it is eighteen steps, and the question is usually
+     narrower than any preset. So the presets go and a picker takes their place, which adds up what
+     the choice costs -- because "about 5 hours" is the single most useful thing to know before
+     pressing it. */
+  function gatePicker(steps: any[]): string {
+    const boxes = steps.map((x: any) => `<label class="gstep"><input type="checkbox" data-step="${esc(x.key)}" checked> <b>${esc(x.short ?? x.key)}</b><span class="gstep__n">${esc(x.name)}</span><span class="gstep__m">${esc(x.minutes)}m</span></label>`).join('');
+    return `<div class="gpick"><div class="gpick__head"><b>The gate, step by step</b>
+      <span class="gpick__acts"><button type="button" class="btn" data-pick="all">All</button><button type="button" class="btn" data-pick="none">None</button><button type="button" class="btn" data-pick="stale">Only what is stale</button></span></div>
+      <div class="gpick__list">` + boxes + `</div>
+      <div class="gpick__foot"><span id="gpick-cost" class="muted"></span><button type="button" class="btn runjob__go" id="gpick-go">Run the chosen steps</button></div></div>`;
+  }
+
   function runsList(body: any): string {
-    const rows = (body.jobs ?? []).map((j: any) => {
+    const gate = body.steps?.length ? gatePicker(body.steps) : ``;
+    const rows = (body.jobs ?? []).filter((j: any) => !String(j.key).startsWith('gate')).map((j: any) => {
       const off = Boolean(j.blockedWhy);
       const why = off ? j.blockedWhy : j.answers?.length ? `Closes: ${j.answers.slice(0, 3).join(`; `)}${j.answers.length > 3 ? `, and ${j.answers.length - 3} more` : ``}` : ``;
       return `<li class="runjob${off ? ` runjob--off` : ``}">`
@@ -2609,7 +2664,7 @@ import { icon } from '../icons.ts';
         + `</li>`;
     }).join('');
     const head = body.machineKnown ? `` : `<p class="notice">Nobody has asked whether this machine can run these. <code>npm run doctor</code> answers that, and this panel will then grey out what it cannot do.</p>`;
-    return head + `<ul class="runjobs">` + rows + `</ul>`;
+    return head + gate + `<ul class="runjobs">` + rows + `</ul>`;
   }
 
   /** Opens the machine panel, filled from the last poll so the numbers are the ones on the chip. */

@@ -126,12 +126,41 @@ export function stepFingerprint(key) {
   const files = filesFor(key);
   if (!files) return null;
   const parts = [];
+  /*
+   * Each file's own hash as well as the total.
+   *
+   * Without it a stale line says "100 file(s) it depends on have changed" and not one of their
+   * names, which tells a reader that something happened and nothing about what. With it the line
+   * can say "scripts/browser.mjs changed", which is a thing a person can act on.
+   */
+  const each = {};
   for (const f of files) {
-    try { parts.push(`${f}\0${h(norm(readFileSync(join(ROOT, f), 'utf8')))}`); }
-    catch { parts.push(`${f}\0unreadable`); }
+    let fh;
+    try { fh = h(norm(readFileSync(join(ROOT, f), 'utf8'))); }
+    catch { fh = 'unreadable'; }
+    each[f] = fh;
+    parts.push(`${f}` + String.fromCharCode(0) + fh);
   }
-  return { files: files.length, hash: h(parts.join('\n')) };
+  return { files: files.length, hash: h(parts.join(String.fromCharCode(10))), each };
 }
+/**
+ * What changed between a recorded fingerprint and now, by name.
+ *
+ * Added, removed and edited: a file that appeared or vanished is a bigger fact than one that was
+ * edited. An older record with no per-file hashes returns null and says so, rather than
+ * pretending it can tell.
+ */
+export function whatChanged(was, now) {
+  if (!was?.each || !now?.each) return null;
+  const added = [], gone = [], edited = [];
+  for (const f of Object.keys(now.each)) if (!(f in was.each)) added.push(f);
+  for (const f of Object.keys(was.each)) {
+    if (!(f in now.each)) gone.push(f);
+    else if (was.each[f] !== now.each[f]) edited.push(f);
+  }
+  return { added, gone, edited, total: added.length + gone.length + edited.length };
+}
+
 
 /** Every declared step, fingerprinted now. What scripts/verify.mjs writes into its record. */
 export function allFingerprints() {

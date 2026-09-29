@@ -1141,7 +1141,38 @@ function icon(name) {
 		openRuns();
 	});
 	$("run-close")?.addEventListener("click", () => $("run-dialog").close());
+	const gateCost = () => {
+		const on = [...document.querySelectorAll("#run-body [data-step]:checked")];
+		const steps = (JOBS_STEPS ?? []).filter((x) => on.some((i) => i.dataset.step === x.key));
+		const mins = steps.reduce((a, x) => a + x.minutes, 0);
+		const out = document.getElementById("gpick-cost");
+		if (out) out.textContent = steps.length === 0 ? "Nothing chosen" : `${steps.length} step${steps.length === 1 ? `` : `s`}, ${howLong(mins)}`;
+		const go = document.getElementById("gpick-go");
+		if (go) go.disabled = steps.length === 0;
+	};
+	$("run-body")?.addEventListener("change", () => gateCost());
 	$("run-body")?.addEventListener("click", (ev) => {
+		const pick = ev.target.closest("[data-pick]");
+		if (pick) {
+			const how = pick.dataset.pick;
+			for (const i of [...document.querySelectorAll("#run-body [data-step]")]) i.checked = how === "all" ? true : how === "none" ? false : STALE_STEPS.has(i.dataset.step ?? "");
+			gateCost();
+			return;
+		}
+		if (ev.target.id === "gpick-go") {
+			const on = [...document.querySelectorAll("#run-body [data-step]:checked")];
+			const go = ev.target;
+			go.disabled = true;
+			go.textContent = "Starting…";
+			api(`/api/gate?steps=${encodeURIComponent(on.map((i) => i.dataset.step).join(","))}`, "POST").then(({ body }) => {
+				go.textContent = body?.ok === false ? "Refused" : "Running";
+				if (body?.why) go.title = body.why;
+			}).catch((e) => {
+				go.textContent = "Failed";
+				go.title = String(e?.message ?? e);
+			});
+			return;
+		}
 		const b = ev.target.closest("[data-job]");
 		if (!b || b.disabled) return;
 		b.disabled = true;
@@ -2441,13 +2472,14 @@ function icon(name) {
 		const el = $("siteruns");
 		if (!el) return;
 		const live = site.filter((c) => bars[c.key]);
-		if (!live.length) {
+		const jobs = Object.keys(bars).filter((k) => String(k).startsWith("job:"));
+		if (!live.length && !jobs.length) {
 			el.hidden = true;
 			el.innerHTML = "";
 			return;
 		}
 		el.hidden = false;
-		el.innerHTML = live.map((c) => runBar(c.key, bars[c.key], c.unit ?? "pages")).join("");
+		el.innerHTML = jobs.map((k) => runBar(k, bars[k], "steps")).join("") + live.map((c) => runBar(c.key, bars[c.key], c.unit ?? "pages")).join("");
 	}
 	/**
 	* The per-check run buttons, for the width where there are no column headings to hold them.
@@ -2469,6 +2501,8 @@ function icon(name) {
 		el.hidden = false;
 		el.innerHTML = "<span class=\"colruns__h\">Run over every model</span>" + runBtn("all", [], "Run every check over every model", "colrun colrun--all", "Every check") + COLS.map(([k, label]) => runBtn(k, [], `Run ${label} on every model`, "colrun", label)).join("");
 	}
+	let JOBS_STEPS = null;
+	const STALE_STEPS = /* @__PURE__ */ new Set();
 	async function openRuns() {
 		const d = $("run-dialog");
 		if (!d) return;
@@ -2481,20 +2515,31 @@ function icon(name) {
 		try {
 			const { body } = await api("/api/jobs");
 			body.jobs;
+			JOBS_STEPS = body.steps ?? [];
+			STALE_STEPS.clear();
+			for (const st of L?.gate?.done ?? []) if (st && st.ok === false) STALE_STEPS.add(st.key);
 			$("run-body").innerHTML = runsList(body);
+			gateCost();
 		} catch (e) {
 			$("run-body").innerHTML = `<p class="notice bad">The board could not say what it can run: ${esc(String(e?.message ?? e))}. It answers /api/jobs only when started with <code>npm run board</code>.</p>`;
 		}
 	}
 	/** A time a person can plan around, rather than a number of minutes to convert. */
 	const howLong = (m) => m < 2 ? "under a minute" : m < 60 ? `about ${m} min` : m < 90 ? "about an hour" : `about ${Math.round(m / 60)} hours`;
+	function gatePicker(steps) {
+		return `<div class="gpick"><div class="gpick__head"><b>The gate, step by step</b>
+      <span class="gpick__acts"><button type="button" class="btn" data-pick="all">All</button><button type="button" class="btn" data-pick="none">None</button><button type="button" class="btn" data-pick="stale">Only what is stale</button></span></div>
+      <div class="gpick__list">` + steps.map((x) => `<label class="gstep"><input type="checkbox" data-step="${esc(x.key)}" checked> <b>${esc(x.short ?? x.key)}</b><span class="gstep__n">${esc(x.name)}</span><span class="gstep__m">${esc(x.minutes)}m</span></label>`).join("") + `</div>
+      <div class="gpick__foot"><span id="gpick-cost" class="muted"></span><button type="button" class="btn runjob__go" id="gpick-go">Run the chosen steps</button></div></div>`;
+	}
 	function runsList(body) {
-		const rows = (body.jobs ?? []).map((j) => {
+		const gate = body.steps?.length ? gatePicker(body.steps) : ``;
+		const rows = (body.jobs ?? []).filter((j) => !String(j.key).startsWith("gate")).map((j) => {
 			const off = Boolean(j.blockedWhy);
 			const why = off ? j.blockedWhy : j.answers?.length ? `Closes: ${j.answers.slice(0, 3).join(`; `)}${j.answers.length > 3 ? `, and ${j.answers.length - 3} more` : ``}` : ``;
 			return `<li class="runjob${off ? ` runjob--off` : ``}"><div class="runjob__t"><b>${esc(j.name)}</b><span class="runjob__cost">${esc(howLong(j.minutes))}</span></div><p class="runjob__b">${esc(j.blurb)}</p>` + (why ? `<p class="runjob__w">${esc(why)}</p>` : ``) + `<button type="button" class="btn runjob__go" data-job="${esc(j.key)}"${off ? ` disabled data-tip data-tiptext="${esc(j.blockedWhy)}"` : ``}>${off ? `Cannot run here` : `Run`}</button></li>`;
 		}).join("");
-		return (body.machineKnown ? `` : `<p class="notice">Nobody has asked whether this machine can run these. <code>npm run doctor</code> answers that, and this panel will then grey out what it cannot do.</p>`) + `<ul class="runjobs">` + rows + `</ul>`;
+		return (body.machineKnown ? `` : `<p class="notice">Nobody has asked whether this machine can run these. <code>npm run doctor</code> answers that, and this panel will then grey out what it cannot do.</p>`) + gate + `<ul class="runjobs">` + rows + `</ul>`;
 	}
 	/** Opens the machine panel, filled from the last poll so the numbers are the ones on the chip. */
 	function openMachine() {

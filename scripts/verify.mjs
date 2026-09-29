@@ -284,51 +284,17 @@ console.log(`verify: ${run.length} check${run.length === 1 ? '' : 's'}, one at a
 console.log(`each one records where the ledger reads it, so the page shows it running and keeps the result`);
 console.log(`${mb() ?? '?'} MB free at the start${noBuild && willUseDist.length ? ` (--no-build: ${willUseDist.join(', ')} read the dist/ already there)` : ''}\n`);
 
-let builtOk = null;
-/* What the build judged, taken as it runs rather than at the end: a tree that changes under a
-   four-hour run must not be recorded as the tree the build saw. */
-const buildFp = { typescript: stepFingerprint('typescript'), build: stepFingerprint('build') };
-if (willUseDist.length && !noBuild) {
-  console.log(`first: npm run build — ${willUseDist.join(', ')} judge dist/, not the dev server`);
-  const at = Date.now();
-  try {
-    // shell: true on Windows because npm is npm.cmd there, and Node refuses to execFile a .cmd
-    // without a shell. Without it this threw EINVAL instantly -- "BUILD FAILED after 0m00s" --
-    // so the step that exists to stop dist/ going stale did nothing at all on the machine it
-    // was written on.
-    execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'],
-      { cwd: ROOT, stdio: 'ignore', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0' } });
-    builtOk = true;
-    console.log(`       built in ${mins(Date.now() - at)}\n`);
-  } catch (e) {
-    builtOk = false;
-    // Not fatal here on purpose: the build's own failure is what `qa` and `seo` are for, and
-    // stopping now would skip the ten steps that do not need dist/ at all. It says WHY, because
-    // "BUILD FAILED" on its own was how a spawn error passed for a broken build.
-    console.log(`       BUILD FAILED after ${mins(Date.now() - at)} (${String(e?.message ?? e).split('\n')[0]})`);
-    console.log(`       the dist/ steps below judge whatever is on disk\n`);
-  }
-}
-
-const began = Date.now();
-const results = [];
 /*
- * WHERE THE RUN HAS GOT TO, WHILE IT IS STILL GOING.
+ * SAY IT HAS STARTED BEFORE DOING ANYTHING SLOW.
  *
- * Each CHECK reports its own models as it goes (scripts/capture-check.mjs writes progress on a
- * two-second beat), so the board can say "media 58/135". Nothing reported the RUN. So the board
- * knew a check was busy and never knew it was step 9 of 18, and during the seven steps that record
- * nothing per model -- remote, qa, snippets, preview, compare, looks, parity -- it had nothing to
- * read at all and said "Quiet, not stale: nothing the ledger reads has changed for 6 min" over a
- * gate with three hours left to run. Quiet and busy look identical from the outside, which is the
- * twenty-hour lie in miniature.
- *
- * Small on purpose, and written at every step boundary so a reader is never more than one step
- * behind. pid is here for the same reason capture-check carries one: a runner that dies without
- * clearing this leaves a file that claims to be running, and a reader can check whether the
- * process is still alive rather than believe it.
+ * The progress file was first written when step 1 began -- and the build runs before step 1, so
+ * for its first two or three minutes a run was invisible. The board went on showing whatever the
+ * last run had left, which after a finished run says "not running". A person who had just pressed
+ * Run saw nothing happen, which is the same lie as a board that looks quiet during a gate, moved
+ * to the one moment somebody is definitely watching.
  */
-const PROGRESS = join(ROOT, 'docs', 'checks', 'gate-progress.json');
+const began = Date.now();
+
 const beat = (extra) => {
   try {
     writeFileSync(PROGRESS, `${JSON.stringify({
@@ -360,6 +326,53 @@ const endBeat = (held) => {
 `);
   } catch { /* as above */ }
 };
+
+let builtOk = null;
+const sayStarted = () => beat({ step: { index: 0, key: 'build', short: null, name: 'the build (every step below judges what it makes)', startedAt: new Date().toISOString() } });
+sayStarted();
+/* What the build judged, taken as it runs rather than at the end: a tree that changes under a
+   four-hour run must not be recorded as the tree the build saw. */
+const buildFp = { typescript: stepFingerprint('typescript'), build: stepFingerprint('build') };
+if (willUseDist.length && !noBuild) {
+  console.log(`first: npm run build — ${willUseDist.join(', ')} judge dist/, not the dev server`);
+  const at = Date.now();
+  try {
+    // shell: true on Windows because npm is npm.cmd there, and Node refuses to execFile a .cmd
+    // without a shell. Without it this threw EINVAL instantly -- "BUILD FAILED after 0m00s" --
+    // so the step that exists to stop dist/ going stale did nothing at all on the machine it
+    // was written on.
+    execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'],
+      { cwd: ROOT, stdio: 'ignore', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0' } });
+    builtOk = true;
+    console.log(`       built in ${mins(Date.now() - at)}\n`);
+  } catch (e) {
+    builtOk = false;
+    // Not fatal here on purpose: the build's own failure is what `qa` and `seo` are for, and
+    // stopping now would skip the ten steps that do not need dist/ at all. It says WHY, because
+    // "BUILD FAILED" on its own was how a spawn error passed for a broken build.
+    console.log(`       BUILD FAILED after ${mins(Date.now() - at)} (${String(e?.message ?? e).split('\n')[0]})`);
+    console.log(`       the dist/ steps below judge whatever is on disk\n`);
+  }
+}
+
+const results = [];
+/*
+ * WHERE THE RUN HAS GOT TO, WHILE IT IS STILL GOING.
+ *
+ * Each CHECK reports its own models as it goes (scripts/capture-check.mjs writes progress on a
+ * two-second beat), so the board can say "media 58/135". Nothing reported the RUN. So the board
+ * knew a check was busy and never knew it was step 9 of 18, and during the seven steps that record
+ * nothing per model -- remote, qa, snippets, preview, compare, looks, parity -- it had nothing to
+ * read at all and said "Quiet, not stale: nothing the ledger reads has changed for 6 min" over a
+ * gate with three hours left to run. Quiet and busy look identical from the outside, which is the
+ * twenty-hour lie in miniature.
+ *
+ * Small on purpose, and written at every step boundary so a reader is never more than one step
+ * behind. pid is here for the same reason capture-check carries one: a runner that dies without
+ * clearing this leaves a file that claims to be running, and a reader can check whether the
+ * process is still alive rather than believe it.
+ */
+const PROGRESS = join(ROOT, 'docs', 'checks', 'gate-progress.json');
 for (const [i, key] of run.entries()) {
   const c = listed.get(key) ?? { name: OUTSIDE[key] ?? '(no per-model record)' };
   /* The registry holds two words for the same check and they are not the same word: the step is

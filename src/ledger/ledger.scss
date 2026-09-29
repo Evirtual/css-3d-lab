@@ -822,6 +822,44 @@ button, input { font: inherit; color: inherit; }
    memory and the CPU -- the row of things that are true right now.
 
    It replaced a 134px notice that pushed the whole board down for the three hours of a run. */
+/* THE RUN PANEL: every process this project has, with what it costs.
+
+   A button that does not say "about 5 hours" has misled the person pressing it, so the cost is
+   part of the label rather than something to find out afterwards. */
+.runjobs { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.runjob { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface); }
+.runjob--off { opacity: 0.62; }
+.runjob__t { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.runjob__t b { font-size: 14.5px; }
+.runjob__cost { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.runjob__b { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+.runjob__w { margin: 6px 0 0; font-size: 12px; color: var(--warm); }
+.runjob--off .runjob__w { color: var(--hot); }
+.runjob__go { margin-top: 8px; }
+.runjob__go[disabled] { cursor: not-allowed; }
+
+/* The gate is eighteen steps, not one button. Presets answer three questions; the question is
+   usually narrower, and re-running seventeen steps to refresh one is the cost the whole record
+   was rebuilt to avoid. */
+.gpick { border: 1px solid var(--border-strong, var(--border)); border-radius: 12px; padding: 12px; background: var(--surface-2); }
+.gpick__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.gpick__acts { display: flex; gap: 6px; }
+.gpick__acts .btn { padding: 3px 9px; font-size: 12px; }
+.gpick__list { margin: 10px 0 0; display: grid; gap: 2px; max-height: 44vh; overflow: auto; }
+.gstep { display: grid; grid-template-columns: auto 78px 1fr auto; align-items: center; gap: 8px;
+  padding: 5px 6px; border-radius: 8px; font-size: 12.5px; cursor: pointer; }
+.gstep:hover { background: color-mix(in srgb, var(--accent-2) 8%, transparent); }
+.gstep b { font-weight: 700; }
+.gstep__n { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gstep__m { color: var(--muted); font-variant-numeric: tabular-nums; }
+.gpick__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+@media (max-width: 560px) {
+  .gstep { grid-template-columns: auto 64px 1fr; }
+  .gstep__m { grid-column: 3; justify-self: end; }
+  .gstep__n { display: none; }
+}
+
 .gate { display: inline-flex; align-items: center; gap: 6px; }
 .gate b { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 .gate--bad b { color: var(--hot); }
