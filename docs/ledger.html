@@ -477,6 +477,10 @@
       <div class="hero__btns" id="hero-tools">
         <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" data-nav="alert" hidden>What’s holding models back</button>
         <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" data-nav="checklist" hidden>Release checklist</button>
+        <!-- Every process this project has, offered here rather than only in a terminal. A board
+             that can show you a red line and not let you answer it sends you somewhere else to
+             work, which is how everything ended up going through somebody who knew the commands. -->
+        <button class="btn" id="run-btn" type="button" aria-haspopup="dialog" data-nav="play">Run…</button>
         <button class="btn" id="theme" type="button" data-nav="sun">Theme: auto</button>
         <!-- The way out of this page. A ledger explains what has been proved; it does not explain
              what any of it is for, how to run a check, or what to do first after cloning. That is
@@ -629,6 +633,20 @@
       <button type="button" class="cldlg__x" id="mach-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
     </div>
     <div class="cldlg__body" id="mach-body"></div>
+  </div>
+</dialog>
+
+<dialog id="run-dialog" class="cldlg" aria-labelledby="run-title">
+  <div class="cldlg__box">
+    <div class="cldlg__head">
+      <div>
+        <span class="eyebrow">Everything this project can run</span>
+        <h2 id="run-title">Run something</h2>
+        <p class="muted">What each one answers, and roughly what it costs on an idle machine. Anything this machine cannot do is greyed out and says why.</p>
+      </div>
+      <button type="button" class="cldlg__x" id="run-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+    <div class="cldlg__body" id="run-body"></div>
   </div>
 </dialog>
 

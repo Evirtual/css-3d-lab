@@ -30,6 +30,19 @@ import { readdirSync, rmSync } from 'node:fs';
 function clearLedgerAssets() {
   return {
     name: 'clear-ledger-assets',
+    /*
+     * ONLY WHEN BUILDING.
+     *
+     * buildStart fires for the DEV SERVER too, so `npm run board:dev` deleted the committed
+     * docs/assets/ledger-*.css|js -- the files docs/ledger.html actually references. The dev
+     * server was fine, because it serves the page from source; the committed board was broken,
+     * and stayed broken until somebody ran a build. It happened twice on 2026-09-29 and looked
+     * both times like the page itself had failed: unstyled, stuck on "Loading ledger.json…",
+     * with an inline icon rendered at its natural size because no stylesheet had loaded.
+     *
+     * A dev server must not delete build output. It is not building.
+     */
+    apply: 'build' as const,
     buildStart() {
       const dir = join(import.meta.dirname, 'docs', 'assets');
       try {

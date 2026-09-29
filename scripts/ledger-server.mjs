@@ -45,6 +45,7 @@ import { extname, join, normalize } from 'node:path';
 import { cpus, freemem, totalmem } from 'node:os';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
+import { JOBS, JOB, blockedBy } from './jobs.mjs';
 import { MIN_FREE_GB, MAX_BROWSERS } from './browser-guard.mjs';
 import { runningCheck, runningChecks } from './running.mjs';
 import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
@@ -55,6 +56,13 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json;
 /** Every name the page may ask for, and what each one actually runs. */
 const RUNNABLE = new Map(REGISTRY.map((c) => [c.key, ['scripts/capture-check.mjs', c.key]]));
 RUNNABLE.set('all', ['scripts/verify.mjs']);
+/*
+ * And every other process this project has (scripts/jobs.mjs). The board could run a CHECK and
+ * nothing else, so the gate, the live-site check, the renderer comparison and the export matrix
+ * existed only as something to type -- which means they needed somebody who already knew the
+ * command. Same guard as the checks: only a key from that list ever becomes an argument.
+ */
+for (const j of JOBS) RUNNABLE.set(`job:${j.key}`, j.argv);
 
 /**
  * Every model id there is, read once, so an id that arrived from the page can be checked against
@@ -203,14 +211,22 @@ function state() {
 // the checks that cannot share the machine, from the one place that says so
 const ALONE = new Set(REGISTRY.filter((c) => c.alone).map((c) => c.key));
 
+/*
+ * A gate run covers every check, so nothing runs beside it -- and that was expressed as the
+ * literal string "all". The jobs list adds three more ways to start one (the whole gate, the
+ * checklist steps, the cheap ones), and a rule written as an equality check would have let a
+ * second run start underneath any of them.
+ */
+const COVERS_ALL = (k) => k === 'all' || String(k).startsWith('job:gate');
 function refuse(what) {
   if (runs.has(what)) return `${what} is already running`;
   // a check that measures speed needs an idle machine, in both directions
   const busy = [...runs.keys()].find((k) => ALONE.has(k));
   if (busy) return `${busy} is running and has to have the machine to itself: it measures how fast a model draws, so anything running beside it lands in its numbers`;
   if (ALONE.has(what) && runs.size) return `${what} measures how fast a model draws, so it waits for an idle machine: ${[...runs.keys()].join(' and ')} ${runs.size === 1 ? 'is' : 'are'} running`;
-  if (runs.has('all')) return 'the whole run is going: it covers every check, so nothing can run beside it';
-  if (what === 'all' && runs.size) return `${[...runs.keys()].join(' and ')} ${runs.size === 1 ? 'is' : 'are'} running: the whole run covers every check, so it waits for them`;
+  const gate = [...runs.keys()].find(COVERS_ALL);
+  if (gate) return `${gate === 'all' ? 'the whole run' : gate.replace('job:', '')} is going: it covers every check, so nothing can run beside it`;
+  if (COVERS_ALL(what) && runs.size) return `${[...runs.keys()].join(' and ')} ${runs.size === 1 ? 'is' : 'are'} running: a gate run covers every check, so it waits for them`;
   if (runs.size >= MAX_RUNS) return `${runs.size} checks are already running, which is the limit on this machine`;
   const outside = runningChecks(ROOT);
   const aloneOutside = outside.find((o) => ALONE.has(o.check));
@@ -381,6 +397,18 @@ export function serve(port = 5178) {
     if (url.pathname === '/api/stop' && req.method === 'POST') {
       const r = stop(url.searchParams.get('check') || null);
       return json(res, r.ok ? 200 : 409, r);
+    }
+    if (url.pathname === '/api/jobs') {
+      let machine = null;
+      try { machine = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'machine.json'), 'utf8')); } catch { /* no doctor run */ }
+      const { known, blocked } = blockedBy(machine);
+      return json(res, 200, {
+        machineKnown: known,
+        jobs: JOBS.map((j) => ({
+          key: j.key, name: j.name, minutes: j.minutes, blurb: j.blurb, answers: j.answers,
+          needs: j.needs, safe: j.safe, blockedWhy: blocked.get(j.key) ?? null,
+        })),
+      });
     }
     if (url.pathname === '/api/checks') return json(res, 200, { checks: REGISTRY.map((c) => ({ key: c.key, name: c.name, short: c.short, scope: c.scope })) });
     if (req.method !== 'GET') { res.writeHead(405).end('GET only'); return; }
