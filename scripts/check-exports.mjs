@@ -21,7 +21,9 @@
  *             one pixel of the canvas, not of the file: the file is the canvas drawn at another
  *             size, so a canvas pixel of anti-aliasing is two or more file pixels, and the file's
  *             box cannot be told apart from the canvas's more finely than that. A full-canvas scene
- *             (FULL_CANVAS) is not judged on the margin: it fills the canvas by design
+ *             (FULL_CANVAS) is not judged on the margin: it fills the canvas by design. The file's
+ *             box against the canvas's is the picture check's comparison, and gets the picture
+ *             check's hairline() allowance for the same reason: see hairline()
  *   drift     a loop recording, decoded frame by frame: the model's box per frame and the change
  *             per frame. What FAILS here is what the file can be held to on its own: the model
  *             missing from its first frame or from more than a twentieth of them, a file the app
@@ -894,7 +896,17 @@ async function checkImages(id) {
         const dcx = (f.l + f.r) / 2 - expect((ref.l + ref.r) / 2), dcy = (f.t + f.b) / 2 - expect((ref.t + ref.b) / 2);
         const gap = boxGap(s.file, s.screen);
         say(`  slider ${shape} ${String(fill).padStart(3)}%${s.value !== fill ? ` -> ${s.value}% (top end ${s.top}%)` : ''}: screen ${boxText(s.screen)} footprint ${boxText(f)} (w ×${wr.toFixed(3)}, h ×${hr.toFixed(3)}, want ×${k.toFixed(3)}; centre off scaling-about-the-middle by ${pc(dcx)}%,${pc(dcy)}%), file ${boxText(s.file)} (edge gap ${pc(gap)}%, diff ${s.like.diff.toFixed(1)})`);
-        if (!(gap <= TOL)) miss(id, 'slider', `${shape} ${fill}%`, `file ${boxText(s.file)} vs screen ${boxText(s.screen)} (${pc(gap)}% off)`, 'app');
+        // The same two boxes the picture check compares, so the same hairline rule: where the ink
+        // at an edge is a fading tail one canvas pixel thick, the canvas and a file of twice its
+        // size do not agree about where it ends, and neither reading is wrong (hairline()). The
+        // firm edges still have to agree to TOL, so a model the file really draws smaller — which
+        // moves its whole silhouette, not just the tail — fails here as it always did.
+        if (!(gap <= TOL)) {
+          const hair = hairline(s.file, s.screen);
+          const what = `file ${boxText(s.file)} vs screen ${boxText(s.screen)} (${pc(gap)}% off)`;
+          if (hair.ok) look(id, 'slider', `${shape} ${fill}%`, what, hair.why);
+          else miss(id, 'slider', `${shape} ${fill}%`, `${what}; ${hair.why}`, 'app');
+        }
         if (fill === 70) continue;
         const clipped = touches(f);
         const refFull = ref.l < 0.003 && ref.r > 0.997;
@@ -1197,7 +1209,10 @@ for (const id of models) {
 say(`\n${mismatches.length} mismatch${mismatches.length === 1 ? '' : 'es'} in ${((Date.now() - started) / 60000).toFixed(1)} min:`);
 for (const m of mismatches) say(`  ${m.model.padEnd(10)} ${m.check.padEnd(8)} ${m.what}: ${m.detail}  [${m.fault}]`);
 if (observations.length) {
-  say(`\n${observations.length} reading${observations.length === 1 ? '' : 's'} left for a person to look at (not failures: the file alone cannot tell them from the model's own motion):`);
+  // Each reading carries its own reason, and they are not all the same reason: a drift reading is
+  // motion the file alone cannot tell from the model's own, a picture or slider reading is a box
+  // edge on ink too thin for two resolutions to agree about. So the heading does not give one.
+  say(`\n${observations.length} reading${observations.length === 1 ? '' : 's'} left for a person to look at, each with what was measured and why it is not a verdict:`);
   for (const o of observations) say(`  ${o.model.padEnd(10)} ${o.check.padEnd(8)} ${o.what}: ${o.detail} — ${o.why}`);
 }
 if (untestable.length) { say('\nnot testable here:'); for (const u of [...new Set(untestable)]) say(`  ${u}`); }
