@@ -1191,7 +1191,7 @@ import { icon } from '../icons.ts';
     const bar = `<span class="pg${RUN_NOW.paused ? ' is-paused' : ''}">
       <span class="pg__name" data-tip data-tiptext="${esc(`${title}, over ${over}.`)}">${esc(short)}</span>
       <span class="pg__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? '?'}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><i style="width:${pct}%"></i></span>
-      <span class="pg__n">${esc(p.done)}/${esc(p.total ?? '?')}</span>
+      <span class="pg__end"><span class="pg__n">${esc(p.done)}/${esc(p.total ?? '?')}</span>
       <span class="pg__meta">${(() => {
         // Nothing is said when there is nothing to say. An estimate needs two measurements to exist,
         // so for the first minute of every run the words were "no estimate yet" -- a sentence whose
@@ -1205,7 +1205,7 @@ import { icon } from '../icons.ts';
         else if (e) bits.push(`about ${fmtDur(e.left)} left`);
         if (!p.preparing && p.last) bits.push(esc(p.last));
         return bits.join(' · ');
-      })()}</span>
+      })()}</span></span>
       ${RUN_OK ? `<span class="pg__acts">${holdAndStop('rowrun', whole ? null : key)}</span>` : ''}
       ${ssShown ? ssToggle(ssId, ssOpened ? `Hide what ${title} is covering` : `What ${title} is covering (${nSteps} parts)`, ssOpened, true) : ''}</span>`;
     if (!ssShown) return bar;
@@ -1226,8 +1226,8 @@ import { icon } from '../icons.ts';
     return `<span class="pg pg--job${over ? ' pg--over' : ''}">
       <span class="pg__name" data-tip data-tiptext="${esc(`${name}: a job, not a per-model check, so there is no count to show. Started ${clock(p.startedAt)}.`)}">${esc(name)}</span>
       <span class="pg__track" role="progressbar" aria-label="${esc(name)} is running" aria-valuetext="running ${esc(fmtDur(secs))}"><i></i></span>
-      <span class="pg__n">${esc(fmtDur(secs))}</span>
-      <span class="pg__meta">${esc(est)}${over ? ' · longer than usual' : ''}</span>
+      <span class="pg__end"><span class="pg__n">${esc(fmtDur(secs))}</span>
+      <span class="pg__meta">${esc(est)}${over ? ' · longer than usual' : ''}</span></span>
       ${RUN_OK ? `<span class="pg__acts">${holdAndStop('rowrun', null)}</span>` : ''}</span>`;
   }
 

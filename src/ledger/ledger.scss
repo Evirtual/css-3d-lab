@@ -3408,3 +3408,24 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
    same reason: nothing responds, so nothing should light up. */
 .colh--plain { cursor: default; }
 .colh--plain:hover { color: inherit; background: none; }
+
+
+/* ---------------------------------------------------------------------------
+ * THE TWO TEXTS AT THE END OF A BAR SHARE A BASELINE.
+ *
+ * .pg is align-items: center, so every child is centred by its BOX -- and the
+ * boxes were centred perfectly: measured at 149.47, 149.47, 149.06. The eye does
+ * not read boxes. It reads baselines, and two spans at 13px and 11.5px centred
+ * by box sit about 1.1px apart on the baseline, which is exactly enough to look
+ * like a mistake next to each other.
+ *
+ * Centring the PAIR and baseline-aligning inside it fixes both at once: the
+ * group stays on the bar's centre line, and the count and the words sit on one
+ * baseline whatever sizes they are. It is here rather than on each bar so every
+ * use of .pg gets it -- a row, a group, a site check, a job.
+ * ------------------------------------------------------------------------- */
+.pg__end { display: inline-flex; align-items: baseline; gap: 8px; flex: none; min-width: 0; }
+/* The line-height that made the two boxes different heights is no longer doing
+   any work now that the baseline decides the position; equal leading keeps the
+   group's own box tight so centring it stays predictable. */
+.pg__end .pg__n, .pg__end .pg__meta { line-height: 1.2; }
