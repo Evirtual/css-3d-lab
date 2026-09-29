@@ -318,8 +318,26 @@ function docList() {
   return names.sort().map((path) => {
     const out = git(['log', '-1', '--format=%h%x1f%cI%x1f%s', '--', path]).trim();
     const [hash, date, subject] = out ? out.split('\x1f') : [];
-    return { path, lastCommit: out ? { hash, date, subject } : null };
+    return { path, lastCommit: out ? { hash, date, subject } : null, snapshot: isSnapshot(path) };
   });
+}
+/**
+ * A document that says of itself that it is a record of one moment.
+ *
+ * The page marks any document untouched for a week, to ask whether it has fallen behind the code.
+ * A record of a past state cannot fall behind: docs/COMMIT-AUDIT.md describes main as it was on
+ * 2026-09-20 and says so in its first lines, so its mark was wrong on the eighth day and would be
+ * wrong on every day after. A warning that is always wrong teaches people to skip the ones that
+ * are right.
+ *
+ * The document has to SAY it, at the top, in the form COMMIT-AUDIT.md already uses: a quoted line
+ * opening with the words in bold. The phrase somewhere in the body does not count -- the release
+ * checklist mentions a historical snapshot in passing, and it is the least frozen file here.
+ */
+function isSnapshot(path) {
+  if (!/\.md$/i.test(path)) return false;
+  try { return readFileSync(join(ROOT, path), 'utf8').split(/\r?\n/).slice(0, 12).some((l) => /^>\s*\*\*Historical snapshot\b/i.test(l)); }
+  catch { return false; }
 }
 /** Work that has not reached a commit: every untracked or changed path in `git status`, with its age. */
 function atRisk() {

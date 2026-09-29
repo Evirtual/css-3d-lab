@@ -3010,8 +3010,9 @@ var navIcon = (name) => BARE[name] ? `<svg class="icon" viewBox="0 0 24 24" fill
 		const days = (iso) => iso ? (Date.now() - Date.parse(iso)) / 864e5 : null;
 		const docs = `<div class="table-wrap"><table class="mini"><thead><tr><th>Document</th><th>Last commit</th><th>Subject</th></tr></thead><tbody>${R.docs.map((d) => {
 			const c = d.lastCommit;
-			const old = c && days(c.date) > 7;
-			return `<tr><td><code>${esc(d.path)}</code></td><td class="num">${c ? `${esc(c.date.slice(0, 10))} <span class="muted">(${agoSpan(c.date)})</span>${old ? " <span class=\"chip s-warn\">over a week</span>" : ""}` : "<span class=\"chip s-warn\">never committed</span>"}</td><td>${c ? `<code class="muted">${esc(c.hash)}</code> ${esc(c.subject)}` : "—"}</td></tr>`;
+			const old = c && !d.snapshot && days(c.date) > 7;
+			const frozen = d.snapshot ? " <span class=\"chip s-none\" data-tip data-tiptext=\"This document says at its top that it is a historical snapshot: a record of one moment, which is not meant to change. Its age is not a warning.\">snapshot</span>" : "";
+			return `<tr><td><code>${esc(d.path)}</code></td><td class="num">${c ? `${esc(c.date.slice(0, 10))} <span class="muted">(${agoSpan(c.date)})</span>${old ? " <span class=\"chip s-warn\">over a week</span>" : ""}${frozen}` : "<span class=\"chip s-warn\">never committed</span>"}</td><td>${c ? `<code class="muted">${esc(c.hash)}</code> ${esc(c.subject)}` : "—"}</td></tr>`;
 		}).join("")}</tbody></table></div>`;
 		const risk = R.atRisk.length ? `<div class="table-wrap"><table class="mini"><thead><tr><th>File</th><th>State</th><th>Last changed</th></tr></thead><tbody>${R.atRisk.map((f) => `<tr><td><code>${esc(f.path)}</code></td><td><span class="chip ${f.code === "??" ? "s-bad" : "s-warn"}">${esc(f.kind)}</span></td><td class="num">${f.modifiedAt ? agoSpan(f.modifiedAt) : "<span class=\"muted\">gone from disk</span>"}</td></tr>`).join("")}</tbody></table></div>` : "<p>Nothing: every file in the working tree matches a commit.</p>";
 		const X = L.exportsMatrix;
