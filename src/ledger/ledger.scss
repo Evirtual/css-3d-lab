@@ -3523,15 +3523,17 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 /* ---------------------------------------------------------------------------
  * RUN AND THE CHECKLIST, IN THE SECOND ROW.
  *
- * Pushed to the right with the site's two checks, which used to take that
- * margin for themselves: the group takes it now and the checks follow it, so
- * the four read as one cluster. The buttons keep the size they had in the
+ * At the right with the site's two checks, which come first and keep the
+ * margin that pushes them there; the two buttons follow, so the four read as
+ * one cluster with the ones you press at the edge. The buttons keep the size they had in the
  * first row. Where the row wraps (a phone) the group starts a line of its own
  * at the left, like everything else in the row.
  * ------------------------------------------------------------------------- */
-.statusline__acts { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.statusline__acts { display: inline-flex; align-items: center; gap: 8px; }
+/* the checks have nothing to say until the first ledger is read, and are hidden till then: the
+   buttons take the margin themselves so they do not start at the left and jump */
+.sitechk[hidden] + .statusline__acts { margin-left: auto; }
 .statusline__acts .btn { padding: 5px 11px; font-size: 12px; color: var(--text); }
-.statusline__acts + .sitechk { margin-left: 0; }
 @media (max-width: 860px) {
-  .statusline__acts { margin-left: 0; }
+  .sitechk[hidden] + .statusline__acts { margin-left: 0; }
 }

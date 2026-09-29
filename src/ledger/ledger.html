@@ -524,16 +524,18 @@
              the end: help, then the setting. -->
       </div>
     </div>
-    <p class="statusline"><span class="meta" id="meta">Loading ledger.json…</span><span class="live" id="live"></span><span class="statusline__acts">
+    <p class="statusline"><span class="meta" id="meta">Loading ledger.json…</span><span class="live" id="live"></span><span class="sitechk" id="sitechecks" hidden></span><span class="statusline__acts">
         <!-- THE TWO THAT ARE PRESSED WHILE WORKING, BESIDE WHAT THEY ARE ABOUT.
              They were in the first row with the read-once controls -- Start here, Docs, the
              counting, the theme -- which made six things of equal weight out of two you use and
              four you visit. They sit in the second row now, next to the site's own two checks:
-             the row that says how things stand is the row where you act on it. Run comes first,
+             the row that says how things stand is the row where you act on it. They come LAST in it,
+             after APP and SEO: the row reads as what is known, then what you can do about it, and
+             the two you press end up at the edge, where a hand goes. Run is before the checklist,
              because running is what changes the number beside it. Same ids, same handlers. -->
         <button class="btn" id="run-btn" type="button" aria-haspopup="dialog" data-nav="play" data-tip data-tiptext="The gate step by step with its cost added up, every check, and every job -- all of them startable here rather than from a terminal.">Run</button>
         <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" data-nav="checklist" hidden>Release checklist</button>
-      </span><span class="sitechk" id="sitechecks" hidden></span></p>
+      </span></p>
     <!-- The two checks that judge the site rather than any model. They were at the bottom of the
          stage panel, folded away with whichever stage happened to be open, under a heading about
          models -- which they are not about. They gate nothing and there is no row in a table of
