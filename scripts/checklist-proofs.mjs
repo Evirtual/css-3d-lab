@@ -180,6 +180,30 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       ? T(`${r.found} — looked ${when} on /models/${looks.model}/`)
       : F(`${r.found} — looked ${when} on /models/${looks.model}/`);
   };
+  /*
+   * THE FOUR THAT CAN ONLY BE TRUE AFTER A DEPLOY, READ BACK FROM THE RUN THAT ASKED.
+   *
+   * check-live fetches the real site and answers all four. It printed them and exited, so on
+   * 2026-09-29 every one was verified by hand after a deploy and the board still said nothing
+   * had answered them. It records now, and this reads it.
+   *
+   * Judged by commit, not fingerprint, and deliberately: these are claims about what is SERVED.
+   * A commit that has not been deployed makes the live site older than this working tree, which
+   * is exactly when the line should stop being true.
+   */
+  const live = (() => {
+    try { return JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'live.json'), 'utf8')); } catch { return null; }
+  })();
+  const fromLive = (key, what) => () => {
+    if (!live) return N(`docs/checks/live.json is not there: the live site has not been asked since the last deploy (npm run check-live writes it)`);
+    const when = String(live.at ?? '').slice(0, 16).replace(`T`, ` `);
+    if (!sameCommit(live.commit, head)) {
+      return F(`the live site was asked at ${String(live.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: what is served is not this code, so ask again after deploying`);
+    }
+    const r = (live.tests ?? []).find((x) => x.key === key);
+    if (!r) return N(`the recorded run did not ask about ${what}`);
+    return r.ok ? T(`${r.what} — ${r.detail} (${live.base}, ${when})`) : F(`${r.what} — ${r.detail} (${live.base}, ${when})`);
+  };
   const PROOFS = [
     [/^Every file the dialog hands out is named after its model/, fromLooks('names', 'the names the dialog hands out')],
     [/^The working tree is clean/, () => atRiskList.length ? F(`${atRiskList.length} path(s) in git status, e.g. ${atRiskList.slice(0, 3).map((x) => x.path).join(', ')}`) : T('git status prints nothing')],
@@ -589,7 +613,17 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       return N(`read here: src/file-name.ts exists and src/video.ts calls fileName( ${uses} times, so every download the dialog makes is named there. What the browser actually saves is a look in the browser`);
     }],
     [/^A second article on how the view-contract rewrite was run/, () => N('needs a person, and the rewrite to be complete')],
-    [/^The deploy succeeded/, () => N('needs gh against GitHub: networked, and only after the push')],
+    [/^The deploy succeeded/, fromLive('deployed', 'every page in the sitemap being served')],
+    [/^The site that is served is the site that was built/, fromLive('built', 'the served pages matching dist/')],
+    /* This line asks TWO things -- the images being served AND the JavaScript knowing the Worker --
+       so one of them holding is not the line holding. */
+    [/^The share images are served/, () => {
+      const a = fromLive('images', 'the share images')();
+      const b = fromLive('endpoint', 'the served JavaScript carrying the Worker')();
+      if (a.result !== 'true') return a;
+      return b;
+    }],
+    [/^What is served passes the same SEO check/, fromLive('seo', 'the SEO check over what is served')],
     [/^Recording works on the live site/, () => N('a manual check on the live site')],
   ];
 

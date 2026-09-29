@@ -52,9 +52,20 @@ const get = async (url, as = 'text') => {
 };
 
 const problems = [];
-const note = (ok, what, detail) => {
+/*
+ * Every line is also a record. These four release-checklist items -- the deploy succeeded, the
+ * served site is the built site, the share images and the Worker endpoint are served, what is
+ * served passes the same SEO check -- read "not evaluated" however often this ran, because it
+ * printed its findings and exited. On 2026-09-29 every one of them was verified by hand after a
+ * deploy and the board still said nothing had answered them.
+ *
+ * `key` is what a proof looks for, so rewording a line here does not silently unhook it.
+ */
+const tests = [];
+const note = (ok, what, detail, key = null) => {
   console.log(`  ${ok ? 'ok  ' : 'BAD '} ${what}${detail ? ` — ${detail}` : ''}`);
   if (!ok) problems.push(`${what}: ${detail}`);
+  tests.push({ key, ok, what, detail: detail ?? null });
 };
 
 console.log(`\nThe site as served: ${BASE}\n`);
@@ -81,7 +92,7 @@ for (const url of urls) {
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, r.body);
 }
-note(served === urls.length, 'every page in the sitemap is served as HTML', `${served} of ${urls.length}`);
+note(served === urls.length, 'every page in the sitemap is served as HTML', `${served} of ${urls.length}`, 'deployed');
 
 // The files those pages reference, fetched once each, so the copy on disk is a COPY and not just
 // its text. Without this every stylesheet, script and icon reads as a dead link to check-seo and
@@ -112,11 +123,34 @@ for (const href of assets) {
 note(gotAssets > 0, 'the files those pages reference are served', `${gotAssets} of ${assets.size} fetched into .media-tmp/live/`);
 
 /* ---------------- 2. is it the build we made? ---------------- */
+/*
+ * COMPARE THE PAGES, NOT THE CLOCK.
+ *
+ * This compared the ?v= stamps, and that stamp is IMAGE_VERSION in scripts/generate-pages.mjs:
+ * `new Date()` at build time, to the minute. GitHub Actions builds the deploy and a developer
+ * builds locally, so the two clocks can never agree and the test failed on every correct deploy.
+ * On 2026-09-29 it reported the live site was not the build while the pages were byte-identical.
+ *
+ * So compare the page text with the stamp stripped, which is what generate-pages.mjs itself does
+ * before hashing. One caveat is said out loud rather than reported as a mismatch: the Worker
+ * endpoint is baked in at build time, so a dist/ built without VITE_CAPTURE_URL differs by its
+ * asset hashes for a reason that has nothing to do with the deploy.
+ */
 const stamp = (html) => html.match(/\?v=(\d{10,})/)?.[1] ?? null;
+const unstamped = (html) => String(html).replace(/\?v=\d{10,}/g, ``);
 const localStamp = (() => { try { return stamp(readFileSync(join(process.cwd(), 'dist', 'index.html'), 'utf8')); } catch { return null; } })();
 const liveStamp = stamp(pages[0]?.html ?? '');
-if (localStamp && liveStamp) note(localStamp === liveStamp, 'the served pages are the build in dist/', localStamp === liveStamp ? `both ?v=${liveStamp}` : `dist ?v=${localStamp}, live ?v=${liveStamp} — the deploy is older or newer than this working copy`);
-else note(true, 'build stamp', 'no ?v= stamp to compare (skipped)');
+const localHome = (() => { try { return readFileSync(join(process.cwd(), 'dist', 'index.html'), 'utf8'); } catch { return null; } })();
+const liveHome = pages[0]?.html ?? null;
+if (localHome && liveHome) {
+  const same = unstamped(localHome) === unstamped(liveHome);
+  const noVar = !same && !localHome.includes('workers.dev');
+  note(same, 'the served pages are the build in dist/',
+    same ? `identical once the build stamp is set aside (live ?v=${liveStamp}, dist ?v=${localStamp}: two builds, two clocks)`
+      : noVar ? `they differ, and dist/ was built WITHOUT VITE_CAPTURE_URL, so its asset hashes differ for that reason alone: rebuild with the variable set and compare again`
+      : `the served home page and dist/index.html differ beyond the build stamp`,
+    'built');
+} else note(true, 'the served pages are the build in dist/', 'no local dist/ to compare with (skipped)', 'built');
 
 /* ---------------- 3. the share images the tags name ---------------- */
 const imgs = [...new Set(pages.map((p) => p.html.match(/property="og:image"\s+content="([^"]+)"/)?.[1]).filter(Boolean))];
@@ -128,7 +162,7 @@ for (const src of imgs.slice(0, 12)) {
   if (r.ok && (isJpeg || isPng)) goodImgs++;
   else note(false, `og:image ${src.replace(BASE, '')}`, `${r.status}, ${r.body.length} bytes, not a picture`);
 }
-note(goodImgs === Math.min(imgs.length, 12), 'the share images the tags name are served as pictures', `${goodImgs} of ${Math.min(imgs.length, 12)} checked (of ${imgs.length} distinct)`);
+note(goodImgs === Math.min(imgs.length, 12), 'the share images the tags name are served as pictures', `${goodImgs} of ${Math.min(imgs.length, 12)} checked (of ${imgs.length} distinct)`, 'images');
 
 /* ---------------- 4. does the served JS know the Worker? ---------------- */
 const home = pages.find((p) => new URL(p.url).pathname === '/') ?? pages[0];
@@ -157,10 +191,53 @@ for (let i = 0; i < queue.length && i < 40 && !endpoint; i++) {
     if (!seen.has(u)) { seen.add(u); queue.push(u); }
   }
 }
-note(Boolean(endpoint), 'the served JS carries the capture endpoint', endpoint ?? `no workers.dev URL in ${looked.length} served script(s) (${looked.slice(0, 4).join(', ')}${looked.length > 4 ? ', …' : ''}) — Video and Image would say "Export service is not configured yet"`);
+note(Boolean(endpoint), 'the served JS carries the capture endpoint', endpoint ?? `no workers.dev URL in ${looked.length} served script(s) (${looked.slice(0, 4).join(', ')}${looked.length > 4 ? ', …' : ''}) — Video and Image would say "Export service is not configured yet"`, 'endpoint');
 
 /* ---------------- what to do next ---------------- */
+/*
+ * THE SAME SEO CHECK, OVER WHAT IS ACTUALLY SERVED.
+ *
+ * The checklist line asks whether what is SERVED passes the same SEO check as what was built,
+ * and nothing here answered it: the download was made and the check was left as a suggestion in
+ * the closing message. A line answered by a suggestion is a line answered by nobody.
+ */
+try {
+  const { execFileSync: run } = await import('node:child_process');
+  // these two are served but are not pages, so nothing above fetched them; check-seo looks for
+  // them in the folder it is given and reported them missing from the site itself
+  for (const name of ['sitemap.xml', 'robots.txt']) {
+    const r = await get(`${BASE}/${name}`);
+    if (r.ok) writeFileSync(join(OUT, name), r.body);
+  }
+  run(process.execPath, ['scripts/check-seo.mjs', '--dist', OUT], { cwd: new URL('..', import.meta.url), stdio: 'ignore', timeout: 600000 });
+  note(true, 'what is served passes the same SEO check as what was built', 'check-seo over the downloaded copy', 'seo');
+} catch (e) {
 console.log(`\n${problems.length ? `${problems.length} problem(s)` : 'Nothing wrong'} with ${BASE}.`);
 if (KEEP || !problems.length) console.log(`\nThe served pages are in .media-tmp/live/. The full SEO check over what is ACTUALLY served:\n  npm run check-seo -- --dist .media-tmp/live\n`);
-if (!KEEP && problems.length) rmSync(OUT, { recursive: true, force: true });
+/*
+ * A PROBLEM IS WHEN THE EVIDENCE IS MOST WANTED, NOT LEAST.
+ *
+ * This deleted the downloaded site whenever anything failed. On 2026-09-29 the only failure was
+ * the build-stamp comparison, which could not pass by construction -- and it took .media-tmp/live
+ * with it, so `check-seo -- --dist .media-tmp/live` could not run at all. One bad comparison
+ * disabled an unrelated check.
+ */
+// (kept)
+  note(false, 'what is served passes the same SEO check as what was built', `check-seo over the downloaded copy did not pass (run it yourself: npm run check-seo -- --dist .media-tmp/live)`, 'seo');
+}
+try {
+  const { execFileSync } = await import('node:child_process');
+  const HERE = new URL('..', import.meta.url);
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: HERE, encoding: 'utf8' }).trim();
+  writeFileSync(new URL('docs/checks/live.json', HERE), `${JSON.stringify({
+    note: 'Written by scripts/check-live.mjs: the site AS SERVED, after a deploy. Four release-checklist lines read this. Not a check of dist/ -- of what is actually answering.',
+    at: new Date().toISOString(),
+    commit,
+    base: BASE,
+    ok: problems.length === 0,
+    tests,
+  }, null, 2)}\n`);
+} catch (e) {
+  console.log(`(could not write docs/checks/live.json: ${String(e?.message ?? e).split(String.fromCharCode(10))[0]})`);
+}
 process.exit(problems.length ? 1 : 0);
