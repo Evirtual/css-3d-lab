@@ -3399,3 +3399,12 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
    red: being told "not now, something else is running" is an answer, not a fault,
    and colouring it as a failure would repeat the mistake this text exists to fix. */
 .refused { margin: 6px 0 0; font-size: 12px; line-height: 1.5; color: var(--warm); }
+
+/* THE ONE HEADING THAT IS NOT A BUTTON SHOULD NOT LOOK LIKE ONE.
+   Every other column heading runs its check when pressed, so .colh carries
+   cursor: pointer. "Model" is not a check and does nothing, but it took the
+   pointer anyway -- a cursor promising an action that does not exist, which is
+   the cheapest kind of lie a UI can tell. It also drops the hover tint for the
+   same reason: nothing responds, so nothing should light up. */
+.colh--plain { cursor: default; }
+.colh--plain:hover { color: inherit; background: none; }

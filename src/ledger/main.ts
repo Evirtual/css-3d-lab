@@ -3131,6 +3131,43 @@ import { icon } from '../icons.ts';
     d.addEventListener('keydown', (e) => { if (e.key === 'Escape' && d.open) { e.preventDefault(); d.close(); } });
   }
   wireDialog($('rules-dialog'), $('rules-btn'), $('rules-close'));
+
+  /*
+   * EVERY DIALOG GIVES FOCUS BACK, INCLUDING THE ONES NOBODY REMEMBERED.
+   *
+   * wireDialog above does this correctly and is used by exactly one dialog. The other five were
+   * wired by hand as they were written -- each one opening, closing and handling Escape in its own
+   * few lines -- and three of them never restored focus at all. Open "Run...", press Escape, and
+   * focus was on <body>: a keyboard user had lost their place on a page with about four hundred
+   * controls and had to tab from the top to get back.
+   *
+   * Confirmed with a real key press, not a synthetic one. A dispatched KeyboardEvent does not
+   * trigger a modal dialog's native Escape handling, so an earlier sweep reported four dialogs as
+   * "does not close on Escape" when every one of them does. The bug was in the test.
+   *
+   * This wraps showModal on each dialog rather than adding a fourth hand-written pair, so a dialog
+   * added later gets the behaviour without anyone having to remember it. The opener is whatever had
+   * focus when it opened; a hidden or detached one is skipped, because moving focus to something
+   * that is not on the page is worse than leaving it alone.
+   */
+  for (const d of document.querySelectorAll('dialog')) {
+    const dlg = d as HTMLDialogElement;
+    if (typeof dlg.showModal !== 'function') continue;
+    const native = dlg.showModal.bind(dlg);
+    let opener: HTMLElement | null = null;
+    dlg.showModal = () => {
+      const a = document.activeElement;
+      opener = a instanceof HTMLElement && a !== document.body && !dlg.contains(a) ? a : opener;
+      native();
+    };
+    dlg.addEventListener('close', () => {
+      const t = opener;
+      if (!t || !t.isConnected || (t as any).hidden) return;
+      /* preventScroll: the page has already been scrolled by whatever the dialog was about, and
+         yanking it back to the button is its own small betrayal. */
+      t.focus({ preventScroll: true });
+    });
+  }
   const dlg = $('cl-dialog');
   $('cl-btn').addEventListener('click', (e) => {
     // the conflict count is its own target inside the button: it opens the dialog already narrowed
