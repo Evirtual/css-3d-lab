@@ -20,11 +20,21 @@ jobs:
     # films the share images installs its system libraries per Ubuntu release. Move up on purpose.
     runs-on: ubuntu-24.04
     steps:
+      # The whole history, not the usual one commit: the sign-off below is dated by asking git when
+      # its line last changed, and a shallow checkout has no history to ask.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
+      # Before anything is built: refuse unless the person publishing said to push THIS commit.
+      # The pre-push hook (scripts/pre-push.mjs) says no on the machine that pushes, and git lets
+      # that machine skip it. This is the same rule where it cannot be skipped. A commit without a
+      # sign-off stays on the branch and the live site stays as it was.
+      - name: The sign-off is for this commit
+        run: node scripts/check-signoff.mjs
       - run: npm ci
       # The render service (the Cloudflare Worker in worker/) is baked into the bundle at build
       # time; without it the Video / Image / Print dialog says the export service is not configured.
