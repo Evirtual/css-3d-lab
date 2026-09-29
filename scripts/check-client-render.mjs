@@ -116,17 +116,11 @@ const RASTERISE = async ([width, height, shotB64, heldAt, wantPng]) => {
    */
   const root = document.body;
   const clone = root.cloneNode(true);
-  const live = [root, ...root.querySelectorAll('*')];
-  const copy = [clone, ...clone.querySelectorAll('*')];
-  let polyfilled = 0;
-  if (live.length === copy.length) {
-    live.forEach((el, i) => {
-      if (win.getComputedStyle(el).backfaceVisibility === 'hidden' && facesAway(el)) {
-        copy[i].style.visibility = 'hidden';
-        polyfilled++;
-      }
-    });
-  }
+  /*
+   * The polyfill used to run here, over document.body, and never hid anything: every element that
+   * needs it lives inside the model's iframe, which this document's querySelectorAll cannot see.
+   * It now runs against the frame's own document, below, where those elements actually are.
+   */
   /*
    * EACH MODEL RUNS IN ITS OWN IFRAME, AND AN IFRAME CANNOT TRAVEL.
    *
@@ -140,6 +134,7 @@ const RASTERISE = async ([width, height, shotB64, heldAt, wantPng]) => {
    * body. This is the step a real client-side exporter would have to do too, and it is the reason
    * capture-scene.ts exists at all -- the scene the dialog posts today is built the same way.
    */
+  let polyfilled = 0;
   for (const [i, frame] of [...clone.querySelectorAll('iframe')].entries()) {
     const liveFrame = root.querySelectorAll('iframe')[i];
     let doc = null;
@@ -148,8 +143,48 @@ const RASTERISE = async ([width, height, shotB64, heldAt, wantPng]) => {
     const box = liveFrame.getBoundingClientRect();
     const holder = document.createElement('div');
     holder.setAttribute('style', `width:${Math.round(box.width)}px;height:${Math.round(box.height)}px;overflow:hidden;position:relative`);
+    /*
+     * THE FRAME'S BODY IS CLONED AS A NODE, NOT AS A STRING OF HTML.
+     *
+     * innerHTML loses element identity, and identity is what the backface polyfill needs: it has
+     * to ask the LIVE element which way it is facing -- only the live one has a computed transform
+     * -- and then hide its counterpart in the copy. Built from a string there is no counterpart,
+     * which is why `polyfilled` came back 0 for all 135 models on the first full run while the
+     * eleven that need it were quietly rendering their back faces.
+     */
     const styles = [...doc.querySelectorAll('style')].map((s) => `<style>/*<![CDATA[*/${s.textContent}/*]]>*/</style>`).join('');
-    holder.innerHTML = styles + doc.body.innerHTML;
+    holder.innerHTML = styles;
+    const frameBody = doc.body.cloneNode(true);
+    const liveInner = [...doc.body.querySelectorAll('*')];
+    const copyInner = [...frameBody.querySelectorAll('*')];
+    if (liveInner.length === copyInner.length) {
+      const fw = doc.defaultView;
+      liveInner.forEach((el, k) => {
+        if (fw.getComputedStyle(el).backfaceVisibility !== 'hidden') return;
+        /* facesAway walks preserve-3d ancestors using the frame's own window and document. */
+        const chain = [];
+        let n = el;
+        while (n && n !== doc.documentElement) {
+          chain.unshift(n);
+          const p = n.parentElement;
+          if (!p || fw.getComputedStyle(p).transformStyle !== 'preserve-3d') break;
+          n = p;
+        }
+        let M = new DOMMatrix();
+        for (const node of chain) {
+          const t = fw.getComputedStyle(node).transform;
+          if (t && t !== 'none') M = M.multiply(new DOMMatrix(t));
+        }
+        const o = M.transformPoint(new DOMPoint(0, 0, 0));
+        const ax = M.transformPoint(new DOMPoint(1, 0, 0));
+        const ay = M.transformPoint(new DOMPoint(0, 1, 0));
+        if (((ax.x - o.x) * (ay.y - o.y) - (ax.y - o.y) * (ay.x - o.x)) < 0) {
+          copyInner[k].style.visibility = 'hidden';
+          polyfilled++;
+        }
+      });
+    }
+    while (frameBody.firstChild) holder.appendChild(frameBody.firstChild);
     /* The frame's own <body> carries the model's backdrop and layout; without them the model
        lands in the corner at the wrong size. */
     const bodyStyle = doc.defaultView.getComputedStyle(doc.body);
