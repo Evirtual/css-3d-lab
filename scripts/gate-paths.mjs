@@ -68,6 +68,13 @@ export const STEP_PATHS = {
     'src/video.ts', 'src/print.ts', 'src/file-name.ts', 'src/main.ts', 'src/capture-client.ts',
     'server/render.mjs', 'scripts/three-looks.mjs', 'docs/RELEASE-CHECKLIST.md',
   ],
+  /* Not gate steps, but the same question: these two write records of their own, and judging
+     them by "is the commit HEAD" made a parity pass go red an hour after it was measured, for a
+     commit that touched neither the scene nor either renderer. */
+  // the scene the dialog posts and the two things that draw it
+  parity: ['src/models', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/fonts/capture-fonts.ts', 'server/render.mjs', 'worker/src', 'scripts/check-worker-parity.mjs'],
+  // the full export matrix: the dialog, what it records, and what draws the file
+  matrix: ['src/models', 'src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs'],
 };
 
 function walk(dir, out = []) {

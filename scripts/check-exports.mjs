@@ -81,6 +81,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { stepFingerprint } from './gate-paths.mjs';
 import { createServer as createVite } from 'vite';
 import { launchChromium } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError, siteOf } from './browser-guard.mjs';
@@ -1200,6 +1201,41 @@ if (observations.length) {
   for (const o of observations) say(`  ${o.model.padEnd(10)} ${o.check.padEnd(8)} ${o.what}: ${o.detail} — ${o.why}`);
 }
 if (untestable.length) { say('\nnot testable here:'); for (const u of [...new Set(untestable)]) say(`  ${u}`); }
+/*
+ * THE FULL MATRIX, WRITTEN DOWN.
+ *
+ * The release-checklist line about recordings matching the dialog at every setting read "not
+ * evaluated" however often this ran, because a full run printed its mismatches and exited. On
+ * 2026-09-28 it ran for forty minutes, found two real ones at the 25% slider, and left the line
+ * saying nothing -- so the finding had to be typed into the checklist by hand, which is the way
+ * a fact becomes a note and then becomes stale.
+ *
+ * Only the FULL run records. --defaults is the gate's half of that line (every model at the
+ * dialog's defaults) and is already recorded per model in docs/checks/exports.json; --quick is
+ * neither, and saying otherwise would let a two-minute run stand in for a forty-minute one.
+ */
+if (!defaultsOnly && !quick) {
+  try {
+    const { execFileSync } = await import('node:child_process');
+    const HERE = new URL('..', import.meta.url);
+    const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: HERE, encoding: 'utf8' }).trim();
+    writeFileSync(new URL('docs/checks/matrix.json', HERE), `${JSON.stringify({
+      note: 'Written by scripts/check-exports.mjs on a FULL run: the sample at every shape, size, quality, format and slider stop. Not the defaults pass the gate runs, which is per model in exports.json.',
+      at: new Date().toISOString(),
+      commit,
+      models,
+      minutes: Number(((Date.now() - started) / 60000).toFixed(1)),
+      tolerance: TOL,
+      fp: stepFingerprint('matrix'),
+      ok: mismatches.length === 0,
+      mismatches: mismatches.map((m) => ({ model: m.model, check: m.check, what: m.what, detail: m.detail, fault: m.fault })),
+      // readings a person is meant to look at: not failures, and not silence either
+      observations: observations.length,
+    }, null, 2)}\n`);
+  } catch (e) {
+    say(`(could not write docs/checks/matrix.json: ${String(e?.message ?? e).split('\n')[0]})`);
+  }
+}
 if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ T, INK, TOL, mode: defaultsOnly ? 'defaults' : quick ? 'quick' : 'full', models, results, mismatches, observations, untestable }, null, 2));
 
 await guard.close();

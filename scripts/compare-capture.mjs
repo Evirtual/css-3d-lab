@@ -26,6 +26,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createServer as createVite } from 'vite';
 import { launchChromium } from './browser.mjs';
+import { BrowserGuard, crashGuard } from './browser-guard.mjs';
 import { exportServer } from '../server/dev.mjs';
 
 async function serviceAnswers() {
@@ -51,7 +52,21 @@ await vite.listen();
 const base = vite.resolvedUrls.local[0].replace(/\/$/, '');
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
 
-const browser = await launchChromium({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+/*
+ * ONE BAD MOMENT COSTS ONE MODEL, NOT THE RUN.
+ *
+ * Every other browser-driven check runs its models through scripts/browser-guard.mjs; this one
+ * held a single browser and let an exception escape. On 2026-09-29 Smart App Control refused to
+ * vouch for Playwright's unsigned Chromium mid-run, the target crashed at about the eighteenth
+ * model, and the whole step died with "browser.newPage: Target crashed" -- losing the seventeen
+ * it had already compared and reporting a red that said nothing about any snapshot.
+ *
+ * A machine that interferes is not a model that disagrees, and the difference has to survive
+ * into the result.
+ */
+const guard = new BrowserGuard({ launch: () => launchChromium({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] }) });
+await guard.start();
+crashGuard('compare-capture', async () => console.error(`compare-capture: ${results.length} of ${demos.length} model(s) compared before the crash`));
 const W = 420;
 const H = 340;
 const S = 96; // compared at this size, so anti-aliasing is not what is measured
@@ -59,7 +74,7 @@ const S = 96; // compared at this size, so anti-aliasing is not what is measured
 const results = [];
 const strips = [];
 
-async function compare(demo) {
+async function compare(demo, browser) {
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -173,11 +188,16 @@ async function compare(demo) {
 
 const list = only.length ? demos.filter((d) => only.includes(d.id)) : demos;
 for (const demo of list) {
-  await compare(demo);
+  try {
+    await guard.run(demo.id, (b) => compare(demo, b));
+  } catch (e) {
+    // the guard has already retried this model once in a fresh browser
+    results.push({ id: demo.id, error: String(e?.message ?? e).split('\n')[0] });
+  }
   process.stdout.write(results.at(-1).error ? 'E' : results.at(-1).bad ? 'X' : '.');
 }
 process.stdout.write('\n');
-await browser.close();
+await guard.stop();
 await vite.close();
 // null when an external service is being used: that one is not ours to stop.
 service?.close();

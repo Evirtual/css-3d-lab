@@ -319,7 +319,36 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
         + (flagged.length ? `; ${flagged.length} flagged for a person to look at, which holds nothing back` : '; none flagged');
       return ran.length === n ? T(said) : F(said);
     }],
-    [/^Recordings and snapshots match the dialog's canvas at every setting/, () => N('check-exports over its sample takes many minutes of browser work')],
+    [/^Recordings and snapshots match the dialog's canvas at every setting/, () => {
+      /*
+       * TWO HALVES, AND BOTH HAVE TO HOLD.
+       *
+       * "at every setting the dialog offers on the sample" is the full check-exports matrix, and
+       * "at the default settings on every model" is the gate's exports step. This used to answer
+       * N("it takes many minutes of browser work"), which is true of RUNNING it and says nothing
+       * about the forty minutes somebody just spent -- the run that found two real mismatches at
+       * the 25% slider on 2026-09-28 left this line blank.
+       */
+      let m = null;
+      try { m = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'matrix.json'), 'utf8')); } catch { /* never run in full */ }
+      const defaults = recorded('exports', 'check-exports');
+      if (defaults.result !== 'true') return defaults; // the every-model half is not holding; say that first
+      if (!m) return N(`every model holds at the dialog's defaults (the gate's exports step), but the sample has not been run at every setting: node scripts/check-exports.mjs`);
+      const when = String(m.at ?? '').slice(0, 16).replace(`T`, ` `);
+      if (!m.ok) {
+        const one = (m.mismatches ?? [])[0];
+        return F(`the sample was run at every setting ${when} over ${(m.models ?? []).length} model(s) and found ${(m.mismatches ?? []).length} mismatch(es)${one ? `, e.g. ${one.model} ${one.check} ${one.what}: ${one.detail}` : ``}`);
+      }
+      /* Judged by what it depended on, not by whether a commit happened: this line went red an
+         hour after it was measured because an unrelated commit moved HEAD. */
+      const matrixNow = stepFingerprint('matrix');
+      if (m.fp?.hash && matrixNow) {
+        if (m.fp.hash !== matrixNow.hash) return F(`the sample was run at every setting ${when}, and ${m.fp.files} file(s) it depends on have changed since: run it again`);
+      } else if (!sameCommit(m.commit, head)) {
+        return F(`the sample was run at every setting at ${String(m.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it recorded no fingerprint, so nothing here can say whether it still applies`);
+      }
+      return T(`every model holds at the dialog's defaults, and the sample held at every setting too: ${(m.models ?? []).length} model(s), ${m.minutes} min, ${when}`);
+    }],
     [/^The old implementation is gone/, () => {
       let files = 0; try { files = readdirSync(join(ROOT, 'src/styles/models')).length; } catch {}
       const uses = ((read('src/styles/main.scss') ?? '').match(/@use 'models\//g) ?? []).length;
@@ -403,8 +432,13 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       if (!rec) return N(`the precondition holds -- every model's text names a family the scene carries, over all ${n} -- but the two renderers have not been asked to draw: npm run check-parity -- --render`);
       const when = String(rec.at ?? '').slice(0, 16).replace(`T`, ` `);
       if (!rec.ok) return F(`drawn on both renderers ${when} and they disagreed: ${(rec.failures ?? []).slice(0, 3).join('; ')}`);
-      if (!sameCommit(rec.commit, head)) {
-        return F(`the two renderers were compared at ${String(rec.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: drawn from other code`);
+      /* Judged by what it depended on, not by whether a commit happened: this line went red an
+         hour after it was measured because an unrelated commit moved HEAD. */
+      const parityNow = stepFingerprint('parity');
+      if (rec.fp?.hash && parityNow) {
+        if (rec.fp.hash !== parityNow.hash) return F(`the two renderers were compared ${when}, and ${rec.fp.files} file(s) it depends on have changed since: run it again`);
+      } else if (!sameCommit(rec.commit, head)) {
+        return F(`the two renderers were compared at ${String(rec.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it recorded no fingerprint, so nothing here can say whether it still applies`);
       }
       return T(`the precondition holds over all ${n}, and ${(rec.drawn ?? []).length} model(s) were drawn on BOTH renderers ${when} and agreed: ${(rec.drawn ?? []).join(', ')}`);
     }],

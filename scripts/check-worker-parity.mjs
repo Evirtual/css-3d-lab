@@ -41,6 +41,7 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { stepFingerprint } from './gate-paths.mjs';
 import { chromium } from 'playwright';
 import { createServer } from 'vite';
 import { exportServer } from '../server/dev.mjs';
@@ -357,6 +358,7 @@ if (RENDER) {
       at: new Date().toISOString(),
       commit,
       worker: WORKER,
+      fp: stepFingerprint('parity'),
       drawn: chosen,
       failures: fail,
       ok: fail.length === 0,
