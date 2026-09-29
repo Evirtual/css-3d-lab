@@ -2,7 +2,9 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 
-const root = __dirname;
+/* import.meta.dirname, not __dirname: __dirname only exists in this ESM file because Vite's bundling
+   config loader injects it, and the native loader Vite is moving to does not. Node 20.11+. */
+const root = import.meta.dirname;
 
 /** Every generated page (scripts/generate-pages.mjs) becomes a build entry. */
 function generatedPages(): Record<string, string> {
