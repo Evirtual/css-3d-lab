@@ -409,6 +409,26 @@ export function serve(port = 5178) {
       const r = start('job:gate-chosen', []);
       return json(res, r.ok ? 200 : 409, r);
     }
+/*
+ * WHAT THE DOCTOR FOUND, SO THE BOARD CAN SAY IT TOO.
+ *
+ * `npm run doctor` prints what this machine can and cannot do, and writes the same rows to
+ * docs/checks/machine.json. Printing it in a terminal only helps somebody who already knew to
+ * run it -- which is the whole failure this board exists to end. The board asks here instead,
+ * and shows the three parts the doctor writes: what failed, where, and why, in the words of
+ * whatever refused.
+ *
+ * `known: false` is NOT `ready: true`. Nobody having asked is a different answer from nothing
+ * being wrong, and the board says the first rather than assuming the second.
+ */
+    if (url.pathname === '/api/machine') {
+      try {
+        const m = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'machine.json'), 'utf8'));
+        return json(res, 200, { known: true, ...m });
+      } catch {
+        return json(res, 200, { known: false });
+      }
+    }
     if (url.pathname === '/api/jobs') {
       let machine = null;
       try { machine = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'machine.json'), 'utf8')); } catch { /* no doctor run */ }

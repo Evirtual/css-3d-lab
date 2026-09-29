@@ -1,6 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "include": ["src/ledger"],
+    // tsconfig.json excludes src/ledger so the app can build, and `exclude` is INHERITED by a
+    // config that extends it -- where it beats `include`. So this file, whose whole purpose is to
+    // check src/ledger, resolved to no inputs at all and had never checked one line. It was found
+    // on 2026-09-29 by the dev server: vite refused to transform main.ts over a redeclared
+    // variable that `tsc -p tsconfig.json` had just called clean, because that config does not
+    // read the file either. Clearing the inherited exclude is what makes this config mean what
+    // its name says.
+    "exclude": [],
   "compilerOptions": {
     "strict": false,
     "noImplicitAny": false,

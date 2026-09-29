@@ -474,7 +474,12 @@
            the thing the page is about. They go behind one button there, and stay laid out here
            on anything wider. Same buttons, same ids, same handlers: only where they sit moves. -->
       <div class="hero__btns" id="hero-tools">
-        <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" data-nav="alert" hidden>What’s holding models back</button>
+        <!-- The first thing a person needs and the last thing the board offered: is this machine able to
+             run any of it, and what am I looking at. It is `hidden` like blk-btn above, on the same rule:
+             a button that has nothing to say does not take a place in the row. It appears when no doctor
+             has run, when the doctor found something, or until the tour has been taken once. -->
+                <button class="btn" id="setup-btn" type="button" aria-haspopup="dialog" data-nav="hand" hidden>Start here</button>
+                <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" data-nav="alert" hidden>What’s holding models back</button>
         <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" data-nav="checklist" hidden>Release checklist</button>
         <!-- Every process this project has, offered here rather than only in a terminal. A board
              that can show you a red line and not let you answer it sends you somewhere else to
@@ -485,7 +490,7 @@
            could have meant anything. A menu button that hides its own contents is a menu nobody opens,
            so it names them. -->
             <button class="btn" id="run-btn" type="button" aria-haspopup="dialog" data-nav="play" data-tip data-tiptext="The gate step by step with its cost added up, every check, and every job -- all of them startable here rather than from a terminal.">Run… <small>gate, checks, jobs</small></button>
-        <button class="btn" id="theme" type="button" data-nav="sun">Theme: auto</button>
+        <button class="btn btn--icon" id="theme" type="button" data-nav="sun">Theme: auto</button>
         <!-- The way out of this page. A ledger explains what has been proved; it does not explain
              what any of it is for, how to run a check, or what to do first after cloning. That is
              docs/index.html, and it links back here. -->
@@ -494,7 +499,7 @@
              the page that is about models, though neither is about a model. They are about the
              page itself -- how it counts, and what it could not work out -- so they are header
              furniture like everything else here. -->
-        <button type="button" class="btn" id="rules-btn" aria-haspopup="dialog" data-nav="info" data-tip data-tiptext="How every count on this page is worked out: what a tick means, what a column counts, and what it leaves out.">How these are counted</button>
+        <button type="button" class="btn btn--icon" id="rules-btn" aria-haspopup="dialog" data-nav="help" aria-label="How these are counted" data-tip data-tiptext="How every count on this page is worked out: what a tick means, what a column counts, and what it leaves out.">How these are counted</button>
         <span class="notes-anchor">
           <button type="button" id="notes-btn" class="notesbtn" data-nav="note" aria-expanded="false" aria-controls="notes-pop" data-tip data-tiptext="Things the ledger could not work out while it built this page: a file it could not read, a run whose process had gone, an instrument that failed. Click to read them."><b>0</b> note</button>
           <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
@@ -626,6 +631,20 @@
 
 <!-- What the machine has left, and why two checks at once is not twice the work done. Opened from
      the chip beside "watcher live"; filled by machineModal() so the numbers are the live ones. -->
+<dialog id="setup-dialog" class="cldlg" aria-labelledby="setup-title">
+  <div class="cldlg__box">
+    <div class="cldlg__head">
+      <div>
+        <span class="eyebrow">Before you run anything</span>
+        <h2 id="setup-title">Can this machine do it, and what is this page</h2>
+        <p class="muted">Every answer below comes from <code>npm run doctor</code>, which asks this computer the questions the checks assume. Nothing here changes anything.</p>
+      </div>
+      <button type="button" class="cldlg__x" id="setup-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+    <div class="cldlg__body" id="setup-body"></div>
+  </div>
+</dialog>
+
 <dialog id="mach-dialog" class="cldlg" aria-labelledby="mach-title">
   <div class="cldlg__box">
     <div class="cldlg__head">

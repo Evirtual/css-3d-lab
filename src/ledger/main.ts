@@ -65,6 +65,11 @@ import { icon } from '../icons.ts';
     $('theme').setAttribute('aria-label', `Theme: ${themeLabel}. Click to change.`);
     $('theme').dataset.tiptext = `Theme: ${themeLabel}. Click to change: auto, light, dark.`;
     $('theme').dataset.tip = '';
+    /* Icon-only now, so the icon IS the label: a sun that never changes on a button whose whole
+       job is switching between light, dark and auto is a control that reports nothing. The
+       words survive in .nav__t for a screen reader and in the tooltip for a mouse. */
+    const themeIcon = $('theme').querySelector('.nav__i');
+    if (themeIcon) themeIcon.innerHTML = icon(mode === 'dark' ? 'moon' : mode === 'light' ? 'sun' : 'contrast');
   };
   $('theme').addEventListener('click', () => {
     mode = modes[(modes.indexOf(mode) + 1) % modes.length];
@@ -1248,6 +1253,223 @@ import { icon } from '../icons.ts';
   $('blk-close').addEventListener('click', () => $('blk-dialog').close());
   $('mach-close')?.addEventListener('click', () => $('mach-dialog').close());
   $('run-btn')?.addEventListener('click', () => { void openRuns(); });
+
+  /*
+   * START HERE: WHAT THIS MACHINE CAN DO, THEN WHAT THIS PAGE IS.
+   *
+   * Everything on this board was reachable only by somebody who already knew it was there. The
+   * doctor's answers lived in a terminal; the tour did not exist; the gate's step checkboxes were
+   * behind a button reading "Run...". A tool that needs a person who has read it is a different
+   * thing from a tool that works, and on 2026-09-29 the person who asked for all three reported
+   * that none of them were anywhere.
+   *
+   * Two parts. The first reads what npm run doctor wrote and repeats it in the three parts the
+   * doctor uses -- WHAT failed, WHERE, and WHY in the words of whatever refused -- with the command
+   * that fixes it beside each one, and a button to ask again without leaving the page. The second
+   * walks the board itself, one stop at a time, forwards and back.
+   *
+   * NOBODY HAVING ASKED IS NOT THE SAME AS NOTHING BEING WRONG. With no doctor run this says so
+   * and offers the run, rather than showing a clean panel it has no grounds for.
+   */
+  const SETUP_SEEN = 'c3d.setup.seen';
+  const seenSetup = () => { try { return localStorage.getItem(SETUP_SEEN) === '1'; } catch { return false; } };
+  const markSetupSeen = () => { try { localStorage.setItem(SETUP_SEEN, '1'); } catch { /* private window: it opens again, which is the safe way to be wrong */ } };
+  let DOCTOR: any = null;
+
+  const LEVEL: any = { bad: { k: 'stop', w: 'Stops the checks' }, warn: { k: 'note', w: 'Worth knowing' }, ok: { k: 'fine', w: 'Fine' } };
+
+  function setupHtml() {
+    if (!DOCTOR) return '<p class="muted">Asking the board what the doctor found...</p>';
+    if (!DOCTOR.known) {
+      return '<div class="setup__none"><p><b class="big">Nobody has asked whether this machine can run anything.</b> '
+        + 'That is not the same as nothing being wrong, so the board will not pretend it is. '
+        + 'The check reads this computer and changes nothing: Node and its version, whether a browser can be started at all, '
+        + 'the files the checks read, the two ports they want, and the optional networked parts.</p>'
+        + (DOCTOR.offline ? '<p class="muted">The board could not be asked: ' + esc(DOCTOR.offline) + '. It answers this only when started with <code>npm run board</code>.</p>' : '')
+        + '<button type="button" class="btn runjob__go" data-job="doctor">Check this machine</button>'
+        + '<p class="muted">Or <code>npm run doctor</code>. About a minute.</p></div>'
+        + tourInvite();
+    }
+    const rows = (DOCTOR.rows ?? []) as any[];
+    const stops = rows.filter((r) => r.level === 'bad');
+    const notes = rows.filter((r) => r.level === 'warn');
+    const fine = rows.filter((r) => r.level === 'ok');
+    const one = (r: any) => '<li class="setup__row setup__row--' + LEVEL[r.level].k + '">'
+      + '<div class="setup__what"><b>' + esc(r.what) + '</b><span class="setup__lv">' + esc(LEVEL[r.level].w) + '</span></div>'
+      + '<div class="setup__where">' + esc(r.detail ?? '') + '</div>'
+      + (r.why ? '<p class="setup__why">' + esc(r.why) + '</p>' : '')
+      + (r.fix ? '<p class="setup__fix">Run <code>' + esc(r.fix) + '</code></p>' : '')
+      + '</li>';
+    const head = stops.length
+      ? '<p class="notice bad"><b class="big">' + stops.length + ' thing' + (stops.length === 1 ? '' : 's') + ' stop the checks from running.</b> '
+        + 'The board still opens and shows whatever was last recorded - it reads <code>docs/checks</code>, it does not need to run anything.</p>'
+      : notes.length
+        ? '<p class="notice info"><b class="big">Everything needed is here.</b> ' + notes.length + ' thing' + (notes.length === 1 ? '' : 's') + ' worth knowing about, below.</p>'
+        : '<p class="notice info"><b class="big">Everything needed is here.</b></p>';
+    return head
+      + '<p class="muted setup__age">Asked ' + esc(ago(DOCTOR.at)) + '. '
+      + '<button type="button" class="btn" data-job="doctor">Ask again</button></p>'
+      + '<ul class="setup__rows">' + [...stops, ...notes, ...fine].map(one).join('') + '</ul>'
+      + tourInvite();
+  }
+
+  const tourInvite = () => '<div class="setup__tour"><h3>What am I looking at</h3>'
+    + '<p class="muted">Six stops around the board: what it is claiming, where each number comes from, and how to run anything yourself. It moves the page as it goes; leave whenever you like.</p>'
+    + '<button type="button" class="btn runjob__go" id="tour-go">Take the tour</button></div>';
+
+  async function openSetup() {
+    const d: any = $('setup-dialog');
+    if (!d.open) { if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', ''); }
+    $('setup-body').innerHTML = setupHtml();
+    try {
+      const { body } = await api('/api/machine');
+      DOCTOR = body;
+    } catch (e) {
+      /* The board answers /api/machine only when it is the board server. Opened as a plain file, or
+         served by anything else, there is no answer -- and "could not ask" is its own state. */
+      DOCTOR = { known: false, offline: String((e as any)?.message ?? e) };
+    }
+    $('setup-body').innerHTML = setupHtml();
+    markSetupSeen();
+    syncSetupBtn();
+  }
+
+  /* The button hides once it has nothing left to say: the doctor found nothing and the tour has
+     been taken. Same rule as the blockers button beside it -- see the note in ledger.html. */
+  function syncSetupBtn() {
+    const b: any = $('setup-btn');
+    if (!b) return;
+    const worth = !seenSetup() || !DOCTOR || DOCTOR.known === false || (DOCTOR.stops ?? 0) > 0 || (DOCTOR.notes ?? 0) > 0;
+    b.hidden = !worth;
+    if (DOCTOR?.known && (DOCTOR.stops ?? 0) > 0) {
+      const t = b.querySelector('.nav__t') ?? b;
+      t.textContent = 'Start here - ' + DOCTOR.stops + ' blocking';
+    }
+    paintNavIcons();
+  }
+
+  $('setup-btn')?.addEventListener('click', () => { void openSetup(); });
+  $('setup-close')?.addEventListener('click', () => ($('setup-dialog') as any).close());
+  $('setup-dialog')?.addEventListener('click', (e: any) => { if (e.target === $('setup-dialog')) (e.target as any).close(); });
+  $('setup-body')?.addEventListener('click', (ev: any) => {
+    if (ev.target.id === 'tour-go') { ($('setup-dialog') as any).close(); startTour(); return; }
+    const b = (ev.target as HTMLElement).closest('[data-job]') as HTMLButtonElement | null;
+    if (!b || b.disabled) return;
+    b.disabled = true;
+    b.textContent = 'Running...';
+    void api('/api/run?check=job:' + encodeURIComponent(b.dataset.job ?? ''), 'POST')
+      .then(async ({ body }: any) => {
+        if (body?.ok === false) { b.textContent = 'Refused'; b.title = body.why ?? ''; return; }
+        /* The doctor takes about a minute and writes machine.json at the end. Re-reading on a timer
+           is how the panel stops being a thing you have to close and reopen to see the answer to the
+           question it just asked. */
+        b.textContent = 'Asking...';
+        for (let i = 0; i < 40; i++) {
+          await new Promise((r) => setTimeout(r, 3000));
+          try {
+            const { body: m } = await api('/api/machine');
+            if (m?.known && m.at !== DOCTOR?.at) { DOCTOR = m; $('setup-body').innerHTML = setupHtml(); syncSetupBtn(); return; }
+          } catch { /* keep waiting: a board that is rebuilding answers again in a moment */ }
+        }
+        b.textContent = 'Still running';
+      })
+      .catch((e: any) => { b.textContent = 'Failed'; b.title = String(e?.message ?? e); });
+  });
+
+  /*
+   * THE TOUR.
+   *
+   * Six stops, each one an element that is already on the page. It scrolls the element into view,
+   * rings it, and says in plain words what it is claiming and where that claim comes from. Back and
+   * Next, because a tour you can only go forwards through is a tour you cannot check.
+   *
+   * A stop whose element is not on the page is SKIPPED rather than shown pointing at nothing: the
+   * blockers button is not there when nothing is blocked, and the gate bar is only there during a
+   * run. Six stops is the most it can be, not a promise.
+   */
+  const TOUR: { sel: string; title: string; body: string }[] = [
+    { sel: '#cl-btn', title: 'What the board is claiming',
+      body: 'The release checklist, and how much of it is done. A tick is a claim; a proof run on this board is the only thing that makes it proven, and the dialog behind this button says which of the two each line is.' },
+    { sel: '.panel--strip', title: 'The columns, and what each counts',
+      body: 'One number per check, over all 135 models. These are counts of recorded results, not of models: a model with no result yet is not a pass and is not a failure, and the key below the table names every state.' },
+    { sel: '#run-btn', title: 'Everything is runnable from here',
+      body: 'The gate step by step with its cost added up, every check, and every job. Anything this machine cannot do is greyed out and says why, rather than throwing when you press it. Nothing here needs a terminal.' },
+    { sel: '.tbl, table', title: 'One row per model, one tick per check',
+      body: 'Every tick is a recorded result with a commit and a time behind it. A result dies when the files it judged change - not when any commit happens - so a tick going grey names what moved.' },
+    { sel: '.statusline', title: 'Whether any of this is current',
+      body: 'The commit this was built from, when it was built, and whether the watcher that rebuilds it is alive. If this line is stale, everything above it is a photograph of an older repository.' },
+    { sel: '#rules-btn', title: 'How every count is worked out',
+      body: 'What a tick means, what each column counts, and what it leaves out. Read it once and the numbers above stop being something you have to take on trust.' },
+  ];
+  let tourAt = -1;
+
+  function startTour() { tourAt = -1; nextStop(1); }
+  function endTour() {
+    tourAt = -1;
+    document.querySelector('.tour')?.remove();
+    document.querySelectorAll('.tour-ring').forEach((e) => e.classList.remove('tour-ring'));
+    markSetupSeen();
+    syncSetupBtn();
+  }
+  function nextStop(dir: number) {
+    document.querySelectorAll('.tour-ring').forEach((e) => e.classList.remove('tour-ring'));
+    let i = tourAt;
+    let el: Element | null = null;
+    /* Walk until an element that is actually on the page turns up, in the direction asked. */
+    for (;;) {
+      i += dir;
+      if (i < 0 || i >= TOUR.length) { endTour(); return; }
+      el = document.querySelector(TOUR[i].sel);
+      if (el && (el as HTMLElement).offsetParent !== null) break;
+    }
+    tourAt = i;
+    const stop = TOUR[i];
+    el!.classList.add('tour-ring');
+    el!.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    let box = document.querySelector('.tour') as HTMLElement | null;
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'tour';
+      box.setAttribute('role', 'dialog');
+      box.setAttribute('aria-live', 'polite');
+      document.body.appendChild(box);
+      box.addEventListener('click', (ev: any) => {
+        const a = ev.target.closest('[data-tour]')?.dataset.tour;
+        if (a === 'next') nextStop(1);
+        else if (a === 'back') nextStop(-1);
+        else if (a === 'end') endTour();
+      });
+    }
+    box.innerHTML = '<div class="tour__n">Stop ' + (i + 1) + ' of ' + TOUR.length + '</div>'
+      + '<h3>' + esc(stop.title) + '</h3><p>' + esc(stop.body) + '</p>'
+      + '<div class="tour__acts">'
+      + '<button type="button" class="btn" data-tour="back"' + (i === 0 ? ' disabled' : '') + '>Back</button>'
+      + '<button type="button" class="btn" data-tour="end">Close</button>'
+      + '<button type="button" class="btn runjob__go" data-tour="next">' + (i === TOUR.length - 1 ? 'Done' : 'Next') + '</button>'
+      + '</div>';
+    (box.querySelector('[data-tour="next"]') as HTMLElement)?.focus();
+  }
+  document.addEventListener('keydown', (e: any) => { if (e.key === 'Escape' && tourAt >= 0) { e.preventDefault(); endTour(); } });
+
+  /*
+   * Opened for the first time on this browser, the board says what it is before it says 135 of
+   * anything. After that the button carries it, and only while it has something to say.
+   *
+   * BOTH BRANCHES ARE DEFERRED, and the second one is why. It used to call api() here, which is a
+   * const declared some seventeen hundred lines further down -- so it ran in the temporal dead zone
+   * and threw ReferenceError before the board finished starting. This is the second time today that
+   * a module-init call reached past its own declaration; the first was sayStarted() in verify.mjs,
+   * and it failed silently into a catch. Nothing caught this one.
+   *
+   * It was found by tsc, one minute after tsconfig.ledger.json was repaired -- a config that had
+   * been excluding the very folder it was written to check, and had therefore never reported
+   * anything about this file at all.
+   */
+  setTimeout(() => {
+    if (!seenSetup()) { void openSetup(); return; }
+    void api('/api/machine').then(({ body }: any) => { DOCTOR = body; syncSetupBtn(); }).catch(() => { syncSetupBtn(); });
+  }, 400);
+
   $('run-close')?.addEventListener('click', () => $('run-dialog').close());
   const gateCost = () => {
     const on = [...document.querySelectorAll('#run-body [data-step]:checked')] as HTMLInputElement[];
@@ -1396,6 +1618,17 @@ import { icon } from '../icons.ts';
     }
   }
   paintNavIcons();
+  /*
+   * ONCE MORE, NOW THAT THE ICON EXISTS.
+   *
+   * applyTheme() picks the theme button's glyph -- sun for light, moon for dark, half-circle for
+   * auto -- but it runs as the module starts, about fifteen hundred lines before paintNavIcons()
+   * creates the .nav__i it writes into. So its swap found nothing and the button kept whatever
+   * data-nav said, which is `sun`: a header that claimed "light" while the theme was following the
+   * system. Harmless-looking, and exactly the kind of label that is wrong without ever saying so.
+   * Now that the icon is on the page, ask the theme to describe itself again.
+   */
+  applyTheme();
   $('notes-btn').addEventListener('click', (e) => { e.stopPropagation(); notesOpen = !notesOpen; renderNotes(); paintNavIcons(); });
   $('notes-pop').addEventListener('click', (e) => {
     e.stopPropagation();
