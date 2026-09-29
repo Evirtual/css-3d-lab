@@ -2530,11 +2530,20 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
 /* the separators between its parts were doing the work of spacing; spacing does it better */
 .statusline .live { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 
-@media (max-width: 1240px) {
-  /* before anything wraps raggedly, the controls take a line of their own and fill it from the left */
-  .hero .top { flex-direction: column; align-items: stretch; }
-  .hero__btns { flex: 1 1 auto; justify-content: flex-start; }
-}
+/* THE TITLE AND THE CONTROLS SHARE ONE LINE, AND NOW THEY FIT ON IT.
+ *
+ * This used to stack them below 1240px: "before anything wraps raggedly, the controls take a line
+ * of their own". That was true of the header it was written for -- six word-buttons including
+ * "Release checklist - 45 of 56 done, 10 need a look" and "How these are counted".
+ *
+ * That header is gone. The checklist button is 100px, two of the others are icon circles, and the
+ * whole row measures 472px beside a 76px title: 548px, which fits on one line down to about 650.
+ * Measured at 1240, 1100, 1000, 900, 760 and 680 -- one line at every one of them.
+ *
+ * Below 1000px the rule underneath turns the controls into the bottom bar anyway, so there is no
+ * width left where stacking helps. A breakpoint that was right for the old header had simply
+ * outlived it.
+ */
 @media (max-width: 1000px) {
   /* and below this they are the bar at the bottom, so the header is information only */
   .hero .top { display: block; }
