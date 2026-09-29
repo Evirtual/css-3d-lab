@@ -42,6 +42,9 @@ const h = (value) => createHash('sha1').update(value).digest('hex').slice(0, 12)
 const BUILD = [
   'src', 'public', 'package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts',
   'scripts/generate-pages.mjs', 'scripts/generate-capture-fonts.mjs',
+  // the board's own page: built by vite.ledger.config.ts, excluded by tsconfig.json, and not in
+  // dist/. It cannot change what generate, tsc or vite build produce, so it does not stale them.
+  '!src/ledger',
 ];
 /* The model sources and the one file that turns a snippet into a standalone document. */
 /* Which browser draws, and how a crash is handled. scripts/browser.mjs decides whether the pixels
@@ -72,12 +75,13 @@ const HARNESS = [
  * are narrow because somebody reasoned through each file. Narrowing these is safe to do the same
  * way, one step at a time, with evidence.
  */
-const RENDERS_MODELS = ['src', ...BROWSER, ...HARNESS];
+const RENDERS_MODELS = ['src', '!src/ledger', ...BROWSER, ...HARNESS];
 
 export const STEP_PATHS = {
   // tsc covers every .ts in the project, the board's own page included: a change there really does
   // mean the last "TypeScript is clean" was about other code.
-  typescript: ['src', 'tsconfig.json', 'package.json'],
+  // tsconfig.json excludes src/ledger, so a change there is not a change tsc looked at.
+  typescript: ['src', '!src/ledger', 'tsconfig.json', 'package.json'],
   build: BUILD,
   // qa opens the BUILT site, so it depends on everything the build does, plus its own rule
   qa: [...BUILD, ...BROWSER, 'scripts/qa.mjs'],
@@ -174,12 +178,35 @@ function walk(dir, out = []) {
 export function filesFor(key) {
   const paths = STEP_PATHS[key];
   if (!paths) return null;
+  /*
+   * A PATH THAT STARTS WITH "!" IS TAKEN BACK OUT.
+   *
+   * Declaring a whole folder is the safe way to be roughly right, but it is only safe while the
+   * folder holds nothing irrelevant. `src` holds src/ledger -- the board's own page, which is built
+   * by vite.ledger.config.ts, excluded by tsconfig.json, and part of neither the site the models
+   * render in nor anything tsc or vite build look at.
+   *
+   * Without this, editing the board staled eleven per-model checks plus TypeScript, the build and
+   * QA: about four hours of re-running, to answer for a change that cannot reach a single thing any
+   * of them measure. That happened repeatedly on 2026-09-29 and I re-ran checks because of it.
+   *
+   * This is a narrowing with evidence behind it, which is the only kind that is safe: the excluded
+   * folder is not an input to these steps, and it is named rather than pattern-matched so that
+   * adding a second one is a decision somebody has to write down.
+   */
+  const drop = paths.filter((p) => p.startsWith('!')).map((p) => toPosix(p.slice(1)));
+  const keep = paths.filter((p) => !p.startsWith('!'));
+  const excluded = (rel) => drop.some((d) => rel === d || rel.startsWith(d + '/'));
   const out = new Set();
-  for (const p of paths) {
+  for (const p of keep) {
     const full = join(ROOT, p);
     if (!existsSync(full)) continue;
-    if (statSync(full).isDirectory()) for (const f of walk(full)) out.add(toPosix(relative(ROOT, f)));
-    else out.add(toPosix(p));
+    if (statSync(full).isDirectory()) {
+      for (const f of walk(full)) {
+        const rel = toPosix(relative(ROOT, f));
+        if (!excluded(rel)) out.add(rel);
+      }
+    } else if (!excluded(toPosix(p))) out.add(toPosix(p));
   }
   return [...out].sort();
 }
@@ -211,7 +238,25 @@ export function stepFingerprint(key) {
     each[f] = fh;
     parts.push(`${f}` + String.fromCharCode(0) + fh);
   }
-  return { files: files.length, hash: h(parts.join(String.fromCharCode(10))), each };
+  /*
+   * AND A HASH OF THE FILE LIST ITSELF.
+   *
+   * `hash` mixes names and contents together, so it moves when the code changes AND when the rule
+   * for what this step depends on changes. Those are different facts. On 2026-09-29 src/ledger was
+   * taken off eleven steps' paths -- a narrowing, correct, changing nothing about any model -- and
+   * every recorded result would have been reported STALE, meaning "the files it judged changed",
+   * which was not true of one of them.
+   *
+   * With the list hashed separately the board can tell the two apart and say which happened. A
+   * record written before this exists has no pathsHash, and the reader falls back to comparing
+   * contents, exactly as it did before.
+   */
+  return {
+    files: files.length,
+    hash: h(parts.join(String.fromCharCode(10))),
+    pathsHash: h(files.join(String.fromCharCode(10))),
+    each,
+  };
 }
 /**
  * A step's fingerprint AS IT WAS AT A COMMIT, read out of git.

@@ -525,6 +525,17 @@ function stepState(rec) {
     const now = stepFingerprint(rec.key);
     if (now.hash === rec.fp.hash) return { state: 'current', why: `the ${now.files} files it judges are unchanged since it ran` };
     /*
+     * THE RULE CHANGED, NOT THE CODE -- and those are not the same news.
+     *
+     * If the list of files this step depends on was redefined since the result was recorded, the
+     * contents hash is not comparable with the old one and says nothing about whether anything
+     * this step judges actually moved. Reporting that as "stale" would be asserting a change to
+     * the code that may never have happened.
+     */
+    if (rec.fp.pathsHash && now.pathsHash !== rec.fp.pathsHash) {
+      return { state: 'unknown', why: `what this step depends on was redefined since it ran (${rec.fp.files} files then, ${now.files} now), so its old result cannot be compared with today's` };
+    }
+    /*
      * NAME THEM. A count is not an answer to "what changed?".
      *
      * "the files it judges have changed (268 then, 125 now)" tells a person that something moved
