@@ -49,7 +49,7 @@ const PART = Number(process.env.CLIENT_PART || 0.03);   // share of pixels diffe
 const T = Number(process.env.CLIENT_T || 1137);         // ms into the animations, so both see one pose
 /* --save keeps both pictures side by side in .media-tmp/client-render, because when two renderers
    disagree by a number, the number does not tell you WHY and the pictures do in a second. */
-const SAVE = process.argv.includes('--save');
+const SAVE = !process.argv.includes('--no-save');   // the pictures are the point; opt OUT, not in
 
 const vite = await createVite({ appType: 'mpa', logLevel: 'error', server: { port: 0, host: '127.0.0.1' } });
 await vite.listen();
@@ -358,6 +358,101 @@ for (const demo of list) {
 await guard.close().catch(() => {});
 await vite.close();
 
+/*
+ * A PAGE TO LOOK AT, BECAUSE A NUMBER DOES NOT SHOW YOU WHAT IS WRONG.
+ *
+ * "mean 32.69" was three separate wrong diagnoses in a row -- a renderer fault, then an animation
+ * fault, then a scrollbar -- and the answer took about four seconds once the two pictures were put
+ * side by side: layertext was missing its white front layer. So the pictures come first now and
+ * the number is the caption.
+ *
+ * The third pane is the difference, computed by the browser with mix-blend-mode rather than by
+ * this script. Black means the two agree. Anything that glows is where they do not, and its shape
+ * usually says why: an outline means drift, a whole missing shape means a layer that never drew.
+ */
+function writeGallery(dir, rows) {
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const card = (r) => {
+    if (r.error) return `<article class="card bad" data-state="error" data-id="${esc(r.id)}">
+      <h2>${esc(r.id)} <span class="tag tag--err">could not draw</span></h2>
+      <p class="why">${esc(r.error)}</p></article>`;
+    return `<article class="card ${r.ok ? 'ok' : 'differ'}" data-state="${r.ok ? 'match' : 'differ'}" data-id="${esc(r.id)}">
+      <h2>${esc(r.id)}
+        <span class="tag ${r.ok ? 'tag--ok' : 'tag--no'}">${r.ok ? 'matches' : 'differs'}</span>
+        <span class="num">mean ${r.mean} · ${(r.part * 100).toFixed(1)}% of pixels</span>
+        ${r.polyfilled ? `<span class="tag tag--poly">${r.polyfilled} face${r.polyfilled === 1 ? '' : 's'} polyfilled</span>` : ''}
+      </h2>
+      <div class="three">
+        <figure><img loading="lazy" src="${esc(r.id)}-screen.png" alt="${esc(r.id)} as the browser paints it"><figcaption>the screen</figcaption></figure>
+        <figure><img loading="lazy" src="${esc(r.id)}-client.png" alt="${esc(r.id)} drawn in the page"><figcaption>drawn in the page</figcaption></figure>
+        <figure class="diff"><img loading="lazy" src="${esc(r.id)}-screen.png" alt=""><img loading="lazy" class="over" src="${esc(r.id)}-client.png" alt=""><figcaption>the difference — black is agreement</figcaption></figure>
+      </div></article>`;
+  };
+  const withPics = rows.filter((r) => r.error || typeof r.mean === 'number');
+  const sorted = [...withPics].sort((a, b) => (b.mean ?? 1e9) - (a.mean ?? 1e9));
+  const n = { match: rows.filter((r) => r.ok).length, differ: rows.filter((r) => r.ok === false).length, error: rows.filter((r) => r.error).length };
+  writeFileSync(join(dir, 'index.html'), `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drawn in the page, against the screen</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b0d16; --card:#141828; --edge:#262b44; --text:#e7e9f5; --muted:#8e95b5;
+          --ok:#43d9a3; --no:#ff6b8b; --warm:#ffb454; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:24px; background:var(--bg); color:var(--text);
+         font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:14px; align-items:baseline; margin-bottom:6px; }
+  h1 { font-size:22px; margin:0; }
+  .lead { color:var(--muted); max-width:70ch; margin:0 0 18px; }
+  .bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px; position:sticky; top:0;
+         background:var(--bg); padding:10px 0; z-index:5; border-bottom:1px solid var(--edge); }
+  button { font:inherit; padding:6px 13px; border-radius:999px; border:1px solid var(--edge);
+           background:var(--card); color:var(--text); cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--ok); color:var(--ok); }
+  .card { background:var(--card); border:1px solid var(--edge); border-radius:14px; padding:14px 16px; margin-bottom:18px; }
+  .card.differ { border-left:3px solid var(--no); }
+  .card.ok { border-left:3px solid var(--ok); }
+  .card.bad { border-left:3px solid var(--warm); }
+  h2 { font-size:15px; margin:0 0 10px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .tag { font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:2px 8px; border-radius:999px; }
+  .tag--ok { background:color-mix(in srgb,var(--ok) 20%,transparent); color:var(--ok); }
+  .tag--no { background:color-mix(in srgb,var(--no) 20%,transparent); color:var(--no); }
+  .tag--err{ background:color-mix(in srgb,var(--warm) 20%,transparent); color:var(--warm); }
+  .tag--poly{ background:color-mix(in srgb,#7aa2ff 20%,transparent); color:#7aa2ff; }
+  .num { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .why { color:var(--warm); font-size:13px; margin:0; }
+  .three { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+  figure { margin:0; }
+  figure img { width:100%; height:auto; display:block; border-radius:8px; background:#000; }
+  figcaption { color:var(--muted); font-size:12px; margin-top:5px; }
+  /* the browser computes the difference: identical pixels cancel to black */
+  .diff { position:relative; isolation:isolate; }
+  .diff .over { position:absolute; inset:0; mix-blend-mode:difference; }
+  .diff figcaption { position:relative; }
+</style></head><body>
+<header><h1>Drawn in the page, against the screen</h1></header>
+<p class="lead">Each row is one model: what the browser paints, what the page can draw for itself with no render
+service, and the difference between them. <b>Black means they agree.</b> Sorted worst first.
+${n.match} match, ${n.differ} differ, ${n.error} could not be drawn.
+Thresholds are the ones compare-capture uses against the render service: mean ${MEAN}, ${(PART * 100).toFixed(0)}% of pixels.</p>
+<div class="bar">
+  <button aria-pressed="true" data-f="all">All (${withPics.length})</button>
+  <button aria-pressed="false" data-f="differ">Differ (${n.differ})</button>
+  <button aria-pressed="false" data-f="match">Match (${n.match})</button>
+  <button aria-pressed="false" data-f="error">Could not draw (${n.error})</button>
+</div>
+${sorted.map(card).join('\n')}
+<script>
+  document.querySelector('.bar').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    const want = b.dataset.f;
+    for (const x of document.querySelectorAll('[data-f]')) x.setAttribute('aria-pressed', String(x === b));
+    for (const c of document.querySelectorAll('.card')) c.hidden = want !== 'all' && c.dataset.state !== want;
+  });
+</script>
+</body></html>
+`);
+}
+
 const matched = results.filter((r) => r.ok).length;
 const differed = results.filter((r) => r.ok === false).length;
 const errored = results.filter((r) => r.error).length;
@@ -377,6 +472,11 @@ try {
     results,
   }, null, 2)}\n`);
   console.log('  written to docs/checks/client-render.json');
+  if (SAVE) {
+    const dir = join(ROOT, '.media-tmp', 'client-render');
+    writeGallery(dir, results);
+    console.log(`  look at them: ${join(dir, 'index.html')}`);
+  }
 } catch (e) {
   console.log(`  (could not write docs/checks/client-render.json: ${String(e?.message ?? e).split('\n')[0]})`);
 }
