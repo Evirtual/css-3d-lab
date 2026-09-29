@@ -2062,8 +2062,22 @@ button, input {
 .hero__btns {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
+}
+
+/* HEADER BUTTONS ARE SMALLER THAN BUTTONS IN THE PAGE.
+ * .btn is sized for the table, where a button is the thing you came to press. Up here five of
+ * them sit in a row beside a title, and at full size they were five fat pills that wrapped on a
+ * 1280px screen. Same shape, same colours, less of them: 12px type and tighter padding take the
+ * row from two lines to one without turning any of them into a mystery glyph. */
+.hero__btns .btn, .hero__btns .notesbtn {
+  padding: 5px 11px;
+  font-size: 12px;
+}
+
+.hero__btns .btn small {
+  opacity: 0.85;
 }
 
 #cl-btn small {
@@ -6046,7 +6060,8 @@ header .sitechk {
   --pg-c: var(--accent-2);
 }
 
-.pg--starting .pg__track i {
+.pg--starting .pg__track i,
+.pg--job .pg__track i {
   width: 100%;
   opacity: 0.28;
 }
@@ -8159,4 +8174,396 @@ td.c.is-armed .cellrun[disabled] {
     animation: none;
     opacity: 0.7;
   }
+}
+/* ---------------------------------------------------------------------------
+ * START HERE, AND THE TOUR.
+ *
+ * The doctor's rows, repeated on the board in the three parts it writes: WHAT
+ * failed, WHERE, and WHY in the words of whatever refused. The left edge carries
+ * the level, so the two rows that matter are findable without reading the other
+ * eleven -- which is the only reason a person opens this at all.
+ * ------------------------------------------------------------------------- */
+.setup__rows {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.setup__row {
+  display: grid;
+  gap: 2px 12px;
+  grid-template-columns: minmax(130px, auto) 1fr;
+  padding: 9px 12px 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  border-left-width: 3px;
+}
+
+.setup__row--stop {
+  border-left-color: var(--st-bad);
+}
+
+.setup__row--note {
+  border-left-color: var(--warm);
+}
+
+.setup__row--fine {
+  border-left-color: color-mix(in srgb, var(--st-chk) 60%, transparent);
+}
+
+.setup__what {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.setup__what b {
+  font-size: 13px;
+}
+
+.setup__lv {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.setup__where {
+  font-size: 12.5px;
+  color: var(--text);
+  align-self: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The why and the fix span both columns: they are sentences, and a sentence in a
+   130px column is a column of syllables. */
+.setup__why, .setup__fix {
+  grid-column: 1/-1;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.setup__fix code {
+  color: var(--text);
+}
+
+.setup__age {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.setup__age .btn {
+  padding: 3px 10px;
+  font-size: 11.5px;
+}
+
+.setup__none {
+  padding: 2px 0 6px;
+}
+
+.setup__none .btn {
+  margin-top: 10px;
+}
+
+.setup__tour {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.setup__tour h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.setup__tour .btn {
+  margin-top: 10px;
+}
+
+/* The card sits still at the bottom while the page scrolls the stop into the
+   middle of the screen behind it. Fixed, because a card that scrolls away from
+   the thing it is describing has described nothing. */
+.tour {
+  position: fixed;
+  z-index: 90;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 22px;
+  width: min(520px, 100vw - 32px);
+  padding: 16px 18px;
+  /* THE SAME GLASS THE MODALS USE -- see .cldlg__box.
+   * First attempt used --surface (72% alpha, no blur) and the table read through the words. The
+   * second went fully opaque, which fixed the reading and made this the only floating panel in the
+   * app that is not glass. Both were wrong for the same reason: this is a dialog, and the app
+   * already has one recipe for a dialog. blur(26px) is what makes --glass readable over content;
+   * the earlier blur(8px) was not enough to carry 72% alpha over a table of 135 rows. */
+  border: 1px solid var(--glass-edge);
+  border-radius: 22px;
+  background: var(--glass);
+  backdrop-filter: blur(26px) saturate(1.6);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.65);
+}
+
+.tour__n {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.tour h3 {
+  margin: 4px 0 6px;
+  font-size: 16px;
+}
+
+.tour p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.tour__acts {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  justify-content: flex-end;
+  align-items: stretch;
+}
+
+/* ALL THREE THE SAME HEIGHT.
+ * Next carries .runjob__go for its accent, and .runjob__go sets margin-top: 8px -- written for a
+ * button that sits under a paragraph, not beside two others. In a flex row that margin pushed one
+ * button down and left three controls at three different heights. The margin is dropped here and
+ * the height is set once, so the row cannot drift again whatever classes land on its children. */
+.tour__acts .btn {
+  margin: 0;
+  height: 32px;
+  padding: 0 14px;
+}
+
+.tour__acts .btn[disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* The ring is drawn OUTSIDE the element with an outline, not a border or a
+   box-shadow inset: it must not move anything it lands on. A tour that reflows
+   the page as it points at it is pointing at something that has moved. */
+.tour-ring {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 8px;
+  animation: tourpulse 1.6s ease-in-out infinite;
+}
+
+@keyframes tourpulse {
+  0%, 100% {
+    outline-color: var(--accent);
+  }
+  50% {
+    outline-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-ring {
+    animation: none;
+  }
+}
+/* ---------------------------------------------------------------------------
+ * ICON-ONLY HEADER BUTTONS.
+ *
+ * Third attempt, and the two before it shipped empty circles. Both failed the
+ * same way and neither failure was about CSS:
+ *
+ *   1. paintNavIcons() rewrites a button as .nav__i + .nav__t. Anything that
+ *      later wrote textContent on the BUTTON threw the icon away. The theme
+ *      button writes its label on every click, so it was blank a moment after
+ *      the first press. It writes to .nav__t now.
+ *   2. icon(name) returns nothing for a name the set does not have. The set had
+ *      no question mark and no half-circle, so asking for one drew air. Both
+ *      were added to src/icons.ts before this rule existed.
+ *
+ * The words are NOT deleted and NOT display:none -- they are clipped. A screen
+ * reader still reaches them, the tooltip still shows them to a mouse, and the
+ * button keeps an accessible name without anyone having to remember to write
+ * aria-label twice.
+ * ------------------------------------------------------------------------- */
+.hero__btns .btn--icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 999px;
+  position: relative;
+}
+
+.hero__btns .btn--icon .nav__i {
+  display: inline-flex;
+}
+
+.hero__btns .btn--icon .nav__i .icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* clip-path, not display:none: the name survives for anything that reads it */
+.btn--icon .nav__t {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+}
+
+/* An icon with no word beside it has to earn its hover: the tooltip is the only
+   place the label exists for a sighted mouse user, so the target must look live. */
+.hero__btns .btn--icon:hover {
+  border-color: var(--accent);
+}
+
+/* The mobile bar lays these out its own way and already shows icons there, so
+   the circle sizing is desktop-only; below this width the existing bar rules win. */
+@media (max-width: 1000px) {
+  .hero__btns .btn--icon {
+    width: auto;
+    height: auto;
+    border-radius: 999px;
+  }
+  .btn--icon .nav__t {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    clip-path: none;
+    overflow: visible;
+  }
+}
+/* The name of whatever is holding the memory, inside the machine chip. Warm, not
+   red: it is not a failure, it is the reason the estimate on a running job is
+   wrong — and the one thing on this line a person can act on directly. */
+.statusline .hog {
+  color: var(--warm);
+}
+
+/* ---------------------------------------------------------------------------
+ * THE CHECKLIST CHIP HAD TWO NUMBERS TOUCHING.
+ *
+ * It read "45/56-10 need a look": a ratio, a separator with no air around it,
+ * and a count in a different colour, all at 10px inside a 30px pill. Three
+ * facts crushed into one word.
+ *
+ * They are separated now -- the ratio in the button's own type, the warning as
+ * a small block with its own background, and real space between them. Nothing
+ * is removed; it is the same sentence with room to be read.
+ * ------------------------------------------------------------------------- */
+.hero__btns #cl-btn {
+  gap: 8px;
+  padding-right: 5px;
+}
+
+.hero__btns #cl-btn small {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  opacity: 1;
+}
+
+.hero__btns #cl-btn small .sep {
+  display: none;
+} /* the gap does this job, with air on both sides */
+.hero__btns #cl-btn small b {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: color-mix(in srgb, var(--st-bad) 22%, transparent);
+  color: color-mix(in srgb, var(--st-bad) 72%, var(--text));
+}
+
+/* A job's bar has nothing to fill, so its track travels instead: the animation is
+   the aliveness signal that a 0% bar could not give. Reduced motion gets a steady
+   tinted track -- still visibly different from an empty one. */
+/* ONE INDETERMINATE DESIGN, NOT TWO.
+ *
+ * The app already had a look for "running, and there is no number to show": .pg--starting fills the
+ * track to full width at low opacity and lets the existing stripes crawl across it. A job is in
+ * exactly that state for its whole life, so it gets exactly that look -- the rule is shared below
+ * with .pg--starting rather than copied.
+ *
+ * The first version of this invented a second design: a 34% block travelling left to right. It was
+ * the only bar in the app that behaved that way, sitting inches from bars that did not, which is
+ * how one page comes to look like two. */
+.pg--over .pg__meta {
+  color: var(--warm);
+}
+
+/* Each gate step says whether its recorded result is still about the code on
+   disk. "current" is the quiet one: it is the only state that means there is
+   nothing to do, so it is the only one that does not ask for attention. */
+.gstep__s {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.gstep--current .gstep__s {
+  color: var(--muted);
+  background: transparent;
+}
+
+.gstep--stale .gstep__s {
+  color: var(--warm);
+  background: color-mix(in srgb, var(--warm) 15%, transparent);
+}
+
+.gstep--failed .gstep__s {
+  color: var(--st-bad);
+  background: color-mix(in srgb, var(--st-bad) 16%, transparent);
+}
+
+.gstep--unknown .gstep__s {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 14%, transparent);
+}
+
+/* The reason a run was declined, beside the button that was declined. Warm, not
+   red: being told "not now, something else is running" is an answer, not a fault,
+   and colouring it as a failure would repeat the mistake this text exists to fix. */
+.refused {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--warm);
+}
+
+/* THE ONE HEADING THAT IS NOT A BUTTON SHOULD NOT LOOK LIKE ONE.
+   Every other column heading runs its check when pressed, so .colh carries
+   cursor: pointer. "Model" is not a check and does nothing, but it took the
+   pointer anyway -- a cursor promising an action that does not exist, which is
+   the cheapest kind of lie a UI can tell. It also drops the hover tint for the
+   same reason: nothing responds, so nothing should light up. */
+.colh--plain {
+  cursor: default;
+}
+
+.colh--plain:hover {
+  color: inherit;
+  background: none;
 }

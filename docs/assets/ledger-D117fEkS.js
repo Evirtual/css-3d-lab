@@ -67,6 +67,8 @@ var PATHS = {
 	alert: "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/>",
 	checklist: "<path d=\"m3 17 2 2 4-4\"/><path d=\"m3 7 2 2 4-4\"/><path d=\"M13 6h8\"/><path d=\"M13 12h8\"/><path d=\"M13 18h8\"/>",
 	info: "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>",
+	help: "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"/><path d=\"M12 17h.01\"/>",
+	contrast: "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 18a6 6 0 0 0 0-12v12z\"/>",
 	note: "<path d=\"M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z\"/><path d=\"M15 21v-5a1 1 0 0 1 1-1h5\"/>",
 	book: "<path d=\"M12 7v14\"/><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/>",
 	sun: "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2\"/><path d=\"M12 20v2\"/><path d=\"m4.93 4.93 1.41 1.41\"/><path d=\"m17.66 17.66 1.41 1.41\"/><path d=\"M2 12h2\"/><path d=\"M20 12h2\"/><path d=\"m6.34 17.66-1.41 1.41\"/><path d=\"m19.07 4.93-1.41 1.41\"/>",
@@ -163,6 +165,8 @@ function icon(name) {
 		$("theme").setAttribute("aria-label", `Theme: ${themeLabel}. Click to change.`);
 		$("theme").dataset.tiptext = `Theme: ${themeLabel}. Click to change: auto, light, dark.`;
 		$("theme").dataset.tip = "";
+		const themeIcon = $("theme").querySelector(".nav__i");
+		if (themeIcon) themeIcon.innerHTML = icon(mode === "dark" ? "moon" : mode === "light" ? "sun" : "contrast");
 	};
 	$("theme").addEventListener("click", () => {
 		mode = modes[(modes.indexOf(mode) + 1) % modes.length];
@@ -531,8 +535,7 @@ function icon(name) {
 				ids
 			});
 		}
-		const rank = () => 1;
-		rows.sort((a, b) => rank(a) - rank(b) || (rank(a) === 1 ? b.count - a.count : 0));
+		rows.sort((a, b) => b.count - a.count);
 		return rows;
 	}
 	function blockerText(r) {
@@ -1039,7 +1042,14 @@ function icon(name) {
 			if (already.has(what)) continue;
 			already.add(what);
 			const h = homeOf((idsRaw ?? "").split(",").filter(Boolean), what);
-			const bar = [what, null];
+			const r0 = RUN_NOW.runs.find((r) => r.what === what);
+			const bar = [what, String(what).startsWith("job:") && r0?.startedAt ? {
+				job: true,
+				startedAt: r0.startedAt,
+				estMin: r0.estMin ?? null,
+				done: 0,
+				total: 0
+			} : null];
 			if (h.kind === "model") add(BARS.model, h.id, bar);
 			else if (h.kind === "group") add(BARS.group, h.key, bar);
 			else if (h.kind === "site") BARS.site.push(bar);
@@ -1061,6 +1071,7 @@ function icon(name) {
 	*/
 	function runBar(key, p, over) {
 		if (!p) return startingBar(key);
+		if (p.job) return jobBar(key, p);
 		const c = CHECK_LIST.find((x) => x.key === key);
 		const isJob = String(key).startsWith("job:");
 		const whole = key === "all";
@@ -1088,6 +1099,24 @@ function icon(name) {
       ${ssShown ? ssToggle(ssId, ssOpened ? `Hide what ${title} is covering` : `What ${title} is covering (${nSteps} parts)`, ssOpened, true) : ""}</span>`;
 		if (!ssShown) return bar;
 		return `<span class="pgbox">${bar}${ssOpened ? ssPanel(c, ssId, p) : ""}</span>`;
+	}
+	/**
+	* A running job: elapsed, against what it usually costs.
+	*
+	* No track fills, because nothing measured says how far along it is. The pulse says it is alive
+	* -- which is the one thing the old "starting..." bar failed to say after its first second.
+	*/
+	function jobBar(key, p) {
+		const name = String(key).slice(4).replace(/-/g, " ");
+		const secs = Math.max(0, (Date.now() - new Date(p.startedAt).getTime()) / 1e3);
+		const est = p.estMin ? `of about ${p.estMin} min` : "no estimate recorded for this job";
+		const over = p.estMin && secs > p.estMin * 60 * 1.5;
+		return `<span class="pg pg--job${over ? " pg--over" : ""}">
+      <span class="pg__name" data-tip data-tiptext="${esc(`${name}: a job, not a per-model check, so there is no count to show. Started ${clock(p.startedAt)}.`)}">${esc(name)}</span>
+      <span class="pg__track" role="progressbar" aria-label="${esc(name)} is running" aria-valuetext="running ${esc(fmtDur(secs))}"><i></i></span>
+      <span class="pg__n">${esc(fmtDur(secs))}</span>
+      <span class="pg__meta">${esc(est)}${over ? " · longer than usual" : ""}</span>
+      ${RUN_OK ? `<span class="pg__acts">${holdAndStop("rowrun", null)}</span>` : ""}</span>`;
 	}
 	/**
 	* Notices: things that happened and are worth one line, not a panel.
@@ -1178,6 +1207,221 @@ function icon(name) {
 	$("run-btn")?.addEventListener("click", () => {
 		openRuns();
 	});
+	const SETUP_SEEN = "c3d.setup.seen";
+	const seenSetup = () => {
+		try {
+			return localStorage.getItem(SETUP_SEEN) === "1";
+		} catch {
+			return false;
+		}
+	};
+	const markSetupSeen = () => {
+		try {
+			localStorage.setItem(SETUP_SEEN, "1");
+		} catch {}
+	};
+	let DOCTOR = null;
+	const LEVEL = {
+		bad: {
+			k: "stop",
+			w: "Stops the checks"
+		},
+		warn: {
+			k: "note",
+			w: "Worth knowing"
+		},
+		ok: {
+			k: "fine",
+			w: "Fine"
+		}
+	};
+	function setupHtml() {
+		if (!DOCTOR) return "<p class=\"muted\">Asking the board what the doctor found...</p>";
+		if (!DOCTOR.known) return "<div class=\"setup__none\"><p><b class=\"big\">Nobody has asked whether this machine can run anything.</b> That is not the same as nothing being wrong, so the board will not pretend it is. The check reads this computer and changes nothing: Node and its version, whether a browser can be started at all, the files the checks read, the two ports they want, and the optional networked parts.</p>" + (DOCTOR.offline ? "<p class=\"muted\">The board could not be asked: " + esc(DOCTOR.offline) + ". It answers this only when started with <code>npm run board</code>.</p>" : "") + "<button type=\"button\" class=\"btn runjob__go\" data-job=\"doctor\">Check this machine</button><p class=\"muted\">Or <code>npm run doctor</code>. About a minute.</p></div>" + tourInvite();
+		const rows = DOCTOR.rows ?? [];
+		const stops = rows.filter((r) => r.level === "bad");
+		const notes = rows.filter((r) => r.level === "warn");
+		const fine = rows.filter((r) => r.level === "ok");
+		const one = (r) => "<li class=\"setup__row setup__row--" + LEVEL[r.level].k + "\"><div class=\"setup__what\"><b>" + esc(r.what) + "</b><span class=\"setup__lv\">" + esc(LEVEL[r.level].w) + "</span></div><div class=\"setup__where\">" + esc(r.detail ?? "") + "</div>" + (r.why ? "<p class=\"setup__why\">" + esc(r.why) + "</p>" : "") + (r.fix ? "<p class=\"setup__fix\">Run <code>" + esc(r.fix) + "</code></p>" : "") + "</li>";
+		return (stops.length ? "<p class=\"notice bad\"><b class=\"big\">" + stops.length + " thing" + (stops.length === 1 ? "" : "s") + " stop the checks from running.</b> The board still opens and shows whatever was last recorded - it reads <code>docs/checks</code>, it does not need to run anything.</p>" : notes.length ? "<p class=\"notice info\"><b class=\"big\">Everything needed is here.</b> " + notes.length + " thing" + (notes.length === 1 ? "" : "s") + " worth knowing about, below.</p>" : "<p class=\"notice info\"><b class=\"big\">Everything needed is here.</b></p>") + "<p class=\"muted setup__age\">Asked " + esc(ago(DOCTOR.at)) + ". <button type=\"button\" class=\"btn\" data-job=\"doctor\">Ask again</button></p><ul class=\"setup__rows\">" + [
+			...stops,
+			...notes,
+			...fine
+		].map(one).join("") + "</ul>" + tourInvite();
+	}
+	const tourInvite = () => "<div class=\"setup__tour\"><h3>What am I looking at</h3><p class=\"muted\">Six stops around the board: what it is claiming, where each number comes from, and how to run anything yourself. It moves the page as it goes; leave whenever you like.</p><button type=\"button\" class=\"btn runjob__go\" id=\"tour-go\">Take the tour</button></div>";
+	async function openSetup() {
+		const d = $("setup-dialog");
+		if (!d.open) {
+			if (typeof d.showModal === "function") d.showModal();
+			else d.setAttribute("open", "");
+		}
+		$("setup-body").innerHTML = setupHtml();
+		try {
+			const { body } = await api("/api/machine");
+			DOCTOR = body;
+		} catch (e) {
+			DOCTOR = {
+				known: false,
+				offline: String(e?.message ?? e)
+			};
+		}
+		$("setup-body").innerHTML = setupHtml();
+		markSetupSeen();
+		syncSetupBtn();
+	}
+	function syncSetupBtn() {
+		const b = $("setup-btn");
+		if (!b) return;
+		b.hidden = !(!seenSetup() || !DOCTOR || DOCTOR.known === false || (DOCTOR.stops ?? 0) > 0 || (DOCTOR.notes ?? 0) > 0);
+		if (DOCTOR?.known && (DOCTOR.stops ?? 0) > 0) {
+			const t = b.querySelector(".nav__t") ?? b;
+			t.textContent = "Start here - " + DOCTOR.stops + " blocking";
+		}
+		paintNavIcons();
+	}
+	$("setup-btn")?.addEventListener("click", () => {
+		openSetup();
+	});
+	$("setup-close")?.addEventListener("click", () => $("setup-dialog").close());
+	$("setup-dialog")?.addEventListener("click", (e) => {
+		if (e.target === $("setup-dialog")) e.target.close();
+	});
+	$("setup-body")?.addEventListener("click", (ev) => {
+		if (ev.target.id === "tour-go") {
+			$("setup-dialog").close();
+			startTour();
+			return;
+		}
+		const b = ev.target.closest("[data-job]");
+		if (!b || b.disabled) return;
+		b.disabled = true;
+		b.textContent = "Running...";
+		api("/api/run?check=job:" + encodeURIComponent(b.dataset.job ?? ""), "POST").then(async ({ body }) => {
+			if (body?.ok === false) {
+				b.textContent = "Not now";
+				b.title = body.why ?? "";
+				sayRefused(b, body.why);
+				return;
+			}
+			b.textContent = "Asking...";
+			for (let i = 0; i < 40; i++) {
+				await new Promise((r) => setTimeout(r, 3e3));
+				try {
+					const { body: m } = await api("/api/machine");
+					if (m?.known && m.at !== DOCTOR?.at) {
+						DOCTOR = m;
+						$("setup-body").innerHTML = setupHtml();
+						syncSetupBtn();
+						return;
+					}
+				} catch {}
+			}
+			b.textContent = "Still running";
+		}).catch((e) => {
+			b.textContent = "Failed";
+			b.title = String(e?.message ?? e);
+		});
+	});
+	const TOUR = [
+		{
+			sel: "#cl-btn",
+			title: "What the board is claiming",
+			body: "The release checklist, and how much of it is done. A tick is a claim; a proof run on this board is the only thing that makes it proven, and the dialog behind this button says which of the two each line is."
+		},
+		{
+			sel: ".panel--strip",
+			title: "The columns, and what each counts",
+			body: "One number per check, over all 135 models. These are counts of recorded results, not of models: a model with no result yet is not a pass and is not a failure, and the key below the table names every state."
+		},
+		{
+			sel: "#run-btn",
+			title: "Everything is runnable from here",
+			body: "The gate step by step with its cost added up, every check, and every job. Anything this machine cannot do is greyed out and says why, rather than throwing when you press it. Nothing here needs a terminal."
+		},
+		{
+			sel: ".tbl, table",
+			title: "One row per model, one tick per check",
+			body: "Every tick is a recorded result with a commit and a time behind it. A result dies when the files it judged change - not when any commit happens - so a tick going grey names what moved."
+		},
+		{
+			sel: ".statusline",
+			title: "Whether any of this is current",
+			body: "The commit this was built from, when it was built, and whether the watcher that rebuilds it is alive. If this line is stale, everything above it is a photograph of an older repository."
+		},
+		{
+			sel: "#rules-btn",
+			title: "How every count is worked out",
+			body: "What a tick means, what each column counts, and what it leaves out. Read it once and the numbers above stop being something you have to take on trust."
+		}
+	];
+	let tourAt = -1;
+	function startTour() {
+		tourAt = -1;
+		nextStop(1);
+	}
+	function endTour() {
+		tourAt = -1;
+		document.querySelector(".tour")?.remove();
+		document.querySelectorAll(".tour-ring").forEach((e) => e.classList.remove("tour-ring"));
+		markSetupSeen();
+		syncSetupBtn();
+	}
+	function nextStop(dir) {
+		document.querySelectorAll(".tour-ring").forEach((e) => e.classList.remove("tour-ring"));
+		let i = tourAt;
+		let el = null;
+		for (;;) {
+			i += dir;
+			if (i < 0 || i >= TOUR.length) {
+				endTour();
+				return;
+			}
+			el = document.querySelector(TOUR[i].sel);
+			if (el && el.offsetParent !== null) break;
+		}
+		tourAt = i;
+		const stop = TOUR[i];
+		el.classList.add("tour-ring");
+		el.scrollIntoView({
+			block: "center",
+			behavior: "smooth"
+		});
+		let box = document.querySelector(".tour");
+		if (!box) {
+			box = document.createElement("div");
+			box.className = "tour";
+			box.setAttribute("role", "dialog");
+			box.setAttribute("aria-live", "polite");
+			document.body.appendChild(box);
+			box.addEventListener("click", (ev) => {
+				const a = ev.target.closest("[data-tour]")?.dataset.tour;
+				if (a === "next") nextStop(1);
+				else if (a === "back") nextStop(-1);
+				else if (a === "end") endTour();
+			});
+		}
+		box.innerHTML = "<div class=\"tour__n\">Stop " + (i + 1) + " of " + TOUR.length + "</div><h3>" + esc(stop.title) + "</h3><p>" + esc(stop.body) + "</p><div class=\"tour__acts\"><button type=\"button\" class=\"btn\" data-tour=\"back\"" + (i === 0 ? " disabled" : "") + ">Back</button><button type=\"button\" class=\"btn\" data-tour=\"end\">Close</button><button type=\"button\" class=\"btn runjob__go\" data-tour=\"next\">" + (i === TOUR.length - 1 ? "Done" : "Next") + "</button></div>";
+		box.querySelector("[data-tour=\"next\"]")?.focus();
+	}
+	document.addEventListener("keydown", (e) => {
+		if (e.key === "Escape" && tourAt >= 0) {
+			e.preventDefault();
+			endTour();
+		}
+	});
+	setTimeout(() => {
+		if (!seenSetup()) {
+			openSetup();
+			return;
+		}
+		api("/api/machine").then(({ body }) => {
+			DOCTOR = body;
+			syncSetupBtn();
+		}).catch(() => {
+			syncSetupBtn();
+		});
+	}, 400);
 	$("run-close")?.addEventListener("click", () => $("run-dialog").close());
 	const gateCost = () => {
 		const on = [...document.querySelectorAll("#run-body [data-step]:checked")];
@@ -1193,7 +1437,7 @@ function icon(name) {
 		const pick = ev.target.closest("[data-pick]");
 		if (pick) {
 			const how = pick.dataset.pick;
-			for (const i of [...document.querySelectorAll("#run-body [data-step]")]) i.checked = how === "all" ? true : how === "none" ? false : STALE_STEPS.has(i.dataset.step ?? "");
+			for (const i of [...document.querySelectorAll("#run-body [data-step]")]) i.checked = how === "all" ? true : how === "none" ? false : how === "unproved" ? UNPROVED_STEPS.has(i.dataset.step ?? "") : STALE_STEPS.has(i.dataset.step ?? "");
 			gateCost();
 			return;
 		}
@@ -1203,8 +1447,15 @@ function icon(name) {
 			go.disabled = true;
 			go.textContent = "Starting…";
 			api(`/api/gate?steps=${encodeURIComponent(on.map((i) => i.dataset.step).join(","))}`, "POST").then(({ body }) => {
-				go.textContent = body?.ok === false ? "Refused" : "Running";
-				if (body?.why) go.title = body.why;
+				const no = body?.ok === false;
+				go.textContent = no ? "Not now" : "Running";
+				if (body?.why) {
+					go.title = body.why;
+					if (no) {
+						sayRefused(go, body.why);
+						go.disabled = false;
+					}
+				}
 			}).catch((e) => {
 				go.textContent = "Failed";
 				go.title = String(e?.message ?? e);
@@ -1216,8 +1467,12 @@ function icon(name) {
 		b.disabled = true;
 		b.textContent = "Starting…";
 		api(`/api/run?check=job:${encodeURIComponent(b.dataset.job ?? "")}`, "POST").then(({ body }) => {
-			b.textContent = body?.ok === false ? "Refused" : "Running";
-			if (body?.why) b.title = body.why;
+			const no = body?.ok === false;
+			b.textContent = no ? "Not now" : "Running";
+			if (body?.why) {
+				b.title = body.why;
+				if (no) sayRefused(b, body.why);
+			}
 		}).catch((e) => {
 			b.textContent = "Failed";
 			b.title = String(e?.message ?? e);
@@ -1318,6 +1573,7 @@ function icon(name) {
 		}
 	}
 	paintNavIcons();
+	applyTheme();
 	$("notes-btn").addEventListener("click", (e) => {
 		e.stopPropagation();
 		notesOpen = !notesOpen;
@@ -2381,7 +2637,7 @@ function icon(name) {
 			const staleN = stuck.filter((x) => x.state === "stale").length;
 			const badN = stuck.filter((x) => x.state === "conflict" || x.result === "false").length;
 			const bits = [staleN ? `${staleN} to run again` : "", badN ? `<b data-cl-jump="attention" title="Show just these">${badN} need${badN === 1 ? "s" : ""} a look</b>` : ""].filter(Boolean);
-			return `Release checklist <small>· ${cl.total - stuck.length} of ${cl.total} done${bits.length ? `, ${bits.join(", ")}` : ""}</small>`;
+			return `Checklist <small>${cl.total - stuck.length}/${cl.total}${bits.length ? `<span class="sep">·</span>` + bits.join(", ") : ""}</small>`;
 		})() : `Release checklist <small>· ${cl.done} of ${cl.total} ticked (not evaluated: this ledger predates it)</small>`;
 		$("cl-sum").innerHTML = evald ? (() => {
 			const stuck = cl.items.filter((x) => !clDone(x));
@@ -2547,7 +2803,14 @@ function icon(name) {
 		el.innerHTML = "<span class=\"colruns__h\">Run over every model</span>" + runBtn("all", [], "Run every check over every model", "colrun colrun--all", "Every check") + COLS.map(([k, label]) => runBtn(k, [], `Run ${label} on every model`, "colrun", label)).join("");
 	}
 	let JOBS_STEPS = null;
+	const STATE_WORD = {
+		current: "current",
+		stale: "stale",
+		failed: "failed",
+		unknown: "not known"
+	};
 	const STALE_STEPS = /* @__PURE__ */ new Set();
+	const UNPROVED_STEPS = /* @__PURE__ */ new Set();
 	async function openRuns() {
 		const d = $("run-dialog");
 		if (!d) return;
@@ -2562,7 +2825,11 @@ function icon(name) {
 			body.jobs;
 			JOBS_STEPS = body.steps ?? [];
 			STALE_STEPS.clear();
-			for (const st of L?.gate?.done ?? []) if (st && st.ok === false) STALE_STEPS.add(st.key);
+			UNPROVED_STEPS.clear();
+			for (const st of JOBS_STEPS ?? []) {
+				if (st.state === "stale" || st.state === "failed") STALE_STEPS.add(st.key);
+				if (st.state !== "current") UNPROVED_STEPS.add(st.key);
+			}
 			$("run-body").innerHTML = runsList(body);
 			gateCost();
 		} catch (e) {
@@ -2573,8 +2840,8 @@ function icon(name) {
 	const howLong = (m) => m < 2 ? "under a minute" : m < 60 ? `about ${m} min` : m < 90 ? "about an hour" : `about ${Math.round(m / 60)} hours`;
 	function gatePicker(steps) {
 		return `<div class="gpick"><div class="gpick__head"><b>The gate, step by step</b>
-      <span class="gpick__acts"><button type="button" class="btn" data-pick="all">All</button><button type="button" class="btn" data-pick="none">None</button><button type="button" class="btn" data-pick="stale">Only what is stale</button></span></div>
-      <div class="gpick__list">` + steps.map((x) => `<label class="gstep"><input type="checkbox" data-step="${esc(x.key)}" checked> <b>${esc(x.short ?? x.key)}</b><span class="gstep__n">${esc(x.name)}</span><span class="gstep__m">${esc(x.minutes)}m</span></label>`).join("") + `</div>
+      <span class="gpick__acts"><button type="button" class="btn" data-pick="all">All</button><button type="button" class="btn" data-pick="none">None</button><button type="button" class="btn" data-pick="stale" data-tip data-tiptext="The steps the board can show need running: their files changed since they ran, or they failed.">Only what is stale</button><button type="button" class="btn" data-pick="unproved" data-tip data-tiptext="Those, plus every step whose result predates fingerprints -- it cannot be shown to be about the code as it is now, which is not the same as being fine.">Anything not proved current</button></span></div>
+      <div class="gpick__list">` + steps.map((x) => `<label class="gstep gstep--${esc(x.state ?? "unknown")}"><input type="checkbox" data-step="${esc(x.key)}" checked> <b>${esc(x.short ?? x.key)}</b><span class="gstep__n">${esc(x.name)}</span><span class="gstep__s" data-tip data-tiptext="${esc(x.why ?? "")}">${esc(STATE_WORD[x.state] ?? "not known")}</span><span class="gstep__m">${esc(x.minutes)}m</span></label>`).join("") + `</div>
       <div class="gpick__foot"><span id="gpick-cost" class="muted"></span><button type="button" class="btn runjob__go" id="gpick-go">Run the chosen steps</button></div></div>`;
 	}
 	function runsList(body) {
@@ -2675,6 +2942,22 @@ function icon(name) {
 		});
 	}
 	wireDialog($("rules-dialog"), $("rules-btn"), $("rules-close"));
+	for (const d of document.querySelectorAll("dialog")) {
+		const dlg = d;
+		if (typeof dlg.showModal !== "function") continue;
+		const native = dlg.showModal.bind(dlg);
+		let opener = null;
+		dlg.showModal = () => {
+			const a = document.activeElement;
+			opener = a instanceof HTMLElement && a !== document.body && !dlg.contains(a) ? a : opener;
+			native();
+		};
+		dlg.addEventListener("close", () => {
+			const t = opener;
+			if (!t || !t.isConnected || t.hidden) return;
+			t.focus({ preventScroll: true });
+		});
+	}
 	const dlg = $("cl-dialog");
 	$("cl-btn").addEventListener("click", (e) => {
 		clFilter = e.target.closest("[data-cl-jump]")?.dataset.clJump ?? "all";
@@ -2790,12 +3073,26 @@ function icon(name) {
 	* Exactly the mistake the ledger exists to catch: a check on a response that did not check
 	* whether the response was an answer.
 	*/
+	/**
+	* Put a refusal's reason beside the button that was refused, and take it away when it stops
+	* being true. A word like "Refused" on its own tells a person that something did not happen and
+	* nothing about what to do instead; the server already wrote the sentence, so it is shown.
+	*/
+	function sayRefused(btn, why) {
+		if (!why) return;
+		const prev = btn.parentElement?.querySelector(":scope > .refused");
+		if (prev) prev.remove();
+		const p = document.createElement("p");
+		p.className = "refused";
+		p.textContent = why;
+		btn.insertAdjacentElement("afterend", p);
+	}
 	const api = async (path, method = "GET") => {
 		const r = await fetch(path, {
 			method,
 			cache: "no-store"
 		});
-		if (!r.ok) throw new Error(`${r.status} from ${path}`);
+		if (!r.ok && r.status !== 409) throw new Error(`${r.status} from ${path}`);
 		const ct = r.headers.get("content-type") ?? "";
 		if (!ct.includes("json")) throw new Error(`${path} answered ${ct || "nothing"}, not json`);
 		return {
@@ -2941,7 +3238,10 @@ function icon(name) {
 			return;
 		}
 		const cpu = m.cpuPercent == null ? "" : ` · CPU ${m.cpuPercent}%`;
-		el.innerHTML = `<span class="sep">·</span><button type="button" class="machine linkish" data-machine title="What this machine has left — click for what it means"><i class="dot ${m.low ? "warn" : "on"}"></i>${m.memFreeGB} GB free${esc(cpu)}</button>`;
+		const dot = m.low ? "warn" : "on";
+		const hog = m.low && m.hog ? `<span class="hog"> — ${esc(m.hog.name)} has ${esc(m.hog.gb)} GB</span>` : "";
+		const tip = m.low ? `Under the ${m.floorGB} GB floor, so every model waits before it starts and a run takes several times longer than its estimate.` + (m.hog ? ` The largest holder is ${m.hog.name}, at ${m.hog.gb} GB. Closing it is the fastest thing that helps.` : ` The board has not identified the largest holder yet.`) : "What this machine has left — click for what it means";
+		el.innerHTML = `<span class="sep">·</span><button type="button" class="machine linkish" data-machine title="${esc(tip)}"><i class="dot ${dot}"></i>${m.memFreeGB} GB free${esc(cpu)}${hog}</button>`;
 	}
 	/** The modal behind that chip: the numbers, and why running two checks at once is not free. */
 	function machineModal() {
@@ -3033,14 +3333,13 @@ function icon(name) {
 			const tip = `gate: step ${at} of ${G.total}${G.step ? `, ` + G.step.name : ``}. ${G.done.length} finished${bad.length ? `, ${bad.length} failed: ` + bad.map((d) => d.key).join(`, `) : `, all held`}. Started ${clock(G.startedAt)}.`;
 			gateChip = `<span class="sep">·</span><span class="gate${bad.length ? ` gate--bad` : ``}" tabindex="0" data-tip data-tiptext="${esc(tip)}" data-cl-jump="gate"><i class="dot busy"></i>gate <b>${esc(at)}/${esc(G.total)}</b>${G.step ? `<span class="gate__what">${esc(G.step.short ?? G.step.key)}</span>` : ``}<span class="gate__track"><i style="width:${pct}%"></i></span></span>`;
 		} else if (G?.crashed) gateNote = `<div class="notice bad"><b class="big">A gate run stopped without finishing.</b> It reached step ${esc(G.step?.index ?? G.done.length)} of ${esc(G.total)}${G.step ? ` (<code>${esc(G.step.key)}</code>)` : ``} and the process is gone, so nothing is running now: this board holds whatever it had recorded by then. Start it again with <code>npm run verify</code>.</div>`;
-		$("live").innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span>` + (dataAge != null && dataAge > QUIET_S ? `<span class="sep">·</span><span class="stale">not rebuilt for ${esc(fmtAge(dataAge).replace(/ ago$/, ""))}</span>` : "") + `<span id="machine"></span>` + gateChip;
+		$("live").innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span><span id="machine"></span>` + gateChip;
 		paintMachine();
 		const min = (s) => `${Math.max(1, Math.round(s / 60))} min`;
 		let note = "";
 		if (fetchError) note = `<div class="notice bad"><b class="big">Could not refresh.</b> ${esc(fetchError)}. What you see was fetched ${esc(lastChangeAt ? fmtAge((Date.now() - lastChangeAt) / 1e3).replace(/\d+ s ago/, "under a minute ago") : "earlier")}.</div>`;
 		else if (w.kind === "dead" && dataAge > QUIET_S) note = `<div class="notice bad"><b class="big">Stale: this page has stopped updating.</b> The ledger has not changed for ${min(dataAge)}, and the watcher that should rebuild it last reported ${min(w.beat ?? 0)} ago without recording a stop, so it has probably crashed or the laptop slept. Commits and check results since ${esc(clock(W.heartbeatAt))} are missing. Restart it with <code>npm run ledger:watch</code>.</div>`;
 		else if (w.kind === "dead") note = `<div class="notice">The watcher last reported ${min(w.beat ?? 0)} ago without recording a stop. This data is recent because it was built ${L.build?.by ? `by <code>${esc(L.build.by)}</code>` : "another way"}, but nothing is rebuilding it. Restart the watcher with <code>npm run ledger:watch</code>.</div>`;
-		else if (w.kind === "alive" && dataAge > QUIET_S && !G?.running) note = `<div class="notice info">Quiet, not stale: nothing the ledger reads has changed for ${min(dataAge)}. The watcher is alive and looking every 3 s.</div>`;
 		else if ((w.kind === "stopped" || w.kind === "none") && dataAge > QUIET_S) note = `<div class="notice"><b class="big">Not live.</b> No watcher is running, so this is the build from ${min(dataAge)} ago and it will not change until someone runs <code>npm run ledger</code> or starts <code>npm run ledger:watch</code>.</div>`;
 		note = gateNote + note;
 		const code = L.build?.code;
