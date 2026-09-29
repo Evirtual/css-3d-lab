@@ -3363,7 +3363,8 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
  * ------------------------------------------------------------------------- */
 .hero__btns #cl-btn { gap: 8px; padding-right: 5px; }
 .hero__btns #cl-btn small { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; opacity: 1; }
-.hero__btns #cl-btn small .sep { display: none; }   /* the gap does this job, with air on both sides */
+/* Each part of the chip is an element now (see main.ts): a hidden separator made the
+   two numbers one text run and the chip read "46/561". Nothing here hides anything. */
 .hero__btns #cl-btn small b {
   padding: 2px 7px; border-radius: 999px; font-size: 11px;
   background: color-mix(in srgb, var(--st-bad) 22%, transparent);
@@ -3429,3 +3430,8 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
    any work now that the baseline decides the position; equal leading keeps the
    group's own box tight so centring it stays predictable. */
 .pg__end .pg__n, .pg__end .pg__meta { line-height: 1.2; }
+
+/* The checklist chip's parts. Elements, not text runs, so `gap` can space them —
+   see the note in main.ts about the day this chip reported 561 of anything. */
+.hero__btns #cl-btn .cl-ratio { font-variant-numeric: tabular-nums; }
+.hero__btns #cl-btn .cl-bit { white-space: nowrap; }

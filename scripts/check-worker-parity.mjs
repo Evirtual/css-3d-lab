@@ -39,7 +39,7 @@
  * one -- it is a forbidden header name, and undici drops it silently. A POST from fetch is a 403.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stepFingerprint } from './gate-paths.mjs';
 // Not playwright's chromium directly: scripts/browser.mjs is where 'which browser do the checks
@@ -221,6 +221,69 @@ if (!RENDER) {
   // Nothing has been started yet -- the server and the browser are below -- so there is nothing
   // to close on the way out.
   process.exit(newly.length ? 1 : 0);
+}
+
+/*
+ * SPEND THE BUDGET ONLY WHEN THERE IS SOMETHING NEW TO LEARN.
+ *
+ * Cloudflare's Browser Rendering free plan allows TEN MINUTES of browser time PER DAY, for the
+ * whole account -- and that same ten minutes is what every visitor's export draws on. Every run of
+ * this check took a bite out of the feature the site exists to demonstrate, and on 2026-09-29 it
+ * took the last of it: the Worker answered "out of exports for today", and the checklist line sat
+ * unanswerable until the next morning.
+ *
+ * But asking again teaches nothing when nothing has changed. This step declares the fifty files it
+ * depends on -- the scene, both renderers, the models -- so when their fingerprint is the hash it
+ * already has, the picture the Worker would draw is the picture it drew last time.
+ *
+ * THREE THINGS MUST MATCH, and each one has a reason:
+ *
+ *   the fingerprint   nothing it judges has changed
+ *   the browser       a number measured on Brave is not comparable with one measured on Chromium.
+ *                     The doctor says the same thing about check-perf; this is that rule applied
+ *                     to the half of the comparison that runs HERE.
+ *   the age           and this is the one that cannot be derived from any file. The Worker's
+ *                     Chromium is Cloudflare's, and it can change under a scene that did not.
+ *                     Nothing in this repository would move, so nothing in the fingerprint would
+ *                     either. An answer kept for ever would eventually be about a renderer that no
+ *                     longer exists. It is re-measured at least weekly, so the record is never
+ *                     older than its subject by more than that.
+ *
+ * A previous FAILURE is never reused: a red is a thing to retry, not a thing to cache.
+ * --force ignores all of this and asks anyway.
+ */
+const MAX_AGE_DAYS = Number(process.env.C3D_PARITY_MAX_AGE_DAYS || 7);
+const RECORD = join(ROOT, 'docs', 'checks', 'parity.json');
+if (!flag('--force')) {
+  let prior = null;
+  try { prior = JSON.parse(readFileSync(RECORD, 'utf8')); } catch { /* none yet: ask */ }
+  const now = stepFingerprint('parity');
+  const here = browserId();
+  const ageDays = prior?.at ? (Date.now() - new Date(prior.at).getTime()) / 86400000 : Infinity;
+  const sameBrowser = prior?.browser?.name === here?.name && prior?.browser?.version === here?.version;
+  if (prior && prior.ok === true && prior.fp?.hash === now?.hash && sameBrowser && ageDays < MAX_AGE_DAYS) {
+    const when = new Date(prior.at).toISOString().slice(0, 16).replace('T', ' ');
+    console.log('');
+    console.log(`check-parity: not asked, and nothing was lost by not asking.`);
+    console.log(`  The two renderers agreed at ${when}, on ${prior.drawn?.length ?? 0} model(s).`);
+    console.log(`  The ${now.files} files this compares -- the scene, both renderers, the models -- are byte-for-byte`);
+    console.log(`  what they were then, and the same browser draws this half (${here?.name ?? '?'} ${here?.version ?? ''}).`);
+    console.log(`  So the Worker would draw the picture it already drew, for a bite out of a daily`);
+    console.log(`  budget the site's own visitors export from.`);
+    console.log(`  It is asked again after ${MAX_AGE_DAYS} days regardless, because Cloudflare's Chromium can`);
+    console.log(`  change under a scene that did not. Ask now with --force.`);
+    process.exit(0);
+  }
+  /* Why it IS asking, so a run that spends budget always says what it is buying. */
+  if (prior) {
+    const why = prior.ok !== true ? 'the last run did not end in agreement'
+      : prior.fp?.hash !== now?.hash ? 'the files it compares have changed since'
+      : !sameBrowser ? `it was measured on ${prior.browser?.name ?? '?'} ${prior.browser?.version ?? ''}, and this is ${here?.name ?? '?'} ${here?.version ?? ''}`
+      : `the last answer is ${Math.floor(ageDays)} day(s) old`;
+    console.log(`check-parity: asking the Worker — ${why}.`);
+  } else {
+    console.log('check-parity: asking the Worker — nothing has been recorded yet.');
+  }
 }
 
 // Which models to actually draw twice: anything the scan flagged, then the text-heaviest, because

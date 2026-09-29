@@ -2764,13 +2764,46 @@ import { icon } from '../icons.ts';
           const stuck = cl.items.filter((x) => !clDone(x));
           const staleN = stuck.filter((x) => x.state === 'stale').length;
           const badN = stuck.filter((x) => x.state === 'conflict' || x.result === 'false').length;
-          const bits = [staleN ? `${staleN} to run again` : '', badN ? `<b data-cl-jump="attention" title="Show just these">${badN} need${badN === 1 ? 's' : ''} a look</b>` : ''].filter(Boolean);
+          const bits = [staleN ? `${staleN} to run again` : '', badN ? `${badN} need${badN === 1 ? 's' : ''} a look` : ''].filter(Boolean);
+          /* The detail the button no longer shows, a hover away, in plain words. */
+          btn.dataset.tip = '';
+          btn.dataset.tiptext = `${cl.total - stuck.length} of ${cl.total} done`
+            + (bits.length ? `, ${bits.join(' and ')}` : ', nothing open')
+            + '. Click for the list, line by line, with what each one is waiting on.';
           /* SHORT ENOUGH TO SIT IN A ROW WITH FOUR OTHER BUTTONS.
        * This read "Release checklist - 45 of 56 done, 10 need a look": a sentence, in a row of
        * buttons, which is why the header wrapped. The word Release adds nothing on a page whose
        * only subject is this release, "of" and "done" are what a slash means, and the dialog this
        * opens says all of it in full. The two numbers are the message; both survive. */
-      return `Checklist <small>${cl.total - stuck.length}/${cl.total}${bits.length ? `<span class="sep">·</span>` + bits.join(', ') : ''}</small>`;
+      /*
+       * EVERY PART IS ITS OWN ELEMENT, and that is not decoration.
+       *
+       * This used to put a <span class="sep">·</span> between the ratio and the counts, and the
+       * header CSS hid that separator so the flex gap could do the spacing instead. A display:none
+       * element generates no box, so the text on either side of it became ONE anonymous flex item
+       * with nothing between it -- and the chip read "Checklist 46/561 to run again". Fifty-six
+       * and one, rendered as five hundred and sixty-one, in the one place on this page whose whole
+       * job is reporting a number correctly.
+       *
+       * Text nodes cannot be spaced by `gap`. Elements can. So each part is an element.
+       */
+      /*
+       * THE BUTTON CARRIES ONE NUMBER. THE DIALOG CARRIES THE REST.
+       *
+       * It has been shortened three times and each version still tried to fit the whole state into
+       * a pill: "45 of 56 done, 10 need a look", then "46/56 · 1 to run again · 7 need a look".
+       * That is a status report wearing a button, in a row with five other controls, and it never
+       * fit. Worse, the version before this one rendered as "46/561" -- see the note below about
+       * why text runs cannot be spaced.
+       *
+       * What a person needs from the header is whether to open it. The ratio says that. Everything
+       * about WHICH lines are open, what is stale and what is running is in the dialog one click
+       * away, which has the room to say it properly and already does.
+       *
+       * `bits` is still computed above because the tooltip uses it: the detail is a hover away for
+       * anyone who wants it without opening anything.
+       */
+      return `Checklist <small><span class="cl-ratio">${cl.total - stuck.length}/${cl.total}</span></small>`;
         })()
       : `Release checklist <small>· ${cl.done} of ${cl.total} ticked (not evaluated: this ledger predates it)</small>`;
     $('cl-sum').innerHTML = evald
