@@ -16,7 +16,7 @@
  *
  * It changes nothing and installs nothing. Every line is a question.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { join } from 'node:path';
@@ -24,8 +24,8 @@ import { join } from 'node:path';
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const rows = [];
 const ok = (what, detail) => rows.push({ level: 'ok', what, detail });
-const warn = (what, detail, why) => rows.push({ level: 'warn', what, detail, why });
-const bad = (what, detail, why) => rows.push({ level: 'bad', what, detail, why });
+const warn = (what, detail, why, fix) => rows.push({ level: 'warn', what, detail, why, fix });
+const bad = (what, detail, why, fix) => rows.push({ level: 'bad', what, detail, why, fix });
 
 /* ---------------- the toolchain ---------------- */
 const NEEDED_NODE = 22;
@@ -34,7 +34,7 @@ if (major >= NEEDED_NODE) ok('node', `v${process.versions.node}`);
 else bad('node', `v${process.versions.node}`, `the scripts use Node ${NEEDED_NODE} features (import assertions, fresh fs APIs). Install Node ${NEEDED_NODE} or newer.`);
 
 if (existsSync(join(ROOT, 'node_modules'))) ok('dependencies', 'node_modules is there');
-else bad('dependencies', 'no node_modules', 'run `npm ci` (or `npm install`) first: nothing below can work without it.');
+else bad('dependencies', 'no node_modules', 'nothing below can work without it.', 'npm ci');
 
 try {
   execFileSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: ROOT, stdio: 'ignore' });
@@ -66,7 +66,7 @@ for (const [what, path, why] of [
   ['the checklist', 'docs/RELEASE-CHECKLIST.md', 'the release list the board proves line by line.'],
 ]) {
   if (existsSync(join(ROOT, path))) ok(what, path);
-  else warn(what, `${path} is missing`, why);
+  else warn(what, `${path} is missing`, why, path === 'src/generated/model-ids.json' ? 'npm run generate' : null);
 }
 
 /* ---------------- the ports it wants ---------------- */
@@ -117,4 +117,27 @@ if (browserLine && browserLine.kind !== 'playwright') {
 console.log('\n  npm run board       the board, reading what has been recorded');
 console.log('  npm run verify      every check, about four hours on an idle machine');
 console.log('  npm run verify -- --step qa,snippets    just those, merged into the record\n');
+/*
+ * WRITTEN DOWN, SO THE BOARD CAN SAY IT TOO.
+ *
+ * A guide in a terminal is a guide somebody has to know to run. The board can read this and put
+ * the same three parts -- what, where, why -- in front of a person who has just opened it, with
+ * the command beside each one. It is the machine, not the project, so it is never committed.
+ */
+try {
+  writeFileSync(join(ROOT, 'docs', 'checks', 'machine.json'), `${JSON.stringify({
+    note: 'Written by npm run doctor. What THIS machine can do. Not a check result, and not committed: it describes the computer, not the project.',
+    at: new Date().toISOString(),
+    ready: stops.length === 0,
+    stops: stops.length,
+    notes: notes.length,
+    browser: browserLine,
+    rows,
+  }, null, 2)}
+`);
+} catch (e) {
+  // Saying nothing here hid a missing import through two runs. A doctor that cannot write its
+  // own note should say so: it is the one script whose whole job is explaining what went wrong.
+  console.log(`(could not write docs/checks/machine.json: ${String(e?.message ?? e).split(String.fromCharCode(10))[0]})`);
+}
 process.exit(stops.length ? 1 : 0);

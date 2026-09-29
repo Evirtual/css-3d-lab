@@ -353,7 +353,26 @@ await service?.close?.();
  *
  * Only a --render run records: the scan alone proves the precondition, not the picture.
  */
-if (RENDER) {
+/*
+ * A RUN THAT COULD NOT ASK MUST NOT ERASE THE ANSWER FROM ONE THAT COULD.
+ *
+ * At 03:55 on 2026-09-29 this drew three models on both renderers and they agreed. At 04:15 it
+ * ran again, the browser would not start (Smart App Control), every model failed to render, and
+ * the record was overwritten with ok:false. The board then said "drawn on both renderers and
+ * they disagreed", which is a sentence about pixels describing a machine that never drew any.
+ *
+ * A failure that is the renderer refusing to start, or the service refusing the request, says
+ * nothing about whether the two renderers agree. So when every failure is of that kind, the
+ * previous record stands and this run says it could not ask.
+ */
+const COULD_NOT_ASK = /browserType.launch|Target crashed|could not capture a scene|spawn UNKNOWN|Application Control|ECONNREFUSED|HTTP 4dd|HTTP 5dd|no scene/i;
+const couldNotAsk = fail.length > 0 && fail.every((f) => COULD_NOT_ASK.test(String(f)));
+if (RENDER && couldNotAsk) {
+  console.log(`
+check-parity: could not ask -- ${fail.length} model(s) never drew (${String(fail[0]).split(":").slice(1).join(":").trim()}).`);
+  console.log(`Whatever was recorded before stands: a run that could not draw says nothing about whether the two renderers agree.`);
+}
+if (RENDER && !couldNotAsk) {
   try {
     const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
     writeFileSync(join(ROOT, 'docs', 'checks', 'parity.json'), `${JSON.stringify({
