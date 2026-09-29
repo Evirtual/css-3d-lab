@@ -46,7 +46,7 @@ function clearLedgerAssets() {
     buildStart() {
       const dir = join(import.meta.dirname, 'docs', 'assets');
       try {
-        for (const f of readdirSync(dir)) if (/^ledger-.*\.(js|css)$/.test(f)) rmSync(join(dir, f));
+        for (const f of readdirSync(dir)) if (/^ledger-.*\.(js|css|svg)$/.test(f)) rmSync(join(dir, f));
       } catch { /* no assets folder yet, which is the same as a clean one */ }
     },
   };

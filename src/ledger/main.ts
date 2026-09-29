@@ -2742,7 +2742,10 @@ const navIcon = (name: string): string => (BARE[name]
    * commit where the code it tests has changed since, is not done. That is the same rule the model
    * checks have always had, and the reason `approved` fell from 135 to 0 when preview.ts changed.
    */
-  const clDone = (x) => x.done && x.state !== 'conflict' && x.state !== 'stale' && x.result !== 'false';
+  /* Not decided here. `green` is the ledger's own verdict on the item (scripts/push-gate.mjs), the
+     same one the pre-push hook refuses a push by. The rule is kept as a fallback only for a
+     ledger.json written before the verdict existed. */
+  const clDone = (x) => (typeof x.green === 'boolean' ? x.green : x.done && x.state !== 'conflict' && x.state !== 'stale' && x.result !== 'false');
   /**
    * THE THREE PHASES, which is the only question a person releasing actually has.
    *

@@ -18,10 +18,10 @@
  *      working tree. Pushing some other commit to main is pushing code nobody here looked at.
  *   2. Can the ledger be built for it? It is rebuilt here rather than read as found, because a
  *      ledger from before the last commit is a verdict on different code.
- *   3. Is everything before the push green? The same reading scripts/signoff.mjs uses
- *      (scripts/push-gate.mjs): ticked or proven, and contradicted by no proof.
+ *   3. Is everything before the push green? The ledger's own verdict, which is the one the
+ *      board's page draws its stages and its padlock from (scripts/push-gate.mjs).
  *   4. Has the person publishing said to push, about THIS commit? The tick expires by itself when
- *      anything lands after it (scripts/checklist-proofs.mjs), so it is asked of the proof.
+ *      anything lands after it (scripts/checklist-proofs.mjs), and that is part of the verdict.
  *
  * WHAT IT CANNOT DO. A hook runs on the machine that pushes and git lets that machine skip it, so
  * this stops a mistake and not a decision. It also only exists once core.hooksPath points at
@@ -31,7 +31,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { readPushGate, nameOf } from './push-gate.mjs';
+import { readPushGate } from './push-gate.mjs';
 
 const ROOT = process.cwd();
 const dry = process.argv.includes('--dry');
@@ -102,38 +102,34 @@ if (gate.ledgerRead) {
 }
 
 /*
- * The three stages as the board's checklist shows them, padlock included, so what is printed here
- * and what is on the page are recognisably the same thing. A push is let through in exactly one
- * state: Before the push is complete, which takes the padlock off Yours, and Yours is complete.
+ * The three stages as the board's checklist shows them, padlock included. They are not recounted
+ * here: they are the ledger's verdict, which is what the page draws. A push is let through in
+ * exactly one state: Before the push is complete, which takes the padlock off Yours, and Yours is
+ * complete.
  */
 const { before, yours } = gate.stages;
-const beforeOpen = before.total - before.done;
 const stageLines = () => {
   say('On the board (Checklist in the header):');
-  say(`  1  Before the push   ${before.done}/${before.total}${beforeOpen ? '' : '   complete'}`);
-  say(`  2  Yours             ${yours.done}/${yours.total}${beforeOpen ? '   LOCKED until stage 1 is complete' : yours.done === yours.total ? '   complete' : '   unlocked, and waiting for you'}`);
+  say(`  1  Before the push   ${before.done}/${before.total}${before.open.length ? '' : '   complete'}`);
+  say(`  2  Yours             ${yours.done}/${yours.total}${yours.locked ? '   LOCKED until stage 1 is complete' : yours.open.length ? '   unlocked, and waiting for you' : '   complete'}`);
   say('  A push works when both are complete, and not before.\n');
 };
-/* Two readings of one list have to give one answer. If the board's count and this guard's ever
-   differ, the push is refused on whichever is stricter and the difference is said out loud. */
-const drift = beforeOpen !== gate.openOthers.length
-  ? `(the board counts ${beforeOpen} open and this guard counts ${gate.openOthers.length}: they read the same list and should agree. Refusing on the stricter of the two; scripts/push-gate.mjs says where each comes from.)`
-  : null;
+const lines = (open, ticked, unticked, width) => {
+  for (const i of open) {
+    say(`  ${i.ticked ? ticked : unticked}   ${i.item}`);
+    if (i.found) say(`        ${String(i.found).slice(0, width)}`);
+  }
+};
 
 /* 3. everything that can be done before the push */
-if (gate.openOthers.length || beforeOpen) {
-  const n = Math.max(gate.openOthers.length, beforeOpen);
+if (gate.openBefore.length) {
+  const n = gate.openBefore.length;
   stageLines();
-  if (drift) say(`${drift}\n`);
   say(`${n} item${n === 1 ? '' : 's'} in stage 1 ${n === 1 ? 'is' : 'are'} not green at ${short}:\n`);
-  for (const i of gate.openOthers) {
-    const why = gate.whyFailing(i);
-    say(`  ${i.done ? '[x] ticked, but its proof disagrees' : '[ ] not done'}   ${nameOf(i.text)}`);
-    if (why) say(`        ${String(why).slice(0, 160)}`);
-  }
+  lines(gate.openBefore, '[x] ticked, but its proof disagrees', '[ ] not done', 160);
   say('');
   say('The push is the claim that all of it checked out, so it waits for all of it.');
-  refuse(`${n} thing${n === 1 ? '' : 's'} that must be true before a push ${n === 1 ? 'is' : 'are'} not.`, out, [
+  refuse(`${gate.push.why}.`, out, [
     'npm run board            the board: Run, in its header, runs the checks, and says what each costs',
     'npm run verify           or the whole gate from a terminal, about four hours',
     `${node} push      once the list is green: the sign-off, which is yours`,
@@ -142,14 +138,9 @@ if (gate.openOthers.length || beforeOpen) {
 }
 
 /* 4. the person publishing has said to push, about this commit */
-const mineOpen = gate.mine.filter((i) => gate.notGreen(i));
-if (mineOpen.length || yours.done !== yours.total) {
+if (gate.openYours.length) {
   stageLines();
-  for (const i of mineOpen) {
-    const why = gate.whyFailing(i);
-    say(`  ${i.done ? '[x] ticked, but it no longer holds' : '[ ] not said'}   ${nameOf(i.text)}`);
-    if (why) say(`        ${String(why).slice(0, 200)}`);
-  }
+  lines(gate.openYours, '[x] ticked, but it no longer holds', '[ ] not said', 200);
   say('');
   say('Everything else is green. What is missing is a person saying so, about this commit:');
   say('a sign-off given before the last change is a sign-off on different code.');
@@ -158,6 +149,9 @@ if (mineOpen.length || yours.done !== yours.total) {
     'then commit docs/RELEASE-CHECKLIST.md and nothing else, and push',
   ]);
 }
+
+/* Refuse on anything but a plain yes: a verdict this does not recognise is not a permission. */
+if (gate.push.allowed !== true) refuse(`${gate.push.why ?? 'the ledger did not say the push is allowed'}.`, [], ['npm run board            the board says what is open']);
 
 if (dry) console.log(`A push of ${short} to ${branch} would be let through: the checklist is green and signed off at this commit.`);
 process.exit(0);

@@ -25,7 +25,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { readPushGate, MINE } from './push-gate.mjs';
+import { readPushGate } from './push-gate.mjs';
 
 const ROOT = process.cwd();
 const FILE = join(ROOT, 'docs', 'RELEASE-CHECKLIST.md');
@@ -50,25 +50,33 @@ const eol = text.includes('\r\n') ? '\r\n' : '\n';
 const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
 const today = new Date().toISOString().slice(0, 10);
 
-/* What is on the list and what is still open is read in scripts/push-gate.mjs, which the pre-push
-   hook reads too: the thing that refuses the tick and the thing that refuses the push are one
-   reading of the list, so they cannot come to disagree. The reasons are written there. */
-const { all, failing, openOthers, openAfter } = readPushGate(ROOT);
+/*
+ * What is still open is the ledger's verdict (scripts/push-gate.mjs), the same one the board's
+ * page and the pre-push hook read, so the thing that refuses the tick and the thing that refuses
+ * the push cannot come to disagree.
+ *
+ * The ledger is built first. This used to read whatever docs/ledger.json was lying there, which is
+ * a verdict on the code as it was when somebody last had the board open.
+ */
+try { execFileSync(process.execPath, ['scripts/ledger.mjs'], { cwd: ROOT, stdio: 'ignore', timeout: 15 * 60 * 1000 }); }
+catch (e) { console.error(`signoff: the ledger could not be built (${String(e?.message ?? e).split('\n')[0]}), so what is open cannot be judged. npm run doctor says what this machine is missing.`); process.exit(2); }
+const gate = readPushGate(ROOT);
+if (gate.ledgerRead) { console.error(`signoff: ${gate.ledgerRead}, so what is open cannot be judged.`); process.exit(2); }
+const { ticked, openBefore, openYours, openAfter } = gate;
 
 if (!which || !ITEMS[which]) {
-  const waiting = all.filter((i) => !i.done && MINE.test(i.text));
-  console.log(`\nThe release checklist: ${all.filter((i) => i.done).length} of ${all.length} ticked.\n`);
-  console.log(waiting.length ? 'Waiting for you:' : 'Nothing is waiting for you.');
-  for (const i of waiting) console.log(`  [ ] ${i.text.split(' — ')[0]}`);
-  if (openOthers.length) {
-    console.log(`\nStill open, and not yours (${openOthers.length}):`);
-    for (const i of openOthers) console.log(`  [ ] ${i.text.split(' — ')[0]}`);
+  console.log(`\nThe release checklist: ${ticked.done} of ${ticked.total} ticked in the file.\n`);
+  console.log(openYours.length ? 'Waiting for you:' : 'Nothing is waiting for you.');
+  for (const i of openYours) console.log(`  [ ] ${i.item}`);
+  if (openBefore.length) {
+    console.log(`\nStill open, and not yours (${openBefore.length}):`);
+    for (const i of openBefore) console.log(`  [ ] ${i.item}`);
   } else {
-    console.log('\nEverything else that can be done before the push is ticked.');
+    console.log('\nEverything else that can be done before the push is green.');
   }
   if (openAfter.length) {
     console.log(`\nOnly answerable after the push (${openAfter.length}), so they do not block it:`);
-    for (const i of openAfter) console.log(`  [ ] ${i.text.split(' — ')[0]}`);
+    for (const i of openAfter) console.log(`  [ ] ${i.item}`);
   }
   // How to say it, in a form that works on the shell this is running in. On Windows the npm
   // launcher PowerShell picks is npm.ps1, which a Restricted execution policy refuses to load, so
@@ -105,13 +113,11 @@ if (found[1] === 'x') {
   process.exit(0);
 }
 
-if (item.guarded && openOthers.length) {
-  console.error(`\nStage 2 is shut: ${openOthers.length} item(s) before the push are not green.\n`);
-  for (const i of openOthers) {
-    const name = i.text.split(' — ')[0];
-    const why = failing.get(name) ?? [...failing.entries()].find(([k]) => i.text.startsWith(k))?.[1];
-    console.error(`  ${i.done ? '[x] TICKED, BUT ITS PROOF FAILS' : '[ ] not ticked'}  ${name}`);
-    if (why) console.error(`        ${String(why).slice(0, 110)}`);
+if (item.guarded && openBefore.length) {
+  console.error(`\nStage 2 is shut: ${openBefore.length} item(s) before the push are not green.\n`);
+  for (const i of openBefore) {
+    console.error(`  ${i.ticked ? '[x] TICKED, BUT ITS PROOF FAILS' : '[ ] not ticked'}  ${i.item}`);
+    if (i.found) console.error(`        ${String(i.found).slice(0, 110)}`);
   }
   console.error(`\nEverything before the push has to be green first — the push is the claim that it all`);
   console.error(`checked out, and a sign-off given over an unfinished list says nothing. Finish those,`);
@@ -126,7 +132,7 @@ if (which === 'push') {
   console.log('\nThe list is complete. Nothing here pushes anything: that is still');
   console.log('  git push origin main\n');
 } else {
-  const left = openOthers.length;
+  const left = openBefore.length;
   const pushCmd = process.platform === 'win32' ? '`node scripts/signoff.mjs push`' : '`npm run signoff -- push`';
   console.log(left ? `
 ${left} item(s) still open before the push can be signed off.

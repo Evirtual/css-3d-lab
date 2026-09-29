@@ -32,6 +32,7 @@ import { runOf, alive } from './running.mjs';
 const { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources } = await import(`./model-sources.mjs${new URL(import.meta.url).search}`);
 
 const { evaluateChecklist } = await import(`./checklist-proofs.mjs${new URL(import.meta.url).search}`);
+const { judgeItems, isGreen } = await import(`./push-gate.mjs${new URL(import.meta.url).search}`);
 // staleness: whether each result still describes what it judged (snippet, play, text, render path)
 const { stalenessIndex, STALENESS_TEXT, contains } = await import(`./fingerprint.mjs${new URL(import.meta.url).search}`);
 // the one list of checks: capture-check.mjs runs them, this gates on them, the page draws them
@@ -43,6 +44,9 @@ const { readSnapshot, snapshotStatus } = await import(`./release-snapshot.mjs${n
 const CODE_FILES = ['scripts/ledger.mjs', 'scripts/model-sources.mjs', 'scripts/checklist-proofs.mjs', 'scripts/checks-registry.mjs'];
 CODE_FILES.push('scripts/fingerprint.mjs');
 CODE_FILES.push('scripts/release-snapshot.mjs');
+// the rules a result is judged stale by, and the verdict on the checklist: both decide what the
+// page says, so a change to either is a change to the build code
+CODE_FILES.push('scripts/gate-paths.mjs', 'scripts/push-gate.mjs');
 export const codeVersion = () => createHash('sha1').update(CODE_FILES.map((f) => { try { return norm(readFileSync(join(ROOT, f), 'utf8')); } catch { return `(missing ${f})`; } }).join('\0')).digest('hex').slice(0, 10);
 /** The version this copy of the module was loaded from. A build compares it with the disk. */
 export const LOADED_CODE = codeVersion();
@@ -310,10 +314,16 @@ function readChecklist() {
   });
   return { file: CHECKLIST, exists: true, items, done: items.filter((x) => x.done).length, total: items.length };
 }
+/*
+ * Written into docs/ by the board's own build (scripts/build-board.mjs) and not committed: the page,
+ * and the copies of the root README and LICENSE the guide serves. They have no commit of their own
+ * to show, and listing a copy beside the file it is copied from is listing one document twice.
+ */
+const BUILT_DOCS = new Set(['ledger.html', 'README.md', 'LICENSE']);
 /** Each document directly under docs/ (the generated ledger files left out) plus README.md, with the last commit that touched it. */
 function docList() {
   const names = [];
-  try { for (const f of readdirSync(join(ROOT, 'docs'), { withFileTypes: true })) if (f.isFile() && !/^ledger(-watch)?\.json$|\.tmp$|\.lock$/.test(f.name)) names.push(`docs/${f.name}`); } catch {}
+  try { for (const f of readdirSync(join(ROOT, 'docs'), { withFileTypes: true })) if (f.isFile() && !/^ledger(-watch)?\.json$|\.tmp$|\.lock$/.test(f.name) && !BUILT_DOCS.has(f.name)) names.push(`docs/${f.name}`); } catch {}
   if (existsSync(join(ROOT, 'README.md'))) names.push('README.md');
   return names.sort().map((path) => {
     const out = git(['log', '-1', '--format=%h%x1f%cI%x1f%s', '--', path]).trim();
@@ -853,6 +863,14 @@ if (ledger.readiness.checklist.exists) {
   cl.notEvaluated = cl.items.filter((x) => x.result === 'not-evaluated').length;
   cl.conflicts = by('conflict');
   cl.tickedUnproven = by('ticked-unproven');
+  /*
+   * THE VERDICT, ONCE. Whether an item is green, how far each stage has got, which stage is shut
+   * and whether a push is allowed are decided here (scripts/push-gate.mjs) and written down. The
+   * page draws them, signoff refuses the tick by them and the pre-push hook refuses the push by
+   * them. None of the three works it out again, so none of them can disagree with the others.
+   */
+  for (const it of cl.items) it.green = isGreen(it);
+  cl.verdict = judgeItems(cl.items);
 }
 lap('checklist proofs');
 const c0 = ledger.counts;

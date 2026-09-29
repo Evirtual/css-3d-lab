@@ -19,7 +19,14 @@ import { workingSources } from './model-sources.mjs';
 // read-only: git's own read commands over the committed snapshot. Importing it writes nothing.
 import { snapshotStatus } from './release-snapshot.mjs';
 
-import { stepFingerprint, whatChanged, fingerprintAt } from './gate-paths.mjs';
+/*
+ * Imported at this module's own version, not statically. scripts/ledger.mjs reloads this file as
+ * checklist-proofs.mjs?v=<hash> when the build code changes, and a static import here would have
+ * gone on resolving to the gate-paths.mjs the process first loaded. On 2026-09-29 the rule for what
+ * a step depends on was corrected on disk and the running board judged by the old one until it was
+ * restarted: a check that had just passed read "stale", with nothing on the page to say why.
+ */
+const { stepFingerprint, whatChanged, fingerprintAt } = await import(`./gate-paths.mjs${new URL(import.meta.url).search}`);
 
 export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, cache = null }) {
   const mtime = (p) => { try { return statSync(join(ROOT, p)).mtimeMs; } catch { return 0; } };

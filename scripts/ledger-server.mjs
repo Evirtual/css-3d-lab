@@ -46,7 +46,26 @@ import { cpus, freemem, totalmem } from 'node:os';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
 import { JOBS, JOB, GATE_STEPS, blockedBy } from './jobs.mjs';
-import { stepFingerprint, fingerprintAt, whatChanged } from './gate-paths.mjs';
+import { statSync as statOf } from 'node:fs';
+/*
+ * THE RULES, AS THEY ARE ON DISK NOW. This process runs for hours and scripts/gate-paths.mjs is a
+ * file somebody edits; imported once, its rules would be the ones from when the board started. It
+ * is imported again whenever the file has changed, keyed by its modification time, so the step
+ * list judges by the same rules a fresh process would.
+ */
+let rules = await import('./gate-paths.mjs');
+let rulesAt = null;
+async function freshRules() {
+  let at = null;
+  try { at = statOf(new URL('./gate-paths.mjs', import.meta.url)).mtimeMs; } catch { return; }
+  if (at === rulesAt) return;
+  if (rulesAt !== null) rules = await import(`./gate-paths.mjs?m=${at}`);
+  rulesAt = at;
+}
+await freshRules();
+const stepFingerprint = (...a) => rules.stepFingerprint(...a);
+const fingerprintAt = (...a) => rules.fingerprintAt(...a);
+const whatChanged = (...a) => rules.whatChanged(...a);
 import { MIN_FREE_GB, MAX_BROWSERS } from './browser-guard.mjs';
 import { runningCheck, runningChecks } from './running.mjs';
 import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
@@ -517,6 +536,32 @@ function movedNames(rec, now) {
   }
 }
 
+/**
+ * A step that is one of the registered checks is judged by the results themselves.
+ *
+ * Those checks can be run four ways -- the gate, a column, a group, one model -- and only the gate
+ * wrote the gate's record. So a column run over all 135 left the step list describing the run
+ * before it. The ledger already keeps the one true account of those results: per model, fresh or
+ * stale, by fingerprint, and it is what the columns and the bars are drawn from. The step list
+ * reads the same tally, so the list and the column cannot say different things about one check.
+ *
+ * Returns null for a step that is not a registered check: those have only the gate's record.
+ */
+function stepFromResults(key) {
+  let c = null;
+  try { c = (JSON.parse(readFileSync(join(ROOT, 'docs', 'ledger.json'), 'utf8')).checkList ?? []).find((x) => x.key === key) ?? null; } catch { return null; }
+  if (!c?.tally) return null;
+  const t = c.tally;
+  const of = c.total ?? Object.values(t).reduce((a, b) => a + b, 0);
+  const unit = c.unit ?? 'models';
+  const n = (k) => Number(t[k] ?? 0);
+  if (n('fail') || n('broke')) return { state: 'failed', why: `${n('fail') + n('broke')} of ${of} ${unit} failed or did not run to the end, in the results the column shows` };
+  if (n('never')) return { state: 'unknown', why: `${n('never')} of ${of} ${unit} have no result yet` };
+  if (n('stale')) return { state: 'stale', why: `${n('stale')} of ${of} ${unit} passed on older code: something they were judged on has changed since` };
+  if (n('flag')) return { state: 'stale', why: `${n('flag')} of ${of} ${unit} have a flag open for a person to look at` };
+  return { state: 'current', why: `all ${of} ${unit} have a result on the code as it is now: the same results the column shows` };
+}
+
 function stepState(rec) {
   if (!rec) return { state: 'unknown', why: 'this step has no recorded result at all' };
   if (rec.ok === false) return { state: 'failed', why: 'it failed the last time it ran' };
@@ -558,6 +603,7 @@ function stepState(rec) {
 }
 
     if (url.pathname === '/api/jobs') {
+      await freshRules();
       let machine = null;
       try { machine = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'machine.json'), 'utf8')); } catch { /* no doctor run */ }
       const { known, blocked } = blockedBy(machine);
@@ -567,7 +613,7 @@ function stepState(rec) {
           let rec = [];
           try { rec = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), 'utf8')).steps ?? []; } catch { /* no gate has run */ }
           const by = new Map(rec.map((r) => [r.key, r]));
-          return GATE_STEPS.map((g) => ({ ...g, ...stepState(by.get(g.key)) }));
+          return GATE_STEPS.map((g) => ({ ...g, ...(stepFromResults(g.key) ?? stepState(by.get(g.key))) }));
         })(),
         jobs: JOBS.map((j) => ({
           key: j.key, name: j.name, minutes: j.minutes, blurb: j.blurb, answers: j.answers,

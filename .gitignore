@@ -31,5 +31,12 @@ debug.log
 /docs/ledger-watch.json
 /docs/ledger-queue.json.lock
 /docs/*.tmp
+# the board's page and the two files it copies from the root: built by scripts/build-board.mjs when
+# the board starts and whenever src/ledger changes. Committed, they were a copy to keep in step,
+# and on 2026-09-29 a fresh clone opened one ten commits behind its source.
+/docs/ledger.html
+/docs/assets/ledger-*
+/docs/README.md
+/docs/LICENSE
 # fingerprints of every model at past commits (scripts/fingerprint.mjs): a cache
 /.cache/

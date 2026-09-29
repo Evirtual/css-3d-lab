@@ -69,25 +69,25 @@ export const JOBS = [
     blurb: 'The eight-model sample at every shape, size, quality, format and slider stop. The gate only does the defaults.',
   },
   {
-    key: 'looks', name: 'Open the export dialog and look', argv: ['scripts/three-looks.mjs'],
+    key: 'looks', name: 'Open the export dialog and look', argv: ['scripts/verify.mjs', '--step', 'looks'],
     minutes: 2, needs: ['browser'], safe: false,
     answers: ['Every file the dialog hands out is named after its model'],
     blurb: 'What only a person opening the dialog could answer, on one model.',
   },
   {
-    key: 'compare', name: 'Snapshots against the screen', argv: ['scripts/compare-capture.mjs'],
+    key: 'compare', name: 'Snapshots against the screen', argv: ['scripts/verify.mjs', '--step', 'compare'],
     minutes: 6, needs: ['browser'], safe: false,
     answers: ['Snapshots match the screen'],
     blurb: 'Every model photographed on the page and captured through the dialog, compared pixel by pixel.',
   },
   {
-    key: 'snippets', name: 'Every snippet runs', argv: ['scripts/snippet-check.mjs'],
+    key: 'snippets', name: 'Every snippet runs', argv: ['scripts/verify.mjs', '--step', 'snippets'],
     minutes: 4, needs: ['browser'], safe: false,
     answers: ['Every standalone snippet runs without a script error'],
     blurb: 'Each model opened as the standalone file the Copy button hands over.',
   },
   {
-    key: 'remote', name: 'The remote and the Worker', argv: ['scripts/check-remote.mjs'],
+    key: 'remote', name: 'The remote and the Worker', argv: ['scripts/verify.mjs', '--step', 'remote'],
     minutes: 1, needs: ['network'], safe: true,
     answers: ['The remote has nothing main lacks', 'The Worker accepts the site', 'The build variable is set'],
     blurb: 'Three networked questions in four seconds. A preflight, so it spends no export budget.',
@@ -111,6 +111,18 @@ export const JOBS = [
  * `short` is the board's own word for the column, because the terminal says `models` and the
  * table says Contract, and holding that translation in your head is not a thing to ask of anyone.
  * Minutes are from the runs of 2026-09-28/29 on an idle machine.
+ */
+/*
+ * A JOB THAT IS ALSO A GATE STEP RUNS AS THAT STEP.
+ *
+ * looks, compare, snippets and remote are offered twice: in the step list above and as jobs of
+ * their own. The job ran the script directly, which wrote the script's own record and left the
+ * gate's record of the same step untouched. So on 2026-09-29 looks was run as a job, passed, and
+ * went on reading STALE in the step list beside the button that had just run it.
+ *
+ * They run through scripts/verify.mjs --step now, which runs the same script and writes both. One
+ * way to run a thing, so there is one answer to whether it has been run. (snippets as a job also
+ * passed no ids, which that script needs spelled out; the step passes all of them.)
  */
 export const GATE_STEPS = [
   { key: 'remote', short: null, name: 'the remote, the Worker origins and the workflow variable', minutes: 1 },

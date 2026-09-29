@@ -1,5 +1,8 @@
 /**
- * Keeps docs/ledger.json current: rebuilds it whenever one of its inputs changes.
+ * The board: serves the ledger's page with its buttons, and keeps everything the page shows current
+ * while it runs -- docs/ledger.json, the page itself, and the README's list of scripts.
+ *
+ * docs/ledger.json is rebuilt whenever one of its inputs changes.
  *
  *   node scripts/ledger-watch.mjs     (npm run ledger:watch; Ctrl+C stops it)
  *
@@ -28,6 +31,10 @@
  * so no rebuild ever runs on code older than the disk. The version each build ran on is recorded.
  * This file itself is not reloaded: a change to ledger-watch.mjs still needs a restart.
  *
+ * THE PAGE IS BUILT HERE TOO. docs/ledger.html is not in the repository: it is built from
+ * src/ledger when this starts and again whenever that source changes (scripts/build-board.mjs
+ * says why). An open tab sees the new build through ledger.json's pageBuild and reloads.
+ *
  * It writes docs/ledger-watch.json every 30 s and after every build: its pid, when it started,
  * its last heartbeat and its last build. On a clean stop it records that it stopped. The page reads
  * it to tell a quiet project (heartbeat fresh, nothing changed) from a watcher that died.
@@ -37,6 +44,8 @@ import { join } from 'node:path';
 import { ROOT } from './model-sources.mjs';
 import { RENDER_FILES } from './fingerprint.mjs';
 import { serve, isRunning } from './ledger-server.mjs';
+import { buildBoard, boardStamp } from './build-board.mjs';
+import { writeReadme } from './generate-readme.mjs';
 
 /* ---------- the build code, reloaded whenever it changes on disk ---------- */
 let lib = await import('./ledger.mjs');
@@ -93,10 +102,12 @@ function look() {
     docs: `${jsonStamps(join(ROOT, 'docs'), '.md')}|README.md=${stamp(join(ROOT, 'README.md'))}`,
     models: MODEL_DIRS.flatMap((d) => statTree(d, [])).join('|'),
     render: RENDER_FILES.map((f) => `${f}=${stamp(join(ROOT, f))}`).join('|'),
-    code: ['ledger.mjs', 'model-sources.mjs', 'checklist-proofs.mjs'].map((f) => stamp(join(ROOT, 'scripts', f))).join('|'),
+    code: ['ledger.mjs', 'model-sources.mjs', 'checklist-proofs.mjs', 'gate-paths.mjs', 'push-gate.mjs'].map((f) => stamp(join(ROOT, 'scripts', f))).join('|'),
+    page: boardStamp(),
+    scripts: `${['scripts', 'server'].map((d) => jsonStamps(join(ROOT, d), 'js')).join('|')}|package.json=${stamp(join(ROOT, 'package.json'))}`,
   };
 }
-const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', docs: 'docs', code: 'build code', queue: 'queue', models: 'model files', render: 'render-path files' };
+const LABEL = { head: 'main moved', checks: 'check results', reviews: 'review log', docs: 'docs', code: 'build code', queue: 'queue', models: 'model files', render: 'render-path files', page: "the page's source", scripts: 'scripts' };
 
 /* ---------- heartbeat ---------- */
 /**
@@ -126,7 +137,7 @@ function beat() {
     writeAtomic(BEAT_FILE, JSON.stringify({
       note: 'Written by scripts/ledger-watch.mjs. heartbeatAt is refreshed every 30 s while it runs; stoppedAt is set only on a clean stop.',
       pid: process.pid, startedAt, heartbeatAt: at, beatEverySeconds: BEAT / 1000, tickEverySeconds: TICK / 1000,
-      stoppedAt: stopped, lastBuild,
+      stoppedAt: stopped, lastBuild, lastPage,
       // The instruments' own failures, carried onto the page. A tool that times out and prints one
       // grey line into a terminal nobody is reading teaches nothing: on 2026-09-25 a process list
       // timed out at 15:34 while the WORK block beside it had separately decided the run was over,
@@ -169,10 +180,35 @@ async function build(why) {
   if (again) { const w = again; again = null; await build(w); }
 }
 
+/**
+ * The page, built from its source. Synchronous on purpose: it takes about a second, and a ledger
+ * built while the page is half written would name assets that are not there yet.
+ */
+let lastPage = null;
+function page(why) {
+  const r = buildBoard();
+  lastPage = { at: new Date().toISOString(), ok: r.ok, ms: r.ms, error: r.error ?? null, reason: why };
+  console.log(r.ok
+    ? `${clock()} built the page (${why}) in ${(r.ms / 1000).toFixed(1)} s`
+    : `${clock()} the page did NOT build (${why}): ${r.error} -- serving the last one that did`);
+  return r.ok;
+}
+
+/** The README's list of scripts, rewritten from the scripts when it no longer matches them. */
+function readme(why) {
+  try {
+    const r = writeReadme();
+    if (r.error) console.log(`${clock()} the README's list of scripts was NOT written (${why}): ${r.error}`);
+    else if (r.changed) console.log(`${clock()} rewrote the README's list of scripts (${why}): commit README.md`);
+  } catch (e) { console.log(`${clock()} the README's list of scripts was NOT written (${why}): ${String(e?.message ?? e).split('\n')[0]}`); }
+}
+
 function tick() {
   const now = look();
   const changed = Object.keys(now).filter((k) => now[k] !== seen[k]);
   if (!changed.length) return;
+  if (changed.includes('scripts')) { readme('a script changed'); now.page = look().page; if (now.page !== seen.page && !changed.includes('page')) changed.push('page'); }
+  if (changed.includes('page')) { page("its source changed"); now.docs = look().docs; }
   const why = changed.map((k) => (k === 'head' ? `main → ${now.head?.slice(0, 7) ?? 'unreadable'}` : LABEL[k])).join(', ');
   seen = now;
   build(why);
@@ -194,6 +230,9 @@ console.log(`${clock()} ledger-watch: pid ${process.pid}, looking every ${TICK /
 beat();
 setInterval(beat, BEAT).unref();
 setInterval(tick, TICK);
+readme('start');
+page('start');
+seen = look();
 build('start');
 
 /* ---------- the page, and the buttons on it ----------

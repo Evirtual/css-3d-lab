@@ -65,7 +65,7 @@ setTimeout(() => {
   console.log('');
   console.log(`${clock()} two addresses, and they are not the same page:`);
   console.log(`  http://localhost:5173/ledger.html   the board, compiled from src/ledger as you edit it — OPEN THIS ONE`);
-  console.log(`  http://127.0.0.1:5178/ledger.html   the built page, as anybody else gets it — needs npm run build:ledger to change`);
+  console.log(`  http://127.0.0.1:5178/ledger.html   the built page, as anybody else gets it — the board rebuilds it when src/ledger changes`);
   console.log(`  Vite binds localhost, not 127.0.0.1, so its port answers nothing on the other name.`);
   console.log('');
 }, 2500);

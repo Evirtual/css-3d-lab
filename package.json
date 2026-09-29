@@ -7,6 +7,7 @@
   "scripts": {
     "prepare": "node scripts/install-hooks.mjs",
     "doctor": "node scripts/doctor.mjs",
+    "readme": "node scripts/generate-readme.mjs",
     "generate": "node scripts/generate-capture-fonts.mjs && node scripts/generate-pages.mjs",
     "media": "node scripts/generate-media.mjs",
     "qa": "node scripts/qa.mjs",
@@ -33,7 +34,7 @@
     "check-renderers": "node scripts/check-renderers.cjs",
     "check-parity": "node scripts/check-worker-parity.mjs",
     "board": "node scripts/ledger-watch.mjs",
-    "build:ledger": "vite build --config vite.ledger.config.ts",
+    "build:ledger": "node scripts/build-board.mjs",
     "board:dev": "node scripts/board-dev.mjs"
   },
   "devDependencies": {
