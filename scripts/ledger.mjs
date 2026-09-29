@@ -599,6 +599,20 @@ const count = (f) => models.filter(f).length;
  * committed and a fresh clone has none -- which is itself worth showing: "nobody has checked
  * whether this machine can run anything" is a different thing from "everything is fine".
  */
+/*
+ * WHICH BUILD OF THE PAGE IS ON DISK, so an open tab can tell it is running an older one.
+ *
+ * The data refreshes every three seconds; the page's own code never did. So a rebuilt board sat
+ * in docs/assets while every open tab went on running the bundle it loaded, and the only way to
+ * find out was for somebody to notice two parts of the screen disagreeing and be told to reload.
+ * That is the board needing a person to keep it honest, which is the opposite of the idea.
+ */
+const pageBuild = (() => {
+  try {
+    return readdirSync(join(ROOT, 'docs', 'assets')).filter((f) => /^ledger-.*[.](js|css)$/.test(f)).sort().join(' ');
+  } catch { return null; }
+})();
+
 const machine = (() => {
   try { return JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'machine.json'), 'utf8')); } catch { return null; }
 })();
@@ -626,6 +640,7 @@ const ledger = {
   machine,
   groups,
   tags: [...new Set(demos.flatMap((d) => d.tags ?? []))].sort(),
+  pageBuild,
   build: { by, reason, ms: null, reusedModelLoad, reusedGitReplay, code: (() => { const onDisk = codeVersion(); return { loaded: LOADED_CODE, onDisk, stale: onDisk !== LOADED_CODE, files: CODE_FILES }; })() },
   running,
   // every registered check, in the registry's order, with its tally: what the page draws a bar,

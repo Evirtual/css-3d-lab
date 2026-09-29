@@ -51,7 +51,13 @@ import { icon } from '../icons.ts';
   const applyTheme = () => {
     if (mode === 'auto') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', mode);
-    $('theme').textContent = `Theme: ${mode}`;
+    /* An icon, not a sentence. "Theme: auto" spent ninety pixels of a header saying what the icon
+       says, and the header was the thing that had run out of room. */
+    const themeLabel = mode === 'auto' ? 'follows the system' : mode;
+    $('theme').setAttribute('aria-label', `Theme: ${themeLabel}. Click to change.`);
+    $('theme').dataset.tiptext = `Theme: ${themeLabel}. Click to change: auto, light, dark.`;
+    $('theme').dataset.tip = '';
+    $('theme').classList.add('btn--icon');
   };
   $('theme').addEventListener('click', () => {
     mode = modes[(modes.indexOf(mode) + 1) % modes.length];
@@ -898,7 +904,9 @@ import { icon } from '../icons.ts';
     }
     // the header button that opens them: models not approved, and why in its tooltip
     const btn = $('blk-btn');
-    btn.hidden = !rows;
+    /* Hidden when it is zero: a control that says zero has nothing to say, and the header had two
+       of them side by side. It comes back the moment a model is not approved. */
+    btn.hidden = !rows || n - ap === 0;
     btn.innerHTML = `What’s holding models back <small>· ${n - ap}</small>`;
     btn.setAttribute('aria-label', `What’s holding models back: ${n - ap} models not approved`);
     btn.dataset.tip = '';
@@ -947,6 +955,11 @@ import { icon } from '../icons.ts';
   const liveRuns = () => Object.entries(L?.running ?? {}).filter(([key, p]) => p && isLive(key));
   /** Where a run belongs, from the models it covers. Shared by a live run and one just asked for. */
   function homeOf(ids, key) {
+    /* A job -- the gate, the export matrix, the live-site check -- is about the project, not about
+       any model, so it belongs where APP and SEO are and not in a table of models. Without this it
+       fell through to 'suite' and drew its bar across the top of the models table, which is a
+       list of things a job is not about. */
+    if (String(key).startsWith('job:')) return { kind: 'site' };   // a job is not about models
     if (CHECK_LIST.find((c) => c.key === key)?.scope === 'site') return { kind: 'site' };
     if (ids.length === 1) return { kind: 'model', id: ids[0] };
     if (ids.length > 1) {
@@ -987,6 +1000,33 @@ import { icon } from '../icons.ts';
       ${runOf(key)?.mine ? `<span class="pg__acts">${holdAndStop('rowrun', key)}</span>` : ''}</span>`;
   }
   /** Sorted by where they go, once per render, so no row has to search the list for itself. */
+  /*
+   * WHICH BUILD OF THE PAGE THIS TAB IS RUNNING.
+   *
+   * Read from the script tag that loaded it, so it is what is actually executing rather than what
+   * the page hoped. A rebuilt board used to sit on disk while every open tab went on running the
+   * bundle it started with, and the way you found out was two parts of the screen disagreeing --
+   * a bar saying "starting" beside a chip saying 5 of 5. A board that needs a person to notice it
+   * is out of date is not a board that can be trusted.
+   */
+  const MY_BUILD = (() => {
+    const src = (document.querySelector('script[type=module][src*="ledger-"]') as HTMLScriptElement | null)?.src ?? '';
+    const css = (document.querySelector('link[rel=stylesheet][href*="ledger-"]') as HTMLLinkElement | null)?.href ?? '';
+    const name = (u: string) => u.split('/').pop() ?? '';
+    return [name(src), name(css)].filter(Boolean).sort().join(' ');
+  })();
+  let reloadAsked = false;
+  /** A newer board is on disk: take it, once, rather than going quietly stale. */
+  function checkPageBuild(latest: string | null | undefined) {
+    if (!latest || !MY_BUILD || reloadAsked) return;
+    if (latest === MY_BUILD) return;
+    reloadAsked = true;
+    // A reload loses nothing here: everything on this page is read from files, and an open dialog
+    // is a worse thing to keep than an out-of-date page.
+    console.info(`ledger: a newer board is on disk (${latest}); this tab has ${MY_BUILD}. Reloading.`);
+    setTimeout(() => location.reload(), 250);
+  }
+
   let BARS = { model: new Map(), group: new Map(), suite: [], site: [] };
   function sortBars() {
     BARS = { model: new Map(), group: new Map(), suite: [], site: [] };
@@ -1048,9 +1088,10 @@ import { icon } from '../icons.ts';
     const c = CHECK_LIST.find((x) => x.key === key);
     // 'all' is not a check and has no entry in the registry, so it had no name of its own and the
     // bar introduced itself as "all".
+    const isJob = String(key).startsWith('job:');
     const whole = key === 'all';
-    const title = whole ? 'Every check, in gate order' : (CHECK_NAMES[key] ?? key);
-    const short = whole ? 'Every check' : (c?.short ?? key);
+    const title = whole ? 'Every check, in gate order' : isJob ? `${String(key).slice(4).replace(/-/g, ' ')}, step by step` : (CHECK_NAMES[key] ?? key);
+    const short = whole ? 'Every check' : isJob ? (p?.step ? `gate · ${p.step}` : 'gate') : (c?.short ?? key);
     const pct = p.total ? Math.min(100, (100 * p.done) / p.total) : 0;
     const e = etaOf(p);
     // Only a run this board started can be stopped from here: there is no pid for one
@@ -1285,7 +1326,7 @@ import { icon } from '../icons.ts';
     const shown = NOTES.filter(isShown);
     const hid = NOTES.length - shown.length;
     const btn = $('notes-btn');
-    btn.hidden = !NOTES.length;
+    btn.hidden = !NOTES.length || !shown.length;   // nothing to read is not worth a button
     btn.innerHTML = `<b>${shown.length}</b> note${shown.length === 1 ? '' : 's'}${hid ? ` <small>· ${hid} dismissed</small>` : ''}`;
     btn.setAttribute('aria-expanded', String(notesOpen));
     btn.classList.toggle('is-quiet', !shown.length);
@@ -2579,9 +2620,19 @@ import { icon } from '../icons.ts';
     // check) is about the project rather than any model, so it shows where APP and SEO do and
     // not inside a table of models.
     const jobs = Object.keys(bars).filter((k) => String(k).startsWith('job:'));
+    /*
+     * A job has no per-model progress, because it is not a check: nothing writes L.running['job:…'].
+     * So its bar said "starting…" while the header chip, reading the gate's own record, said
+     * 4 of 5 -- two places on one screen disagreeing about the same run, which is the fault this
+     * board keeps finding in itself.
+     */
+    const g = (L as any)?.gate;
+    const jobProgress = (k: string) => (g?.running && g.total)
+      ? { done: g.done?.length ?? 0, total: g.total, started: g.startedAt, step: g.step?.short ?? g.step?.key ?? null }
+      : bars[k];
     if (!live.length && !jobs.length) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
-    el.innerHTML = jobs.map((k) => runBar(k, bars[k], 'steps')).join('')
+    el.innerHTML = jobs.map((k) => runBar(k, jobProgress(k), 'steps')).join('')
       + live.map((c) => runBar(c.key, bars[c.key], c.unit ?? 'pages')).join('');
   }
   /**
@@ -3155,7 +3206,11 @@ import { icon } from '../icons.ts';
     let gateNote = '';
     let gateChip = '';
     if (G?.running) {
-      const at = G.step?.index ?? (G.done.length + 1);
+      /* How many are FINISHED, not the one it is on. The bar under the header counts the same way,
+         and a chip saying 4/5 beside a bar saying 3/5 is one run described by two numbers -- which
+         is the fault this board exists to catch, so it should not be committing it. The step's own
+         name says where it has got to; the count says how much is behind it. */
+      const at = G.done.length;
       const pct = G.total ? Math.min(100, Math.round((100 * G.done.length) / G.total)) : 0;
       const bad = G.done.filter((d) => !d.ok);
       /* A CHIP, NOT A BLOCK. The first version of this was a 134px notice that pushed the whole
@@ -3256,6 +3311,7 @@ import { icon } from '../icons.ts';
           wasStatus = new Map(next.models.map((m) => [m.id, m.status]));
           prevSig = new Map(next.models.map((m) => [m.id, rowSig(m)]));
           L = next; raw.l = l.value; changedL = true; parseFails['ledger.json'] = 0;
+    checkPageBuild((L as any)?.pageBuild);
         } catch { parseFail('ledger.json', errs); }
       }
     } else errs.push(l.reason.message);

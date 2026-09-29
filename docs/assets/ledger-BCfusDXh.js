@@ -157,7 +157,11 @@ function icon(name) {
 	const applyTheme = () => {
 		if (mode === "auto") document.documentElement.removeAttribute("data-theme");
 		else document.documentElement.setAttribute("data-theme", mode);
-		$("theme").textContent = `Theme: ${mode}`;
+		const themeLabel = mode === "auto" ? "follows the system" : mode;
+		$("theme").setAttribute("aria-label", `Theme: ${themeLabel}. Click to change.`);
+		$("theme").dataset.tiptext = `Theme: ${themeLabel}. Click to change: auto, light, dark.`;
+		$("theme").dataset.tip = "";
+		$("theme").classList.add("btn--icon");
 	};
 	$("theme").addEventListener("click", () => {
 		mode = modes[(modes.indexOf(mode) + 1) % modes.length];
@@ -890,7 +894,7 @@ function icon(name) {
 			}).join("") : "<li class=\"muted\">Nothing: every model is approved.</li>";
 		}
 		const btn = $("blk-btn");
-		btn.hidden = !rows;
+		btn.hidden = !rows || n - ap === 0;
 		btn.innerHTML = `What’s holding models back <small>· ${n - ap}</small>`;
 		btn.setAttribute("aria-label", `What’s holding models back: ${n - ap} models not approved`);
 		btn.dataset.tip = "";
@@ -936,6 +940,7 @@ function icon(name) {
 	const liveRuns = () => Object.entries(L?.running ?? {}).filter(([key, p]) => p && isLive(key));
 	/** Where a run belongs, from the models it covers. Shared by a live run and one just asked for. */
 	function homeOf(ids, key) {
+		if (String(key).startsWith("job:")) return { kind: "site" };
 		if (CHECK_LIST.find((c) => c.key === key)?.scope === "site") return { kind: "site" };
 		if (ids.length === 1) return {
 			kind: "model",
@@ -974,6 +979,21 @@ function icon(name) {
       ${runOf(key)?.mine ? `<span class="pg__acts">${holdAndStop("rowrun", key)}</span>` : ""}</span>`;
 	}
 	/** Sorted by where they go, once per render, so no row has to search the list for itself. */
+	const MY_BUILD = (() => {
+		const src = document.querySelector("script[type=module][src*=\"ledger-\"]")?.src ?? "";
+		const css = document.querySelector("link[rel=stylesheet][href*=\"ledger-\"]")?.href ?? "";
+		const name = (u) => u.split("/").pop() ?? "";
+		return [name(src), name(css)].filter(Boolean).sort().join(" ");
+	})();
+	let reloadAsked = false;
+	/** A newer board is on disk: take it, once, rather than going quietly stale. */
+	function checkPageBuild(latest) {
+		if (!latest || !MY_BUILD || reloadAsked) return;
+		if (latest === MY_BUILD) return;
+		reloadAsked = true;
+		console.info(`ledger: a newer board is on disk (${latest}); this tab has ${MY_BUILD}. Reloading.`);
+		setTimeout(() => location.reload(), 250);
+	}
 	let BARS = {
 		model: /* @__PURE__ */ new Map(),
 		group: /* @__PURE__ */ new Map(),
@@ -1025,9 +1045,10 @@ function icon(name) {
 	function runBar(key, p, over) {
 		if (!p) return startingBar(key);
 		const c = CHECK_LIST.find((x) => x.key === key);
+		const isJob = String(key).startsWith("job:");
 		const whole = key === "all";
-		const title = whole ? "Every check, in gate order" : CHECK_NAMES[key] ?? key;
-		const short = whole ? "Every check" : c?.short ?? key;
+		const title = whole ? "Every check, in gate order" : isJob ? `${String(key).slice(4).replace(/-/g, " ")}, step by step` : CHECK_NAMES[key] ?? key;
+		const short = whole ? "Every check" : isJob ? p?.step ? `gate · ${p.step}` : "gate" : c?.short ?? key;
 		const pct = p.total ? Math.min(100, 100 * p.done / p.total) : 0;
 		const e = etaOf(p);
 		const ssId = `run:${key}`;
@@ -1264,7 +1285,7 @@ function icon(name) {
 		const shown = NOTES.filter(isShown);
 		const hid = NOTES.length - shown.length;
 		const btn = $("notes-btn");
-		btn.hidden = !NOTES.length;
+		btn.hidden = !NOTES.length || !shown.length;
 		btn.innerHTML = `<b>${shown.length}</b> note${shown.length === 1 ? "" : "s"}${hid ? ` <small>· ${hid} dismissed</small>` : ""}`;
 		btn.setAttribute("aria-expanded", String(notesOpen));
 		btn.classList.toggle("is-quiet", !shown.length);
@@ -2473,13 +2494,20 @@ function icon(name) {
 		if (!el) return;
 		const live = site.filter((c) => bars[c.key]);
 		const jobs = Object.keys(bars).filter((k) => String(k).startsWith("job:"));
+		const g = L?.gate;
+		const jobProgress = (k) => g?.running && g.total ? {
+			done: g.done?.length ?? 0,
+			total: g.total,
+			started: g.startedAt,
+			step: g.step?.short ?? g.step?.key ?? null
+		} : bars[k];
 		if (!live.length && !jobs.length) {
 			el.hidden = true;
 			el.innerHTML = "";
 			return;
 		}
 		el.hidden = false;
-		el.innerHTML = jobs.map((k) => runBar(k, bars[k], "steps")).join("") + live.map((c) => runBar(c.key, bars[c.key], c.unit ?? "pages")).join("");
+		el.innerHTML = jobs.map((k) => runBar(k, jobProgress(k), "steps")).join("") + live.map((c) => runBar(c.key, bars[c.key], c.unit ?? "pages")).join("");
 	}
 	/**
 	* The per-check run buttons, for the width where there are no column headings to hold them.
@@ -2982,7 +3010,7 @@ function icon(name) {
 		let gateNote = "";
 		let gateChip = "";
 		if (G?.running) {
-			const at = G.step?.index ?? G.done.length + 1;
+			const at = G.done.length;
 			const pct = G.total ? Math.min(100, Math.round(100 * G.done.length / G.total)) : 0;
 			const bad = G.done.filter((d) => !d.ok);
 			const tip = `gate: step ${at} of ${G.total}${G.step ? `, ` + G.step.name : ``}. ${G.done.length} finished${bad.length ? `, ${bad.length} failed: ` + bad.map((d) => d.key).join(`, `) : `, all held`}. Started ${clock(G.startedAt)}.`;
@@ -3094,6 +3122,7 @@ function icon(name) {
 				raw.l = l.value;
 				changedL = true;
 				parseFails["ledger.json"] = 0;
+				checkPageBuild(L?.pageBuild);
 			} catch {
 				parseFail("ledger.json", errs);
 			}
