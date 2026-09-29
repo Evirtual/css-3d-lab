@@ -182,6 +182,24 @@ Three steps are 80% of the four hours. If you are waiting, you are waiting for `
 
 ## The parts that need something outside this machine
 
+### When a check could not ask, it does not answer
+
+Some checks depend on somebody else: the Worker that draws exports has a daily budget, the remote
+has to be reachable, a browser has to start. A run that is refused has learned nothing, and the
+important thing is that it does not pretend otherwise.
+
+So a failure that is the *service refusing the request* — an HTTP 4xx or 5xx, a browser that would
+not launch, a scene that never drew — is not recorded as a verdict. Whatever was measured before
+stands, and the run says it could not ask.
+
+This is not theoretical. On 2026-09-29 the Worker answered , and because two backslashes had been eaten out of the pattern that recognises
+those refusals, the board recorded  over a good measurement and reported that the two
+renderers **disagreed** — about pixels the Worker had declined to draw. A false red costs exactly
+what a false green costs: it is the board lying about its own evidence.
+
+If you see **Both renderers** sitting at not-measured, check whether the export budget is spent
+before assuming anything is broken. It resets daily.
+
 | what | needs | if it is missing |
 | --- | --- | --- |
 | `check-remote` | the network, `gh` | three checklist lines say so |
