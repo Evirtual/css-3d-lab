@@ -365,7 +365,23 @@ await service?.close?.();
  * nothing about whether the two renderers agree. So when every failure is of that kind, the
  * previous record stands and this run says it could not ask.
  */
-const COULD_NOT_ASK = /browserType.launch|Target crashed|could not capture a scene|spawn UNKNOWN|Application Control|ECONNREFUSED|HTTP 4dd|HTTP 5dd|no scene/i;
+/*
+ * CHARACTER CLASSES, NOT BACKSLASH-d, AND THAT IS NOT A STYLE CHOICE.
+ *
+ * This read `HTTP 4dd|HTTP 5dd`. It was meant to be `HTTP 4[backslash]d[backslash]d`, and the two
+ * backslashes were eaten on the way into the file. What was left matches the literal text
+ * "HTTP 4dd", which nothing ever says, so the whole quota-and-refusal half of this guard was dead
+ * from the day it was written.
+ *
+ * It cost a real result on 2026-09-29: the Worker answered "HTTP 429: out of exports for today",
+ * couldNotAsk came out false, and a good measurement of the two renderers agreeing was overwritten
+ * with ok:false -- the board then reporting that they DISAGREED, about pixels the Worker had
+ * refused to draw. A false red, from two missing characters. docs/checks is not committed, so the
+ * measurement it replaced is gone until the quota resets.
+ *
+ * [0-9] says the same thing and cannot be silently disarmed by anything that strips backslashes.
+ */
+const COULD_NOT_ASK = /browserType.launch|Target crashed|could not capture a scene|spawn UNKNOWN|Application Control|ECONNREFUSED|HTTP 4[0-9][0-9]|HTTP 5[0-9][0-9]|no scene/i;
 const couldNotAsk = fail.length > 0 && fail.every((f) => COULD_NOT_ASK.test(String(f)));
 if (RENDER && couldNotAsk) {
   console.log(`
