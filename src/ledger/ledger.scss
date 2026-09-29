@@ -2137,10 +2137,6 @@ header .sitechk .sitechk__one:has(.pg) { flex: 1 1 260px; min-width: 200px; }
   position: static; translate: none; opacity: 1; margin: 0; order: -1;
 }
 #tbl thead th.c:hover .colh__run, #tbl thead th.c:focus-within .colh__run { opacity: 1; }
-/* A column whose check has never been captured carries a "?" saying so. It sat UNDER the word, and
-   the cells are aligned to their bottoms, so on a fresh clone -- where most columns have one -- those
-   words rode 32px above the rest. It goes on top, where a third line costs the first two nothing. */
-#tbl thead th.c .help { order: -2; margin: 0; }
 /* the headings with no button keep their word on the same line as the others' words */
 #tbl thead th.st .colh, #tbl thead th.st, #tbl thead th.last, #tbl thead th.ncom { padding-bottom: 8px; }
 #tbl thead th.model .modelh { align-items: baseline; }

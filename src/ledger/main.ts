@@ -1917,7 +1917,13 @@ import { icon } from '../icons.ts';
       const note = NOTES.find((n) => n.col === k); // why the column reads as it does, even after the note is dismissed
       const title = CHECK_NAMES[k] ?? k;
       const going = RUN_NOW.runs.some((r) => r.what === k);
-      return `<th class="c${going ? ' is-running-col' : ''}" scope="col"><span class="colh__wrap"><button type="button" class="colh" data-def="${esc(k)}" data-tip data-tiptext="${esc(`${title}. Click for its definition.`)}" aria-label="${esc(`${title}: open its definition`)}">${esc(label)}</button>${note ? helpIcon(`col-${k}`, `About the ${label} column`, note.html) : ''}${RUN_OK ? `<span class="colh__run">${runBtn(k, [], `Run ${title} on every model`, 'cellrun')}</span>` : ''}</span></th>`;
+      /* The note used to be a "?" chip of its own in the heading. On a fresh clone every column has
+         one, so the row was a line of grey boxes saying what the cells under them already say. It is
+         a sentence in the word's own tooltip now, and the heading is a button and a word again. */
+      const why = !note ? '' : /^never:/.test(note.key)
+        ? ` Not run on this machine yet, so every model reads “not run yet”: no run was captured, not because models failed.${RUN_OK ? ' The button above runs it.' : ` Capture one with npm run capture -- ${k}.`}`
+        : ` ${note.html.replace(/<[^>]+>/g, '')}`;
+      return `<th class="c${going ? ' is-running-col' : ''}" scope="col"><span class="colh__wrap"><button type="button" class="colh" data-def="${esc(k)}" data-tip data-tiptext="${esc(`${title}.${why} Click for its definition.`)}" aria-label="${esc(`${title}: open its definition`)}">${esc(label)}</button>${RUN_OK ? `<span class="colh__run">${runBtn(k, [], `Run ${title} on every model`, 'cellrun')}</span>` : ''}</span></th>`;
     }).join('')}<th class="last" scope="col">Last commit</th><th class="num ncom" scope="col">Commits</th>`;
     // rewritten only when it changes, so an open tooltip is not pulled out from under the reader
     if ($('thead').dataset.html !== theadHtml) { $('thead').dataset.html = theadHtml; $('thead').innerHTML = theadHtml; stickyOffsets(); }
