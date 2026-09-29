@@ -36,13 +36,11 @@ cards & galleries, loaders & patterns, scenes & objects, data & tools), in two h
   remounting it (the animation keeps its pose), HTML or JS edits rebuild the frame. Edits are saved
   per model in `localStorage` (`c3d-edit:<id>`) and can be reset. "Copy" and "Copy as one HTML
   file" buttons.
-- **View zoom** (`src/view-zoom.ts`): under the large stage (model page, home dialog) and along
-  its bottom at full screen, the export dialog's Model size slider for looking: how much of the
-  frame the model fills, from 25% (70% is its own size) up to the most it can fill and still clear
-  every canvas edge by 4vmin, measured per model and canvas (`src/fill-limit.ts`, the export
-  slider's own top end too; the hint names it). It only scales how the frame is shown, so
-  the code, Copy, recordings and snapshots are unchanged; it keeps its value into and out of full
-  screen, is not saved, and a new model starts at 70%.
+- **Model size**, in the export dialog (`src/video.ts`): how much of the frame the model fills in
+  the file you take away, from 25% (70% is its own size) up to the most it can fill and still clear
+  every canvas edge by 4vmin, measured per model and canvas (`src/fill-limit.ts`; the hint names
+  it). The page itself has no zoom: it had one until 2026-09-25, and
+  [docs/VIEW-CONTRACT.md](docs/VIEW-CONTRACT.md) says why it went.
 - **Lazy mounting** (`src/lazy-mount.ts`): a model is mounted only within 600px of the viewport
   and only runs while on screen, so rendering cost follows what is on screen, not the total count.
 - Pause-all-animations switch (on by default when the OS asks for reduced motion), light / dark
@@ -216,18 +214,19 @@ each check has written, and when it cannot look it says so instead of saying "no
 Those are opposite facts. It answers `ALIVE`, `STOPPED`, `PAUSED` or `UNKNOWN`, with an exit code
 for each.
 
-There used to be a second record here, kept by hand: `npm run queue` wrote what an agent was
-working on into `docs/ledger-queue.json`, and the page showed it under "reported, not measured".
-It mattered while fifty-three helpers were running and nothing else could say what they were
-doing. It is gone: the agents report in the session running them, and the ledger holds only what
-was measured.
-
 It is a terminal tool on purpose. A watcher that needed a browser would be driving one while the
 checks drive theirs, and that changes their answers: `stackbars` and `candles` have failed stage
 checks under exactly that load and passed clean on an idle machine.
 
-Then open **<http://localhost:5183/docs/ledger.html>** (the port is the one `npm run dev` printed;
-`5183` is what this project uses).
+Then open the ledger. There are two ways to serve it and they have different addresses:
+
+| started with | address | runs checks from the page |
+| --- | --- | --- |
+| `npm run board` | <http://127.0.0.1:5178/ledger.html> (it prints it) | yes |
+| `npm run dev` | <http://localhost:5183/docs/ledger.html> | no: it only shows what was recorded |
+
+`npm run board` is the one to use. The second address answers only while `npm run dev` is running,
+and a person who had started the board and opened it found nothing there.
 
 What you will see on a fresh clone:
 
@@ -270,7 +269,7 @@ Start with `npm run doctor`: it asks every question the checks assume and says w
 when one fails. The board asks it for you on a first visit, from its **Start here** panel, and a
 six-stop tour there walks the page itself.
 
-Nothing needs a terminal. **Run…** in the header offers every process this project has — the gate
+Nothing needs a terminal. **Run** in the header offers every process this project has — the gate
 step by step, each check, each job — greys out what this machine cannot do and says why, and adds
 up what a choice of gate steps will cost before you start it.
 

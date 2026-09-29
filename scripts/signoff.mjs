@@ -1,12 +1,11 @@
 /**
- * The two items on the release checklist that wait for a person, ticked from the command line.
+ * The item on the release checklist that waits for a person, ticked from the command line.
  *
  *   npm run signoff                 what is waiting, and whether anything else is still open
- *   npm run signoff -- article      "I have read the ledger article and it is ready"
  *   npm run signoff -- push         "Push it"
- *   npm run signoff -- undo <which> take it back
+ *   npm run signoff -- undo push    take it back
  *
- * On Windows in PowerShell, call node directly -- `node scripts/signoff.mjs article`. PowerShell
+ * On Windows in PowerShell, call node directly -- `node scripts/signoff.mjs push`. PowerShell
  * picks npm.ps1 out of npm's three launchers and a Restricted execution policy will not load it.
  * What this prints at the end already accounts for that.
  *
@@ -75,12 +74,11 @@ if (!which || !ITEMS[which]) {
   // launcher PowerShell picks is npm.ps1, which a Restricted execution policy refuses to load, so
   // printing "npm run" there hands someone the command that just failed. Calling node skips npm.
   const how = process.platform === 'win32' ? 'node scripts/signoff.mjs' : 'npm run signoff --';
-  console.log(`\n  ${how} article      after reading it`);
-  console.log(`  ${how} push         only once nothing else is open`);
-  console.log(`  ${how} undo <which> take one back`);
+  console.log(`\n  ${how} push         only once nothing else is open`);
+  console.log(`  ${how} undo push    take it back`);
   if (process.platform === 'win32') {
     console.log(`\n  (node, not npm: PowerShell loads npm.ps1, which a Restricted execution policy`);
-    console.log(`   blocks. npm.cmd run signoff -- article works too. Nothing here needs that`);
+    console.log(`   blocks. npm.cmd run signoff -- push works too. Nothing here needs that`);
     console.log(`   policy changed.)\n`);
   } else {
     console.log('');

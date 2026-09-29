@@ -99,11 +99,6 @@ the ports answer, how far a run has got, how much memory is left. It only reads.
 look, it says so — "could not look" and "nothing is running" are opposite facts, and it answers
 `ALIVE`, `STOPPED`, `PAUSED` or `UNKNOWN` with an exit code for each.
 
-There used to be a second, hand-kept record beside it: `npm run queue` wrote what an agent was
-working on into `docs/ledger-queue.json`, shown on the page as "reported, not measured". It mattered
-while fifty-three helpers were running and nothing else could say what they were doing. It is gone.
-Agents report in the session running them; the ledger holds only what was measured.
-
 > **PowerShell:** npm ships three launchers and PowerShell picks `npm.ps1`, which a `Restricted`
 > execution policy refuses to load. Use `npm.cmd run ...`, or call node directly
 > (`node scripts/now.mjs --watch`). Git Bash, cmd, macOS and Linux are unaffected. Nothing here
@@ -154,10 +149,10 @@ The ledger is four pieces:
 |---|---|
 | `scripts/ledger.mjs` | builds `docs/ledger.json` from the check records, git history and the checklist |
 | `scripts/ledger-watch.mjs` | rebuilds it when anything it reads changes, and writes a heartbeat |
-| `docs/ledger.html` | the page — self-contained, reads the JSON, no build step |
+| `docs/ledger.html` | the page as it is served: BUILT from `src/ledger/` by `npm run build:ledger`, and committed. Edit the source, not this |
 | `scripts/checklist-proofs.mjs` | re-runs the cheap proofs behind `RELEASE-CHECKLIST.md` |
 
-Edit the page and reload it; edit a script and the watcher reloads its own code on the next build.
+Edit `src/ledger/`, run `npm run build:ledger` and reload (or use `npm run board:dev`, which serves the source); edit a script and the watcher reloads its own code on the next build.
 The page says which code version built the data it is showing, and warns you when they differ.
 
 ### …run everything before shipping

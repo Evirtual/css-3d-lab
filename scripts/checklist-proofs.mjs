@@ -554,10 +554,22 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       const bad = files.filter((f) => !/^(\/\*\*|\/\/)/.test(read(f) ?? ''));
       return bad.length ? F(`does not open with /** or //: ${bad.join(', ')}`) : T(`all ${files.length} open with /** or //`);
     }],
-    [/^README, ADDING-MODELS\.md and VIEW-CONTRACT\.md were reviewed/, KEYS.head, () => {
-      const docs = git('log', '-1', '--format=%cI', '--', 'README.md', 'docs/ADDING-MODELS.md', 'docs/VIEW-CONTRACT.md').trim();
+    /*
+     * START-HERE.md and LEDGER.md were not on this list, so nothing ever asked whether they had
+     * fallen behind -- and on 2026-09-29 they had: one said the board's page has no build step on
+     * the day a fresh clone opened a page ten commits stale for want of that build.
+     *
+     * The rule is unchanged and is still a heuristic: the newest commit to ANY of the documents is
+     * not older than the newest commit to the code. It does not say each was read. What it can say
+     * without pretending is which of them are older than the code, so it names them either way.
+     */
+    [/^README, .*VIEW-CONTRACT\.md were reviewed/, KEYS.head, () => {
+      const DOCS = ['README.md', 'docs/START-HERE.md', 'docs/LEDGER.md', 'docs/ADDING-MODELS.md', 'docs/VIEW-CONTRACT.md'];
+      const docs = git('log', '-1', '--format=%cI', '--', ...DOCS).trim();
       const code = git('log', '-1', '--format=%cI', '--', 'package.json', 'scripts/', 'server/', 'worker/', 'src/preview.ts', 'src/video.ts').trim();
-      return Date.parse(docs) >= Date.parse(code) ? T(`heuristic: docs last committed ${docs.slice(0, 16)}, code ${code.slice(0, 16)}`) : F(`heuristic: docs last committed ${docs.slice(0, 16)}, older than the code's ${code.slice(0, 16)}`);
+      const behind = DOCS.filter((d) => Date.parse(git('log', '-1', '--format=%cI', '--', d).trim()) < Date.parse(code));
+      const which = behind.length ? `; last touched before the code: ${behind.join(', ')}` : '; every one of them since the code';
+      return Date.parse(docs) >= Date.parse(code) ? T(`heuristic: docs last committed ${docs.slice(0, 16)}, code ${code.slice(0, 16)}${which}`) : F(`heuristic: docs last committed ${docs.slice(0, 16)}, older than the code's ${code.slice(0, 16)}${which}`);
     }],
     [/^VIEW-CONTRACT\.md's numbers are the checks' numbers/, () => {
       // Each limit, read from the check's own constant and from the sentence in the document that

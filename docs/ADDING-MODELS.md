@@ -230,8 +230,8 @@ drift pass reads that identical clip perfectly moments later.
 
 ## Where you watch it get in
 
-The ledger is where a new model becomes a finished one, and it is a local page: `npm run ledger:watch`
-in one terminal, `npm run dev` in another, then <http://localhost:5183/docs/ledger.html>. The README
+The ledger is where a new model becomes a finished one, and it is a local page: `npm run board`, then
+the address it prints (<http://127.0.0.1:5178/ledger.html>). The README
 section "Running the ledger" has the whole of it; this is only what your model does.
 
 The moment its id exists, the count goes up and your model appears under **To check**, every mark

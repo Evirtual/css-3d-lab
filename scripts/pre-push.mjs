@@ -134,7 +134,7 @@ if (gate.openOthers.length || beforeOpen) {
   say('');
   say('The push is the claim that all of it checked out, so it waits for all of it.');
   refuse(`${n} thing${n === 1 ? '' : 's'} that must be true before a push ${n === 1 ? 'is' : 'are'} not.`, out, [
-    'npm run board            the board: Run… runs the checks, and says what each costs',
+    'npm run board            the board: Run, in its header, runs the checks, and says what each costs',
     'npm run verify           or the whole gate from a terminal, about four hours',
     `${node} push      once the list is green: the sign-off, which is yours`,
     'then commit docs/RELEASE-CHECKLIST.md, and push',

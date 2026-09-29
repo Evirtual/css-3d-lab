@@ -117,7 +117,7 @@ one measured on another.
 
 ## Everything runs from the board
 
-Every process this project has is startable from **Run…** in the header — the gate, the per-model
+Every process this project has is startable from **Run** in the header — the gate, the per-model
 checks, the live-site check, the renderer comparison, the export matrix, the doctor. None of it
 needs a terminal, and anything this machine cannot do is greyed out with the reason rather than
 offered as a button that throws.
