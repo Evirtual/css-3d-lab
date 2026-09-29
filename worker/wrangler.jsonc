@@ -5,8 +5,13 @@
   "compatibility_date": "2026-09-20",
   "compatibility_flags": ["nodejs_compat"],
   "browser": { "binding": "BROWSER" },
-  "vars": { "ALLOWED_ORIGINS": "https://css3dlab.edgarasneverdauskas.com,https://evirtual.github.io" },
-  "ratelimits": [{ "name": "EXPORT_LIMIT", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } }],
+  "vars": { "ALLOWED_ORIGINS": "https://css3dlab.edgarasneverdauskas.com,https://evirtual.github.io", "DAILY_BROWSER_SECONDS": "1800", "MONTHLY_BROWSER_SECONDS": "34200" },
+  // The hard ceiling. See src/budget.ts: the rate limit below is a burst guard and, by
+  // Cloudflare's own documentation, not an accounting system -- its period cannot exceed 60
+  // seconds and it counts separately in every location. This counts once, for the whole account.
+  "durable_objects": { "bindings": [{ "name": "EXPORT_BUDGET", "class_name": "ExportBudget" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ExportBudget"] }],
+    "ratelimits": [{ "name": "EXPORT_LIMIT", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } }],
   // No "limits": { "cpu_ms": ... } here: Cloudflare refuses a CPU limit on the Free plan
   // (code 100328), so the Worker runs at the Free plan default. On a paid plan, add it back so
   // long videos have the processing time they need.
