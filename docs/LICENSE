@@ -1,0 +1,31 @@
+CSS 3D Lab — licence
+
+Copyright (c) 2026 Edgaras Neverdauskas
+
+This repository is under two licences.
+
+1. The snippets: MIT
+
+   The model snippets are free to use in any project, commercial or not, under
+   the MIT licence in LICENSES/MIT-snippets.txt. A snippet is the HTML, CSS and
+   JavaScript of one model: what the site's Copy and Download buttons hand out,
+   and what the `html`, `css` and `js` fields of each snippet object under
+   src/models/ contain.
+
+2. Everything else: PolyForm Noncommercial 1.0.0
+
+   The rest of the repository (the site and its code, the render service in
+   server/ and worker/, the checks and scripts, the ledger, the docs and the
+   article) is licensed under the PolyForm Noncommercial License 1.0.0 in
+   LICENSES/PolyForm-Noncommercial-1.0.0.md. You may read it, run it, learn from
+   it and change it for any noncommercial purpose. Any commercial use, including
+   republishing the gallery, the tool or its checks as a product or service,
+   needs written permission from the copyright holder.
+
+Earlier versions
+
+Commits up to and including b1d49c2 (2026-09-19) were published under the MIT
+licence alone, and those versions stay under MIT. The licences above apply from
+the commit that added this file onward.
+
+Required Notice: Copyright (c) 2026 Edgaras Neverdauskas (https://css3dlab.edgarasneverdauskas.com)

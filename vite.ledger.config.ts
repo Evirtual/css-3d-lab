@@ -17,7 +17,7 @@
  */
 import { defineConfig } from 'vite';
 import { resolve, join } from 'node:path';
-import { readdirSync, rmSync } from 'node:fs';
+import { readdirSync, rmSync, copyFileSync } from 'node:fs';
 
 /**
  * Clears the previous build's hashed files, and only those.
@@ -53,7 +53,33 @@ function clearLedgerAssets() {
 }
 
 export default defineConfig({
-  plugins: [clearLedgerAssets()],
+  plugins: [
+    clearLedgerAssets(),
+    /*
+     * README.md AND LICENSE LIVE AT THE REPOSITORY ROOT, AND docs/ IS WHAT IS SERVED.
+     *
+     * docs/index.html listed them as ../README.md and ../LICENSE, which is one level above the
+     * published root -- so they answered 404 on the dev server, on the built board AND on the
+     * deployed site. Two of the eight documents the guide offers had never been readable from it
+     * anywhere, and the page said "Could not read ../README.md · 404" with a paragraph explaining
+     * how to serve it, which was not the problem.
+     *
+     * Copying at build time rather than committing a second copy by hand: a duplicate README that
+     * somebody has to remember to update is a README that is wrong. This one is rewritten from the
+     * real file every time the board is built.
+     */
+    {
+      name: 'carry-root-docs',
+      apply: 'build' as const,
+      closeBundle() {
+        const here = resolve(import.meta.dirname, 'docs');
+        for (const [from, to] of [['README.md', 'README.md'], ['LICENSE', 'LICENSE']]) {
+          try { copyFileSync(resolve(import.meta.dirname, from), resolve(here, to)); }
+          catch (e) { this.warn(`could not copy ${from} into docs/: ${(e as Error).message}`); }
+        }
+      },
+    },
+  ],
   /*
    * The dev server is the board's page, served from source.
    *
@@ -73,7 +99,12 @@ export default defineConfig({
      * link worked on the built board and on the deployed site. A dead link that is only dead in
      * development is the worst kind: it is dead exactly where somebody is working.
      */
-    proxy: Object.fromEntries(['/api', '/ledger.json', '/ledger-watch.json', '/checks', '/reviews', '/index.html']
+    proxy: Object.fromEntries(['/api', '/ledger.json', '/ledger-watch.json', '/checks', '/reviews', '/index.html',
+      /* The guide fetches these as it goes; without them it renders its own 404 for every page.
+         Named one by one rather than proxying every .md, so this dev server keeps serving the
+         board's own sources and only these are passed through. */
+      '/START-HERE.md', '/LEDGER.md', '/ADDING-MODELS.md', '/VIEW-CONTRACT.md',
+      '/RELEASE-CHECKLIST.md', '/COMMIT-AUDIT.md', '/ARTICLE-NOTES.md', '/README.md', '/LICENSE']
       .map((path) => [path, { target: `http://127.0.0.1:${process.env.PORT ?? 5178}`, changeOrigin: false }])),
   },
   root: resolve(import.meta.dirname, 'src/ledger'),
