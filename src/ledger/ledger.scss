@@ -983,8 +983,6 @@ button, input { font: inherit; color: inherit; }
    The bar used to sit at 0 while the record sat at 16px, so the two columns were a card's corner out of
    line the moment the page scrolled. The script measures this rather than assuming it. */
 :root { --stick-top: 16px; }
-/* Replaced at runtime with the header's real height plus the gaps: see setStickTop in main.ts.
-   A flat number cannot work now that the header above it changes height as it collapses. */
 /* Below the split there is no second column to line up with, so the bar rests flush and there is no
    strip above it for rows to show through. */
 @media (max-width: 1099px) { :root { --stick-top: 0px; } }
@@ -2545,7 +2543,6 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
    What remains is the narrow-screen trim: the title gives up size before anything else does. */
 @media (max-width: 620px) {
   .hero h1 { font-size: 16px; }
-  .hero--compact h1 { font-size: 15px; }
   .hero__btns { gap: 5px; }
   .hero__btns .btn { padding: 5px 9px; font-size: 11.5px; }
 }
@@ -3084,7 +3081,11 @@ td.c:has(.ckrun--busy) { background: color-mix(in srgb, var(--st-warn) 14%, tran
    two media queries, with a 34px guess where --head-h had not been measured yet. Four sums to keep
    in step is how the group heading came to be told to stand exactly where the run bar already was.
 
-   ONE TERM IN THIS SUM DOES NOT GO AWAY.
+   BACK TO ONE SUM, because nothing is sticky above the table any more.
+
+   For an afternoon the header was sticky, and its height had to be added flat here while --fbar-h
+   stayed multiplied by --show. The header is not sticky at all now, so the stack below owns the
+   top of the screen again and this is the arithmetic it always had.
 
    --stick-top used to be the 16px gap the search bar floated in, so multiplying it by --show was
    right: no bar, no gap, and the column headings met the top edge. --stick-top is now the sticky
@@ -3094,17 +3095,17 @@ td.c:has(.ckrun--busy) { background: color-mix(in srgb, var(--st-warn) 14%, tran
    --hero-h is the header's own height, published by main.ts, and it is added flat. Only --fbar-h,
    which genuinely does leave, is still multiplied by --show. --head-h is 0 on a phone because the
    header really is not there, so the phone still needs no rule of its own. */
-#tbl thead th { top: calc(var(--hero-h, 0px) + var(--fbar-h, 0px) * var(--show, 1)); }
+#tbl thead th { top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1)); }
 #tbl tr.suiterun > td {
-  top: calc(var(--hero-h, 0px) + var(--fbar-h, 0px) * var(--show, 1) + var(--head-h, 0px));
+  top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px));
   z-index: 4;
 }
 #tbl tr.grow > th, #tbl tr.grow > td {
-  top: calc(var(--hero-h, 0px) + var(--fbar-h, 0px) * var(--show, 1) + var(--head-h, 0px)
+  top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px)
             + var(--suite-h, 0px));
 }
 #tbl tr.row[aria-expanded="true"] > td {
-  top: calc(var(--hero-h, 0px) + var(--fbar-h, 0px) * var(--show, 1) + var(--head-h, 0px)
+  top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px)
             + var(--suite-h, 0px) + var(--grow-h, 0px));
 }
 
@@ -3431,55 +3432,12 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
  * to one row carrying only the two things anybody uses while working.
  * =============================================================================================== */
 /* (the sentinel this needed is gone: the header watches scrollY directly now) */
-.hero {
-  /*
-   * A GAP ABOVE IT, and something to hide what scrolls through the gap.
-   *
-   * Pinned flush to top: 0 the header looked welded to the window. It floats 10px down instead,
-   * which means 10px of table would slide past above it -- so ::before paints that strip in the
-   * page's own colour. The same trick .fbar.is-stuck::after has used all along; this is that
-   * pattern, not a new one.
-   */
-  position: sticky; top: var(--hero-gap); z-index: 40;
-  /* No transition on the height. It is measured either side of the class change so the scroll can
-     be corrected by the same amount in the same frame, and a transition would mean measuring a
-     size that is still on its way somewhere -- the correction would be wrong and the page would
-     drift. The shadow may fade; nothing that affects layout does. */
-  transition: box-shadow 0.18s ease;
-}
-:root { --hero-gap: 10px; }
-.hero::before {
-  content: ""; position: absolute; left: 0; right: 0;
-  /* Exactly the gap, and not one pixel more: the extra pixel was painting over the header's own
-     top border and the panel lost its top edge. */
-  /* bottom:100% anchors it exactly to the header's top edge -- top+height left it a rounding
-     error away from covering the 1px border, which is why the header kept 'losing its border'.
-     z-index:-1 puts it behind the header outright, so it can never paint over the frame again:
-     a positioned pseudo-element otherwise draws ABOVE its own element's background and border. */
-  /* FAR TALLER THAN THE GAP IT COVERS, deliberately.
-     Sized to exactly --hero-gap this was one sub-pixel from letting a row show through above the
-     header, and it did: table rows were visible in the strip over it. Everything above the header
-     is off-screen anyway once it is stuck, so there is no cost to painting 240px of it and no
-     rounding left to get wrong. */
-  bottom: 100%; height: calc(var(--hero-gap) + 6px); z-index: -1;
-  background: var(--bg); pointer-events: none;
-}
-/* Opaque, and blurred behind, because 135 rows scroll underneath it. --surface is 72% alpha and
-   the table read straight through it; this is the same recipe the modals and the tour card use. */
-.hero, .hero--compact { background: var(--glass); backdrop-filter: blur(26px) saturate(1.6); }
-.hero--compact { padding-top: 8px; padding-bottom: 8px; box-shadow: 0 10px 24px -18px rgb(0 0 0 / 0.9); }
-.hero--compact .statusline { display: none; }
-.hero--compact h1 { font-size: 17px; }
-.hero--compact .hero__btns .btn { padding: 4px 10px; }
-@media (prefers-reduced-motion: reduce) { .hero { transition: none; } }
+/* The header is NOT sticky. It was, for an afternoon, and every glitch this header ever had
+   came out of that one decision: a gap that needed a mask, a mask that ate the border, a
+   collapse that lurched the page, a scroll correction that looped, and two bars stacked over
+   the table. It scrolls with the page like everything else, and there is nothing left to go
+   wrong. The panel rule near the top of this file is the whole of its styling. */
 
-/* A run, along the header's own bottom edge: the one place it can be seen from anywhere on the
-   page, and it costs no height at all. */
-.hero::after {
-  content: ""; position: absolute; left: 0; bottom: -1px; height: 2px; width: var(--hero-run, 0%);
-  background: linear-gradient(90deg, var(--accent-2), var(--accent));
-  transition: width 0.4s ease; pointer-events: none;
-}
 
 /* ---- the menu ---- */
 .hero__menu { position: relative; display: inline-flex; }
@@ -3526,4 +3484,3 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
    centres its items, and a margin on a centred flex item moves the box without moving what is
    drawn inside it, which is why the title read high. */
 .hero .top h1 { margin: 0; line-height: 1.25; }
-.hero--compact .top { align-items: center; }

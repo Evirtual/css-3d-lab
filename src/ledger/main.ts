@@ -1419,108 +1419,8 @@ import { icon } from '../icons.ts';
    * crossing itself instead of this running arithmetic on every frame of every scroll, on a page
    * that already has 135 models animating on it.
    */
-  const COMPACT_AT = 64;
-  (() => {
-    const hero = document.querySelector(`.hero`) as HTMLElement | null;
-    if (!hero) return;
-    /*
-     * A SCROLL LISTENER, NOT AN IntersectionObserver, AND THAT IS A CORRECTION.
-     *
-     * The observer is the tidier instrument and it was the first thing here. It never fired --
-     * not once, not even the initial callback every observer delivers on attach. The reason is
-     * that IntersectionObserver is driven by RENDERING: a tab that is not being painted does not
-     * run it. That is fine for a tab nobody is looking at and useless for a header that must be
-     * in the right state the moment somebody looks again.
-     *
-     * scrollY is arithmetic and always available. Passive, so it never delays a scroll, and
-     * coalesced into one animation frame so a fast flick sets the class once rather than forty
-     * times. The class is only touched when it actually changes, so the common case is a
-     * comparison and nothing else.
-     */
-    /*
-     * WHAT IS BELOW HAS TO KNOW HOW TALL THIS IS.
-     *
-     * --stick-top is the one number the filter bar and every table heading hang from. It was a
-     * flat 16px, which was right while nothing was above them; with a sticky header there it meant
-     * the search row slid under the header and the header stopped looking sticky at all.
-     *
-     * The header changes height as it collapses, so this cannot be a constant in the stylesheet.
-     * It is measured and published on every change instead -- and only written when the rounded
-     * number actually moves, because this runs on scroll.
-     */
-    let lastStick = -1;
-    const setStickTop = () => {
-      const h = Math.round(hero.getBoundingClientRect().height);
-      if (h === lastStick) return;
-      lastStick = h;
-      const gap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hero-gap'), 10) || 10;
-      document.documentElement.style.setProperty('--stick-top', `${h + gap + 8}px`);
-      /* The header's own height, separately, because the table's sums need the part that does NOT
-         disappear when the filter bar scrolls away. See the note beside #tbl thead th. */
-      document.documentElement.style.setProperty('--hero-h', `${h + gap}px`);
-      /*
-       * AND EVERYTHING THAT HANGS OFF IT HAS TO BE RECOMPUTED.
-       *
-       * --stick-top is only the first rung. stickyOffsets() reads the filter bar's resolved top and
-       * derives --stick-head from it, and every heading in the table sticks at that: the column
-       * row, the group rows, the run rows. Publishing --stick-top without re-running it left them
-       * pinned at the offset the TALL header needed, so the moment the header collapsed they sat
-       * underneath it and the column row disappeared behind it entirely.
-       *
-       * Called after the property is set, so the bar has already moved by the time it is measured.
-       */
-      /* Guarded: this also runs once at startup, before the table and its filter bar exist, and
-         an exception there kills the rest of the module -- which it did: the board sat on
-         "Loading ledger.json..." and nothing else ran. A missing filter bar is not an error here,
-         it just means there is no stack to re-measure yet. */
-      try { if (document.getElementById(`filters`)) stickyOffsets(); } catch { /* not built yet */ }
-    };
-    let compact = false;
-    /*
-     * NO requestAnimationFrame HERE EITHER, and for the same reason the observer went.
-     *
-     * rAF was coalescing these, which is the ordinary way to do it -- and rAF does not run when
-     * the tab is not being painted, so the header stayed expanded however far you scrolled. That
-     * is the second rendering-driven API to fail this the same way in one afternoon.
-     *
-     * Reading scrollY costs nothing and forces no layout, so the comparison runs inline on every
-     * scroll event. The expensive part -- measuring the header to republish --stick-top -- happens
-     * only when the class actually changes, which is twice per journey down the page.
-     */
-    const apply = () => {
-      const want = window.scrollY > COMPACT_AT;
-      if (want === compact) return;
-      compact = want;
-      /*
-       * THE HEADER KEEPS ITS FOOTPRINT, so nothing below it moves when it collapses.
-       *
-       * A sticky element still takes up its space in the flow, so shrinking from 96px to 58px
-       * pulls every row below up by 38 -- while you are scrolled past it, reading those rows.
-       *
-       * The first attempt corrected the scroll by the same 38 pixels, and that was worse: moving
-       * the scroll moved it back across the threshold that had just triggered, which toggled it
-       * back, which corrected again. It sat flipping between the two states forever, which is
-       * exactly what it looked like.
-       *
-       * Giving back the lost height as margin is the version with no feedback in it. The document
-       * is the same length in both states, nothing below the header moves, and the scroll position
-       * is never touched -- so there is no loop to get caught in.
-       */
-      /* Measured either side of the class, so the number is exact rather than remembered. An
-         earlier version learned the tall height once and reused it; it drifted 13px out, because
-         the height it learned was taken before the fonts had settled. Nothing is carried over
-         between toggles now -- both heights come from the same two lines, every time. */
-      const was = hero.getBoundingClientRect().height + parseFloat(hero.style.marginBottom || `0`);
-      hero.classList.toggle(`hero--compact`, want);
-      const now = hero.getBoundingClientRect().height;
-      hero.style.marginBottom = `${Math.max(0, Math.round(was - now))}px`;
-      setStickTop();
-    };
-    addEventListener(`scroll`, apply, { passive: true });
-    apply();   // a page restored mid-scroll starts in the right state
-    setStickTop();
-    addEventListener('resize', setStickTop, { passive: true });
-  })();
+  /* The header is not sticky and does not resize. Both were tried on 2026-09-29 and both were
+     taken out: see the note beside the .hero rule in ledger.scss for what each one cost. */
 
   /*
    * THE MENU: opened by its button, closed by anything that means "I am done with it".
@@ -3832,28 +3732,13 @@ import { icon } from '../icons.ts';
       const at = G.done.length;
       const pct = G.total ? Math.min(100, Math.round((100 * G.done.length) / G.total)) : 0;
       const bad = G.done.filter((d) => !d.ok);
-      /*
-       * THE SAME PROGRESS, ALONG THE HEADER'S BOTTOM EDGE.
-       *
-       * The header is sticky and collapses while you scroll, which means the chip carrying this
-       * number is folded away exactly when a long run most wants watching. Two pixels on the edge
-       * of a bar that is always there costs no height and is visible from anywhere on the page.
-       * It is the same number as the chip, from the same place, so the two cannot disagree --
-       * which the board has caught itself doing before.
-       */
-      (document.querySelector('.hero') as HTMLElement | null)?.style.setProperty('--hero-run', `${pct}%`);
       /* A CHIP, NOT A BLOCK. The first version of this was a 134px notice that pushed the whole
          board down for three hours. The run belongs beside the other live facts -- the watcher,
          the memory, the CPU -- because that is what it is: a thing that is true right now. The
          step name is hidden under 560px, where the row has about 115px to spare. */
       const tip = (`gate: step ${at} of ${G.total}${G.step ? `, ` + G.step.name : ``}. ${G.done.length} finished${bad.length ? `, ${bad.length} failed: ` + bad.map((d) => d.key).join(`, `) : `, all held`}. Started ${clock(G.startedAt)}.`);
       gateChip = (`<span class="sep">·</span><span class="gate${bad.length ? ` gate--bad` : ``}" tabindex="0" data-tip data-tiptext="${esc(tip)}" data-cl-jump="gate"><i class="dot busy"></i>gate <b>${esc(at)}/${esc(G.total)}</b>${G.step ? `<span class="gate__what">${esc(G.step.short ?? G.step.key)}</span>` : ``}<span class="gate__track"><i style="width:${pct}%"></i></span></span>`);
-    } else {
-      /* Nothing is running: the edge goes back to nothing, rather than leaving the last run's
-         progress painted under a header that is no longer about it. */
-      (document.querySelector('.hero') as HTMLElement | null)?.style.setProperty('--hero-run', '0%');
-    }
-    if (G?.crashed) {
+    } else if (G?.crashed) {
       gateNote = (`<div class="notice bad"><b class="big">A gate run stopped without finishing.</b> It reached step ${esc(G.step?.index ?? G.done.length)} of ${esc(G.total)}${G.step ? ` (<code>${esc(G.step.key)}</code>)` : ``} and the process is gone, so nothing is running now: this board holds whatever it had recorded by then. Start it again with <code>npm run verify</code>.</div>`);
     }
     $('live').innerHTML = `<span class="sep">·</span><span tabindex="0" data-tip data-tiptext="${esc(checked)}"><i class="dot ${dot}"></i>${esc(short)}</span>`
