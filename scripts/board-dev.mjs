@@ -47,4 +47,25 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => bye(0));
 
 console.log(`${clock()} board:dev — the board owns the data and the runs; Vite serves the page from src/ledger`);
 run('board', [join(ROOT, 'scripts', 'ledger-watch.mjs')]);
+/*
+ * THE ADDRESS THAT MATTERS IS VITE'S, NOT THE BOARD'S.
+ *
+ * The board prints "the ledger is at 127.0.0.1:5178", which serves docs/ -- the BUILT page. That
+ * is the right address for `npm run board` and the wrong one here: on it, every edit to src/ledger
+ * needs a build before it can be seen, which is the exact thing this script exists to avoid.
+ * Both of us spent an afternoon on it, rebuilding after every change and wondering why the page
+ * would not update.
+ *
+ * Vite prints its own address, and it binds localhost rather than 127.0.0.1 -- so checking
+ * 127.0.0.1 on its port answers nothing and reads like Vite is not running. This says which is
+ * which, after Vite has printed, so the last line on the screen is the one to open.
+ */
 run('vite', [join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), '--config', join(ROOT, 'vite.ledger.config.ts')]);
+setTimeout(() => {
+  console.log('');
+  console.log(`${clock()} two addresses, and they are not the same page:`);
+  console.log(`  http://localhost:5173/ledger.html   the board, compiled from src/ledger as you edit it — OPEN THIS ONE`);
+  console.log(`  http://127.0.0.1:5178/ledger.html   the built page, as anybody else gets it — needs npm run build:ledger to change`);
+  console.log(`  Vite binds localhost, not 127.0.0.1, so its port answers nothing on the other name.`);
+  console.log('');
+}, 2500);

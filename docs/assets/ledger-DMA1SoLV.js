@@ -986,12 +986,28 @@ function icon(name) {
 		return [name(src), name(css)].filter(Boolean).sort().join(" ");
 	})();
 	let reloadAsked = false;
-	/** A newer board is on disk: take it, once, rather than going quietly stale. */
 	function checkPageBuild(latest) {
 		if (!latest || !MY_BUILD || reloadAsked) return;
 		if (latest === MY_BUILD) return;
+		const KEY = "ledger:reloadedFor";
+		let already = null;
+		try {
+			already = sessionStorage.getItem(KEY);
+		} catch {
+			return;
+		}
+		if (already === latest) {
+			reloadAsked = true;
+			console.warn(`ledger: ledger.json names ${latest} and this tab is running ${MY_BUILD}. A reload did not change that, so it is not a stale tab -- ledger.json was probably written before the last page build. Run npm run ledger.`);
+			return;
+		}
 		reloadAsked = true;
-		console.info(`ledger: a newer board is on disk (${latest}); this tab has ${MY_BUILD}. Reloading.`);
+		try {
+			sessionStorage.setItem(KEY, latest);
+		} catch {
+			return;
+		}
+		console.info(`ledger: a newer board is on disk (${latest}); this tab has ${MY_BUILD}. Reloading once.`);
 		setTimeout(() => location.reload(), 250);
 	}
 	let BARS = {

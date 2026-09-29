@@ -1016,14 +1016,33 @@ import { icon } from '../icons.ts';
     return [name(src), name(css)].filter(Boolean).sort().join(' ');
   })();
   let reloadAsked = false;
-  /** A newer board is on disk: take it, once, rather than going quietly stale. */
+  /*
+   * A NEWER BOARD ON DISK: TAKE IT ONCE, AND NEVER TWICE FOR THE SAME ONE.
+   *
+   * The first version compared the bundle this tab is running with the one ledger.json names, and
+   * reloaded when they differed. If they go on differing -- because ledger.json was written before
+   * the last page build, so it names a bundle that is no longer the one being served -- the reload
+   * happens again, and again, for ever. It did exactly that on 2026-09-29 and made the board
+   * unusable: a page refreshing every three seconds is worse than a page that is out of date.
+   *
+   * So the target is remembered for this tab. Reload once for a given target; if that tab comes
+   * back still not matching, the mismatch is not something a reload can fix, and it says so
+   * quietly instead of trying again.
+   */
   function checkPageBuild(latest: string | null | undefined) {
     if (!latest || !MY_BUILD || reloadAsked) return;
     if (latest === MY_BUILD) return;
+    const KEY = 'ledger:reloadedFor';
+    let already: string | null = null;
+    try { already = sessionStorage.getItem(KEY); } catch { /* private window: then do not reload at all */ return; }
+    if (already === latest) {
+      reloadAsked = true;   // tried that, it did not help: say it once and leave the page alone
+      console.warn(`ledger: ledger.json names ${latest} and this tab is running ${MY_BUILD}. A reload did not change that, so it is not a stale tab -- ledger.json was probably written before the last page build. Run npm run ledger.`);
+      return;
+    }
     reloadAsked = true;
-    // A reload loses nothing here: everything on this page is read from files, and an open dialog
-    // is a worse thing to keep than an out-of-date page.
-    console.info(`ledger: a newer board is on disk (${latest}); this tab has ${MY_BUILD}. Reloading.`);
+    try { sessionStorage.setItem(KEY, latest); } catch { return; }
+    console.info(`ledger: a newer board is on disk (${latest}); this tab has ${MY_BUILD}. Reloading once.`);
     setTimeout(() => location.reload(), 250);
   }
 

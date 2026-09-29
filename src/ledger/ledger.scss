@@ -863,7 +863,30 @@ button, input { font: inherit; color: inherit; }
 /* A header button that is only its icon. The row carried six word-buttons, two of which announced
    zero; the two that are references rather than destinations now say it with a glyph and a
    tooltip, which is what the tooltip is for. */
+/* paintNavIcons wraps every header button as .nav__i (the glyph) + .nav__t (the words), so an
+   icon-only button is a CSS decision, not a markup one. Emptying the markup instead produced a
+   button with no icon AND no label -- an empty circle in the header. The label stays in the DOM
+   for the icon wrapper and for a screen reader; it is the words that are hidden. */
+/* The notes button hides itself when there is nothing to read, but it sits inside a positioning
+   wrapper that did not -- so an empty span went on holding a gap in the header. Hiding a control
+   and leaving its container is the same as not hiding it. */
+/* AN AUTHOR DISPLAY RULE BEATS THE HIDDEN ATTRIBUTE.
+
+   [hidden] gets display:none from the browser default stylesheet, and any author rule setting
+   display -- .btn is inline-flex -- wins over it, because author styles beat user-agent styles.
+   So every button here that marked itself hidden went on being drawn: btn.hidden read true, the
+   attribute was on the element, and the header still showed "What’s holding models back · 0".
+   Code and screen disagreeing, which is the hardest kind of wrong to see.
+
+   It sits BEFORE the mobile bar rule on purpose: down there a control with nothing to say is
+   dimmed rather than removed, so the row does not shuffle under a thumb, and that rule wins by
+   coming later. */
+.btn[hidden], .notesbtn[hidden] { display: none; }
+
+.notes-anchor:has(> [hidden]) { display: none; }
+
 .btn--icon { padding-inline: 9px; }
+.btn--icon .nav__t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
   clip-path: inset(50%); white-space: nowrap; border: 0; }
 

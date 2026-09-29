@@ -295,6 +295,14 @@ console.log(`${mb() ?? '?'} MB free at the start${noBuild && willUseDist.length 
  */
 const began = Date.now();
 
+/* Declared before the beat, which reads it. It used to sit below the build, so the first beat --
+   the one that says a run has STARTED, before the slow part -- threw on a variable that did not
+   exist yet, and the write is wrapped, so it threw silently. The board went on showing the last
+   run's record while a new one was building: exactly the invisible-for-three-minutes problem that
+   beat was added to fix, reintroduced by the fix. */
+const results = [];
+
+const PROGRESS = join(ROOT, 'docs', 'checks', 'gate-progress.json');
 const beat = (extra) => {
   try {
     writeFileSync(PROGRESS, `${JSON.stringify({
@@ -309,7 +317,7 @@ const beat = (extra) => {
       ...extra,
     }, null, 2)}
 `);
-  } catch { /* a gate that cannot say where it is still runs */ }
+  } catch (e) { console.error(`verify: could not write gate-progress.json: ${String(e?.message ?? e).split(String.fromCharCode(10))[0]}`); }
 };
 const endBeat = (held) => {
   try {
@@ -371,7 +379,6 @@ if (willUseDist.length && !noBuild) {
   }
 }
 
-const results = [];
 /*
  * WHERE THE RUN HAS GOT TO, WHILE IT IS STILL GOING.
  *
@@ -388,7 +395,6 @@ const results = [];
  * clearing this leaves a file that claims to be running, and a reader can check whether the
  * process is still alive rather than believe it.
  */
-const PROGRESS = join(ROOT, 'docs', 'checks', 'gate-progress.json');
 for (const [i, key] of run.entries()) {
   const c = listed.get(key) ?? { name: OUTSIDE[key] ?? '(no per-model record)' };
   /* The registry holds two words for the same check and they are not the same word: the step is
