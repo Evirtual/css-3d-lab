@@ -1225,7 +1225,7 @@ import { icon } from '../icons.ts';
     const over = p.estMin && secs > p.estMin * 60 * 1.5;
     return `<span class="pg pg--job${over ? ' pg--over' : ''}">
       <span class="pg__name" data-tip data-tiptext="${esc(`${name}: a job, not a per-model check, so there is no count to show. Started ${clock(p.startedAt)}.`)}">${esc(name)}</span>
-      <span class="pg__track pg__track--idle" role="progressbar" aria-label="${esc(name)} is running" aria-valuetext="running ${esc(fmtDur(secs))}"><i></i></span>
+      <span class="pg__track" role="progressbar" aria-label="${esc(name)} is running" aria-valuetext="running ${esc(fmtDur(secs))}"><i></i></span>
       <span class="pg__n">${esc(fmtDur(secs))}</span>
       <span class="pg__meta">${esc(est)}${over ? ' · longer than usual' : ''}</span>
       ${RUN_OK ? `<span class="pg__acts">${holdAndStop('rowrun', null)}</span>` : ''}</span>`;

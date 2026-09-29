@@ -65,7 +65,15 @@ export default defineConfig({
    * that that no board was there.
    */
   server: {
-    proxy: Object.fromEntries(['/api', '/ledger.json', '/ledger-watch.json', '/checks', '/reviews']
+    /*
+     * /index.html IS ON THIS LIST because the header's Docs button links to it.
+     *
+     * docs/index.html is the guide this board links out to, and docs/ is not this dev server's
+     * root -- src/ledger is. So on 5173 the one link out of the page answered 404, while the same
+     * link worked on the built board and on the deployed site. A dead link that is only dead in
+     * development is the worst kind: it is dead exactly where somebody is working.
+     */
+    proxy: Object.fromEntries(['/api', '/ledger.json', '/ledger-watch.json', '/checks', '/reviews', '/index.html']
       .map((path) => [path, { target: `http://127.0.0.1:${process.env.PORT ?? 5178}`, changeOrigin: false }])),
   },
   root: resolve(import.meta.dirname, 'src/ledger'),

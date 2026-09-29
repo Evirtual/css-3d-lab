@@ -2009,7 +2009,8 @@ header .sitechk { gap: 8px 22px; }
    so the click is visibly answered, and it carries no figure -- there is nothing counted yet, and a
    bar reading 0 of 135 would be a number this page invented. The stripes move; the fill does not. */
 .pg--starting { --pg-c: var(--accent-2); }
-.pg--starting .pg__track i { width: 100%; opacity: 0.28; }
+.pg--starting .pg__track i,
+.pg--job .pg__track i { width: 100%; opacity: 0.28; }
 .pg--starting .pg__name::before { animation: pgbeat 0.9s ease-in-out infinite; }
 .pg--starting .pg__meta { font-style: italic; }
 
@@ -3269,20 +3270,26 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 .tour {
   position: fixed; z-index: 90; left: 50%; transform: translateX(-50%); bottom: 22px;
   width: min(520px, calc(100vw - 32px)); padding: 16px 18px;
-  border: 1px solid var(--border-strong); border-radius: 14px;
-  /* OPAQUE, because it floats over the table.
-   * --surface is rgb(22 26 46 / 0.72): translucent by design, because every panel using it sits
-   * on the page backdrop and is meant to let it through. This card does not sit on the backdrop,
-   * it sits on top of 135 rows of models -- and at 72% they read straight through the words
-   * describing them. --surface-solid is the same colour with no alpha, and it exists for this. */
-  background: var(--surface-solid);
-  backdrop-filter: blur(8px);
+  /* THE SAME GLASS THE MODALS USE -- see .cldlg__box.
+   * First attempt used --surface (72% alpha, no blur) and the table read through the words. The
+   * second went fully opaque, which fixed the reading and made this the only floating panel in the
+   * app that is not glass. Both were wrong for the same reason: this is a dialog, and the app
+   * already has one recipe for a dialog. blur(26px) is what makes --glass readable over content;
+   * the earlier blur(8px) was not enough to carry 72% alpha over a table of 135 rows. */
+  border: 1px solid var(--glass-edge); border-radius: 22px;
+  background: var(--glass); backdrop-filter: blur(26px) saturate(1.6);
   box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.65);
 }
 .tour__n { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 .tour h3 { margin: 4px 0 6px; font-size: 16px; }
 .tour p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--muted); }
-.tour__acts { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+.tour__acts { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; align-items: stretch; }
+/* ALL THREE THE SAME HEIGHT.
+ * Next carries .runjob__go for its accent, and .runjob__go sets margin-top: 8px -- written for a
+ * button that sits under a paragraph, not beside two others. In a flex row that margin pushed one
+ * button down and left three controls at three different heights. The margin is dropped here and
+ * the height is set once, so the row cannot drift again whatever classes land on its children. */
+.tour__acts .btn { margin: 0; height: 32px; padding: 0 14px; }
 .tour__acts .btn[disabled] { opacity: 0.45; cursor: default; }
 
 /* The ring is drawn OUTSIDE the element with an outline, not a border or a
@@ -3367,12 +3374,16 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 /* A job's bar has nothing to fill, so its track travels instead: the animation is
    the aliveness signal that a 0% bar could not give. Reduced motion gets a steady
    tinted track -- still visibly different from an empty one. */
-.pg__track--idle { position: relative; overflow: hidden; }
-.pg__track--idle > i { position: absolute; inset: 0 auto 0 0; width: 34%; border-radius: inherit; animation: pgidle 1.7s ease-in-out infinite; }
-@keyframes pgidle { 0% { left: -36%; } 100% { left: 102%; } }
-@media (prefers-reduced-motion: reduce) {
-  .pg__track--idle > i { animation: none; left: 0; width: 100%; opacity: 0.35; }
-}
+/* ONE INDETERMINATE DESIGN, NOT TWO.
+ *
+ * The app already had a look for "running, and there is no number to show": .pg--starting fills the
+ * track to full width at low opacity and lets the existing stripes crawl across it. A job is in
+ * exactly that state for its whole life, so it gets exactly that look -- the rule is shared below
+ * with .pg--starting rather than copied.
+ *
+ * The first version of this invented a second design: a 34% block travelling left to right. It was
+ * the only bar in the app that behaved that way, sitting inches from bars that did not, which is
+ * how one page comes to look like two. */
 .pg--over .pg__meta { color: var(--warm); }
 
 /* Each gate step says whether its recorded result is still about the code on
