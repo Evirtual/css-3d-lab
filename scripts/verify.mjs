@@ -293,6 +293,25 @@ console.log(`${mb() ?? '?'} MB free at the start${noBuild && willUseDist.length 
  * Run saw nothing happen, which is the same lie as a board that looks quiet during a gate, moved
  * to the one moment somebody is definitely watching.
  */
+/*
+ * THE COMMIT THIS RUN IS ABOUT, READ BEFORE IT STARTS.
+ *
+ * gate.json stamps every step with a commit, and that commit used to be read at the END, in the
+ * block that writes the file -- so anything committed while the gate ran was stamped onto results
+ * produced by code that predates it. A four-hour run makes that likely rather than exotic: on
+ * 2026-09-29 I was holding commits for twenty minutes purely to avoid it, which is the wrong way
+ * round. The record should be safe to commit around, not the other way.
+ *
+ * So HEAD is read here, once, before the first step. Whatever happens to the branch afterwards,
+ * every result carries the commit whose files it actually judged. movedDuringRun is checked at the
+ * end and written down when it differs, because "these results are about an older commit than the
+ * one you are on" is a thing the board should be able to say rather than something a reader has to
+ * work out.
+ */
+const HEAD_AT_START = (() => {
+  try { return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(); }
+  catch { return null; }   // not a repository: the record simply carries no commit, as before
+})();
 const began = Date.now();
 
 /* Declared before the beat, which reads it. It used to sit below the build, so the first beat --
@@ -472,7 +491,14 @@ console.log('Ready to ship means both: the board is green, and nothing on it is 
  * run, not a second copy of the board.
  */
 try {
-  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  /* Read before the first step (see HEAD_AT_START): the commit these results are ABOUT, not
+     whatever the branch happens to be on now that they have finished. */
+  const commit = HEAD_AT_START ?? execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  let movedDuringRun = null;
+  try {
+    const nowHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+    if (HEAD_AT_START && nowHead !== HEAD_AT_START) movedDuringRun = nowHead;
+  } catch { /* leave it null: not knowing is not the same as knowing it did not move */ }
   // what was there before: steps this run did not touch keep their own result, commit and time
   let prior = null;
   try { prior = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), 'utf8')); } catch { /* none yet */ }
@@ -487,6 +513,9 @@ try {
     note: 'Written by scripts/verify.mjs. What this run ran and how each step ended. Not a second copy of the board.',
     finishedAt: new Date().toISOString(),
     commit,
+    /* Set when the branch moved while this was running. The results below are about `commit`;
+       this names what the branch went to, so nobody has to guess whether the two are related. */
+    movedDuringRun,
     scope: models.length ? models : 'every model',
     held,
     // the build is its own thing: it runs before the steps that judge dist/, and `npm run build`

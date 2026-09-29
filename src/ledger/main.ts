@@ -398,9 +398,24 @@ import { icon } from '../icons.ts';
       BLK.set('stale:any', { ids: new Set(ids), chip: chipLabel('stale:any') });
       rows.push({ key: 'stale:any', stale, scope: 'check', count: ids.length, alone, ids });
     }
-    // the checks' reasons, largest first; the reviews last
-    const rank = () => 1;
-    rows.sort((a, b) => rank(a) - rank(b) || (rank(a) === 1 ? b.count - a.count : 0));
+    /*
+     * LARGEST FIRST -- and that is all this does.
+     *
+     * This used to read `const rank = () => 1` under a comment promising "the checks' reasons,
+     * largest first; the reviews last". rank() returned 1 for everything, so the first clause was
+     * always 0 and the second always taken: reviews were never put last, and the comment described
+     * a sort that had never run.
+     *
+     * Nothing is lost by dropping it. scripts/ledger.mjs already orders blockers by scope, then
+     * count, then gate order, and it has the `order` field to break ties with -- which this does
+     * not, so re-sorting here can only ever lose information. What it must do is place the one row
+     * this page invents, `stale:any`, among rows that arrived sorted; sorting by count does that,
+     * and Array.sort is stable, so every tie keeps the order the ledger gave it.
+     *
+     * There are no `review` blockers today: scripts/ledger.mjs builds blockers from GATES alone.
+     * If that changes, the ranking belongs there, beside the data, not in a second copy here.
+     */
+    rows.sort((a, b) => b.count - a.count);
     return rows;
   }
   function blockerText(r) {
@@ -1399,7 +1414,9 @@ import { icon } from '../icons.ts';
     b.textContent = 'Running...';
     void api('/api/run?check=job:' + encodeURIComponent(b.dataset.job ?? ''), 'POST')
       .then(async ({ body }: any) => {
-        if (body?.ok === false) { b.textContent = 'Refused'; b.title = body.why ?? ''; return; }
+        /* The reason goes next to the button, not only in a title: a person who has just been told
+           "no" should not have to hover to find out why. */
+        if (body?.ok === false) { b.textContent = 'Not now'; b.title = body.why ?? ''; sayRefused(b, body.why); return; }
         /* The doctor takes about a minute and writes machine.json at the end. Re-reading on a timer
            is how the panel stops being a thing you have to close and reopen to see the answer to the
            question it just asked. */
@@ -1540,7 +1557,7 @@ import { icon } from '../icons.ts';
       go.disabled = true;
       go.textContent = 'Starting…';
       void api(`/api/gate?steps=${encodeURIComponent(on.map((i) => i.dataset.step).join(','))}`, 'POST')
-        .then(({ body }: any) => { go.textContent = body?.ok === false ? 'Refused' : 'Running'; if (body?.why) go.title = body.why; })
+        .then(({ body }: any) => { const no = body?.ok === false; go.textContent = no ? 'Not now' : 'Running'; if (body?.why) { go.title = body.why; if (no) { sayRefused(go, body.why); go.disabled = false; } } })
         .catch((e: any) => { go.textContent = 'Failed'; go.title = String(e?.message ?? e); });
       return;
     }
@@ -1549,7 +1566,7 @@ import { icon } from '../icons.ts';
     b.disabled = true;
     b.textContent = 'Starting…';
     void api(`/api/run?check=job:${encodeURIComponent(b.dataset.job ?? '')}`, 'POST')
-      .then(({ body }: any) => { b.textContent = body?.ok === false ? 'Refused' : 'Running'; if (body?.why) b.title = body.why; })
+      .then(({ body }: any) => { const no = body?.ok === false; b.textContent = no ? 'Not now' : 'Running'; if (body?.why) { b.title = body.why; if (no) sayRefused(b, body.why); } })
       .catch((e: any) => { b.textContent = 'Failed'; b.title = String(e?.message ?? e); });
   });
   // The chip is rewritten on every poll, so the click is caught on the document rather than bound
@@ -3238,9 +3255,41 @@ import { icon } from '../icons.ts';
    * Exactly the mistake the ledger exists to catch: a check on a response that did not check
    * whether the response was an answer.
    */
+  /*
+   * REFUSED IS AN ANSWER, NOT A FAILURE.
+   *
+   * The board refuses a run it cannot start -- something else is already going, the machine is
+   * over its limit -- and says so properly: 409, with { ok: false, why: "..." } in words meant for
+   * a person. Every caller has a branch for it: `body.ok === false ? 'Refused' : 'Running'`.
+   *
+   * None of those branches had ever run. This helper threw on any non-2xx, so a 409 became
+   * `Error("409 from /api/run?check=job:doctor")`, every caller fell into its .catch, and the
+   * button read FAILED with a title naming a status code. The server's explanation was parsed,
+   * thrown away, and replaced with a worse and less true word -- which is the exact inversion of
+   * what this board is for. Seen on 2026-09-29 in a screenshot: "Asked 18 min ago. Failed", over a
+   * doctor run that had simply been declined because a gate was running.
+   *
+   * So 409 resolves. It is the one status the server uses to mean "I understood you and I am
+   * saying no", and that is data. Everything else still throws: a 500 is not an answer.
+   */
+  /**
+   * Put a refusal's reason beside the button that was refused, and take it away when it stops
+   * being true. A word like "Refused" on its own tells a person that something did not happen and
+   * nothing about what to do instead; the server already wrote the sentence, so it is shown.
+   */
+  function sayRefused(btn: HTMLElement, why?: string | null) {
+    if (!why) return;
+    const prev = btn.parentElement?.querySelector(':scope > .refused');
+    if (prev) prev.remove();
+    const p = document.createElement('p');
+    p.className = 'refused';
+    p.textContent = why;
+    btn.insertAdjacentElement('afterend', p);
+  }
+
   const api = async (path, method = 'GET') => {
     const r = await fetch(path, { method, cache: 'no-store' });
-    if (!r.ok) throw new Error(`${r.status} from ${path}`);
+    if (!r.ok && r.status !== 409) throw new Error(`${r.status} from ${path}`);
     const ct = r.headers.get('content-type') ?? '';
     if (!ct.includes('json')) throw new Error(`${path} answered ${ct || 'nothing'}, not json`);
     return { status: r.status, body: await r.json() };

@@ -46,7 +46,7 @@ import { cpus, freemem, totalmem } from 'node:os';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
 import { JOBS, JOB, GATE_STEPS, blockedBy } from './jobs.mjs';
-import { stepFingerprint } from './gate-paths.mjs';
+import { stepFingerprint, fingerprintAt, whatChanged } from './gate-paths.mjs';
 import { MIN_FREE_GB, MAX_BROWSERS } from './browser-guard.mjs';
 import { runningCheck, runningChecks } from './running.mjs';
 import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
@@ -500,6 +500,23 @@ export function serve(port = 5178) {
  * is not reported as if it were. It cannot be shown to be about today's code, so it is offered for
  * re-running with that as its reason.
  */
+/** Up to three changed paths and a count for the remainder, or null if git cannot say. */
+function movedNames(rec, now) {
+  if (!rec.commit) return null;
+  try {
+    const was = fingerprintAt(rec.commit, rec.key);
+    const d = whatChanged(was, now);
+    if (!d || !d.total) return null;
+    const all = [...d.edited, ...d.added, ...d.gone];
+    const show = all.slice(0, 3).join(', ');
+    return d.total > 3 ? `${show} and ${d.total - 3} more` : show;
+  } catch {
+    /* An old commit that has been garbage collected, or a step whose paths git cannot resolve.
+       Saying nothing here lets the caller fall back to the count, which is still true. */
+    return null;
+  }
+}
+
 function stepState(rec) {
   if (!rec) return { state: 'unknown', why: 'this step has no recorded result at all' };
   if (rec.ok === false) return { state: 'failed', why: 'it failed the last time it ran' };
@@ -507,7 +524,22 @@ function stepState(rec) {
   try {
     const now = stepFingerprint(rec.key);
     if (now.hash === rec.fp.hash) return { state: 'current', why: `the ${now.files} files it judges are unchanged since it ran` };
-    return { state: 'stale', why: `the files it judges have changed since it ran (${rec.fp.files} then, ${now.files} now)` };
+    /*
+     * NAME THEM. A count is not an answer to "what changed?".
+     *
+     * "the files it judges have changed (268 then, 125 now)" tells a person that something moved
+     * and nothing about what, so the next move is a guess or a four-hour run. The record keeps only
+     * {files, hash} -- per-file hashes would put thousands of lines in gate.json -- but it keeps the
+     * COMMIT, and fingerprintAt reads that commit's version of those files out of git in one
+     * batch. So the comparison is available without having been stored.
+     *
+     * Three names, then a count for the rest: enough to recognise the change, not so many that the
+     * line stops being readable. If git cannot reach that commit the count still stands on its own.
+     */
+    const moved = movedNames(rec, now);
+    return { state: 'stale', why: moved
+      ? `${moved} changed since it ran`
+      : `the files it judges have changed since it ran (${rec.fp.files} then, ${now.files} now)` };
   } catch (e) {
     /* A fingerprint that cannot be taken is not a pass. Say which, and why. */
     return { state: 'unknown', why: `its fingerprint could not be taken now: ${String(e?.message ?? e).split('\n')[0]}` };

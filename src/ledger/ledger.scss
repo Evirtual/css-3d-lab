@@ -3269,7 +3269,14 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 .tour {
   position: fixed; z-index: 90; left: 50%; transform: translateX(-50%); bottom: 22px;
   width: min(520px, calc(100vw - 32px)); padding: 16px 18px;
-  border: 1px solid var(--border-strong); border-radius: 14px; background: var(--surface);
+  border: 1px solid var(--border-strong); border-radius: 14px;
+  /* OPAQUE, because it floats over the table.
+   * --surface is rgb(22 26 46 / 0.72): translucent by design, because every panel using it sits
+   * on the page backdrop and is meant to let it through. This card does not sit on the backdrop,
+   * it sits on top of 135 rows of models -- and at 72% they read straight through the words
+   * describing them. --surface-solid is the same colour with no alpha, and it exists for this. */
+  background: var(--surface-solid);
+  backdrop-filter: blur(8px);
   box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.65);
 }
 .tour__n { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
@@ -3376,3 +3383,8 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 .gstep--stale .gstep__s { color: var(--warm); background: color-mix(in srgb, var(--warm) 15%, transparent); }
 .gstep--failed .gstep__s { color: var(--st-bad); background: color-mix(in srgb, var(--st-bad) 16%, transparent); }
 .gstep--unknown .gstep__s { color: var(--muted); background: color-mix(in srgb, var(--muted) 14%, transparent); }
+
+/* The reason a run was declined, beside the button that was declined. Warm, not
+   red: being told "not now, something else is running" is an answer, not a fault,
+   and colouring it as a failure would repeat the mistake this text exists to fix. */
+.refused { margin: 6px 0 0; font-size: 12px; line-height: 1.5; color: var(--warm); }

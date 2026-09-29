@@ -50,6 +50,29 @@ const BUILD = [
    the machinery built that same morning to stop a result outliving what it judged. */
 const BROWSER = ['scripts/browser.mjs', 'scripts/browser-guard.mjs'];
 const SNIPPETS = ['src/models', 'src/models/snippet-utils.ts', 'scripts/snippet-check.mjs'];
+/* Every per-model check runs inside scripts/capture-check.mjs, which reads the registry to know
+   what it is running, the model sources to know what to run it over, and the fingerprint rules to
+   know when a verdict has died. A change to any of them changes what the check did. */
+const HARNESS = [
+  'scripts/capture-check.mjs', 'scripts/checks-registry.mjs', 'scripts/model-sources.mjs',
+  'scripts/fingerprint.mjs', 'scripts/export-defaults.mjs',
+];
+/*
+ * WHAT A PER-MODEL CHECK DEPENDS ON -- DELIBERATELY COARSE.
+ *
+ * These checks start vite and render a model, so in practice anything under src/ can change what
+ * they see. Twelve of the eighteen steps had NO declared paths at all, which meant the board could
+ * never say whether their results were about today's code: they read "not known" for ever, and
+ * "anything not proved current" came to fourteen steps and four hours.
+ *
+ * src/ wholesale is not precision and is not pretending to be. The asymmetry decides it: declaring
+ * too much costs re-runs that were not strictly needed, and declaring too little lets a step report
+ * CURRENT over a result that is nothing of the sort -- a false green, which is the one failure this
+ * whole record exists to prevent. The steps that are narrower than this (compare, looks, preview)
+ * are narrow because somebody reasoned through each file. Narrowing these is safe to do the same
+ * way, one step at a time, with evidence.
+ */
+const RENDERS_MODELS = ['src', ...BROWSER, ...HARNESS];
 
 export const STEP_PATHS = {
   // tsc covers every .ts in the project, the board's own page included: a change there really does
@@ -83,6 +106,34 @@ export const STEP_PATHS = {
   parity: [...BROWSER, 'src/models', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/fonts/capture-fonts.ts', 'server/render.mjs', 'worker/src', 'scripts/check-worker-parity.mjs'],
   // the full export matrix: the dialog, what it records, and what draws the file
   matrix: [...BROWSER, 'src/models', 'src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs'],
+
+  /* ---- the per-model checks, which had no paths at all until 2026-09-29 ---- */
+  boxsizing: [...RENDERS_MODELS, 'scripts/check-boxsizing.mjs', 'scripts/pixels.mjs'],
+  contrast: [...RENDERS_MODELS, 'scripts/check-contrast.mjs', 'scripts/pixels.mjs'],
+  access: [...RENDERS_MODELS, 'scripts/check-access.mjs', 'scripts/pixels.mjs', 'scripts/css-heads.mjs'],
+  perf: [...RENDERS_MODELS, 'scripts/check-perf.mjs', 'scripts/css-heads.mjs'],
+  models: [...RENDERS_MODELS, 'scripts/check-models.mjs'],
+  motion: [...RENDERS_MODELS, 'scripts/check-motion.mjs', 'scripts/pixels.mjs', 'scripts/css-heads.mjs'],
+  stages: [...RENDERS_MODELS, 'scripts/check-stages.mjs'],
+  // exports runs the real render service, so what draws the file is on the path too
+  exports: [...RENDERS_MODELS, 'scripts/check-exports.mjs', 'server/dev.mjs', 'server/render.mjs'],
+  // media photographs the share images off the BUILT site
+  media: [...RENDERS_MODELS, ...BUILD, 'scripts/check-media.mjs', 'scripts/og-shot.mjs'],
+
+  /* ---- the two that judge the built site rather than any model ---- */
+  app: [...BUILD, ...BROWSER, 'scripts/check-app.mjs'],
+  seo: [...BUILD, 'scripts/check-seo.mjs', 'scripts/seo-limits.mjs', 'site.config.json'],
+
+  /*
+   * AND `remote` IS ABSENT ON PURPOSE.
+   *
+   * It asks GitHub what the remote holds, Cloudflare when the Worker was deployed, and the
+   * workflow whether its variable is set. Not one of those answers is decided by a file in this
+   * repository, so a fingerprint over local files would report CURRENT for as long as nobody
+   * edited anything here -- while the remote moved underneath it. That is the false green this
+   * record exists to prevent, so the step keeps no fingerprint and the board says "not known"
+   * about it, which is the truth: only asking again can answer it.
+   */
 };
 
 /* Written by scripts/generate-pages.mjs on every run and never committed. The two loose files
