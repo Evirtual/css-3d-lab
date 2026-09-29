@@ -2522,8 +2522,11 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
  * outlived it.
  */
 @media (max-width: 1000px) {
-  /* and below this they are the bar at the bottom, so the header is information only */
-  .hero .top { display: block; }
+  /* .hero .top used to become display:block here -- "the header is information only", because the
+     controls had moved to a bar at the bottom. The bar is gone and the controls are back in the
+     header, but this rule stayed, and it is the whole reason the phone header stacked: with no flex
+     row the title became a full-width block and the three controls fell underneath it. It goes;
+     the header is a flex row at every width now. */
   .statusline { margin-top: 10px; }
 }
 
@@ -3484,3 +3487,27 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
    centres its items, and a margin on a centred flex item moves the box without moving what is
    drawn inside it, which is why the title read high. */
 .hero .top h1 { margin: 0; line-height: 1.25; }
+
+/* ---------------------------------------------------------------------------
+ * THE PHONE HEADER, ON ONE ROW, WITH NO STRAY SEPARATORS.
+ *
+ * At 430px the top row is 356px wide. The title is about 82px and the three
+ * controls about 210px, so they fit side by side with room to spare -- but the
+ * global rule gives .hero__btns a flex-basis of 320px, which cannot share a
+ * 356px row with anything, so the controls dropped under the title and sat
+ * right-aligned in a band of their own. Sized to their content they stay on the
+ * title's row, as they do on the desktop.
+ *
+ * My own check missed this: it called anything within 30px "the same row", and
+ * 30px is the height of a second line. It is 4px now.
+ *
+ * The status line wraps at this width and a " · " separator was starting the
+ * second line. The line is already gapped by flex, so the dots do no work here
+ * and only one of them can ever be in the wrong place; they go.
+ * ------------------------------------------------------------------------- */
+@media (max-width: 860px) {
+  .hero__btns { flex: 0 1 auto; }
+}
+@media (max-width: 620px) {
+  .statusline .sep { display: none; }
+}
