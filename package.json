@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "doctor": "node scripts/doctor.mjs",
     "generate": "node scripts/generate-capture-fonts.mjs && node scripts/generate-pages.mjs",
     "media": "node scripts/generate-media.mjs",
     "qa": "node scripts/qa.mjs",

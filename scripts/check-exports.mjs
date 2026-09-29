@@ -83,7 +83,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stepFingerprint } from './gate-paths.mjs';
 import { createServer as createVite } from 'vite';
-import { launchChromium } from './browser.mjs';
+import { launchChromium, browserId } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError, siteOf } from './browser-guard.mjs';
 import { exportServer } from '../server/dev.mjs';
 import { DEFAULTS } from './export-defaults.mjs';
@@ -1226,6 +1226,8 @@ if (!defaultsOnly && !quick) {
       models,
       minutes: Number(((Date.now() - started) / 60000).toFixed(1)),
       tolerance: TOL,
+      // what drew it: a calibrated number measured on another browser is not comparable
+      browser: browserId(),
       fp: stepFingerprint('matrix'),
       ok: mismatches.length === 0,
       mismatches: mismatches.map((m) => ({ model: m.model, check: m.check, what: m.what, detail: m.detail, fault: m.fault })),

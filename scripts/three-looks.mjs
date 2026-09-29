@@ -31,7 +31,10 @@ import { createServer as createVite } from 'vite';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { chromium } from 'playwright';
+// Not playwright's chromium directly: scripts/browser.mjs is where 'which browser do the checks
+// run on' is answered, including the fallback when a policy refuses to start the bundled one.
+// These two bypassed it, so they never got the channel workaround either.
+import { launchChromium, browserId } from './browser.mjs';
 import { exportServer } from '../server/dev.mjs';
 import { stepFingerprint } from './gate-paths.mjs';
 
@@ -113,7 +116,7 @@ const say = (key, ok, what, got) => {
   console.log(`  ${ok ? 'PASS' : 'FAIL'}  [${item}] ${what}${got === undefined ? '' : ` -> ${got}`}`);
 };
 
-const browser = await chromium.launch();
+const browser = await launchChromium();
 const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 }, acceptDownloads: true });
 const page = await ctx.newPage();
 page.on('pageerror', (e) => say('any', false, 'no page error', e.message));
@@ -308,6 +311,8 @@ try {
     at: new Date().toISOString(),
     commit,
     model: 'cube',
+      // what drew it: a calibrated number measured on another browser is not comparable
+      browser: browserId(),
     // the files these looks depend on, so a later commit retires this record only when it
     // touches one of them -- the same rule the gate steps use (scripts/gate-paths.mjs)
     fp: stepFingerprint('looks'),

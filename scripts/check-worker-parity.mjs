@@ -42,7 +42,10 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stepFingerprint } from './gate-paths.mjs';
-import { chromium } from 'playwright';
+// Not playwright's chromium directly: scripts/browser.mjs is where 'which browser do the checks
+// run on' is answered, including the fallback when a policy refuses to start the bundled one.
+// These two bypassed it, so they never got the channel workaround either.
+import { launchChromium, browserId } from './browser.mjs';
 import { createServer } from 'vite';
 import { exportServer } from '../server/dev.mjs';
 import { ROOT, workingSources } from './model-sources.mjs';
@@ -248,7 +251,7 @@ console.log(`export service: ${external ? 'already running on 127.0.0.1:8787 (us
 console.log(`worker: ${WORKER}`);
 console.log(`\ndrawing ${chosen.length} model(s) twice, once here and once there:\n`);
 
-const browser = await chromium.launch();
+const browser = await launchChromium();
 const meter = await (await browser.newContext({ viewport: { width: 420, height: 420 } })).newPage();
 await meter.goto('about:blank');
 
@@ -358,6 +361,8 @@ if (RENDER) {
       at: new Date().toISOString(),
       commit,
       worker: WORKER,
+      // what drew it: a calibrated number measured on another browser is not comparable
+      browser: browserId(),
       fp: stepFingerprint('parity'),
       drawn: chosen,
       failures: fail,
