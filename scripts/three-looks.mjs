@@ -33,6 +33,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { exportServer } from '../server/dev.mjs';
+import { stepFingerprint } from './gate-paths.mjs';
 
 const cacheDir = mkdtempSync(join(tmpdir(), 'three-looks-vite-'));
 process.on('exit', () => rmSync(cacheDir, { recursive: true, force: true }));
@@ -307,6 +308,9 @@ try {
     at: new Date().toISOString(),
     commit,
     model: 'cube',
+    // the files these looks depend on, so a later commit retires this record only when it
+    // touches one of them -- the same rule the gate steps use (scripts/gate-paths.mjs)
+    fp: stepFingerprint('looks'),
     looks,
   }, null, 2)}\n`);
 } catch (e) {

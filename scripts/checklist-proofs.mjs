@@ -19,6 +19,8 @@ import { workingSources } from './model-sources.mjs';
 // read-only: git's own read commands over the committed snapshot. Importing it writes nothing.
 import { snapshotStatus } from './release-snapshot.mjs';
 
+import { stepFingerprint } from './gate-paths.mjs';
+
 export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, cache = null }) {
   const mtime = (p) => { try { return statSync(join(ROOT, p)).mtimeMs; } catch { return 0; } };
   // HEAD read straight from .git, as the watcher does: no process to start
@@ -96,19 +98,39 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     const n = Math.min(x.length, y.length);
     return n >= 7 && x.slice(0, n) === y.slice(0, n);
   };
-  const fromGate = (pick, what) => () => {
+  /*
+   * A STEP DIES WHEN ITS OWN FILES CHANGE, NOT WHEN ANY FILE DOES.
+   *
+   * This asked one question -- is the record's commit HEAD? -- and threw the whole run away for
+   * a typo in the README, a line in scripts/check-live.mjs, a colour in the board's stylesheet.
+   * On 2026-09-28 that cost three extra four-hour runs, and produced a choice nobody should have
+   * to make: the README said "seventeen steps" one line above the run printing 18, and fixing
+   * that sentence would have discarded a four-hour record. A correct README or a green gate.
+   *
+   * Each step now records a fingerprint of the files it depends on (scripts/gate-paths.mjs), so
+   * the question is the one the per-model checks have always asked: has anything THIS result
+   * judged changed since? A record without fingerprints is from before this existed, so it falls
+   * back to the commit rule rather than being believed.
+   */
+  const fromGate = (pick, what, fpKey) => () => {
     if (!gate) return N(`docs/checks/gate.json is not there: no gate run has recorded itself yet (npm run verify writes it)`);
-    // head is `rev-parse --short` (seven characters) and gate.json records the full forty, so a
-    // plain !== between them is true even when they are the same commit. That is what this line was,
-    // and it printed the result: "the last recorded gate run was at d00ed98, and HEAD is d00ed98: it
-    // proves nothing about this code". Six checklist items could not go green by any means -- the
-    // gate held all seventeen steps at that very commit -- and the sentence saying so contradicted
-    // itself in its own words. Compare on the shorter length, whichever side is abbreviated.
-    if (!sameCommit(gate.commit, head)) return F(`the last recorded gate run was at ${String(gate.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it proves nothing about this code`);
     const r = pick(gate);
     if (r == null) return N(`the recorded gate run did not include ${what}`);
+    const when = gate.finishedAt?.slice(0, 16)?.replace(`T`, ` `);
+    const was = fpKey ? (r.fp?.[fpKey] ?? r.fp) : r.fp;
+    if (!was?.hash) {
+      // an older record: no fingerprints in it, so the blunt rule is all there is
+      if (!sameCommit(gate.commit, head)) return F(`the last recorded gate run was at ${String(gate.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it recorded no fingerprints, so nothing here can say whether it still applies`);
+      return r.ok ? T(`from docs/checks/gate.json: ${what} ran at ${String(gate.commit).slice(0, 7)} and passed, ${when}`)
+        : F(`from docs/checks/gate.json: ${what} ran at ${String(gate.commit).slice(0, 7)} and did not pass`);
+    }
+    const now = stepFingerprint(fpKey ?? r.key);
+    if (!now) return N(`${what} has no declared path in scripts/gate-paths.mjs, so nothing can say whether its result still applies`);
+    if (now.hash !== was.hash) {
+      return F(`${what} ran at ${String(gate.commit).slice(0, 7)} and passed, but ${was.files} file(s) it depends on have changed since (${was.hash} → ${now.hash}): run it again`);
+    }
     return r.ok
-      ? T(`from docs/checks/gate.json: ${what} ran at ${String(gate.commit).slice(0, 7)} and passed, ${gate.finishedAt?.slice(0, 16)?.replace('T', ' ')}`)
+      ? T(`from docs/checks/gate.json: ${what} passed ${when} at ${String(gate.commit).slice(0, 7)}, and none of the ${now.files} file(s) it depends on has changed since`)
       : F(`from docs/checks/gate.json: ${what} ran at ${String(gate.commit).slice(0, 7)} and did not pass`);
   };
   const step = (key) => (g) => (g.steps ?? []).find((s) => s.key === key) ?? null;
@@ -141,7 +163,16 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
   })();
   const fromLooks = (key, what) => () => {
     if (!looks) return N(`docs/checks/looks.json is not there: nothing has looked yet (npm run looks writes it)`);
-    if (!sameCommit(looks.commit, head)) return F(`the look ran at ${String(looks.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it was looking at other code`);
+    /* Same rule as the gate steps: what matters is whether anything this look depended on has
+       changed, not whether a commit has happened. An older record carries no fingerprint, so it
+       falls back to the commit rule rather than being taken on trust. */
+    const wasFp = looks.fp;
+    const nowFp = stepFingerprint('looks');
+    if (wasFp?.hash && nowFp) {
+      if (wasFp.hash !== nowFp.hash) return F(`the look ran at ${String(looks.commit).slice(0, 7)}, and ${wasFp.files} file(s) it depends on have changed since (${wasFp.hash} → ${nowFp.hash}): look again`);
+    } else if (!sameCommit(looks.commit, head)) {
+      return F(`the look ran at ${String(looks.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it recorded no fingerprint, so nothing here can say whether it still applies`);
+    }
     const r = looks.looks?.[key];
     if (!r) return N(`the recorded look did not ask about ${what}`);
     const when = String(looks.at ?? '').slice(0, 16).replace('T', ' ');
@@ -359,14 +390,28 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
        * on a person, and right now it is correctly unticked -- the fix has never been measured
        * against the Worker.
        */
-      return off.length
-        ? F(`${off.length} model(s) name a family the captured scene does not carry, so the renderer picks its own: ${off.slice(0, 4).join(', ')}`)
-        : N(`the precondition holds -- every model's text names a family the scene carries, over all ${n} -- but whether the two renderers draw the same picture needs the Worker's daily budget: npm run check-parity -- --render`);
+      if (off.length) return F(`${off.length} model(s) name a family the captured scene does not carry, so the renderer picks its own: ${off.slice(0, 4).join(', ')}`);
+      /*
+       * The scan proves the PRECONDITION -- no model naming a family the scene leaves behind.
+       * The item asks something else: that the two renderers then draw the same pixels, which
+       * needs the Worker and its daily budget. That used to end here, at not-evaluated, so the
+       * line read the same whether the comparison had never run or had passed an hour ago.
+       * check-worker-parity records a --render run now, and this reads it.
+       */
+      let rec = null;
+      try { rec = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'parity.json'), 'utf8')); } catch { /* never rendered */ }
+      if (!rec) return N(`the precondition holds -- every model's text names a family the scene carries, over all ${n} -- but the two renderers have not been asked to draw: npm run check-parity -- --render`);
+      const when = String(rec.at ?? '').slice(0, 16).replace(`T`, ` `);
+      if (!rec.ok) return F(`drawn on both renderers ${when} and they disagreed: ${(rec.failures ?? []).slice(0, 3).join('; ')}`);
+      if (!sameCommit(rec.commit, head)) {
+        return F(`the two renderers were compared at ${String(rec.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: drawn from other code`);
+      }
+      return T(`the precondition holds over all ${n}, and ${(rec.drawn ?? []).length} model(s) were drawn on BOTH renderers ${when} and agreed: ${(rec.drawn ?? []).join(', ')}`);
     }],
     // tsc is not its own step: `npm run build` is generate && tsc && vite build, so one exit code
     // answers for both lines, and both say so rather than pretending to be separate evidence.
-    [/^TypeScript is clean/, fromGate((g) => (g.build?.ran ? g.build : null), 'the build (which runs tsc)')],
-    [/^The build is clean/, fromGate((g) => (g.build?.ran ? g.build : null), 'npm run build')],
+    [/^TypeScript is clean/, fromGate((g) => (g.build?.ran ? g.build : null), 'the build (which runs tsc)', 'typescript')],
+    [/^The build is clean/, fromGate((g) => (g.build?.ran ? g.build : null), 'npm run build', 'build')],
     [/^QA on the built site finds nothing/, fromGate(step('qa'), 'qa')],
     [/^Every standalone snippet runs without a script error/, fromGate(step('snippets'), 'snippet-check over every model')],
     [/^Editing a model never remounts/, fromGate(step('preview'), 'preview-check')],

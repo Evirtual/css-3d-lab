@@ -338,6 +338,33 @@ for (const id of chosen) {
 try { unlinkSync(tmp); } catch { /* already gone */ }
 await browser.close();
 await service?.close?.();
+
+/*
+ * WHAT THE TWO RENDERERS DREW, WRITTEN DOWN.
+ *
+ * This printed its numbers and exited, so the release-checklist line it answers read "not
+ * evaluated" however often it ran -- including an hour after it had just proved itself. That is
+ * the same hole three-looks, snippet-check, preview-check and compare-capture all had, and it is
+ * why a week of real answers left no trace.
+ *
+ * Only a --render run records: the scan alone proves the precondition, not the picture.
+ */
+if (RENDER) {
+  try {
+    const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+    writeFileSync(join(ROOT, 'docs', 'checks', 'parity.json'), `${JSON.stringify({
+      note: 'Written by scripts/check-worker-parity.mjs on a --render run: the same scene drawn here and on the Worker visitors export from.',
+      at: new Date().toISOString(),
+      commit,
+      worker: WORKER,
+      drawn: chosen,
+      failures: fail,
+      ok: fail.length === 0,
+    }, null, 2)}\n`);
+  } catch (e) {
+    console.log(`(could not write docs/checks/parity.json: ${String(e?.message ?? e).split('\n')[0]})`);
+  }
+}
 await vite.close();
 
 console.log('');

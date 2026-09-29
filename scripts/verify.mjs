@@ -45,13 +45,23 @@ import { spawn, execFileSync } from 'node:child_process';
 import { freemem } from 'node:os';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { stepFingerprint } from './gate-paths.mjs';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY, RUN_ORDER, PREPARE } from './checks-registry.mjs';
 
 const args = process.argv.slice(2);
 const fast = args.includes('--fast');
 const noBuild = args.includes('--no-build');
-const models = args.filter((a) => !a.startsWith('--'));
+/** A flag with a value: --step qa,snippets or --step=qa,snippets. */
+const opt = (name) => {
+  const eq = args.find((x) => x.startsWith(name + '='));
+  if (eq) return eq.slice(name.length + 1);
+  const i = args.indexOf(name);
+  return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : null;
+};
+// the value after --step is the step list, not a model id
+const stepArg = opt('--step');
+const models = args.filter((x) => !x.startsWith('--') && x !== stepArg);
 
 /** Cheapest first, so a failure shows up before the long ones have been paid for. */
 /**
@@ -114,7 +124,23 @@ const listed = new Map(REGISTRY.map((c) => [c.key, c]));
 const missing = ORDER.filter((k) => !listed.has(k) && !NO_RECORD.has(k));
 if (missing.length) { console.error(`verify: not in the registry: ${missing.join(', ')}`); process.exit(2); }
 
-const run = ORDER.filter((k) => !fast || FAST.has(k));
+/*
+ * RUNNING SOME OF THE STEPS, AND KEEPING THE REST OF THE RECORD.
+ *
+ * Every step used to cost every other step: gate.json was written whole, so refreshing one line
+ * meant four and a half hours of re-running seventeen that nothing had invalidated. Now each
+ * step records a fingerprint of the files it depends on, which makes its result stand on its own
+ * -- so a run of two steps can update those two and leave the others exactly as they were.
+ *
+ *   npm run verify -- --step qa,snippets     just those, merged into the record
+ *
+ * The eleven checks with per-model results are not affected either way: the board reads those
+ * from docs/checks/<check>.json, not from here.
+ */
+const onlySteps = new Set((opt('--step') ?? '').split(',').map((x) => x.trim()).filter(Boolean));
+const unknownStep = [...onlySteps].filter((k) => !ORDER.includes(k));
+if (unknownStep.length) { console.error(`verify: --step names no such step: ${unknownStep.join(', ')}. The steps are: ${ORDER.join(', ')}`); process.exit(2); }
+const run = ORDER.filter((k) => (onlySteps.size ? onlySteps.has(k) : (!fast || FAST.has(k))));
 
 /**
  * Free memory, in MB.
@@ -259,6 +285,9 @@ console.log(`each one records where the ledger reads it, so the page shows it ru
 console.log(`${mb() ?? '?'} MB free at the start${noBuild && willUseDist.length ? ` (--no-build: ${willUseDist.join(', ')} read the dist/ already there)` : ''}\n`);
 
 let builtOk = null;
+/* What the build judged, taken as it runs rather than at the end: a tree that changes under a
+   four-hour run must not be recorded as the tree the build saw. */
+const buildFp = { typescript: stepFingerprint('typescript'), build: stepFingerprint('build') };
 if (willUseDist.length && !noBuild) {
   console.log(`first: npm run build — ${willUseDist.join(', ')} judge dist/, not the dev server`);
   const at = Date.now();
@@ -341,6 +370,8 @@ for (const [i, key] of run.entries()) {
   const at = Date.now();
   console.log(`\n[${i + 1}/${run.length}] ${hhmm()}  ${key}${onTheBoard} — ${c.name}${key === 'exports' && !models.length ? ' (every model, at the dialog\'s defaults)' : ''}`);
   beat({ step: { index: i + 1, key, short: c.short ?? null, name: c.name, startedAt: new Date(at).toISOString() } });
+  // the files THIS step depends on, as they are right now: what it is about to judge
+  const fp = stepFingerprint(key);
   await prepare(key);
   const { code } = await spawnStep(key);
   sweep();
@@ -350,7 +381,7 @@ for (const [i, key] of run.entries()) {
     ? `${t.pass}/${t.total} pass${t.fail ? `, ${t.fail} FAILED` : ''}${t.other ? `, ${t.other} other` : ''}${t.total < t.board ? ` (of ${t.board} on the board)` : ''}`
     : code === 0 ? 'ran, no per-model record' : `exit ${code}`;
   console.log(`[${i + 1}/${run.length}] ${hhmm()}  ${key}${onTheBoard}: ${line} — ${took}, ${mb() ?? '?'} MB free`);
-  results.push({ key, code, tally: t, took });
+  results.push({ key, code, tally: t, took, fp });
   beat({ step: null });
 }
 
@@ -386,6 +417,16 @@ console.log('Ready to ship means both: the board is green, and nothing on it is 
  */
 try {
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  // what was there before: steps this run did not touch keep their own result, commit and time
+  let prior = null;
+  try { prior = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), 'utf8')); } catch { /* none yet */ }
+  const priorSteps = new Map((prior?.steps ?? []).map((x) => [x.key, x]));
+  const mine = results.map((r) => ({
+    key: r.key, ok: r.code === 0 && !(r.tally && r.tally.fail > 0), code: r.code, took: r.took,
+    fp: r.fp ?? null, at: new Date().toISOString(), commit,
+  }));
+  for (const m of mine) priorSteps.set(m.key, m);
+  const merged = ORDER.map((k) => priorSteps.get(k)).filter(Boolean);
   writeFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), `${JSON.stringify({
     note: 'Written by scripts/verify.mjs. What this run ran and how each step ended. Not a second copy of the board.',
     finishedAt: new Date().toISOString(),
@@ -394,8 +435,14 @@ try {
     held,
     // the build is its own thing: it runs before the steps that judge dist/, and `npm run build`
     // is generate && tsc && vite build, so one exit code answers for all three
-    build: { ran: builtOk !== null, ok: builtOk === true, cmd: 'npm run build (generate && tsc && vite build)' },
-    steps: results.map((r) => ({ key: r.key, ok: r.code === 0 && !(r.tally && r.tally.fail > 0), code: r.code, took: r.took })),
+    // a run that did not build keeps whatever the last build recorded, rather than erasing it
+    build: builtOk === null && prior?.build ? prior.build
+      : { ran: builtOk !== null, ok: builtOk === true, cmd: 'npm run build (generate && tsc && vite build)', fp: buildFp, at: new Date().toISOString(), commit },
+    /* Each step carries a fingerprint of the files IT depends on (scripts/gate-paths.mjs) and the
+       commit and time it ran at, so a later commit retires only the steps it actually touches,
+       and a partial run leaves the others standing. Judging this record by "is its commit HEAD"
+       threw all of it away for a typo in the README. */
+    steps: merged,
   }, null, 2)}\n`);
 } catch (e) {
   // A gate that cannot write its own record has still run: say so and do not change the verdict.
