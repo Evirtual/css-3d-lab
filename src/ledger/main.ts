@@ -1455,6 +1455,25 @@ import { icon } from '../icons.ts';
       lastStick = h;
       const gap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hero-gap'), 10) || 10;
       document.documentElement.style.setProperty('--stick-top', `${h + gap + 8}px`);
+      /* The header's own height, separately, because the table's sums need the part that does NOT
+         disappear when the filter bar scrolls away. See the note beside #tbl thead th. */
+      document.documentElement.style.setProperty('--hero-h', `${h + gap}px`);
+      /*
+       * AND EVERYTHING THAT HANGS OFF IT HAS TO BE RECOMPUTED.
+       *
+       * --stick-top is only the first rung. stickyOffsets() reads the filter bar's resolved top and
+       * derives --stick-head from it, and every heading in the table sticks at that: the column
+       * row, the group rows, the run rows. Publishing --stick-top without re-running it left them
+       * pinned at the offset the TALL header needed, so the moment the header collapsed they sat
+       * underneath it and the column row disappeared behind it entirely.
+       *
+       * Called after the property is set, so the bar has already moved by the time it is measured.
+       */
+      /* Guarded: this also runs once at startup, before the table and its filter bar exist, and
+         an exception there kills the rest of the module -- which it did: the board sat on
+         "Loading ledger.json..." and nothing else ran. A missing filter bar is not an error here,
+         it just means there is no stack to re-measure yet. */
+      try { if (document.getElementById(`filters`)) stickyOffsets(); } catch { /* not built yet */ }
     };
     let compact = false;
     /*

@@ -3084,22 +3084,27 @@ td.c:has(.ckrun--busy) { background: color-mix(in srgb, var(--st-warn) 14%, tran
    two media queries, with a 34px guess where --head-h had not been measured yet. Four sums to keep
    in step is how the group heading came to be told to stand exactly where the run bar already was.
 
-   There is one sum now and each line adds one term to the line above it, in the order they appear
-   down the screen. --stick-top is the gap the search bar floats in, and it belongs to that bar:
-   when the bar goes there is nothing left to float, so it is multiplied away with it and the
-   column headings meet the top edge. --head-h is 0 on a phone because the header really is not
-   there, so the phone needs no rule of its own -- it falls out of the same sum. */
-#tbl thead th { top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1)); }
+   ONE TERM IN THIS SUM DOES NOT GO AWAY.
+
+   --stick-top used to be the 16px gap the search bar floated in, so multiplying it by --show was
+   right: no bar, no gap, and the column headings met the top edge. --stick-top is now the sticky
+   HEADER's height, and the header is still there when the search bar has gone -- so multiplying it
+   away sent every heading underneath it, and the column row vanished behind the header entirely.
+
+   --hero-h is the header's own height, published by main.ts, and it is added flat. Only --fbar-h,
+   which genuinely does leave, is still multiplied by --show. --head-h is 0 on a phone because the
+   header really is not there, so the phone still needs no rule of its own. */
+#tbl thead th { top: calc(var(--hero-h, 0px) + var(--fbar-h, 0px) * var(--show, 1)); }
 #tbl tr.suiterun > td {
-  top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px));
+  top: calc(var(--hero-h, 0px) + var(--fbar-h, 0px) * var(--show, 1) + var(--head-h, 0px));
   z-index: 4;
 }
 #tbl tr.grow > th, #tbl tr.grow > td {
-  top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px)
+  top: calc(var(--hero-h, 0px) + var(--fbar-h, 0px) * var(--show, 1) + var(--head-h, 0px)
             + var(--suite-h, 0px));
 }
 #tbl tr.row[aria-expanded="true"] > td {
-  top: calc((var(--stick-top, 0px) + var(--fbar-h, 0px)) * var(--show, 1) + var(--head-h, 0px)
+  top: calc(var(--hero-h, 0px) + var(--fbar-h, 0px) * var(--show, 1) + var(--head-h, 0px)
             + var(--suite-h, 0px) + var(--grow-h, 0px));
 }
 
