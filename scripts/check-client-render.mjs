@@ -194,8 +194,21 @@ const RASTERISE = async ([width, height, shotB64, heldAt, wantPng]) => {
     frame.replaceWith(holder);
   }
 
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+  /*
+   * THE LAYOUT WIDTH, NOT THE WINDOW WIDTH, AND THE SCROLLBAR IS THE WHOLE DIFFERENCE.
+   *
+   * innerWidth includes the scrollbar; the page lays out inside clientWidth, which here is 885
+   * against a window of 900. Give the foreignObject 900 and the clone lays out fifteen pixels
+   * wider than the page did: every centred thing moves, and every vmin-derived length -- which is
+   * every length in these models, they are all multiples of `--u: 0.39vmin` -- comes out at a
+   * different size.
+   *
+   * It looked like a rendering fault and was an arithmetic one. The activity rings came back
+   * shifted right and visibly larger, which read as "foreignObject draws 3D differently" until the
+   * two pictures were put side by side.
+   */
+  const vw = document.documentElement.clientWidth;
+  const vh = document.documentElement.clientHeight;
   const rect = stage.getBoundingClientRect();
 
   const css = [...document.querySelectorAll('style')].map((s) => s.textContent).join('\n')
