@@ -592,6 +592,16 @@ const count = (f) => models.filter(f).length;
  * a check's own progress. A runner killed without clearing the file leaves one that would otherwise
  * claim to be running for ever, which is the twenty-hour lie this board already learned once.
  */
+/*
+ * WHAT THIS MACHINE CAN DO, so the page can say it too.
+ *
+ * Written by `npm run doctor`. It describes the computer rather than the project, so it is not
+ * committed and a fresh clone has none -- which is itself worth showing: "nobody has checked
+ * whether this machine can run anything" is a different thing from "everything is fine".
+ */
+const machine = (() => {
+  try { return JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'machine.json'), 'utf8')); } catch { return null; }
+})();
 const gateRun = (() => {
   let g = null;
   try { g = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate-progress.json'), 'utf8')); } catch { return null; }
@@ -613,6 +623,7 @@ const gateRun = (() => {
 const ledger = {
   generatedAt, head,
   gate: gateRun,
+  machine,
   groups,
   tags: [...new Set(demos.flatMap((d) => d.tags ?? []))].sort(),
   build: { by, reason, ms: null, reusedModelLoad, reusedGitReplay, code: (() => { const onDisk = codeVersion(); return { loaded: LOADED_CODE, onDisk, stale: onDisk !== LOADED_CODE, files: CODE_FILES }; })() },

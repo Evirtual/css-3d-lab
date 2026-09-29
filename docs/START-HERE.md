@@ -111,6 +111,14 @@ Agents report in the session running them; the ledger holds only what was measur
 
 ---
 
+## The board
+
+The checks write their answers to a board. It is the thing you will actually look at, and it has
+rules worth knowing before you trust it: a line can answer three ways rather than two, a result
+dies when the code it judged changes, and a full run takes four hours while a partial one takes
+minutes. [`LEDGER.md`](LEDGER.md) covers all of that, and `npm run doctor` tells you whether this
+machine can run any of it before you find out the hard way.
+
 ## What do you want to do?
 
 ### …add a model
