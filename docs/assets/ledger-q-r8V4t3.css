@@ -305,7 +305,7 @@ button, input {
   opacity: 0.55;
 }
 
-.statusline [data-tip] {
+.statusline [data-tip]:not(.btn) {
   cursor: help;
   border-bottom: 1px dotted color-mix(in srgb, var(--muted) 55%, transparent);
 }
@@ -8349,12 +8349,12 @@ td.c.is-armed .cellrun[disabled] {
  * a small block with its own background, and real space between them. Nothing
  * is removed; it is the same sentence with room to be read.
  * ------------------------------------------------------------------------- */
-.hero__btns #cl-btn {
+#cl-btn {
   gap: 8px;
   padding-right: 5px;
 }
 
-.hero__btns #cl-btn small {
+#cl-btn small {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -8364,7 +8364,7 @@ td.c.is-armed .cellrun[disabled] {
 
 /* Each part of the chip is an element now (see main.ts): a hidden separator made the
    two numbers one text run and the chip read "46/561". Nothing here hides anything. */
-.hero__btns #cl-btn small b {
+#cl-btn small b {
   padding: 2px 7px;
   border-radius: 999px;
   font-size: 11px;
@@ -8478,11 +8478,11 @@ td.c.is-armed .cellrun[disabled] {
 
 /* The checklist chip's parts. Elements, not text runs, so `gap` can space them —
    see the note in main.ts about the day this chip reported 561 of anything. */
-.hero__btns #cl-btn .cl-ratio {
+#cl-btn .cl-ratio {
   font-variant-numeric: tabular-nums;
 }
 
-.hero__btns #cl-btn .cl-bit {
+#cl-btn .cl-bit {
   white-space: nowrap;
 }
 
@@ -8604,4 +8604,36 @@ td.c.is-armed .cellrun[disabled] {
 .hero {
   position: relative;
   z-index: 40;
+}
+
+/* ---------------------------------------------------------------------------
+ * RUN AND THE CHECKLIST, IN THE SECOND ROW.
+ *
+ * Pushed to the right with the site's two checks, which used to take that
+ * margin for themselves: the group takes it now and the checks follow it, so
+ * the four read as one cluster. The buttons keep the size they had in the
+ * first row. Where the row wraps (a phone) the group starts a line of its own
+ * at the left, like everything else in the row.
+ * ------------------------------------------------------------------------- */
+.statusline__acts {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.statusline__acts .btn {
+  padding: 5px 11px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.statusline__acts + .sitechk {
+  margin-left: 0;
+}
+
+@media (max-width: 860px) {
+  .statusline__acts {
+    margin-left: 0;
+  }
 }
