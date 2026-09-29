@@ -303,7 +303,27 @@ const began = Date.now();
 const results = [];
 
 const PROGRESS = join(ROOT, 'docs', 'checks', 'gate-progress.json');
+/*
+ * DO NOT CLOBBER ANOTHER LIVE RUN'S PROGRESS.
+ *
+ * One file, so two runs overwrite each other. On 2026-09-29 a one-step run started from a terminal
+ * wrote its own progress over a five-step run the board had started, and then cleared the file on
+ * its way out -- leaving the board showing "starting..." over a run that was twenty minutes in and
+ * still going. The board refuses a second gate run, but it can only refuse the ones it starts.
+ *
+ * So a writer checks first: if the file says another process is running and that process is still
+ * alive, it leaves it alone. The older run owns the file until it ends.
+ */
+const alive = (pid) => { if (!pid || pid === process.pid) return false; try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; } };
+const someoneElsesRun = () => {
+  try {
+    const prior = JSON.parse(readFileSync(PROGRESS, 'utf8'));
+    return prior?.running === true && alive(prior.pid) ? prior.pid : null;
+  } catch { return null; }
+};
 const beat = (extra) => {
+  const theirs = someoneElsesRun();
+  if (theirs) return;   // someone else is mid-run and still alive: the file is theirs
   try {
     writeFileSync(PROGRESS, `${JSON.stringify({
       note: 'Written by scripts/verify.mjs while the gate runs. Cleared when it ends. Not a result: see gate.json for that.',
@@ -320,6 +340,7 @@ const beat = (extra) => {
   } catch (e) { console.error(`verify: could not write gate-progress.json: ${String(e?.message ?? e).split(String.fromCharCode(10))[0]}`); }
 };
 const endBeat = (held) => {
+  if (someoneElsesRun()) return;   // someone else is mid-run: do not clear their file on the way out
   try {
     writeFileSync(PROGRESS, `${JSON.stringify({
       note: 'Written by scripts/verify.mjs. The run has ended; gate.json holds the result.',
