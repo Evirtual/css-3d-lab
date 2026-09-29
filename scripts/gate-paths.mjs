@@ -37,6 +37,24 @@ const toPosix = (p) => p.split(sep).join('/');
 const norm = (s) => s.replace(/\r\n/g, '\n');
 const h = (value) => createHash('sha1').update(value).digest('hex').slice(0, 12);
 
+/**
+ * The part of a file a step actually judges, where that is less than the whole file.
+ *
+ * THE CHECKLIST IS THE ONE CASE, and it was a deadlock. A step depends on
+ * docs/RELEASE-CHECKLIST.md because it finds its items by their WORDS: reword one and the look is
+ * answering about a line that no longer says that. But the whole file was hashed, and the file is
+ * also where a tick, a re-check note and the sign-off are written. So signing off -- which is an
+ * edit to this file, made only once everything is green -- turned the step stale, which made
+ * everything not green. While nothing refused a push nobody met it. With scripts/pre-push.mjs in
+ * place it would have refused every push for ever, each time for a reason the push itself created.
+ *
+ * What is judged is the names of the items, in order: each checkbox line up to its first dash,
+ * without the box. A tick, a note or a stamp changes none of that. A reworded, added, removed or
+ * reordered item changes it, which is exactly when the look has to be taken again.
+ */
+const judged = (file, text) => (file !== 'docs/RELEASE-CHECKLIST.md' ? text
+  : text.split('\n').map((l) => l.match(/^\s*-\s*\[.\]\s*(.+)$/)?.[1]).filter(Boolean).map((t) => t.split(' — ')[0].trim()).join('\n'));
+
 /* Building the site is `generate && tsc && vite build`, so anything the generators read, the
    compiler sees or the bundler bundles decides whether that build still means anything. */
 const BUILD = [
@@ -233,7 +251,7 @@ export function stepFingerprint(key) {
   const each = {};
   for (const f of files) {
     let fh;
-    try { fh = h(norm(readFileSync(join(ROOT, f), 'utf8'))); }
+    try { fh = h(judged(f, norm(readFileSync(join(ROOT, f), 'utf8')))); }
     catch { fh = 'unreadable'; }
     each[f] = fh;
     parts.push(`${f}` + String.fromCharCode(0) + fh);
