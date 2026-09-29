@@ -3456,7 +3456,12 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
      error away from covering the 1px border, which is why the header kept 'losing its border'.
      z-index:-1 puts it behind the header outright, so it can never paint over the frame again:
      a positioned pseudo-element otherwise draws ABOVE its own element's background and border. */
-  bottom: 100%; height: var(--hero-gap); z-index: -1;
+  /* FAR TALLER THAN THE GAP IT COVERS, deliberately.
+     Sized to exactly --hero-gap this was one sub-pixel from letting a row show through above the
+     header, and it did: table rows were visible in the strip over it. Everything above the header
+     is off-screen anyway once it is stuck, so there is no cost to painting 240px of it and no
+     rounding left to get wrong. */
+  bottom: 100%; height: calc(var(--hero-gap) + 6px); z-index: -1;
   background: var(--bg); pointer-events: none;
 }
 /* Opaque, and blurred behind, because 135 rows scroll underneath it. --surface is 72% alpha and
