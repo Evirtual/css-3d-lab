@@ -38,7 +38,7 @@
  *   C3D_BROWSER=<path to an exe>    exactly that
  */
 import { chromium } from 'playwright';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 export const CHROMIUM_CHANNEL = 'chromium';
@@ -92,6 +92,34 @@ export function findSystemBrowser(name) {
 
 let chosen = null; // decided once per process: a check opens many browsers
 
+/*
+ * REMEMBER WHAT THE POLICY SAID, SO IT IS NOT ASKED AGAIN EVERY RUN.
+ *
+ * Trying Playwright's Chromium first is right the first time and wrong every time after: on a
+ * machine where Smart App Control refuses it, each attempt raises a Windows notification -- "Part
+ * of this app has been blocked" -- so a person watching a board gets one per run, about a decision
+ * that was made an hour ago. It also costs a second of process launch to learn nothing new.
+ *
+ * So the answer is written down and tried first next time. It is re-checked when the remembered
+ * browser stops working, which is what happens if a policy is lifted or a browser uninstalled, so
+ * nothing is stuck with an old answer. It is a fact about this machine, so it lives beside the
+ * doctor's note and is never committed.
+ */
+const REMEMBERED = new URL('../docs/checks/browser.json', import.meta.url);
+const remember = (id, launch) => {
+  try {
+    mkdirSync(new URL('../docs/checks/', import.meta.url), { recursive: true });
+    writeFileSync(REMEMBERED, `${JSON.stringify({
+      note: 'Written by scripts/browser.mjs: which browser worked here last. Tried first so a refused one is not asked again every run. Describes this machine, so it is not committed.',
+      at: new Date().toISOString(), ...id, launch,
+    }, null, 2)}
+`);
+  } catch { /* remembering is an optimisation, not a requirement */ }
+};
+const recall = () => {
+  try { return JSON.parse(readFileSync(REMEMBERED, "utf8")); } catch { return null; }
+};
+
 /**
  * Which browser this process will use, and why. Decided by actually launching one -- a binary that
  * exists and a binary that may run are different things, which is the entire lesson of today.
@@ -101,11 +129,23 @@ export async function resolveBrowser() {
   const want = (process.env.C3D_BROWSER ?? 'auto').trim();
   const tried = [];
 
+  // what worked here last, tried first: a refused browser is not asked again every run
+  const seen = want === "auto" ? recall() : null;
+  if (seen?.launch) {
+    try {
+      const b = await chromium.launch(seen.launch);
+      await b.close().catch(() => {});
+      chosen = { kind: seen.kind, name: seen.name, version: seen.version ?? null, label: seen.name, launch: seen.launch };
+      return chosen;
+    } catch { /* it stopped working: fall through and decide again from scratch */ }
+  }
+
   const tryLaunch = async (label, opts, id) => {
     try {
       const b = await chromium.launch(opts);
       await b.close().catch(() => {});
       chosen = { ...id, label, launch: opts };
+      remember(id, opts);
       return true;
     } catch (e) {
       tried.push(`${label}: ${String(e?.message ?? e).split('\n')[0]}`);

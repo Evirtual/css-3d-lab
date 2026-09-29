@@ -43,6 +43,11 @@ const BUILD = [
   'scripts/generate-pages.mjs', 'scripts/generate-capture-fonts.mjs',
 ];
 /* The model sources and the one file that turns a snippet into a standalone document. */
+/* Which browser draws, and how a crash is handled. scripts/browser.mjs decides whether the pixels
+   come from Playwright's Chromium or a signed system browser, and a result measured on one is not
+   comparable with a result measured on the other. It was on no path at all until 2026-09-29 -- in
+   the machinery built that same morning to stop a result outliving what it judged. */
+const BROWSER = ['scripts/browser.mjs', 'scripts/browser-guard.mjs'];
 const SNIPPETS = ['src/models', 'src/models/snippet-utils.ts', 'scripts/snippet-check.mjs'];
 
 export const STEP_PATHS = {
@@ -51,12 +56,13 @@ export const STEP_PATHS = {
   typescript: ['src', 'tsconfig.json', 'package.json'],
   build: BUILD,
   // qa opens the BUILT site, so it depends on everything the build does, plus its own rule
-  qa: [...BUILD, 'scripts/qa.mjs'],
-  snippets: SNIPPETS,
+  qa: [...BUILD, ...BROWSER, 'scripts/qa.mjs'],
+  snippets: [...SNIPPETS, ...BROWSER],
   // preview-check watches a model's frame survive an edit
-  preview: ['src/preview.ts', 'src/lazy-mount.ts', 'src/fit.ts', 'src/models', 'scripts/preview-check.mjs'],
+  preview: [...BROWSER, 'src/preview.ts', 'src/lazy-mount.ts', 'src/fit.ts', 'src/models', 'scripts/preview-check.mjs'],
   // compare draws every model twice: on the page, and through the dialog's own capture code
   compare: [
+    ...BROWSER,
     'src/models', 'src/preview.ts', 'src/fit.ts', 'src/embed.ts', 'src/capture-scene.ts',
     'src/capture-client.ts', 'src/fonts/capture-fonts.ts', 'src/models/snippet-utils.ts',
     'server/render.mjs', 'scripts/compare-capture.mjs',
@@ -65,6 +71,7 @@ export const STEP_PATHS = {
   // is on the path because three-looks.mjs finds its item numbers by matching each item's words:
   // reword an item and the look is answering about a line that no longer says that.
   looks: [
+    ...BROWSER,
     'src/video.ts', 'src/print.ts', 'src/file-name.ts', 'src/main.ts', 'src/capture-client.ts',
     'server/render.mjs', 'scripts/three-looks.mjs', 'docs/RELEASE-CHECKLIST.md',
   ],
@@ -72,9 +79,9 @@ export const STEP_PATHS = {
      them by "is the commit HEAD" made a parity pass go red an hour after it was measured, for a
      commit that touched neither the scene nor either renderer. */
   // the scene the dialog posts and the two things that draw it
-  parity: ['src/models', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/fonts/capture-fonts.ts', 'server/render.mjs', 'worker/src', 'scripts/check-worker-parity.mjs'],
+  parity: [...BROWSER, 'src/models', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/fonts/capture-fonts.ts', 'server/render.mjs', 'worker/src', 'scripts/check-worker-parity.mjs'],
   // the full export matrix: the dialog, what it records, and what draws the file
-  matrix: ['src/models', 'src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs'],
+  matrix: [...BROWSER, 'src/models', 'src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs'],
 };
 
 function walk(dir, out = []) {

@@ -1137,6 +1137,23 @@ function icon(name) {
 	$("blk-btn").addEventListener("click", (e) => openBlockers(e.currentTarget));
 	$("blk-close").addEventListener("click", () => $("blk-dialog").close());
 	$("mach-close")?.addEventListener("click", () => $("mach-dialog").close());
+	$("run-btn")?.addEventListener("click", () => {
+		openRuns();
+	});
+	$("run-close")?.addEventListener("click", () => $("run-dialog").close());
+	$("run-body")?.addEventListener("click", (ev) => {
+		const b = ev.target.closest("[data-job]");
+		if (!b || b.disabled) return;
+		b.disabled = true;
+		b.textContent = "Starting…";
+		api(`/api/run?check=job:${encodeURIComponent(b.dataset.job ?? "")}`, "POST").then(({ body }) => {
+			b.textContent = body?.ok === false ? "Refused" : "Running";
+			if (body?.why) b.title = body.why;
+		}).catch((e) => {
+			b.textContent = "Failed";
+			b.title = String(e?.message ?? e);
+		});
+	});
 	document.addEventListener("click", (e) => {
 		if (e.target.closest?.("[data-machine]")) openMachine();
 	});
@@ -2451,6 +2468,33 @@ function icon(name) {
 		}
 		el.hidden = false;
 		el.innerHTML = "<span class=\"colruns__h\">Run over every model</span>" + runBtn("all", [], "Run every check over every model", "colrun colrun--all", "Every check") + COLS.map(([k, label]) => runBtn(k, [], `Run ${label} on every model`, "colrun", label)).join("");
+	}
+	async function openRuns() {
+		const d = $("run-dialog");
+		if (!d) return;
+		$("run-body").innerHTML = `<p class="muted">Reading what this machine can run…</p>`;
+		if (!d.open) {
+			if (typeof d.showModal === "function") d.showModal();
+			else d.setAttribute("open", "");
+		}
+		$("run-close")?.focus();
+		try {
+			const { body } = await api("/api/jobs");
+			body.jobs;
+			$("run-body").innerHTML = runsList(body);
+		} catch (e) {
+			$("run-body").innerHTML = `<p class="notice bad">The board could not say what it can run: ${esc(String(e?.message ?? e))}. It answers /api/jobs only when started with <code>npm run board</code>.</p>`;
+		}
+	}
+	/** A time a person can plan around, rather than a number of minutes to convert. */
+	const howLong = (m) => m < 2 ? "under a minute" : m < 60 ? `about ${m} min` : m < 90 ? "about an hour" : `about ${Math.round(m / 60)} hours`;
+	function runsList(body) {
+		const rows = (body.jobs ?? []).map((j) => {
+			const off = Boolean(j.blockedWhy);
+			const why = off ? j.blockedWhy : j.answers?.length ? `Closes: ${j.answers.slice(0, 3).join(`; `)}${j.answers.length > 3 ? `, and ${j.answers.length - 3} more` : ``}` : ``;
+			return `<li class="runjob${off ? ` runjob--off` : ``}"><div class="runjob__t"><b>${esc(j.name)}</b><span class="runjob__cost">${esc(howLong(j.minutes))}</span></div><p class="runjob__b">${esc(j.blurb)}</p>` + (why ? `<p class="runjob__w">${esc(why)}</p>` : ``) + `<button type="button" class="btn runjob__go" data-job="${esc(j.key)}"${off ? ` disabled data-tip data-tiptext="${esc(j.blockedWhy)}"` : ``}>${off ? `Cannot run here` : `Run`}</button></li>`;
+		}).join("");
+		return (body.machineKnown ? `` : `<p class="notice">Nobody has asked whether this machine can run these. <code>npm run doctor</code> answers that, and this panel will then grey out what it cannot do.</p>`) + `<ul class="runjobs">` + rows + `</ul>`;
 	}
 	/** Opens the machine panel, filled from the last poll so the numbers are the ones on the chip. */
 	function openMachine() {
