@@ -2445,8 +2445,6 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
 @media (max-width: 1000px) {
   /* The menu is the full width of the screen here rather than a 210px card in the corner. */
   .hero__more { left: 0; right: 0; min-width: 0; }
-  /* Room is tight, so the words under Run go: the button keeps its name. */
-  #run-btn small { display: none; }
   /* and the page is no longer hidden under a bar that is not there */
   body { padding-bottom: 0; }
 }
@@ -3329,10 +3327,9 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 
 /* The mobile bar lays these out its own way and already shows icons there, so
    the circle sizing is desktop-only; below this width the existing bar rules win. */
-@media (max-width: 1000px) {
-  .hero__btns .btn--icon { width: auto; height: auto; border-radius: 999px; }
-  .btn--icon .nav__t { position: static; width: auto; height: auto; margin: 0; clip-path: none; overflow: visible; }
-}
+/* A phone-only rule here un-clipped the icon buttons' words, so the menu read "More" and the
+   theme "Theme: auto" on a phone while the desktop showed bare glyphs -- two designs. Gone: the
+   desktop treatment applies everywhere. */
 
 /* The name of whatever is holding the memory, inside the machine chip. Warm, not
    red: it is not a failure, it is the reason the estimate on a running job is
@@ -3511,3 +3508,37 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 @media (max-width: 620px) {
   .statusline .sep { display: none; }
 }
+
+/* ---------------------------------------------------------------------------
+ * ON A PHONE THE CONTROLS START AT THE LEFT, ON THEIR OWN ROW.
+ *
+ * Beside the title they fit -- 208px in a 316px row -- but "fit" is the wrong
+ * bar. Three pills pushed hard right against the panel edge next to a short
+ * title reads as squeezed, and it is: the whole row's slack sits uselessly
+ * between "Ledger" and the first pill. Edgaras: "the pill toggles don't have
+ * enough space" and "bring the header to the start".
+ *
+ * So below 620px the controls take the next line and start where the title
+ * starts. This is not the stacking that was here before: that was a leftover
+ * display:block that also stretched the title to full width and shoved the
+ * pills to the right. This is a flex row wrapping on purpose, aligned to the
+ * start, with the title left at its natural size.
+ * ------------------------------------------------------------------------- */
+/* A phone-only "controls on their own row, at the start" rule stood here briefly. Gone: the
+   phone gets the desktop row -- title left, controls right, one line. */
+
+/* The one concession to width, and it is not a layout: "Run... gate, checks, jobs" is 140px, and
+   with the title and the other two controls the row needs about 340px. A 390px phone has 316.
+   The three small words go there; the button, its glyph and its place do not move. */
+@media (max-width: 620px) {
+  #run-btn small { display: none; }
+}
+
+/* THE DOTTED CANVAS BACKGROUND, MADE DETERMINISTIC.
+   .hero::before paints the dots at z-index: -1. A negative z-index child paints inside the nearest
+   ancestor that is a stacking context, and .hero was not one (position: relative, no z-index), so
+   the dots went to whatever context they could find and painted behind its backgrounds: present in
+   the stylesheet, absent from the screen. z-index makes .hero its own context; the dots paint
+   inside it, behind the content, on every screen. It also keeps the menu (z-index 50 inside) above
+   the panels that follow. Not sticky: position stays relative. */
+.hero { position: relative; z-index: 40; }
