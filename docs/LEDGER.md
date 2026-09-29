@@ -33,6 +33,25 @@ Until you run a check, every model reads "not run yet" and every column is blank
 clone does carry is `docs/release-snapshot.json`: what the checks said at the last release, shown as
 its own labelled line so it is never mistaken for a result from today.
 
+### You do not have to read this file first
+
+The board opens with a **Start here** panel on its first visit, and that panel is the same answers
+this section gives — read from the machine rather than from documentation, which can be out of date
+about your computer in a way a reading cannot.
+
+It shows what `npm run doctor` found, one row per question, in three parts: **what** failed,
+**where**, and **why** in the words of whatever refused, with the command that fixes it beside it.
+If no doctor has ever run, it says exactly that and offers the run — because *nobody has asked* is
+not the same answer as *nothing is wrong*, and the board will not show you a clean panel it has no
+grounds for.
+
+Under it is a six-stop **tour** with Back and Next, which walks the board itself: what it is
+claiming, what each column counts, where to run things, what a tick means, and whether any of it is
+current. A stop whose element is not on the page that day is skipped rather than pointed at.
+
+The button hides itself once the doctor has found nothing and you have taken the tour, the same rule
+every other header button follows: a control with nothing to say does not take a place in the row.
+
 ---
 
 ## What you are looking at
@@ -93,6 +112,45 @@ with it.
 Results also record **which browser** produced them, for the same reason. Several checks are
 calibrated against a measured number, and a number measured on one browser cannot be compared with
 one measured on another.
+
+---
+
+## Everything runs from the board
+
+Every process this project has is startable from **Run…** in the header — the gate, the per-model
+checks, the live-site check, the renderer comparison, the export matrix, the doctor. None of it
+needs a terminal, and anything this machine cannot do is greyed out with the reason rather than
+offered as a button that throws.
+
+### Choosing gate steps
+
+The gate is eighteen steps and about four hours. Running all of them to refresh one is the cost the
+whole fingerprint record exists to avoid, so the dialog lists them with checkboxes, adds up what
+your choice costs, and says of each step whether its recorded result is still about the code on
+disk:
+
+| state | what it means |
+| --- | --- |
+| **current** | the files it judges are unchanged since it ran |
+| **stale** | those files have changed — and it names the ones that moved |
+| **failed** | it failed the last time it ran |
+| **not known** | its result predates fingerprints, so it *cannot be shown* to be about this code |
+
+"Not known" is deliberately not "current". Two buttons act on the difference, because they cost very
+different amounts of time and folding them together would let one press start a four-hour run:
+
+- **Only what is stale** — the steps the board can show need running.
+- **Anything not proved current** — those, plus everything it cannot vouch for.
+
+### While something is running
+
+A check reports per-model, so its bar fills. A **job** does not — it is not a check, and nothing
+writes per-model progress for one — so its bar carries elapsed time against the job's recorded
+estimate, labelled as the estimate it is, and says "longer than usual" once it passes it by half.
+There is no percentage shown for a job because there is no honest one to show.
+
+Two runs cannot overwrite each other's progress: a run started from a terminal will not clear the
+record of one the board started and is still watching.
 
 ---
 
