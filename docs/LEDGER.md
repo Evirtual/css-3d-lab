@@ -67,8 +67,13 @@ both, so the terminal and the table agree.
 **Approved** is not a check. It is the column that says a person looked at the model and was happy
 with it. No script can set it.
 
-**The release checklist** is 56 lines that have to hold before a push. Each one is proved, where a
-proof is possible, by something that ran — not by somebody remembering.
+**The release checklist** is the lines that have to hold before a push. Each one is answered by a
+proof — something that looked, or a run whose recorded answer is read back — and nobody ticks
+it. The one exception is the sign-off, which is a person saying to push.
+
+Whether a line is green, which stage is shut and whether a push is allowed are decided once, when
+the ledger is built (`scripts/push-gate.mjs`). The page draws that verdict; `npm run signoff`
+refuses the tick by it; the pre-push hook refuses the push by it.
 
 ---
 
@@ -136,9 +141,12 @@ disk:
 | **failed** | it failed the last time it ran |
 | **not known** | its result predates fingerprints, so it *cannot be shown* to be about this code |
 
-"Not known" is deliberately not "current". Two buttons act on the difference, because they cost very
-different amounts of time and folding them together would let one press start a four-hour run:
+"Not known" is deliberately not "current". The dialog opens with the first of these already
+chosen, and says above the list how many lines of the checklist are open, what closes them and
+what it costs:
 
+- **What the push needs** — the steps that close a line of the checklist that is open now, and
+  nothing else. A change to the documents or to the board's own page asks for no model check.
 - **Only what is stale** — the steps the board can show need running.
 - **Anything not proved current** — those, plus everything it cannot vouch for.
 

@@ -1,7 +1,9 @@
 /**
  * npm run check-remote
  *
- * The three release-checklist lines that need a network, asked and written down.
+ * The release-checklist lines that need a network, asked and written down: whether the remote has
+ * anything main lacks, whether the Worker answers the site and refuses a stranger, whether the
+ * build variable is set, and whether the Worker was deployed after its code last changed.
  *
  * They sat as "not evaluated here: needs git fetch / needs curl against the deployed Worker /
  * needs gh against GitHub", so each was true of the day somebody last typed the command. That is
@@ -68,6 +70,41 @@ const checks = {
     }
     return { ok: false, found: 'neither gh variable list nor gh secret list shows VITE_CAPTURE_URL (or gh could not ask)' };
   },
+
+  /*
+   * Is the Worker that is deployed the Worker that is in this tree?
+   *
+   * This was the one line a person re-checked by hand and re-dated in the checklist: on 2026-09-28
+   * the note beside it said 2026-09-24 and had been wrong for four days. Cloudflare is asked when
+   * the latest deployment was made, git is asked when the Worker's code last changed, and nothing
+   * uncommitted may be sitting in those files.
+   *
+   * What it proves is the ORDER of two events: the deployment came after the last change. It does
+   * not prove the deployed bytes are these bytes; that needs the Worker to report a hash of its
+   * own source, which it does not do yet. The answer says so rather than claim more.
+   */
+  workerDeployed() {
+    const PATHS = ['server/render.mjs', 'worker'];
+    let list;
+    try {
+      const out = execFileSync('npx', ['wrangler', 'deployments', 'list', '--json'],
+        { cwd: join(ROOT, 'worker'), encoding: 'utf8', timeout: 90_000, stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32' });
+      list = JSON.parse(out.slice(out.indexOf('[')));
+    } catch (e) { return { ok: null, found: `could not ask Cloudflare for the deployments (wrangler): ${String(e?.message ?? e).split('\n')[0]}` }; }
+    const latest = list.map((d) => d.created_on).filter(Boolean).sort().pop();
+    if (!latest) return { ok: false, found: 'Cloudflare lists no deployment of this Worker' };
+    try {
+      const changed = run('git', ['log', '-1', '--format=%cI%x1f%h', '--', ...PATHS]);
+      const [when, hash] = changed.split('\x1f');
+      const dirty = run('git', ['status', '--porcelain', '--', ...PATHS]).split('\n').filter(Boolean);
+      const at = (iso) => new Date(iso).toISOString().slice(0, 16).replace('T', ' ');
+      const base = { deployedAt: new Date(latest).toISOString(), changedAt: new Date(when).toISOString(), changedIn: hash };
+      if (dirty.length) return { ...base, ok: false, found: `${dirty.length} file(s) of the Worker are changed and not committed (${dirty[0].slice(3)}), so what is deployed cannot be this code` };
+      return Date.parse(latest) >= Date.parse(when)
+        ? { ...base, ok: true, found: `deployed ${at(latest)}Z, after the last change to its code (${hash}, ${at(when)}Z). This is the order of the two, not a comparison of what is deployed` }
+        : { ...base, ok: false, found: `its code changed at ${at(when)}Z (${hash}), after the latest deployment at ${at(latest)}Z: deploy it from worker/` };
+    } catch (e) { return { ok: null, found: `could not read when the Worker's code last changed: ${String(e?.message ?? e).split('\n')[0]}` }; }
+  },
 };
 
 const out = { note: 'Written by scripts/check-remote.mjs. The checklist lines that need a network.', at: new Date().toISOString(), worker: WORKER, checks: {} };
@@ -83,5 +120,5 @@ try { writeFileSync(join(ROOT, 'docs', 'checks', 'remote.json'), `${JSON.stringi
 catch (e) { console.log(`(could not write docs/checks/remote.json: ${String(e?.message ?? e).split('\n')[0]})`); }
 
 console.log('');
-console.log(bad ? `check-remote: ${bad} of ${Object.keys(checks).length} do not hold.` : 'check-remote: all three hold.');
+console.log(bad ? `check-remote: ${bad} of ${Object.keys(checks).length} do not hold.` : `check-remote: all ${Object.keys(checks).length} hold.`);
 process.exit(bad ? 1 : 0);

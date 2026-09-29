@@ -45,7 +45,7 @@ import { extname, join, normalize } from 'node:path';
 import { cpus, freemem, totalmem } from 'node:os';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
-import { JOBS, JOB, GATE_STEPS, blockedBy } from './jobs.mjs';
+import { JOBS, JOB, GATE_STEPS, blockedBy, whatIsNeeded } from './jobs.mjs';
 import { statSync as statOf } from 'node:fs';
 /*
  * THE RULES, AS THEY ARE ON DISK NOW. This process runs for hours and scripts/gate-paths.mjs is a
@@ -562,6 +562,22 @@ function stepFromResults(key) {
   return { state: 'current', why: `all ${of} ${unit} have a result on the code as it is now: the same results the column shows` };
 }
 
+/**
+ * What the push is waiting for, as things this board can run. Read from the ledger's own verdict,
+ * so it is the same list the checklist shows as open and the pre-push hook would refuse on.
+ */
+function neededNow() {
+  try {
+    const open = JSON.parse(readFileSync(join(ROOT, 'docs', 'ledger.json'), 'utf8')).readiness?.checklist?.verdict?.stages?.before?.open ?? null;
+    if (!open) return null;
+    let rec = [];
+    try { rec = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), 'utf8')).steps ?? []; } catch { /* no gate has run */ }
+    const by = new Map(rec.map((r) => [r.key, r]));
+    const states = Object.fromEntries(GATE_STEPS.map((g) => [g.key, (stepFromResults(g.key) ?? stepState(by.get(g.key))).state]));
+    return { open: open.length, ...whatIsNeeded(open, states) };
+  } catch { return null; }
+}
+
 function stepState(rec) {
   if (!rec) return { state: 'unknown', why: 'this step has no recorded result at all' };
   if (rec.ok === false) return { state: 'failed', why: 'it failed the last time it ran' };
@@ -615,6 +631,7 @@ function stepState(rec) {
           const by = new Map(rec.map((r) => [r.key, r]));
           return GATE_STEPS.map((g) => ({ ...g, ...(stepFromResults(g.key) ?? stepState(by.get(g.key))) }));
         })(),
+        needed: neededNow(),
         jobs: JOBS.map((j) => ({
           key: j.key, name: j.name, minutes: j.minutes, blurb: j.blurb, answers: j.answers,
           needs: j.needs, safe: j.safe, blockedWhy: blocked.get(j.key) ?? null,

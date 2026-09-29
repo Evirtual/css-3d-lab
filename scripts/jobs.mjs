@@ -147,6 +147,81 @@ export const GATE_STEPS = [
 
 export const JOB = new Map(JOBS.map((j) => [j.key, j]));
 
+/*
+ * WHAT CLOSES EACH LINE OF THE CHECKLIST.
+ *
+ * The board could say a line was open and could run every process there is, and left a person to
+ * work out which process answers which line. On 2026-09-29 that was done by reading this file and
+ * the proofs side by side, eight lines at a time. A change to the documents or to the board's own
+ * page was followed by four hours of model checks because nothing said they were not needed.
+ *
+ * So each line names what closes it: a gate step, a job, a commit, or a person. The first pattern
+ * that matches wins. `step: null` with `anyStale` means "whichever per-model steps are not
+ * current", for the lines that are about all of them at once.
+ */
+const CLOSES = [
+  [/^The person publishing has /, { person: 'the sign-off, which is yours: npm run signoff -- push' }],
+  [/^The working tree is clean/, { commit: 'commit what is changed' }],
+  [/^TypeScript is clean|^The build is clean|^QA on the built site|^The dev fallback address|^A local production build/, { step: 'qa' }],
+  [/^The built site passes the SEO check/, { step: 'seo' }],
+  [/^The built gallery stays answerable/, { step: 'app' }],
+  [/^The social preview images are made|^Every model's share preview/, { step: 'media' }],
+  [/^Snapshots match the screen/, { step: 'compare' }],
+  [/^Every standalone snippet runs/, { step: 'snippets' }],
+  [/^Editing a model never remounts/, { step: 'preview' }],
+  [/^Every file the dialog hands out/, { step: 'looks' }],
+  [/^4K is not offered/, { step: 'exports' }],
+  [/^Recordings and snapshots match/, { job: 'matrix', step: 'exports' }],
+  [/^Both renderers draw the same picture/, { job: 'parity' }],
+  [/^The release snapshot is the state/, { job: 'snapshot', after: 'then commit docs/release-snapshot.json' }],
+  [/^The remote has nothing main lacks|^The Worker answers the site|^The value the workflow reads|^The Worker in worker\//, { step: 'remote' }],
+  [/^No contract result is stale/, { step: 'models' }],
+  [/^Every model draws the same whatever box-sizing/, { step: 'boxsizing' }],
+  [/^Every model's text is readable/, { step: 'contrast' }],
+  [/^Every model is within its performance budgets/, { step: 'perf' }],
+  [/^Every model stops when paused/, { step: 'access' }],
+  [/^check-stages has judged/, { step: 'stages' }],
+  [/^check-motion has run/, { step: 'motion' }],
+  [/^Every check holds over all|^Every model is approved|^No check result behind the ledger/, { anyStale: true }],
+  [/^The ledger was built on the commit/, { auto: 'the board rebuilds the ledger by itself' }],
+  [/^The README lists every npm script/, { auto: 'the board rewrites the list (npm run readme), then commit README.md' }],
+  [/^README, .*were reviewed/, { person: 'read the documents against the change, and commit what needed saying' }],
+];
+/** The per-model steps: the ones "every check holds" is about. */
+const PER_MODEL = ['boxsizing', 'contrast', 'access', 'media', 'perf', 'models', 'motion', 'stages', 'exports'];
+
+export const closes = (item) => CLOSES.find(([re]) => re.test(item))?.[1] ?? null;
+
+/**
+ * What the push is waiting for, as things to run.
+ *
+ * `open` is the ledger's verdict on stage 1 (scripts/push-gate.mjs); `states` is each gate step's
+ * state by key. Returns the steps and jobs that close what is open, what they cost together, and
+ * what no run can close -- a commit to make, a thing for a person -- so the answer to "what do I
+ * do now" is complete rather than only the part a machine can do.
+ */
+export function whatIsNeeded(open, states = {}) {
+  const steps = new Set();
+  const jobs = new Set();
+  const other = [];
+  const byItem = [];
+  for (const o of open ?? []) {
+    const c = closes(o.item);
+    const by = [];
+    if (!c) { other.push({ item: o.item, what: 'nothing here knows what closes this line' }); byItem.push({ item: o.item, by: [] }); continue; }
+    if (c.step) { steps.add(c.step); by.push(`step ${c.step}`); }
+    if (c.job) { jobs.add(c.job); by.push(`job ${c.job}`); }
+    if (c.anyStale) for (const k of PER_MODEL) if (states[k] && states[k] !== 'current') { steps.add(k); by.push(`step ${k}`); }
+    for (const k of ['commit', 'person', 'auto', 'after']) if (c[k]) other.push({ item: o.item, what: c[k], kind: k });
+    byItem.push({ item: o.item, by });
+  }
+  /* a job that is also a gate step is that step: offering both would run it twice */
+  for (const j of [...jobs]) if (steps.has(j)) jobs.delete(j);
+  const stepMin = GATE_STEPS.filter((g) => steps.has(g.key)).reduce((a, g) => a + g.minutes, 0);
+  const jobMin = JOBS.filter((j) => jobs.has(j.key)).reduce((a, j) => a + j.minutes, 0);
+  return { steps: GATE_STEPS.filter((g) => steps.has(g.key)).map((g) => g.key), jobs: JOBS.filter((j) => jobs.has(j.key)).map((j) => j.key), minutes: stepMin + jobMin, other, byItem };
+}
+
 /**
  * Which jobs this machine cannot do, and in whose words.
  *

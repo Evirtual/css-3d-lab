@@ -30,7 +30,8 @@ anything:
    crashed or never ran is neither a pass nor a fail — it is named, counted apart, and it blocks.
 3. **A ledger that counts honestly.** The ledger is a local page that says, per model, which checks
    have passed *on the code as it stands now*. When the code a check judged changes, that check's
-   result expires and says so. A tick is a claim; only a proof run on your machine counts as proven.
+   result expires and says so. Nobody ticks the list: a proof run on your machine is what makes a
+   line green, and the one thing a person says is whether to push.
 
 If you take one thing from this repository, take the third. Most of the hard-won lessons here are
 about a number that has to add up, and a result that has to expire.
@@ -90,8 +91,9 @@ Worth having in a second terminal, though the board answers most of it:
 npm run now -- --watch            # what is actually running, MEASURED
 ```
 
-The page is built from `src/ledger/` — TypeScript and Sass, like the app — with
-`npm run build:ledger`. It used to be one 4,244-line file of markup, styles and behaviour edited by
+The page is built from `src/ledger/` — TypeScript and Sass, like the app. **You do not build it:**
+`npm run board` builds it when it starts and again whenever that source changes, and the built
+page is not in the repository. It used to be one 4,244-line file of markup, styles and behaviour edited by
 hand, which is why two separate mistakes in one afternoon only showed up when somebody loaded it.
 
 `npm run now` asks the machine rather than reading a report: which check is on which model, whether
@@ -149,10 +151,10 @@ The ledger is four pieces:
 |---|---|
 | `scripts/ledger.mjs` | builds `docs/ledger.json` from the check records, git history and the checklist |
 | `scripts/ledger-watch.mjs` | rebuilds it when anything it reads changes, and writes a heartbeat |
-| `docs/ledger.html` | the page as it is served: BUILT from `src/ledger/` by `npm run build:ledger`, and committed. Edit the source, not this |
+| `docs/ledger.html` | the page as it is served: built from `src/ledger/` by the board itself, and not committed. Edit the source, not this |
 | `scripts/checklist-proofs.mjs` | re-runs the cheap proofs behind `RELEASE-CHECKLIST.md` |
 
-Edit `src/ledger/`, run `npm run build:ledger` and reload (or use `npm run board:dev`, which serves the source); edit a script and the watcher reloads its own code on the next build.
+Edit `src/ledger/` and the board rebuilds the page, and an open tab reloads itself (`npm run board:dev` serves the source directly, for working on the page); edit a script and the watcher reloads its own code on the next build.
 The page says which code version built the data it is showing, and warns you when they differ.
 
 ### …run everything before shipping

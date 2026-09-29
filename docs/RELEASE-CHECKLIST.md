@@ -6,19 +6,27 @@ pushed, not on the working tree.
 
 Each item is one line: `- [ ] item — how to prove it`. The item never contains a dash with
 spaces around it; everything after the first ` — ` is the proof. `scripts/ledger.mjs` reads this
-file in that format. Tick an item (`- [x]`) only after running its proof on the commit being
-pushed, and untick it when that commit changes.
+file in that format.
 
-**Who answers what.** The list is split once, at the top: **Yours** holds the two items that wait
-for a person — whether the article is ready, and whether to push. Every other item is answered by a
-script, or by an agent running one and writing what it printed into the item's own line. So the
-only two questions a person is ever asked here are the two a machine has no business answering.
+**Nobody ticks this list, with one exception.** Every item but the sign-off is answered by a
+proof: a script that looks, each time the ledger is built, and says what it found. A proof that
+passes makes the item green whether or not there is an `x` in this file; a proof that fails makes
+it open whatever the file says. So there is nothing to tick, nothing to untick when a commit
+lands, and no date to write in by hand. The board shows each item with what its proof found.
 
-That split is not a convenience. Of the 57, `npm run ledger` re-proves 33 on the spot every time it
-builds, and says so per item: *proven*, *ticked but not proven here*, or *its proof disagrees with
-its tick*. That last one is not hypothetical — on 2026-09-25 it caught a release snapshot describing
-code that no longer existed, which a fresh clone would have read instead of real results. A tick is
-a claim; only a proof run here counts as proven.
+The exception is **Yours**: whether to push. That one is a person's to say, `npm run signoff`
+writes it, and it expires by itself when anything is committed after it.
+
+Two kinds of proof, and the board says which answered:
+
+- **looked just now**: cheap, local and read-only, run on every build of the ledger.
+- **read from a run**: slow, networked or needing a browser, so it is run by the gate or a job
+  (`Run` on the board) and its recorded answer is read back. A recorded answer stops counting the
+  moment a file it judged changes.
+
+The ticks and dated notes still in some lines below are from before this, when an agent ran a
+proof and wrote what it printed into the line. They are history. A line's proof is what is
+consulted; where a proof cannot run and says so, an old tick stands as the only evidence there is.
 
 Commands are POSIX shell, run from the repository root: a terminal on macOS or Linux, or Git Bash
 on Windows. Nothing here needs Windows — the checks shell out to exactly two commands, `git` and
@@ -50,9 +58,6 @@ the date, the commit and the name git is configured with, so the record says who
 ## Nothing is lost
 
 - [x] The working tree is clean: every file is committed, or deliberately left out and named in the push notes — `git status --short --untracked-files=all` prints nothing
-- [x] The main index matches HEAD, so a plain `git commit` cannot undo commits made with commit-tree — `git diff --cached --quiet HEAD && echo same` prints `same`
-- [x] scripts/verify.mjs and scripts/check-exports.mjs are committed, with the verify entry in package.json — `git ls-files scripts/verify.mjs scripts/check-exports.mjs` prints both names and `git show HEAD:package.json | grep '"verify"'` prints the entry
-- [x] Local-only files stay local: hero-options.html, og-preview.html and harness-tmp/ (listed in .git/info/exclude) are not tracked — `git ls-files hero-options.html og-preview.html harness-tmp` prints nothing
 - [x] The remote has nothing main lacks — `git fetch origin && git rev-list --count main..origin/main` prints `0` — re-run 2026-09-25 at `31bf1b5`: prints `0`. `origin/main` is still `b1d49c2` ("Add project article page", 2026-09-19), so nothing has reached the remote since, and the push would be a fast-forward of **667** commits. *(It last said "run 2026-09-24 … main is 615 ahead" — the `0` held, but the count was a day and 52 commits out of date. A networked proof the ledger cannot re-run has to be re-run by hand before the push, or its number quietly rots.)*
 
 ## The models
@@ -95,7 +100,6 @@ the date, the commit and the name git is configured with, so the record says who
 Recording, snapshots and print all need it (README, "Recording, snapshots and print").
 
 - [x] The Worker in worker/ is deployed with the current server/render.mjs — `cd worker && npx wrangler deployments list` shows a deployment made after the last commit touching `server/render.mjs` or `worker/` (`git log -1 --format=%ci -- server/render.mjs worker/`) — redeployed 2026-09-24 03:31Z (version 30d09e76), after the last commit touching it (9d111c5, 2026-09-23 00:46) — **re-checked 2026-09-28 at 05599ff by asking Cloudflare rather than reading this note, which said 2026-09-24 and version 30d09e76 and was four days stale: "wrangler deployments list" gives a latest deployment of 2026-09-25T16:09:28Z, and the last commit touching server/render.mjs or worker/ is a034c82 at 2026-09-25T16:09:37Z -- nine seconds later, which is deploy, check it works, then commit. Nothing has touched the renderer since. Comparing those two timestamps is NOT a sound test in general (it reads "stale" by nine seconds here); the sound one is a hash of server/render.mjs returned by the Worker on the preflight, which is not built yet** — **re-checked 2026-09-29 at 1962069 by asking Cloudflare: `wrangler deployments list` gives a latest deployment of 2026-09-29T09:21:14Z (version e01b30fb), and the last commit touching server/render.mjs or worker/ is 0923ce4 at 2026-09-29T08:19:57Z, an hour before it. The same caveat stands: two timestamps say the deploy came after the change, not that what is deployed is this code**
-- [x] ALLOWED_ORIGINS names the live site — `grep ALLOWED_ORIGINS worker/wrangler.jsonc` includes `https://css3dlab.edgarasneverdauskas.com`
 - [x] The Worker answers the site and refuses anyone else — `curl -s -o /dev/null -w '%{http_code}' -X OPTIONS -H 'Origin: https://css3dlab.edgarasneverdauskas.com' "$VITE_CAPTURE_URL"` prints `204`, and the same with `-H 'Origin: https://example.com'` prints `403` (the failure path, so a 204 is not a fallback page) — run 2026-09-24 against the new deployment: 204 for the site, 403 for example.com
 - [x] VITE_CAPTURE_URL is passed to the Pages build — `grep -n VITE_CAPTURE_URL .github/workflows/deploy.yml` finds it in the env of the `npm run build` step (on 2026-09-21 it does not: the workflow never sets it, and a production build without it says "Export service is not configured yet.")
 - [x] The value the workflow reads exists in the repository settings — `gh variable list` or `gh secret list` shows `VITE_CAPTURE_URL` — `gh variable list` shows VITE_CAPTURE_URL, set 2026-09-22 — re-checked 2026-09-25 at `31bf1b5`: it prints `VITE_CAPTURE_URL  https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture  2026-09-22T01:34:57Z`, which is the endpoint the production build put into `dist/assets`

@@ -32,6 +32,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { readPushGate } from './push-gate.mjs';
+import { closes } from './jobs.mjs';
 
 const ROOT = process.cwd();
 const dry = process.argv.includes('--dry');
@@ -118,6 +119,10 @@ const lines = (open, ticked, unticked, width) => {
   for (const i of open) {
     say(`  ${i.ticked ? ticked : unticked}   ${i.item}`);
     if (i.found) say(`        ${String(i.found).slice(0, width)}`);
+    /* what closes it, so the line is something to do and not only something that is wrong */
+    const c = closes(i.item);
+    const how = !c ? null : c.step ? `run the "${c.step}" step${c.job ? `, and the "${c.job}" job` : ''}` : c.job ? `run the "${c.job}" job${c.after ? `, ${c.after}` : ''}` : c.anyStale ? 'run whichever per-model steps the board shows as not current' : (c.commit ?? c.person ?? c.auto ?? null);
+    if (how) say(`        to close it: ${how}`);
   }
 };
 

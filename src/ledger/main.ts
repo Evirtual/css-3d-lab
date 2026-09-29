@@ -1586,6 +1586,7 @@ const navIcon = (name: string): string => (BARE[name]
       for (const i of [...document.querySelectorAll('#run-body [data-step]')] as HTMLInputElement[]) {
         i.checked = how === 'all' ? true
           : how === 'none' ? false
+          : how === 'needed' ? Boolean(NEEDED?.steps.includes(i.dataset.step ?? ''))
           : how === 'unproved' ? UNPROVED_STEPS.has(i.dataset.step ?? '')
           : STALE_STEPS.has(i.dataset.step ?? '');
       }
@@ -3081,6 +3082,8 @@ const navIcon = (name: string): string => (BARE[name]
     current: 'current', stale: 'stale', failed: 'failed', unknown: 'not known',
   };
   const STALE_STEPS = new Set<string>();
+  /* what the push is waiting for, as the board last said it: see whatIsNeeded in scripts/jobs.mjs */
+  let NEEDED: any = null;
   /*
    * TWO SETS, BECAUSE THEY ARE TWO QUESTIONS AND TWO VERY DIFFERENT BILLS.
    *
@@ -3104,6 +3107,7 @@ const navIcon = (name: string): string => (BARE[name]
       JOBS_STEPS = body.steps ?? [];
       /* The server works this out from the recorded fingerprints; see stepState() there for why
          "failed" and "stale" are different questions and why "unknown" is a third answer. */
+      NEEDED = body.needed ?? null;
       STALE_STEPS.clear();
       UNPROVED_STEPS.clear();
       for (const st of JOBS_STEPS ?? []) {
@@ -3113,6 +3117,9 @@ const navIcon = (name: string): string => (BARE[name]
         if (st.state !== 'current') UNPROVED_STEPS.add(st.key);
       }
       $('run-body').innerHTML = runsList(body);
+      /* It opens on what the push is waiting for, not on all eighteen. Everything ticked was the
+         default, so the first thing the dialog offered was four hours, whatever had changed. */
+      if (NEEDED) for (const i of [...document.querySelectorAll('#run-body [data-step]')] as HTMLInputElement[]) i.checked = NEEDED.steps.includes(i.dataset.step ?? '');
       gateCost();
     } catch (e) {
       $('run-body').innerHTML = `<p class="notice bad">The board could not say what it can run: ${esc(String((e as any)?.message ?? e))}. It answers /api/jobs only when started with <code>npm run board</code>.</p>`;
@@ -3129,18 +3136,35 @@ const navIcon = (name: string): string => (BARE[name]
   function gatePicker(steps: any[]): string {
     const boxes = steps.map((x: any) => `<label class="gstep gstep--${esc(x.state ?? 'unknown')}"><input type="checkbox" data-step="${esc(x.key)}" checked> <b>${esc(x.short ?? x.key)}</b><span class="gstep__n">${esc(x.name)}</span><span class="gstep__s" data-tip data-tiptext="${esc(x.why ?? '')}">${esc(STATE_WORD[x.state] ?? 'not known')}</span><span class="gstep__m">${esc(x.minutes)}m</span></label>`).join('');
     return `<div class="gpick"><div class="gpick__head"><b>The gate, step by step</b>
-      <span class="gpick__acts"><button type="button" class="btn" data-pick="all">All</button><button type="button" class="btn" data-pick="none">None</button><button type="button" class="btn" data-pick="stale" data-tip data-tiptext="The steps the board can show need running: their files changed since they ran, or they failed.">Only what is stale</button><button type="button" class="btn" data-pick="unproved" data-tip data-tiptext="Those, plus every step whose result predates fingerprints -- it cannot be shown to be about the code as it is now, which is not the same as being fine.">Anything not proved current</button></span></div>
+      <span class="gpick__acts"><button type="button" class="btn" data-pick="needed" data-tip data-tiptext="The steps that close a line of the release checklist that is open now. Nothing else: a step whose line is green is not run again.">What the push needs</button><button type="button" class="btn" data-pick="all">All</button><button type="button" class="btn" data-pick="none">None</button><button type="button" class="btn" data-pick="stale" data-tip data-tiptext="The steps the board can show need running: their files changed since they ran, or they failed.">Only what is stale</button><button type="button" class="btn" data-pick="unproved" data-tip data-tiptext="Those, plus every step whose result predates fingerprints -- it cannot be shown to be about the code as it is now, which is not the same as being fine.">Anything not proved current</button></span></div>
       <div class="gpick__list">` + boxes + `</div>
       <div class="gpick__foot"><span id="gpick-cost" class="muted"></span><button type="button" class="btn runjob__go" id="gpick-go">Run the chosen steps</button></div></div>`;
   }
 
+  /**
+   * What the push is waiting for, in one paragraph above everything else in the dialog: how many
+   * lines are open, what closes them and what it costs, and what no run can close.
+   */
+  function neededNote(n: any): string {
+    if (!n) return ``;
+    if (!n.open) return `<p class="notice"><b class="big">Nothing before the push is open.</b> No check needs running. What is left is the sign-off, which is yours.</p>`;
+    const name = (k: string) => (JOBS_STEPS ?? []).find((x: any) => x.key === k)?.short ?? k;
+    const jobName = (k: string) => (JOBS ?? []).find((x: any) => x.key === k)?.name ?? k;
+    const runs = [...n.steps.map(name), ...n.jobs.map(jobName)];
+    const rest = (n.other ?? []).filter((o: any) => o.kind !== 'after');
+    return `<div class="notice"><b class="big">The push is waiting for ${n.open} line${n.open === 1 ? '' : 's'} of the checklist.</b> `
+      + (runs.length ? `To run: <b>${runs.map(esc).join(', ')}</b>, ${esc(howLong(n.minutes))} in all. The steps are ticked below; a job has its own button and is marked.` : `No check closes them.`)
+      + (rest.length ? `<br>Not a run: ${rest.map((o: any) => `${esc(o.what)} <span class="muted">(${esc(String(o.item).slice(0, 60))})</span>`).join('; ')}.` : ``)
+      + `</div>`;
+  }
+
   function runsList(body: any): string {
-    const gate = body.steps?.length ? gatePicker(body.steps) : ``;
+    const gate = neededNote(body.needed) + (body.steps?.length ? gatePicker(body.steps) : ``);
     const rows = (body.jobs ?? []).filter((j: any) => !String(j.key).startsWith('gate')).map((j: any) => {
       const off = Boolean(j.blockedWhy);
       const why = off ? j.blockedWhy : j.answers?.length ? `Closes: ${j.answers.slice(0, 3).join(`; `)}${j.answers.length > 3 ? `, and ${j.answers.length - 3} more` : ``}` : ``;
       return `<li class="runjob${off ? ` runjob--off` : ``}">`
-        + `<div class="runjob__t"><b>${esc(j.name)}</b><span class="runjob__cost">${esc(howLong(j.minutes))}</span></div>`
+        + `<div class="runjob__t"><b>${esc(j.name)}</b>${body.needed?.jobs?.includes(j.key) ? ` <span class="chip s-warn">the push is waiting for this</span>` : ``}<span class="runjob__cost">${esc(howLong(j.minutes))}</span></div>`
         + `<p class="runjob__b">${esc(j.blurb)}</p>`
         + (why ? `<p class="runjob__w">${esc(why)}</p>` : ``)
         + `<button type="button" class="btn runjob__go" data-job="${esc(j.key)}"${off ? ` disabled data-tip data-tiptext="${esc(j.blockedWhy)}"` : ``}>${off ? `Cannot run here` : `Run`}</button>`

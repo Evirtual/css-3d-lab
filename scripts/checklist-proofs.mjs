@@ -27,6 +27,7 @@ import { snapshotStatus } from './release-snapshot.mjs';
  * restarted: a check that had just passed read "stale", with nothing on the page to say why.
  */
 const { stepFingerprint, whatChanged, fingerprintAt } = await import(`./gate-paths.mjs${new URL(import.meta.url).search}`);
+const { rewritten } = await import(`./generate-readme.mjs${new URL(import.meta.url).search}`);
 
 export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, cache = null }) {
   const mtime = (p) => { try { return statSync(join(ROOT, p)).mtimeMs; } catch { return 0; } };
@@ -236,14 +237,6 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
   const PROOFS = [
     [/^Every file the dialog hands out is named after its model/, fromLooks('names', 'the names the dialog hands out')],
     [/^The working tree is clean/, () => atRiskList.length ? F(`${atRiskList.length} path(s) in git status, e.g. ${atRiskList.slice(0, 3).map((x) => x.path).join(', ')}`) : T('git status prints nothing')],
-    [/^The main index matches HEAD/, KEYS.index, () => exits0('diff', '--cached', '--quiet', 'HEAD') ? T('git diff --cached HEAD is empty') : F(`the main index differs from HEAD in ${git('diff', '--cached', '--name-only', 'HEAD').trim().split('\n').filter(Boolean).length} path(s)`)],
-    [/^scripts\/verify\.mjs and scripts\/check-exports\.mjs are committed/, KEYS.head, () => {
-      const tracked = git('ls-files', 'scripts/verify.mjs', 'scripts/check-exports.mjs').trim().split('\n').filter(Boolean);
-      let pkg = ''; try { pkg = git('show', 'HEAD:package.json'); } catch {}
-      const entry = /"verify"\s*:/.test(pkg);
-      return tracked.length === 2 && entry ? T('both are tracked, and HEAD:package.json has "verify"') : F(`tracked: ${tracked.join(', ') || 'neither'}; "verify" in HEAD:package.json: ${entry ? 'yes' : 'no'}`);
-    }],
-    [/^Local-only files stay local/, KEYS.index, () => { const t = git('ls-files', 'hero-options.html', 'og-preview.html', 'harness-tmp').trim(); return t ? F(`tracked: ${t.split('\n').join(', ')}`) : T('none of them is tracked'); }],
     [/^The verify gate holds/, () => N('npm run verify is hours of browser work and is written for an idle machine, so it is never run from here. Capped at C3D_MAX_BROWSERS (default 2) and one check at a time since an earlier run opened 57 browsers. The same checks are recorded green per model in the ledger at this commit, which is evidence, not this proof')],
     [/^Every model is approved/, () => counts.approved === n ? T(`${n} of ${n} approved`) : F(`${counts.approved} of ${n} approved`)],
     [/^The raw check records stay out of the repo/, () => `${KEYS.index()}|${mtime('.gitignore')}|${mtime('docs/release-snapshot.json')}`, () => {
@@ -536,10 +529,47 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       const age = Math.round((Date.now() - statSync(join(ROOT, 'dist')).mtimeMs) / 60000);
       return hits.length ? F(`found in ${hits.length} file(s) of dist/ (built about ${age} min ago)`) : T(`not in dist/, which was last written about ${age} min ago (an older build proves less)`);
     }],
-    [/^The Worker in worker\/ is deployed/, () => N('needs wrangler and the network')],
-    [/^ALLOWED_ORIGINS names the live site/, () => { const t = read('worker/wrangler.jsonc'); if (t == null) return F('worker/wrangler.jsonc is missing'); const line = t.split('\n').find((l) => l.includes('ALLOWED_ORIGINS')) ?? ''; return line.includes('https://css3dlab.edgarasneverdauskas.com') ? T('worker/wrangler.jsonc names it') : F(`the ALLOWED_ORIGINS line is: ${line.trim() || '(none)'}`); }],
+    /*
+     * Asked of Cloudflare by scripts/check-remote.mjs and read back here. It was "needs wrangler
+     * and the network", so it stood on a tick and a note a person re-dated by hand.
+     *
+     * The answer is held to what has happened SINCE it was asked, which costs nothing to check:
+     * if the Worker's code has a commit newer than the deployment that was found, or has changes
+     * that are not committed, the recorded yes is about code that is no longer here.
+     */
+    [/^The Worker in worker\/ is deployed/, KEYS.head, () => {
+      const base = fromRemote('workerDeployed', 'the Worker deployment')();
+      const r = remote?.checks?.workerDeployed;
+      if (base.result !== 'true' || !r?.deployedAt) return base;
+      const paths = ['server/render.mjs', 'worker'];
+      const dirty = git('status', '--porcelain', '--', ...paths).split('\n').filter(Boolean);
+      if (dirty.length) return F(`${dirty.length} file(s) of the Worker are changed and not committed (${dirty[0].slice(3)}), so what is deployed cannot be this code`);
+      const [when, hash] = git('log', '-1', '--format=%cI%x1f%h', '--', ...paths).trim().split('\x1f');
+      if (Date.parse(when) > Date.parse(r.deployedAt)) return F(`its code changed in ${hash} at ${new Date(when).toISOString().slice(0, 16).replace('T', ' ')}Z, after the deployment that was found (${r.deployedAt.slice(0, 16).replace('T', ' ')}Z): deploy it, then ask again`);
+      return base;
+    }],
     [/^VITE_CAPTURE_URL is passed to the Pages build/, () => { const t = read('.github/workflows/deploy.yml'); if (t == null) return F('.github/workflows/deploy.yml is missing'); const lines = t.split('\n').map((l, i) => [i + 1, l]).filter(([, l]) => l.includes('VITE_CAPTURE_URL')); return lines.length ? T(`deploy.yml mentions it on line ${lines.map(([i]) => i).join(', ')} (that it is in the build step's env is read by eye)`) : F('deploy.yml never mentions VITE_CAPTURE_URL'); }],
-    [/^A local production build with the variable carries the endpoint/, () => N('needs a production build and the Worker URL: slow')],
+    /*
+     * The other half of "the dev fallback address is not in the production bundle", read from the
+     * same place: the build that is on disk. It was "needs a production build: slow", so a person
+     * built one by hand into a scratch folder and wrote down what they found. But the gate builds
+     * with the endpoint before every step that reads dist/, so the build to look at is already
+     * there, and looking is a search.
+     *
+     * Which endpoint: the one the last networked check used (the repository's variable, or the
+     * Worker this project deploys). A build made without it carries no endpoint and fails here,
+     * which is the fault this line exists to catch.
+     */
+    [/^A local production build with the variable carries the endpoint/, KEYS.dist, () => {
+      if (!existsSync(join(ROOT, 'dist', 'assets'))) return F('there is no dist/assets to search: build first');
+      const url = remote?.worker ?? 'https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture';
+      let host; try { host = new URL(url).host; } catch { return N(`the endpoint on record is not an address: ${url}`); }
+      const hits = walk(join(ROOT, 'dist', 'assets')).filter((f) => f.endsWith('.js')).filter((f) => { try { return readFileSync(f, 'utf8').includes(host); } catch { return false; } });
+      const age = Math.round((Date.now() - statSync(join(ROOT, 'dist')).mtimeMs) / 60000);
+      return hits.length
+        ? T(`${host} is in ${hits.length} file(s) of dist/assets, which was last written about ${age} min ago (an older build proves less)`)
+        : F(`${host} is in no file of dist/assets (built about ${age} min ago): that build was made without VITE_CAPTURE_URL, and its exports would say "not configured yet"`);
+    }],
     [/^The README's counts are the code's/, () => {
       const cats = { css: 0, js: 0 };
       for (const f of walk(join(ROOT, 'src/models'))) { if (!f.endsWith('.ts')) continue; for (const m of (readFileSync(f, 'utf8').match(/category: '([a-z]*)'/g) ?? [])) { const k = m.slice(11, -1); cats[k] = (cats[k] ?? 0) + 1; } }
@@ -549,12 +579,21 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       return ok ? T(`${n} models, ${cats.css} css and ${cats.js} js, and the README has 135, 93 and 42`) : F(`the code has ${n} models, ${cats.css} css, ${cats.js} js; the README has 135: ${says(135)}, 93: ${says(93)}, 42: ${says(42)}`);
     }],
     [/^Every npm script points at a file that exists/, () => { let s = {}; try { s = JSON.parse(read('package.json')).scripts ?? {}; } catch {} const missing = Object.entries(s).map(([k, v]) => [k, (String(v).match(/node (\S+)/) ?? [])[1]]).filter(([, f]) => f && !existsSync(join(ROOT, f))); return missing.length ? F(`missing: ${missing.map(([k, f]) => `${k} → ${f}`).join(', ')}`) : T(`all ${Object.keys(s).length} scripts' files exist`); }],
+    /*
+     * The list is written from the scripts by scripts/generate-readme.mjs, so this no longer asks
+     * whether each name appears somewhere in the README -- a table kept by hand could pass that
+     * while describing a script wrongly, and on 2026-09-29 one did. It asks the exact question:
+     * is the list in the README the list the scripts produce now.
+     */
     [/^The README lists every npm script and every check that is committed/, KEYS.readme, () => {
-      const readme = read('README.md') ?? '';
-      let s = {}; try { s = JSON.parse(read('package.json')).scripts ?? {}; } catch {}
-      const tracked = git('ls-files', 'scripts').trim().split('\n').filter((f) => /^scripts\/[^/]+\.mjs$/.test(f)).map((f) => f.slice(8));
-      const absent = [...Object.keys(s), ...tracked].filter((x) => !readme.includes(x));
-      return absent.length ? F(`not in README.md: ${absent.join(', ')}`) : T(`all ${Object.keys(s).length} scripts and ${tracked.length} committed scripts/*.mjs are named`);
+      const was = read('README.md');
+      if (was == null) return F('README.md is missing');
+      const now = rewritten(was);
+      if (now === null) return F('README.md has no "<!-- scripts:start" and "<!-- scripts:end -->" lines, so the list cannot be written into it');
+      const rows = (now.match(/^\| (`|imported)/gm) ?? []).length;
+      return now === was
+        ? T(`the list in README.md is the one the scripts produce: ${rows} rows, each from the comment at the top of its file`)
+        : F('the list in README.md is not the one the scripts produce now: the board rewrites it while it runs, or npm run readme does; then commit README.md');
     }],
     [/^Every script under scripts\/ and server\/ says what it does/, () => {
       const files = ['scripts', 'server'].flatMap((d) => { try { return readdirSync(join(ROOT, d)).filter((f) => f.endsWith('.mjs')).map((f) => `${d}/${f}`); } catch { return []; } });

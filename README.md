@@ -139,7 +139,7 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | `node scripts/check-exports.mjs` | `scripts/check-exports.mjs` | Does the export dialog make what it says, and what the canvas shows? |
 | `node scripts/check-motion.mjs` | `scripts/check-motion.mjs` | Watches every model MOVE, not just where it ends up. check-models.mjs measures size and position; this films each model through its animation and through its hover or interaction, and looks for frames that draw wrong on the way. |
 | `node scripts/check-perf.mjs` | `scripts/check-perf.mjs` | What a model costs to run: how much it draws, how long its frames take, how fast it answers the pointer, and whether playing with it over and over makes it grow. |
-| `node scripts/check-remote.mjs` | `scripts/check-remote.mjs` | The three release-checklist lines that need a network, asked and written down. |
+| `node scripts/check-remote.mjs` | `scripts/check-remote.mjs` | The release-checklist lines that need a network, asked and written down: whether the remote has anything main lacks, whether the Worker answers the site and refuses a stranger, whether the build variable is set, and whether the Worker was deployed after its code last changed. |
 | `node scripts/check-signoff.mjs` | `scripts/check-signoff.mjs` | The deploy, refused unless the person publishing said to push THIS commit. |
 | `node scripts/check-stages.mjs` | `scripts/check-stages.mjs` | Judges the OTHER half of docs/VIEW-CONTRACT.md: not "does the model fit the band" (that is scripts/check-models.mjs) but "is it the same model everywhere". A model is measured in vmin of its own canvas on every surface the site shows it on, and the numbers have to agree. |
 | `node scripts/checklist-proofs.mjs` | `scripts/checklist-proofs.mjs` | Runs the proofs of docs/RELEASE-CHECKLIST.md that are cheap, local and read-only, for scripts/ledger.mjs. Each item gets one of. |
@@ -305,9 +305,26 @@ so the board can say which of four things is true of its last result:
 | **failed** | it failed the last time it ran |
 | **not known** | it cannot be shown to be about this code (no fingerprint, or the rule for what it depends on was redefined) |
 
-"Not known" is deliberately not "current", which is why there are two buttons rather than one:
-**Only what is stale** takes the steps the board can show need running, and **Anything not proved
-current** takes those plus everything it cannot vouch for. They usually differ by hours.
+"Not known" is deliberately not "current", which is why there is more than one button. **What the
+push needs** is chosen when the dialog opens: the steps that close a line of the release checklist
+that is open now, and nothing else. **Only what is stale** takes the steps the board can show need
+running, and **Anything not proved current** takes those plus everything it cannot vouch for. They
+usually differ by hours.
+
+### What keeps itself up to date
+
+While `npm run board` is running, nobody has to remember any of these:
+
+| what | kept current by |
+| --- | --- |
+| the board's page, `docs/ledger.html` | built from `src/ledger/` at start and when that source changes; not committed |
+| the list of scripts in this README | written from the comment at the top of each script when one changes; commit the result |
+| each line of the release checklist | its proof, run when the ledger is built; nobody ticks the list |
+| whether a push is allowed | one verdict, written by the ledger and read by the page, `signoff` and the pre-push hook |
+| which checks a change needs | each open line names the step or job that closes it |
+
+What stays with a person: saying to push, reading a document to judge whether it is right, and
+looking at the models the motion check flags.
 
 A check that was *refused* — an HTTP 4xx or 5xx, a browser that would not start — records no verdict
 at all and leaves the previous measurement standing, because a run that could not ask has learned
