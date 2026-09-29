@@ -192,8 +192,9 @@ So a failure that is the *service refusing the request* — an HTTP 4xx or 5xx, 
 not launch, a scene that never drew — is not recorded as a verdict. Whatever was measured before
 stands, and the run says it could not ask.
 
-This is not theoretical. On 2026-09-29 the Worker answered , and because two backslashes had been eaten out of the pattern that recognises
-those refusals, the board recorded  over a good measurement and reported that the two
+This is not theoretical. On 2026-09-29 the Worker answered `HTTP 429: out of exports for today — it
+resets tomorrow`, and because two backslashes had been eaten out of the pattern that recognises
+those refusals, the board recorded `ok: false` over a good measurement and reported that the two
 renderers **disagreed** — about pixels the Worker had declined to draw. A false red costs exactly
 what a false green costs: it is the board lying about its own evidence.
 
