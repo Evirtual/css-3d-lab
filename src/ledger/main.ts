@@ -1422,36 +1422,8 @@ import { icon } from '../icons.ts';
   /* The header is not sticky and does not resize. Both were tried on 2026-09-29 and both were
      taken out: see the note beside the .hero rule in ledger.scss for what each one cost. */
 
-  /*
-   * THE MENU: opened by its button, closed by anything that means "I am done with it".
-   *
-   * Escape, a click outside, and picking something inside all close it -- the last one because
-   * every item in here opens a dialog or changes the theme, and leaving the menu hanging over the
-   * thing it just opened is the menu forgetting what it is for.
-   */
-  const moreBtn = $('more-btn');
-  const morePop = $('more-pop');
-  const setMore = (open: boolean) => {
-    if (!moreBtn || !morePop) return;
-    (morePop as any).hidden = !open;
-    moreBtn.setAttribute('aria-expanded', String(open));
-  };
-  moreBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    setMore((morePop as any).hidden);
-  });
-  morePop?.addEventListener('click', (e: any) => {
-    /* the theme button is the one thing you might press twice in a row, so it leaves the menu up */
-    if (e.target.closest('#theme')) return;
-    if (e.target.closest('button, a')) setMore(false);
-  });
-  document.addEventListener('click', (e: any) => {
-    if (!morePop || (morePop as any).hidden) return;
-    if (!morePop.contains(e.target) && !moreBtn?.contains(e.target)) setMore(false);
-  });
-  document.addEventListener('keydown', (e: any) => {
-    if (e.key === 'Escape' && morePop && !(morePop as any).hidden) { setMore(false); moreBtn?.focus(); }
-  });
+  /* There is no menu. Its controls are in the header row itself (see ledger.html), so there is
+     nothing here to open or close. */
 
   $('setup-btn')?.addEventListener('click', () => { void openSetup(); });
   $('setup-close')?.addEventListener('click', () => ($('setup-dialog') as any).close());

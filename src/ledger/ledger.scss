@@ -2354,7 +2354,7 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
      buttons and the wrong one for two: the checklist stretched to 356px on a 430px screen and read
      as a banner rather than a button. They size to their own content and wrap if they must. */
   .hero__btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
-  .hero__btns > .btn, .hero__btns > .hero__menu { width: auto; flex: 0 0 auto; }
+  .hero__btns > .btn { width: auto; flex: 0 0 auto; }
 }
 
 /* ---------- only one of the two suite slots is ever shown ----------
@@ -2424,7 +2424,6 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
    announces the label and a wide screen shows it; only the icon is added.
    ================================================================================================ */
 .nav__i { display: none; }
-.hero__menu { display: none; }
 
 /* ===============================================================================================
  * THE BOTTOM BAR IS GONE, AND THE HEADER CARRIES EVERYTHING ON A PHONE TOO.
@@ -2443,8 +2442,6 @@ td.c .cellrun.ckrun--wait { border-color: transparent; }
  * a bottom bar was -- at the top, where the rest of the page already looks.
  * =============================================================================================== */
 @media (max-width: 1000px) {
-  /* The menu is the full width of the screen here rather than a 210px card in the corner. */
-  .hero__more { left: 0; right: 0; min-width: 0; }
   /* and the page is no longer hidden under a bar that is not there */
   body { padding-bottom: 0; }
 }
@@ -3439,38 +3436,19 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
    wrong. The panel rule near the top of this file is the whole of its styling. */
 
 
-/* ---- the menu ---- */
-.hero__menu { position: relative; display: inline-flex; }
-.hero__more {
-  position: absolute; right: 0; top: calc(100% + 8px); z-index: 50;
-  display: flex; flex-direction: column; gap: 4px; min-width: 210px; padding: 8px;
-  border: 1px solid var(--glass-edge); border-radius: 14px;
-  background: var(--glass); backdrop-filter: blur(26px) saturate(1.6);
-  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.65);
+/* ---- no menu: the controls it held are in the row ----
+   Docs is the one that leaves the page, so it is a link and looks like one: underlined, no pill.
+   A pill beside the pills that open dialogs said it was one of them. It has the height of the
+   buttons around it so the row keeps one centre line. */
+.hero__link {
+  display: inline-flex; align-items: center; height: 30px; padding: 0 4px;
+  font-size: 12px; font-weight: 600; color: var(--text);
+  text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--text) 45%, transparent);
 }
-.hero__more[hidden] { display: none; }
-/* Inside the menu every control is a full-width row with its words showing: there is room here,
-   which is the whole reason they were moved out of a cramped row. */
-.hero__more .btn, .hero__more .notesbtn {
-  width: 100%; justify-content: flex-start; height: auto; padding: 7px 10px;
-  border-color: transparent; background: none; font-size: 13px;
-}
-.hero__more .btn:hover, .hero__more .notesbtn:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-.hero__more .btn--icon { width: 100%; height: auto; border-radius: 10px; }
-/* the icon-only buttons get their words back in here */
-.hero__more .btn--icon .nav__t {
-  position: static; width: auto; height: auto; margin: 0;
-  clip-path: none; overflow: visible; white-space: nowrap;
-}
-.hero__more .notes-anchor { display: block; width: 100%; }
-.hero__more .notes-pop { right: 0; left: auto; }
-
-
-/* The menu floats over the table, and --glass at 72% let the model rows read straight through the
-   words. Not solid though: the glass is the point, and a panel that suddenly goes opaque looks
-   like a different app. 92% keeps the blur visible behind it and the text legible in front --
-   enough transparency to still be glass, not enough to compete with what it is covering. */
-.hero__more { background: color-mix(in srgb, var(--surface-solid) 92%, transparent); }
+.hero__link:hover { color: var(--accent); text-decoration-color: currentColor; }
+/* the notes list opens under its button and must not run off the right edge of the panel */
+.hero__btns .notes-pop { right: 0; left: auto; }
 
 /* THE TITLE SITS ON THE SAME CENTRE LINE AS THE CONTROLS.
    .hero .top is align-items: center, but h1 carries the document's default block margins, and a
@@ -3527,12 +3505,6 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 /* A phone-only "controls on their own row, at the start" rule stood here briefly. Gone: the
    phone gets the desktop row -- title left, controls right, one line. */
 
-/* The one concession to width, and it is not a layout: "Run... gate, checks, jobs" is 140px, and
-   with the title and the other two controls the row needs about 340px. A 390px phone has 316.
-   The three small words go there; the button, its glyph and its place do not move. */
-@media (max-width: 620px) {
-  #run-btn small { display: none; }
-}
 
 /* THE DOTTED CANVAS BACKGROUND, MADE DETERMINISTIC.
    .hero::before paints the dots at z-index: -1. A negative z-index child paints inside the nearest

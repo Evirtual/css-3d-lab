@@ -1281,31 +1281,6 @@ function icon(name) {
 		}
 		paintNavIcons();
 	}
-	const moreBtn = $("more-btn");
-	const morePop = $("more-pop");
-	const setMore = (open) => {
-		if (!moreBtn || !morePop) return;
-		morePop.hidden = !open;
-		moreBtn.setAttribute("aria-expanded", String(open));
-	};
-	moreBtn?.addEventListener("click", (e) => {
-		e.stopPropagation();
-		setMore(morePop.hidden);
-	});
-	morePop?.addEventListener("click", (e) => {
-		if (e.target.closest("#theme")) return;
-		if (e.target.closest("button, a")) setMore(false);
-	});
-	document.addEventListener("click", (e) => {
-		if (!morePop || morePop.hidden) return;
-		if (!morePop.contains(e.target) && !moreBtn?.contains(e.target)) setMore(false);
-	});
-	document.addEventListener("keydown", (e) => {
-		if (e.key === "Escape" && morePop && !morePop.hidden) {
-			setMore(false);
-			moreBtn?.focus();
-		}
-	});
 	$("setup-btn")?.addEventListener("click", () => {
 		openSetup();
 	});

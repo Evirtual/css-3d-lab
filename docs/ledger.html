@@ -461,8 +461,8 @@
   .step__sub { grid-column: 1; }
 }
 </style>
-  <script type="module" crossorigin src="./assets/ledger-DpPfen5I.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/ledger-BqeidWor.css">
+  <script type="module" crossorigin src="./assets/ledger-DL3c4oVa.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/ledger-pcjVNZ82.css">
 </head>
 <body>
 <main>
@@ -483,38 +483,35 @@
         <!-- Every process this project has, offered here rather than only in a terminal. A board
              that can show you a red line and not let you answer it sends you somewhere else to
              work, which is how everything ended up going through somebody who knew the commands. -->
-        <!-- "Run..." did not say what was behind it. The gate's eighteen step checkboxes are the first
-           thing in this dialog, and on 2026-09-29 the person who asked for them looked at the board and
-           reported there were no gate toggles anywhere. They were one click away under a word that
-           could have meant anything. A menu button that hides its own contents is a menu nobody opens,
-           so it names them. -->
-            <button class="btn" id="run-btn" type="button" aria-haspopup="dialog" data-nav="play" data-tip data-tiptext="The gate step by step with its cost added up, every check, and every job -- all of them startable here rather than from a terminal.">Run… <small>gate, checks, jobs</small></button>
+        <!-- The pill says Run and nothing else. It carried "gate, checks, jobs" after it for a day,
+             to say what was behind the word; with the menu gone the row has six things in it and
+             three small words in one pill were the widest thing there. What is behind it is in its
+             tooltip and is the first thing the dialog shows. -->
+            <button class="btn" id="run-btn" type="button" aria-haspopup="dialog" data-nav="play" data-tip data-tiptext="The gate step by step with its cost added up, every check, and every job -- all of them startable here rather than from a terminal.">Run</button>
         <!--
-          EVERYTHING YOU SET ONCE, BEHIND ONE BUTTON.
+          OUT OF THE MENU, INTO THE ROW.
 
-          Two controls are pressed while working: the checklist number, and Run. The other six are
-          read once (Start here, Docs, how the counting works), set once (theme), or only have
-          anything to say occasionally (notes, what is holding models back). They took permanent
-          space in the row on every screen, which is why the header needed two lines and why the
-          phone needed a bar of its own at the bottom.
+          These sat behind a "More" button for a day, to get the header onto one line. It did that,
+          and it hid Start here -- the first thing a person who has just cloned this needs -- one
+          click deep under three horizontal lines, on the one visit where they do not yet know
+          there is anything to look for. Edgaras, on a fresh clone, 2026-09-29: the things in the
+          dropdown have to come out.
 
-          They are the same six buttons with the same ids and the same handlers. Only where they
-          sit has moved, so nothing that talks to them has to know.
+          So there is no menu. What keeps the row short is that the read-once controls are icons:
+          Start here, how the counting works, the theme. Docs is a link and looks like one. Notes
+          and what is holding models back still only appear when they have something to say.
+
+          Same ids, same handlers, on a phone and on a desktop.
         -->
-        <div class="hero__menu">
-          <button class="btn btn--icon" id="more-btn" type="button" data-nav="menu" aria-expanded="false" aria-controls="more-pop" aria-label="More: help, notes and settings" data-tip data-tiptext="Start here, the docs, how these are counted, notes, and the theme.">More</button>
-          <div class="hero__more" id="more-pop" hidden>
-                <button class="btn" id="setup-btn" type="button" aria-haspopup="dialog" data-nav="hand" hidden>Start here</button>
-                <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" data-nav="alert" hidden>What’s holding models back</button>
-        <a class="btn" href="index.html" data-nav="book">Docs</a>
-        <button type="button" class="btn btn--icon" id="rules-btn" aria-haspopup="dialog" data-nav="help" aria-label="How these are counted" data-tip data-tiptext="How every count on this page is worked out: what a tick means, what a column counts, and what it leaves out.">How these are counted</button>
+        <button class="btn btn--icon" id="setup-btn" type="button" aria-haspopup="dialog" data-nav="play" aria-label="Start here" data-tip data-tiptext="Start here: can this machine run the checks, and what is this page. A six-stop tour of it." hidden>Start here</button>
+        <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" data-nav="alert" hidden>What’s holding models back</button>
         <span class="notes-anchor">
           <button type="button" id="notes-btn" class="notesbtn" data-nav="note" aria-expanded="false" aria-controls="notes-pop" data-tip data-tiptext="Things the ledger could not work out while it built this page: a file it could not read, a run whose process had gone, an instrument that failed. Click to read them."><b>0</b> note</button>
           <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
         </span>
+        <a class="hero__link" href="index.html">Docs</a>
+        <button type="button" class="btn btn--icon" id="rules-btn" aria-haspopup="dialog" data-nav="help" aria-label="How these are counted" data-tip data-tiptext="How every count on this page is worked out: what a tick means, what a column counts, and what it leaves out.">How these are counted</button>
         <button class="btn btn--icon" id="theme" type="button" data-nav="sun">Theme: auto</button>
-          </div>
-        </div>
         <!-- The way out of this page. A ledger explains what has been proved; it does not explain
              what any of it is for, how to run a check, or what to do first after cloning. That is
              docs/index.html, and it links back here. -->
