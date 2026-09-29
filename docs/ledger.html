@@ -7,7 +7,7 @@
      data. noindex anyway, for the day somebody serves the folder — the same line docs/index.html
      has carried since it was written. -->
 <meta name="robots" content="noindex">
-<link rel="icon" type="image/svg+xml" href="./assets/ledger-CGaacPnp.svg">
+<link rel="icon" type="image/svg+xml" href="./assets/ledger-53SenEfo.svg">
 <title>Ledger</title>
 <script>
 /* Served by the Vite dev server, this page gets Vite's client, which reloads EVERY open page when
@@ -35,7 +35,7 @@
   for (const k of ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED']) Guarded[k] = WS[k];
   window.WebSocket = Guarded;
 })();
-</script>
+</script>
 <style id="ledger-ocean" media="not all">
 /* ---------- the sea under three skies, kept whole and switched off ----------
    This is the strip as commit e196e17 left it, every line of it, behind media="not all" so the browser
@@ -461,8 +461,8 @@
   .step__sub { grid-column: 1; }
 }
 </style>
-  <script type="module" crossorigin src="./assets/ledger-D117fEkS.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/ledger-BteuRXjT.css">
+  <script type="module" crossorigin src="./assets/ledger-C7homafx.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/ledger-ZBzvXX-c.css">
 </head>
 <body>
 <main>
@@ -479,8 +479,6 @@
              run any of it, and what am I looking at. It is `hidden` like blk-btn above, on the same rule:
              a button that has nothing to say does not take a place in the row. It appears when no doctor
              has run, when the doctor found something, or until the tour has been taken once. -->
-                <button class="btn" id="setup-btn" type="button" aria-haspopup="dialog" data-nav="hand" hidden>Start here</button>
-                <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" data-nav="alert" hidden>What’s holding models back</button>
         <button class="btn" id="cl-btn" type="button" aria-haspopup="dialog" data-nav="checklist" hidden>Release checklist</button>
         <!-- Every process this project has, offered here rather than only in a terminal. A board
              that can show you a red line and not let you answer it sends you somewhere else to
@@ -491,24 +489,43 @@
            could have meant anything. A menu button that hides its own contents is a menu nobody opens,
            so it names them. -->
             <button class="btn" id="run-btn" type="button" aria-haspopup="dialog" data-nav="play" data-tip data-tiptext="The gate step by step with its cost added up, every check, and every job -- all of them startable here rather than from a terminal.">Run… <small>gate, checks, jobs</small></button>
-        <!-- The way out of this page. A ledger explains what has been proved; it does not explain
-             what any of it is for, how to run a check, or what to do first after cloning. That is
-             docs/index.html, and it links back here. -->
+        <!--
+          EVERYTHING YOU SET ONCE, BEHIND ONE BUTTON.
+
+          Two controls are pressed while working: the checklist number, and Run. The other six are
+          read once (Start here, Docs, how the counting works), set once (theme), or only have
+          anything to say occasionally (notes, what is holding models back). They took permanent
+          space in the row on every screen, which is why the header needed two lines and why the
+          phone needed a bar of its own at the bottom.
+
+          They are the same six buttons with the same ids and the same handlers. Only where they
+          sit has moved, so nothing that talks to them has to know.
+        -->
+        <div class="hero__menu">
+          <button class="btn btn--icon" id="more-btn" type="button" data-nav="menu" aria-expanded="false" aria-controls="more-pop" aria-label="More: help, notes and settings" data-tip data-tiptext="Start here, the docs, how these are counted, notes, and the theme.">More</button>
+          <div class="hero__more" id="more-pop" hidden>
+                <button class="btn" id="setup-btn" type="button" aria-haspopup="dialog" data-nav="hand" hidden>Start here</button>
+                <button class="btn" id="blk-btn" type="button" aria-haspopup="dialog" data-nav="alert" hidden>What’s holding models back</button>
         <a class="btn" href="index.html" data-nav="book">Docs</a>
-        <!-- These two were over the stage strip: a link and a badge sitting on top of the part of
-             the page that is about models, though neither is about a model. They are about the
-             page itself -- how it counts, and what it could not work out -- so they are header
-             furniture like everything else here. -->
         <button type="button" class="btn btn--icon" id="rules-btn" aria-haspopup="dialog" data-nav="help" aria-label="How these are counted" data-tip data-tiptext="How every count on this page is worked out: what a tick means, what a column counts, and what it leaves out.">How these are counted</button>
         <span class="notes-anchor">
           <button type="button" id="notes-btn" class="notesbtn" data-nav="note" aria-expanded="false" aria-controls="notes-pop" data-tip data-tiptext="Things the ledger could not work out while it built this page: a file it could not read, a run whose process had gone, an instrument that failed. Click to read them."><b>0</b> note</button>
           <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
         </span>
+        <button class="btn btn--icon" id="theme" type="button" data-nav="sun">Theme: auto</button>
+          </div>
+        </div>
+        <!-- The way out of this page. A ledger explains what has been proved; it does not explain
+             what any of it is for, how to run a check, or what to do first after cloning. That is
+             docs/index.html, and it links back here. -->
+        <!-- These two were over the stage strip: a link and a badge sitting on top of the part of
+             the page that is about models, though neither is about a model. They are about the
+             page itself -- how it counts, and what it could not work out -- so they are header
+             furniture like everything else here. -->
         <!-- LAST IN THE ROW, AFTER THE INFO CIRCLE.
              It sat between "Run..." and "Docs", which split the three buttons a person actually
              presses with the one they set once and forget. The two icon circles belong together at
              the end: help, then the setting. -->
-        <button class="btn btn--icon" id="theme" type="button" data-nav="sun">Theme: auto</button>
       </div>
     </div>
     <p class="statusline"><span class="meta" id="meta">Loading ledger.json…</span><span class="live" id="live"></span><span class="sitechk" id="sitechecks" hidden></span></p>
@@ -709,7 +726,7 @@
     <div class="cldlg__body" id="cl-body"></div>
   </div>
 </dialog>
-
+
 </body>
 </html>
 

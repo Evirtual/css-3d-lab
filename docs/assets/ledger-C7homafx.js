@@ -56,6 +56,7 @@ var PATHS = {
 	film: "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M7 3v18M17 3v18M3 7.5h4M17 7.5h4M3 12h18M3 16.5h4M17 16.5h4\"/>",
 	download: "<path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/>",
 	more: "<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/>",
+	menu: "<path d=\"M4 6h16\"/><path d=\"M4 12h16\"/><path d=\"M4 18h16\"/>",
 	hash: "<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\"/><line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\"/><line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\"/><line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\"/>",
 	x: "<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>",
 	check: "<path d=\"M20 6 9 17l-5-5\"/>",
@@ -1086,7 +1087,7 @@ function icon(name) {
 		const bar = `<span class="pg${RUN_NOW.paused ? " is-paused" : ""}">
       <span class="pg__name" data-tip data-tiptext="${esc(`${title}, over ${over}.`)}">${esc(short)}</span>
       <span class="pg__track" role="progressbar" aria-label="${esc(`${title}: ${p.done} of ${p.total ?? "?"}`)}" aria-valuemin="0" aria-valuemax="${esc(p.total ?? 0)}" aria-valuenow="${esc(p.done)}"><i style="width:${pct}%"></i></span>
-      <span class="pg__n">${esc(p.done)}/${esc(p.total ?? "?")}</span>
+      <span class="pg__end"><span class="pg__n">${esc(p.done)}/${esc(p.total ?? "?")}</span>
       <span class="pg__meta">${(() => {
 			const bits = [];
 			if (p.preparing) bits.push(`first: ${esc(String(p.preparing).replace(/^scripts\//, ""))}`);
@@ -1094,7 +1095,7 @@ function icon(name) {
 			else if (e) bits.push(`about ${fmtDur(e.left)} left`);
 			if (!p.preparing && p.last) bits.push(esc(p.last));
 			return bits.join(" · ");
-		})()}</span>
+		})()}</span></span>
       ${RUN_OK ? `<span class="pg__acts">${holdAndStop("rowrun", whole ? null : key)}</span>` : ""}
       ${ssShown ? ssToggle(ssId, ssOpened ? `Hide what ${title} is covering` : `What ${title} is covering (${nSteps} parts)`, ssOpened, true) : ""}</span>`;
 		if (!ssShown) return bar;
@@ -1114,8 +1115,8 @@ function icon(name) {
 		return `<span class="pg pg--job${over ? " pg--over" : ""}">
       <span class="pg__name" data-tip data-tiptext="${esc(`${name}: a job, not a per-model check, so there is no count to show. Started ${clock(p.startedAt)}.`)}">${esc(name)}</span>
       <span class="pg__track" role="progressbar" aria-label="${esc(name)} is running" aria-valuetext="running ${esc(fmtDur(secs))}"><i></i></span>
-      <span class="pg__n">${esc(fmtDur(secs))}</span>
-      <span class="pg__meta">${esc(est)}${over ? " · longer than usual" : ""}</span>
+      <span class="pg__end"><span class="pg__n">${esc(fmtDur(secs))}</span>
+      <span class="pg__meta">${esc(est)}${over ? " · longer than usual" : ""}</span></span>
       ${RUN_OK ? `<span class="pg__acts">${holdAndStop("rowrun", null)}</span>` : ""}</span>`;
 	}
 	/**
@@ -1280,6 +1281,31 @@ function icon(name) {
 		}
 		paintNavIcons();
 	}
+	const moreBtn = $("more-btn");
+	const morePop = $("more-pop");
+	const setMore = (open) => {
+		if (!moreBtn || !morePop) return;
+		morePop.hidden = !open;
+		moreBtn.setAttribute("aria-expanded", String(open));
+	};
+	moreBtn?.addEventListener("click", (e) => {
+		e.stopPropagation();
+		setMore(morePop.hidden);
+	});
+	morePop?.addEventListener("click", (e) => {
+		if (e.target.closest("#theme")) return;
+		if (e.target.closest("button, a")) setMore(false);
+	});
+	document.addEventListener("click", (e) => {
+		if (!morePop || morePop.hidden) return;
+		if (!morePop.contains(e.target) && !moreBtn?.contains(e.target)) setMore(false);
+	});
+	document.addEventListener("keydown", (e) => {
+		if (e.key === "Escape" && morePop && !morePop.hidden) {
+			setMore(false);
+			moreBtn?.focus();
+		}
+	});
 	$("setup-btn")?.addEventListener("click", () => {
 		openSetup();
 	});
@@ -2636,8 +2662,10 @@ function icon(name) {
 			const stuck = cl.items.filter((x) => !clDone(x));
 			const staleN = stuck.filter((x) => x.state === "stale").length;
 			const badN = stuck.filter((x) => x.state === "conflict" || x.result === "false").length;
-			const bits = [staleN ? `${staleN} to run again` : "", badN ? `<b data-cl-jump="attention" title="Show just these">${badN} need${badN === 1 ? "s" : ""} a look</b>` : ""].filter(Boolean);
-			return `Checklist <small>${cl.total - stuck.length}/${cl.total}${bits.length ? `<span class="sep">·</span>` + bits.join(", ") : ""}</small>`;
+			const bits = [staleN ? `${staleN} to run again` : "", badN ? `${badN} need${badN === 1 ? "s" : ""} a look` : ""].filter(Boolean);
+			btn.dataset.tip = "";
+			btn.dataset.tiptext = `${cl.total - stuck.length} of ${cl.total} done` + (bits.length ? `, ${bits.join(" and ")}` : ", nothing open") + ". Click for the list, line by line, with what each one is waiting on.";
+			return `Checklist <small><span class="cl-ratio">${cl.total - stuck.length}/${cl.total}</span></small>`;
 		})() : `Release checklist <small>· ${cl.done} of ${cl.total} ticked (not evaluated: this ledger predates it)</small>`;
 		$("cl-sum").innerHTML = evald ? (() => {
 			const stuck = cl.items.filter((x) => !clDone(x));

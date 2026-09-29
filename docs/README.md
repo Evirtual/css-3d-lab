@@ -264,7 +264,31 @@ A full `npm run verify` is the gate before a push, not a thing to run while work
 See [docs/LEDGER.md](docs/LEDGER.md) — what the board is, what a fresh clone has to run before it
 shows anything, how a line is judged, when a result stops being true, and what each check costs.
 Start with `npm run doctor`: it asks every question the checks assume and says what, where and why
-when one fails.
+when one fails. The board asks it for you on a first visit, from its **Start here** panel, and a
+six-stop tour there walks the page itself.
+
+Nothing needs a terminal. **Run…** in the header offers every process this project has — the gate
+step by step, each check, each job — greys out what this machine cannot do and says why, and adds
+up what a choice of gate steps will cost before you start it.
+
+Each gate step records a fingerprint of the files it judges ([`scripts/gate-paths.mjs`](scripts/gate-paths.mjs)),
+so the board can say which of four things is true of its last result:
+
+| state | meaning |
+| --- | --- |
+| **current** | the files it judges are unchanged since it ran |
+| **stale** | those files changed — and it names the ones that moved |
+| **failed** | it failed the last time it ran |
+| **not known** | it cannot be shown to be about this code (no fingerprint, or the rule for what it depends on was redefined) |
+
+"Not known" is deliberately not "current", which is why there are two buttons rather than one:
+**Only what is stale** takes the steps the board can show need running, and **Anything not proved
+current** takes those plus everything it cannot vouch for. They usually differ by hours.
+
+A check that was *refused* — an HTTP 4xx or 5xx, a browser that would not start — records no verdict
+at all and leaves the previous measurement standing, because a run that could not ask has learned
+nothing. `check-remote` carries no fingerprint on purpose: it asks GitHub and Cloudflare, and no file
+here decides those answers.
 
 ## Add a model
 

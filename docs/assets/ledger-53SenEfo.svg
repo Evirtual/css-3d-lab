@@ -1,0 +1,16 @@
+<!-- The lab's own cube, not a mark of the ledger's own.
+     It had one for a day: a grid with one amber tick, on the reasoning that the lab and the board
+     are open at once all day and the tab strip has to say which is which. Overruled deliberately —
+     they are one thing on one domain, and the board is the lab seen from the checks rather than a
+     separate product. The tab says which by its title, which counts: "Stages 26/135 · Ledger".
+     Kept as a copy rather than a link to /icon.svg because the board is served from docs/ on its
+     own, where the site's root is not there to link to. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs>
+  <linearGradient id="t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9bfaf1"/><stop offset="1" stop-color="#2ee6d6"/></linearGradient>
+  <linearGradient id="l" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#a58cff"/><stop offset="1" stop-color="#5b3be8"/></linearGradient>
+  <linearGradient id="r" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#ff86bd"/><stop offset="1" stop-color="#d81e74"/></linearGradient>
+</defs><polygon points="48.2,376.0 256.0,256.0 463.8,376.0 256.0,496.0" fill="url(#t)" fill-opacity="0.55"/>
+    <polygon points="48.2,136.0 256.0,16.0 256.0,256.0 48.2,376.0" fill="url(#r)" fill-opacity="0.5"/>
+    <polygon points="256.0,16.0 463.8,136.0 463.8,376.0 256.0,256.0" fill="url(#l)" fill-opacity="0.5"/><polygon points="256.0,16.0 463.8,136.0 256.0,256.0 48.2,136.0" fill="url(#t)" fill-opacity="0.92" stroke="#ffffff" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/>
+    <polygon points="48.2,136.0 256.0,256.0 256.0,496.0 48.2,376.0" fill="url(#l)" fill-opacity="0.9" stroke="#ffffff" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/>
+    <polygon points="256.0,256.0 463.8,136.0 463.8,376.0 256.0,496.0" fill="url(#r)" fill-opacity="0.9" stroke="#ffffff" stroke-opacity="0.55" stroke-width="7" stroke-linejoin="round"/></svg>
