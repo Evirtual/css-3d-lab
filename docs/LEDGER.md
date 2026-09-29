@@ -1,0 +1,169 @@
+# The Ledger
+
+A board that says what has been checked, when, and whether the answer still applies.
+
+This project has 135 CSS 3D models. Nobody can look at 135 models on every surface, at every export
+setting, in both themes, after every change — so scripts do it, and the Ledger is where their
+answers live. Its one job is to never tell you something is fine when it is not, which turns out to
+be harder than checking.
+
+---
+
+## First run
+
+A fresh clone has no results in it. Check results, the generated model pages and `ledger.json` are
+deliberately **not committed** — they are outputs, they churn on every run, and a repository full of
+them would be a repository full of merge conflicts. So the board starts empty, and that is correct
+rather than broken.
+
+```bash
+npm ci                 # dependencies
+npm run generate       # writes src/generated, models/, groups/, embed/
+npm run ledger         # reads what exists and writes docs/ledger.json
+npm run board          # opens the board
+npm run doctor         # can this machine run the checks at all?
+```
+
+Run `npm run doctor` first if anything surprises you. It asks every question the checks assume —
+Node version, dependencies, a git repository, **a browser that can actually start**, the ports, the
+optional networked parts — and when one fails it says what failed, where, and why in the words of
+whatever refused. It changes nothing.
+
+Until you run a check, every model reads "not run yet" and every column is blank. The one thing a
+clone does carry is `docs/release-snapshot.json`: what the checks said at the last release, shown as
+its own labelled line so it is never mistaken for a result from today.
+
+---
+
+## What you are looking at
+
+**The columns** are the eleven checks that judge every model one at a time — box sizing, text
+contrast, keyboard access, the share image, performance, the view contract, motion, stages, exports,
+plus the whole app and its SEO. A column reads `135/135` when every model passed it.
+
+The check's key and the column's label are not always the same word: the step is run as `models` and
+the column says **Contract**; `contrast` is **Text**; `media` is **Share**. Every gate line prints
+both, so the terminal and the table agree.
+
+**Approved** is not a check. It is the column that says a person looked at the model and was happy
+with it. No script can set it.
+
+**The release checklist** is 56 lines that have to hold before a push. Each one is proved, where a
+proof is possible, by something that ran — not by somebody remembering.
+
+---
+
+## How a line is judged
+
+Every checklist line gets one of three answers, and the board treats them differently:
+
+| answer | meaning | what the board does |
+| --- | --- | --- |
+| `true` | something ran and it held | ticks the line, whatever the file says |
+| `false` | something ran and it did not hold | unticks it, whatever the file says |
+| `not evaluated` | nothing could answer it from here | leaves the tick exactly as it was |
+
+That third one matters. A proof that **cannot run** is not the same as a proof that **failed**, and
+treating them alike either deletes real verifications or invents ones that never happened. When a
+line says "not evaluated" it also says what would answer it, and usually the command.
+
+Two lines are deliberately a person's: whether the writing is ready, and the decision to publish.
+`npm run signoff` records those with the date, the commit and the name git is configured with.
+
+---
+
+## When a result stops being true
+
+A result is not a fact about the project. It is a fact about **the code it judged**, on **the day it
+ran**. So every result records a fingerprint: a hash of the files whose contents decide its answer.
+Later, the board recomputes that hash. Same hash, the answer still stands. Different hash, something
+it judged has changed and the line says so:
+
+```
+compare-capture passed at 852904e, but 50 file(s) it depends on
+have changed since (e644270 → 71b0c19): run it again
+```
+
+`scripts/fingerprint.mjs` holds the render paths for the per-model checks; `scripts/gate-paths.mjs`
+holds them for the gate's steps. The point of naming files rather than watching commits is that a
+commit is a fact about the repository, not about the check. Editing this file is a commit; no check
+reads it. Before fingerprints, a typo in the README retired a four-hour run and six checklist lines
+with it.
+
+Results also record **which browser** produced them, for the same reason. Several checks are
+calibrated against a measured number, and a number measured on one browser cannot be compared with
+one measured on another.
+
+---
+
+## Running the checks
+
+**From the board.** Each check has a run button, per model or for all of them. The board owns the
+runs, so what you start there reports back in place.
+
+**The gate**, which is everything:
+
+```bash
+npm run verify                             # 18 steps, about four hours on an idle machine
+npm run verify -- --step qa,snippets       # just those, merged into the record
+npm run verify -- --fast                   # the cheap ones
+npm run verify -- cube dice                # only these models
+```
+
+A partial run updates the steps it ran and leaves the rest of the record exactly as it was, because
+each step's result stands on its own fingerprint. Seventeen minutes to refresh five steps, rather
+than four and a half hours to refresh one.
+
+**What each step costs**, roughly, on an idle machine: `exports` 70 min, `stages` 55, `motion` 40,
+`perf` and `models` 15 each, `access` and `media` 10, `boxsizing` 8, `contrast` 5, `compare` 5,
+`snippets` 4, `qa` 2, `looks` 1.5, and `remote`, `preview`, `parity`, `app`, `seo` in seconds.
+
+Three steps are 80% of the four hours. If you are waiting, you are waiting for `exports`.
+
+---
+
+## The parts that need something outside this machine
+
+| what | needs | if it is missing |
+| --- | --- | --- |
+| `check-remote` | the network, `gh` | three checklist lines say so |
+| `check-parity -- --render` | the deployed Worker's daily export budget | it answers `429` and says it resets tomorrow (00:00 UTC) |
+| the Worker's deployment date | `wrangler` signed in | one line says so |
+| `check-live` | a deploy to have happened | the four "after the push" lines |
+
+None of them block anything else, and each says which one it is rather than failing vaguely.
+
+---
+
+## Why the machine gets loud
+
+The browser-driven checks render with SwiftShader — software rendering, no GPU. That is deliberate:
+these checks compare pixels, and a real GPU draws differently on different machines, so your laptop,
+CI and the Cloudflare Worker would each produce slightly different pictures and every comparison
+would drift. Determinism is bought with CPU, and one headless browser will use most of the cores it
+can reach for hours.
+
+`C3D_MAX_BROWSERS` (default 2) caps how many run at once.
+
+---
+
+## If something looks wrong
+
+Run `npm run doctor` first. Then, in order of how often it is the answer:
+
+**A check failed but nothing is broken.** Look at what it measured, not just the verdict. A stopwatch
+held by a busy machine measures the machine: `check-perf` reads frame times, and a model that
+measures 25 ms on an idle laptop can measure 42 ms while a gate is running. The board records free
+memory per step so you can see it.
+
+**A browser will not start.** On Windows, Smart App Control blocks unsigned binaries and Playwright's
+Chromium is unsigned. `browser.mjs` falls back to a signed browser the machine already trusts — Brave,
+Chrome or Edge — and says so. `C3D_BROWSER` chooses one by name or by path.
+
+**A service is answering with old code.** Anything on `127.0.0.1:8787` is reused as it stands, and a
+service left running from last week renders with last week's code. The checks say which service they
+used for exactly this reason. `npm run now` lists what is listening.
+
+**The board looks quiet while something is running.** It is not. A gate run reports itself as a chip
+in the header, with the step it is on, because the steps that record nothing per model change nothing
+for the board to read.

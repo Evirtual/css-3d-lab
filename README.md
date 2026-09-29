@@ -253,6 +253,13 @@ What you will see on a fresh clone:
 A full `npm run verify` is the gate before a push, not a thing to run while working: see the
 `verify` row above, and run it on an idle machine.
 
+## The Ledger
+
+See [docs/LEDGER.md](docs/LEDGER.md) — what the board is, what a fresh clone has to run before it
+shows anything, how a line is judged, when a result stops being true, and what each check costs.
+Start with `npm run doctor`: it asks every question the checks assume and says what, where and why
+when one fails.
+
 ## Add a model
 
 See [docs/ADDING-MODELS.md](docs/ADDING-MODELS.md) — the snippet is the model, written to
