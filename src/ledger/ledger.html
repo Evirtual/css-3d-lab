@@ -490,7 +490,6 @@
            could have meant anything. A menu button that hides its own contents is a menu nobody opens,
            so it names them. -->
             <button class="btn" id="run-btn" type="button" aria-haspopup="dialog" data-nav="play" data-tip data-tiptext="The gate step by step with its cost added up, every check, and every job -- all of them startable here rather than from a terminal.">Run… <small>gate, checks, jobs</small></button>
-        <button class="btn btn--icon" id="theme" type="button" data-nav="sun">Theme: auto</button>
         <!-- The way out of this page. A ledger explains what has been proved; it does not explain
              what any of it is for, how to run a check, or what to do first after cloning. That is
              docs/index.html, and it links back here. -->
@@ -504,6 +503,11 @@
           <button type="button" id="notes-btn" class="notesbtn" data-nav="note" aria-expanded="false" aria-controls="notes-pop" data-tip data-tiptext="Things the ledger could not work out while it built this page: a file it could not read, a run whose process had gone, an instrument that failed. Click to read them."><b>0</b> note</button>
           <div id="notes-pop" class="notes-pop" role="dialog" aria-label="Notes" hidden></div>
         </span>
+        <!-- LAST IN THE ROW, AFTER THE INFO CIRCLE.
+             It sat between "Run..." and "Docs", which split the three buttons a person actually
+             presses with the one they set once and forget. The two icon circles belong together at
+             the end: help, then the setting. -->
+        <button class="btn btn--icon" id="theme" type="button" data-nav="sun">Theme: auto</button>
       </div>
     </div>
     <p class="statusline"><span class="meta" id="meta">Loading ledger.json…</span><span class="live" id="live"></span><span class="sitechk" id="sitechecks" hidden></span></p>

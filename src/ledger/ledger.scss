@@ -3329,3 +3329,50 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
   .hero__btns .btn--icon { width: auto; height: auto; border-radius: 999px; }
   .btn--icon .nav__t { position: static; width: auto; height: auto; margin: 0; clip-path: none; overflow: visible; }
 }
+
+/* The name of whatever is holding the memory, inside the machine chip. Warm, not
+   red: it is not a failure, it is the reason the estimate on a running job is
+   wrong — and the one thing on this line a person can act on directly. */
+.statusline .hog { color: var(--warm); }
+
+
+/* ---------------------------------------------------------------------------
+ * THE CHECKLIST CHIP HAD TWO NUMBERS TOUCHING.
+ *
+ * It read "45/56-10 need a look": a ratio, a separator with no air around it,
+ * and a count in a different colour, all at 10px inside a 30px pill. Three
+ * facts crushed into one word.
+ *
+ * They are separated now -- the ratio in the button's own type, the warning as
+ * a small block with its own background, and real space between them. Nothing
+ * is removed; it is the same sentence with room to be read.
+ * ------------------------------------------------------------------------- */
+.hero__btns #cl-btn { gap: 8px; padding-right: 5px; }
+.hero__btns #cl-btn small { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; opacity: 1; }
+.hero__btns #cl-btn small .sep { display: none; }   /* the gap does this job, with air on both sides */
+.hero__btns #cl-btn small b {
+  padding: 2px 7px; border-radius: 999px; font-size: 11px;
+  background: color-mix(in srgb, var(--st-bad) 22%, transparent);
+  color: color-mix(in srgb, var(--st-bad) 72%, var(--text));
+}
+
+
+/* A job's bar has nothing to fill, so its track travels instead: the animation is
+   the aliveness signal that a 0% bar could not give. Reduced motion gets a steady
+   tinted track -- still visibly different from an empty one. */
+.pg__track--idle { position: relative; overflow: hidden; }
+.pg__track--idle > i { position: absolute; inset: 0 auto 0 0; width: 34%; border-radius: inherit; animation: pgidle 1.7s ease-in-out infinite; }
+@keyframes pgidle { 0% { left: -36%; } 100% { left: 102%; } }
+@media (prefers-reduced-motion: reduce) {
+  .pg__track--idle > i { animation: none; left: 0; width: 100%; opacity: 0.35; }
+}
+.pg--over .pg__meta { color: var(--warm); }
+
+/* Each gate step says whether its recorded result is still about the code on
+   disk. "current" is the quiet one: it is the only state that means there is
+   nothing to do, so it is the only one that does not ask for attention. */
+.gstep__s { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; padding: 1px 6px; border-radius: 999px; white-space: nowrap; cursor: help; }
+.gstep--current .gstep__s { color: var(--muted); background: transparent; }
+.gstep--stale .gstep__s { color: var(--warm); background: color-mix(in srgb, var(--warm) 15%, transparent); }
+.gstep--failed .gstep__s { color: var(--st-bad); background: color-mix(in srgb, var(--st-bad) 16%, transparent); }
+.gstep--unknown .gstep__s { color: var(--muted); background: color-mix(in srgb, var(--muted) 14%, transparent); }

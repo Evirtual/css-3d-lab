@@ -1093,7 +1093,18 @@ import { icon } from '../icons.ts';
       if (already.has(what)) continue;
       already.add(what);
       const h = homeOf((idsRaw ?? '').split(',').filter(Boolean), what);
-      const bar = [what, null];
+      /*
+       * A JOB GETS ITS START TIME AND ITS ESTIMATE, not a null.
+       *
+       * null here means "spawned, nothing reported yet", which startingBar draws as "starting...".
+       * For a check that lasts a second or two that is honest. For a job it never stopped being
+       * true, because no job writes per-model progress -- so the gate, the live check and the
+       * export matrix all sat on "starting..." for their whole run.
+       */
+      const r0 = RUN_NOW.runs.find((r) => r.what === what);
+      const bar = [what, String(what).startsWith('job:') && r0?.startedAt
+        ? { job: true, startedAt: r0.startedAt, estMin: r0.estMin ?? null, done: 0, total: 0 }
+        : null];
       if (h.kind === 'model') add(BARS.model, h.id, bar);
       else if (h.kind === 'group') add(BARS.group, h.key, bar);
       else if (h.kind === 'site') BARS.site.push(bar);
@@ -1116,6 +1127,16 @@ import { icon } from '../icons.ts';
    */
   function runBar(key, p, over) {
     if (!p) return startingBar(key);
+    /*
+     * A JOB HAS NO PERCENTAGE, so it is not given a fake one.
+     *
+     * Everything below this line divides done by total. A job reports neither, and drawing an
+     * empty track under a "0/?" is how a working run comes to look like a stuck one. What IS known
+     * is when it started and roughly what it usually costs, so that is what it says -- with the
+     * estimate named as an estimate, because it is one, and it is often wrong when the machine is
+     * busy.
+     */
+    if ((p as any).job) return jobBar(key, p as any);
     const c = CHECK_LIST.find((x) => x.key === key);
     // 'all' is not a check and has no entry in the registry, so it had no name of its own and the
     // bar introduced itself as "all".
@@ -1174,6 +1195,25 @@ import { icon } from '../icons.ts';
       ${ssShown ? ssToggle(ssId, ssOpened ? `Hide what ${title} is covering` : `What ${title} is covering (${nSteps} parts)`, ssOpened, true) : ''}</span>`;
     if (!ssShown) return bar;
     return `<span class="pgbox">${bar}${ssOpened ? ssPanel(c, ssId, p) : ''}</span>`;
+  }
+
+  /**
+   * A running job: elapsed, against what it usually costs.
+   *
+   * No track fills, because nothing measured says how far along it is. The pulse says it is alive
+   * -- which is the one thing the old "starting..." bar failed to say after its first second.
+   */
+  function jobBar(key, p) {
+    const name = String(key).slice(4).replace(/-/g, ' ');
+    const secs = Math.max(0, (Date.now() - new Date(p.startedAt).getTime()) / 1000);
+    const est = p.estMin ? `of about ${p.estMin} min` : 'no estimate recorded for this job';
+    const over = p.estMin && secs > p.estMin * 60 * 1.5;
+    return `<span class="pg pg--job${over ? ' pg--over' : ''}">
+      <span class="pg__name" data-tip data-tiptext="${esc(`${name}: a job, not a per-model check, so there is no count to show. Started ${clock(p.startedAt)}.`)}">${esc(name)}</span>
+      <span class="pg__track pg__track--idle" role="progressbar" aria-label="${esc(name)} is running" aria-valuetext="running ${esc(fmtDur(secs))}"><i></i></span>
+      <span class="pg__n">${esc(fmtDur(secs))}</span>
+      <span class="pg__meta">${esc(est)}${over ? ' · longer than usual' : ''}</span>
+      ${RUN_OK ? `<span class="pg__acts">${holdAndStop('rowrun', null)}</span>` : ''}</span>`;
   }
 
   /**
@@ -1486,7 +1526,10 @@ import { icon } from '../icons.ts';
     if (pick) {
       const how = pick.dataset.pick;
       for (const i of [...document.querySelectorAll('#run-body [data-step]')] as HTMLInputElement[]) {
-        i.checked = how === 'all' ? true : how === 'none' ? false : STALE_STEPS.has(i.dataset.step ?? '');
+        i.checked = how === 'all' ? true
+          : how === 'none' ? false
+          : how === 'unproved' ? UNPROVED_STEPS.has(i.dataset.step ?? '')
+          : STALE_STEPS.has(i.dataset.step ?? '');
       }
       gateCost();
       return;
@@ -2932,7 +2975,24 @@ import { icon } from '../icons.ts';
   let JOBS_STEPS: any[] | null = null;
   /* Which steps the board already knows are stale, so "only what is stale" is the one press that
      answers the usual question: something changed, what has to run again? */
+  /* One word each, in the reader's terms rather than the record's. "current" is the only one that
+     means nothing has to be done, so it is the only quiet one. */
+  const STATE_WORD: Record<string, string> = {
+    current: 'current', stale: 'stale', failed: 'failed', unknown: 'not known',
+  };
   const STALE_STEPS = new Set<string>();
+  /*
+   * TWO SETS, BECAUSE THEY ARE TWO QUESTIONS AND TWO VERY DIFFERENT BILLS.
+   *
+   * "Stale" means the board can show the step needs running: its files moved, or it failed. That
+   * is usually a handful of steps and a few minutes. "Not proved current" also takes in every step
+   * whose result predates fingerprints -- thirteen of the eighteen today -- which cannot be shown
+   * to be about this code and cannot be shown to be out of date either. That is about four hours.
+   *
+   * Folding the second into the first would have let one button labelled "only what is stale"
+   * quietly start a four-hour run. They are separate presses, each with its own cost printed.
+   */
+  const UNPROVED_STEPS = new Set<string>();
   async function openRuns() {
     const d = $('run-dialog'); if (!d) return;
     $('run-body').innerHTML = `<p class="muted">Reading what this machine can run…</p>`;
@@ -2942,8 +3002,16 @@ import { icon } from '../icons.ts';
       const { body } = await api('/api/jobs');
       JOBS = body.jobs;
       JOBS_STEPS = body.steps ?? [];
+      /* The server works this out from the recorded fingerprints; see stepState() there for why
+         "failed" and "stale" are different questions and why "unknown" is a third answer. */
       STALE_STEPS.clear();
-      for (const st of (L as any)?.gate?.done ?? []) if (st && st.ok === false) STALE_STEPS.add(st.key);
+      UNPROVED_STEPS.clear();
+      for (const st of JOBS_STEPS ?? []) {
+        /* Known to need running: its files moved, or it failed. */
+        if (st.state === 'stale' || st.state === 'failed') STALE_STEPS.add(st.key);
+        /* Everything that is not demonstrably about today's code, which includes the above. */
+        if (st.state !== 'current') UNPROVED_STEPS.add(st.key);
+      }
       $('run-body').innerHTML = runsList(body);
       gateCost();
     } catch (e) {
@@ -2959,9 +3027,9 @@ import { icon } from '../icons.ts';
      the choice costs -- because "about 5 hours" is the single most useful thing to know before
      pressing it. */
   function gatePicker(steps: any[]): string {
-    const boxes = steps.map((x: any) => `<label class="gstep"><input type="checkbox" data-step="${esc(x.key)}" checked> <b>${esc(x.short ?? x.key)}</b><span class="gstep__n">${esc(x.name)}</span><span class="gstep__m">${esc(x.minutes)}m</span></label>`).join('');
+    const boxes = steps.map((x: any) => `<label class="gstep gstep--${esc(x.state ?? 'unknown')}"><input type="checkbox" data-step="${esc(x.key)}" checked> <b>${esc(x.short ?? x.key)}</b><span class="gstep__n">${esc(x.name)}</span><span class="gstep__s" data-tip data-tiptext="${esc(x.why ?? '')}">${esc(STATE_WORD[x.state] ?? 'not known')}</span><span class="gstep__m">${esc(x.minutes)}m</span></label>`).join('');
     return `<div class="gpick"><div class="gpick__head"><b>The gate, step by step</b>
-      <span class="gpick__acts"><button type="button" class="btn" data-pick="all">All</button><button type="button" class="btn" data-pick="none">None</button><button type="button" class="btn" data-pick="stale">Only what is stale</button></span></div>
+      <span class="gpick__acts"><button type="button" class="btn" data-pick="all">All</button><button type="button" class="btn" data-pick="none">None</button><button type="button" class="btn" data-pick="stale" data-tip data-tiptext="The steps the board can show need running: their files changed since they ran, or they failed.">Only what is stale</button><button type="button" class="btn" data-pick="unproved" data-tip data-tiptext="Those, plus every step whose result predates fingerprints -- it cannot be shown to be about the code as it is now, which is not the same as being fine.">Anything not proved current</button></span></div>
       <div class="gpick__list">` + boxes + `</div>
       <div class="gpick__foot"><span id="gpick-cost" class="muted"></span><button type="button" class="btn runjob__go" id="gpick-go">Run the chosen steps</button></div></div>`;
   }
@@ -3377,10 +3445,28 @@ import { icon } from '../icons.ts';
     if (!m) { el.innerHTML = ''; return; }
     const cpu = m.cpuPercent == null ? '' : ` · CPU ${m.cpuPercent}%`;
     const dot = m.low ? 'warn' : 'on';
+    /*
+     * UNDER THE FLOOR, NAME WHAT IS HOLDING IT.
+     *
+     * "0.4 GB free" is a number, not something a person can act on. Below the floor every model
+     * WAITS before it starts (browser-guard), so a two-minute step can take fifty-three and look
+     * broken rather than slow — and the obvious suspect is the checks, which on 2026-09-29 were
+     * innocent: all eight node processes together held 0.35 GB while a game held 3.11.
+     *
+     * The chip stays one line. The name goes in the chip; the size and what it means to the run
+     * are in the tooltip and the dialog behind it.
+     */
+    const hog = m.low && m.hog
+      ? `<span class="hog"> — ${esc(m.hog.name)} has ${esc(m.hog.gb)} GB</span>`
+      : '';
+    const tip = m.low
+      ? `Under the ${m.floorGB} GB floor, so every model waits before it starts and a run takes several times longer than its estimate.`
+        + (m.hog ? ` The largest holder is ${m.hog.name}, at ${m.hog.gb} GB. Closing it is the fastest thing that helps.` : ` The board has not identified the largest holder yet.`)
+      : 'What this machine has left — click for what it means';
     el.innerHTML = `<span class="sep">·</span>`
       + `<button type="button" class="machine linkish" data-machine`
-      + ` title="What this machine has left — click for what it means">`
-      + `<i class="dot ${dot}"></i>${m.memFreeGB} GB free${esc(cpu)}</button>`;
+      + ` title="${esc(tip)}">`
+      + `<i class="dot ${dot}"></i>${m.memFreeGB} GB free${esc(cpu)}${hog}</button>`;
   }
 
   /** The modal behind that chip: the numbers, and why running two checks at once is not free. */

@@ -46,6 +46,7 @@ import { cpus, freemem, totalmem } from 'node:os';
 import { ROOT } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
 import { JOBS, JOB, GATE_STEPS, blockedBy } from './jobs.mjs';
+import { stepFingerprint } from './gate-paths.mjs';
 import { MIN_FREE_GB, MAX_BROWSERS } from './browser-guard.mjs';
 import { runningCheck, runningChecks } from './running.mjs';
 import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
@@ -170,6 +171,43 @@ function readTemp() {
     });
 }
 
+/*
+ * WHEN MEMORY IS LOW, SAY WHAT IS HOLDING IT.
+ *
+ * "0.4 GB free" is a number you cannot act on. On 2026-09-29 a gate step budgeted at two minutes
+ * took fifty-three, because the machine had 0.39 GB free and browser-guard makes every model WAIT
+ * under the floor. The board showed the 0.4 the whole time and never said why, so the run simply
+ * looked broken -- and the first guess was that the checks themselves were the problem. They were
+ * not: every node process this project had running came to 0.35 GB between them. A game in the
+ * background was holding 3.11.
+ *
+ * So when free memory is under the floor, this names the largest holder. That is the difference
+ * between a number and something a person can do something about, and it is the same three parts
+ * the doctor uses: WHAT is slow, WHERE the memory went, WHY the run is waiting.
+ *
+ * It costs a PowerShell spawn, so it is sampled at most every 30 seconds and ONLY while low --
+ * the state endpoint is polled every few seconds and paying for this on a healthy machine would
+ * cost more than everything else on the page together, which is the rule readTemp() follows above.
+ */
+let hog = null;
+let hogAt = 0;
+let hogBusy = false;
+function biggestUser(low) {
+  if (!low) { hog = null; return; }
+  if (process.platform !== 'win32') return;
+  if (hogBusy || Date.now() - hogAt < 30000) return;
+  hogBusy = true;
+  hogAt = Date.now();
+  execFile('powershell', ['-NoProfile', '-Command',
+    "try { Get-Process | Group-Object ProcessName | ForEach-Object { '{0}|{1}' -f $_.Name, [math]::Round((($_.Group | Measure-Object WorkingSet64 -Sum).Sum/1GB),2) } | Sort-Object { [double]($_ -split '\\|')[1] } -Descending | Select-Object -First 1 } catch { '' }"],
+    { timeout: 8000, windowsHide: true }, (err, out) => {
+      hogBusy = false;
+      const [name, gb] = String(out ?? '').trim().split('|');
+      /* No answer is its own answer: a guess about where the memory went is worse than silence. */
+      hog = !err && name && Number(gb) > 0 ? { name, gb: Number(gb) } : null;
+    });
+}
+
 function machine() {
   readTemp();
   const free = freemem() / 2 ** 30, total = totalmem() / 2 ** 30;
@@ -181,6 +219,8 @@ function machine() {
     // under the floor a model WAITS before it starts (browser-guard), so this is the number that
     // decides whether a second run helps or just makes both slower
     low: free < MIN_FREE_GB,
+    /* Named only while low, and null until the first sample comes back. */
+    hog: (biggestUser(free < MIN_FREE_GB), hog),
     cpuPercent: busy == null ? null : Math.round(busy * 100),
     cores: cpus().length,
     tempC: temp.c,
@@ -193,6 +233,18 @@ function machine() {
 function state() {
   const mine = [...runs.values()].map((r) => ({
     what: r.what, label: r.label, models: r.models ?? [], startedAt: r.startedAt, pid: r.child.pid, mine: true,
+    /*
+     * WHAT THIS JOB IS EXPECTED TO COST, so its bar can say something true while it runs.
+     *
+     * A job is not a check: nothing writes per-model progress for it, so its bar had no numbers
+     * and sat on "starting..." from the first second to the last. A run that says "starting" for
+     * three minutes is a run that looks stuck, and it was read that way twice today -- once by me,
+     * about a gate step that was working.
+     *
+     * There is no honest percentage to show, so none is shown. The estimate travels instead, and
+     * the bar says elapsed against it, labelled as the estimate it is.
+     */
+    estMin: String(r.what).startsWith('job:') ? (JOB.get(String(r.what).slice(4))?.minutes ?? null) : null,
   }));
   const out = { runs: mine, paused: paused(), max: MAX_RUNS, machine: machine() };
   // A run this server did not start: checks are also started from a terminal, and capture-check
@@ -429,13 +481,51 @@ export function serve(port = 5178) {
         return json(res, 200, { known: false });
       }
     }
+/*
+ * IS THIS STEP'S RECORDED RESULT STILL ABOUT THE CODE ON DISK?
+ *
+ * "Only what is stale" in the run dialog used to read L.gate.done -- the record a gate writes
+ * WHILE IT RUNS -- and pick the steps with ok === false. Two mistakes in one button. With nothing
+ * running that list is empty, so the button selected nothing, every time; and had it found
+ * anything, failed is not stale. A step that passed and whose files then changed is exactly the
+ * one you want to run again, and it was the one case the button could never return.
+ *
+ * The fingerprints have been here since the gate learned to record them: every step names the
+ * files it judges, and stepFingerprint hashes them as they are now. So the question has a real
+ * answer, and it is asked here rather than guessed on the page.
+ *
+ * THREE STATES, NOT TWO. A step whose recorded fingerprint matches is current. One whose hash has
+ * moved is stale, and says how many files moved. One that never recorded a fingerprint -- the
+ * older steps, and anything that has never run -- is UNKNOWN, which is not the same as current and
+ * is not reported as if it were. It cannot be shown to be about today's code, so it is offered for
+ * re-running with that as its reason.
+ */
+function stepState(rec) {
+  if (!rec) return { state: 'unknown', why: 'this step has no recorded result at all' };
+  if (rec.ok === false) return { state: 'failed', why: 'it failed the last time it ran' };
+  if (!rec.fp?.hash) return { state: 'unknown', why: 'its result predates fingerprints, so it cannot be shown to be about the code as it is now' };
+  try {
+    const now = stepFingerprint(rec.key);
+    if (now.hash === rec.fp.hash) return { state: 'current', why: `the ${now.files} files it judges are unchanged since it ran` };
+    return { state: 'stale', why: `the files it judges have changed since it ran (${rec.fp.files} then, ${now.files} now)` };
+  } catch (e) {
+    /* A fingerprint that cannot be taken is not a pass. Say which, and why. */
+    return { state: 'unknown', why: `its fingerprint could not be taken now: ${String(e?.message ?? e).split('\n')[0]}` };
+  }
+}
+
     if (url.pathname === '/api/jobs') {
       let machine = null;
       try { machine = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'machine.json'), 'utf8')); } catch { /* no doctor run */ }
       const { known, blocked } = blockedBy(machine);
       return json(res, 200, {
         machineKnown: known,
-        steps: GATE_STEPS,
+        steps: (() => {
+          let rec = [];
+          try { rec = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), 'utf8')).steps ?? []; } catch { /* no gate has run */ }
+          const by = new Map(rec.map((r) => [r.key, r]));
+          return GATE_STEPS.map((g) => ({ ...g, ...stepState(by.get(g.key)) }));
+        })(),
         jobs: JOBS.map((j) => ({
           key: j.key, name: j.name, minutes: j.minutes, blurb: j.blurb, answers: j.answers,
           needs: j.needs, safe: j.safe, blockedWhy: blocked.get(j.key) ?? null,
