@@ -341,8 +341,24 @@ if (willUseDist.length && !noBuild) {
     // without a shell. Without it this threw EINVAL instantly -- "BUILD FAILED after 0m00s" --
     // so the step that exists to stop dist/ going stale did nothing at all on the machine it
     // was written on.
+    /*
+     * BUILD THE WAY THE DEPLOY DOES.
+     *
+     * The endpoint is baked in at build time, so a build without VITE_CAPTURE_URL leaves the dev
+     * fallback (127.0.0.1:8787) in the bundle. The gate built without it, which meant the line
+     * "the dev fallback address is not in the production bundle" went red after every gate run --
+     * a check that cannot stay green through normal use, which is the same shape as the build
+     * hashing its own output.
+     *
+     * The workflow reads it from a repository variable. Locally it comes from the environment if
+     * it is set, and otherwise from the Worker this project deploys, which is the same address
+     * check-worker-parity compares against. The line printed says which, because a build that
+     * silently chose an endpoint would be worse than one that did not set it at all.
+     */
+    const CAPTURE_URL = process.env.VITE_CAPTURE_URL || 'https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture';
+    console.log(`       endpoint: ${CAPTURE_URL}${process.env.VITE_CAPTURE_URL ? ' (from the environment)' : ' (the Worker this project deploys; set VITE_CAPTURE_URL to build against another)'}`);
     execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'],
-      { cwd: ROOT, stdio: 'ignore', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0' } });
+      { cwd: ROOT, stdio: 'ignore', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0', VITE_CAPTURE_URL: CAPTURE_URL } });
     builtOk = true;
     console.log(`       built in ${mins(Date.now() - at)}\n`);
   } catch (e) {
