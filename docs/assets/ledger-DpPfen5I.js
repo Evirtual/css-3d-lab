@@ -1635,8 +1635,6 @@ function icon(name) {
 			$("notes-btn").focus();
 		}
 	});
-	/** A focusable "?" whose text is also a visually hidden span it is described by. */
-	const helpIcon = (id, label, html) => `<button type="button" class="help" aria-label="${esc(label)}" aria-describedby="help-${esc(id)}" aria-expanded="false" data-help="${esc(id)}">?</button><span id="help-${esc(id)}" class="visually-hidden">${html}</span>`;
 	const tip = document.createElement("div");
 	tip.className = "tip";
 	tip.hidden = true;
@@ -1795,7 +1793,9 @@ function icon(name) {
 		const theadHtml = `<th class="model" scope="col"><span class="colh__wrap colh__wrap--model"><span class="suite" id="suite" data-suite></span><span class="colh colh--plain">Model</span></span></th><th class="st" scope="col">Status</th>${COLS.map(([k, label]) => {
 			const note = NOTES.find((n) => n.col === k);
 			const title = CHECK_NAMES[k] ?? k;
-			return `<th class="c${RUN_NOW.runs.some((r) => r.what === k) ? " is-running-col" : ""}" scope="col"><span class="colh__wrap"><button type="button" class="colh" data-def="${esc(k)}" data-tip data-tiptext="${esc(`${title}. Click for its definition.`)}" aria-label="${esc(`${title}: open its definition`)}">${esc(label)}</button>${note ? helpIcon(`col-${k}`, `About the ${label} column`, note.html) : ""}${RUN_OK ? `<span class="colh__run">${runBtn(k, [], `Run ${title} on every model`, "cellrun")}</span>` : ""}</span></th>`;
+			const going = RUN_NOW.runs.some((r) => r.what === k);
+			const why = !note ? "" : /^never:/.test(note.key) ? ` Not run on this machine yet, so every model reads “not run yet”: no run was captured, not because models failed.${RUN_OK ? " The button above runs it." : ` Capture one with npm run capture -- ${k}.`}` : ` ${note.html.replace(/<[^>]+>/g, "")}`;
+			return `<th class="c${going ? " is-running-col" : ""}" scope="col"><span class="colh__wrap"><button type="button" class="colh" data-def="${esc(k)}" data-tip data-tiptext="${esc(`${title}.${why} Click for its definition.`)}" aria-label="${esc(`${title}: open its definition`)}">${esc(label)}</button>${RUN_OK ? `<span class="colh__run">${runBtn(k, [], `Run ${title} on every model`, "cellrun")}</span>` : ""}</span></th>`;
 		}).join("")}<th class="last" scope="col">Last commit</th><th class="num ncom" scope="col">Commits</th>`;
 		if ($("thead").dataset.html !== theadHtml) {
 			$("thead").dataset.html = theadHtml;
