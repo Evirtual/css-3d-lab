@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "prepare": "node scripts/install-hooks.mjs",
     "doctor": "node scripts/doctor.mjs",
     "generate": "node scripts/generate-capture-fonts.mjs && node scripts/generate-pages.mjs",
     "media": "node scripts/generate-media.mjs",

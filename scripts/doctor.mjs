@@ -40,6 +40,15 @@ try {
   execFileSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: ROOT, stdio: 'ignore' });
   const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
   ok('git', `a repository, at ${head}`);
+  /* The push guard is a hook, and a hook is not part of a clone: it works only once this clone's
+     git has been pointed at scripts/hooks. Asked here because the alternative is finding out it
+     was never on by pushing through it. */
+  let hooks = '';
+  try { hooks = execFileSync('git', ['config', 'core.hooksPath'], { cwd: ROOT, encoding: 'utf8' }).trim(); } catch { /* unset */ }
+  if (hooks === 'scripts/hooks') ok('push guard', 'on: a push to the deployed branch is checked against the release checklist');
+  else warn('push guard', hooks ? `off: core.hooksPath is "${hooks}"` : 'off: core.hooksPath is not set',
+    'nothing on this machine stops a push while the release checklist is open. The board will say the push is shut and git will push anyway.',
+    hooks ? 'git config core.hooksPath scripts/hooks' : 'node scripts/install-hooks.mjs');
 } catch {
   bad('git', 'not a git repository', 'the board dates results by commit and the checklist asks what has changed since a result was recorded. Clone it rather than downloading a zip.');
 }

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Refuses a push to the deployed branch while the release checklist is open, and says why.
+# The work is in scripts/pre-push.mjs; this file is only what git knows how to run.
+# Installed by scripts/install-hooks.mjs (npm install), which points core.hooksPath here.
+exec node scripts/pre-push.mjs "$@"

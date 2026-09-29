@@ -26,6 +26,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { readPushGate, MINE } from './push-gate.mjs';
 
 const ROOT = process.cwd();
 const FILE = join(ROOT, 'docs', 'RELEASE-CHECKLIST.md');
@@ -44,70 +45,16 @@ const ITEMS = {
   // something open is a stage that means nothing: "all have to be green before 2 stage is opened".
   push: { match: /^- \[( |x)\] (The person publishing has said to push[^\n]*)$/m, says: 'said to push', guarded: true },
 };
-const MINE = /^The person publishing has /;
 
 const text = readFileSync(FILE, 'utf8');
 const eol = text.includes('\r\n') ? '\r\n' : '\n';
 const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
 const today = new Date().toISOString().slice(0, 10);
 
-/**
- * Every item, whether it is ticked, and which `## ` section it sits under.
- *
- * The section matters for one reason: "After the push" holds items that CANNOT be true before the
- * push -- the deploy having succeeded, recording working on the live site. A guard that counted
- * those as blockers would refuse the push sign-off for ever, which the first run of this did.
- */
-const all = [];
-let section = null;
-for (const line of text.split(/\r?\n/)) {
-  const h = line.match(/^## (.+)$/);
-  if (h) { section = h[1].trim(); continue; }
-  const m = line.match(/^- \[( |x)\] (.+)$/);
-  if (m) all.push({ done: m[1] === 'x', text: m[2], section });
-}
-const AFTER = 'After the push';
-
-/**
- * NOT GREEN is more than NOT TICKED, and the first version of this guard missed the difference.
- *
- * An item can be ticked in the file while the ledger's own proof contradicts it — that is the
- * whole reason the proofs exist, and it caught a release snapshot describing code that no longer
- * existed. A guard that counts unticked boxes says "nothing else is open" over exactly that, which
- * is what it did on 2026-09-25: it signed off the article while two proofs were failing.
- *
- * So it reads docs/ledger.json too, and treats an item as green only when it is ticked AND no
- * proof run there disagrees. If the ledger cannot be read, it says so rather than assuming green.
- */
-let failing = new Map();
-const proven = new Set();
-let ledgerRead = null;
-try {
-  const l = JSON.parse(readFileSync(join(ROOT, 'docs', 'ledger.json'), 'utf8'));
-  const items = l?.readiness?.checklist?.items ?? [];
-  if (!items.length) ledgerRead = 'docs/ledger.json holds no checklist items';
-  for (const i of items) if (i.state === 'conflict' || i.state === 'stale' || i.result === 'false') failing.set(i.item, i.found ?? 'its proof disagrees');
-  for (const i of items) if (i.result === 'true' && !failing.has(i.item)) proven.add(i.item);
-} catch (e) { ledgerRead = `docs/ledger.json could not be read (${e.message.split('\n')[0]})`; }
-
-/*
- * PROVEN COUNTS AS GREEN, EVEN WITH NO x IN THE FILE.
- *
- * The proofs run on every board build and write nothing back to the markdown -- deliberately, or
- * the file would churn several times a minute. So an item can be proven true here and still sit as
- * "[ ]" in docs/RELEASE-CHECKLIST.md for ever. This guard required the x, so on 2026-09-28 it held
- * the push open on fourteen items, ten of which the ledger had just proven: TypeScript, the build,
- * QA, the snippets, the preview, the comparison, the snapshot, 4K, the file names and the docs.
- *
- * Two accounts of one list again, which is the same fault the board had that morning. The file is
- * where a PERSON writes what they did; the ledger is where a RUN writes what it found. An item is
- * green when either says so and neither proof disagrees.
- */
-const provenTrue = new Set(proven);
-const isProven = (i) => provenTrue.has(i.text.split(' — ')[0]) || [...provenTrue].some((k) => i.text.startsWith(k));
-const notGreen = (i) => (!i.done && !isProven(i)) || failing.has(i.text.split(' — ')[0]) || [...failing.keys()].some((k) => i.text.startsWith(k));
-const openOthers = all.filter((i) => notGreen(i) && !MINE.test(i.text) && i.section !== AFTER);
-const openAfter = all.filter((i) => !i.done && i.section === AFTER);
+/* What is on the list and what is still open is read in scripts/push-gate.mjs, which the pre-push
+   hook reads too: the thing that refuses the tick and the thing that refuses the push are one
+   reading of the list, so they cannot come to disagree. The reasons are written there. */
+const { all, failing, openOthers, openAfter } = readPushGate(ROOT);
 
 if (!which || !ITEMS[which]) {
   const waiting = all.filter((i) => !i.done && MINE.test(i.text));
