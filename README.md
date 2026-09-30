@@ -95,7 +95,7 @@ Without `npm run export` running, everything works in dev except making a video 
 
 <!-- scripts:start (written by scripts/generate-readme.mjs from each file's opening comment: edit the comment, not this table) -->
 
-68 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
+69 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
 Each file says how to run it, and why it exists, in the comment at its top.
 
 | Run it with | What runs | What it is for |
@@ -167,6 +167,7 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | imported, not run | `scripts/seo-limits.mjs` | How long a page's <title> and meta description may be, shared by scripts/generate-pages.mjs (which fits each page's fixed wording to them) and scripts/check-seo.mjs (which fails a page over them). Not run on its own. |
 | `node scripts/shot.mjs` | `scripts/shot.mjs` | A picture of a model, so a person can look at it. |
 | `node scripts/snippet-check.mjs` | `scripts/snippet-check.mjs` | Review tool: renders each snippet's standalone page (what "Copy as one HTML file" gives) with no build, reports script errors or empty pages, and photographs them all into .media-tmp/snippets.jpg. |
+| `node scripts/snippet-chunks.mjs` | `scripts/snippet-chunks.mjs` | The Vite plugin that gives every snippet its own chunk, fetched when its model is mounted. |
 | imported, not run | `server/render.mjs` | Shared by the Cloudflare Worker and local Playwright service. No files, sessions or images are persisted. A stream owns exactly one isolated browser context and disposes it on cancel. Not run on its own: imported by server/dev.mjs (npm run export) and worker/src/index.ts. validateCapture / readCapture check a posted scene (at most 8 MB, 900 frames, 30 fps, 8192 px a side, MAX_PIXELS device pixels a frame); renderCapture draws it and streams one `{ index, png }` (or `{ index, webp }`, when asked for) JSON line per frame. |
 
 <!-- scripts:end -->

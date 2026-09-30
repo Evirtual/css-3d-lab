@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { createServer, defineConfig, type Plugin, type ViteDevServer } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+import { snippetChunks } from './scripts/snippet-chunks.mjs';
 
 /* import.meta.dirname, not __dirname: __dirname only exists in this ESM file because Vite's bundling
    config loader injects it, and the native loader Vite is moving to does not. Node 20.11+. */
@@ -84,63 +85,12 @@ function embedOnDemand(): Plugin {
   };
 }
 
-/**
- * Every snippet in its own chunk, fetched when a model is mounted.
- *
- * The page's JavaScript used to carry every snippet (the HTML, CSS, JS and explanation of every
- * model) whether the page showed one model or all of them: 248 KB gzipped of a model page's 304,
- * growing about 2 KB with every model added. Now `virtual:snippets` is an index of loaders, one
- * per model, and `virtual:snippet/snippet-<id>` is that model's snippet alone, so a model page
- * fetches its own snippet and the gallery fetches a card's as the card scrolls into view. The
- * snippets are read the way every script reads them, by loading src/models/snippets.ts: through
- * the dev server while it runs, through a throwaway one for a build. Scripts keep importing the
- * whole map; only what a browser loads changed.
- */
-function snippetChunks(): Plugin {
-  const INDEX = 'virtual:snippets';
-  const ONE = 'virtual:snippet/snippet-';
-  let server: ViteDevServer | undefined;
-  let forBuild: Promise<Record<string, unknown>> | undefined;
-  const all = async (): Promise<Record<string, unknown>> => {
-    if (server) return (await server.ssrLoadModule('/src/models/snippets.ts')).snippets;
-    forBuild ??= (async () => {
-      const v = await createServer({ configFile: false, root, logLevel: 'error', server: { middlewareMode: true, hmr: false, watch: null } });
-      try { return (await v.ssrLoadModule('/src/models/snippets.ts')).snippets; } finally { await v.close(); }
-    })();
-    return forBuild;
-  };
-  return {
-    name: 'snippet-chunks',
-    configureServer(s) { server = s; },
-    resolveId(id) {
-      if (id === INDEX || id.startsWith(ONE)) return '\0' + id;
-      return null;
-    },
-    async load(id) {
-      if (id === '\0' + INDEX) {
-        const ids = Object.keys(await all());
-        return `export const loaders = {\n${ids.map((k) => `  ${JSON.stringify(k)}: () => import(${JSON.stringify(ONE + k)}),`).join('\n')}\n};\n`;
-      }
-      if (id.startsWith('\0' + ONE)) {
-        const key = id.slice(ONE.length + 1);
-        const snip = (await all())[key];
-        if (!snip) throw new Error(`no snippet for "${key}" in src/models/snippets.ts`);
-        return `export const snippet = ${JSON.stringify(snip)};\n`;
-      }
-      return null;
-    },
-    // a model edited while the dev server runs: its chunk and the index are read again
-    handleHotUpdate({ file, server: s }) {
-      if (!/[\\/]src[\\/]models[\\/]/.test(file)) return;
-      for (const [id, m] of s.moduleGraph.idToModuleMap) if (id.startsWith('\0virtual:snippet')) s.moduleGraph.invalidateModule(m);
-    },
-  };
-}
-
 // Relative base so the build works under any sub-path (GitHub Pages) and on a root domain.
+// snippetChunks (scripts/snippet-chunks.mjs): every snippet its own chunk, fetched when a model
+// is mounted. It is a file of its own because generate-pages starts Vite without this config.
 export default defineConfig({
   base: './',
-  plugins: [allModelsLinks(), embedOnDemand(), snippetChunks()],
+  plugins: [allModelsLinks(), embedOnDemand(), snippetChunks(root)],
   server: {
     watch: {
       /**

@@ -18,14 +18,16 @@ import { dirname, resolve } from 'node:path';
 import { createServer } from 'vite';
 import { workingSources } from './model-sources.mjs';
 import { embedPage as embedPageOf } from './embed-page.mjs';
+import { snippetChunks } from './snippet-chunks.mjs';
 import { DESCRIPTION_AIM, DESCRIPTION_MAX, DESCRIPTION_MIN, TITLE_AIM, TITLE_MAX } from './seo-limits.mjs';
 
 const site = JSON.parse(readFileSync('site.config.json', 'utf8'));
 const root = resolve('.');
 
 // Load the TypeScript sources through Vite, so this script and the app share one source of truth.
-// configFile: false — the real config imports the pages this script is about to create.
-const vite = await createServer({ configFile: false, root, server: { middlewareMode: true }, appType: 'custom', logLevel: 'warn' });
+// configFile: false — the real config imports the pages this script is about to create. The one
+// plugin the app's modules need to load (src/video.ts reaches src/snippet-loader.ts) is given here.
+const vite = await createServer({ configFile: false, root, plugins: [snippetChunks(root)], server: { middlewareMode: true }, appType: 'custom', logLevel: 'warn' });
 const { demos } = await vite.ssrLoadModule('/src/models/index.ts');
 const { snippets } = await vite.ssrLoadModule('/src/models/snippets.ts');
 const { GROUPS, GROUP_ORDER } = await vite.ssrLoadModule('/src/models/groups.ts');
