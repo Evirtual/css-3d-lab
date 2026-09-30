@@ -613,21 +613,57 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       return bad.length ? F(`does not open with /** or //: ${bad.join(', ')}`) : T(`all ${files.length} open with /** or //`);
     }],
     /*
-     * START-HERE.md and LEDGER.md were not on this list, so nothing ever asked whether they had
-     * fallen behind -- and on 2026-09-29 they had: one said the board's page has no build step on
-     * the day a fresh clone opened a page ten commits stale for want of that build.
+     * EACH DOCUMENT AGAINST THE CODE IT DESCRIBES, AND EVERY NAME IT USES AGAINST THE TREE.
      *
-     * The rule is unchanged and is still a heuristic: the newest commit to ANY of the documents is
-     * not older than the newest commit to the code. It does not say each was read. What it can say
-     * without pretending is which of them are older than the code, so it names them either way.
+     * Until 2026-09-30 this compared the newest commit to ANY of the documents with the newest commit
+     * to ALL of the code: green when one document was touched after anything changed, whatever had
+     * changed and whatever the other four said. Two faults at once. A change to the Worker asked for
+     * a doc read that no document needed, so every scripts/ commit came with a token edit to a
+     * document to keep the line green -- a ritual, which is what a checklist exists to prevent. And a
+     * document about the checks could be wrong for a month while the README was fresh.
+     *
+     * Now each document names the code it is about, and is held to that: its last commit is not
+     * older than the last commit to those paths. README.md is about what scripts exist, so it watches
+     * files being added to or removed from scripts/ and server/, and package.json, not every line.
+     * The line names which documents are behind and what moved.
+     *
+     * And what a document NAMES has to exist: every `scripts/x.mjs`, `npm run x` and
+     * `src/.../x.ts` written in the five documents. On 2026-09-29 the README described a feature in a
+     * file that had been deleted four days before, and a command that had been removed, and nothing
+     * here could see it. This half is a proof, not a heuristic.
      */
     [/^README, .*VIEW-CONTRACT\.md were reviewed/, KEYS.head, () => {
-      const DOCS = ['README.md', 'docs/START-HERE.md', 'docs/LEDGER.md', 'docs/ADDING-MODELS.md', 'docs/VIEW-CONTRACT.md'];
-      const docs = git('log', '-1', '--format=%cI', '--', ...DOCS).trim();
-      const code = git('log', '-1', '--format=%cI', '--', 'package.json', 'scripts/', 'server/', 'worker/', 'src/preview.ts', 'src/video.ts').trim();
-      const behind = DOCS.filter((d) => Date.parse(git('log', '-1', '--format=%cI', '--', d).trim()) < Date.parse(code));
-      const which = behind.length ? `; last touched before the code: ${behind.join(', ')}` : '; every one of them since the code';
-      return Date.parse(docs) >= Date.parse(code) ? T(`heuristic: docs last committed ${docs.slice(0, 16)}, code ${code.slice(0, 16)}${which}`) : F(`heuristic: docs last committed ${docs.slice(0, 16)}, older than the code's ${code.slice(0, 16)}${which}`);
+      const CHECKS = ['scripts/check-models.mjs', 'scripts/check-stages.mjs', 'scripts/check-exports.mjs', 'scripts/check-media.mjs', 'scripts/check-access.mjs', 'scripts/check-boxsizing.mjs', 'scripts/check-contrast.mjs', 'scripts/check-motion.mjs', 'scripts/check-perf.mjs'];
+      const ABOUT = {
+        'README.md': { added: ['scripts', 'server'], paths: ['package.json', 'src/video.ts', 'src/preview.ts', 'src/lazy-mount.ts', 'server/dev.mjs', 'worker/src'] },
+        'docs/START-HERE.md': { paths: ['package.json', 'scripts/doctor.mjs', 'scripts/ledger-watch.mjs', 'scripts/ledger-server.mjs', 'scripts/build-board.mjs', 'scripts/now.mjs', 'scripts/install-hooks.mjs'] },
+        'docs/LEDGER.md': { paths: ['scripts/ledger.mjs', 'scripts/ledger-server.mjs', 'scripts/ledger-watch.mjs', 'scripts/jobs.mjs', 'scripts/gate-paths.mjs', 'scripts/fingerprint.mjs', 'scripts/verify.mjs', 'scripts/checks-registry.mjs', 'scripts/push-gate.mjs', 'scripts/signoff.mjs', 'scripts/pre-push.mjs', 'scripts/checklist-proofs.mjs', 'scripts/release-snapshot.mjs'] },
+        'docs/ADDING-MODELS.md': { paths: [...CHECKS, 'scripts/snippet-check.mjs', 'scripts/shot.mjs', 'scripts/capture-check.mjs', 'scripts/checks-registry.mjs', 'src/models/snippet-utils.ts', 'src/models/types.ts', 'src/models/interaction.ts', 'src/models/groups.ts'] },
+        'docs/VIEW-CONTRACT.md': { paths: [...CHECKS, 'scripts/og-shot.mjs', 'scripts/three-looks.mjs', 'src/preview.ts', 'src/fit.ts', 'src/video.ts'] },
+      };
+      const when = (args) => { const s = git('log', '-1', '--format=%cI', ...args).trim(); return s ? Date.parse(s) : 0; };
+      const behind = [];
+      for (const [doc, about] of Object.entries(ABOUT)) {
+        const docAt = when(['--', doc]);
+        const codeAt = Math.max(when(['--', ...about.paths]), about.added ? when(['--diff-filter=ADR', '--', ...about.added]) : 0);
+        if (codeAt > docAt) {
+          const moved = git('log', '-1', '--format=', '--name-only', '--', ...about.paths, ...(about.added ?? [])).trim().split('\n').filter(Boolean).slice(0, 3);
+          behind.push(`${doc} (${moved.join(', ') || 'its code'} moved after it)`);
+        }
+      }
+      // every name the five documents use has to exist
+      const missing = [];
+      let scripts = {}; try { scripts = JSON.parse(read('package.json')).scripts ?? {}; } catch { /* no scripts */ }
+      for (const doc of Object.keys(ABOUT)) {
+        const text = read(doc) ?? '';
+        for (const m of text.matchAll(/\b((?:scripts|server|src|worker|docs)\/[A-Za-z0-9_./-]+\.(?:mjs|cjs|ts|scss|md|json|jsonc))\b/g)) if (!existsSync(join(ROOT, m[1]))) missing.push(`${doc}: ${m[1]}`);
+        for (const m of text.matchAll(/\bnpm run ([a-z][a-z0-9:-]*)/g)) if (!(m[1] in scripts)) missing.push(`${doc}: npm run ${m[1]}`);
+      }
+      const names = [...new Set(missing)];
+      if (behind.length || names.length) {
+        return F([behind.length ? `behind the code they describe: ${behind.join('; ')}` : null, names.length ? `name what does not exist: ${names.slice(0, 5).join(', ')}${names.length > 5 ? ` and ${names.length - 5} more` : ''}` : null].filter(Boolean).join('. '));
+      }
+      return T(`each of the five is at least as new as the code it describes, and every script, command and path they name exists`);
     }],
     [/^VIEW-CONTRACT\.md's numbers are the checks' numbers/, () => {
       // Each limit, read from the check's own constant and from the sentence in the document that

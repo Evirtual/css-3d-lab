@@ -82,6 +82,11 @@ It prints an address. Open it, and you have the board: every model, every check,
 each row to run that check — or one at the top to run them all. Pause, resume and stop are on the
 row that is running. Nothing starts on its own; nothing runs unless you press something.
 
+What a run prints is kept. Under each job in **Run** is how its last run ended, and **what it
+printed**: the tail of its own output, so a failure can be read on the page instead of being run
+again in a terminal. A model added a minute ago can be run from the page too: the board reads the
+model list from `src/models` on every request, not from a generated file at start.
+
 You do not need an AI, and you do not need to know which script does what. That is the point: a
 person who cloned this repository should be able to ask "is this ready to ship" and be answered.
 

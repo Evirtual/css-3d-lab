@@ -45,10 +45,26 @@ function siteFromBuild() {
 const BASE = (opt('--base', siteFromBuild()) ?? '').replace(/\/$/, '');
 if (!BASE) { console.error('No site to check. Pass --base https://… , or build first so dist/sitemap.xml names one.'); process.exit(2); }
 
+/*
+ * THREE TRIES, A BREATH APART. This fetches a hundred and sixty pages and files from a CDN in a
+ * few seconds, and one reset connection among them ended the whole run: "TypeError: fetch failed
+ * ... read ECONNRESET", twice in a row on 2026-09-30, minutes after a deploy, with nothing wrong
+ * with the site. A network hiccup is not a finding about what is served. A request that fails
+ * three times a second apart is.
+ */
 const get = async (url, as = 'text') => {
-  const r = await fetch(url, { redirect: 'follow' });
-  const body = as === 'buffer' ? Buffer.from(await r.arrayBuffer()) : await r.text();
-  return { ok: r.ok, status: r.status, type: r.headers.get('content-type') ?? '', body, url: r.url };
+  let last = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const r = await fetch(url, { redirect: 'follow' });
+      const body = as === 'buffer' ? Buffer.from(await r.arrayBuffer()) : await r.text();
+      return { ok: r.ok, status: r.status, type: r.headers.get('content-type') ?? '', body, url: r.url };
+    } catch (e) {
+      last = e;
+      if (attempt < 3) await new Promise((res) => setTimeout(res, 1000 * attempt));
+    }
+  }
+  throw last;
 };
 
 const problems = [];

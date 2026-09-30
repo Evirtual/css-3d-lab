@@ -67,7 +67,11 @@ both, so the terminal and the table agree.
 **Approved** is not a check. It is the column that says a person looked at the model and was happy
 with it. No script can set it.
 
-**The release checklist** is the lines that have to hold before a push. Each one is answered by a
+**The release checklist** is the lines that have to hold before a push. One line is about the
+documents themselves: each is held to the code it describes (the README to which scripts exist,
+LEDGER.md to the ledger scripts, ADDING-MODELS.md and VIEW-CONTRACT.md to the checks), and every
+script, command or path the five name has to exist. A change to the Worker asks for no document;
+a change to a check asks for the two that describe checks. Each one is answered by a
 proof — something that looked, or a run whose recorded answer is read back — and nobody ticks
 it. The one exception is the sign-off, which is a person saying to push.
 
