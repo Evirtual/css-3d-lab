@@ -123,7 +123,7 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | `npm run ledger:watch` | `scripts/ledger-watch.mjs` | The board: serves the ledger's page with its buttons, and keeps everything the page shows current while it runs -- docs/ledger.json, the page itself, and the README's list of scripts. |
 | `npm run capture` | `scripts/capture-check.mjs` | Runs one of the model checks exactly as it is, shows its output as it comes, and keeps what it said per model in docs/checks/<check>.json for scripts/ledger.mjs to read. |
 | `npm run now` | `scripts/now.mjs` | What is running, right now, MEASURED. |
-| `npm run signoff` | `scripts/signoff.mjs` | The item on the release checklist that waits for a person, ticked from the command line. |
+| `npm run signoff` | `scripts/signoff.mjs` | The item on the release checklist that waits for a person, said from the command line, and said again for each new commit that goes out. |
 | `npm run check-live` | `scripts/check-live.mjs` | The site AS SERVED, after a deploy — not the dist/ it was built from. |
 | `npm run capture-payload` | `scripts/capture-payload.cjs` | Catches one real capture payload from the page, so the same bytes can be replayed to BOTH renderers. Without this the comparison is two different requests and proves nothing. |
 | `npm run check-renderers` | `scripts/check-renderers.cjs` | SUPERSEDED as a gate by `npm run check-parity` (scripts/check-worker-parity.mjs), which drives the dialog itself over chosen models and judges on the PICTURE. Keep this one for looking at a single payload by hand. Its bar -- same pixel size, within 10% of PNG bytes -- turned out to be inverted, because a compressed size measures entropy and not position. |

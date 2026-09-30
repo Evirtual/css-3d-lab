@@ -1,5 +1,6 @@
 /**
- * The item on the release checklist that waits for a person, ticked from the command line.
+ * The item on the release checklist that waits for a person, said from the command line, and said
+ * again for each new commit that goes out.
  *
  *   npm run signoff                 what is waiting, and whether anything else is still open
  *   npm run signoff -- push         "Push it"
@@ -113,10 +114,19 @@ if (undo) {
   process.exit(0);
 }
 
-if (found[1] === 'x') {
-  console.log(`Already signed off: ${found[2].split(' — ')[0]}`);
+/*
+ * A tick at another commit is not "already signed off": it is a sign-off on different code, and
+ * the proof says so. Saying it again used to need `undo` first, and `undo` dirties the tree, so
+ * the `push` that followed was refused for the very edit that `undo` had made -- a loop a person
+ * could only leave by committing an untick with a message that said the opposite (2026-09-30,
+ * twice). Now `push` re-stamps a stale tick, and only a tick at HEAD is "already".
+ */
+const stampedAt = found[2].match(/ — signed off by [^—]* at ([0-9a-f]{7,40})\s*$/)?.[1] ?? null;
+if (found[1] === 'x' && stampedAt && head.startsWith(stampedAt.slice(0, 7))) {
+  console.log(`Already signed off at ${head}, which is HEAD: ${found[2].split(' — ')[0]}`);
   process.exit(0);
 }
+if (found[1] === 'x') console.log(`The tick is from ${stampedAt ?? 'an unknown commit'}; HEAD is ${head}. Saying it again for HEAD.`);
 
 if (item.guarded && openBefore.length) {
   console.error(`\nStage 2 is shut: ${openBefore.length} item(s) before the push are not green.\n`);
@@ -131,7 +141,7 @@ if (item.guarded && openBefore.length) {
 }
 
 const stamp = ` — signed off by ${WHO}, ${today}, at ${head}`;
-writeFileSync(FILE, text.replace(item.match, `- [x] ${found[2]}${stamp}`));
+writeFileSync(FILE, text.replace(item.match, `- [x] ${found[2].replace(/ — signed off by [^—]*$/, '')}${stamp}`));
 console.log(`\n${WHO} ${item.says}. Ticked at ${head}, ${today}.`);
 if (which === 'push') {
   console.log('\nThe list is complete. Nothing here pushes anything: that is still');
