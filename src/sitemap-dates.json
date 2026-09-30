@@ -250,7 +250,7 @@
     "published": "2026-09-18"
   },
   "models/sphere/": {
-    "hash": "882df30222d1efb9",
+    "hash": "162736cd4c5afb3d",
     "date": "2026-09-30",
     "published": "2026-09-18"
   },
@@ -365,7 +365,7 @@
     "published": "2026-09-18"
   },
   "models/lit/": {
-    "hash": "08cf7fc4fe3f3908",
+    "hash": "cf99b5b9b422dc60",
     "date": "2026-09-30",
     "published": "2026-09-18"
   },
@@ -680,12 +680,12 @@
     "published": "2026-09-18"
   },
   "models/clock/": {
-    "hash": "eac6f6d42ca07ed9",
+    "hash": "48133cf115eb0702",
     "date": "2026-09-30",
     "published": "2026-09-18"
   },
   "models/playground/": {
-    "hash": "fbf99e9a208f334f",
+    "hash": "b77da778f006deb7",
     "date": "2026-09-30",
     "published": "2026-09-18"
   },
