@@ -2604,7 +2604,13 @@ const navIcon = (name: string): string => (BARE[name]
     /* A run over every model belongs to no single row, so it gets a row of its own at the top of
        the table, across all of it. It used to be squeezed into the Model heading beside the Run
        button, where the track had 60 pixels to say how far through 135 models it was. */
-    const wide = (BARS.suite ?? []).map(([k, pr]) => runBar(k, pr, 'every model')).join('');
+    /* A run over chosen models ("all" from a row or a group button) is the gate over those models:
+       it writes the gate's own progress file like a run from the Run dialog does, and it is drawn
+       under the header with it (renderSiteRuns). It used to sit here as well, as "Every check
+       starting…" for its whole length, beside the real step bar: one run, two bars, one of them
+       wrong (2026-09-30). While the gate record is live it is drawn there and not here. */
+    const gateLive = Boolean((L as any)?.gate?.running && (L as any).gate.total);
+    const wide = (BARS.suite ?? []).filter(([k]) => !(k === 'all' && gateLive)).map(([k, pr]) => runBar(k, pr, 'every model')).join('');
     if (wide) html = `<tr class="suiterun"><td colspan="${colCount()}">${wide}</td></tr>` + html;
     $('rows').innerHTML = html || `<tr class="empty"><td colspan="${colCount()}" class="muted">No model matches.${hidden ? ' Every model is hidden by the filters above.' : ''}</td></tr>`;
     paintMixed();
@@ -3000,7 +3006,8 @@ const navIcon = (name: string): string => (BARE[name]
     const site = CHECK_LIST.filter((c) => c.scope === 'site');
     if (!site.length) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
-    const bars = Object.fromEntries(BARS.site ?? []);
+    // the site checks, and the gate over chosen models ("all"), which is drawn under the header too
+    const bars = Object.fromEntries([...(BARS.site ?? []), ...(BARS.suite ?? []).filter(([k]) => k === 'all')]);
     /* These two judge the site, not any model, and they gate nothing. So they say the least they
        can: a name, the count, and the button. Everything else about them -- what the check is,
        when it last ran, at which commit -- is in the tooltip and in its definition. */
@@ -3030,14 +3037,16 @@ const navIcon = (name: string): string => (BARE[name]
     // whatever is running that is not a check at all: a job (the gate, the matrix, the live
     // check) is about the project rather than any model, so it shows where APP and SEO do and
     // not inside a table of models.
-    const jobs = Object.keys(bars).filter((k) => String(k).startsWith('job:'));
+    /* "all" is the gate over chosen models, started from a row or a group: the same run as
+       job:gate-chosen from the Run dialog, so it is drawn here with the same step progress. */
+    const g = (L as any)?.gate;
+    const jobs = Object.keys(bars).filter((k) => String(k).startsWith('job:') || (k === 'all' && g?.running && g.total));
     /*
      * A job has no per-model progress, because it is not a check: nothing writes L.running['job:…'].
      * So its bar said "starting…" while the header chip, reading the gate's own record, said
      * 4 of 5 -- two places on one screen disagreeing about the same run, which is the fault this
      * board keeps finding in itself.
      */
-    const g = (L as any)?.gate;
     const jobProgress = (k: string) => (g?.running && g.total)
       ? { done: g.done?.length ?? 0, total: g.total, started: g.startedAt, step: g.step?.short ?? g.step?.key ?? null }
       : bars[k];

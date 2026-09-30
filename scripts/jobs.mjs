@@ -209,7 +209,10 @@ export function whatIsNeeded(open, states = {}) {
     const c = closes(o.item);
     const by = [];
     if (!c) { other.push({ item: o.item, what: 'nothing here knows what closes this line' }); byItem.push({ item: o.item, by: [] }); continue; }
-    if (c.step) { steps.add(c.step); by.push(`step ${c.step}`); }
+    /* a step is asked for only when it is not current: a line can be open because of the JOB half
+       of what closes it (the export matrix) while the step half (exports over every model) has a
+       fresh pass on every one. Asking for both cost 72 minutes on 2026-09-30 for nothing. */
+    if (c.step && states[c.step] !== 'current') { steps.add(c.step); by.push(`step ${c.step}`); }
     if (c.job) { jobs.add(c.job); by.push(`job ${c.job}`); }
     if (c.anyStale) for (const k of PER_MODEL) if (states[k] && states[k] !== 'current') { steps.add(k); by.push(`step ${k}`); }
     for (const k of ['commit', 'person', 'auto', 'after']) if (c[k]) other.push({ item: o.item, what: c[k], kind: k });

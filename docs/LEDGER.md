@@ -150,7 +150,9 @@ chosen, and says above the list how many lines of the checklist are open, what c
 what it costs:
 
 - **What the push needs** — the steps that close a line of the checklist that is open now, and
-  nothing else. A change to the documents or to the board's own page asks for no model check.
+  nothing else: a step whose result is current is not asked for again, even when the line it
+  answers is open for another reason. A change to the documents or to the board's own page asks
+  for no model check.
 - **Only what is stale** — the steps the board can show need running.
 - **Anything not proved current** — those, plus everything it cannot vouch for.
 
