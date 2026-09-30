@@ -302,7 +302,7 @@ Text in a disabled control is exempt, and listed as exempt on the model's line. 
 stack of copies (the layers of an extruded headline) is read from its front copy: a back layer
 lying on a readable copy of the same text is counted and named on the line, not failed. A model's text that
 is a fixed colour on the bare stage cannot reach 4.5:1 on both stages: it inherits the stage's ink
-(softened with opacity, as the caption is), or sits on a surface of the model's own.
+(softened with opacity, as the caption is), or sits on a surface of the model's own. One limit of the check: a text on a face turned away by `backface-visibility: hidden` (the back of a slat, the reverse of a card) is read as if it were painted, against whatever is in front of it, so a back-face text in another colour can pass or fail on a number nobody sees; give it a colour that reads on its own face and on the front's.
 
 **One base unit, in vmin, is part of the contract.** `check-models` also fails a model whose
 snippet CSS does not set `--u` to a value in `vmin` (ground rule 1), and says which unit it has

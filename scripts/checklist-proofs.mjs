@@ -640,7 +640,8 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       const PAIRS = [
         ['tallest (BAND)', konst('BAND'), /\|\s*Tallest\s*\|\s*solid\s*\|\s*(\d+)vmin/],
         ['shortest (FLOOR)', konst('FLOOR'), /\|\s*Shortest\s*\|\s*solid\s*\|\s*(\d+)vmin/],
-        ['widest (WIDEST)', konst('WIDEST'), /\|\s*Widest\s*\|\s*solid\s*\|\s*(\d+)%/],
+        // 92vmin since 2026-09-30; the document said 92% for a limit the check has always measured in vmin
+        ['widest (WIDEST)', konst('WIDEST'), /\|\s*Widest\s*\|\s*solid\s*\|\s*(\d+)(?:%|vmin)/],
         ['centred (CENTRED)', konst('CENTRED'), /\|\s*Centred\s*\|\s*solid\s*\|\s*within (\d+)vmin/],
         ['top corners (CORNER)', konst('CORNER'), /\|\s*Top corners\s*\|\s*all\s*\|\s*nothing drawn within (\d+)vmin/],
         ['all ink (INK)', konst('INK'), /Edges are judged on all ink, alpha over (\d+)\/255/],
