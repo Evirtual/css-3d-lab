@@ -21,6 +21,11 @@
  * still open and exits 1.
  *
  * It only edits this one file. It does not commit, does not push, and does not run any check.
+ *
+ * The line it ticks is matched up to the end of the LINE, not up to the newline: on Windows the
+ * file ends its lines with CR LF, and a match that stopped at LF carried the CR into the middle of
+ * the rewritten line. The ledger then could not parse that line at all, the Yours stage read 0/0,
+ * and the sign-off that had just been given did not exist (2026-09-30).
  */
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -42,7 +47,7 @@ const WHO = (() => {
 const ITEMS = {
   // BOTH are guarded, not just the push. A stage you can enter while the stage before it still has
   // something open is a stage that means nothing: "all have to be green before 2 stage is opened".
-  push: { match: /^- \[( |x)\] (The person publishing has said to push[^\n]*)$/m, says: 'said to push', guarded: true },
+  push: { match: /^- \[( |x)\] (The person publishing has said to push[^\r\n]*)$/m, says: 'said to push', guarded: true },
 };
 
 const text = readFileSync(FILE, 'utf8');
