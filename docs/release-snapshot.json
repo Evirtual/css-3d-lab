@@ -1,11 +1,11 @@
 {
  "what": "One line per model per check, from the ledger, on the commit named below. Not a fresh run: docs/ledger.html shows it as the state at the last release. The raw run records it came from (docs/checks/) are gitignored; capture your own with `npm run capture -- <check>`.",
- "head": "3ae2c69",
- "takenAt": "2026-09-29T16:20:28Z",
+ "head": "00a6457",
+ "takenAt": "2026-09-30T08:11:30Z",
  "counts": {
-  "models": 135,
+  "models": 143,
   "toCheck": 0,
-  "approved": 135
+  "approved": 143
  },
  "checks": {
   "boxsizing": {
@@ -838,6 +838,20 @@
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T12:04:58Z"}
   }
  },
+ "gear": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:43:27Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:47:19Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-09-30T04:44:50Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-09-30T04:50:04Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:40:11Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:34:08Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:32:59Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T04:33:31Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:42:26Z"}
+  }
+ },
  "headphones": {
   "status": "approved",
   "checks": {
@@ -906,6 +920,20 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T11:19:06Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-29T11:25:16Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T12:05:28Z"}
+  }
+ },
+ "speaker": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:43:49Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:47:42Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-09-30T04:45:15Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-09-30T04:50:35Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:40:12Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:34:06Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:04Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T04:33:34Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:42:36Z"}
   }
  },
  "text": {
@@ -1018,6 +1046,20 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T11:19:32Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-29T11:25:38Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T12:06:17Z"}
+  }
+ },
+ "ribbontext": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:43:52Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:48:04Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-09-30T04:45:18Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-09-30T04:51:06Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:40:11Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:34:08Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:08Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T04:33:37Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:42:40Z"}
   }
  },
  "button": {
@@ -1202,6 +1244,20 @@
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T12:08:26Z"}
   }
  },
+ "knob": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:44:00Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:48:25Z"},
+   "motion": {"status":"flagged","ruleVersion":4,"ranAt":"2026-09-30T04:45:37Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-09-30T04:51:36Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:40:18Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:34:15Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:12Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T04:33:39Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:42:52Z"}
+  }
+ },
  "flip": {
   "status": "approved",
   "checks": {
@@ -1356,6 +1412,20 @@
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T12:09:56Z"}
   }
  },
+ "wallet": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:44:16Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:48:47Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-09-30T04:45:56Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-09-30T04:52:08Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:40:18Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:34:17Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:15Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T04:33:42Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:43:03Z"}
+  }
+ },
  "flipper": {
   "status": "approved",
   "checks": {
@@ -1494,6 +1564,20 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T11:21:26Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-29T11:27:08Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T12:10:36Z"}
+  }
+ },
+ "cradle": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:44:18Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:49:07Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-09-30T04:45:58Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-09-30T04:52:39Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:40:18Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:34:22Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:19Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T04:33:43Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:43:06Z"}
   }
  },
  "grid": {
@@ -1734,6 +1818,20 @@
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T12:12:09Z"}
   }
  },
+ "train": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:44:20Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:49:29Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-09-30T04:46:06Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-09-30T04:53:07Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:40:23Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:34:29Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:23Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T04:33:44Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:43:09Z"}
+  }
+ },
  "bars": {
   "status": "approved",
   "checks": {
@@ -1942,6 +2040,20 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T11:23:09Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-29T11:28:21Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-29T12:14:19Z"}
+  }
+ },
+ "donut": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:44:38Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-09-30T04:49:51Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-09-30T04:46:42Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-09-30T04:53:38Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:40:23Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:34:28Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:27Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T04:33:50Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:43:20Z"}
   }
  }
  }
