@@ -160,7 +160,9 @@ is overwritten by the next run, so with several people checking at once it is so
 8. Keep it light: at most ~60 elements, no big blurs, no `filter` on animated elements.
 9. Loops must be seamless (end state == start state) and use `linear` or symmetrical easing.
 10. Keyboard: hover-only models get `tabindex="0"` and the same effect on `:focus-visible` /
-    `:focus-within`. Real `<button>`/`<input>` for controls.
+    `:focus-within`. Real `<button>`/`<input>` for controls. A control that has to be ARIA (a
+    `role="slider"` knob) is clicked by the checks like a native one, so it is operated, not only
+    found.
 11. Honour reduced motion only by not being aggressive; the site has its own pause switch that
     sets `animation-play-state: paused` on everything in a stage. It pauses CSS only, so JS that
     moves the model on a timer or a `requestAnimationFrame` loop reads the frame's

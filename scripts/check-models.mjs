@@ -559,7 +559,7 @@ async function judgeModel(id, notes = []) {
     const frames = page.frameLocator('iframe');
     for (const way of demo ? interactionsOf(demo) : []) {
       if (way === 'click') {
-        const controls = frames.locator('#c3d-scene button:not([disabled]), #c3d-scene label, #c3d-scene input[type="radio"], #c3d-scene input[type="checkbox"]');
+        const controls = frames.locator('#c3d-scene button:not([disabled]), #c3d-scene label, #c3d-scene input[type="radio"], #c3d-scene input[type="checkbox"], #c3d-scene [role="button"]:not([aria-disabled="true"]), #c3d-scene [role="slider"], #c3d-scene [role="switch"], #c3d-scene [role="checkbox"], #c3d-scene [role="radio"], #c3d-scene [role="tab"]');
         const many = Math.min(await controls.count(), 6);
         for (let i = 0; i < many; i++) {
           await controls.nth(i).click({ force: true, timeout: 4000 }).catch(() => {});

@@ -129,6 +129,8 @@ const TEXTS = () => {
     return !el.checkVisibility || el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
   };
   const disabled = (el) => Boolean(el.closest(':disabled, [aria-disabled="true"]'));
+  // on a face that can turn away: then its own pixels, never the front face's, decide (see the loop below)
+  const turned = (el) => { for (let e = el; e && e.nodeType === 1 && e !== scene.parentElement; e = e.parentElement) if (getComputedStyle(e).backfaceVisibility === 'hidden') return true; return false; };
   const clip = (r) => {
     const l = Math.max(0, r.left), t = Math.max(0, r.top), rr = Math.min(W, r.right), b = Math.min(H, r.bottom);
     return rr - l >= 1 && b - t >= 1 ? [l, t, rr, b] : null;
@@ -173,7 +175,7 @@ const TEXTS = () => {
     const rects = [...range.getClientRects()].map(clip).filter(Boolean);
     if (!rects.length) continue;
     const cs = getComputedStyle(el);
-    out.push({ tag: tag(el), pseudo: '', css: cssColour(el, ''), text: text.slice(0, 40), where: name(el), rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: el instanceof SVGElement });
+    out.push({ tag: tag(el), pseudo: '', css: cssColour(el, ''), text: text.slice(0, 40), where: name(el), rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), turned: turned(el), svg: el instanceof SVGElement });
   }
   for (const el of scene.querySelectorAll('*')) {
     for (const pseudo of ['::before', '::after']) {
@@ -182,7 +184,7 @@ const TEXTS = () => {
       if (!m || !letters.test(m[1]) || !shows(el) || cs.display === 'none' || +cs.opacity === 0 || cs.visibility === 'hidden') continue;
       const rects = [el.getBoundingClientRect()].map(clip).filter(Boolean);
       if (!rects.length) continue;
-      out.push({ tag: tag(el), pseudo, css: cssColour(el, pseudo), text: m[1].slice(0, 40), where: `${name(el)}${pseudo}`, rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), svg: false });
+      out.push({ tag: tag(el), pseudo, css: cssColour(el, pseudo), text: m[1].slice(0, 40), where: `${name(el)}${pseudo}`, rects, size: parseFloat(cs.fontSize), weight: +cs.fontWeight || 400, disabled: disabled(el), turned: turned(el), svg: false });
     }
   }
   return out;
@@ -239,6 +241,12 @@ function measure(texts, withText, without) {
     // too few glyph pixels to be read (a copy of a word clipped to a sliver, a fold's hidden third):
     // not drawn, rather than judged on the colours of its antialiased edge
     if (cells.length < Math.max(3, (t.size * DPR) / 2)) return { ...t, drawn: false };
+    // A glyph box thinner than a third of its font size in either direction is a face seen edge-on
+    // or a word clipped to a sliver: nobody can read it, and the colours of its few antialiased
+    // pixels are not a reading of the word.
+    const uw = Math.max(...t.rects.map((r) => r[2])) - Math.min(...t.rects.map((r) => r[0]));
+    const uh = Math.max(...t.rects.map((r) => r[3])) - Math.min(...t.rects.map((r) => r[1]));
+    if (uw < t.size / 3 || uh < t.size / 3) return { ...t, drawn: false };
     cells.sort((a, b) => b[0] - a[0]);
     const core = cells.slice(0, Math.max(3, Math.ceil(cells.length / 10)));
     const fg = [0, 0, 0], bg = [0, 0, 0];
@@ -257,6 +265,7 @@ async function onStage(browser, id, title, snippet, clicks, stageName) {
   const context = await browser.newContext({ viewport: { width: CARD_W, height: CARD_H }, deviceScaleFactor: DPR, colorScheme: stageName });
   const errors = [];
   const seen = [];
+  const unsettled = [];
   try {
     const page = await context.newPage();
     page.on('pageerror', (e) => errors.push(e.message.split('\n')[0]));
@@ -269,13 +278,33 @@ async function onStage(browser, id, title, snippet, clicks, stageName) {
     await page.goto(url, { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
     await page.clock.runFor(800);
+    /* A still's readings count only if the picture with every fill back is the picture it began
+       with. Still is not "nothing animates": with every animation paused and a turn at its end,
+       Chrome redrew a face's word a pixel lower some half a second later, so the shots of one still
+       were of two pictures, and the word's shifted edges were read as the pixels of a face turned
+       away behind it ("Ship" at 2.44:1 on the lilac of the face in front, boxslider, 2026-09-30).
+       A still that moved is shot again; one that will not hold is kept, and says so. */
     const still = async (label) => {
       await page.evaluate(FREEZE);
       await page.clock.runFor(40);
       await page.waitForTimeout(120); // real time: the compositor draws the paused pose
       const texts = await page.evaluate(TEXTS);
       if (!texts.length) return;
-      const withText = decode(await page.screenshot());
+      let readings, held = false;
+      for (let attempt = 0; attempt < 4 && !held; attempt++) {
+        const withTextPng = await page.screenshot();
+        readings = await shots(label, texts, decode(withTextPng));
+        held = (await page.screenshot()).equals(withTextPng);
+        if (!held) {
+          if (process.env.C3D_DEBUG) console.error(`  debug ${label}: the picture moved during the still, shooting it again`);
+          await page.waitForTimeout(250);
+        }
+      }
+      if (!held) unsettled.push(`${stageName}, ${label}`);
+      seen.push(...readings);
+    };
+    const shots = async (label, texts, withText) => {
+      const readings = [];
       await page.evaluate(HIDE, true);
       await page.waitForTimeout(60);
       const without = decode(await page.screenshot());
@@ -286,15 +315,27 @@ async function onStage(browser, id, title, snippet, clicks, stageName) {
       // glyphs of the one in front as its own. Its own pixels then decide.
       for (let k = 0; k < first.length; k++) {
         let m = first[k];
-        if (m.drawn && m.ratio < m.need) {
+        /* A text on a face that can turn away is always shot alone: with every fill hidden it took the
+           front face's glyphs as its own and passed at 3.19:1 for a word nobody could see (ribbontext,
+           2026-09-30), and a number over the large-text floor was never looked at again. */
+        if (m.drawn && (m.ratio < m.need || texts[k].turned)) {
           await page.evaluate(HIDE, { tag: texts[k].tag, pseudo: texts[k].pseudo });
           await page.waitForTimeout(60);
           const alone = decode(await page.screenshot());
+          if (process.env.C3D_DEBUG) {
+            // what moved anywhere between the two shots: a word's own glyphs, or the whole picture
+            let n = 0, l = 1e9, t = 1e9, r = 0, b = 0;
+            for (let i = 0; i < alone.rgba.length; i += 4) if (Math.max(Math.abs(alone.rgba[i] - withText.rgba[i]), Math.abs(alone.rgba[i + 1] - withText.rgba[i + 1]), Math.abs(alone.rgba[i + 2] - withText.rgba[i + 2])) > CHANGE) { n++; const x = (i / 4) % alone.width, y = Math.floor(i / 4 / alone.width); l = Math.min(l, x); t = Math.min(t, y); r = Math.max(r, x); b = Math.max(b, y); }
+            console.error(`  debug alone shot for "${texts[k].text}": ${n} px changed anywhere, box ${n ? [l, t, r, b].map((v) => (v / DPR).toFixed(0)).join(',') : '-'}`);
+          }
           await page.evaluate(HIDE, false);
           m = measure([texts[k]], withText, alone)[0];
         }
-        seen.push({ ...m, stage: stageName, state: label });
+        // C3D_DEBUG=1: every reading, with the rects and both passes, for the next phantom
+        if (process.env.C3D_DEBUG) console.error(`  debug ${label} | "${texts[k].text}" ${texts[k].where} rects ${JSON.stringify(texts[k].rects.map((r) => r.map(Math.round)))} turned ${texts[k].turned} first ${first[k].drawn ? first[k].ratio.toFixed(2) : 'not drawn'} -> ${m.drawn ? `${m.ratio.toFixed(2)} fg ${m.fg.map(Math.round)} bg ${m.bg.map(Math.round)}` : 'not drawn'}`);
+        readings.push({ ...m, stage: stageName, state: label });
       }
+      return readings;
     };
     await still('at rest');
     await page.evaluate(() => {
@@ -310,7 +351,7 @@ async function onStage(browser, id, title, snippet, clicks, stageName) {
     await page.mouse.move(1, CARD_H - 1);
     await page.clock.runFor(600);
     if (clicks) {
-      const controls = page.locator('#c3d-scene button:not([disabled]), #c3d-scene label, #c3d-scene input[type="radio"], #c3d-scene input[type="checkbox"]');
+      const controls = page.locator('#c3d-scene button:not([disabled]), #c3d-scene label, #c3d-scene input[type="radio"], #c3d-scene input[type="checkbox"], #c3d-scene [role="button"]:not([aria-disabled="true"]), #c3d-scene [role="slider"], #c3d-scene [role="switch"], #c3d-scene [role="checkbox"], #c3d-scene [role="radio"], #c3d-scene [role="tab"]');
       const n = Math.min(await controls.count(), CLICKS);
       for (let i = 0; i < n; i++) {
         const what = await controls.nth(i).evaluate((el) => (el.getAttribute('aria-label') || el.textContent || el.tagName).replace(/\s+/g, ' ').trim().slice(0, 20)).catch(() => `control ${i + 1}`);
@@ -323,7 +364,7 @@ async function onStage(browser, id, title, snippet, clicks, stageName) {
   } finally {
     await context.close().catch(() => {});
   }
-  return { seen, errors };
+  return { seen, errors, unsettled };
 }
 
 async function judge(id, browser) {
@@ -332,10 +373,12 @@ async function judge(id, browser) {
   const clicks = interactionsOf(demo).includes('click');
   const all = [];
   const errors = [];
+  const unsettled = [];
   for (const s of Object.keys(STAGES)) {
     const r = await onStage(browser, id, demo.title, snippet, clicks, s);
     all.push(...r.seen);
     errors.push(...r.errors);
+    unsettled.push(...r.unsettled);
   }
   // one verdict per text per stage: its worst state
   const worst = new Map();
@@ -372,6 +415,7 @@ async function judge(id, browser) {
     exempt ? `${exemptNames.size} disabled text(s) exempt (${[...exemptNames].slice(0, 3).join(', ')})` : '',
     layers ? `${layers} reading(s) of a stacked copy under a readable front copy of the same text, judged by the front copy (${[...layerNames].slice(0, 3).join(', ')})` : '',
     undrawn ? `${undrawn} reading(s) of text not drawn (hidden behind something or clipped)` : '',
+    unsettled.length ? `${unsettled.length} still(s) kept moving through four shots, read from the last (${unsettled.slice(0, 2).join('; ')})` : '',
   ].filter(Boolean);
   return { id, problems, texts, lowest, notes };
 }

@@ -126,6 +126,13 @@ Results also record **which browser** produced them, for the same reason. Severa
 calibrated against a measured number, and a number measured on one browser cannot be compared with
 one measured on another.
 
+And they record **the rule they were judged under**: each check in `scripts/checks-registry.mjs`
+has a `ruleVersion`, bumped whenever what the check holds a model to changes, with the history
+beside it. A result judged under an older version reads "rule changed (v3 → v4)" and stops
+counting, so a pass under the old rule never stands in for the new one. On 2026-09-30 the contract
+check went to v4 (ARIA-only controls are clicked) and the text check to v3 (a text on a face that
+can turn away is read from its own pixels), and every model was judged again under both.
+
 ---
 
 ## Everything runs from the board

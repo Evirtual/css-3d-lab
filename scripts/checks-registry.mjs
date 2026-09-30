@@ -61,6 +61,7 @@ export const REGISTRY = [
       { v: 2, from: '69cae52', what: 'every model centred within 4vmin both ways, a control zone included: the zone is sized by its content and the whole drawn stack is centred' },
       // from null: every result since records its ruleVersion, so none has to be dated by its commit
       { v: 3, from: null, what: 'as v2, and the snippet must set its base unit --u in vmin (ground rule 1), which the ledger used to count apart as Not converted' },
+      { v: 4, from: null, what: 'as v3, and a control that is only ARIA (role=button, slider, switch, checkbox, radio, tab) is clicked like a native one: the knob (2026-09-30) was a slider nothing ever operated' },
     ],
     title: 'Contract check (check-models)', label: 'contract check (check-models)',
     rule: 'cleared when its latest result is a pass on the model\'s current code',
@@ -182,6 +183,7 @@ export const REGISTRY = [
     rules: [
       { v: 1, from: null, what: 'every text, each copy judged on its own' },
       { v: 2, from: null, what: 'a stacked copy of a word (a layer of an extruded headline), lying at least half on a readable copy of the same text, is judged by that front copy' },
+      { v: 3, from: null, what: "a text on a face that can turn away (backface-visibility: hidden on it or an ancestor) is always read from its own pixels alone, so a back-face text never borrows the front face's glyphs; and ARIA-only controls are clicked like native ones" },
     ],
     title: 'Text readable on both stages (check-contrast)', label: 'text contrast check (check-contrast)',
     rule: "cleared when its latest result is a pass on the model's current code: every text it shows, at rest, with :hover forced, with the pointer on it and after each of its controls is clicked, reaches WCAG AA against the pixels behind it (4.5:1, or 3:1 for text at least 24px, or bold and 18.66px, on a card's canvas) on the dark stage and on the light one; text in a disabled control is exempt and listed",
