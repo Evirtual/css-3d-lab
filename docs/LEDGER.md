@@ -161,7 +161,10 @@ what it costs:
 A check reports per-model, so its bar fills. A **job** does not — it is not a check, and nothing
 writes per-model progress for one — so its bar carries elapsed time against the job's recorded
 estimate, labelled as the estimate it is, and says "longer than usual" once it passes it by half.
-There is no percentage shown for a job because there is no honest one to show. The elapsed time
+What a run prints is kept: `.media-tmp/runs/output/<what>.log`, one file per runnable, rewritten
+by its next run. Under each job in the Run dialog is how its last run ended -- held, or the exit code
+-- and **what it printed**, the tail of that file, so a failure can be read without running it again
+in a terminal. There is no percentage shown for a job because there is no honest one to show. The elapsed time
 ticks every second from when the job started: it used to be drawn only when the data changed, and
 a job changes no data while it runs, so it read "2 min" over a job eight minutes in.
 

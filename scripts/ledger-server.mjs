@@ -68,7 +68,7 @@ const fingerprintAt = (...a) => rules.fingerprintAt(...a);
 const whatChanged = (...a) => rules.whatChanged(...a);
 import { MIN_FREE_GB, MAX_BROWSERS } from './browser-guard.mjs';
 import { runningCheck, runningChecks } from './running.mjs';
-import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, writeFileSync as write, rmSync, mkdirSync, readdirSync, readFileSync, createWriteStream } from 'node:fs';
 
 const DOCS = join(ROOT, 'docs');
 const TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.md': 'text/markdown; charset=utf-8' };
@@ -250,6 +250,25 @@ function machine() {
   };
 }
 
+/*
+ * The last run of each thing, with what it printed: .media-tmp/runs/output/<what>.log, one file per
+ * runnable, overwritten by the next run of the same thing. index.json remembers across restarts.
+ */
+const OUTPUT_DIR = join(ROOT, '.media-tmp', 'runs', 'output');
+const outputFile = (what) => join(OUTPUT_DIR, `${String(what).replace(/[^a-z0-9]+/gi, '-')}.log`);
+const ENDED = new Map((() => {
+  try { return JSON.parse(readFileSync(join(OUTPUT_DIR, 'index.json'), 'utf8')).map((e) => [e.what, e]); } catch { return []; }
+})());
+/** The tail of what a run printed, for the page. */
+function outputOf(what, lines = 120) {
+  const e = ENDED.get(what) ?? null;
+  const live = runs.get(what) ?? null;
+  let text = null;
+  try { text = readFileSync(outputFile(what), 'utf8'); } catch { /* never run here */ }
+  const all = text ? text.split('\n') : [];
+  return { what, running: Boolean(live), ended: e, lines: all.length, tail: all.slice(-lines).join('\n') };
+}
+
 function state() {
   const mine = [...runs.values()].map((r) => ({
     what: r.what, label: r.label, models: r.models ?? [], startedAt: r.startedAt, pid: r.child.pid, mine: true,
@@ -266,7 +285,8 @@ function state() {
      */
     estMin: String(r.what).startsWith('job:') ? (JOB.get(String(r.what).slice(4))?.minutes ?? null) : null,
   }));
-  const out = { runs: mine, paused: paused(), max: MAX_RUNS, machine: machine() };
+  // the last run of each thing this board started, so the page can say "ended with exit 1, 2 min ago"
+  const out = { runs: mine, paused: paused(), max: MAX_RUNS, machine: machine(), ended: [...ENDED.values()] };
   // A run this server did not start: checks are also started from a terminal, and capture-check
   // flags the check's own result file while it works. Reporting only what THIS process spawned put
   // "Nothing running" on the page directly above the ledger's own "media running 58/135" -- two
@@ -346,15 +366,32 @@ function start(what, models = []) {
   // -pid to take the browsers with it, and that only works on a group leader. Without it the
   // signal went nowhere, the fallback killed Node alone, and every browser it had opened stayed
   // up holding memory. Windows has no process groups to speak of; taskkill /T walks the tree.
-  const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: 'ignore', detached: process.platform !== 'win32' });
+  /*
+   * WHAT THE RUN PRINTS IS KEPT. It was thrown away (stdio: 'ignore'), so a job that failed left
+   * exit 1 and nothing else: on 2026-09-30 the live-site check failed from the board seconds after
+   * a deploy and the reason had to be found by running it again in a terminal, where it passed. A
+   * run's own words are the one thing a person needs when it fails, and they cost a file.
+   */
   const label = models.length === 1 ? `${what} on ${models[0]}`
     : models.length ? `${what} on ${models.length} models`
     : what;
-  runs.set(what, { what, label, models, startedAt: new Date().toISOString(), child });
+  const startedAt = new Date().toISOString();
+  const file = outputFile(what);
+  mkdirSync(OUTPUT_DIR, { recursive: true });
+  const log = createWriteStream(file, { flags: 'w' });
+  log.write(`# ${label}\n# ${process.execPath} ${argv.join(' ')}\n# started ${startedAt}\n\n`);
+  const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32' });
+  child.stdout.on('data', (b) => log.write(b));
+  child.stderr.on('data', (b) => log.write(b));
+  runs.set(what, { what, label, models, startedAt, child });
   console.log(`${new Date().toTimeString().slice(0, 8)} board: started ${label} (pid ${child.pid})`);
   child.on('close', (code) => {
+    const endedAt = new Date().toISOString();
     console.log(`${new Date().toTimeString().slice(0, 8)} board: ${what} ended, exit ${code}`);
+    log.end(`\n# ended ${endedAt}, exit ${code}\n`);
     runs.delete(what);
+    ENDED.set(what, { what, label, startedAt, endedAt, exit: code, file });
+    try { write(join(OUTPUT_DIR, 'index.json'), JSON.stringify([...ENDED.values()], null, 1)); } catch { /* the log itself is what matters */ }
   });
   return { ok: true, ...state() };
 }
@@ -458,6 +495,7 @@ export function serve(port = 5178) {
   const server = createServer(async (req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1');
     if (url.pathname === '/api/state') return json(res, 200, state());
+    if (url.pathname === '/api/output') return json(res, 200, outputOf(url.searchParams.get('run') ?? ''));
     if (url.pathname === '/api/run' && req.method === 'POST') {
       const what = url.searchParams.get('check') ?? '';
       const models = (url.searchParams.get('models') ?? '').split(',').map((x) => x.trim()).filter(Boolean);

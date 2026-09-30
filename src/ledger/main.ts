@@ -3096,6 +3096,48 @@ const navIcon = (name: string): string => (BARE[name]
   const STALE_STEPS = new Set<string>();
   /* what the push is waiting for, as the board last said it: see whatIsNeeded in scripts/jobs.mjs */
   let NEEDED: any = null;
+  /* the last run of each job this board started, with its exit code: from every state poll */
+  let ENDED_RUNS: any[] = [];
+  const endedOf = (key: string) => ENDED_RUNS.find((e) => e.what === key) ?? null;
+  /** What a job's last run came to, in one line, or nothing when it has never run here. */
+  function endedLine(key: string): string {
+    const e = endedOf(key);
+    if (!e) return '';
+    const ok = e.exit === 0;
+    return `<span class="chip ${ok ? 's-chk' : 's-bad'}">${ok ? 'held' : `ended with exit ${esc(String(e.exit))}`}</span> <span class="muted" data-ago="${esc(e.endedAt)}">${esc(ago(e.endedAt))}</span> <button type="button" class="linkish" data-output="${esc(key)}">what it printed</button>`;
+  }
+  /*
+   * THE DIALOG FOLLOWS THE RUN. A job's button was set to "Running" by the click that started it
+   * and never set back: it read "Running" an hour after the job had ended (2026-09-30, twice). Every
+   * state poll now puts each button back to what is true, and fills in how the last run ended.
+   */
+  function syncRunDialog() {
+    const d = $('run-dialog'); if (!d || !(d as any).open) return;
+    const running = new Set(RUN_NOW.runs.map((r) => r.what));
+    for (const b of [...document.querySelectorAll('#run-body [data-job]')] as HTMLButtonElement[]) {
+      const key = `job:${b.dataset.job}`;
+      if (!running.has(key) && (b.textContent === 'Running' || b.textContent === 'Starting…')) { b.textContent = 'Run'; b.disabled = false; }
+      const line = document.querySelector(`#run-body [data-ended-for="${CSS.escape(key)}"]`);
+      if (line && !line.querySelector('.runjob__out')) { const html = endedLine(key); if (line.innerHTML !== html) line.innerHTML = html; }
+    }
+    const go = document.getElementById('gpick-go') as HTMLButtonElement | null;
+    if (go && !running.has('job:gate-chosen') && (go.textContent === 'Running' || go.textContent === 'Starting…')) { go.textContent = 'Run the chosen steps'; gateCost(); }
+  }
+  /* "what it printed": the tail of the run's own output, from the server, under the job it belongs to */
+  document.addEventListener('click', (e: any) => {
+    const b = e.target.closest?.('[data-output]'); if (!b) return;
+    e.stopPropagation();
+    const key = b.dataset.output;
+    const host = b.closest('[data-ended-for]');
+    const open = host?.querySelector('.runjob__out');
+    if (open) { open.remove(); return; }
+    void api(`/api/output?run=${encodeURIComponent(key)}`).then(({ body }: any) => {
+      const pre = document.createElement('pre');
+      pre.className = 'runjob__out';
+      pre.textContent = body.tail || '(nothing was printed)';
+      host?.appendChild(pre);
+    }).catch((err: any) => { if (host) host.insertAdjacentHTML('beforeend', `<pre class="runjob__out">could not read it: ${esc(String(err?.message ?? err))}</pre>`); });
+  }, true);
   /*
    * TWO SETS, BECAUSE THEY ARE TWO QUESTIONS AND TWO VERY DIFFERENT BILLS.
    *
@@ -3159,7 +3201,12 @@ const navIcon = (name: string): string => (BARE[name]
    */
   function neededNote(n: any): string {
     if (!n) return ``;
-    if (!n.open) return `<p class="notice"><b class="big">Nothing before the push is open.</b> No check needs running. What is left is the sign-off, which is yours.</p>`;
+    if (!n.open) {
+      /* it said "what is left is the sign-off" after the sign-off had been given, which is the
+         one thing this line must never do: read the verdict, which knows */
+      const signed = (L as any)?.readiness?.checklist?.verdict?.stages?.yours?.open?.length === 0;
+      return `<p class="notice"><b class="big">Nothing before the push is open.</b> No check needs running. ${signed ? 'The sign-off is given at this commit: push.' : 'What is left is the sign-off, which is yours.'}</p>`;
+    }
     const name = (k: string) => (JOBS_STEPS ?? []).find((x: any) => x.key === k)?.short ?? k;
     const jobName = (k: string) => (JOBS ?? []).find((x: any) => x.key === k)?.name ?? k;
     const runs = [...n.steps.map(name), ...n.jobs.map(jobName)];
@@ -3180,6 +3227,7 @@ const navIcon = (name: string): string => (BARE[name]
         + `<p class="runjob__b">${esc(j.blurb)}</p>`
         + (why ? `<p class="runjob__w">${esc(why)}</p>` : ``)
         + `<button type="button" class="btn runjob__go" data-job="${esc(j.key)}"${off ? ` disabled data-tip data-tiptext="${esc(j.blockedWhy)}"` : ``}>${off ? `Cannot run here` : `Run`}</button>`
+        + `<p class="runjob__last" data-ended-for="job:${esc(j.key)}">${endedLine(`job:${j.key}`)}</p>`
         + `</li>`;
     }).join('');
     const head = body.machineKnown ? `` : `<p class="notice">Nobody has asked whether this machine can run these. <code>npm run doctor</code> answers that, and this panel will then grey out what it cannot do.</p>`;
@@ -3564,6 +3612,8 @@ const navIcon = (name: string): string => (BARE[name]
         if (done) PENDING = null;
       }
       RUN_NOW = { runs: body.runs ?? [], paused: !!body.paused, max: body.max ?? 2 };
+      ENDED_RUNS = body.ended ?? [];
+      syncRunDialog();
       // What the machine has left, from the same poll. Kept apart from RUN_NOW's signature on
       // purpose: free memory moves every second and redrawing the whole board for it would fight
       // the page's own rebuild. paintMachine() touches one chip.
