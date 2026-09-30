@@ -53,7 +53,7 @@ drafted. The app ships when the app is ready.
 Whoever is releasing answers them, under their own name — `npm run signoff` writes the tick with
 the date, the commit and the name git is configured with, so the record says who said it.
 
-- [ ] The person publishing has said to push — in their own words, after this list is complete and they have read it. Nothing else here may be read as that permission: not a green ledger, not `GATE HOLDS`, not 57 of 57. The push deploys to the live site (`.github/workflows/deploy.yml`) and is the claim that everything above checked out, so it is theirs to make. Ticked with `npm run signoff -- push`, which refuses while anything else that can be done before the push is still open — signed off by Edgaras Neverdauskas, 2026-09-25, at c9d3c6f
+- [x] The person publishing has said to push — in their own words, after this list is complete and they have read it. Nothing else here may be read as that permission: not a green ledger, not `GATE HOLDS`, not 57 of 57. The push deploys to the live site (`.github/workflows/deploy.yml`) and is the claim that everything above checked out, so it is theirs to make. Ticked with `npm run signoff -- push`, which refuses while anything else that can be done before the push is still open — signed off by Edgaras Neverdauskas, 2026-09-30, at 361d5f0
 
 ## Nothing is lost
 
