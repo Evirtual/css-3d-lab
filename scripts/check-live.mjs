@@ -137,14 +137,22 @@ note(gotAssets > 0, 'the files those pages reference are served', `${gotAssets} 
  * asset hashes for a reason that has nothing to do with the deploy.
  */
 const stamp = (html) => html.match(/\?v=(\d{10,})/)?.[1] ?? null;
-const unstamped = (html) => String(html).replace(/\?v=\d{10,}/g, ``);
+/*
+ * AND WITHOUT CARRIAGE RETURNS. On a Windows checkout git writes scripts/generate-pages.mjs with
+ * CR LF, its template literals then carry a CR, and the generated HTML has one where the Linux
+ * build that was deployed has none. The two pages were byte-identical but for that one character
+ * on 2026-09-30, and this line read BAD on a correct deploy. Line endings are not the build.
+ */
+const unstamped = (html) => String(html).replace(/\?v=\d{10,}/g, ``).replace(/\r/g, ``);
 const localStamp = (() => { try { return stamp(readFileSync(join(process.cwd(), 'dist', 'index.html'), 'utf8')); } catch { return null; } })();
 const liveStamp = stamp(pages[0]?.html ?? '');
 const localHome = (() => { try { return readFileSync(join(process.cwd(), 'dist', 'index.html'), 'utf8'); } catch { return null; } })();
 const liveHome = pages[0]?.html ?? null;
 if (localHome && liveHome) {
   const same = unstamped(localHome) === unstamped(liveHome);
-  const noVar = !same && !localHome.includes('workers.dev');
+  /* the endpoint is baked into a JS asset, never into the page itself: the page was being asked
+     and always said no, so every real difference was blamed on the variable */
+  const noVar = !same && !(() => { try { return readdirSync(join(process.cwd(), 'dist', 'assets')).some((f) => f.endsWith('.js') && readFileSync(join(process.cwd(), 'dist', 'assets', f), 'utf8').includes('workers.dev')); } catch { return false; } })();
   note(same, 'the served pages are the build in dist/',
     same ? `identical once the build stamp is set aside (live ?v=${liveStamp}, dist ?v=${localStamp}: two builds, two clocks)`
       : noVar ? `they differ, and dist/ was built WITHOUT VITE_CAPTURE_URL, so its asset hashes differ for that reason alone: rebuild with the variable set and compare again`
