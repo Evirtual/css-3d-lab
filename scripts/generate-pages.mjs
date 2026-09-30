@@ -17,6 +17,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, resolve } from 'node:path';
 import { createServer } from 'vite';
 import { workingSources } from './model-sources.mjs';
+import { embedPage as embedPageOf } from './embed-page.mjs';
 import { DESCRIPTION_AIM, DESCRIPTION_MAX, DESCRIPTION_MIN, TITLE_AIM, TITLE_MAX } from './seo-limits.mjs';
 
 const site = JSON.parse(readFileSync('site.config.json', 'utf8'));
@@ -386,31 +387,9 @@ function demoPage(d, index) {
 /** A title for the share image: a hyphenated word never breaks at its hyphen ("Drag-to-rotate"). */
 const ogTitle = (title) => esc(title).replace(/\S*-\S*/g, (w) => `<span class="nowrap">${w}</span>`);
 
-function embedPage(d) {
-  return `<!doctype html>
-<html lang="en" data-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex" />
-    <link rel="canonical" href="${site.url}/models/${d.id}/" />
-    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <title>${esc(d.title)} — ${esc(site.name)}</title>
-  </head>
-  <body class="embed">
-    <div class="stage" data-demo="${d.id}"></div>
-    <div class="embed__og" aria-hidden="true">
-      <div class="embed__og-tags"><span class="embed__og-kind">${kind(d)}</span></div>
-      <b>${ogTitle(d.title)}</b>
-      <span class="embed__og-sub">Live in your browser, explained step by step, with code you can copy.</span>
-      <span class="embed__og-site"><img class="embed__og-logo" src="../../icon.svg" alt="" /><span class="embed__og-name">${esc(site.name)}</span><span class="embed__og-url">${site.url.replace('https://', '')}</span></span>
-    </div>
-    <a class="embed__credit" href="${site.url}/models/${d.id}/" target="_blank" rel="noopener">${esc(d.title)} · ${esc(site.name)} ${icon('arrow-up-right')}</a>
-    <script type="module" src="/src/embed.ts"></script>
-  </body>
-</html>
-`;
-}
+/* The embed page template lives in scripts/embed-page.mjs: the dev server serves it on demand for a model
+   whose page has not been written yet (vite.config.ts), and this writes it for the build. */
+const embedPage = (d) => embedPageOf(d, site, icon);
 
 /* ---------- the home page's share image: the embed template with the site's own cube ---------- */
 

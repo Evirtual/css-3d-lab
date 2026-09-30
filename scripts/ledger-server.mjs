@@ -43,7 +43,7 @@ import { spawn, execFile } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { cpus, freemem, totalmem } from 'node:os';
-import { ROOT } from './model-sources.mjs';
+import { ROOT, workingSources } from './model-sources.mjs';
 import { REGISTRY } from './checks-registry.mjs';
 import { JOBS, JOB, GATE_STEPS, blockedBy, whatIsNeeded } from './jobs.mjs';
 import { statSync as statOf } from 'node:fs';
@@ -92,14 +92,15 @@ for (const j of JOBS) RUNNABLE.set(`job:${j.key}`, j.argv);
  * repository is ever passed on. Nothing reaches a shell either way, but an unchecked id would still
  * let a caller put arbitrary text on a command line, and there is no reason to allow that.
  */
-let KNOWN_MODELS = null;
+/*
+ * FROM THE SOURCE, EACH TIME. This read src/generated/model-ids.json once, when the board started.
+ * That file is written by `npm run generate`, so a model added after the board started was "not a
+ * model" to it, and stayed one after the generate too, until the board was restarted: on
+ * 2026-09-30 eight new models could not be run from the page for that reason. The source is what
+ * says which models exist, and reading it costs a few milliseconds.
+ */
 function knownModels() {
-  if (KNOWN_MODELS) return KNOWN_MODELS;
-  try {
-    const ids = JSON.parse(readFileSync(join(ROOT, 'src', 'generated', 'model-ids.json'), 'utf8'));
-    KNOWN_MODELS = new Set(ids.map((d) => d.id));
-  } catch { KNOWN_MODELS = new Set(); }
-  return KNOWN_MODELS;
+  try { return new Set(workingSources().keys()); } catch { return new Set(); }
 }
 
 /**

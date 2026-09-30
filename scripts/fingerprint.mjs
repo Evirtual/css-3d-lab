@@ -78,7 +78,9 @@ const P = {
   client: { file: 'src/capture-client.ts' },
   record: { file: 'src/record.ts' },
   render: { file: 'server/render.mjs' },
-  embedPage: { file: 'scripts/generate-pages.mjs', decls: ['embedPage'] },
+  // the template moved to its own module on 2026-09-30, so the dev server can serve it for a model
+  // whose page has not been generated yet; generate-pages.mjs only calls it now
+  embedPage: { file: 'scripts/embed-page.mjs', decls: ['embedPage'] },
   ogCss: { file: 'src/styles/_page.scss', sections: ['// The share image (?og=1)'] },
   media: { file: 'scripts/generate-media.mjs' },
   ogShot: { file: 'scripts/og-shot.mjs' },
@@ -375,7 +377,13 @@ export function differences(kind, then, now) {
   if (u.path) for (const part of RENDER_PATHS[u.path]) {
     const label = partLabel(part);
     const a = then?.paths?.[label], b = now?.paths?.[label];
-    if (a === undefined) continue; // recorded before this part was on the path: nothing to compare
+    /*
+     * A part the record never named is not "nothing to compare": it is a result that cannot be
+     * shown to be about today's render path. This used to skip it, so on 2026-09-30 the embed
+     * template moved to a new file, the path was renamed to follow it, and 143 share-image results
+     * read as current with no record of the file they now depended on. Not known is not current.
+     */
+    if (a === undefined) { out.push({ part: `path:${label}`, file: part.file, what: `shared file ${label} was not on the path when this was recorded` }); continue; }
     if (a !== b) out.push({ part: `path:${label}`, file: part.file, what: `shared file ${label}` });
   }
   return out;

@@ -95,7 +95,7 @@ Without `npm run export` running, everything works in dev except making a video 
 
 <!-- scripts:start (written by scripts/generate-readme.mjs from each file's opening comment: edit the comment, not this table) -->
 
-66 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
+68 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
 Each file says how to run it, and why it exists, in the comment at its top.
 
 | Run it with | What runs | What it is for |
@@ -148,6 +148,7 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | imported, not run | `scripts/css-heads.mjs` | The hover and focus targets a model's CSS names: for every selector with :hover, or with :focus, :focus-visible or :focus-within, the part in front of it. check-access and check-motion both read targets this way, so they agree on what a model's hover and focus targets are. Not run on its own. |
 | `node scripts/diag-record.mjs` | `scripts/diag-record.mjs` | Records a model exactly as the maker does, then plays the file back frame by frame and reports what actually came out: how many frames the player saw, how evenly they are spaced, how many are repeats of the one before, and whether the end meets the beginning again. |
 | `node scripts/diag-video.mjs` | `scripts/diag-video.mjs` | Is the video capture producing steady motion? |
+| imported, not run | `scripts/embed-page.mjs` | The embed page of one model: the page the checks photograph and the share image is shot from. |
 | `node scripts/export-defaults.mjs` | `scripts/export-defaults.mjs` | The export dialog's DEFAULT settings, in one place for the two scripts that must agree on them: scripts/check-exports.mjs makes exactly these under --defaults, and scripts/capture-check.mjs counts a model's export as checked only on its mismatches about these (isDefault). |
 | `node scripts/fingerprint.mjs` | `scripts/fingerprint.mjs` | What a check result or a review judged, as fingerprints, so the ledger can tell whether it still describes the model as it is now. Each result depends on exactly what it judged. |
 | `node scripts/gate-paths.mjs` | `scripts/gate-paths.mjs` | WHAT EACH GATE STEP'S RESULT DEPENDS ON. |
@@ -164,6 +165,7 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | `node scripts/release-snapshot.mjs` | `scripts/release-snapshot.mjs` | The release snapshot: the one file about check results that is COMMITTED. |
 | `node scripts/running.mjs` | `scripts/running.mjs` | The one answer to "is a check running, and how far has it got". |
 | imported, not run | `scripts/seo-limits.mjs` | How long a page's <title> and meta description may be, shared by scripts/generate-pages.mjs (which fits each page's fixed wording to them) and scripts/check-seo.mjs (which fails a page over them). Not run on its own. |
+| `node scripts/shot.mjs` | `scripts/shot.mjs` | A picture of a model, so a person can look at it. |
 | `node scripts/snippet-check.mjs` | `scripts/snippet-check.mjs` | Review tool: renders each snippet's standalone page (what "Copy as one HTML file" gives) with no build, reports script errors or empty pages, and photographs them all into .media-tmp/snippets.jpg. |
 | imported, not run | `server/render.mjs` | Shared by the Cloudflare Worker and local Playwright service. No files, sessions or images are persisted. A stream owns exactly one isolated browser context and disposes it on cancel. Not run on its own: imported by server/dev.mjs (npm run export) and worker/src/index.ts. validateCapture / readCapture check a posted scene (at most 8 MB, 900 frames, 30 fps, 8192 px a side, MAX_PIXELS device pixels a frame); renderCapture draws it and streams one `{ index, png }` (or `{ index, webp }`, when asked for) JSON line per frame. |
 

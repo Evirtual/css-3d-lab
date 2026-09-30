@@ -16,7 +16,7 @@ to is these outcomes, and each has a check that measures it:
 | Outcome | Checked by |
 | --- | --- |
 | Centred: the drawn stack within 4vmin of the middle, both ways, at rest and in every state | `check-models` |
-| Within the size band: 40 to 70vmin tall (or its shape class's own band), at most 92% wide, clear of the edges and the top corners | `check-models` |
+| Within the size band: 40 to 70vmin tall (or its shape class's own band), at most 92vmin wide, clear of the edges and the top corners | `check-models` |
 | Text readable on both stages: WCAG AA against the pixels behind it, dark and light | `check-contrast` |
 | Finished at rest: the paused first moment is a whole pose, and a paused model stops | `check-models` (the resting pose), `check-access` |
 | The same on every surface: card, viewer, page, editor, export, the copied file | `check-stages`, `check-exports`, `check-media` |
@@ -108,7 +108,7 @@ one. What everything the model draws must satisfy, in every state, is:
 | --- | --- |
 | At most, tall | the model box above: 70vmin, or 50vmin with controls |
 | At least, tall | 40vmin, so nothing reads as a speck in the middle |
-| At most, wide | 92% of the canvas width, so nothing touches the sides |
+| At most, wide | 92vmin, so nothing touches the sides. In vmin, like every other length here: on a card (360 × 300) that is about three quarters of the width, and on a wide canvas less. The docs said "92% of the canvas width" until 2026-09-30, and a model designed to that number was 96vmin wide and failed |
 
 A wide, short model is wide. A tall model is tall. They are the same height as each other, which
 is what makes them read as equally prominent, and they are all centred.
@@ -188,7 +188,7 @@ What it holds, exactly:
 | --- | --- | --- |
 | Tallest | solid | 70vmin for everything drawn, **the control zone included**. The 50vmin model box inside the band is not measured on its own: the stack in rule 5 is what holds it |
 | Shortest | solid | 40vmin |
-| Widest | solid | 92% of the canvas width |
+| Widest | solid | 92vmin |
 | Centred | solid | within 4vmin, sideways and vertically, for every model: a control zone gets no more (see below) |
 | Canvas edge | all | nothing drawn reaches the canvas edge, unless the model is full-canvas |
 | Top corners | all | nothing drawn within 14vmin of either top corner |
@@ -417,7 +417,7 @@ Design in whatever numbers you like — 180 and 100 above are just the proportio
 set `--u` so the model lands in the band. Nothing else has to change afterwards.
 
 **2. Land in the band.** 70vmin tall with no controls, 50vmin with them, never under 40vmin, never
-over 92% of the canvas wide, centred within 4vmin both ways, with or without a control zone (the
+over 92vmin wide, centred within 4vmin both ways, with or without a control zone (the
 zone is sized by what it holds and the whole drawn stack is centred, so there is no allowance). Check, do not guess:
 `npm run check-models <id>`.
 

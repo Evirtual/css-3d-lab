@@ -49,10 +49,45 @@ function allModelsLinks(): Plugin {
   };
 }
 
+/**
+ * A model's embed page, served the moment the model exists.
+ *
+ * embed/<id>/index.html is written by `npm run generate`, and every browser check opens it. Until
+ * it was written, the dev server answered /embed/<id>/ for a NEW model with the gallery's own
+ * index.html — a 200 for the wrong page — and the check measured the first card it found there and
+ * reported "nothing drawn", which points at the model. Six of eight people adding a model on
+ * 2026-09-30 lost their first quarter of an hour to that. Now the dev server renders the page from
+ * the same template the generator writes (scripts/embed-page.mjs) whenever the file is not there,
+ * so a check works on a model the instant it is in src/models. The build still writes the files.
+ */
+function embedOnDemand(): Plugin {
+  return {
+    name: 'embed-on-demand',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const m = /^\/embed\/([a-z0-9]+)\/?(?:index\.html)?(?:\?.*)?$/.exec(req.url ?? '');
+        if (!m || existsSync(resolve(root, 'embed', m[1], 'index.html'))) return next();
+        try {
+          const { demos } = await server.ssrLoadModule('/src/models/index.ts');
+          const demo = demos.find((d: { id: string }) => d.id === m[1]);
+          if (!demo) return next();
+          const { icon } = await server.ssrLoadModule('/src/icons.ts');
+          const { embedPage } = await server.ssrLoadModule('/scripts/embed-page.mjs');
+          const site = JSON.parse(readFileSync(resolve(root, 'site.config.json'), 'utf8'));
+          const html = await server.transformIndexHtml(req.url ?? '', embedPage(demo, site, icon));
+          res.setHeader('Content-Type', 'text/html');
+          res.end(html);
+        } catch (e) { next(e); }
+      });
+    },
+  };
+}
+
 // Relative base so the build works under any sub-path (GitHub Pages) and on a root domain.
 export default defineConfig({
   base: './',
-  plugins: [allModelsLinks()],
+  plugins: [allModelsLinks(), embedOnDemand()],
   server: {
     watch: {
       /**

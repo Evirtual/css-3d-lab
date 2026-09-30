@@ -104,12 +104,41 @@ There is no measuring run, no placement file and no override: set the model's ba
 `vmin` and every length as a multiple of it (VIEW-CONTRACT.md, rules 1–10). Then check it:
 
 ```bash
-npm run check-models -- <id>       # sets --u in vmin, lands in the band, clears the corners, in every state
-node scripts/check-contrast.mjs <id>  # every text readable on the dark stage and the light one
-node scripts/check-boxsizing.mjs <id> # draws the same whatever box-sizing the page sets
-node scripts/check-stages.mjs <id> # the same size on every surface and export shape
-node scripts/check-motion.mjs <id> # no flicker or pop through its animation and interactions
+node scripts/check-models.mjs --pass <id>   # sets --u in vmin, lands in the band, clears the corners, in every state
+node scripts/check-contrast.mjs --pass <id> # every text readable on the dark stage and the light one
+node scripts/check-boxsizing.mjs --pass <id> # draws the same whatever box-sizing the page sets
+node scripts/check-access.mjs <id>          # stops when paused, names its controls, reachable by keyboard
+node scripts/snippet-check.mjs <id>         # the standalone file runs with no script error
+node scripts/check-stages.mjs <id>          # the same size on every surface and export shape
+node scripts/check-motion.mjs <id>          # no flicker or pop through its animation and interactions
 ```
+
+**Read the numbers with `--pass`.** A model that holds prints only a dot without it; with it,
+`check-models` prints the line you size by: `holds gear 82 × 52 vmin; at rest 82 × 52 vmin, off -0, -0`.
+The union of every state first, then the resting pose, then how far the drawn stack's middle sits
+from the canvas middle, in vmin: **positive is right and down**, negative left and up. A failing
+model prints its failure and not its size, so run with `--pass` from the start and keep the margin
+in view. `check-contrast` and `check-boxsizing` take the same flag; `snippet-check` prints
+`checked N` and nothing else on a pass (exit 0 is the verdict).
+
+**A model works the moment its id exists.** The browser checks open `/embed/<id>/`, which the
+build writes; the dev server the checks start renders that page on demand for any model in
+`src/models`, so nothing has to be generated first. (`npm run generate` still writes the pages,
+the sitemap and `src/generated/model-ids.json` for the build, and the site's pages get their entry
+then.) `snippet-check` writes into `.media-tmp/` and does not create it: `mkdir .media-tmp` once (it is gitignored).
+
+**Look at it.** The checks measure; none of them shows you the model, and whether its 3D is right is
+yours to judge (VIEW-CONTRACT.md, "What no check can judge is left to a person"). Two models that
+passed every check on 2026-09-30 were wrong to the eye: a cradle whose balls swung inward over
+their neighbours, and a knob whose cap hid its own far ticks.
+
+```bash
+node scripts/shot.mjs <id>                 # .media-tmp/shots/<id>-{dark,light}-{0,1200}ms[-hover].png, with the ink box in vmin
+node scripts/shot.mjs <id> --at 0,800,1600  # the moments you want, ms into its own timeline
+```
+
+`snippet-check` also leaves `.media-tmp/snippets.jpg`, one sheet for everything it checked last; it
+is overwritten by the next run, so with several people checking at once it is somebody else's.
 
 `check-models` judges a model on a card, by the pixels it actually paints; it never adjusts it.
 
