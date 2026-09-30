@@ -91,8 +91,12 @@ That third one matters. A proof that **cannot run** is not the same as a proof t
 treating them alike either deletes real verifications or invents ones that never happened. When a
 line says "not evaluated" it also says what would answer it, and usually the command.
 
-Two lines are deliberately a person's: whether the writing is ready, and the decision to publish.
-`npm run signoff` records those with the date, the commit and the name git is configured with.
+One line is deliberately a person's: the decision to publish. `npm run signoff -- push` writes
+it at the end of that line with the date, the commit and the name git is configured with, and
+refuses while anything before the push is open. Commit `docs/RELEASE-CHECKLIST.md` **last**, and
+nothing after it: the sign-off is about the commit it was given at, and a commit that lands after
+it — even a fix to a document — retires it, so the deploy would refuse. Say it again if that
+happens; it is one command.
 
 ---
 
