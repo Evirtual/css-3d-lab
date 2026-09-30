@@ -100,11 +100,14 @@ const cards = new Map<string, HTMLElement>();
 //  - past about two screens it is UNMOUNTED and its stage keeps a placeholder.
 const mounter = new LazyMounter();
 
-for (const [i, demo] of demos.entries()) {
+for (const demo of demos) {
   const card = document.createElement('article');
   card.className = 'card is-offscreen';
   card.dataset.cat = demo.category;
-  card.style.setProperty('--n', String(i));
+  // hidden until the first render shows it, which gives it its place in the entrance stagger
+  // (--n, its position on the page): set from the file here, the last twelve of the file waited
+  // six seconds and came in bottom-first when Newest put them on the first page (2026-09-30)
+  card.hidden = true;
   card.innerHTML = `
     <div class="stage" inert></div>
     ${interactionHtml(demo)}
