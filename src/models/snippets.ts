@@ -1591,6 +1591,14 @@ layout();`,
   background-color: rgb(140 150 220 / 0.34);
 }
 
+/* a pill that holds a word and a slider: both on the pill's middle line, not on the text baseline,
+   where the slider sat a little high */
+.controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2vmin;
+}
+
 .controls :focus-visible {
   outline: 0.6vmin solid #6a45f5;
   outline-offset: 0.6vmin;
