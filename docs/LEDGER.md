@@ -155,7 +155,9 @@ what it costs:
 A check reports per-model, so its bar fills. A **job** does not — it is not a check, and nothing
 writes per-model progress for one — so its bar carries elapsed time against the job's recorded
 estimate, labelled as the estimate it is, and says "longer than usual" once it passes it by half.
-There is no percentage shown for a job because there is no honest one to show.
+There is no percentage shown for a job because there is no honest one to show. The elapsed time
+ticks every second from when the job started: it used to be drawn only when the data changed, and
+a job changes no data while it runs, so it read "2 min" over a job eight minutes in.
 
 Two runs cannot overwrite each other's progress: a run started from a terminal will not clear the
 record of one the board started and is still watching.

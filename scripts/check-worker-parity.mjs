@@ -38,7 +38,7 @@
  * WHY curl AND NOT fetch. Both services check the Origin header, and node's fetch refuses to send
  * one -- it is a forbidden header name, and undici drops it silently. A POST from fetch is a 403.
  */
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stepFingerprint } from './gate-paths.mjs';
@@ -145,13 +145,23 @@ function unpinned() {
 }
 
 /* ---------------- 2. the render comparison ---------------- */
-function render(endpoint, scene, tmp) {
+/*
+ * NOT execFileSync. This used to call curl synchronously, and when no service was already on 8787
+ * the script had started its own in THIS process -- so the curl to 127.0.0.1:8787 waited on an
+ * event loop that was blocked waiting on curl. Every local render timed out at 240 s and the run
+ * reported three "disagreements" that were the script disagreeing with itself (2026-09-30). It had
+ * only ever passed with a service somebody else had started. curl is spawned and awaited now.
+ */
+async function render(endpoint, scene, tmp) {
   const origin = endpoint.includes('127.0.0.1') ? LOCAL_ORIGIN : SITE_ORIGIN;
   writeFileSync(tmp, JSON.stringify({ ...scene, count: 1, fps: 30, frame: 'png' }));
-  const out = execFileSync('curl', ['-s', '--max-time', '240', '-X', 'POST',
-    '-H', 'Content-Type: application/json', '-H', 'Origin: ' + origin,
-    '--data-binary', '@' + tmp, '-w', '\nHTTPSTATUS:%{http_code}', endpoint],
-    { maxBuffer: 256 * 1024 * 1024, encoding: 'utf8' });
+  const out = await new Promise((resolve, reject) => {
+    execFile('curl', ['-s', '--max-time', '240', '-X', 'POST',
+      '-H', 'Content-Type: application/json', '-H', 'Origin: ' + origin,
+      '--data-binary', '@' + tmp, '-w', '\nHTTPSTATUS:%{http_code}', endpoint],
+    { maxBuffer: 256 * 1024 * 1024, encoding: 'utf8' },
+    (err, stdout, stderr) => (err ? reject(new Error(`curl to ${endpoint} failed (exit ${err.code ?? '?'}${err.code === 28 ? ', timed out after 240 s' : ''})${String(stderr ?? '').trim() ? `: ${String(stderr).trim().split('\n')[0]}` : ''}`)) : resolve(stdout)));
+  });
   const code = (out.match(/HTTPSTATUS:(\d+)/) ?? [])[1] ?? '?';
   const body = out.replace(/\nHTTPSTATUS:\d+$/, '');
   for (const line of body.split('\n')) {
@@ -379,8 +389,8 @@ for (const id of chosen) {
   await context.close();
 
   try {
-    const here = render(LOCAL, scene, tmp);
-    const there = render(WORKER, scene, tmp);
+    const here = await render(LOCAL, scene, tmp);
+    const there = await render(WORKER, scene, tmp);
     if (saveDir) {
       writeFileSync(join(saveDir, `${id}-local.png`), Buffer.from(here, 'base64'));
       writeFileSync(join(saveDir, `${id}-worker.png`), Buffer.from(there, 'base64'));

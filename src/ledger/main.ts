@@ -1242,7 +1242,10 @@ const navIcon = (name: string): string => (BARE[name]
     const secs = Math.max(0, (Date.now() - new Date(p.startedAt).getTime()) / 1000);
     const est = p.estMin ? `of about ${p.estMin} min` : 'no estimate recorded for this job';
     const over = p.estMin && secs > p.estMin * 60 * 1.5;
-    return `<span class="pg pg--job${over ? ' pg--over' : ''}">
+    /* data-started: the one-second ticker (tickAges) keeps the elapsed time honest between redraws.
+       The bar is drawn when the DATA changes, and a job reports no data while it runs, so it read
+       "2 min" for a job that had run for eight until somebody noticed (2026-09-30). */
+    return `<span class="pg pg--job${over ? ' pg--over' : ''}" data-started="${esc(p.startedAt)}" data-est="${p.estMin ?? ''}">
       <span class="pg__name" data-tip data-tiptext="${esc(`${name}: a job, not a per-model check, so there is no count to show. Started ${clock(p.startedAt)}.`)}">${esc(name)}</span>
       <span class="pg__track" role="progressbar" aria-label="${esc(name)} is running" aria-valuetext="running ${esc(fmtDur(secs))}"><i></i></span>
       <span class="pg__end"><span class="pg__n">${esc(fmtDur(secs))}</span>
@@ -3810,6 +3813,18 @@ const navIcon = (name: string): string => (BARE[name]
     document.querySelectorAll('[data-ago]').forEach((el) => { const t = ago(el.dataset.ago); if (el.textContent !== t) el.textContent = t; });
     // the same tick keeps the table's commit ages honest; nothing is written unless the words change
     document.querySelectorAll('[data-ago-short]').forEach((el) => { const t = fmtAgeShort(age(el.dataset.agoShort)); if (el.textContent !== t) el.textContent = t; });
+    // a running job's clock: elapsed since it started, not since its bar was last drawn
+    document.querySelectorAll('.pg--job[data-started]').forEach((el: any) => {
+      const secs = Math.max(0, (Date.now() - new Date(el.dataset.started).getTime()) / 1000);
+      const n = el.querySelector('.pg__n'); const t = fmtDur(secs);
+      if (n && n.textContent !== t) n.textContent = t;
+      const est = Number(el.dataset.est);
+      const over = est > 0 && secs > est * 60 * 1.5;
+      if (over !== el.classList.contains('pg--over')) {
+        el.classList.toggle('pg--over', over);
+        const m = el.querySelector('.pg__meta'); if (m) m.textContent = `of about ${est} min${over ? ' · longer than usual' : ''}`;
+      }
+    });
     renderLive();
   }
 
