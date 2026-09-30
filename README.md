@@ -29,9 +29,9 @@ cards & galleries, loaders & patterns, scenes & objects, data & tools), in two h
   model sizes and places itself in those units by the rules in
   [docs/VIEW-CONTRACT.md](docs/VIEW-CONTRACT.md). Nothing outside a model sizes or moves it.
   There is no second implementation: the site's stylesheet (`src/styles/`) is only the site's
-  own chrome, and a model's CSS reaches the page only inside its frame. The page's JavaScript
-  still carries every snippet (the gallery, the editors and "Copy" need them), so it is the
-  heaviest thing a page loads.
+  own chrome, and a model's CSS reaches the page only inside its frame. A page fetches only the
+  snippets it shows, each as its own file (`vite.config.ts`, `snippetChunks`): a model page its
+  one, the gallery a card's as the card comes into view.
 - The code windows are live editors: a CSS edit is applied to the running frame without
   remounting it (the animation keeps its pose), HTML or JS edits rebuild the frame. Edits are saved
   per model in `localStorage` (`c3d-edit:<id>`) and can be reset. "Copy" and "Copy as one HTML

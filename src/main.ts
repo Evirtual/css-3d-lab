@@ -23,7 +23,7 @@ import { interactionHtml } from './models/interaction';
 import { demos, type GroupedDemo } from './models';
 import { LazyMounter } from './lazy-mount';
 import { GROUPS, GROUP_ORDER, type Group } from './models/groups';
-import { snippets } from './models/snippets';
+import { loadSnippet } from './snippet-loader';
 import { CATEGORY_LABEL, type Category } from './models/types';
 import type { Lang } from './highlight';
 import { hydrateIcons, icon } from './icons';
@@ -251,7 +251,7 @@ searchEl.addEventListener('input', () => {
 document.addEventListener('click', (e) => {
   const el = (e.target as HTMLElement).closest<HTMLElement>('[data-cat],[data-group],[data-tag],[data-clear],[data-open],[data-more]');
   if (!el) return;
-  if (el.dataset.open) return openViewer(el.dataset.open);
+  if (el.dataset.open) return void openViewer(el.dataset.open);
   if ('more' in el.dataset) {
     limit += PAGE;
     return render();
@@ -346,11 +346,12 @@ const snippetSource = (id: string): string | undefined => {
   return snippetSources[id];
 };
 
-function openViewer(id: string): void {
+async function openViewer(id: string): Promise<void> {
   const demo = demos.find((d) => d.id === id);
   if (!demo) return;
   track(`open/${id}`);
-  const snip = snippets[id];
+  const snip = await loadSnippet(id);
+  if (!snip) return;
   // Edits are stored per demo, so they are shared with the demo's full page.
   const live = new LiveEdit(id, demo.title, { html: snip.html, css: snip.css, ...(snip.js ? { js: snip.js } : {}) });
   const panes: Pane[] = [

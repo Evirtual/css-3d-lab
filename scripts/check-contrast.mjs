@@ -223,6 +223,18 @@ text, tspan, textPath { fill-opacity: 0 !important; stroke-opacity: 0 !important
 };
 
 /* ---------- one model ---------- */
+/** How many pixels of two shots differ by more than CHANGE, and the box (device px) they lie in. */
+function differ(a, b) {
+  let n = 0, l = Infinity, t = Infinity, r = -1, bt = -1;
+  for (let i = 0; i < a.rgba.length; i += 4) {
+    if (Math.max(Math.abs(a.rgba[i] - b.rgba[i]), Math.abs(a.rgba[i + 1] - b.rgba[i + 1]), Math.abs(a.rgba[i + 2] - b.rgba[i + 2])) <= CHANGE) continue;
+    n++;
+    const x = (i / 4) % a.width, y = Math.floor(i / 4 / a.width);
+    l = Math.min(l, x); t = Math.min(t, y); r = Math.max(r, x); bt = Math.max(bt, y);
+  }
+  return { n, box: n ? [l, t, r, bt] : [] };
+}
+
 function measure(texts, withText, without) {
   const W = withText.width, H = withText.height;
   const px = (i) => [i * 4, i * 4 + 1, i * 4 + 2];
@@ -292,11 +304,14 @@ async function onStage(browser, id, title, snippet, clicks, stageName) {
       if (!texts.length) return;
       let readings, held = false;
       for (let attempt = 0; attempt < 4 && !held; attempt++) {
-        const withTextPng = await page.screenshot();
-        readings = await shots(label, texts, decode(withTextPng));
-        held = (await page.screenshot()).equals(withTextPng);
+        const withText = decode(await page.screenshot());
+        readings = await shots(label, texts, withText);
+        // agree by the readings' own threshold: byte-identical is more than a reading asks (the
+        // bytes of two shots of one still differed by less than CHANGE on 15 models, moved on none)
+        const moved = differ(withText, decode(await page.screenshot()));
+        held = !moved.n;
         if (!held) {
-          if (process.env.C3D_DEBUG) console.error(`  debug ${label}: the picture moved during the still, shooting it again`);
+          if (process.env.C3D_DEBUG) console.error(`  debug ${label}: the picture moved during the still (${moved.n} px in ${moved.box.map((v) => (v / DPR).toFixed(0)).join(',')}), shooting it again`);
           await page.waitForTimeout(250);
         }
       }
@@ -324,9 +339,8 @@ async function onStage(browser, id, title, snippet, clicks, stageName) {
           const alone = decode(await page.screenshot());
           if (process.env.C3D_DEBUG) {
             // what moved anywhere between the two shots: a word's own glyphs, or the whole picture
-            let n = 0, l = 1e9, t = 1e9, r = 0, b = 0;
-            for (let i = 0; i < alone.rgba.length; i += 4) if (Math.max(Math.abs(alone.rgba[i] - withText.rgba[i]), Math.abs(alone.rgba[i + 1] - withText.rgba[i + 1]), Math.abs(alone.rgba[i + 2] - withText.rgba[i + 2])) > CHANGE) { n++; const x = (i / 4) % alone.width, y = Math.floor(i / 4 / alone.width); l = Math.min(l, x); t = Math.min(t, y); r = Math.max(r, x); b = Math.max(b, y); }
-            console.error(`  debug alone shot for "${texts[k].text}": ${n} px changed anywhere, box ${n ? [l, t, r, b].map((v) => (v / DPR).toFixed(0)).join(',') : '-'}`);
+            const d = differ(withText, alone);
+            console.error(`  debug alone shot for "${texts[k].text}": ${d.n} px changed anywhere, box ${d.n ? d.box.map((v) => (v / DPR).toFixed(0)).join(',') : '-'}`);
           }
           await page.evaluate(HIDE, false);
           m = measure([texts[k]], withText, alone)[0];

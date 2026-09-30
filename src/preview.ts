@@ -1,5 +1,5 @@
 import { standaloneDoc } from './models/snippet-utils';
-import { snippets } from './models/snippets';
+import { loadSnippet } from './snippet-loader';
 import type { Code } from './live-edit';
 
 type Theme = 'dark' | 'light';
@@ -149,13 +149,17 @@ export class Preview {
  * on the gallery as it does anywhere else.
  */
 export function mountModel(stage: HTMLElement, id: string, title: string): () => void {
-  const snip = snippets[id];
-  if (!snip) return () => {};
-  const code: Code = { html: snip.html, css: snip.css, ...(snip.js ? { js: snip.js } : {}) };
-  const theme: Theme = stage.closest<HTMLElement>('[data-theme]')?.dataset.theme === 'light' ? 'light' : 'dark';
-  const preview = new Preview(id, title, code, code, theme);
-  stage.replaceChildren(preview.frame);
-  return () => preview.close();
+  // the snippet is fetched on its own; a stage closed before it arrives shows nothing
+  let preview: Preview | undefined;
+  let closed = false;
+  void loadSnippet(id).then((snip) => {
+    if (closed || !snip) return;
+    const code: Code = { html: snip.html, css: snip.css, ...(snip.js ? { js: snip.js } : {}) };
+    const theme: Theme = stage.closest<HTMLElement>('[data-theme]')?.dataset.theme === 'light' ? 'light' : 'dark';
+    preview = new Preview(id, title, code, code, theme);
+    stage.replaceChildren(preview.frame);
+  });
+  return () => { closed = true; preview?.close(); };
 }
 
 export function syncPreview(stage: HTMLElement): void {

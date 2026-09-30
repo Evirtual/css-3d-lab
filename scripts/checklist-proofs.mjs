@@ -315,7 +315,7 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       try { behind = Number(git('rev-list', '--count', `${at}..HEAD`).trim()) || 0; } catch { /* leave it */ }
       if (!behind && !dirty) return T(`${what} at ${short}, which is HEAD, with nothing uncommitted`);
       const why = [
-        behind ? `${behind} commit${behind === 1 ? '' : 's'} have landed since` : null,
+        behind ? `${behind} commit${behind === 1 ? ' has' : 's have'} landed since` : null,
         dirty ? `${dirty} path(s) are uncommitted` : null,
       ].filter(Boolean).join(', ');
       return F(`${what} at ${short}; ${why}. It is a claim about code that is not the code being pushed, so it does not carry: read and say it again on what is going out`);

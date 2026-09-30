@@ -88,8 +88,12 @@ const DIST = resolve(ROOT, distAt >= 0 ? args[distAt + 1] : 'dist');
  *    each group), and the page's JavaScript carries every snippet, so each model costs about 2 KB
  *    gzipped. Accepted growth; the budget moves up with the same headroom. The real fix is a page
  *    that loads only its own snippet, which would make this budget stop growing with the gallery.
+ *  - 2026-09-30, later: that fix (vite.config.ts, snippetChunks): every snippet is its own chunk,
+ *    fetched when its model is mounted. Model 143.6 KB (candles, the heaviest snippet, counted
+ *    with its chunk), home 140.5 KB. Budget 154 / 151, the same headroom; a new model now costs
+ *    the home page nothing up front and a model page only its own snippet.
  */
-const WEIGHT_BUDGET = { model: 314 * 1024, home: 319 * 1024 };
+const WEIGHT_BUDGET = { model: 154 * 1024, home: 151 * 1024 };
 
 /**
  * Findings shown to the user and waiting on their decision. Key: `<page> <rule>`.
@@ -462,6 +466,13 @@ function weightOf(p) {
     if (!ref) continue;
     const t = localTarget(p.address, ref);
     if (t?.file) add(t.file);
+  }
+  // a model page fetches its own snippet chunk (vite.config.ts, snippetChunks) the moment it
+  // mounts the model: not a <script> in the page, but weight it always loads, so it counts
+  if (p.kind === 'model') {
+    const id = p.address.split('/')[2];
+    const assets = join(DIST, 'assets');
+    if (existsSync(assets)) for (const f of readdirSync(assets)) if (f.startsWith(`snippet-${id}-`) && f.endsWith('.js')) add(join(assets, f));
   }
   let raw = 0, gz = 0;
   for (const f of files) { const b = readFileSync(f); raw += b.length; gz += gzipSync(b).length; }

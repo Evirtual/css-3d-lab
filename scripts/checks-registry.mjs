@@ -243,10 +243,11 @@ export const REGISTRY = [
   },
   {
     key: 'seo', script: 'check-seo.mjs', scope: 'site', name: 'seo', short: 'SEO',
-    ruleVersion: 2,
+    ruleVersion: 3,
     rules: [
       { v: 1, from: null, what: 'as first recorded, with the page weight budget measured on 2026-09-22: model 275 KB, home 280 KB gzipped' },
       { v: 2, from: null, what: 'as v1, with the weight budget re-measured on 2026-09-23 and moved up with the same headroom (model 288 KB, home 293 KB): a day of reviewed model edits and the View zoom control spent the old one' },
+      { v: 3, from: null, what: 'as v2, with a model page weighed with the snippet chunk it fetches, and the budget re-measured on 2026-09-30 once every snippet became its own chunk (model 154 KB, home 151 KB, from 314 / 319 when the page carried every snippet)' },
     ],
     title: 'SEO over the built site (check-seo)', label: 'SEO check (check-seo)',
     rule: 'cleared when its latest run on the built site (after npm run build) reports no FAIL line for the page; WAIVED and OWN-TEXT findings are listed, not failed',
