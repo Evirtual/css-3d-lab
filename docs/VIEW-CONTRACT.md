@@ -68,8 +68,10 @@ they do not prove a model is good, and they do not pretend to.
 
 ## The canvas is the body
 
-A model runs in its own frame, and that frame IS the canvas. Inside the snippet it behaves exactly
-like `body` on a page written properly:
+A model runs in its own frame, and that frame IS the canvas. The frame (`mountModel` in
+`src/preview.ts`) fetches the model's snippet on its own, as its own file, the moment the model is
+mounted: a page carries the snippets of the models it shows and no others. Inside the snippet it
+behaves exactly like `body` on a page written properly:
 
 - it is the container, so scrolling, dragging and pointer tracking belong to it;
 - it is the whole width and height available, whatever shape the stage is;
@@ -303,6 +305,7 @@ stack of copies (the layers of an extruded headline) is read from its front copy
 lying on a readable copy of the same text is counted and named on the line, not failed. A model's text that
 is a fixed colour on the bare stage cannot reach 4.5:1 on both stages: it inherits the stage's ink
 (softened with opacity, as the caption is), or sits on a surface of the model's own. A text on a face that can turn away (`backface-visibility: hidden` on it or on an ancestor: the back of a slat, the reverse of a card) is read from its own pixels alone, so it never borrows the glyphs of the face in front of it; while it is turned away it is listed as not drawn, and it is judged when it shows.
+A still's readings count only when a last shot of it, every fill back, agrees with the first (no pixel changed by more than the check's own threshold): the browser can redraw a word a pixel lower half a second after a turn ends, with nothing animating, and a reading taken across that redraw is of two pictures. A still that moved is shot again, up to four times; one that never holds is named on the model's line. `C3D_DEBUG=1` prints every reading with its rects and both passes.
 
 **One base unit, in vmin, is part of the contract.** `check-models` also fails a model whose
 snippet CSS does not set `--u` to a value in `vmin` (ground rule 1), and says which unit it has

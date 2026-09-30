@@ -119,7 +119,10 @@ The union of every state first, then the resting pose, then how far the drawn st
 from the canvas middle, in vmin: **positive is right and down**, negative left and up. A failing
 model prints its failure and not its size, so run with `--pass` from the start and keep the margin
 in view. `check-contrast` and `check-boxsizing` take the same flag; `snippet-check` prints
-`checked N` and nothing else on a pass (exit 0 is the verdict).
+`checked N` and nothing else on a pass (exit 0 is the verdict). A text reading you do not believe:
+`C3D_DEBUG=1 node scripts/check-contrast.mjs <id>` prints every reading, with the text's rects,
+whether it sits on a face that can turn away, and both passes (with every fill hidden, then its
+own fill alone), and says when a still moved between its shots and was shot again.
 
 **A model works the moment its id exists.** The browser checks open `/embed/<id>/`, which the
 build writes; the dev server the checks start renders that page on demand for any model in
