@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosSpeaker: Demo[] = [
   {
     id: 'speaker',
+    added: '2026-09-30',
     title: 'Bluetooth speaker',
     description:
       'A portable speaker lying on its side: a sixteen-strip cylinder in dotted fabric with rubber bands, a passive radiator in each end cap, a button pad on top and a logo plate. Hover or focus and it tilts to show its buttons while the grille pulses teal.',

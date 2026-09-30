@@ -7,6 +7,7 @@ const WORD_B = 'ROLL';
 export const demosH: Demo[] = [
   {
     id: 'keycaps',
+    added: '2026-09-19',
     title: '3D keycaps',
     description:
       'Mechanical keycaps with sloped sides on a tilted plate. Hover or focus a key and its cap sinks into the plate with a glow; the button itself never moves, only the cap inside it.',
@@ -16,6 +17,7 @@ export const demosH: Demo[] = [
   },
   {
     id: 'stepper',
+    added: '2026-09-19',
     title: 'Rolling number stepper',
     description:
       'A quantity stepper whose number sits on a cube. − and + roll it a quarter turn down or up; just before each turn JS writes the new number onto the face that is about to come into view.',
@@ -25,6 +27,7 @@ export const demosH: Demo[] = [
   },
   {
     id: 'rating',
+    added: '2026-09-19',
     title: 'Flipping star rating',
     description:
       'Five thin star plates, each a front and a gold back with an edge between them. Radio inputs and labels choose a rating, and every star up to it flips over, one after another.',
@@ -34,6 +37,7 @@ export const demosH: Demo[] = [
   },
   {
     id: 'toggle',
+    added: '2026-09-19',
     title: 'Rolling cube toggle',
     description:
       'A chunky switch whose knob is a real cube. Checked, it tips over its right-hand edge onto the other half of the track, bringing the moon face up, and the track changes colour.',
@@ -43,6 +47,7 @@ export const demosH: Demo[] = [
   },
   {
     id: 'cubeletters',
+    added: '2026-09-19',
     title: 'Rolling letter cubes',
     description: `Every letter sits on its own cube. The cubes roll forward a quarter turn one after another, so ${WORD_A} becomes ${WORD_B} and back; after four turns each cube is where it started, so the loop has no seam.`,
     category: 'css',

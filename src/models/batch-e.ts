@@ -3,6 +3,7 @@ import type { Demo } from './types';
 export const demosE: Demo[] = [
   {
     id: 'solar',
+    added: '2026-09-19',
     title: 'Solar system',
     description:
       'Orbits are rings on a tilted plane, each spinning at its own speed. Every planet undoes both rotations, so it always faces the camera.',
@@ -12,6 +13,7 @@ export const demosE: Demo[] = [
   },
   {
     id: 'city',
+    added: '2026-09-19',
     title: 'Isometric city',
     description:
       'Sixteen buildings on a ground plane. Each one is a single element: the roof is lifted by translateZ and two pseudo-element walls hang down from it. The pointer turns the block.',
@@ -21,6 +23,7 @@ export const demosE: Demo[] = [
   },
   {
     id: 'room',
+    added: '2026-09-19',
     title: 'Look around a room',
     description:
       'A box seen from the inside: floor, ceiling and three walls. The pointer rotates it around the camera position, so it feels like turning your head.',
@@ -30,6 +33,7 @@ export const demosE: Demo[] = [
   },
   {
     id: 'ferris',
+    added: '2026-09-19',
     title: 'Ferris wheel',
     description:
       'The wheel turns on Z while every cabin turns the other way by the same amount, so the cabins stay upright. Two rims at different depths give it thickness.',
@@ -39,6 +43,7 @@ export const demosE: Demo[] = [
   },
   {
     id: 'island',
+    added: '2026-09-19',
     title: 'Floating island',
     description:
       'A small terrain of block columns in an isometric view. Each block is one element: its top is lifted with translateZ and two pseudo-element walls hang from its edges.',
@@ -48,6 +53,7 @@ export const demosE: Demo[] = [
   },
   {
     id: 'road',
+    added: '2026-09-19',
     title: 'Endless drive',
     description:
       'A road plane laid flat with rotateX(90deg). The centre line slides by exactly one dash period, and posts travel the whole road with staggered delays, so the loop never shows a seam.',
@@ -57,6 +63,7 @@ export const demosE: Demo[] = [
   },
   {
     id: 'snow',
+    added: '2026-09-19',
     title: 'Depth snowfall',
     description:
       'JS creates forty flakes once, each with a random depth, speed and drift in custom properties. One CSS animation does the falling; perspective makes near flakes big and fast.',
@@ -66,6 +73,7 @@ export const demosE: Demo[] = [
   },
   {
     id: 'pie',
+    added: '2026-09-19',
     title: '3D donut chart',
     description:
       'A conic-gradient disc repeated in twelve translateZ layers. Lower layers are darkened, which reads as a solid wall, and a radial mask on each layer cuts the hole.',
@@ -75,6 +83,7 @@ export const demosE: Demo[] = [
   },
   {
     id: 'scatter',
+    added: '2026-09-19',
     title: '3D scatter plot',
     description:
       'Points placed with the translate property inside a wireframe box that spins by CSS. Dragging anywhere on the canvas pauses the spin and adds a manual rotation; every point counter-rotates so it stays a round sphere.',
@@ -84,6 +93,7 @@ export const demosE: Demo[] = [
   },
   {
     id: 'map',
+    added: '2026-09-19',
     title: 'Map pins',
     description:
       'A map drawn with gradients lies on a tilted plane. The pins undo the plane’s rotation around their tip, so they stand up and face you, then bounce in turn above a pulsing ring.',

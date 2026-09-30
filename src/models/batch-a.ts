@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosA: Demo[] = [
   {
     id: 'prism',
+    added: '2026-09-19',
     title: 'Hexagonal prism',
     description:
       'Six side panels in a closed ring plus two hexagon caps cut with clip-path. The apothem, (side / 2) / tan(30°), is how far each panel steps out.',
@@ -13,6 +14,7 @@ export const demosA: Demo[] = [
   },
   {
     id: 'octa',
+    added: '2026-09-19',
     title: 'Octahedron',
     description:
       'Eight triangles hinged on a square equator, leaning in by 35.26° so they meet at two apexes. One rule builds all of them: scaleY(-1) flips the bottom four.',
@@ -22,6 +24,7 @@ export const demosA: Demo[] = [
   },
   {
     id: 'diamond',
+    added: '2026-09-19',
     title: 'Cut gem',
     description:
       'A crown of trapezoid facets leaning 45° above the girdle and a deep pavilion of triangles below, with a glint that walks from facet to facet.',
@@ -31,6 +34,7 @@ export const demosA: Demo[] = [
   },
   {
     id: 'torus',
+    added: '2026-09-19',
     title: 'Ring torus',
     description:
       'A donut made of 24 circles. Each one turns to its angle and walks out with translateX, so it stands edge-on around the hole like a slice of the tube.',
@@ -40,6 +44,7 @@ export const demosA: Demo[] = [
   },
   {
     id: 'cone',
+    added: '2026-09-19',
     title: 'Cone',
     description:
       'Sixteen thin triangles on a circle, each leaning in by atan(radius / height) so all the tips meet on the axis, over a flat disc base.',
@@ -49,6 +54,7 @@ export const demosA: Demo[] = [
   },
   {
     id: 'stairs',
+    added: '2026-09-19',
     title: 'Spiral staircase',
     description:
       'Every tread is the same flat slab pivoting on the pole. One index turns it 30° further and lifts it one step higher: that is the whole spiral.',
@@ -58,6 +64,7 @@ export const demosA: Demo[] = [
   },
   {
     id: 'rubik',
+    added: '2026-09-19',
     title: 'Twisting puzzle cube',
     description:
       'A 3×3×3 cube built as three layers that take turns twisting a quarter turn. Each layer is one flat box with the stickers painted on by gradients.',
@@ -67,6 +74,7 @@ export const demosA: Demo[] = [
   },
   {
     id: 'cubegrid',
+    added: '2026-09-19',
     title: 'Cube field wave',
     description:
       'Sixteen cubes seen isometrically, rising and falling in a wave that travels along the diagonals. Each cube is one element: its top plus two folded pseudo-element sides.',
@@ -76,6 +84,7 @@ export const demosA: Demo[] = [
   },
   {
     id: 'net',
+    added: '2026-09-19',
     title: 'Unfolding cube',
     description:
       'A cube’s cross-shaped net lies open on a floor, folds up into a cube that turns a full circle, and opens flat again. The lid hangs off a wall, so its hinge rides along with the wall’s: nested transforms compound. The camera moves in as it folds, so the cube is as big as the net.',
@@ -85,6 +94,7 @@ export const demosA: Demo[] = [
   },
   {
     id: 'shapeshift',
+    added: '2026-09-19',
     title: 'Shapeshifting prism',
     description:
       'Pick 3 to 12 sides. JS rebuilds the panels and computes the apothem and side length with cos() and sin(); CSS places every panel from those numbers.',

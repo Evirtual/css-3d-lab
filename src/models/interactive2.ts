@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const interactiveDemos2: Demo[] = [
   {
     id: 'dice',
+    added: '2026-09-19',
     title: 'Dice roll',
     description: 'JS picks a random face and adds full turns; a CSS transition does the tumbling.',
     category: 'js',
@@ -12,6 +13,7 @@ export const interactiveDemos2: Demo[] = [
   },
   {
     id: 'cardstack',
+    added: '2026-09-19',
     title: 'Card stack',
     description: 'Click the deck: the top card flies off and returns at the back. JS only reassigns positions.',
     category: 'js',
@@ -20,6 +22,7 @@ export const interactiveDemos2: Demo[] = [
   },
   {
     id: 'parallax',
+    added: '2026-09-19',
     title: 'Depth parallax',
     description: 'Layers sit at different translateZ depths; tilting the scene with the pointer makes them slide apart.',
     category: 'js',
@@ -28,6 +31,7 @@ export const interactiveDemos2: Demo[] = [
   },
   {
     id: 'boxslider',
+    added: '2026-09-19',
     title: 'Box slideshow',
     description: 'Four slides on the sides of a box. JS counts steps; CSS turns the box by 90° per step.',
     category: 'js',
@@ -36,6 +40,7 @@ export const interactiveDemos2: Demo[] = [
   },
   {
     id: 'wavegrid',
+    added: '2026-09-19',
     title: 'Wave grid',
     description: 'JS builds the grid and gives each cell its distance from the centre; CSS turns that into a ripple.',
     category: 'js',
@@ -44,6 +49,7 @@ export const interactiveDemos2: Demo[] = [
   },
   {
     id: 'confetti',
+    added: '2026-09-19',
     title: 'Confetti burst',
     description: 'Click anywhere on the canvas and the confetti bursts from that very point. JS gives each piece a random 3D vector in per cent of the canvas, and one CSS animation flies them all out to its edges.',
     category: 'js',
@@ -52,6 +58,7 @@ export const interactiveDemos2: Demo[] = [
   },
   {
     id: 'scrollspin',
+    added: '2026-09-19',
     title: 'Scroll-linked spin',
     description: 'Scroll inside the box. JS turns scroll progress into one number; CSS maps it to rotation.',
     category: 'js',
@@ -60,6 +67,7 @@ export const interactiveDemos2: Demo[] = [
   },
   {
     id: 'ripple',
+    added: '2026-09-19',
     title: 'Ripple flip',
     description: 'Click any tile: every tile flips, delayed by its distance from the one you clicked.',
     category: 'js',

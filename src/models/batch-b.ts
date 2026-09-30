@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosB: Demo[] = [
   {
     id: 'phone',
+    added: '2026-09-19',
     title: 'Phone mockup',
     description:
       'A phone with real thickness: screen, back, four thin walls and a stack of rounded slabs that fills the corners. It turns to show both sides.',
@@ -13,6 +14,7 @@ export const demosB: Demo[] = [
   },
   {
     id: 'paycard',
+    added: '2026-09-19',
     title: 'Payment card tilt',
     description:
       'The card leans toward your pointer and a glare follows it. JS writes four custom properties; CSS does the tilt, the glare and the return to rest.',
@@ -22,6 +24,7 @@ export const demosB: Demo[] = [
   },
   {
     id: 'package',
+    added: '2026-09-19',
     title: 'Unboxing',
     description:
       'A shut box, seen from a gentle angle. Hover or focus: the lid swings open on its back edge and the product card rises out. One hinge (transform-origin) and two staggered transitions.',
@@ -31,6 +34,7 @@ export const demosB: Demo[] = [
   },
   {
     id: 'can',
+    added: '2026-09-19',
     title: 'Drinks can',
     description:
       'Twenty flat strips form the cylinder. Every strip shows the same wide label, shifted by its own index, so the artwork wraps around without a seam.',
@@ -40,6 +44,7 @@ export const demosB: Demo[] = [
   },
   {
     id: 'vinyl',
+    added: '2026-09-19',
     title: 'Vinyl sleeve',
     description:
       'The record is sandwiched between the two sides of the sleeve. On hover or focus it slides out, its label starts to spin and the sleeve turns its open end to you.',
@@ -49,6 +54,7 @@ export const demosB: Demo[] = [
   },
   {
     id: 'logo3d',
+    added: '2026-09-19',
     title: 'Extruded logo',
     description:
       'One clip-path shape repeated in 14 layers, two units apart. The stack reads as a solid block; back layers are darker and the front one carries a sweeping shine.',
@@ -58,6 +64,7 @@ export const demosB: Demo[] = [
   },
   {
     id: 'badge',
+    added: '2026-09-19',
     title: 'Award medal',
     description:
       'A medal hanging from a neck ribbon: it sways from the neck and twists on its ring, with a real metal edge and a shine that sweeps each time it faces you.',
@@ -67,6 +74,7 @@ export const demosB: Demo[] = [
   },
   {
     id: 'watch',
+    added: '2026-09-19',
     title: 'Smartwatch',
     description:
       'A watch with thickness, strap stubs and the real time. Once a second JS writes three angles and two integers; CSS turns the hands and prints the digits with counters.',
@@ -76,6 +84,7 @@ export const demosB: Demo[] = [
   },
   {
     id: 'turntable',
+    added: '2026-09-19',
     title: 'Product turntable',
     description:
       'Drag sideways to spin the speaker; let go and it coasts to a stop. JS only tracks one angle and one colour, both handed to CSS as custom properties.',
@@ -85,6 +94,7 @@ export const demosB: Demo[] = [
   },
   {
     id: 'browser',
+    added: '2026-09-19',
     title: 'Layered browser',
     description:
       'A UI mockup cut into depth layers: window, sidebar, cards and a floating button each sit at their own translateZ. Hover or focus pulls them further apart.',

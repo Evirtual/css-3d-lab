@@ -22,6 +22,8 @@ const REVENUE = {
 
 export const demo: Demo = {
   id: 'stackbars',
+
+  added: '2026-09-19',
   title: 'Stacked 3D bars from JSON',
   description:
     'Quarterly revenue split by product, each quarter a column of stacked glass cuboids. The legend is a row of toggles: switch a product off and its segments shrink to nothing while the ones above slide down. JS only writes where each segment starts and how tall it is.',

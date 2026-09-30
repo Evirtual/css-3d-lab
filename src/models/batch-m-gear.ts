@@ -3,6 +3,7 @@ import type { Demo } from './types';
 export const demosGear: Demo[] = [
   {
     id: 'gear',
+    added: '2026-09-30',
     title: 'Spinning gear',
     description: 'A thick eight-tooth gear driving a smaller five-tooth one the other way. Each face is one clip-path polygon, and every straight edge of it gets a standing rectangle, so the gear has a real rim and real teeth.',
     category: 'css',

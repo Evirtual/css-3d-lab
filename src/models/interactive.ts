@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const interactiveDemos: Demo[] = [
   {
     id: 'tilt',
+    added: '2026-09-19',
     title: 'Pointer tilt card',
     description: 'JS writes the pointer position into custom properties; CSS turns them into tilt, pop-out and glare.',
     category: 'js',
@@ -12,6 +13,7 @@ export const interactiveDemos: Demo[] = [
   },
   {
     id: 'drag',
+    added: '2026-09-19',
     title: 'Drag-to-rotate cube',
     description: 'Drag to spin it, release to let it coast. JS only tracks two angles and some inertia.',
     category: 'js',
@@ -20,6 +22,7 @@ export const interactiveDemos: Demo[] = [
   },
   {
     id: 'coverflow',
+    added: '2026-09-19',
     title: 'Coverflow',
     description: 'JS gives each cover its offset from the active one; CSS calc() does the placement and easing.',
     category: 'js',
@@ -28,6 +31,7 @@ export const interactiveDemos: Demo[] = [
   },
   {
     id: 'playground',
+    added: '2026-09-19',
     title: 'Perspective playground',
     description: 'Sliders feed perspective and rotation straight into CSS, with the current values shown live.',
     category: 'js',
@@ -36,6 +40,7 @@ export const interactiveDemos: Demo[] = [
   },
   {
     id: 'lit',
+    added: '2026-09-19',
     title: 'Pointer-lit text',
     description: 'The extrusion is a stack of text-shadows whose direction follows your pointer.',
     category: 'js',
@@ -44,6 +49,7 @@ export const interactiveDemos: Demo[] = [
   },
   {
     id: 'sphere',
+    added: '2026-09-19',
     title: 'Point sphere',
     description: 'JS places the dots on a Fibonacci sphere once; the spin itself is a plain CSS animation.',
     category: 'js',
@@ -52,6 +58,7 @@ export const interactiveDemos: Demo[] = [
   },
   {
     id: 'clock',
+    added: '2026-09-19',
     title: 'Flip clock',
     description: 'Real time needs JS. Each pair that changes re-triggers a CSS rotateX flip.',
     category: 'js',

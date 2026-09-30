@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosG: Demo[] = [
   {
     id: 'headphones',
+    added: '2026-09-19',
     title: 'Headphones',
     description:
       'Over-ear headphones turning on a stand: the band is a ring of tangent strips, each cup a short cylinder laid on its side. Hover or focus and they turn to face you and light up.',
@@ -13,6 +14,7 @@ export const demosG: Demo[] = [
   },
   {
     id: 'perfume',
+    added: '2026-09-19',
     title: 'Perfume bottle',
     description:
       'A faceted glass bottle you can see into: an octagonal prism of glass around a smaller prism of liquid, a fluted gold cap and a label. A glint sweeps across each time it faces you.',
@@ -22,6 +24,7 @@ export const demosG: Demo[] = [
   },
   {
     id: 'businesscard',
+    added: '2026-09-19',
     title: 'Business card',
     description:
       'A thick business card with painted edges. Hover or focus and it flips to show the back; the logo and the text are lifted off the paper with translateZ, so they shift against it as it turns.',
@@ -31,6 +34,7 @@ export const demosG: Demo[] = [
   },
   {
     id: 'camera',
+    added: '2026-09-19',
     title: 'Retro camera',
     description:
       'A rangefinder camera rocking on the table: a box body, a lens barrel of sixteen strips around the Z axis and a glass disc whose reflection slides the other way as it turns.',
@@ -40,6 +44,7 @@ export const demosG: Demo[] = [
   },
   {
     id: 'coffeecup',
+    added: '2026-09-19',
     title: 'Takeaway coffee',
     description:
       'A paper cup that is wider at the top: twenty trapezoid strips lean out from the base circle. The sleeve and its logo wrap around without a seam, the lid is a stack of discs and the steam keeps rising.',

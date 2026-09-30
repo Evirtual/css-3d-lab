@@ -30,6 +30,8 @@ const SETS = Object.keys(FUNNEL.datasets);
 
 export const demo: Demo = {
   id: 'funnel',
+
+  added: '2026-09-19',
   title: '3D sales funnel from JSON',
   description:
     'A conversion funnel drawn from JSON: every stage is a glass slab as wide as its share of the first one. Switch the channel and the slabs narrow or widen to the new numbers; point at a stage and one tooltip glides there with its conversion from the stage before. JS only turns the data into one number per stage.',

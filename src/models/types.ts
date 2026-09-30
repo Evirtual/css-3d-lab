@@ -8,6 +8,8 @@ export interface Demo {
   /** Also the snippet's key and the page address: models/<id>/ */
   id: string;
   title: string;
+  /** The day it joined the gallery, YYYY-MM-DD: the gallery's Newest and Oldest orders sort by it (ties keep the order of the file). */
+  added: string;
   description: string;
   category: Category;
   tags: string[];

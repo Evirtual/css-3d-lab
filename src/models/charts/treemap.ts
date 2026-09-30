@@ -25,6 +25,8 @@ export const MARKET = {
 
 export const demo: Demo = {
   id: 'treemap',
+
+  added: '2026-09-19',
   title: '3D treemap from JSON',
   description:
     'A crypto market map from JSON: each tile’s area is its market cap, its height and colour are the move, teal up and pink down. Switch 24h / 7d and the blocks rise and sink; hover or tap one for its numbers. JS only lays out the tiles and writes one number per tile.',

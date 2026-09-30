@@ -44,6 +44,8 @@ const MONTHS = Object.keys(CASHFLOW.months);
 
 export const demo: Demo = {
   id: 'waterfall',
+
+  added: '2026-09-19',
   title: '3D waterfall chart from JSON',
   description:
     'A month of cash flow as floating neon glass boxes: the starting balance, each gain stepping up and each loss stepping down, and the ending balance JS works out. Switch the month and every box glides to its new place. JS only turns the data into three fractions per step.',

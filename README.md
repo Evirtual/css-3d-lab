@@ -17,8 +17,9 @@ cards & galleries, loaders & patterns, scenes & objects, data & tools), in two h
 
 ## Features
 
-- Search, category tabs, groups and tag filters. Counts always reflect what you would actually
-  see, and the URL keeps the filter state so it can be shared.
+- Search, category tabs, groups and tag filters, and an order: Newest (the default, by the day a
+  model joined), Oldest or A–Z, never random. Counts always reflect what you would actually
+  see, and the URL keeps the filter state and the order so it can be shared.
 - A page per model (`/models/<id>/`) and per group (`/groups/<group>/`), and the same detail in
   a dialog on the home page: a larger live stage, a step-by-step explanation, and HTML / CSS / JS
   tabs with the **minimal standalone snippet** (plain CSS, no build step) — the build fails if a

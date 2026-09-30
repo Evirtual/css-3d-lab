@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosD: Demo[] = [
   {
     id: 'hovercards',
+    added: '2026-09-19',
     title: 'Hover card fan',
     description:
       'Three overlapping cards: the one you point at straightens and comes toward you while the others dim and lean away. Static strips catch the pointer, so nothing flickers.',
@@ -13,6 +14,7 @@ export const demosD: Demo[] = [
   },
   {
     id: 'flipgrid',
+    added: '2026-09-19',
     title: 'Flip tile grid',
     description:
       'Six tiles that lift and flip to show their back. Odd tiles turn sideways, even ones head over heels, from a single custom property holding the rotation.',
@@ -22,6 +24,7 @@ export const demosD: Demo[] = [
   },
   {
     id: 'accordion',
+    added: '2026-09-19',
     title: 'Hinged accordion',
     description:
       'Radio buttons open one section at a time: its panel swings down on its top edge like a flap while the headers below slide out of the way. No height is animated.',
@@ -31,6 +34,7 @@ export const demosD: Demo[] = [
   },
   {
     id: 'swipe',
+    added: '2026-09-19',
     title: 'Swipe deck',
     description:
       'Drag the top card left or right: it slides and turns, easing to a stop instead of leaving the canvas. Past a threshold it sinks away into the depth and rejoins at the back, and the cards behind move up. JS only writes numbers; CSS does every motion.',
@@ -40,6 +44,7 @@ export const demosD: Demo[] = [
   },
   {
     id: 'polaroid',
+    added: '2026-09-19',
     title: 'Polaroid scatter',
     description:
       'Four photos lying on a tilted table at different angles and heights. Point at one and it rises off the table, straightens and turns to face you, leaving its shadow behind.',
@@ -49,6 +54,7 @@ export const demosD: Demo[] = [
   },
   {
     id: 'cubenav',
+    added: '2026-09-19',
     title: 'Cube gallery',
     description:
       'A gallery on the four sides of a cube. JS keeps one ever-growing angle, so Prev, Next and the dots always turn the short way round and never unwind.',
@@ -58,6 +64,7 @@ export const demosD: Demo[] = [
   },
   {
     id: 'pricing',
+    added: '2026-09-19',
     title: 'Pricing arc',
     description:
       'Three pricing cards standing in an arc: the outer two turn to face the centre, the featured one stands in front. The one you point at squares up and steps forward.',
@@ -67,6 +74,7 @@ export const demosD: Demo[] = [
   },
   {
     id: 'cubeloader',
+    added: '2026-09-19',
     title: 'Folding-square loader',
     description:
       'The classic fold loader laid on a floor in real perspective: each quadrant swings up over one edge, rests, then folds away over the next, a quarter-beat after its neighbour.',
@@ -76,6 +84,7 @@ export const demosD: Demo[] = [
   },
   {
     id: 'rings',
+    added: '2026-09-19',
     title: 'Chasing rings loader',
     description:
       'Three rings of paired arcs, each tumbling around a different axis while its arcs chase each other around the ring, circling a breathing core.',
@@ -85,6 +94,7 @@ export const demosD: Demo[] = [
   },
   {
     id: 'equalizer',
+    added: '2026-09-19',
     title: '3D equalizer',
     description:
       'Seven real cuboids bouncing like an audio meter. Walls are squashed with scaleY and each lid rides down by the same amount, so nothing but transforms ever changes.',

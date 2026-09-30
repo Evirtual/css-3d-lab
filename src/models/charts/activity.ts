@@ -28,6 +28,8 @@ export const ACTIVITY: { rings: { key: Key; label: string; unit: string }[]; day
 
 export const demo: Demo = {
   id: 'activity',
+
+  added: '2026-09-19',
   title: 'Activity rings from JSON',
   description:
     'Three neon progress rings, like a fitness watch, drawn from a JSON list of days: each arc is value ÷ goal, and past 100% it runs into a second lap. Switch the day and the arcs sweep to the new numbers; hover or tap a ring for its figures. JS only writes one number per ring.',

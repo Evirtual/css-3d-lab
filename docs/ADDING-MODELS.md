@@ -24,7 +24,7 @@ close-up review.
 | What | Where | What it is for |
 | --- | --- | --- |
 | **The snippet** | a `Snippet` (`src/models/snippet-utils.ts`) keyed by the id, in one of the maps `src/models/snippets.ts` merges | `{ how, html, css, js? }`: the only thing drawn, and what visitors copy |
-| **The gallery entry** | a `Demo` object (`src/models/types.ts`) in an array under `src/models/`, listed in `src/models/index.ts` | metadata only: `id`, `title`, `description`, `category`, `tags`, `technique` |
+| **The gallery entry** | a `Demo` object (`src/models/types.ts`) in an array under `src/models/`, listed in `src/models/index.ts` | metadata only: `id`, `title`, `added`, `description`, `category`, `tags`, `technique` |
 | **Its group** | `MEMBERS` in `src/models/groups.ts` | where it sits in the gallery; an unassigned id throws |
 
 The `id` is lowercase letters and digits. The JSON-driven charts keep both halves in one file,
@@ -58,6 +58,9 @@ top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
   sized by its width, at least 80vmin and at most 92, centred as usual, with no 40vmin height
   floor (VIEW-CONTRACT.md, "A wide model is sized by its width"). Used by `clock`.
 - `technique`: 3–4 short strings naming the key properties/tricks (the ingredient chips).
+- `added`: the day the model joined, `'YYYY-MM-DD'`. The gallery's **Newest** and **Oldest** orders
+  sort by it; models that joined on the same day keep the order of the file. `npm run generate`
+  refuses a model whose day is missing, malformed or after today.
 - `boxSizing` (rarely): `'content-box by design: <why>'`, for a model that draws differently when a
   page makes every box border-box and cannot say which box it means in its own CSS. Say it in the
   CSS first (`box-sizing: content-box` or `border-box` on the boxes whose numbers need it):
