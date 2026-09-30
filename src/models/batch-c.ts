@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosC: Demo[] = [
   {
     id: 'flaptext',
+    added: '2026-09-19',
     title: 'Split-flap board',
     description:
       'A departure board: each character is four half-height leaves, and a change drops the old top half and lands the new bottom half. JS only swaps the letters and restarts the CSS animation.',
@@ -13,6 +14,7 @@ export const demosC: Demo[] = [
   },
   {
     id: 'shadowtext',
+    added: '2026-09-19',
     title: 'Isometric block text',
     description: 'One word stacked twenty times along the Z axis. Laid on a tilted floor, the copies merge into a solid extrusion under a gradient front.',
     category: 'css',
@@ -21,6 +23,7 @@ export const demosC: Demo[] = [
   },
   {
     id: 'wordcube',
+    added: '2026-09-19',
     title: 'Rotating word prism',
     description: 'Four words on the four long sides of a prism that turns a quarter at a time, pausing on each. After 360° it is back where it started, so the loop has no seam.',
     category: 'css',
@@ -29,6 +32,7 @@ export const demosC: Demo[] = [
   },
   {
     id: 'foldtext',
+    added: '2026-09-19',
     title: 'Z-fold headline',
     description: 'A headline printed across three panels folded like a brochure. Each panel is a window onto the same wide sheet; hover or focus flattens the paper.',
     category: 'css',
@@ -37,6 +41,7 @@ export const demosC: Demo[] = [
   },
   {
     id: 'crawl',
+    added: '2026-09-19',
     title: 'Opening crawl',
     description: 'Paragraphs scroll away on a plane tipped back 55°. The fade into the distance is an overlay on top, because a mask on a 3D ancestor would flatten the scene.',
     category: 'css',
@@ -45,6 +50,7 @@ export const demosC: Demo[] = [
   },
   {
     id: 'anaglyph',
+    added: '2026-09-19',
     title: 'Anaglyph 3D text',
     description: 'A red and a cyan copy of one word, blended with screen. The pointer sets how far apart they sit and turns the card, like old red/cyan cinema glasses.',
     category: 'js',
@@ -53,6 +59,7 @@ export const demosC: Demo[] = [
   },
   {
     id: 'check',
+    added: '2026-09-19',
     title: '3D checkboxes',
     description: 'Each checkbox is a small glass cube with the tick on its bottom face. :checked rolls the cube a quarter turn forward; the inputs are real, so keyboard and forms just work.',
     category: 'css',
@@ -61,6 +68,7 @@ export const demosC: Demo[] = [
   },
   {
     id: 'tabs',
+    added: '2026-09-19',
     title: 'Prism tabs',
     description: 'The tab panels are the four long sides of a prism. Radio inputs and labels pick a tab; each one sets a step count and the prism turns to that face.',
     category: 'css',
@@ -69,6 +77,7 @@ export const demosC: Demo[] = [
   },
   {
     id: 'radial',
+    added: '2026-09-19',
     title: 'Radial action menu',
     description: 'A floating action button built from a checkbox and its label. Closed, it is only the + button; checked, its five actions walk out along their spokes into a ring round it, coming forward one after another.',
     category: 'css',
@@ -77,6 +86,7 @@ export const demosC: Demo[] = [
   },
   {
     id: 'magnet',
+    added: '2026-09-19',
     title: 'Magnetic button',
     description: 'Inside its field the button shifts and leans toward the pointer while its label floats higher, so the two slide apart. JS only reports the pointer position; release it and a springy transition takes it home.',
     category: 'js',

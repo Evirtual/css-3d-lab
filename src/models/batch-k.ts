@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosK: Demo[] = [
   {
     id: 'neonbars',
+    added: '2026-09-19',
     title: '3D bar chart from JSON',
     description:
       'Neon bars drawn from a JSON dataset: switch the year and each bar grows or shrinks to its new value, the scale on the back wall follows, and the peak lights up. Hover or tap a bar for its value. JS only turns the data into one number per bar.',
@@ -13,6 +14,7 @@ export const demosK: Demo[] = [
   },
   {
     id: 'heatmap',
+    added: '2026-09-19',
     title: '3D heatmap from JSON',
     description:
       'A week-by-weekday grid of commits where every value is a block: taller and hotter the bigger it is. Hover or tap a block to read it. JSON sets one number per block; CSS turns it into a height and a colour.',
@@ -22,6 +24,7 @@ export const demosK: Demo[] = [
   },
   {
     id: 'chartpanel',
+    added: '2026-09-19',
     title: '3D chart panel (SVG)',
     description:
       'A neon line chart drawn as SVG from a JSON array, floating on a tilted glass panel in layers. Hover and it lies flat so you can read the values. The tilt is on the container, so the same works for a chart from any library.',

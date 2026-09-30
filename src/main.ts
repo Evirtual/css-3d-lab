@@ -38,22 +38,43 @@ const $ = <T extends HTMLElement>(sel: string): T => document.querySelector<T>(s
 
 /* ---------- state ---------- */
 
+type Sort = 'newest' | 'oldest' | 'az';
+/** The orders the gallery offers, in the order they are shown. Newest is the default and is left out of the URL. */
+const SORTS: Array<[Sort, string]> = [['newest', 'Newest'], ['oldest', 'Oldest'], ['az', 'A–Z']];
+
 interface Filters {
   q: string;
   cat: 'all' | Category;
   group: 'all' | Group;
   tags: Set<string>;
+  sort: Sort;
 }
 
 const params = new URLSearchParams(location.search);
 const catParam = params.get('cat');
 const groupParam = params.get('group') as Group | null;
+const sortParam = params.get('sort');
 const state: Filters = {
   q: params.get('q') ?? '',
   cat: catParam === 'css' || catParam === 'js' ? catParam : 'all',
   group: groupParam && groupParam in GROUPS ? groupParam : 'all',
   tags: new Set((params.get('tags') ?? '').split(',').filter(Boolean)),
+  sort: SORTS.some(([s]) => s === sortParam) ? (sortParam as Sort) : 'newest',
 };
+
+/**
+ * The demos in the chosen order. Oldest goes by the day a model joined (`added`), and models that
+ * joined on the same day by their place in the file (the 135 of the first import share one day);
+ * Newest is exactly that order reversed, so the two never agree on more than one model; A–Z by
+ * title. Nothing is random: what was near the top yesterday is there today.
+ */
+function ordered(sort: Sort): GroupedDemo[] {
+  const list = [...demos];
+  if (sort === 'az') return list.sort((a, b) => a.title.localeCompare(b.title, 'en'));
+  const day = (d: GroupedDemo): number => Date.parse(d.added);
+  const oldest = list.sort((a, b) => day(a) - day(b)); // stable: equal days keep the file order
+  return sort === 'newest' ? oldest.reverse() : oldest;
+}
 
 const matches = (d: GroupedDemo, f: Filters): boolean => {
   if (f.cat !== 'all' && d.category !== f.cat) return false;
@@ -79,11 +100,14 @@ const cards = new Map<string, HTMLElement>();
 //  - past about two screens it is UNMOUNTED and its stage keeps a placeholder.
 const mounter = new LazyMounter();
 
-for (const [i, demo] of demos.entries()) {
+for (const demo of demos) {
   const card = document.createElement('article');
   card.className = 'card is-offscreen';
   card.dataset.cat = demo.category;
-  card.style.setProperty('--n', String(i));
+  // hidden until the first render shows it, which gives it its place in the entrance stagger
+  // (--n, its position on the page): set from the file here, the last twelve of the file waited
+  // six seconds and came in bottom-first when Newest put them on the first page (2026-09-30)
+  card.hidden = true;
   card.innerHTML = `
     <div class="stage" inert></div>
     ${interactionHtml(demo)}
@@ -111,6 +135,7 @@ fitStages(grid); // each demo scales with its card
 /* ---------- filters ---------- */
 
 const tabsEl = $('#tabs');
+const sortEl = $('#sort');
 const groupsEl = $('#groups');
 const tagsEl = $('#tags');
 const statusEl = $('#status');
@@ -147,6 +172,7 @@ function syncUrl(): void {
   if (state.cat !== 'all') p.set('cat', state.cat);
   if (state.group !== 'all') p.set('group', state.group);
   if (state.tags.size) p.set('tags', [...state.tags].join(','));
+  if (state.sort !== 'newest') p.set('sort', state.sort);
   const qs = p.toString();
   history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
 }
@@ -159,6 +185,9 @@ function render(): void {
       const n = count({ ...state, cat });
       return `<button type="button" class="tab" data-cat="${cat}" aria-pressed="${state.cat === cat}">${label} <b>${n}</b></button>`;
     })
+    .join('');
+  sortEl.innerHTML = SORTS
+    .map(([sort, label]) => `<button type="button" class="tab" data-sort="${sort}" aria-pressed="${state.sort === sort}">${label}</button>`)
     .join('');
 
   const groups: Array<['all' | Group, string]> = [['all', 'All groups'], ...GROUP_ORDER.map((g): [Group, string] => [g, GROUPS[g]])];
@@ -193,7 +222,12 @@ function render(): void {
     .join('');
 
   let matching = 0;
-  for (const demo of demos) {
+  const order = ordered(state.sort);
+  // the cards are moved into the chosen order in place: a card keeps its mounted model and its
+  // observers across the move, so changing the order costs no remount
+  const first = order.map((d) => cards.get(d.id)!);
+  if (first.some((card, i) => grid.children[i] !== card)) grid.append(...first);
+  for (const demo of order) {
     const card = cards.get(demo.id)!;
     const isMatch = matches(demo, state);
     const visible = isMatch && matching < limit;
@@ -249,9 +283,13 @@ searchEl.addEventListener('input', () => {
 });
 
 document.addEventListener('click', (e) => {
-  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-cat],[data-group],[data-tag],[data-clear],[data-open],[data-more]');
+  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-cat],[data-group],[data-tag],[data-clear],[data-open],[data-more],[data-sort]');
   if (!el) return;
   if (el.dataset.open) return void openViewer(el.dataset.open);
+  if (el.dataset.sort) {
+    state.sort = el.dataset.sort as Sort;
+    return applyFilters();
+  }
   if ('more' in el.dataset) {
     limit += PAGE;
     return render();

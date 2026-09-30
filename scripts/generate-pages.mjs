@@ -41,6 +41,11 @@ const LOGO = logoHtml();
 // window. Stop the build rather than publish that.
 const incomplete = demos.filter((d) => !snippets[d.id]?.css || !snippets[d.id]?.how?.length);
 if (incomplete.length) throw new Error(`No copy-paste snippet for: ${incomplete.map((d) => d.id).join(', ')}`);
+// The gallery's Newest and Oldest orders sort by the day a model joined: a demo whose `added` is
+// not a real day of the past would sort by nothing, so the build stops and names it.
+const thisDay = new Date().toISOString().slice(0, 10);
+const undated = demos.filter((d) => !/^\d{4}-\d{2}-\d{2}$/.test(d.added ?? '') || Number.isNaN(Date.parse(d.added)) || d.added > thisDay);
+if (undated.length) throw new Error(`No day joined (added: 'YYYY-MM-DD', not after today) for: ${undated.map((d) => `${d.id} (${JSON.stringify(d.added)})`).join(', ')}`);
 const { CATEGORY_LABEL } = await vite.ssrLoadModule('/src/models/types.ts');
 const { highlight } = await vite.ssrLoadModule('/src/highlight.ts');
 const { icon } = await vite.ssrLoadModule('/src/icons.ts');

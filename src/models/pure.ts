@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const pureDemos: Demo[] = [
   {
     id: 'cube',
+    added: '2026-09-19',
     title: 'Rotating cube',
     description: 'Six faces placed with rotate + translateZ, spun by a single keyframe animation.',
     category: 'css',
@@ -12,6 +13,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'flip',
+    added: '2026-09-19',
     title: 'Flip card',
     description: 'Hover, tap or focus to flip. The back face is hidden until it turns toward you.',
     category: 'css',
@@ -20,6 +22,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'carousel',
+    added: '2026-09-19',
     title: 'Ring carousel',
     description: 'Panels arranged on a circle. The radius comes from tan(): (width / 2) / tan(180° / count).',
     category: 'css',
@@ -28,6 +31,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'text',
+    added: '2026-09-19',
     title: 'Extruded text',
     description: 'A stack of hard text-shadows, each one step further and a little darker, reads as solid depth.',
     category: 'css',
@@ -36,6 +40,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'layers',
+    added: '2026-09-19',
     title: 'Exploded layers',
     description: 'Isometric plates that rest spread apart along the Z axis and close up together, each placed by one custom property.',
     category: 'css',
@@ -44,6 +49,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'button',
+    added: '2026-09-19',
     title: 'Push button',
     description: 'Press it. The edge is a generated box-shadow stack that collapses on :active.',
     category: 'css',
@@ -52,6 +58,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'fold',
+    added: '2026-09-19',
     title: 'Folding map',
     description: 'Nested panels, each hinged on its parent’s edge, folding up like a paper map.',
     category: 'css',
@@ -60,6 +67,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'orbit',
+    added: '2026-09-19',
     title: 'Atom orbits',
     description: 'Three rings tilted into different planes, each with an electron going round inside its own plane.',
     category: 'css',
@@ -68,6 +76,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'bars',
+    added: '2026-09-19',
     title: '3D bar chart',
     description: 'Each bar is a real cuboid — front, side and top face — growing on a staggered delay.',
     category: 'css',
@@ -76,6 +85,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'book',
+    added: '2026-09-19',
     title: 'Opening book',
     description: 'Cover and pages hinge on the spine, each opening to a slightly different angle.',
     category: 'css',
@@ -84,6 +94,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'radio',
+    added: '2026-09-19',
     title: 'Radio-button cube',
     description: 'Interactive with no JavaScript: checked radios steer the cube through sibling selectors.',
     category: 'css',
@@ -92,6 +103,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'grid',
+    added: '2026-09-19',
     title: 'Synthwave floor',
     description: 'A gradient-drawn grid laid flat with rotateX, scrolling toward you forever.',
     category: 'css',
@@ -100,6 +112,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'helix',
+    added: '2026-09-19',
     title: 'DNA helix',
     description: 'Rungs spin on negative delays; dots counter-rotate so they always face the camera.',
     category: 'css',
@@ -108,6 +121,7 @@ export const pureDemos: Demo[] = [
   },
   {
     id: 'tiles',
+    added: '2026-09-19',
     title: 'Tile wave',
     description: 'A 4×4 grid of two-sided tiles flipping in a diagonal wave.',
     category: 'css',

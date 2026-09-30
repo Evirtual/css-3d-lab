@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosRibbontext: Demo[] = [
   {
     id: 'ribbontext',
+    added: '2026-09-30',
     title: 'Text on a ribbon',
     description:
       'WAVING RIBBON on two lines of violet slats, one letter each. Every slat runs the same twist, offset by a step of the loop, so the row reads as a ribbon turning in a wind, and the twist stops short of edge-on so every letter stays readable.',

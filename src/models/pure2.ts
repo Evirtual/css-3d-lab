@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const pureDemos2: Demo[] = [
   {
     id: 'pyramid',
+    added: '2026-09-19',
     title: 'Pyramid',
     description: 'A glass pyramid with a glowing core: triangles cut with clip-path, leaned inward by exactly the angle that makes the tips meet.',
     category: 'css',
@@ -12,6 +13,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'cylinder',
+    added: '2026-09-19',
     title: 'Cylinder',
     description: 'A glass tube with rings of light rising inside. CSS has no curves in 3D, so the tube is 24 flat strips, each 2r × tan(180° / 24) wide.',
     category: 'css',
@@ -20,6 +22,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'coin',
+    added: '2026-09-19',
     title: 'Spinning coin',
     description: 'Two faces and a band of 24 slats round the edge between them, so it is solid even edge-on.',
     category: 'css',
@@ -28,6 +31,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'globe',
+    added: '2026-09-19',
     title: 'Wireframe globe',
     description: 'Nine circles rotated around the Y axis make the meridians; one laid flat is the equator.',
     category: 'css',
@@ -36,6 +40,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'gyro',
+    added: '2026-09-19',
     title: 'Gyroscope',
     description: 'Three nested rings, each spinning on a single axis — the rotations compound.',
     category: 'css',
@@ -44,6 +49,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'flipper',
+    added: '2026-09-19',
     title: 'Flipping loader',
     description: 'The classic square loader: half a turn on X, then half a turn on Y, and both again, so the square ends the loop exactly where it began.',
     category: 'css',
@@ -52,6 +58,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'tunnel',
+    added: '2026-09-19',
     title: 'Infinite tunnel',
     description: 'Identical frames fly from far away to past the camera on staggered negative delays.',
     category: 'css',
@@ -60,6 +67,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'starfield',
+    added: '2026-09-19',
     title: 'Warp starfield',
     description: 'Each layer is ONE element; its stars are box-shadows of it, written out as one list.',
     category: 'css',
@@ -68,6 +76,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'waveletters',
+    added: '2026-09-19',
     title: 'Letter wave',
     description: 'Every letter does the same flip; the stagger turns it into a wave.',
     category: 'css',
@@ -76,6 +85,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'textring',
+    added: '2026-09-19',
     title: 'Text ring',
     description: 'A word wrapped around a ring, one character per slice, standing on a rim you can see all the way round.',
     category: 'css',
@@ -84,6 +94,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'layertext',
+    added: '2026-09-19',
     title: 'Layered text',
     description: 'Real depth this time: ten copies of GO DEEP stacked along Z, so perspective is correct.',
     category: 'css',
@@ -92,6 +103,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'sign',
+    added: '2026-09-19',
     title: 'Hanging sign',
     description: 'A pendulum is just rotateX around the top edge with an ease-in-out alternate.',
     category: 'css',
@@ -100,6 +112,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'laptop',
+    added: '2026-09-19',
     title: 'Laptop lid',
     description: 'The lid hinges on the back edge. Its two sides are separate faces: shell and screen.',
     category: 'css',
@@ -108,6 +121,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'cardfan',
+    added: '2026-09-19',
     title: 'Card fan',
     description: 'Five cards share one pivot below the hand and fan out by index.',
     category: 'css',
@@ -116,6 +130,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'door',
+    added: '2026-09-19',
     title: 'Door',
     description: 'Hover or focus to open. The light behind is just the frame’s background.',
     category: 'css',
@@ -124,6 +139,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'explode',
+    added: '2026-09-19',
     title: 'Exploding cube',
     description: 'Hover to blow the faces apart. One custom property moves all six.',
     category: 'css',
@@ -132,6 +148,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'isotiles',
+    added: '2026-09-19',
     title: 'Hover tiles',
     description: 'Sweep across the floor. Tiles rise instantly and sink slowly, leaving a trail.',
     category: 'css',
@@ -140,6 +157,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'zones',
+    added: '2026-09-19',
     title: 'No-JS tilt',
     description: 'Pointer-following tilt without JavaScript: nine invisible hover zones steer the card.',
     category: 'css',
@@ -148,6 +166,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'rollbutton',
+    added: '2026-09-19',
     title: 'Rolling button',
     description: 'The button is a bar with two faces; hover rolls the second one into view.',
     category: 'css',
@@ -156,6 +175,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'switch',
+    added: '2026-09-19',
     title: 'Rocker switch',
     description: 'A real checkbox underneath: click, tap or press Space. The rocker tips on :checked.',
     category: 'css',
@@ -164,6 +184,7 @@ export const pureDemos2: Demo[] = [
   },
   {
     id: 'dropdown',
+    added: '2026-09-19',
     title: 'Fold-down menu',
     description: 'At rest it is only its Menu bar. Hover or focus it: the items swing down from their top edge, one after another.',
     category: 'css',

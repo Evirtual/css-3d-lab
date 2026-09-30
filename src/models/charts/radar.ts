@@ -21,6 +21,8 @@ const RADAR = {
 
 export const demo: Demo = {
   id: 'radar',
+
+  added: '2026-09-19',
   title: '3D radar chart from JSON',
   description:
     'Two series compared on six axes, drawn as SVG from a JSON object, on a plate lying back with each series floating at its own height. Switch a series on or off below; hover or tap the chart and it lies flat, with one tooltip gliding from axis to axis.',

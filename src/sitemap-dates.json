@@ -715,37 +715,37 @@
     "published": "2026-09-19"
   },
   "models/stackbars/": {
-    "hash": "2fb35d91bfc9cde7",
+    "hash": "645cf8baa02063ce",
     "date": "2026-09-30",
     "published": "2026-09-19"
   },
   "models/funnel/": {
-    "hash": "6352fd2900a46aee",
+    "hash": "bdcc5712731fc306",
     "date": "2026-09-30",
     "published": "2026-09-19"
   },
   "models/candles/": {
-    "hash": "f9f084a3ecccf9f3",
+    "hash": "5028b8bb49000534",
     "date": "2026-09-30",
     "published": "2026-09-19"
   },
   "models/waterfall/": {
-    "hash": "81d485daf61c778e",
+    "hash": "5f35df41803fcb8c",
     "date": "2026-09-30",
     "published": "2026-09-19"
   },
   "models/treemap/": {
-    "hash": "ed2bb9a6fb69b71f",
+    "hash": "a340021cd8a75ff8",
     "date": "2026-09-30",
     "published": "2026-09-19"
   },
   "models/radar/": {
-    "hash": "fb23b3868d35190c",
+    "hash": "e43d115a592cde93",
     "date": "2026-09-30",
     "published": "2026-09-19"
   },
   "models/activity/": {
-    "hash": "66e50d98a51368a9",
+    "hash": "cf30c91b9e0bfa8f",
     "date": "2026-09-30",
     "published": "2026-09-19"
   },
@@ -755,7 +755,7 @@
     "published": "2026-09-30"
   },
   "": {
-    "hash": "116a96c53dbcb5b6",
+    "hash": "664d0fc3377a6ddb",
     "date": "2026-09-30",
     "published": "2026-09-18"
   }

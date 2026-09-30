@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosI: Demo[] = [
   {
     id: 'greeting',
+    added: '2026-09-19',
     title: 'Pop-up greeting card',
     description:
       'A greeting card standing half open. Point at it and the cover swings round on its spine, the card turns toward you and a heart pops up out of the fold: a floating layer whose two halves each ride on their own page.',
@@ -13,6 +14,7 @@ export const demosI: Demo[] = [
   },
   {
     id: 'tiltgallery',
+    added: '2026-09-19',
     title: 'Tilting photo wall',
     description:
       'Six photos on a board that leans toward your pointer, while the photo nearest to it lifts off the board and its neighbours rise a little less. JS only measures distances and writes numbers; CSS does all the motion.',
@@ -22,6 +24,7 @@ export const demosI: Demo[] = [
   },
   {
     id: 'bookshelf',
+    added: '2026-09-19',
     title: 'Bookshelf',
     description:
       'Five real books on a shelf, each a box with a spine, two covers and a block of pages. Point at one and it slides out toward you and turns to show its front cover, while its slot on the shelf stays put as the hit target.',
@@ -31,6 +34,7 @@ export const demosI: Demo[] = [
   },
   {
     id: 'dotorbit',
+    added: '2026-09-19',
     title: 'Orbiting dots loader',
     description:
       'Eight glowing dots with comet trails circle a core on three tilted orbits, while the whole atom slowly turns. Every dot counter-rotates so it always faces you, yet still passes behind the core.',
@@ -40,6 +44,7 @@ export const demosI: Demo[] = [
   },
   {
     id: 'blockstack',
+    added: '2026-09-19',
     title: 'Stacking blocks loader',
     description:
       'Eight blocks pop into the air and drop one by one onto an isometric floor until they form a 2×2×2 cube, then the cube comes apart column by column and floats away, and it all starts again.',

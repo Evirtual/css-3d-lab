@@ -30,6 +30,8 @@ const START = RANGES[RANGES.length - 1];
 
 export const demo: Demo = {
   id: 'candles',
+
+  added: '2026-09-19',
   title: '3D candlestick chart from JSON',
   description:
     'Twelve days of prices from a JSON response as glass 3D candles: teal for a day that closed up, pink for down. Point at or tap a candle and one tooltip glides to it with its open, high, low and close; switch to 7 days and the scale zooms in. JS only turns each price into a fraction of the scale.',

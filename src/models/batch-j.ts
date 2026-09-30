@@ -3,6 +3,7 @@ import type { Demo } from './types';
 export const demosJ: Demo[] = [
   {
     id: 'windmill',
+    added: '2026-09-19',
     title: 'Windmill',
     description:
       'A tapered tower of four leaning trapezoids with a pyramid cap, on a grass block. The sails turn with one rotateZ loop while the whole model turns slowly, so the depth reads.',
@@ -12,6 +13,7 @@ export const demosJ: Demo[] = [
   },
   {
     id: 'rocket',
+    added: '2026-09-19',
     title: 'Rocket launch',
     description:
       'A rocket built from strips and leaning triangles fills the frame on its pad, lifts off in a cloud of smoke and climbs out of the top of the frame, the camera following it up as the ground drops away. Then the camera pans back down to the pad, where the next rocket stands ready, so the loop has no seam. Flame and smoke are gradient layers that only scale and fade.',
@@ -21,6 +23,7 @@ export const demosJ: Demo[] = [
   },
   {
     id: 'lighthouse',
+    added: '2026-09-19',
     title: 'Lighthouse',
     description:
       'A striped tower of leaning strips on a rock in a night sea. Two long translucent planes, crossed, make each light beam; they sweep round with rotateY while a lit wedge on the water turns with them.',
@@ -30,6 +33,7 @@ export const demosJ: Demo[] = [
   },
   {
     id: 'gauge',
+    added: '2026-09-19',
     title: '3D gauge',
     description:
       'A speedometer dial tilted in perspective, with raised ticks and a needle stacked from four layers. The buttons only set --value; CSS turns it into an angle and an overshooting transition swings the needle there.',
@@ -39,6 +43,7 @@ export const demosJ: Demo[] = [
   },
   {
     id: 'timeline',
+    added: '2026-09-19',
     title: '3D timeline',
     description:
       'Five event cards stand beside a road, each a step further back in Z. Prev / Next only change one number, --a; the whole track slides toward you by that many steps, so the active card comes to the front.',

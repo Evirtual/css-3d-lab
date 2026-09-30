@@ -4,6 +4,7 @@ import type { Demo } from './types';
 export const demosF: Demo[] = [
   {
     id: 'tetra',
+    added: '2026-09-19',
     title: 'Glass tetrahedron',
     description:
       'Four equilateral triangles: three hinged on the edges of the fourth and leaned in by 19.47°, the angle at which their tips meet. A glowing core turns back against the tumble to stay round.',
@@ -13,6 +14,7 @@ export const demosF: Demo[] = [
   },
   {
     id: 'hourglass',
+    added: '2026-09-19',
     title: 'Hourglass',
     description:
       'Two glass cones tip to tip; the sand is one cone shrinking toward the neck while an identical one grows on the floor. Turned half over, it looks exactly as it started, so the loop has no seam.',
@@ -22,6 +24,7 @@ export const demosF: Demo[] = [
   },
   {
     id: 'crystal',
+    added: '2026-09-19',
     title: 'Crystal cluster',
     description:
       'Five hexagonal prisms of different sizes growing from one rock at different tilts. Each side panel carries its own tip facet as a ::before, folded in so the six meet in a point.',
@@ -31,6 +34,7 @@ export const demosF: Demo[] = [
   },
   {
     id: 'lattice',
+    added: '2026-09-19',
     title: 'Breathing lattice',
     description:
       'A 3×3×3 wireframe: three layers of bars and glowing nodes, and nine posts through them. The outer layers move apart while the posts stretch by the same amount, so no joint ever opens.',
@@ -40,6 +44,7 @@ export const demosF: Demo[] = [
   },
   {
     id: 'planet',
+    added: '2026-09-19',
     title: 'Ringed planet',
     description:
       'Eleven latitude discs stack into a banded sphere around a shaded disc that always faces you. That disc cuts the rings in half, so their far side slips behind the planet while a moon circles through.',
