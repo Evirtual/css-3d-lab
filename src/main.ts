@@ -63,16 +63,17 @@ const state: Filters = {
 };
 
 /**
- * The demos in the chosen order. Newest and Oldest go by the day a model joined (`added`), and
- * models that joined on the same day keep the order of the file, so the order is the same on
- * every visit; A–Z by title. Nothing is random: what was near the top yesterday is there today.
+ * The demos in the chosen order. Oldest goes by the day a model joined (`added`), and models that
+ * joined on the same day by their place in the file (the 135 of the first import share one day);
+ * Newest is exactly that order reversed, so the two never agree on more than one model; A–Z by
+ * title. Nothing is random: what was near the top yesterday is there today.
  */
 function ordered(sort: Sort): GroupedDemo[] {
   const list = [...demos];
   if (sort === 'az') return list.sort((a, b) => a.title.localeCompare(b.title, 'en'));
   const day = (d: GroupedDemo): number => Date.parse(d.added);
-  // a stable sort, so equal days keep the file order; Newest is that order reversed day by day
-  return list.sort((a, b) => (sort === 'newest' ? day(b) - day(a) : day(a) - day(b)));
+  const oldest = list.sort((a, b) => day(a) - day(b)); // stable: equal days keep the file order
+  return sort === 'newest' ? oldest.reverse() : oldest;
 }
 
 const matches = (d: GroupedDemo, f: Filters): boolean => {

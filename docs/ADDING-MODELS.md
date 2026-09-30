@@ -58,8 +58,9 @@ top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
   sized by its width, at least 80vmin and at most 92, centred as usual, with no 40vmin height
   floor (VIEW-CONTRACT.md, "A wide model is sized by its width"). Used by `clock`.
 - `technique`: 3–4 short strings naming the key properties/tricks (the ingredient chips).
-- `added`: the day the model joined, `'YYYY-MM-DD'`. The gallery's **Newest** and **Oldest** orders
-  sort by it; models that joined on the same day keep the order of the file. `npm run generate`
+- `added`: the day the model joined, `'YYYY-MM-DD'`. The gallery's **Oldest** order sorts by it,
+  and models that joined on the same day by their place in the file; **Newest** is exactly that
+  order reversed, so a model added at the end of a file today is the first card. `npm run generate`
   refuses a model whose day is missing, malformed or after today.
 - `boxSizing` (rarely): `'content-box by design: <why>'`, for a model that draws differently when a
   page makes every box border-box and cannot say which box it means in its own CSS. Say it in the
