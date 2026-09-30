@@ -338,7 +338,7 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
      * A flagged model with no open flags counts: the check looked, raised nothing that still
      * stands, and "flags cleared" is a held verdict, not a pending one.
      */
-    [/^Every check holds over all 135 models/, () => {
+    [/^Every check holds over (all 135 models|every model)/, () => {
       const keys = Object.keys(models[0]?.checks ?? {});
       if (!keys.length) return F('no recorded results to read');
       const held = (r) => r && !r.stale && (r.status === 'pass' || (r.status === 'flagged' && (r.openFlags ?? 0) === 0));
@@ -573,10 +573,22 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
     [/^The README's counts are the code's/, () => {
       const cats = { css: 0, js: 0 };
       for (const f of walk(join(ROOT, 'src/models'))) { if (!f.endsWith('.ts')) continue; for (const m of (readFileSync(f, 'utf8').match(/category: '([a-z]*)'/g) ?? [])) { const k = m.slice(11, -1); cats[k] = (cats[k] ?? 0) + 1; } }
+      /*
+       * The README's three sentences are read for their numbers and compared with the code's. This
+       * used to compare both with 135, 93 and 42 written into the proof, so the day eight models
+       * were added (2026-09-30) it failed the code for not being 135, and would have passed a README
+       * that still said 135 the moment the code went back to it. A proof that knows the answer in
+       * advance proves nothing; it reads what each side says.
+       */
       const readme = read('README.md') ?? '';
-      const says = (x) => new RegExp(`\\b${x}\\b`).test(readme);
-      const ok = n === 135 && cats.css === 93 && cats.js === 42 && says(135) && says(93) && says(42);
-      return ok ? T(`${n} models, ${cats.css} css and ${cats.js} js, and the README has 135, 93 and 42`) : F(`the code has ${n} models, ${cats.css} css, ${cats.js} js; the README has 135: ${says(135)}, 93: ${says(93)}, 42: ${says(42)}`);
+      const said = {
+        n: Number(readme.match(/^(\d+) models in eight groups/m)?.[1]),
+        css: Number(readme.match(/\*\*Pure CSS \((\d+)\)\*\*/)?.[1]),
+        js: Number(readme.match(/\*\*CSS \+ JS \((\d+)\)\*\*/)?.[1]),
+      };
+      const ok = said.n === n && said.css === cats.css && said.js === cats.js && n === cats.css + cats.js;
+      return ok ? T(`${n} models, ${cats.css} css and ${cats.js} js, and the README says the same`)
+        : F(`the code has ${n} models, ${cats.css} css, ${cats.js} js; the README says ${said.n || '?'} models, Pure CSS (${said.css || '?'}), CSS + JS (${said.js || '?'})`);
     }],
     [/^Every npm script points at a file that exists/, () => { let s = {}; try { s = JSON.parse(read('package.json')).scripts ?? {}; } catch {} const missing = Object.entries(s).map(([k, v]) => [k, (String(v).match(/node (\S+)/) ?? [])[1]]).filter(([, f]) => f && !existsSync(join(ROOT, f))); return missing.length ? F(`missing: ${missing.map(([k, f]) => `${k} → ${f}`).join(', ')}`) : T(`all ${Object.keys(s).length} scripts' files exist`); }],
     /*

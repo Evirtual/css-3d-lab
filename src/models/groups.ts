@@ -3,6 +3,8 @@
  * What a demo is FOR. Categories (Pure CSS / CSS + JS) say how it is built; groups say where
  * you would use it. The same groups will organise the Pro library.
  */
+import { groupsM } from './batch-m';
+
 export const GROUPS = {
   shapes: 'Shapes & solids',
   product: 'Products & branding',
@@ -34,7 +36,7 @@ const MEMBERS: Record<Group, string[]> = {
  * Demos added in batches list their own group, so a new batch never edits this file: each batch
  * exports a `groups` map and it is merged in here.
  */
-const EXTRA: Partial<Record<Group, string[]>>[] = [];
+const EXTRA: Partial<Record<Group, string[]>>[] = [groupsM];
 for (const extra of EXTRA) {
   for (const [group, ids] of Object.entries(extra)) MEMBERS[group as Group].push(...(ids ?? []));
 }

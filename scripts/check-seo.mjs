@@ -84,8 +84,12 @@ const DIST = resolve(ROOT, distAt >= 0 ? args[distAt + 1] : 'dist');
  *    other 9.8 KB some sixty reviewed model edits in the models chunk and its CSS. Nothing is
  *    wrong with the pages: this is accepted work, so the budget moves up with the same headroom.
  *    Stubbing the whole View zoom feature would still leave both pages over the old number.
+ *  - 2026-09-30: model 304.1 KB, home 309.1 KB, both over. Eight models were added (batch M, one in
+ *    each group), and the page's JavaScript carries every snippet, so each model costs about 2 KB
+ *    gzipped. Accepted growth; the budget moves up with the same headroom. The real fix is a page
+ *    that loads only its own snippet, which would make this budget stop growing with the gallery.
  */
-const WEIGHT_BUDGET = { model: 288 * 1024, home: 293 * 1024 };
+const WEIGHT_BUDGET = { model: 314 * 1024, home: 319 * 1024 };
 
 /**
  * Findings shown to the user and waiting on their decision. Key: `<page> <rule>`.
