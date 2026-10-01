@@ -833,13 +833,25 @@ button, input { font: inherit; color: inherit; }
 
    A button that does not say "about 5 hours" has misled the person pressing it, so the cost is
    part of the label rather than something to find out afterwards. */
-.runjobs { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
-.runjob { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--surface); }
+/* The jobs are boxes, three to a row, two on a tablet, one on a phone; a group's heading spans
+   the row. Each box: the name and its cost, what it does, how its last run ended, Run. */
+.runjobs { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+.runjobs__h { grid-column: 1 / -1; margin: 6px 0 -2px; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.runjobs__h:first-child { margin-top: 0; }
+.runjob { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; background: var(--surface); }
+.runjob__chip { align-self: flex-start; }
+.runjob__f { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 6px; }
+.runjob__f .runjob__last { margin: 0; font-size: 12px; }
+.runjob__f .runjob__go { margin: 0; padding: 4px 14px; font-size: 12.5px; }
+@media (max-width: 900px) { .runjobs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .runjobs { grid-template-columns: 1fr; } }
+.runjob--needed { border-color: color-mix(in srgb, var(--warm) 55%, transparent); }
 .runjob--off { opacity: 0.62; }
 .runjob__t { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.runjob__t b { font-size: 14.5px; }
+.runjob__t b { font-size: 14px; }
 .runjob__cost { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.runjob__b { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+.runjob__b { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.runjob__b .runjob__w { display: inline; margin: 0; }
 .runjob__w { margin: 6px 0 0; font-size: 12px; color: var(--warm); }
 /* how the job's last run ended, and what it printed: the tail of its own output, kept by the board */
 .runjob__last { margin: 6px 0 0; font-size: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
@@ -854,22 +866,37 @@ button, input { font: inherit; color: inherit; }
    was rebuilt to avoid. */
 .gpick { border: 1px solid var(--border-strong, var(--border)); border-radius: 12px; padding: 12px; background: var(--surface-2); }
 .gpick__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.gpick__acts { display: flex; gap: 6px; }
+.gpick__acts { display: flex; flex-wrap: wrap; gap: 6px; }
 .gpick__acts .btn { padding: 3px 9px; font-size: 12px; }
-.gpick__list { margin: 10px 0 0; display: grid; gap: 2px; max-height: 44vh; overflow: auto; }
-.gstep { display: grid; grid-template-columns: auto 78px 1fr auto; align-items: center; gap: 8px;
-  padding: 5px 6px; border-radius: 8px; font-size: 12.5px; cursor: pointer; }
+.gpick__list { margin: 10px 0 0; display: grid; gap: 1px; }
+.gstep { display: grid; grid-template-columns: auto 86px 1fr 96px 40px; align-items: center; gap: 10px;
+  padding: 5px 8px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+.gstep__m { text-align: right; }
+.gstep__s { justify-self: start; }
 .gstep:hover { background: color-mix(in srgb, var(--accent-2) 8%, transparent); }
 .gstep b { font-weight: 700; }
-.gstep__n { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gstep__n { color: var(--muted); }
 .gstep__m { color: var(--muted); font-variant-numeric: tabular-nums; }
 .gpick__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px;
   margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
 @media (max-width: 560px) {
-  .gstep { grid-template-columns: auto 64px 1fr; }
-  .gstep__m { grid-column: 3; justify-self: end; }
+  .gstep { grid-template-columns: auto 64px 1fr auto; }
+  .gstep__m { display: none; }
   .gstep__n { display: none; }
 }
+/* The Run dialog: one column and two tabs, the gate's steps or the jobs, so each fits a screen
+   and no line is cut short. Two columns were tried first (2026-10-01): truncated descriptions and
+   a preset row that did not fit. */
+/* the width goes on the sheet, not the dialog: the dialog is the overlay and must stay the whole screen */
+#run-dialog .cldlg__box { width: min(960px, 100%); }
+.runtabs { display: flex; gap: 6px; margin: 12px 0 10px; border-bottom: 1px solid var(--border); }
+.runtab { padding: 8px 14px 9px; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; color: var(--muted); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.runtab small { font-weight: 600; color: var(--muted); margin-left: 4px; }
+.runtab:hover { color: var(--text); }
+.runtab.is-on { color: var(--text); border-bottom-color: var(--accent); }
+.runpane .gpick { margin-top: 0; }
+.runpane .runjobs { margin-top: 0; }
+.gpick__head > b { display: none; }
 
 /* A header button that is only its icon. The row carried six word-buttons, two of which announced
    zero; the two that are references rather than destinations now say it with a glyph and a
@@ -922,6 +949,16 @@ button, input { font: inherit; color: inherit; }
   background: linear-gradient(90deg,
     color-mix(in srgb, var(--accent-2) 30%, transparent) 0 var(--cl-proven, 0%),
     color-mix(in srgb, var(--accent-2) 12%, transparent) var(--cl-proven, 0%) var(--cl-ticked, 0%),
+    transparent var(--cl-ticked, 0%) calc(100% - var(--cl-false, 0%)),
+    color-mix(in srgb, var(--hot) 26%, transparent) calc(100% - var(--cl-false, 0%)) 100%);
+}
+/* The header pill is too small to carry the proven / ticked distinction: at 51 of 51 the two lines
+   that are a person's (never "proven here") left its last few per cent in the lighter tint, and the
+   pill read as not full while the number said it was. The pill fills to what is ticked; the bar in
+   the dialog, which has a key beside it, keeps the distinction. */
+#cl-btn.clfill::before {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent-2) 30%, transparent) 0 var(--cl-ticked, 0%),
     transparent var(--cl-ticked, 0%) calc(100% - var(--cl-false, 0%)),
     color-mix(in srgb, var(--hot) 26%, transparent) calc(100% - var(--cl-false, 0%)) 100%);
 }
@@ -3353,8 +3390,15 @@ td.c.is-armed .cellrun[disabled] { opacity: 0.4; }
 #cl-btn small { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; opacity: 1; }
 /* Each part of the chip is an element now (see main.ts): a hidden separator made the
    two numbers one text run and the chip read "46/561". Nothing here hides anything. */
+/* The ratio chip takes the colour of the state it reports. It wore the warning tint whatever it
+   said, so at 51/51 the pill looked unfilled at its right end: the chip was the one part of the
+   bar that was red. */
 #cl-btn small b {
   padding: 2px 7px; border-radius: 999px; font-size: 11px;
+  background: color-mix(in srgb, var(--accent-2) 26%, transparent);
+  color: color-mix(in srgb, var(--accent-2) 70%, var(--text));
+}
+#cl-btn.has-false small b {
   background: color-mix(in srgb, var(--st-bad) 22%, transparent);
   color: color-mix(in srgb, var(--st-bad) 72%, var(--text));
 }

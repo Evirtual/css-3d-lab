@@ -1583,6 +1583,12 @@ const navIcon = (name: string): string => (BARE[name]
   };
   $('run-body')?.addEventListener('change', () => gateCost());
   $('run-body')?.addEventListener('click', (ev) => {
+    const tab = (ev.target as HTMLElement).closest('[data-runtab]') as HTMLElement | null;
+    if (tab) {
+      for (const t of document.querySelectorAll('#run-body [data-runtab]')) { const on = t === tab; t.classList.toggle('is-on', on); t.setAttribute('aria-selected', String(on)); }
+      for (const p of document.querySelectorAll('#run-body [data-runpane]') as NodeListOf<HTMLElement>) p.hidden = p.dataset.runpane !== tab.dataset.runtab;
+      return;
+    }
     const pick = (ev.target as HTMLElement).closest('[data-pick]') as HTMLElement | null;
     if (pick) {
       const how = pick.dataset.pick;
@@ -3217,21 +3223,41 @@ const navIcon = (name: string): string => (BARE[name]
       + `</div>`;
   }
 
+  /* The jobs, grouped by what they are, so a person looking for "the release" or "the thing that
+     spends the Worker's budget" finds it without reading thirteen cards. A key not listed here
+     lands in the last group rather than disappearing. */
+  const JOB_GROUPS: Array<[string, string[]]> = [
+    ['The release', ['prepare', 'after']],
+    ['Checks on this machine', ['snippets', 'compare', 'looks', 'snapshot']],
+    ['Outside this machine', ['live', 'parity', 'matrix', 'remote']],
+    ['This machine', ['doctor']],
+  ];
   function runsList(body: any): string {
-    const gate = neededNote(body.needed) + (body.steps?.length ? gatePicker(body.steps) : ``);
-    const rows = (body.jobs ?? []).filter((j: any) => !String(j.key).startsWith('gate')).map((j: any) => {
+    const jobs = (body.jobs ?? []).filter((j: any) => !String(j.key).startsWith('gate'));
+    const row = (j: any) => {
       const off = Boolean(j.blockedWhy);
-      const why = off ? j.blockedWhy : j.answers?.length ? `Closes: ${j.answers.slice(0, 3).join(`; `)}${j.answers.length > 3 ? `, and ${j.answers.length - 3} more` : ``}` : ``;
-      return `<li class="runjob${off ? ` runjob--off` : ``}">`
-        + `<div class="runjob__t"><b>${esc(j.name)}</b>${body.needed?.jobs?.includes(j.key) ? ` <span class="chip s-warn">the push is waiting for this</span>` : ``}<span class="runjob__cost">${esc(howLong(j.minutes))}</span></div>`
-        + `<p class="runjob__b">${esc(j.blurb)}</p>`
-        + (why ? `<p class="runjob__w">${esc(why)}</p>` : ``)
-        + `<button type="button" class="btn runjob__go" data-job="${esc(j.key)}"${off ? ` disabled data-tip data-tiptext="${esc(j.blockedWhy)}"` : ``}>${off ? `Cannot run here` : `Run`}</button>`
-        + `<p class="runjob__last" data-ended-for="job:${esc(j.key)}">${endedLine(`job:${j.key}`)}</p>`
+      const needed = Boolean(body.needed?.jobs?.includes(j.key));
+      return `<li class="runjob${off ? ` runjob--off` : ``}${needed ? ` runjob--needed` : ``}">`
+        + `<div class="runjob__t"><b>${esc(j.name)}</b><span class="runjob__cost">${esc(howLong(j.minutes))}</span></div>`
+        + (needed ? `<span class="chip s-warn runjob__chip">the push is waiting for this</span>` : ``)
+        + `<p class="runjob__b">${esc(j.blurb)}${off ? ` <span class="runjob__w">${esc(j.blockedWhy)}</span>` : ``}</p>`
+        + `<div class="runjob__f"><span class="runjob__last" data-ended-for="job:${esc(j.key)}">${endedLine(`job:${j.key}`)}</span>`
+        + `<button type="button" class="btn runjob__go" data-job="${esc(j.key)}"${off ? ` disabled data-tip data-tiptext="${esc(j.blockedWhy)}"` : ``}>${off ? `Cannot run here` : `Run`}</button></div>`
         + `</li>`;
+    };
+    const placed = new Set<string>();
+    const groups = JOB_GROUPS.map(([title, keys]) => {
+      const mine = keys.map((k) => jobs.find((j: any) => j.key === k)).filter(Boolean);
+      mine.forEach((j: any) => placed.add(j.key));
+      return mine.length ? `<li class="runjobs__h">${esc(title)}</li>` + mine.map(row).join('') : ``;
     }).join('');
+    const rest = jobs.filter((j: any) => !placed.has(j.key));
+    const tail = rest.length ? `<li class="runjobs__h">Also</li>` + rest.map(row).join('') : ``;
     const head = body.machineKnown ? `` : `<p class="notice">Nobody has asked whether this machine can run these. <code>npm run doctor</code> answers that, and this panel will then grey out what it cannot do.</p>`;
-    return head + gate + `<ul class="runjobs">` + rows + `</ul>`;
+    return head + neededNote(body.needed)
+      + `<div class="runtabs" role="tablist"><button type="button" class="runtab is-on" role="tab" aria-selected="true" data-runtab="gate">The gate, step by step</button><button type="button" class="runtab" role="tab" aria-selected="false" data-runtab="jobs">Jobs <small>${jobs.length}</small></button></div>`
+      + `<div class="runpane" data-runpane="gate">` + (body.steps?.length ? gatePicker(body.steps) : ``) + `</div>`
+      + `<div class="runpane" data-runpane="jobs" hidden><ul class="runjobs">` + groups + tail + `</ul></div>`;
   }
 
   /** Opens the machine panel, filled from the last poll so the numbers are the ones on the chip. */
