@@ -153,8 +153,16 @@ what it paints: a drawing that covers the canvas.
 ## Interaction
 
 The canvas is the container, so a scroll-driven model scrolls the canvas, and a drag-driven one
-tracks the pointer across it. The native scrollbar is hidden: the badge in the corner of the stage
-already says "Scroll", and a bar against the canvas edge reads as a broken page.
+tracks the pointer across it. The native scrollbar is hidden: a bar against the canvas edge reads
+as a broken page. The badge in the corner says "Scroll", but only on a card, and a canvas that
+shows nothing scrolling looks still. So a scroll-driven model says it in its own caption at rest
+("Scroll to spin"), in the control zone's place, and lets it fade once the scroll starts. The
+model eases back to the middle as it does, so the drawn stack stays centred in every state.
+
+A card's stage is inert until the pointer is over it (src/card-stage.ts). Chrome and Edge record
+a scroll box painted while inert as not scrollable, and letting the stage go does not repaint it,
+so the site refreshes every scroll box in the frame when it lets a stage go. A model needs nothing
+of its own for that.
 
 Hit areas may be larger than what is drawn, but they stay invisible and stay inside the canvas.
 
@@ -606,4 +614,5 @@ the model, so it paints it, edge to edge, and sets the colour of any text it dra
 **9. Start on a good pose.** The site can pause every animation, so the first frame of the loop is
 what a paused card shows. It cannot be mid-turn or mid-fade.
 
-**10. Scroll and drag belong to the canvas.** It is the model's body. Hide the native scrollbar.
+**10. Scroll and drag belong to the canvas.** It is the model's body. Hide the native scrollbar, and
+say "Scroll to …" in a caption at rest that fades once the scroll starts (see Interaction).
