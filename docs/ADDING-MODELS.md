@@ -235,7 +235,7 @@ This is the part that confuses people, so: **the matrix is not a separate check.
 | | what it makes | how long | does it gate a model? |
 | --- | --- | --- | --- |
 | `check-exports --defaults <id>` | the dialog's default settings: a 1:1 1600 px PNG, a 9:16 1080p video, one drift take | **~31 s a model** | **Yes.** This is the verdict the ledger counts |
-| `check-exports <id>` (no flag) | *every* shape × size × quality × format, and every stop of the Model size slider | **~6.5 min a model**, twelve times more | **No.** It gates nothing, ever |
+| `check-exports <id>` (no flag) | *every* shape × size × quality × format, and every stop of the Model size slider | **~6.5 min a model**, twelve times more | **No.** It is no model's verdict; the release checklist runs it on the sample before a push |
 
 The matrix proves **the export dialog**, not your model. Its job is to catch a bug in the pipeline —
 a format that writes the wrong header, a slider stop that puts the model off centre — and those are
@@ -250,8 +250,12 @@ of a model's verdict."*
 For the record, running it over all 135 was tried on 2026-09-25 and stopped after seven models. It
 found two things, and both were worth knowing and neither was a release blocker: `flaptext` drifts
 2.4% at 3200 px because its script keeps flapping while a 4.7-second render runs, and `city`'s 9:16
-480p first frame came back unreadable — the same intermittent encode `candles` showed, where the
-drift pass reads that identical clip perfectly moments later.
+480p first frame came back unreadable, as `candles`'s had, while the drift pass read that identical
+clip perfectly moments later. That was the check, not the encode. On 2026-10-01 the same "frame 0
+none" stopped two releases' matrix runs (`coverflow`, then `browser`), and a saved file showed the
+model in frame 0 on every read but the first: the check had drawn the video before it had a picture.
+An MP4 cannot be see-through, so `check-exports` now reads a frame that came back with no pixels
+again, at most five times, and its log line says so ("read again 1 time").
 
 ## Checks before committing
 
