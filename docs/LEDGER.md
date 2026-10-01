@@ -193,6 +193,12 @@ a job changes no data while it runs, so it read "2 min" over a job eight minutes
 Two runs cannot overwrite each other's progress: a run started from a terminal will not clear the
 record of one the board started and is still watching.
 
+A job the board starts builds the way the deploy does. The board's own process builds the ledger
+through a Vite dev server, which leaves `NODE_ENV=development` set in that process; a job does
+not inherit it, and the gate's build and After the push's build pin `production` besides. Before
+that (2026-10-01) a build inside a job was a development build, and the live check said, rightly,
+that the served site was not the build in dist/.
+
 ---
 
 ## Running the checks
@@ -210,7 +216,10 @@ npm run verify -- cube dice                # only these models
 ```
 
 A partial run updates the steps it ran and leaves the rest of the record exactly as it was, because
-each step's result stands on its own fingerprint. Seventeen minutes to refresh five steps, rather
+each step's result stands on its own fingerprint. The build comes first when a step needs dist/;
+if it fails, the four steps that judge dist/ (media, qa, app, seo) are recorded as "not run: the
+build failed, so dist/ is not this code" rather than judged over whatever older dist/ is there,
+and the steps that do not read dist/ still run. Seventeen minutes to refresh five steps, rather
 than four and a half hours to refresh one.
 
 **What each step costs**, roughly, on an idle machine: `exports` 70 min, `stages` 55, `motion` 40,

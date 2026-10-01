@@ -159,7 +159,10 @@ The ledger is four pieces:
 | `docs/ledger.html` | the page as it is served: built from `src/ledger/` by the board itself, and not committed. Edit the source, not this |
 | `scripts/checklist-proofs.mjs` | re-runs the cheap proofs behind `RELEASE-CHECKLIST.md` |
 
-Edit `src/ledger/` and the board rebuilds the page, and an open tab reloads itself (`npm run board:dev` serves the source directly, for working on the page); edit a script and the watcher reloads its own code on the next build.
+Edit `src/ledger/` and the board rebuilds the page, and an open tab reloads itself (`npm run board:dev` serves the source directly, for working on the page); edit a script and the watcher reloads its own code on the next build. A job started from the board
+runs in a clean environment: the board's own process carries `NODE_ENV=development` (it builds the
+ledger through a Vite dev server) and a job does not inherit it, so a build inside a job is the
+deploy's build.
 The page says which code version built the data it is showing, and warns you when they differ.
 
 ### …run everything before shipping
