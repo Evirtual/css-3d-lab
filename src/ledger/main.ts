@@ -3134,16 +3134,17 @@ const navIcon = (name: string): string => (BARE[name]
     const b = e.target.closest?.('[data-output]'); if (!b) return;
     e.stopPropagation();
     const key = b.dataset.output;
-    const host = b.closest('[data-ended-for]');
-    const open = host?.querySelector('.runjob__out');
-    if (open) { open.remove(); return; }
+    // its own dialog, over whatever is open: inline under the job it squeezed the boxes beside it
+    const name = b.closest('.runjob')?.querySelector('.runjob__t b')?.textContent ?? String(key).replace(/^job:/, '');
+    const dlg = $('out-dialog') as HTMLDialogElement, pre = $('out-pre');
+    $('out-title').textContent = name;
+    pre.textContent = 'reading…';
+    if (!dlg.open) { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); }
     void api(`/api/output?run=${encodeURIComponent(key)}`).then(({ body }: any) => {
-      const pre = document.createElement('pre');
-      pre.className = 'runjob__out';
       pre.textContent = body.tail || '(nothing was printed)';
-      host?.appendChild(pre);
-    }).catch((err: any) => { if (host) host.insertAdjacentHTML('beforeend', `<pre class="runjob__out">could not read it: ${esc(String(err?.message ?? err))}</pre>`); });
+    }).catch((err: any) => { pre.textContent = `could not read it: ${String(err?.message ?? err)}`; });
   }, true);
+  $('out-close')?.addEventListener('click', () => ($('out-dialog') as HTMLDialogElement).close());
   /*
    * TWO SETS, BECAUSE THEY ARE TWO QUESTIONS AND TWO VERY DIFFERENT BILLS.
    *
@@ -3194,7 +3195,7 @@ const navIcon = (name: string): string => (BARE[name]
      the choice costs -- because "about 5 hours" is the single most useful thing to know before
      pressing it. */
   function gatePicker(steps: any[]): string {
-    const boxes = steps.map((x: any) => `<label class="gstep gstep--${esc(x.state ?? 'unknown')}"><input type="checkbox" data-step="${esc(x.key)}" checked> <b>${esc(x.short ?? x.key)}</b><span class="gstep__n">${esc(x.name)}</span><span class="gstep__s" data-tip data-tiptext="${esc(x.why ?? '')}">${esc(STATE_WORD[x.state] ?? 'not known')}</span><span class="gstep__m">${esc(x.minutes)}m</span></label>`).join('');
+    const boxes = steps.map((x: any) => `<label class="gstep gstep--${esc(x.state ?? 'unknown')}"><input type="checkbox" class="pick" data-step="${esc(x.key)}" checked> <b>${esc(x.short ?? x.key)}</b><span class="gstep__n">${esc(x.name)}</span><span class="gstep__s" data-tip data-tiptext="${esc(x.why ?? '')}">${esc(STATE_WORD[x.state] ?? 'not known')}</span><span class="gstep__m">${esc(x.minutes)}m</span></label>`).join('');
     return `<div class="gpick"><div class="gpick__head"><b>The gate, step by step</b>
       <span class="gpick__acts"><button type="button" class="btn" data-pick="needed" data-tip data-tiptext="The steps that close a line of the release checklist that is open now. Nothing else: a step whose line is green is not run again.">What the push needs</button><button type="button" class="btn" data-pick="all">All</button><button type="button" class="btn" data-pick="none">None</button><button type="button" class="btn" data-pick="stale" data-tip data-tiptext="The steps the board can show need running: their files changed since they ran, or they failed.">Only what is stale</button><button type="button" class="btn" data-pick="unproved" data-tip data-tiptext="Those, plus every step whose result predates fingerprints -- it cannot be shown to be about the code as it is now, which is not the same as being fine.">Anything not proved current</button></span></div>
       <div class="gpick__list">` + boxes + `</div>

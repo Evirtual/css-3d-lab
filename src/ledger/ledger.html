@@ -694,7 +694,7 @@
       <div>
         <span class="eyebrow">Everything this project can run</span>
         <h2 id="run-title">Run something</h2>
-        <p class="muted">What each one answers, and roughly what it costs on an idle machine. Anything this machine cannot do is greyed out and says why.</p>
+        <p class="muted">What each one answers, and roughly what it costs on an idle machine. What this machine cannot do is greyed out, with the reason.</p>
       </div>
       <button type="button" class="cldlg__x" id="run-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
     </div>
@@ -702,6 +702,21 @@
   </div>
 </dialog>
 
+<!-- What a run printed: its own dialog, over the Run dialog. It used to open inline under the
+     job's box and squeeze the boxes beside it. -->
+<dialog id="out-dialog" class="cldlg" aria-labelledby="out-title">
+  <div class="cldlg__box">
+    <div class="cldlg__head">
+      <div>
+        <span class="eyebrow">What it printed</span>
+        <h2 id="out-title">A run's output</h2>
+        <p class="muted" id="out-note">The tail of the run's own output, kept by the board.</p>
+      </div>
+      <button type="button" class="cldlg__x" id="out-close" aria-label="Close the output"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+    <div class="cldlg__body"><pre class="runjob__out runjob__out--dlg" id="out-pre"></pre></div>
+  </div>
+</dialog>
 <dialog id="blk-dialog" class="cldlg" aria-labelledby="blk-title">
   <div class="cldlg__box">
     <div class="cldlg__head">

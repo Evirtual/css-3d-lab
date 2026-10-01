@@ -857,6 +857,8 @@ button, input { font: inherit; color: inherit; }
 .runjob__last { margin: 6px 0 0; font-size: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
 .runjob__last:empty { display: none; }
 .runjob__out { flex-basis: 100%; margin: 4px 0 0; max-height: 40vh; overflow: auto; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--bg) 70%, transparent); font: 11.5px/1.45 JetBrains Mono, ui-monospace, monospace; white-space: pre-wrap; color: var(--text); }
+/* in its own dialog the overlay scrolls, so the output has no scroller of its own */
+.runjob__out--dlg { max-height: none; overflow: visible; margin: 12px 0 0; font-size: 12.5px; }
 .runjob--off .runjob__w { color: var(--hot); }
 .runjob__go { margin-top: 8px; }
 .runjob__go[disabled] { cursor: not-allowed; }
@@ -989,6 +991,8 @@ button, input { font: inherit; color: inherit; }
 .cldlg__box { display: flex; flex-direction: column; min-height: 0; width: 100%; }
 .cldlg__head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; padding: 18px 20px 12px; border-bottom: 1px solid var(--border); }
 .cldlg__head h2 { font-size: 22px; }
+/* no one-word last line under a dialog's title: the browser balances the break */
+.cldlg__head p { text-wrap: pretty; max-width: 78ch; }
 .cldlg__x { flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--border-strong); border-radius: 50%; background: none; color: var(--text); cursor: pointer; }
 .cldlg__x:hover { border-color: var(--accent); }
 .cldlg__body { overflow: auto; overscroll-behavior: contain; padding: 6px 20px 20px; }
