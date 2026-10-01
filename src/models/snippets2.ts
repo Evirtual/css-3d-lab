@@ -2281,6 +2281,7 @@ party.addEventListener('keydown', (e) => {
       'JS turns the scroll position into one number, <code>--p</code>, from 0 to 1.',
       'CSS does the mapping: <code>rotateY(calc(var(--p) * 720deg))</code>. Change the feel by editing CSS only.',
       'The canvas is the scroll container: <code>.scroller</code> covers it (<code>position: absolute; inset: 0</code>) with <code>overflow-y: auto</code>, so a wheel or a swipe anywhere over the canvas scrolls it, and its native scrollbar is hidden. A spacer three canvases tall gives it something to scroll, and <code>position: sticky</code> keeps the cube in view while it passes.',
+      'At rest a caption under the cube says <code>Scroll to spin</code>, since nothing else shows that the canvas scrolls. It fades out over the first eighth of the scroll, and the cube, which sat a little high to make room for it, eases down to the middle as it goes. Both follow <code>--hint</code>, worked out in CSS from <code>--p</code>, so scrolling back to the top brings it back.',
       'Where supported, CSS can do this alone with <code>animation-timeline: scroll()</code> — check browser support before relying on it; the JS version works everywhere.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the cube is the same share of a gallery card, the editor and a recording canvas. It is sized for the worst angle the scroll turns it to — corner-on, where it spans its body diagonal — not for the rest pose.',
     ],
@@ -2290,6 +2291,7 @@ party.addEventListener('keydown', (e) => {
       <div></div><div></div><div></div>
       <div></div><div></div><div></div>
     </div>
+    <p class="caption">Scroll to spin</p>
   </div>
   <div class="spacer"></div>
 </div>`,
@@ -2299,13 +2301,15 @@ party.addEventListener('keydown', (e) => {
   /* one base unit: every length below is a multiple of it, so the cube is the same share of a
      card, the editor, a full screen and a recording canvas */
   --u: 0.27vmin;
+  /* the hint: 1 at the top, gone an eighth of the way down (--p is set here from JS) */
+  --hint: clamp(0, 1 - var(--p, 0) * 8, 1);
   position: absolute;
   inset: 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   outline: none;
-  scrollbar-width: none; /* the stage's badge already says "Scroll" */
+  scrollbar-width: none; /* a bar against the canvas edge reads as a broken page: the caption says it */
 }
 
 .scroller::-webkit-scrollbar {
@@ -2325,12 +2329,26 @@ party.addEventListener('keydown', (e) => {
   height: 300%;
 }
 
+/* the caption, in plain vmin like every model's: 4.5vmin text on a 5.4vmin line, 4vmin under the
+   cube at rest (45vmin tall). The cube and the caption stand in one stack, centred: the cube sits
+   4.7vmin high, half the gap and the line, and comes down to the middle as the caption fades */
+.caption {
+  position: absolute;
+  inset: calc(50% + 21.8vmin) 0 auto;
+  margin: 0;
+  font: 500 4.5vmin/1.2 Inter, system-ui, sans-serif;
+  text-align: center;
+  opacity: calc(0.7 * var(--hint));
+  pointer-events: none;
+}
+
 .cube {
   --s: calc(130 * var(--u));
   position: relative;
   width: var(--s);
   height: var(--s);
   transform-style: preserve-3d;
+  translate: 0 calc(-4.7vmin * var(--hint));
   /* --p is scroll progress 0…1, set on .scroller from JS */
   transform:
     rotateX(calc(-20deg + var(--p, 0) * 360deg))

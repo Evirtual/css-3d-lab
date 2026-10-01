@@ -20,9 +20,44 @@ const held = (stage: HTMLElement): void => {
   stage.removeAttribute('aria-hidden');
 };
 
+/**
+ * The scroll boxes inside a stage's model, found once per document (an edit that reloads the frame
+ * makes a new document, and they are looked for again).
+ */
+const scrollBoxes = new WeakMap<Document, HTMLElement[]>();
+const OVERFLOWS = /auto|scroll/;
+
+/**
+ * Chrome and Edge decide whether a box inside the frame can be scrolled by the wheel when they
+ * paint it, and a box painted while its stage was inert is recorded as not scrollable. Letting the
+ * stage go does not repaint the frame, so the wheel went past the model to the page: on the
+ * gallery, Scroll-linked spin's canvas never scrolled, while on its own page (never inert) it did.
+ * Any style change on the box itself makes them look again, so each one gets an invisible outline
+ * for one frame.
+ */
+function refreshScrollBoxes(stage: HTMLElement): void {
+  const doc = stage.querySelector('iframe')?.contentDocument;
+  if (!doc?.body) return;
+  let boxes = scrollBoxes.get(doc);
+  if (!boxes) {
+    const win = doc.defaultView;
+    boxes = win ? [...doc.body.querySelectorAll<HTMLElement>('*')].filter((el) => {
+      const cs = win.getComputedStyle(el);
+      return OVERFLOWS.test(cs.overflowX) || OVERFLOWS.test(cs.overflowY);
+    }) : [];
+    scrollBoxes.set(doc, boxes);
+  }
+  for (const box of boxes) {
+    const was = box.style.outline;
+    box.style.outline = '0 solid transparent';
+    requestAnimationFrame(() => { box.style.outline = was; });
+  }
+}
+
 const letGo = (stage: HTMLElement): void => {
   stage.inert = false;
   stage.setAttribute('aria-hidden', 'true');
+  refreshScrollBoxes(stage);
 };
 
 const stageOf = (el: EventTarget | null): HTMLElement | null =>
