@@ -993,6 +993,9 @@ button, input { font: inherit; color: inherit; }
 .cldlg__head h2 { font-size: 22px; }
 /* no one-word last line under a dialog's title: the browser balances the break */
 .cldlg__head p { text-wrap: pretty; max-width: 78ch; }
+/* the column itself takes the full width: capping its paragraphs had shrunk it, and the checklist's
+   stage strip, bar and key with it */
+.cldlg__head > div { flex: 1 1 auto; min-width: 0; }
 .cldlg__x { flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--border-strong); border-radius: 50%; background: none; color: var(--text); cursor: pointer; }
 .cldlg__x:hover { border-color: var(--accent); }
 .cldlg__body { overflow: auto; overscroll-behavior: contain; padding: 6px 20px 20px; }
