@@ -680,22 +680,42 @@ async function measureImage(file, scr) {
  * light stage, outlined by a line about a pixel wide). Shrunk below the canvas's size, that line
  * blurs under INK and the edge is found a few percent inside where it is — on the file and not the
  * screen, which is measured at full size. `first` measures frame 0 only.
+ *
+ * A frame that comes back with no pixels at all was not read, and is read again. An MP4 is H.264,
+ * which has no alpha, so every pixel of every frame in it is opaque; a draw that leaves the canvas
+ * entirely see-through means the video had no picture ready yet, even though `seeked` had fired.
+ * It happened to the first live take of a model now and then (dice, browser, coverflow on
+ * 2026-10-01): measured as "frame 0 none" and blamed on the app, while the same file, read again
+ * 500 ms later or in a fresh browser fifteen times, had the model exactly where the screen did.
+ * So the read is repeated, at most READS times, and how many it took is reported; a file whose
+ * frame stays empty still fails. A WebM may be see-through by design, so it is never re-read.
  */
+const READS = 5;
 async function measureVideo(file, scr, { first: firstOnly = false } = {}) {
   const bg = scr.bg;
   const full = FULL_CANVAS(scr.box);
-  const out = await dlg(async ([src, bg, ink, firstOnly, full]) => {
+  const out = await dlg(async ([src, bg, ink, firstOnly, full, opaque, reads]) => {
     const v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.src = src;
     await new Promise((ok, no) => { v.onloadeddata = ok; v.onerror = () => no(new Error('the video would not open')); });
     const W = v.videoWidth, H = v.videoHeight;
     const c = new OffscreenCanvas(W, H), x = c.getContext('2d', { willReadFrequently: true });
     const n = firstOnly ? 1 : Math.max(1, Math.round(v.duration * 30));
-    const frames = []; let prev = null, first = null, backdrop = bg, f0png = null;
+    const frames = []; let prev = null, first = null, backdrop = bg, f0png = null, reread = 0;
+    const empty = (d) => { for (let k = 3; k < d.length; k += 4) if (d[k]) return false; return true; };
     for (let i = 0; i < n; i++) {
-      v.currentTime = Math.min(v.duration - 0.001, (i + 0.5) / 30);
-      await new Promise((ok) => { v.onseeked = ok; });
-      x.drawImage(v, 0, 0, W, H);
-      const img = x.getImageData(0, 0, W, H);
+      let img = null;
+      for (let attempt = 0; attempt < (opaque ? reads : 1); attempt++) {
+        if (attempt) { reread++; await new Promise((ok) => setTimeout(ok, 100)); }
+        const at = Math.min(v.duration - 0.001, (i + 0.5) / 30);
+        // a seek to where the video already is fires no seeked: nudge it away first
+        if (attempt && Math.abs(v.currentTime - at) < 1e-6) { v.currentTime = at + 0.0005; await new Promise((ok) => { v.onseeked = ok; }); }
+        v.currentTime = at;
+        await new Promise((ok) => { v.onseeked = ok; });
+        x.clearRect(0, 0, W, H);
+        x.drawImage(v, 0, 0, W, H);
+        img = x.getImageData(0, 0, W, H);
+        if (!opaque || !empty(img.data)) break;
+      }
       if (!first) {
         first = img;
         // The frame's border is the backdrop, read off the file itself so the encoder's slight
@@ -718,8 +738,8 @@ async function measureVideo(file, scr, { first: firstOnly = false } = {}) {
       prev = img;
     }
     let wrap = 0; for (let k = 0; k < first.data.length; k += 4) wrap += Math.abs(first.data[k] - prev.data[k]) + Math.abs(first.data[k+1] - prev.data[k+1]) + Math.abs(first.data[k+2] - prev.data[k+2]);
-    return { frames, backdrop, f0png, wrap: wrap / (first.data.length / 4) / 3, n };
-  }, [file.src, bg, INK, firstOnly, full]);
+    return { frames, backdrop, f0png, wrap: wrap / (first.data.length / 4) / 3, n, reread };
+  }, [file.src, bg, INK, firstOnly, full, file.type === 'video/mp4', READS]);
   // A full-canvas scene's frame 0 lined up with the canvas. Done in the lab page, which is not the
   // model's: nothing the model page does to its own pictures can touch the reference.
   out.align = full ? await lab.evaluate(async ([f0, png, bare, bg]) => {
@@ -729,6 +749,9 @@ async function measureVideo(file, scr, { first: firstOnly = false } = {}) {
   delete out.f0png;
   return out;
 }
+
+/** Said whenever a frame had to be read again (see measureVideo), so a re-read never passes unseen. */
+const rereadNote = (vid) => vid.reread ? `; read again ${vid.reread} time${vid.reread === 1 ? '' : 's'}: the first draw of a frame came back empty` : '';
 
 /** Frame-to-frame steps of the box: centre and size, as shares of the frame. */
 function steps(frames) {
@@ -1061,7 +1084,7 @@ async function checkVideos(id) {
         const f0 = vid.frames[0]?.box;
         const gap = boxGap(f0, scr.box);
         entry.takes[q] = { caption: file.caption, width: file.width, height: file.height, duration: file.duration, box0: f0, align: vid.align };
-        say(`    ${String(q).padEnd(4)} caption "${file.caption}" -> file ${file.width}×${file.height} ${file.type}, ${file.duration.toFixed(2)}s live, frame 0 model ${boxText(f0)} (edge gap ${pc(gap)}%)`);
+        say(`    ${String(q).padEnd(4)} caption "${file.caption}" -> file ${file.width}×${file.height} ${file.type}, ${file.duration.toFixed(2)}s live, frame 0 model ${boxText(f0)} (edge gap ${pc(gap)}%)${rereadNote(vid)}`);
         if (!said || said.width !== file.width || said.height !== file.height) miss(id, 'dims', `video ${shape} ${q}p`, `caption says ${file.caption}, file is ${file.width}×${file.height}`, 'app');
         if (Math.min(file.width, file.height) !== q) miss(id, 'dims', `video ${shape} ${q}p`, `short side ${Math.min(file.width, file.height)}`, 'app');
         if (Math.abs(file.width / file.height / want - 1) > 0.01) miss(id, 'dims', `video ${shape} ${q}p`, `aspect ${(file.width / file.height).toFixed(3)}, shape ${want.toFixed(3)}`, 'app');
@@ -1109,7 +1132,7 @@ async function checkVideos(id) {
       const gap0 = boxGap(vid.frames[0]?.box, scr.box);
       const last = boxes[boxes.length - 1], first = boxes[0];
       entry.drift = { live, width: file.width, height: file.height, duration: file.duration, frames: vid.n, median: med, worst, jumpAt, spikeAt, missing, range, wrap: vid.wrap, gap0, align: vid.align, perFrame: diffs.map((d) => +d.toFixed(2)), boxes: vid.frames.map((f) => f.box && [f.box.l, f.box.t, f.box.r, f.box.b].map((v) => +v.toFixed(4))) };
-      say(`    drift ${live ? 'live 2s, untouched' : 'own loop'} ${file.width}×${file.height}, ${vid.n} frames: change per frame median ${med.d.toFixed(2)} worst ${worst.d.toFixed(2)}; box step median ${pc(med.c)}%/${pc(med.s)}% worst ${pc(worst.c)}%/${pc(worst.s)}% (centre/size); end→start ${vid.wrap.toFixed(2)}; frame 0 vs screen ${pc(gap0)}%`);
+      say(`    drift ${live ? 'live 2s, untouched' : 'own loop'} ${file.width}×${file.height}, ${vid.n} frames: change per frame median ${med.d.toFixed(2)} worst ${worst.d.toFixed(2)}; box step median ${pc(med.c)}%/${pc(med.s)}% worst ${pc(worst.c)}%/${pc(worst.s)}% (centre/size); end→start ${vid.wrap.toFixed(2)}; frame 0 vs screen ${pc(gap0)}%${rereadNote(vid)}`);
       if (range) say(`      box range over the clip: left ${pc(range.l[0])}-${pc(range.l[1])} top ${pc(range.t[0])}-${pc(range.t[1])} right ${pc(range.r[0])}-${pc(range.r[1])} bottom ${pc(range.b[0])}-${pc(range.b[1])}`);
       say(`      per frame: ${diffs.map((d) => d.toFixed(1)).join(' ')}`);
       // What a step between two frames cannot say, and what it can. A recording of the model's own
