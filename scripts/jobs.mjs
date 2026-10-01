@@ -98,6 +98,29 @@ export const JOBS = [
     answers: ['The release snapshot is the state of the commit being pushed'],
     blurb: 'Writes docs/release-snapshot.json from what the board currently holds. Changes a committed file.',
   },
+  /*
+   * THE TWO HALVES OF A RELEASE, EITHER SIDE OF THE SIGN-OFF.
+   *
+   * On 2026-09-30 two releases were taken to 51/51 by running, by hand and in order, what the
+   * board said the push needed, then the three jobs, then committing the snapshot, then signing
+   * off and pushing, then waiting for the deploy, building, and asking the served site. The board
+   * knew every one of those steps and offered them one button at a time. Now it offers the
+   * sequence: one job up to the sign-off, which stays a person's, and one job after the push.
+   * "minutes" for the first is a floor: what it really costs is what is stale, and the note under
+   * "What the push needs" says that before it is pressed.
+   */
+  {
+    key: 'prepare', name: 'Prepare the release', argv: ['scripts/release-prepare.mjs'],
+    minutes: 20, needs: ['browser', 'network'], safe: false,
+    answers: [],
+    blurb: 'Runs what the push is waiting for (the note above): the stale steps, then the jobs that close a line, then the snapshot; commits the two records a run regenerates; stops at the sign-off, which is yours. How long depends on what is stale.',
+  },
+  {
+    key: 'after', name: 'After the push', argv: ['scripts/release-after.mjs'],
+    minutes: 8, needs: ['network'], safe: false,
+    answers: [],
+    blurb: 'Waits for the deploy of HEAD, builds here the same way, and asks the served site the six questions the live check asks. Refuses until HEAD is pushed.',
+  },
 ];
 
 /**

@@ -145,6 +145,14 @@ checks, the live-site check, the renderer comparison, the export matrix, the doc
 needs a terminal, and anything this machine cannot do is greyed out with the reason rather than
 offered as a button that throws.
 
+A release is two of those jobs with the sign-off between them. **Prepare the release**
+(`scripts/release-prepare.mjs`) runs what the push is waiting for — the same list the dialog shows
+under "What the push needs" — then the jobs that close a line, then the snapshot; it commits the
+two records a run regenerates (the snapshot, the sitemap dates) and stops at the first thing that
+does not hold, or at the sign-off, which it never ticks. **After the push**
+(`scripts/release-after.mjs`) waits for the deploy of HEAD, builds here the same way, and asks the
+served site. Between them: `npm run signoff -- push`, commit the checklist last, `git push`.
+
 ### Choosing gate steps
 
 The gate is eighteen steps and about four hours. Running all of them to refresh one is the cost the

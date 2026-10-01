@@ -309,7 +309,8 @@ const ALONE = new Set(REGISTRY.filter((c) => c.alone).map((c) => c.key));
  * checklist steps, the cheap ones), and a rule written as an equality check would have let a
  * second run start underneath any of them.
  */
-const COVERS_ALL = (k) => k === 'all' || String(k).startsWith('job:gate');
+// "Prepare the release" runs gate steps inside itself, so it covers every check too
+const COVERS_ALL = (k) => k === 'all' || String(k).startsWith('job:gate') || k === 'job:prepare';
 function refuse(what) {
   if (runs.has(what)) return `${what} is already running`;
   // a check that measures speed needs an idle machine, in both directions

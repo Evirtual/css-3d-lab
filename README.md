@@ -96,7 +96,7 @@ Without `npm run export` running, everything works in dev except making a video 
 
 <!-- scripts:start (written by scripts/generate-readme.mjs from each file's opening comment: edit the comment, not this table) -->
 
-69 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
+71 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
 Each file says how to run it, and why it exists, in the comment at its top.
 
 | Run it with | What runs | What it is for |
@@ -163,6 +163,8 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | `node scripts/pre-push.mjs` | `scripts/pre-push.mjs` | The push, refused while the release checklist is open. Run by git, from scripts/hooks/pre-push. |
 | `node scripts/preview-check.mjs` | `scripts/preview-check.mjs` | Does editing a model leave its live frame alone? On /models/cube/ (served from source by Vite, no build needed) it pauses the animations at 1137 ms, then asserts that the frame's document, the cube's box, the scene's zoom and the animation clocks are unchanged after: a whitespace-only CSS edit, a colour edit, "Reset to original", and opening the Image dialog (whose live view must keep the same document). Exits non-zero on the first difference or any page error. |
 | imported, not run | `scripts/push-gate.mjs` | What stands between this code and a push, decided once and read the same way by everyone. |
+| `node scripts/release-after.mjs` | `scripts/release-after.mjs` | After the push: the deploy, then the site as served. |
+| `node scripts/release-prepare.mjs` | `scripts/release-prepare.mjs` | Prepare the release: everything the push is waiting for that a machine can do, then stop at the sign-off, which is a person's. |
 | `node scripts/release-snapshot.mjs` | `scripts/release-snapshot.mjs` | The release snapshot: the one file about check results that is COMMITTED. |
 | `node scripts/running.mjs` | `scripts/running.mjs` | The one answer to "is a check running, and how far has it got". |
 | imported, not run | `scripts/seo-limits.mjs` | How long a page's <title> and meta description may be, shared by scripts/generate-pages.mjs (which fits each page's fixed wording to them) and scripts/check-seo.mjs (which fails a page over them). Not run on its own. |

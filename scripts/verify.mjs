@@ -411,11 +411,11 @@ if (willUseDist.length && !noBuild) {
     console.log(`       built in ${mins(Date.now() - at)}\n`);
   } catch (e) {
     builtOk = false;
-    // Not fatal here on purpose: the build's own failure is what `qa` and `seo` are for, and
-    // stopping now would skip the ten steps that do not need dist/ at all. It says WHY, because
+    // Not fatal here on purpose: stopping now would skip the ten steps that do not need dist/ at
+    // all. The four that do are not run over the old dist/ (see the step loop). It says WHY, because
     // "BUILD FAILED" on its own was how a spawn error passed for a broken build.
     console.log(`       BUILD FAILED after ${mins(Date.now() - at)} (${String(e?.message ?? e).split('\n')[0]})`);
-    console.log(`       the dist/ steps below judge whatever is on disk\n`);
+    console.log(`       the steps that judge dist/ (${willUseDist.join(', ')}) are recorded as failed, not run: dist/ is not this code\n`);
   }
 }
 
@@ -447,6 +447,17 @@ for (const [i, key] of run.entries()) {
   beat({ step: { index: i + 1, key, short: c.short ?? null, name: c.name, startedAt: new Date(at).toISOString() } });
   // the files THIS step depends on, as they are right now: what it is about to judge
   const fp = stepFingerprint(key);
+  /* A step that judges dist/ does not run on a dist/ this run did not make. The build failed, so
+     whatever is in dist/ is older code: a pass over it would be a pass over something else, and a
+     fail would point at the wrong thing (2026-09-30: qa, app and seo held over a dist built by hand
+     earlier, while the record said the build had failed). The step is recorded as failed, with the
+     reason, and the ten steps that do not read dist/ still run. */
+  if (NEEDS_DIST.has(key) && builtOk === false) {
+    console.log(`[${i + 1}/${run.length}] ${hhmm()}  ${key}${onTheBoard}: not run — the build failed, so dist/ is not this code`);
+    results.push({ key, code: 1, tally: null, took: mins(0), fp, skipped: 'the build failed, so dist/ is not this code' });
+    beat({ step: null });
+    continue;
+  }
   await prepare(key);
   const { code } = await spawnStep(key);
   sweep();
@@ -468,7 +479,7 @@ for (const r of results) {
   const t = r.tally;
   const bad = r.code !== 0 || (t && t.fail > 0);
   if (bad) held = false;
-  const what = t ? `${String(t.pass).padStart(3)}/${String(t.total).padEnd(3)}${t.fail ? `  ${t.fail} failed` : ''}${t.other ? `  ${t.other} other` : ''}` : `exit ${r.code}`;
+  const what = t ? `${String(t.pass).padStart(3)}/${String(t.total).padEnd(3)}${t.fail ? `  ${t.fail} failed` : ''}${t.other ? `  ${t.other} other` : ''}` : r.skipped ? `not run: ${r.skipped}` : `exit ${r.code}`;
   console.log(`  ${bad ? 'FAILS' : 'holds'}  ${r.key.padEnd(10)} ${what.padEnd(22)} ${r.took}`);
 }
 console.log('');
@@ -506,6 +517,7 @@ try {
   const mine = results.map((r) => ({
     key: r.key, ok: r.code === 0 && !(r.tally && r.tally.fail > 0), code: r.code, took: r.took,
     fp: r.fp ?? null, at: new Date().toISOString(), commit,
+    ...(r.skipped ? { skipped: r.skipped } : {}),
   }));
   for (const m of mine) priorSteps.set(m.key, m);
   const merged = ORDER.map((k) => priorSteps.get(k)).filter(Boolean);
