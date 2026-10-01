@@ -406,7 +406,9 @@ if (willUseDist.length && !noBuild) {
     const CAPTURE_URL = process.env.VITE_CAPTURE_URL || 'https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture';
     console.log(`       endpoint: ${CAPTURE_URL}${process.env.VITE_CAPTURE_URL ? ' (from the environment)' : ' (the Worker this project deploys; set VITE_CAPTURE_URL to build against another)'}`);
     execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'],
-      { cwd: ROOT, stdio: 'ignore', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0', VITE_CAPTURE_URL: CAPTURE_URL } });
+      // NODE_ENV pinned: a process that has started a Vite dev server (the board) carries
+      // "development", and a build that inherits it is not the deploy's build
+      { cwd: ROOT, stdio: 'ignore', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0', NODE_ENV: 'production', VITE_CAPTURE_URL: CAPTURE_URL } });
     builtOk = true;
     console.log(`       built in ${mins(Date.now() - at)}\n`);
   } catch (e) {

@@ -381,7 +381,18 @@ function start(what, models = []) {
   mkdirSync(OUTPUT_DIR, { recursive: true });
   const log = createWriteStream(file, { flags: 'w' });
   log.write(`# ${label}\n# ${process.execPath} ${argv.join(' ')}\n# started ${startedAt}\n\n`);
-  const child = spawn(process.execPath, argv, { cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0' }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32' });
+  /*
+   * NOT THIS PROCESS'S NODE_ENV. The watcher builds the ledger in this process, and that starts a
+   * Vite dev server (scripts/ledger.mjs loads the model sources through one), which sets
+   * process.env.NODE_ENV to "development" for the rest of this process's life. A job spawned with
+   * that inherited it, and `npm run build` inside the job -- the gate's own build, After the push's
+   * build -- was a DEVELOPMENT build: import.meta.env.DEV true, the service-worker registration
+   * compiled away, a different chunk hash. On 2026-10-01 the live check then said, correctly, that
+   * the served site was not the build in dist/, over a build that was not the deploy's build.
+   */
+  const env = { ...process.env, FORCE_COLOR: '0' };
+  delete env.NODE_ENV;
+  const child = spawn(process.execPath, argv, { cwd: ROOT, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32' });
   child.stdout.on('data', (b) => log.write(b));
   child.stderr.on('data', (b) => log.write(b));
   runs.set(what, { what, label, models, startedAt, child });

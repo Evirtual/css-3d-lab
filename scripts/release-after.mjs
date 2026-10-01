@@ -48,7 +48,9 @@ if (conclusion !== 'success') stop(`the deploy did not succeed: gh run view ${ru
 
 const CAPTURE_URL = process.env.VITE_CAPTURE_URL || 'https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture';
 say(`building here the way the deploy did (endpoint ${CAPTURE_URL})`);
-const built = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'], { cwd: ROOT, stdio: 'inherit', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0', VITE_CAPTURE_URL: CAPTURE_URL } });
+// NODE_ENV pinned: started from the board, this inherits "development" (the board runs a Vite dev
+// server to build the ledger), and a build that inherits it is not the deploy's build
+const built = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'], { cwd: ROOT, stdio: 'inherit', shell: process.platform === 'win32', env: { ...process.env, FORCE_COLOR: '0', NODE_ENV: 'production', VITE_CAPTURE_URL: CAPTURE_URL } });
 if (built.status !== 0) stop('the build failed here: the live check would compare the site with nothing');
 
 await sleep(30_000);
