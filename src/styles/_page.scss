@@ -31,13 +31,16 @@
   }
 }
 
-// Header: title block on the left, one toolbar on the right. No divider: the columns below
-// start with two framed boxes, which separate the sections on their own.
+// Header: the title block across the full width, and the toolbar in one row under it, as the
+// gallery's dialog lays out the same model. It was title on the left and toolbar on the right, and
+// the toolbar takes its widest row, about 600px, whatever the window: at 1000px every model page's
+// title and lead were squeezed into a third of the width beside an empty corner ("Newton's /
+// cradle", nine words a line), and at 1280px "in pure CSS" fell onto a line of its own. No divider:
+// the columns below start with two framed boxes, which separate the sections on their own.
 .page-head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 20px 40px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
   margin: 18px 0 26px;
 
   h1 {
@@ -47,8 +50,9 @@
     letter-spacing: -0.035em;
     line-height: 1.02;
 
+    // no margin of its own: the space before it is the gap, so when a long title pushes it onto
+    // a line of its own it starts at the title's left edge instead of a step in from it
     small {
-      margin-left: 0.25em;
       background: linear-gradient(100deg, var(--accent), var(--hot) 60%, var(--warm));
       -webkit-background-clip: text;
       background-clip: text;
@@ -91,30 +95,21 @@
   }
 }
 
+// The two rows of the markup are one wrapping row here: on a wide window all seven buttons fit
+// on one line, on a narrow one they wrap where they must
 .page-tools {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
-  justify-items: end;
 
   &__row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 860px) {
-  .page-head {
-    grid-template-columns: minmax(0, 1fr);
+    display: contents;
   }
 
-  .page-tools {
-    justify-items: start;
-
-    &__row {
-      justify-content: flex-start;
-    }
+  .code__thanks {
+    flex-basis: 100%;
+    margin: 0;
   }
 }
 
