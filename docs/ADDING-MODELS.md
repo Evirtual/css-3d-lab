@@ -28,7 +28,19 @@ close-up review.
 | **Its group** | `MEMBERS` in `src/models/groups.ts` | where it sits in the gallery; an unassigned id throws |
 
 The `id` is lowercase letters and digits. The JSON-driven charts keep both halves in one file,
-`src/models/charts/<id>.ts`, exporting `demo` and `snippet`, collected by `src/models/batch-l.ts`.
+`src/models/charts/<id>.ts`, exporting `demo` and `snippet`: `src/models/batch-l.ts` imports each
+chart's `demo` by name for the gallery, and `src/models/snippets-batch-l.ts` its `snippet` for the map.
+
+**Keep snippets out of what the browser loads.** The gallery entries (`src/models/index.ts` and
+everything it imports) are in every page's JavaScript. A snippet reaches the browser only through
+its own chunk, fetched when its model mounts (`scripts/snippet-chunks.mjs`), as long as nothing on
+the gallery side refers to it. So a batch file that the gallery imports lists gallery entries
+only: build its snippet map in a separate `snippets-*.ts` that only `src/models/snippets.ts`
+imports, and import a two-halves file by name (`import { demo as x }`), never as a whole
+(`import * as x`). Batch L and batch M once built their snippet maps beside their gallery entries,
+and fifteen models' entire code rode along on every page, downloaded a second time when they
+mounted: about 49 KB of the home page's 141 (measured 2026-10-02). `npm run check-seo` weighs
+every page against its budget, so a regression shows there.
 
 `src/models/index.ts` also holds `FEATURED`, which decides what the gallery opens with.
 

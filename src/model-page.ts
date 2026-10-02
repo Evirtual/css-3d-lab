@@ -14,10 +14,9 @@ import { copyText, embedCode } from './share';
 import { openShareMenu } from './share-menu';
 import { shortHint } from './short-hint';
 import { initTint } from './tint';
-import { initVideoMaker, trackDownloads } from './video';
+import { initVideoMakerOnDemand } from './video-on-demand';
 import type { PrintSetup } from './models/snippet-utils';
 import { initZoom, STAGE_THEME_EVENT, stageTheme } from './zoom';
-import { printModel } from './print';
 import { initThanks, showThanks } from './thanks';
 import { markPause } from './stage-pause';
 
@@ -32,10 +31,10 @@ lazyMountCards();
 fitStages(); // every demo on the page scales with its stage
 initCardLook();
 initCardStages(); // cards' stages out of the Tab order, played with by the pointer
-trackDownloads(track);
 // print goes through the same preview dialog; the page's model fills this in below
 let printOpenModel: ((stage: HTMLElement, setup: PrintSetup) => void) | null = null;
-initVideoMaker(track, (stage, setup) => printOpenModel?.(stage, setup));
+// the export dialog loads when one of its buttons is first pressed (src/video-on-demand.ts)
+initVideoMakerOnDemand(track, (stage, setup) => printOpenModel?.(stage, setup));
 initThanks();
 initFullscreen();
 
@@ -57,7 +56,7 @@ if (stage && demo && box) {
   // The original code is already in the page as text; no need to download it again.
   const textOf = (key: string) => body(key)?.querySelector('pre code')?.textContent ?? '';
   const live = new LiveEdit(demo.id, demo.title, { html: textOf('html'), css: textOf('css'), ...(body('js') ? { js: textOf('js') } : {}) });
-  printOpenModel = (from, setup) => printModel(live, from, setup);
+  printOpenModel = (from, setup) => void import('./print').then((m) => m.printModel(live, from, setup));
 
   const refreshStage = () => {
     live.mount(stage, stageTheme());

@@ -14,8 +14,8 @@ import { snippetsH } from './snippets-batch-h';
 import { snippetsI } from './snippets-batch-i';
 import { snippetsJ } from './snippets-batch-j';
 import { snippetsK } from './snippets-batch-k';
-import { snippetsL } from './batch-l';
-import { snippetsM } from './batch-m';
+import { snippetsL } from './snippets-batch-l';
+import { snippetsM } from './snippets-batch-m';
 import { CUBE_FACES, type Snippet } from './snippet-utils';
 
 export { standaloneDoc, type Snippet } from './snippet-utils';

@@ -11,10 +11,9 @@ import { dotsHtml, initTint, modeHtml } from './tint';
 import { initGroupLists } from './group-list';
 import { initHero, initShapes } from './hero';
 import { initStickyBars } from './sticky-bars';
-import { printModel } from './print';
 import { initThanks, showThanks, thanksHtml } from './thanks';
 import { markPause, pauseHtml } from './stage-pause';
-import { initVideoMaker, trackDownloads, videoButton } from './video';
+import { initVideoMakerOnDemand } from './video-on-demand';
 import type { PrintSetup } from './models/snippet-utils';
 import { initZoom, STAGE_THEME_EVENT, stageTheme, zoomHtml } from './zoom';
 import { cardMenuHtml, initCardLook } from './card-look';
@@ -261,10 +260,10 @@ function applyFilters(): void {
 
 hydrateIcons();
 initAnalytics();
-trackDownloads(track);
 // print goes through the same preview dialog; the open model sets this up (see the viewer)
 let printOpenModel: ((stage: HTMLElement, setup: PrintSetup) => void) | null = null;
-initVideoMaker(track, (stage, setup) => printOpenModel?.(stage, setup));
+// the export dialog loads when one of its buttons is first pressed (src/video-on-demand.ts)
+initVideoMakerOnDemand(track, (stage, setup) => printOpenModel?.(stage, setup));
 initThanks();
 initHero();
 initShapes();
@@ -388,6 +387,8 @@ async function openViewer(id: string): Promise<void> {
   const demo = demos.find((d) => d.id === id);
   if (!demo) return;
   track(`open/${id}`);
+  // the dialog's Video / Image buttons come from src/video.ts, fetched alongside the snippet
+  const video = import('./video');
   const snip = await loadSnippet(id);
   if (!snip) return;
   // Edits are stored per demo, so they are shared with the demo's full page.
@@ -399,6 +400,8 @@ async function openViewer(id: string): Promise<void> {
   ];
   const lineCount = (code: string) => code.trimEnd().split('\n').length;
   const source = snippetSource(id);
+
+  const { videoButton } = await video;
 
   const tab = (p: Pane): string =>
     `<button type="button" role="tab" data-pane="${p.key}" aria-selected="${p.key === 'css'}">${p.label}</button>`;
@@ -454,7 +457,7 @@ async function openViewer(id: string): Promise<void> {
       </section>
     </div>`;
 
-  printOpenModel = (stage, setup) => printModel(live, stage, setup);
+  printOpenModel = (stage, setup) => void import('./print').then((m) => m.printModel(live, stage, setup));
   const stageEl = viewerBody.querySelector<HTMLElement>('.stage')!;
   // "Pause" only where the model animates
   markPause(stageEl, live.current.css);
