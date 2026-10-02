@@ -1,7 +1,7 @@
 {
  "what": "One line per model per check, from the ledger, on the commit named below. Not a fresh run: docs/ledger.html shows it as the state at the last release. The raw run records it came from (docs/checks/) are gitignored; capture your own with `npm run capture -- <check>`.",
- "head": "638aeda",
- "takenAt": "2026-10-01T14:27:21Z",
+ "head": "59a44da",
+ "takenAt": "2026-10-02T07:21:38Z",
  "counts": {
   "models": 143,
   "toCheck": 0,
