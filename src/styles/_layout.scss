@@ -673,6 +673,56 @@ $gone: rotateY(0deg) translateZ(0) translateY(0) rotateX(0deg) translateY(0) sca
 
 }
 
+// Phones, once the bar is pinned (sticky-bars.ts): folded to the search and a chevron, with one
+// line under them saying what is on. The chevron, or that line, opens the whole bar again.
+// (inside .filters, so this outranks .tagbtn, whose look it borrows and which comes later)
+.filters .filters__toggle {
+  display: none;
+  justify-content: center;
+  padding: 0 12px;
+
+  svg {
+    transition: rotate 0.2s ease;
+  }
+
+  &[aria-expanded='true'] svg {
+    rotate: 180deg;
+  }
+}
+
+.filters__summary {
+  display: none;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 0 4px;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.filters.is-pinned .filters__toggle {
+  display: inline-flex;
+}
+
+.filters.is-folded {
+  .tabs,
+  .tagbtn:not(.filters__toggle),
+  .scrollrow {
+    display: none;
+  }
+
+  .filters__summary:not([hidden]) {
+    display: block;
+  }
+}
+
 // The groups and tags rows scroll sideways when they do not fit. An edge fades (and, with a
 // mouse, shows an arrow) only while there is more to see on that side: main.ts sets
 // .can-prev / .can-next.

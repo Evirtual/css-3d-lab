@@ -143,6 +143,8 @@ const emptyEl = $('#empty');
 const searchEl = $<HTMLInputElement>('#search');
 const clearEl = $<HTMLButtonElement>('#search-clear');
 const filtersEl = $('.filters');
+// on a phone, once the bar is pinned and folded: what is on, in one line (sticky-bars.ts folds it)
+const summaryEl = $<HTMLButtonElement>('#filters-summary');
 const moreEl = $('#more');
 
 // Cards are revealed a page at a time as the sentinel below the grid scrolls into view.
@@ -235,6 +237,17 @@ function render(): void {
     card.hidden = !visible;
     if (isMatch) matching++;
   }
+
+  // The folded bar's one line: shown only when a filter is on, so a shorter list always says why.
+  const on: string[] = [];
+  if (state.q.trim()) on.push(`“${state.q.trim()}”`);
+  if (state.cat !== 'all') on.push(CATEGORY_LABEL[state.cat]);
+  if (state.group !== 'all') on.push(GROUPS[state.group]);
+  for (const tag of state.tags) on.push(`#${tag}`);
+  if (state.sort !== 'newest') on.push(SORTS.find(([s]) => s === state.sort)?.[1] ?? state.sort);
+  summaryEl.hidden = on.length === 0;
+  summaryEl.textContent = on.length ? `${matching} of ${demos.length} · ${on.join(' · ')}` : '';
+  summaryEl.setAttribute('aria-label', on.length ? `${matching} of ${demos.length} shown, filtered by ${on.join(', ')}. Show the filters` : '');
 
   // Announced to screen readers only; on screen the counts on every filter say the same.
   const shown = Math.min(limit, matching);
