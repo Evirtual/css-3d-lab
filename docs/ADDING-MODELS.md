@@ -144,7 +144,20 @@ own fill alone), and says when a still moved between its shots and was shot agai
 build writes; the dev server the checks start renders that page on demand for any model in
 `src/models`, so nothing has to be generated first. (`npm run generate` still writes the pages,
 the sitemap and `src/generated/model-ids.json` for the build, and the site's pages get their entry
-then.) `snippet-check` writes into `.media-tmp/` and does not create it: `mkdir .media-tmp` once (it is gitignored).
+then.)
+
+**Except `check-stages`, which also measures the model's own page.** `/models/<id>/` is not
+rendered on demand: it is the page `npm run generate` wrote, with the code that was there when it
+ran. Before it exists the check times out on that page; after the model changes it reports "the
+page listing is not the current snippet — run npm run generate". So run `npm run generate` once
+the model's code has stopped changing, then `check-stages`. Batch N's writers (2026-10-04) all hit
+this: every surface agreed except the stale page.
+
+**Writing several models at once.** Give each model its own pair of files (`batch-<x>-<id>.ts` for
+the gallery entry, `snippets-batch-<x>-<id>.ts` for the snippet) and create every pair as a small
+placeholder before anyone starts, wired into the batch's two gatherer files: then every id exists,
+every check runs on it, and each writer touches only its own two files. Every check loads every
+model, so a writer always saves a complete, valid file, and runs one browser check at a time. `snippet-check` writes into `.media-tmp/` and does not create it: `mkdir .media-tmp` once (it is gitignored).
 
 **Look at it.** The checks measure; none of them shows you the model, and whether its 3D is right is
 yours to judge (VIEW-CONTRACT.md, "What no check can judge is left to a person"). Two models that
