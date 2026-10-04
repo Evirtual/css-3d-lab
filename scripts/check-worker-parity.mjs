@@ -484,7 +484,14 @@ await vite.close();
 
 console.log('');
 const atRisk = loose.length ? ` ${loose.length} model(s) name a family the scene does not carry (${loose.map((l) => l.id).join(', ')}); they were drawn twice and agreed.` : '';
-if (fail.length) {
+if (fail.length && couldNotAsk) {
+  // Refused, not compared: calling these "disagreements" and advising a font change sent the
+  // reader after a problem nobody had measured (2026-10-04, the daily budget spent). Still a
+  // failure, because the line is unanswered, not answered yes.
+  console.log(`check-parity: not measured -- the Worker drew none of the ${fail.length} model(s), so nothing was compared.`);
+  console.log(`Ask again once it answers${/out of exports for today/i.test(String(fail[0])) ? ' (the daily export budget resets at 00:00 UTC)' : ''}.`);
+  process.exitCode = 1;
+} else if (fail.length) {
   console.log(`check-parity: ${fail.length} disagreement(s) between this machine and the renderer visitors use:`);
   for (const f of fail) console.log(`  ${f}`);
   console.log(`\nA model whose text names a family the scene does not carry is drawn in whatever the`);
