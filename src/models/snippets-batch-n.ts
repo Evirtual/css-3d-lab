@@ -20,7 +20,6 @@ import { snippetsHotair } from './snippets-batch-n-hotair';
 import { snippetsPoppyramid } from './snippets-batch-n-poppyramid';
 import { snippetsBubbles } from './snippets-batch-n-bubbles';
 import { snippetsCoderain } from './snippets-batch-n-coderain';
-import { snippetsBullettime } from './snippets-batch-n-bullettime';
 import type { Snippet } from './snippet-utils';
 
-export const snippetsN: Record<string, Snippet> = { ...snippetsMobius, ...snippetsSpring, ...snippetsLipstick, ...snippetsFoldphone, ...snippetsNeonsign, ...snippetsStamptext, ...snippetsSlider3d, ...snippetsLever, ...snippetsTicket, ...snippetsEnvelope, ...snippetsPendulumwave, ...snippetsBounceball, ...snippetsCampfire, ...snippetsHotair, ...snippetsPoppyramid, ...snippetsBubbles, ...snippetsCoderain, ...snippetsBullettime };
+export const snippetsN: Record<string, Snippet> = { ...snippetsMobius, ...snippetsSpring, ...snippetsLipstick, ...snippetsFoldphone, ...snippetsNeonsign, ...snippetsStamptext, ...snippetsSlider3d, ...snippetsLever, ...snippetsTicket, ...snippetsEnvelope, ...snippetsPendulumwave, ...snippetsBounceball, ...snippetsCampfire, ...snippetsHotair, ...snippetsPoppyramid, ...snippetsBubbles, ...snippetsCoderain };

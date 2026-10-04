@@ -1,6 +1,5 @@
 /**
- * Batch N: two new models in each of the eight groups, and two asked for by name (digital rain and
- * bullet time), 2026-10-04. As with batch M, each model has a
+ * Batch N: two new models in each of the eight groups, and one asked for by name (digital rain), 2026-10-04. As with batch M, each model has a
  * pair of files of its own, batch-n-<id>.ts (the gallery entry) and snippets-batch-n-<id>.ts (the
  * snippet), so they could be written in parallel with no file in common. Collected here for the
  * gallery and the groups; the snippets are collected in ./snippets-batch-n.ts, which the browser
@@ -23,11 +22,10 @@ import { demosHotair } from './batch-n-hotair';
 import { demosPoppyramid } from './batch-n-poppyramid';
 import { demosBubbles } from './batch-n-bubbles';
 import { demosCoderain } from './batch-n-coderain';
-import { demosBullettime } from './batch-n-bullettime';
 import type { Group } from './groups';
 import type { Demo } from './types';
 
-export const demosN: Demo[] = [...demosMobius, ...demosSpring, ...demosLipstick, ...demosFoldphone, ...demosNeonsign, ...demosStamptext, ...demosSlider3d, ...demosLever, ...demosTicket, ...demosEnvelope, ...demosPendulumwave, ...demosBounceball, ...demosCampfire, ...demosHotair, ...demosPoppyramid, ...demosBubbles, ...demosCoderain, ...demosBullettime];
+export const demosN: Demo[] = [...demosMobius, ...demosSpring, ...demosLipstick, ...demosFoldphone, ...demosNeonsign, ...demosStamptext, ...demosSlider3d, ...demosLever, ...demosTicket, ...demosEnvelope, ...demosPendulumwave, ...demosBounceball, ...demosCampfire, ...demosHotair, ...demosPoppyramid, ...demosBubbles, ...demosCoderain];
 /** Which group each sits in: merged into MEMBERS by src/models/groups.ts, so this batch edits no shared list. */
 export const groupsN: Partial<Record<Group, string[]>> = {
   shapes: ['mobius', 'spring'],
@@ -36,6 +34,6 @@ export const groupsN: Partial<Record<Group, string[]>> = {
   controls: ['slider3d', 'lever'],
   cards: ['ticket', 'envelope'],
   loaders: ['pendulumwave', 'bounceball'],
-  scenes: ['campfire', 'hotair', 'bullettime'],
+  scenes: ['campfire', 'hotair'],
   data: ['poppyramid', 'bubbles'],
 };
