@@ -196,8 +196,10 @@ export const snippetsBubbles: Record<string, Snippet> = {
   transform: rotateX(90deg);
 }
 
-/* the sphere: the hover target, round, centred on its point and turned to face you. It never
-   moves: its ::before is the ball, which swells when pointed at */
+/* the sphere: the hover target, round, centred on its point and turned to face you, then brought
+   forward by its own radius, to where a real sphere's front would be. Turned but left at its point,
+   half of the disc tilted behind the chart's plane, and another sphere's drop line, which runs in
+   that plane, cut across it. It never moves: its ::before is the ball, which swells when pointed at */
 .pt {
   position: absolute;
   left: calc((var(--x) * var(--W) - var(--r)) * var(--u));
@@ -208,7 +210,7 @@ export const snippetsBubbles: Record<string, Snippet> = {
   outline: none;
   cursor: pointer;
   pointer-events: auto;
-  transform: ${FACE};
+  transform: ${FACE} translateZ(calc(var(--r) * var(--u)));
 }
 
 /* lit from the upper left: a hot spot, the colour, and its own shade on the far side */

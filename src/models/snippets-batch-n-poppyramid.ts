@@ -13,15 +13,15 @@ import type { Snippet } from './snippet-utils';
 const POP = {
   unit: 'thousands',
   note: 'illustrative figures',
-  bands: ['0–9', '10–19', '20–29', '30–39', '40–49', '50–59', '60–69', '70–79', '80+'],
+  bands: ['0–9', '10–19', '20–29', '30–39', '40–49', '50–59', '60–69', '70+'],
   years: {
     1994: {
-      men: [2900, 2850, 2950, 2700, 2300, 1900, 1500, 900, 300],
-      women: [2760, 2720, 2860, 2680, 2320, 2000, 1700, 1250, 560],
+      men: [2900, 2850, 2950, 2700, 2300, 1900, 1500, 1050],
+      women: [2760, 2720, 2860, 2680, 2320, 2000, 1700, 1500],
     },
     2024: {
-      men: [2100, 2350, 2600, 2850, 2900, 2750, 2300, 1500, 650],
-      women: [2000, 2230, 2500, 2780, 2880, 2800, 2480, 1850, 1150],
+      men: [2100, 2350, 2600, 2850, 2900, 2750, 2300, 1750],
+      women: [2000, 2230, 2500, 2780, 2880, 2800, 2480, 2350],
     },
   },
 };
@@ -41,7 +41,7 @@ export const snippetsPoppyramid: Record<string, Snippet> = {
     how: [
       'The data is a JSON object, as a statistics API would send it: the age bands, then per year a list of men and a list of women, in thousands. JS finds the biggest count across <b>both</b> years, rounds it up to a tidy scale (3 million), and turns every count into a share of it, <code>--v</code>, a plain number from 0 to 1 on each bar. One scale for both years is what makes the switch honest: a band that shrank looks smaller.',
       'Each bar is the full width of its side, drawn with <code>transform: scaleX(var(--v))</code> from the axis (<code>transform-origin</code> on its inner end). Switching the year only writes new numbers; a <code>transition</code> on transform, delayed a little more per row, does the motion, and nothing is laid out again.',
-      'A bar is a slab from one element: the element is the front, and its <code>::after</code> is the lid, hinged on the top edge and folded back with <code>rotateX(-90deg)</code>. The parent’s <code>scaleX</code> carries the lid with it. The chart is tipped back <code>rotateX(-20deg)</code>, so the lids face you a little and every bar reads as a block; the scale’s lines stand on a wall behind them.',
+      'A bar is a slab from one element: the element is the front, and its <code>::after</code> is the lid, hinged on the top edge and folded back with <code>rotateX(-90deg)</code>. The parent’s <code>scaleX</code> carries the lid with it. The chart is tipped back <code>rotateX(-20deg)</code>: enough that the lids face you and every bar reads as a block, little enough that the chart keeps nearly its full height. The lid is shallower than the gap between rows, so each slab stands clear of the next; the scale’s lines stand on a wall behind them.',
       'The row is the hover target: the full width of the chart, it never moves, and the bars in it ignore the pointer. Pointing at a row or focusing it with the keyboard lights its bars and writes its numbers into the caption; the caption is never empty (it says the total when nothing is pointed at) and never wraps, so it cannot move the chart. The ages and the scale are the stage’s own ink, so they read on the dark stage and the light one.',
       'Every length in the chart is a multiple of one base unit, <code>--u</code>, tied to the canvas; the caption and the year buttons under it are in plain <code>vmin</code>, the same control zone as every other model’s.',
     ],
@@ -74,7 +74,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   /* one base unit: every length in the chart is a multiple of it, so it is the same share of a
      card, the editor, a full screen and a recording canvas. The control zone under it is in
      plain vmin, because it is the same object in every model. */
-  --u: 0.33vmin;
+  --u: 0.38vmin;
   display: grid;
   justify-items: center;
   gap: 4vmin; /* the band's gap between the model and the control zone */
@@ -101,12 +101,14 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
 
 /* three columns all the way down: men's bars, the ages, women's bars */
 .chart {
-  --bar: calc(100 * var(--u)); /* a full bar: the top of the scale */
-  --mid: calc(40 * var(--u)); /* the column of ages */
+  --bar: calc(87 * var(--u)); /* a full bar: the top of the scale */
+  --mid: calc(36 * var(--u)); /* the column of ages */
+  --lid: calc(7 * var(--u)); /* how deep a slab is: tipped, it shows less than the gap between rows */
   display: grid;
-  gap: calc(3 * var(--u));
+  gap: calc(4 * var(--u));
   transform-style: preserve-3d;
-  transform: rotateX(-20deg); /* tipped back: the lids face you */
+  /* tipped back a little: the lids face you, and the chart keeps nearly all of its height */
+  transform: rotateX(-20deg);
 }
 
 .head,
@@ -120,14 +122,14 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
 /* the two series, at the outer ends: a dot of the bar's colour, the name, the year's total. The
    stage's own ink, so they read on the dark stage and the light one */
 .head {
-  font: 700 calc(11 * var(--u)) / calc(14 * var(--u)) Inter, system-ui, sans-serif;
+  font: 700 calc(11.5 * var(--u)) / calc(12.5 * var(--u)) Inter, system-ui, sans-serif;
   white-space: nowrap;
 }
 
 .key {
   display: flex;
   align-items: center;
-  gap: calc(4 * var(--u));
+  gap: calc(3.5 * var(--u));
 }
 
 .key:last-child {
@@ -136,8 +138,9 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
 
 .key::before {
   content: '';
-  width: calc(7 * var(--u));
-  height: calc(7 * var(--u));
+  flex: none; /* a long name must not squash the dot */
+  width: calc(6.5 * var(--u));
+  height: calc(6.5 * var(--u));
   border-radius: 50%;
   background: var(--c);
 }
@@ -165,20 +168,21 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   bottom: calc(-2 * var(--u));
   left: 0;
   width: var(--bar);
-  background: repeating-linear-gradient(90deg, currentColor 0 calc(0.6 * var(--u)), transparent calc(0.6 * var(--u)) 33.333%);
+  background: repeating-linear-gradient(90deg, currentColor 0 calc(0.5 * var(--u)), transparent calc(0.5 * var(--u)) 33.333%);
   opacity: 0.2;
-  transform: translateZ(calc(-13 * var(--u))); /* just behind the lids */
+  transform: translateZ(calc(-1 * var(--lid) - 2 * var(--u))); /* just behind the lids */
 }
 
 .rows::after {
   left: auto;
   right: 0;
-  background: repeating-linear-gradient(270deg, currentColor 0 calc(0.6 * var(--u)), transparent calc(0.6 * var(--u)) 33.333%);
+  background: repeating-linear-gradient(270deg, currentColor 0 calc(0.5 * var(--u)), transparent calc(0.5 * var(--u)) 33.333%);
 }
 
-/* one age band: the hover target, the full width of the chart. It never moves */
+/* one age band: the hover target, the full width of the chart. It never moves. The bar is 7.5 of
+   its 13 units, so a clear gap runs between every two slabs */
 .band {
-  height: calc(12 * var(--u));
+  height: calc(13 * var(--u));
   outline: none;
   cursor: pointer;
   pointer-events: auto;
@@ -187,7 +191,8 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
 
 /* the age, the stage's ink, softened until its row is pointed at */
 .age {
-  font: 700 calc(11 * var(--u)) / 1 Inter, system-ui, sans-serif;
+  font: 700 calc(10.5 * var(--u)) / 1 Inter, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
   text-align: center;
   white-space: nowrap;
   opacity: 0.72;
@@ -198,8 +203,8 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
    Men run left (their origin on the right), women right */
 .bar {
   position: relative;
-  height: calc(9 * var(--u));
-  background: linear-gradient(rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 45%, rgb(10 8 30 / 0.16)), var(--c);
+  height: calc(7.5 * var(--u));
+  background: linear-gradient(rgb(255 255 255 / 0.08), rgb(10 8 30 / 0.2)), var(--c); /* a shade darker than the lid, so the edge between them reads */
   pointer-events: none;
   transform-style: preserve-3d;
   transform-origin: 100% 50%;
@@ -217,8 +222,8 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   left: 0;
   top: 0;
   width: 100%;
-  height: calc(12 * var(--u));
-  background: color-mix(in srgb, var(--c) 62%, #fff);
+  height: var(--lid);
+  background: color-mix(in srgb, var(--c) 55%, #fff);
   transform-origin: 50% 0;
   transform: rotateX(-90deg);
 }
@@ -229,7 +234,7 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
   position: absolute;
   inset: 0;
   background: linear-gradient(rgb(255 255 255 / 0.45), rgb(255 255 255 / 0.15));
-  box-shadow: 0 0 calc(10 * var(--u)) color-mix(in srgb, var(--c) 70%, transparent);
+  box-shadow: 0 0 calc(8 * var(--u)) color-mix(in srgb, var(--c) 70%, transparent);
   opacity: 0;
   transition: opacity 0.25s;
 }
@@ -248,23 +253,23 @@ ${YEARS.map((y) => `      <button type="button" data-year="${y}">${y}</button>`)
 
 /* a keyboard focus ring round the age, in the controls' violet */
 .band:focus-visible .age {
-  outline: calc(1.6 * var(--u)) solid #6a45f5;
-  outline-offset: calc(1 * var(--u));
-  border-radius: calc(3 * var(--u));
+  outline: calc(1.4 * var(--u)) solid #6a45f5;
+  outline-offset: calc(0.8 * var(--u));
+  border-radius: calc(2.5 * var(--u));
 }
 
 /* the scale's numbers, under its lines and on the same wall, so each sits under its own line */
 .scale {
-  transform: translateZ(calc(-13 * var(--u)));
-  font: 700 calc(10 * var(--u)) / 1 Inter, system-ui, sans-serif;
+  transform: translateZ(calc(-1 * var(--lid) - 2 * var(--u)));
+  font: 700 calc(9.5 * var(--u)) / 1 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .scale span {
   position: relative;
-  height: calc(10 * var(--u));
-  opacity: 0.65;
+  height: calc(9.5 * var(--u));
+  opacity: 0.7;
 }
 
 .scale i {
