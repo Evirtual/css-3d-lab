@@ -5,13 +5,13 @@ and copy-paste code you can edit in the page.
 
 **Live:** https://css3dlab.edgarasneverdauskas.com/
 
-Models in eight groups (shapes & solids, products & branding, text effects, buttons & forms,
+161 models in eight groups (shapes & solids, products & branding, text effects, buttons & forms,
 cards & galleries, loaders & patterns, scenes & objects, data & tools), in two honest categories:
 
-- **Pure CSS (99)** — markup and CSS only, zero JavaScript: solids, product mockups, text
+- **Pure CSS (114)** — markup and CSS only, zero JavaScript: solids, product mockups, text
   effects, loaders, hover pieces and form-state tricks (radio-button cube, rocker switch, no-JS
   tilt).
-- **CSS + JS (44)** — JavaScript only feeds values in (pointer position, time, random numbers,
+- **CSS + JS (47)** — JavaScript only feeds values in (pointer position, time, random numbers,
   generated DOM); CSS still does all the rendering: tilt card, drag cube, coverflow, dice, card
   stack, parallax, confetti, scroll-linked spin, the JSON-driven charts and more.
 
