@@ -1,11 +1,11 @@
 {
  "what": "One line per model per check, from the ledger, on the commit named below. Not a fresh run: docs/ledger.html shows it as the state at the last release. The raw run records it came from (docs/checks/) are gitignored; capture your own with `npm run capture -- <check>`.",
- "head": "5091ae5",
- "takenAt": "2026-10-02T11:17:27Z",
+ "head": "67b090b",
+ "takenAt": "2026-10-04T07:20:20Z",
  "counts": {
-  "models": 143,
+  "models": 161,
   "toCheck": 0,
-  "approved": 143
+  "approved": 161
  },
  "checks": {
   "boxsizing": {
@@ -852,6 +852,34 @@
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:42:26Z"}
   }
  },
+ "mobius": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:06Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:57:42Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:48:25Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:08:37Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:42:57Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:18Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:00Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:13Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:44:08Z"}
+  }
+ },
+ "spring": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:09Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:58:46Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:48:28Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:09:18Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:42:57Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:18Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:05Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:14Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:44:12Z"}
+  }
+ },
  "headphones": {
   "status": "approved",
   "checks": {
@@ -934,6 +962,34 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:04Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T10:05:24Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:42:36Z"}
+  }
+ },
+ "lipstick": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:22Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:59:09Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:49:07Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:09:51Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:42:57Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:13Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:08Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:15Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:44:22Z"}
+  }
+ },
+ "foldphone": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:36Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:59:33Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:49:33Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:10:24Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:36Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:22Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:13Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:20Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:44:32Z"}
   }
  },
  "text": {
@@ -1060,6 +1116,48 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:08Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T10:06:44Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:42:40Z"}
+  }
+ },
+ "neonsign": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:38Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:00:04Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:49:41Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:10:57Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:35Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:32Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:18Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:24Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:44:35Z"}
+  }
+ },
+ "stamptext": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:40Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:00:27Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:49:46Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:11:35Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:36Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:32Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:21Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:27Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:44:38Z"}
+  }
+ },
+ "coderain": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:47Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:00:56Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:50:05Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:12:11Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:41Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:35Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:25Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:30Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:44:42Z"}
   }
  },
  "button": {
@@ -1258,6 +1356,34 @@
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:42:52Z"}
   }
  },
+ "slider3d": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:51Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:01:46Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:50:23Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:12:52Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:42Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:41Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:29Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:33Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:44:51Z"}
+  }
+ },
+ "lever": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:56Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:02:10Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:50:39Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:13:25Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:42Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:41Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:32Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:38Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:01Z"}
+  }
+ },
  "flip": {
   "status": "approved",
   "checks": {
@@ -1426,6 +1552,34 @@
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:43:03Z"}
   }
  },
+ "ticket": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:47:10Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:02:33Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:50:57Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:14:01Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:46Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:44Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:37Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:41Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:11Z"}
+  }
+ },
+ "envelope": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:47:22Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:02:55Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:51:19Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:14:35Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:48Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:50Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:41Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:44Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:21Z"}
+  }
+ },
  "flipper": {
   "status": "approved",
   "checks": {
@@ -1578,6 +1732,34 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:19Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T10:10:04Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:43:06Z"}
+  }
+ },
+ "pendulumwave": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:47:28Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:03:59Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:51:22Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:15:11Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:48Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:55Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:45Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:45Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:24Z"}
+  }
+ },
+ "bounceball": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:47:30Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:04:21Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:51:25Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:15:43Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:52Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:58Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:48Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:46Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:28Z"}
   }
  },
  "grid": {
@@ -1832,6 +2014,48 @@
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:43:09Z"}
   }
  },
+ "campfire": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:47:33Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:04:49Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:51:56Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:16:17Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:54Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:35:03Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:51Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:48Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:31Z"}
+  }
+ },
+ "hotair": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:47:36Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:06:58Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:52:31Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:16:52Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:54Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:35:09Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:55Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:49Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:35Z"}
+  }
+ },
+ "bullettime": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:47:38Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:07:21Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:52:42Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:17:32Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:56Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:35:12Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:58Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:50Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:38Z"}
+  }
+ },
  "bars": {
   "status": "approved",
   "checks": {
@@ -2054,6 +2278,34 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:33:27Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T10:13:16Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:43:20Z"}
+  }
+ },
+ "poppyramid": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:47:55Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:07:51Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:53:53Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:18:05Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:59Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:35:16Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:33:03Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:55Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:48Z"}
+  }
+ },
+ "bubbles": {
+  "status": "approved",
+  "checks": {
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:48:08Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:08:24Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:54:59Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:18:40Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:59Z"},
+   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:35:20Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:33:08Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:59Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:58Z"}
   }
  }
  }
