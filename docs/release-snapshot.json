@@ -1,11 +1,11 @@
 {
  "what": "One line per model per check, from the ledger, on the commit named below. Not a fresh run: docs/ledger.html shows it as the state at the last release. The raw run records it came from (docs/checks/) are gitignored; capture your own with `npm run capture -- <check>`.",
- "head": "67b090b",
- "takenAt": "2026-10-04T07:20:20Z",
+ "head": "2571143",
+ "takenAt": "2026-10-04T08:35:49Z",
  "counts": {
-  "models": 161,
+  "models": 159,
   "toCheck": 0,
-  "approved": 161
+  "approved": 159
  },
  "checks": {
   "boxsizing": {
@@ -850,20 +850,6 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:32:59Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-09-30T10:04:29Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-09-30T04:42:26Z"}
-  }
- },
- "mobius": {
-  "status": "approved",
-  "checks": {
-   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:46:06Z"},
-   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:57:42Z"},
-   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:48:25Z"},
-   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:08:37Z"},
-   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:42:57Z"},
-   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:34:18Z"},
-   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:00Z"},
-   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:13Z"},
-   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:44:08Z"}
   }
  },
  "spring": {
@@ -2040,20 +2026,6 @@
    "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:55Z"},
    "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:49Z"},
    "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:35Z"}
-  }
- },
- "bullettime": {
-  "status": "approved",
-  "checks": {
-   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T05:47:38Z"},
-   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-04T06:07:21Z"},
-   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-04T05:52:42Z"},
-   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-04T06:17:32Z"},
-   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:43:56Z"},
-   "access": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:35:12Z"},
-   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:32:58Z"},
-   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-04T05:33:50Z"},
-   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-04T05:45:38Z"}
   }
  },
  "bars": {
