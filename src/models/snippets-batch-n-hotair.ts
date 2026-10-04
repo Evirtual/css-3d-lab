@@ -24,7 +24,13 @@ const OUTLINE: [number, number][] = [
 
 const GORES = 12;
 const HALF = Math.tan(Math.PI / GORES); // half a panel's width per unit of radius
-const OVERLAP = 0.8; // each panel a hair wider and longer, so no seam shows the sky
+const OVERLAP = 0.8; // each panel a hair longer, up and down, so no seam across a gore shows the sky
+/* Each panel runs on past its right edge by LAP, and a panel's plane carried past its edge stands
+   out in front of its neighbour's, so the lap covers the start of the next gore: the stripe's edge
+   is then the lap's own cut edge, inside the panel's picture, where the browser smooths it, and not
+   two 3D layers crossing, which it never does. PAD is clear picture to the right of that cut */
+const LAP = 0.7;
+const PAD = 0.6;
 const COLORS = ['#8b6cff', '#2ee6d6', '#ff4d9d', '#ffb547'];
 
 /** Light from above: white at the crown, through clear at the equator, to shade at the skirt. */
@@ -33,27 +39,34 @@ const tone = (s: number) => (s >= 0 ? `rgb(255 255 255 / ${s.toFixed(2)})` : `rg
 
 const n = (v: number) => +v.toFixed(2);
 
-interface Band { w: number; h: number; ym: number; rm: number; tilt: number; clip: string; shade: string }
+interface Band { x: number; w: number; h: number; ym: number; rm: number; tilt: number; clip: string; shade: string }
 
 /** One band of panels: its box, where its middle is, how far it tilts and its trapezoid. */
 function band(i: number): Band {
   const [r1, y1] = OUTLINE[i];
   const [r2, y2] = OUTLINE[i + 1];
-  const top = 2 * r1 * HALF + OVERLAP;
-  const bottom = 2 * r2 * HALF + OVERLAP;
-  const w = Math.max(top, bottom);
   const l = Math.hypot(r2 - r1, y2 - y1);
-  const a = (((w - top) / 2) / w) * 100;
-  const b = (((w - bottom) / 2) / w) * 100;
+  const h = l + 2 * OVERLAP;
+  // the panel's half-width at the top and bottom of its box, which runs OVERLAP past each end of
+  // the band: the sides carried on along their own slope, so they meet the next band's exactly
+  const slope = (r2 - r1) * HALF / l;
+  const top = r1 * HALF - slope * OVERLAP;
+  const bottom = r2 * HALF + slope * OVERLAP;
+  const half = Math.max(top, bottom);
+  const w = 2 * half + LAP + PAD; // the box: the trapezoid, its lap, then clear picture
+  const pc = (v: number) => `${n((v / w) * 100)}%`;
+  const fade = `${n((OVERLAP / h) * 100)}%`;
   return {
+    x: n(-half), // the box's left edge, from the gore's middle
     w: n(w),
-    h: n(l + 2 * OVERLAP), // longer still: a seam across the balloon shows more than one down it
+    h: n(h),
     ym: n((y1 + y2) / 2),
     rm: n((r1 + r2) / 2),
     // a band narrower at its top leans its top in: rotateX by the outline's angle from upright
     tilt: n((Math.atan2(r2 - r1, y2 - y1) * 180) / Math.PI),
-    clip: `polygon(${n(a)}% 0, ${n(100 - a)}% 0, ${n(100 - b)}% 100%, ${n(b)}% 100%)`,
-    shade: `linear-gradient(${tone(SHADE[i])}, ${tone(SHADE[i + 1])})`,
+    clip: `polygon(${pc(half - top)} 0, ${pc(half + top + LAP)} 0, ${pc(half + bottom + LAP)} 100%, ${pc(half - bottom)} 100%)`,
+    // the light lands on its values at the band's real ends, so the laps up and down match
+    shade: `linear-gradient(${tone(SHADE[i])} ${fade}, ${tone(SHADE[i + 1])} calc(100% - ${fade}))`,
   };
 }
 
@@ -63,12 +76,12 @@ const B = OUTLINE.slice(1).map((_, i) => band(i));
 const SEL = ['.gore::before', '.gore::after', '.gore i:first-child::before', '.gore i:first-child::after', '.gore i + i::before', '.gore i + i::after'];
 const NOTE = ['the shoulder, out from the crown ring', 'the upper slope', 'the last of the upper half, almost upright', 'under the equator, its top leaning out (a negative tilt)', 'the taper', 'the skirt, narrowing to the mouth'];
 
-/** CSS for one panel: a pseudo-element with its middle on the axis, moved to its band and tilted. */
+/** CSS for one panel: a pseudo-element on the gore's middle, moved to its band and tilted. */
 function leaf(k: number): string {
   const b = B[k];
   return `/* ${NOTE[k]} */
 ${SEL[k]} {
-  left: calc(${n(-b.w / 2)} * var(--u));
+  left: calc(${b.x} * var(--u));
   top: calc(${n(-b.h / 2)} * var(--u));
   width: calc(${b.w} * var(--u));
   height: calc(${b.h} * var(--u));
@@ -78,17 +91,30 @@ ${SEL[k]} {
 }`;
 }
 
-/** The static shading laid in front of the envelope: its outline the narrowest the balloon ever is. */
+/**
+ * The envelope's smooth outline, in the sky's own units (110 × 144, the axis at x = 55): the
+ * outline's polygon, both sides, a hair inside it, with every corner rounded by a quadratic curve
+ * from a share t of the way along one edge to the same share along the next (t = 0.5 down the
+ * sides, one smooth curve through the middles of the edges; 0.3 at the crown and the mouth, which
+ * keep their corners). A convex polygon rounded so lies inside it, and the polygon at the apothem
+ * is the narrowest the turning panels ever are, so the panels fill the outline from every side.
+ */
 const SKY_W = 110;
-const SKY_H = 144;
-const inside = OUTLINE.map(([r, y]) => [r, y]); // the apothem: the narrowest the turning outline ever is
-const SHADE_CLIP = `polygon(${[
-  ...inside.map(([r, y]) => `${n(((SKY_W / 2 + r) / SKY_W) * 100)}% ${n((y / SKY_H) * 100)}%`),
-  ...inside.reverse().map(([r, y]) => `${n(((SKY_W / 2 - r) / SKY_W) * 100)}% ${n((y / SKY_H) * 100)}%`),
-].join(', ')})`;
-const PERSPECTIVE = 800;
-const SHADE_Z = 54; // just in front of the nearest panel corner (50 / cos 15° = 51.8)
-const SHADE_SCALE = n((PERSPECTIVE - SHADE_Z) / PERSPECTIVE);
+const INSET = 0.4; // so a panel's edge never sits on the cut
+const ends = (i: number) => i === 0 || i === OUTLINE.length - 1;
+const ring: [number, number, number][] = [
+  ...OUTLINE.map(([r, y], i): [number, number, number] => [SKY_W / 2 + r - INSET, i === OUTLINE.length - 1 ? y - INSET : y, ends(i) ? 0.3 : 0.5]),
+  ...[...OUTLINE].reverse().map(([r, y], i): [number, number, number] => [SKY_W / 2 - r + INSET, i === 0 ? y - INSET : y, ends(i) ? 0.3 : 0.5]),
+];
+const at = (p: number[], q: number[], t: number) => `${n(p[0] + (q[0] - p[0]) * t)} ${n(p[1] + (q[1] - p[1]) * t)}`;
+const OUTLINE_PATH = ring
+  .map((v, i) => {
+    const prev = ring[(i + ring.length - 1) % ring.length];
+    const next = ring[(i + 1) % ring.length];
+    return `${i ? 'L' : 'M'}${at(v, prev, v[2])}Q${n(v[0])} ${n(v[1])} ${at(v, next, v[2])}`;
+  })
+  .join('') + 'Z';
+const OUTLINE_MASK = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 110 144' preserveAspectRatio='none'><path d='${OUTLINE_PATH}'/></svg>") 0 0 / 100% 100% no-repeat`;
 
 /** Where the ropes run: from the skirt to the basket's corners (11 units out each way). */
 const ROPE = { r1: 15, y1: 100, r2: Math.SQRT2 * 11, y2: 128 };
@@ -99,9 +125,9 @@ export const snippetsHotair: Record<string, Snippet> = {
   hotair: {
     how: [
       'CSS has no curved surfaces, so the envelope is <b>twelve gores</b>, each a carrier at the axis turned <code>rotateY(k × 30deg)</code>, and each gore is <b>six flat panels</b> following the outline down from the crown ring to the mouth. A panel is moved to the middle of its band with <code>translate3d(0, y, r)</code> and tilted with <code>rotateX</code> by the outline’s angle there, so its edges land exactly on its neighbours’ and the silhouette is round from every side.',
-      'A panel is as wide as a side of a 12-sided ring at its radius, <code>2 r tan 15°</code>, which differs at its top and bottom, so each is a trapezoid cut with <code>clip-path</code>. A clip flattens anything 3D inside an element, so only leaves are clipped: the panels are the <code>::before</code> and <code>::after</code> of the gore and of two plain <code>&lt;i&gt;</code> carriers inside it. Panels facing away are hidden with <code>backface-visibility</code>.',
-      'There is no light in CSS 3D, so it is painted on, twice. Each band carries a gradient from white at the crown to shade at the skirt, meeting its neighbours at the same value; that light turns with the stripes. And a plane that does <b>not</b> turn lies just in front of the envelope, cut to its outline, with a sheen up on the left and shade round the edge: pushed toward you by <code>translateZ(54 units)</code> and shrunk by <code>(800 − 54) ÷ 800</code> about the point the perspective looks from, it lands exactly on the balloon, so the stripes turn under a light that stays put.',
-      'Ropes are two crossed lines each, so they never vanish edge-on; the basket is four woven walls (crossed <code>repeating-linear-gradient</code>s) round a floor, turning with the balloon. It turns once every 40 s and bobs on a separate wrapper, so the two motions add up without either knowing of the other; the bob (10 s there and back), the burner and the clouds (20 and 40 s) all divide the turn, so the whole scene repeats exactly once a turn.',
+      'A panel is as wide as a side of a 12-sided ring at its radius, <code>2 r tan 15°</code>, so it is a trapezoid cut with <code>clip-path</code>, on a leaf, since a clip flattens anything 3D inside it: the panels are the <code>::before</code> and <code>::after</code> of the gore and of two <code>&lt;i&gt;</code>s in it, and those facing away are hidden with <code>backface-visibility</code>. The browser does not smooth the edges of a 3D layer, so on a small canvas they show stair-steps, and no edge you see is one. Each panel runs on past its right edge, in front of the next gore, so a stripe ends at a clip cut inside the panel’s picture, which is smoothed; and the gores turn inside an <code>.envelope</code> whose <code>mask</code>, an SVG of the outline with its corners rounded, flattens them into one picture facing you (it carries the scene’s <code>perspective</code>, so they stay 3D) and cuts it with a smooth edge.',
+      'There is no light in CSS 3D, so it is painted on, twice. Each band carries a gradient from white at the crown to shade at the skirt, meeting its neighbours at the same value; that light turns with the stripes. And a plane that does <b>not</b> turn lies over the gores in the envelope, with a sheen up on the left and shade round the edge, so the stripes turn under a light that stays put, and the mask cuts it on the very edge it cuts the panels.',
+      'Ropes are two crossed lines each, so they never vanish edge-on; the basket is four woven walls (crossed <code>repeating-linear-gradient</code>s) round a floor, on a second axis that turns with the envelope in the scene’s own 3D space. The turn takes 40 s and the bob is on a separate wrapper, so the two add up without either knowing of the other; the bob (10 s there and back), the burner and the clouds (20 and 40 s) all divide the turn, so the whole scene repeats exactly once a turn.',
       'The clouds drift at three depths, one in front of the balloon and two behind it, fading in and out with <code>opacity</code>, so their loops have no seam and they never reach the edge of the canvas. Every length is a multiple of one base unit, <code>--u</code>.',
     ],
     html: `<div class="scene">
@@ -109,14 +135,18 @@ export const snippetsHotair: Record<string, Snippet> = {
     <i class="cloud far" style="--y:18;--z:-160;--d:40s;--t:-20s"></i>
     <i class="cloud" style="--y:66;--z:-90;--d:40s;--t:-10s"></i>
     <div class="flight">
+      <div class="envelope">
+        <div class="balloon">
+          <b class="crown"></b>
+${Array.from({ length: GORES }, (_, k) => `          <b class="gore" style="--k:${k};--c:${COLORS[k % COLORS.length]}"><i></i><i></i></b>`).join('\n')}
+        </div>
+        <i class="shade"></i>
+      </div>
       <div class="balloon">
-        <b class="crown"></b>
-${Array.from({ length: GORES }, (_, k) => `        <b class="gore" style="--k:${k};--c:${COLORS[k % COLORS.length]}"><i></i><i></i></b>`).join('\n')}
 ${[0, 1, 2, 3].map((k) => `        <b class="rope" style="--k:${k}"></b>`).join('\n')}
         <b class="burner"></b>
         <div class="basket"><i></i><i></i><i></i><i></i></div>
       </div>
-      <i class="shade"></i>
     </div>
     <i class="cloud near" style="--y:120;--z:70;--d:20s;--t:-14s"></i>
   </div>
@@ -158,8 +188,25 @@ ${[0, 1, 2, 3].map((k) => `        <b class="rope" style="--k:${k}"></b>`).join(
   to   { transform: translateY(calc(-5 * var(--u))); }
 }
 
+/* the envelope, drawn flat and cut to a smooth outline. A turning panel's edge is the edge of a
+   3D layer, which the browser does not smooth, so on a small canvas the outline showed stair-steps.
+   A mask flattens what it holds into one picture facing you, and its own edge is smoothed, so the
+   panels (in their own 3D space, seen from where the scene's eye is) are drawn a little past it and
+   it cuts the outline clean; the light, a plane laid over them, is cut by the very same edge */
+.envelope {
+  position: absolute;
+  inset: 0;
+  perspective: calc(800 * var(--u));
+  /* the scene's eye, in the sky's own box: its middle (72), plus the sky's lift (7) and the
+     middle of the bob (1) */
+  perspective-origin: 50% calc(80 * var(--u));
+  -webkit-mask: ${OUTLINE_MASK};
+  mask: ${OUTLINE_MASK};
+}
+
 /* the balloon's axis: a zero-size point at the crown, in the middle of the sky. Everything that
-   turns is placed from it */
+   turns is placed from it: the gores in the envelope, and the ropes, burner and basket in a second
+   axis that turns with it in the scene's own 3D space, so the clouds pass between the ropes */
 .balloon {
   position: absolute;
   left: 50%;
@@ -210,17 +257,14 @@ ${[0, 1, 2, 3].map((k) => `        <b class="rope" style="--k:${k}"></b>`).join(
 ${B.map((_, k) => leaf(k)).join('\n\n')}
 
 /* the light, which does not turn: a sheen up and to the left and shade round the edge, on a
-   plane just in front of the envelope, cut to its outline. It is pushed toward you and shrunk by
-   the same ratio about the point the perspective looks from, so it lands exactly on the balloon */
+   plane over the panels. It is in the envelope, so the mask cuts it on the panels' own outline
+   and no unlit rim shows round it */
 .shade {
   position: absolute;
   inset: 0;
   background:
     radial-gradient(30% 22% at 38% 22%, rgb(255 255 255 / 0.34), transparent),
     radial-gradient(48% 40% at 47% 37%, transparent 52%, rgb(12 8 40 / 0.42));
-  clip-path: ${SHADE_CLIP};
-  transform-origin: 50% 50%;
-  transform: translateZ(calc(${SHADE_Z} * var(--u))) scale(${SHADE_SCALE});
 }
 
 /* a rope: from the skirt down to a corner of the basket, at 45° between the gores. A second

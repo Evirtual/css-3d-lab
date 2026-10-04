@@ -17,7 +17,7 @@ export const demosHotair: Demo[] = [
       '12 gores × 6 panels, each turned rotateY(k × 30°)',
       'panel: translate3d to its band, rotateX to the outline',
       'trapezoid panels: clip-path on the leaves only',
-      'a light that does not turn: a plane in front, scaled to land on it',
+      'mask: a smooth SVG outline over the gores and a light that does not turn',
     ],
   },
 ];
