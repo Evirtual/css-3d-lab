@@ -1,11 +1,11 @@
 /**
- * Batch N: two new models in each of the eight groups, and one asked for by name (digital rain), 2026-10-04. As with batch M, each model has a
+ * Batch N: new models across the eight groups, 2026-10-04. Two were written for each group plus
+ * digital rain; bullet time and the Möbius strip were taken out the same day. As with batch M, each model has a
  * pair of files of its own, batch-n-<id>.ts (the gallery entry) and snippets-batch-n-<id>.ts (the
  * snippet), so they could be written in parallel with no file in common. Collected here for the
  * gallery and the groups; the snippets are collected in ./snippets-batch-n.ts, which the browser
  * never loads (docs/ADDING-MODELS.md, "Keep snippets out of what the browser loads").
  */
-import { demosMobius } from './batch-n-mobius';
 import { demosSpring } from './batch-n-spring';
 import { demosLipstick } from './batch-n-lipstick';
 import { demosFoldphone } from './batch-n-foldphone';
@@ -25,10 +25,10 @@ import { demosCoderain } from './batch-n-coderain';
 import type { Group } from './groups';
 import type { Demo } from './types';
 
-export const demosN: Demo[] = [...demosMobius, ...demosSpring, ...demosLipstick, ...demosFoldphone, ...demosNeonsign, ...demosStamptext, ...demosSlider3d, ...demosLever, ...demosTicket, ...demosEnvelope, ...demosPendulumwave, ...demosBounceball, ...demosCampfire, ...demosHotair, ...demosPoppyramid, ...demosBubbles, ...demosCoderain];
+export const demosN: Demo[] = [...demosSpring, ...demosLipstick, ...demosFoldphone, ...demosNeonsign, ...demosStamptext, ...demosSlider3d, ...demosLever, ...demosTicket, ...demosEnvelope, ...demosPendulumwave, ...demosBounceball, ...demosCampfire, ...demosHotair, ...demosPoppyramid, ...demosBubbles, ...demosCoderain];
 /** Which group each sits in: merged into MEMBERS by src/models/groups.ts, so this batch edits no shared list. */
 export const groupsN: Partial<Record<Group, string[]>> = {
-  shapes: ['mobius', 'spring'],
+  shapes: ['spring'],
   product: ['lipstick', 'foldphone'],
   text: ['neonsign', 'stamptext', 'coderain'],
   controls: ['slider3d', 'lever'],

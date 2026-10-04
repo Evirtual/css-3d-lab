@@ -3,7 +3,6 @@
  * (src/models/snippets.ts). Kept apart from ./batch-n.ts, which the browser loads for the gallery:
  * a snippet reaches the browser only through its own chunk (scripts/snippet-chunks.mjs).
  */
-import { snippetsMobius } from './snippets-batch-n-mobius';
 import { snippetsSpring } from './snippets-batch-n-spring';
 import { snippetsLipstick } from './snippets-batch-n-lipstick';
 import { snippetsFoldphone } from './snippets-batch-n-foldphone';
@@ -22,4 +21,4 @@ import { snippetsBubbles } from './snippets-batch-n-bubbles';
 import { snippetsCoderain } from './snippets-batch-n-coderain';
 import type { Snippet } from './snippet-utils';
 
-export const snippetsN: Record<string, Snippet> = { ...snippetsMobius, ...snippetsSpring, ...snippetsLipstick, ...snippetsFoldphone, ...snippetsNeonsign, ...snippetsStamptext, ...snippetsSlider3d, ...snippetsLever, ...snippetsTicket, ...snippetsEnvelope, ...snippetsPendulumwave, ...snippetsBounceball, ...snippetsCampfire, ...snippetsHotair, ...snippetsPoppyramid, ...snippetsBubbles, ...snippetsCoderain };
+export const snippetsN: Record<string, Snippet> = { ...snippetsSpring, ...snippetsLipstick, ...snippetsFoldphone, ...snippetsNeonsign, ...snippetsStamptext, ...snippetsSlider3d, ...snippetsLever, ...snippetsTicket, ...snippetsEnvelope, ...snippetsPendulumwave, ...snippetsBounceball, ...snippetsCampfire, ...snippetsHotair, ...snippetsPoppyramid, ...snippetsBubbles, ...snippetsCoderain };

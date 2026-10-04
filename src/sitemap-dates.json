@@ -1,41 +1,41 @@
 {
   "groups/shapes/": {
-    "hash": "3630167b04d4c147",
+    "hash": "fc1c5f8102e0ec19",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "groups/product/": {
-    "hash": "814ae5c39cae1936",
+    "hash": "d608cdfdff0a8f64",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "groups/text/": {
-    "hash": "6c4fe9630272a6c9",
+    "hash": "1934fae85b324d7a",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "groups/controls/": {
-    "hash": "818d637aae7885a8",
+    "hash": "82da1ea07c95e512",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "groups/cards/": {
-    "hash": "a18125860e9c1992",
+    "hash": "bf4fce7b8b06e256",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "groups/loaders/": {
-    "hash": "05cb1f966ae5a619",
+    "hash": "db54248e38702f3d",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "groups/scenes/": {
-    "hash": "f8a939fd5074a016",
+    "hash": "8bbe86d4f09efd99",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "groups/data/": {
-    "hash": "729d3a8be9ab821b",
+    "hash": "fbbbbcb807398d1e",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
@@ -45,7 +45,7 @@
     "published": "2026-09-18"
   },
   "models/rubik/": {
-    "hash": "32cc252670ca12dc",
+    "hash": "83efc91af907fd3e",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
@@ -85,7 +85,7 @@
     "published": "2026-09-18"
   },
   "models/dice/": {
-    "hash": "5cce60986af74295",
+    "hash": "c89ddd8d7e66c35b",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
@@ -120,7 +120,7 @@
     "published": "2026-09-18"
   },
   "models/diamond/": {
-    "hash": "6e361f2bd687523e",
+    "hash": "c982c5ed011d29d0",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
@@ -180,7 +180,7 @@
     "published": "2026-09-18"
   },
   "models/torus/": {
-    "hash": "fa53a566d6adc363",
+    "hash": "e226899e6aeba598",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
@@ -200,137 +200,132 @@
     "published": "2026-09-19"
   },
   "models/cube/": {
-    "hash": "db0f7f3ea2e0442a",
+    "hash": "ddc513302184f91a",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/pyramid/": {
-    "hash": "74e640674d6e3a90",
+    "hash": "69215b376a752717",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/cylinder/": {
-    "hash": "8a17d3f1618e6a9c",
+    "hash": "2ec3c4531cba8226",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/coin/": {
-    "hash": "c5d4cf4e81b9d18b",
+    "hash": "1d59e6fb7bd62ca8",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/globe/": {
-    "hash": "7f26296a8be07c98",
+    "hash": "18daee56dbce1582",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/orbit/": {
-    "hash": "954a0b4f0ae5038b",
+    "hash": "d82d95af3e852c7c",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/layers/": {
-    "hash": "3c6c5de2fde18f6f",
+    "hash": "e29b6b2f8fbaf566",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/explode/": {
-    "hash": "70853736d06fb9e0",
+    "hash": "b2be0b3d4d5d319a",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/radio/": {
-    "hash": "9f39612f3fceb652",
+    "hash": "6ccba7d321476445",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/drag/": {
-    "hash": "8cb61b88ffeb4a5e",
+    "hash": "4ba18c49a745b3e8",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/sphere/": {
-    "hash": "3f417b9399e5b9d5",
+    "hash": "bb13ab07635dd2ec",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/scrollspin/": {
-    "hash": "2b35a4781f1d91b6",
+    "hash": "40e02939a9a07507",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/prism/": {
-    "hash": "17312f8b60daedcd",
+    "hash": "5f6990478b14c08e",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/octa/": {
-    "hash": "c8502543b3574833",
+    "hash": "3243670e9b811024",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/cone/": {
-    "hash": "86333784fe01b558",
+    "hash": "2b551d4fe6cd6372",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/stairs/": {
-    "hash": "e1d71dcee9124654",
+    "hash": "c66ce2f2204dbcd5",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/cubegrid/": {
-    "hash": "95227158b42acab0",
+    "hash": "b3acd45b51972824",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/net/": {
-    "hash": "886726208ba4ca27",
+    "hash": "bb5466b0b785553f",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/shapeshift/": {
-    "hash": "6c3eb4e6145968ae",
+    "hash": "051098ca667e7940",
     "date": "2026-10-04",
     "published": "2026-09-18"
   },
   "models/tetra/": {
-    "hash": "bb08988ab35f1bd7",
+    "hash": "d911b86184d9dced",
     "date": "2026-10-04",
     "published": "2026-09-19"
   },
   "models/hourglass/": {
-    "hash": "c761277add714fca",
+    "hash": "0a740a3ba482b159",
     "date": "2026-10-04",
     "published": "2026-09-19"
   },
   "models/crystal/": {
-    "hash": "4cd5ab032047da6a",
+    "hash": "2875d66fe2e4f7af",
     "date": "2026-10-04",
     "published": "2026-09-19"
   },
   "models/lattice/": {
-    "hash": "8c1dd063c89b95e3",
+    "hash": "ff153fefd4897630",
     "date": "2026-10-04",
     "published": "2026-09-19"
   },
   "models/planet/": {
-    "hash": "a6e9eb8b77479a9d",
+    "hash": "7780a9f11e680973",
     "date": "2026-10-04",
     "published": "2026-09-19"
   },
   "models/gear/": {
-    "hash": "5fcc2075aa8b3421",
+    "hash": "26ba6b0bde3c6391",
     "date": "2026-10-04",
     "published": "2026-09-30"
   },
-  "models/mobius/": {
-    "hash": "5d449640cdf2385c",
-    "date": "2026-10-04",
-    "published": "2026-10-04"
-  },
   "models/spring/": {
-    "hash": "8a3d0bd5801d80b2",
+    "hash": "9ac5350be8e30af3",
     "date": "2026-10-04",
     "published": "2026-10-04"
   },
@@ -840,7 +835,7 @@
     "published": "2026-10-04"
   },
   "": {
-    "hash": "a9f9a1c933c356e9",
+    "hash": "90241568c918010a",
     "date": "2026-10-04",
     "published": "2026-09-18"
   }
