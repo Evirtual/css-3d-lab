@@ -9,11 +9,10 @@
  * it up, and visitors could not export until 00:00 UTC. Now it can be read before a run.
  *
  * WHAT IT CAN AND CANNOT KNOW. Cloudflare's free plan gives 10 minutes of browser time a day and
- * does not tell the Worker how much of that is left. What the Worker CAN say is its own count
- * (180 s charged for each browser it opens: a browser stays open that long waiting for the next
- * export, and open time is what Cloudflare counts). That count is an estimate, said as one: it can
- * read low when a browser is kept busy past its 180 s, and the Cloudflare dashboard (Browser
- * Rendering) has the real figure.
+ * does not tell the Worker how much of that is left. What the Worker CAN say is its own count: each
+ * export's real browser time once it has finished (one browser per export, closed when it is
+ * done), and its worst case while it is still running. Close to what Cloudflare counts and never
+ * under it; the Cloudflare dashboard (Browser Run) has the exact figure.
  */
 import { pathToFileURL } from 'node:url';
 
@@ -41,18 +40,17 @@ export function sayBudget(b) {
   const c = b?.counted;
   if (!c) return ['export budget: the Worker answered, but its own count could not be read'];
   const used = c.usedDay;
-  // on the free plan Cloudflare's 10 minutes refuse first; on a paid one, this site's own ceiling
+  // on the free plan Cloudflare's 10 minutes is the outer limit; the Worker's own day sits under it
   const free = (b.plan ?? 'free') === 'free';
   const limit = free ? Math.min(FREE_DAY, c.capDay) : c.capDay;
   const left = Math.max(0, limit - used);
   const h = Math.floor(c.resetsIn / 3600), m = Math.round((c.resetsIn % 3600) / 60);
-  const lines = [
-    `export budget today: about ${min(used)} of ${min(limit)} minutes used, about ${min(left)} left (${free ? "Cloudflare's free plan" : "this site's own daily ceiling"}; an estimate: ${b.browserSeconds ?? 180} s counted per browser opened); resets in ${h} h ${m} min, at 00:00 UTC`,
+  const running = c.active ? `, ${c.active} export(s) running, counted at their worst case until they finish` : '';
+  return [
+    `export budget today: ${min(used)} of ${min(limit)} minutes used, ${min(left)} left (${free ? 'free plan' : "this site's daily ceiling"}${running}); resets in ${h} h ${m} min, at 00:00 UTC`,
+    `  one visitor may use up to ${min(c.visitorDay)} min a day; at most ${c.maxBrowsers} exports at once`,
+    `  this month: ${(c.usedMonth / 3600).toFixed(1)} of ${(c.capMonth / 3600).toFixed(1)} h`,
   ];
-  if (free && c.capDay > FREE_DAY) lines.push(`  this site's own ceiling is ${min(c.capDay)} min a day, but on the free plan Cloudflare's 10 refuse first`);
-  lines.push(`  this month: ${(c.usedMonth / 3600).toFixed(1)} of ${(c.capMonth / 3600).toFixed(1)} h`);
-  if (b.platform) lines.push(`  right now: ${b.platform.browsersOpen} browser(s) open${b.platform.newBrowserWaitSeconds > 0 ? `, a new one allowed in ${b.platform.newBrowserWaitSeconds} s` : ''}`);
-  return lines;
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

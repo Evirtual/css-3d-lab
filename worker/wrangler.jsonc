@@ -5,7 +5,11 @@
   "compatibility_date": "2026-09-20",
   "compatibility_flags": ["nodejs_compat"],
   "browser": { "binding": "BROWSER" },
-  "vars": { "ALLOWED_ORIGINS": "https://css3dlab.edgarasneverdauskas.com,https://evirtual.github.io", "DAILY_BROWSER_SECONDS": "1800", "MONTHLY_BROWSER_SECONDS": "34200", "PLAN": "free" },
+  "vars": { "ALLOWED_ORIGINS": "https://css3dlab.edgarasneverdauskas.com,https://evirtual.github.io", "PLAN": "free", "DAILY_BROWSER_SECONDS": "570", "MONTHLY_BROWSER_SECONDS": "34200", "MAX_BROWSERS": "3" },
+  // The limits, per plan (src/budget.ts says what each one does). Free: Cloudflare stops at 600 s a
+  // day and 3 browsers at once, so ours says no a little earlier and in its own words. Paid: PLAN
+  // "paid", DAILY 1800, MAX_BROWSERS 5 (Cloudflare bills browsers at once above 10); MONTHLY 34200
+  // stays inside the 10 included hours. VISITOR_DAILY_SECONDS defaults to a third of the day.
   // The hard ceiling. See src/budget.ts: the rate limit below is a burst guard and, by
   // Cloudflare's own documentation, not an accounting system -- its period cannot exceed 60
   // seconds and it counts separately in every location. This counts once, for the whole account.
