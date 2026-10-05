@@ -50,6 +50,9 @@ export function sayBudget(b) {
     `export budget today: ${min(used)} of ${min(limit)} minutes used, ${min(left)} left (${free ? 'free plan' : "this site's daily ceiling"}${running}); resets in ${h} h ${m} min, at 00:00 UTC`,
     `  one visitor may use up to ${min(c.visitorDay)} min a day; at most ${c.maxBrowsers} exports at once`,
     `  this month: ${(c.usedMonth / 3600).toFixed(1)} of ${(c.capMonth / 3600).toFixed(1)} h`,
+    // Until 2026-10-05 the count charged a browser's launch and not its reuse, and read low: that
+    // day it said 6 of 10 minutes while Cloudflare had already refused. Said every time, not trusted.
+    `  this is the site's own count; Cloudflare's is the exact one (dashboard, Browser Run), and if it refuses first, it is right`,
   ];
 }
 
