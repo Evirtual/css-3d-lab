@@ -376,6 +376,11 @@ for (const id of chosen) {
     await page.waitForTimeout(500);
     await page.click('[data-make="image"]');
     await page.waitForSelector('.maker [data-live] iframe[data-ready="true"]', { timeout: 20_000, state: 'attached' });
+    // The pointer off the preview. It was left where the button had been, which the dialog's live
+    // copy opens under: when the treemap's ETH tile caught it, the scene was the hovered map, glow
+    // and caption included, and its mean read 2.36 against a limit measured on the plain one, 1.71.
+    // Four runs in a row on 2026-10-05, and twice before -- a "flake" that was a different picture.
+    await page.mouse.move(1, 1);
     await page.waitForTimeout(800);
     await page.click('.maker [data-go]');
     for (let i = 0; i < 160 && !scene; i++) await page.waitForTimeout(250);
