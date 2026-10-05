@@ -72,10 +72,46 @@ Where the service is:
 
 The production service is the Cloudflare Worker in [worker/](worker/) (`worker/src/index.ts`,
 config in `worker/wrangler.jsonc`): the same `server/render.mjs` running on Cloudflare Browser
-Rendering, answering only the origins in `ALLOWED_ORIGINS`, 120 exports a minute per address.
+Run, answering only the origins in `ALLOWED_ORIGINS`, 120 exports a minute per address.
 It is deployed with Wrangler from `worker/`, separately from the site. The Pages workflow
 (`.github/workflows/deploy.yml`) must pass `VITE_CAPTURE_URL` to `npm run build`; see
 [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md).
+
+### The export budget
+
+The Worker is on Cloudflare's **free plan, on purpose**: when its allowance is used, exports stop
+until 00:00 UTC, and nothing is ever billed. A paid plan cannot promise that (it bills past what it
+includes, with no hard cap), so it was looked at on 2026-10-05 and turned down. The same time
+also pays for the release's renderer comparison, so on a busy day it is mostly the checks that
+spend it, not visitors.
+
+| | Free (now) | Workers Paid ($5 a month, if ever) |
+| --- | --- | --- |
+| Cloudflare's limits | 10 min of browser time a day, 3 browsers at once, 1 new browser every 20 s | 10 h a month included, then $0.09 an hour; $2 for each browser at once above 10 |
+| `PLAN` | `free` | `paid` |
+| `DAILY_BROWSER_SECONDS` | `570`, just under Cloudflare's 600, so visitors read the site's message, not Cloudflare's | `1800` |
+| `MONTHLY_BROWSER_SECONDS` | `34200` (the day decides on free) | `34200`, inside the 10 included hours: the bill stays $5 |
+| `MAX_BROWSERS` | `3` | `5` |
+| `VISITOR_DAILY_SECONDS` | unset: a third of the day | unset: a third of the day |
+
+The code is the same on both; only these values change, then `npx wrangler deploy` from `worker/`.
+The Worker cannot tell which plan it is on, so `PLAN` has to be set by hand.
+
+How it spends: one browser per export, closed when the export is done. Each export reserves its
+worst case before a browser opens and settles what it really took when it closes; the month and
+the browsers-at-once limits are strict, the day and each visitor's share (a salted hash of the
+address, kept for that day only) refuse once nothing is left. Scenes past the service's own limits
+(more than 900 frames, 8 MB, 8192 px a side) are refused before anything is reserved, whatever sent
+them. [worker/src/budget.ts](worker/src/budget.ts) says why each limit is the shape it is.
+
+To see what is left, without spending any of it:
+
+```bash
+node scripts/export-budget.mjs
+```
+
+It reads the Worker's `GET /budget`. That is the site's own count; Cloudflare's dashboard (Browser
+Run) has the exact one, and if Cloudflare refuses first, Cloudflare is right.
 
 ## Develop
 
@@ -96,7 +132,7 @@ Without `npm run export` running, everything works in dev except making a video 
 
 <!-- scripts:start (written by scripts/generate-readme.mjs from each file's opening comment: edit the comment, not this table) -->
 
-71 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
+72 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
 Each file says how to run it, and why it exists, in the comment at its top.
 
 | Run it with | What runs | What it is for |
@@ -150,6 +186,7 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | `node scripts/diag-record.mjs` | `scripts/diag-record.mjs` | Records a model exactly as the maker does, then plays the file back frame by frame and reports what actually came out: how many frames the player saw, how evenly they are spaced, how many are repeats of the one before, and whether the end meets the beginning again. |
 | `node scripts/diag-video.mjs` | `scripts/diag-video.mjs` | Is the video capture producing steady motion? |
 | imported, not run | `scripts/embed-page.mjs` | The embed page of one model: the page the checks photograph and the share image is shot from. |
+| `node scripts/export-budget.mjs` | `scripts/export-budget.mjs` | How much of today's export time is used, read from the Worker without spending any of it. |
 | `node scripts/export-defaults.mjs` | `scripts/export-defaults.mjs` | The export dialog's DEFAULT settings, in one place for the two scripts that must agree on them: scripts/check-exports.mjs makes exactly these under --defaults, and scripts/capture-check.mjs counts a model's export as checked only on its mismatches about these (isDefault). |
 | `node scripts/fingerprint.mjs` | `scripts/fingerprint.mjs` | What a check result or a review judged, as fingerprints, so the ledger can tell whether it still describes the model as it is now. Each result depends on exactly what it judged. |
 | `node scripts/gate-paths.mjs` | `scripts/gate-paths.mjs` | WHAT EACH GATE STEP'S RESULT DEPENDS ON. |

@@ -249,7 +249,8 @@ renderers **disagreed** — about pixels the Worker had declined to draw. A fals
 what a false green costs: it is the board lying about its own evidence.
 
 If you see **Both renderers** sitting at not-measured, check whether the export budget is spent
-before assuming anything is broken. It resets daily.
+before assuming anything is broken. It resets daily, and since 2026-10-05 it can be read instead of
+guessed: `node scripts/export-budget.mjs` (the README's "The export budget" says what it counts).
 
 | what | needs | if it is missing |
 | --- | --- | --- |
