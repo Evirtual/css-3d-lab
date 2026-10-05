@@ -106,8 +106,43 @@ function atBrowserLimit(error: unknown) {
   return /rate limit|unable to create new browser|429/i.test(String((error as Error)?.message ?? error));
 }
 
+/**
+ * HOW MUCH OF TODAY IS LEFT, WITHOUT SPENDING ANY OF IT.
+ *
+ * GET /budget. Before this, the only way to learn the allowance was spent was to ask for a picture
+ * and be refused, which is how two releases on 2026-10-04 found out, and how every visitor did for
+ * the rest of that day. This reads; it never launches a browser.
+ *
+ * Two numbers, and they are not the same thing, so they are not given one name:
+ *   counted   this Worker's own ceiling (src/budget.ts): 180 s charged for each browser it opens,
+ *             nothing for reusing one. An estimate of browser time, close but not Cloudflare's.
+ *   platform  what Cloudflare says right now: browsers open, and whether a new one would be
+ *             refused. Cloudflare does not tell a Worker how much of its free daily time is left;
+ *             nothing here pretends to know that.
+ * Open to any origin: it is three numbers about this Worker, nothing about anyone who used it.
+ */
+async function budgetReport(env: Env): Promise<Response> {
+  const headers = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store', 'Content-Type': 'application/json' };
+  const counted = await budgetOf(env).fetch('https://budget/state').then((r) => r.json()).catch(() => null);
+  const seen = await limits(env.BROWSER).catch(() => null);
+  return new Response(JSON.stringify({
+    at: new Date().toISOString(),
+    counted,
+    browserSeconds: KEEP_ALIVE / 1000,
+    // Cloudflare's plan as wrangler.jsonc says it is: on free, 10 minutes a day refuse before this
+    // Worker's own ceiling does. Change PLAN when the plan changes; nothing can read it from here.
+    plan: (env as any).PLAN ?? 'free',
+    platform: seen && {
+      browsersOpen: seen.activeSessions?.length ?? 0,
+      maxConcurrent: seen.maxConcurrentSessions ?? null,
+      newBrowserWaitSeconds: Math.ceil((seen.timeUntilNextAllowedBrowserAcquisition ?? 0) / 1000),
+    },
+  }), { headers });
+}
+
 export default {
   async fetch(request, env): Promise<Response> {
+    if (request.method === 'GET' && new URL(request.url).pathname === '/budget') return budgetReport(env);
     const origin = request.headers.get('Origin') ?? '';
     if (!env.ALLOWED_ORIGINS.split(',').includes(origin)) return new Response('Origin not allowed', { status: 403 });
     const headers = {

@@ -5,7 +5,7 @@
   "compatibility_date": "2026-09-20",
   "compatibility_flags": ["nodejs_compat"],
   "browser": { "binding": "BROWSER" },
-  "vars": { "ALLOWED_ORIGINS": "https://css3dlab.edgarasneverdauskas.com,https://evirtual.github.io", "DAILY_BROWSER_SECONDS": "1800", "MONTHLY_BROWSER_SECONDS": "34200" },
+  "vars": { "ALLOWED_ORIGINS": "https://css3dlab.edgarasneverdauskas.com,https://evirtual.github.io", "DAILY_BROWSER_SECONDS": "1800", "MONTHLY_BROWSER_SECONDS": "34200", "PLAN": "free" },
   // The hard ceiling. See src/budget.ts: the rate limit below is a burst guard and, by
   // Cloudflare's own documentation, not an accounting system -- its period cannot exceed 60
   // seconds and it counts separately in every location. This counts once, for the whole account.

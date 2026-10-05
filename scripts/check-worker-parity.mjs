@@ -49,6 +49,7 @@ import { launchChromium, browserId } from './browser.mjs';
 import { createServer } from 'vite';
 import { exportServer } from '../server/dev.mjs';
 import { ROOT, workingSources } from './model-sources.mjs';
+import { readBudget, sayBudget } from './export-budget.mjs';
 
 const LOCAL = 'http://127.0.0.1:8787/capture';
 const WORKER_DEFAULT = 'https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture';
@@ -322,6 +323,8 @@ const external = await serviceAnswers();
 const service = external ? null : await exportServer(8787);
 console.log(`export service: ${external ? 'already running on 127.0.0.1:8787 (used as is)' : 'started in this process'}`);
 console.log(`worker: ${WORKER}`);
+// what is left before this run spends any of it, so a refusal further down is never a surprise
+for (const l of sayBudget(await readBudget())) console.log(l);
 console.log(`\ndrawing ${chosen.length} model(s) twice, once here and once there:\n`);
 
 const browser = await launchChromium();
