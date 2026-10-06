@@ -30,12 +30,14 @@
  * a paid plan it would have been a bill this object never saw. Now every export gets its own
  * browser, closed when it is done, and:
  *
- *   reserve   before a browser is opened, its WORST CASE: the render's own deadline plus the time
- *             a browser that failed to close would idle before Cloudflare ends it
- *   settle    after it is closed, what it really took; the rest goes back
+ *   reserve   before a browser is opened, its WORST CASE (the render's own deadline plus the time
+ *             a browser that failed to close would idle before Cloudflare ends it), held as in
+ *             flight: the month counts it until it finishes
+ *   settle    after it is closed, what it really took, which is what the day, the month and the
+ *             visitor are charged
  *
- * A reservation that is never settled (the Worker died mid-export) stays charged in full, and its
- * slot frees itself when its worst case has passed. Over-counting is the only safe direction.
+ * A reservation that is never settled (the Worker died mid-export) is charged its whole worst case
+ * once that has passed, and its slot is freed. Over-counting is the only safe direction.
  *
  * FOUR THINGS CAN SAY NO, and they are not equally strict, on purpose:
  *
@@ -43,9 +45,9 @@
  *             inside the hours a paid plan includes, so nothing past it is ever billed.
  *   busy      STRICT: no more browsers open at once than MAX_BROWSERS. Cloudflare bills browsers
  *             open at once separately ($2 each above 10, averaged); this keeps it well under.
- *   day       allowed while ANY of the day is left. The worst case of a 30 s video is far more
- *             than it really costs, and a strict check would refuse videos with most of the day
- *             unspent. The overshoot is bounded: at most one export per open browser.
+ *   day       allowed while ANY of the day is left, counting what finished. The worst case of a
+ *             30 s video is far more than it really costs, and a strict check would refuse videos
+ *             with most of the day unspent. The overshoot is bounded: one export per open browser.
  *   visitor   the same, per visitor: one address cannot spend everybody's day. Addresses are kept
  *             only as a salted hash, for the day they are counted in, and deleted after it.
  *
@@ -150,10 +152,21 @@ export class ExportBudget implements DurableObject {
     );
   }
 
-  /** In flight now. Rows past their worst case are dropped here, still charged in full. */
+  /**
+   * In flight now. An export whose worst case has passed without being settled (the Worker died
+   * mid-export) is charged that whole worst case here, and its slot is freed.
+   */
   #active(now: number): number {
+    for (const row of [...this.#sql.exec('SELECT day, month, who, seconds FROM active WHERE until < ?', now)]) {
+      for (const w of [row.day, row.month, row.who]) this.#add(String(w), Number(row.seconds));
+    }
     this.#sql.exec('DELETE FROM active WHERE until < ?', now);
     return Number([...this.#sql.exec('SELECT COUNT(*) AS n FROM active')][0]?.n ?? 0);
+  }
+
+  /** The worst cases of the exports still running, against one month. */
+  #inFlight(month: string): number {
+    return Number([...this.#sql.exec('SELECT COALESCE(SUM(seconds), 0) AS s FROM active WHERE month = ?', month)][0]?.s ?? 0);
   }
 
   #reserve(seconds: number, who: string, now: Date): BudgetVerdict {
@@ -163,9 +176,17 @@ export class ExportBudget implements DurableObject {
     // yesterday's visitors are nobody's business today
     this.#sql.exec("DELETE FROM spent WHERE window LIKE 'who:%' AND window NOT LIKE ?", `who:${k.day}:%`);
     const whoKey = `who:${k.day}:${who}`;
+    /*
+     * SPENT IS WHAT FINISHED, AT ITS REAL TIME; IN FLIGHT IS WHAT IS RUNNING, AT ITS WORST CASE.
+     * Only the month counts both: it is the money, and a running export could still take its worst
+     * case. The day and a visitor's share count what finished. When they counted the worst cases
+     * too (2026-10-06), two pictures in flight -- 151 s each, against about 6 s real -- filled a
+     * visitor's 190 s, and a third was told the share was used after 26 s of it had been.
+     */
+    const running = this.#active(now.getTime());
     const hit: BudgetHit | null =
-      this.#used(k.month) + seconds > lim.month ? 'month'
-      : this.#active(now.getTime()) >= lim.browsers ? 'busy'
+      this.#used(k.month) + this.#inFlight(k.month) + seconds > lim.month ? 'month'
+      : running >= lim.browsers ? 'busy'
       : this.#used(k.day) >= lim.day ? 'day'
       : this.#used(whoKey) >= lim.visitor ? 'visitor'
       : null;
@@ -181,7 +202,6 @@ export class ExportBudget implements DurableObject {
     const id = crypto.randomUUID();
     this.#sql.exec('INSERT INTO active (id, day, month, who, seconds, until) VALUES (?, ?, ?, ?, ?, ?)',
       id, k.day, k.month, whoKey, seconds, slot + seconds * 1000);
-    for (const w of [k.day, k.month, whoKey]) this.#add(w, seconds);
     return { ok: true, id, hit: null, resetsIn: reset.day, waitMs };
   }
 
@@ -193,13 +213,13 @@ export class ExportBudget implements DurableObject {
     );
   }
 
-  /** What the browser really took: the rest of its reservation goes back to the windows it came from. */
+  /** What the browser really took, charged to the windows its reservation was made in. */
   #settle(id: string, used: number) {
-    const row = [...this.#sql.exec('SELECT day, month, who, seconds FROM active WHERE id = ?', id)][0];
-    if (!row) return; // settled already, or its worst case passed and it stays charged
+    const row = [...this.#sql.exec('SELECT day, month, who FROM active WHERE id = ?', id)][0];
+    if (!row) return; // settled already, or its worst case passed and it was charged in full
     this.#sql.exec('DELETE FROM active WHERE id = ?', id);
-    const back = Number(row.seconds) - Math.max(0, used);
-    if (back > 0) for (const w of [row.day, row.month, row.who]) this.#add(String(w), -back);
+    const real = Math.max(0, used);
+    if (real > 0) for (const w of [row.day, row.month, row.who]) this.#add(String(w), real);
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -221,6 +241,7 @@ export class ExportBudget implements DurableObject {
       return Response.json({
         usedDay: this.#used(k.day), capDay: lim.day,
         usedMonth: this.#used(k.month), capMonth: lim.month,
+        inFlight: this.#inFlight(k.month),
         active: this.#active(now.getTime()), maxBrowsers: lim.browsers,
         visitorDay: lim.visitor,
         resetsIn: rollovers(now).day,

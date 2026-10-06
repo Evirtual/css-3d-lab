@@ -11,7 +11,7 @@
  * WHAT IT CAN AND CANNOT KNOW. Cloudflare's free plan gives 10 minutes of browser time a day and
  * does not tell the Worker how much of that is left. What the Worker CAN say is its own count: each
  * export's real browser time once it has finished (one browser per export, closed when it is
- * done), and its worst case while it is still running. Close to what Cloudflare counts and never
+ * done); a running export is counted when it finishes (the month holds its worst case meanwhile). Close to what Cloudflare counts and never
  * under it; the Cloudflare dashboard (Browser Run) has the exact figure.
  */
 import { pathToFileURL } from 'node:url';
@@ -45,7 +45,7 @@ export function sayBudget(b) {
   const limit = free ? Math.min(FREE_DAY, c.capDay) : c.capDay;
   const left = Math.max(0, limit - used);
   const h = Math.floor(c.resetsIn / 3600), m = Math.round((c.resetsIn % 3600) / 60);
-  const running = c.active ? `, ${c.active} export(s) running, counted at their worst case until they finish` : '';
+  const running = c.active ? `, ${c.active} export(s) running, counted when they finish` : '';
   return [
     `export budget today: ${min(used)} of ${min(limit)} minutes used, ${min(left)} left (${free ? 'free plan' : "this site's daily ceiling"}${running}); resets in ${h} h ${m} min, at 00:00 UTC`,
     `  one visitor may use up to ${min(c.visitorDay)} min a day; at most ${c.maxBrowsers} exports at once`,
