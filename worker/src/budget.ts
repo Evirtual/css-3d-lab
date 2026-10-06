@@ -63,7 +63,12 @@ export interface BudgetVerdict {
   hit: BudgetHit | null;
   /** Seconds until the limit that refused lets go: the UTC rollover, or a guess at a free slot. */
   resetsIn: number;
+  /** How long to wait before asking Cloudflare for the browser: this export's start slot. */
+  waitMs?: number;
 }
+
+/** The longest an export waits in line for its turn to open a browser before it is told "busy". */
+const MAX_WAIT = 45_000;
 
 /** UTC day and month keys. Cloudflare's own counters reset at 00:00 UTC, so these agree. */
 const keysFor = (now: Date) => ({
@@ -125,6 +130,10 @@ export class ExportBudget implements DurableObject {
       month: num(env.MONTHLY_BROWSER_SECONDS, 34_200),
       browsers: num(env.MAX_BROWSERS, 3),
       visitor: num(env.VISITOR_DAILY_SECONDS, Math.round(day / 3)),
+      // Cloudflare's own spacing between NEW browsers: one every 20 s on the free plan (plus half a
+      // second of margin), three a second on a paid one, where it is not worth queueing for.
+      launchEvery: env.NEW_BROWSER_SECONDS !== undefined ? Math.max(0, Number(env.NEW_BROWSER_SECONDS) || 0)
+        : (env.PLAN ?? 'free') === 'free' ? 20.5 : 0,
     };
   }
 
@@ -161,11 +170,27 @@ export class ExportBudget implements DurableObject {
       : this.#used(whoKey) >= lim.visitor ? 'visitor'
       : null;
     if (hit) return { ok: false, hit, resetsIn: hit === 'month' ? reset.month : hit === 'busy' ? 30 : reset.day };
+    // A start time, handed out here so that two exports never ask Cloudflare for a new browser
+    // closer together than the plan allows. Each one moves the next slot on, so exports that arrive
+    // together queue instead of being refused; a queue longer than MAX_WAIT is "busy".
+    const at = now.getTime();
+    const slot = Math.max(at, this.#used('launch:next'));
+    const waitMs = slot - at;
+    if (waitMs > MAX_WAIT) return { ok: false, hit: 'busy', resetsIn: Math.ceil(waitMs / 1000) };
+    if (lim.launchEvery > 0) this.#set('launch:next', slot + lim.launchEvery * 1000);
     const id = crypto.randomUUID();
     this.#sql.exec('INSERT INTO active (id, day, month, who, seconds, until) VALUES (?, ?, ?, ?, ?, ?)',
-      id, k.day, k.month, whoKey, seconds, now.getTime() + seconds * 1000);
+      id, k.day, k.month, whoKey, seconds, slot + seconds * 1000);
     for (const w of [k.day, k.month, whoKey]) this.#add(w, seconds);
-    return { ok: true, id, hit: null, resetsIn: reset.day };
+    return { ok: true, id, hit: null, resetsIn: reset.day, waitMs };
+  }
+
+  #set(window: string, value: number) {
+    this.#sql.exec(
+      `INSERT INTO spent (window, seconds) VALUES (?, ?)
+       ON CONFLICT(window) DO UPDATE SET seconds = excluded.seconds`,
+      window, value,
+    );
   }
 
   /** What the browser really took: the rest of its reservation goes back to the windows it came from. */

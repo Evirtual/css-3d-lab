@@ -45,7 +45,7 @@ const budgetOf = (env: Env) => env.EXPORT_BUDGET.get(env.EXPORT_BUDGET.idFromNam
 async function reserveBrowserTime(env: Env, seconds: number, who: string) {
   try {
     const r = await budgetOf(env).fetch(`https://budget/reserve?seconds=${seconds}&who=${who}`);
-    return await r.json() as { ok: boolean; id?: string; hit: BudgetHit | null; resetsIn: number };
+    return await r.json() as { ok: boolean; id?: string; hit: BudgetHit | null; resetsIn: number; waitMs?: number };
   } catch (error) {
     console.error('Budget unreachable, refusing to render:', error);
     return { ok: false, hit: 'day' as const, resetsIn: 60 };
@@ -73,24 +73,34 @@ async function visitorKey(request: Request) {
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * A new browser, waiting for one when the platform says when.
+ * A new browser, at the start time the budget handed out.
  *
- * Cloudflare limits how often a NEW browser may be acquired (one every 20 s on the free plan) and
- * refuses straight away, but it also says how long until the next is allowed. Up to 25 s of that is
- * waited out here: the dialog shows "drawing" a little longer, which beats telling a visitor to try
- * again. When it reports no wait, one try after 3 s, as before -- a refusal with nothing to wait
- * for is the daily allowance being spent, and that should say so, not retry all night.
+ * Cloudflare allows one NEW browser every 20 s on the free plan and refuses one asked for sooner.
+ * It does not say so usefully: on 2026-10-06 a second picture straight after a first was refused
+ * with timeUntilNextAllowedBrowserAcquisition reading 0, so waiting for what it reported waited
+ * for nothing. The spacing is therefore kept here, not asked for: the budget (src/budget.ts) gives
+ * each export a slot at least 20 s after the last one, and the export waits for it before asking.
+ * One more try after 3 s is left for a refusal anyway (another Worker, a clock a little off).
  */
-async function launchBrowser(env: Env) {
+async function launchBrowser(env: Env, waitMs: number) {
+  if (waitMs > 0) await sleep(waitMs);
   try { return await launch(env.BROWSER); }
   catch (error) {
-    if (!atBrowserLimit(error)) throw error;
-    const seen = await limits(env.BROWSER).catch(() => null);
-    const wait = seen?.timeUntilNextAllowedBrowserAcquisition ?? 0;
-    if (wait > 25_000) throw error;
-    await sleep(wait > 0 ? wait + 500 : 3_000);
+    if (!atBrowserLimit(error) || spentForToday(error)) throw error;
+    await sleep(3_000);
     return await launch(env.BROWSER);
   }
+}
+
+/**
+ * Whether Cloudflare refused because the day's browser time is used, in its own words ("Browser
+ * time limit exceeded for today"), as opposed to "Too many requests" for a browser asked for too
+ * soon. Read from the error, not guessed from the state: the guess (no wait reported, nothing
+ * open) became true after every export once browsers were closed when done, and told a visitor
+ * "out of exports for today" over a 20 s wait.
+ */
+function spentForToday(error: unknown) {
+  return /time limit exceeded/i.test(String((error as Error)?.message ?? error));
 }
 
 /**
@@ -184,7 +194,7 @@ export default {
         // launch() returns and ends a little after close() does
         ctx.waitUntil(settleBrowserTime(env, id, started ? (Date.now() - started) / 1000 + 2 + extra : 0));
       };
-      const browser = await launchBrowser(env).catch((error) => { settle(); throw error; });
+      const browser = await launchBrowser(env, verdict.waitMs ?? 0).catch((error) => { settle(); throw error; });
       started = Date.now();
       // renderCapture closes what it is given when the last frame is out, on cancel, or on its
       // deadline. Closing is the moment the billing stops, so it is the moment the time is settled.
@@ -216,16 +226,17 @@ export default {
       // refused browser looked exactly like a broken scene from the outside.
       console.error('Capture could not start:', error);
       if (atBrowserLimit(error)) {
-        // Two very different things arrive here as one 429: a browser that is busy this minute
-        // (wait a moment) and a daily rendering allowance that is spent (wait until tomorrow).
-        // Telling a visitor "try again shortly" for the second one is simply untrue.
+        // Two very different things arrive here as one 429: a browser asked for too soon (wait a
+        // moment) and a daily allowance that is spent (wait until tomorrow). Cloudflare's own
+        // message says which; telling a visitor either one when it is the other is untrue.
         const seen = await limits(env.BROWSER).catch(() => null);
         console.error('At the browser limit:', JSON.stringify(seen));
         const wait = Math.ceil((seen?.timeUntilNextAllowedBrowserAcquisition ?? 0) / 1000);
-        const spent = wait <= 0 && (seen?.activeSessions?.length ?? 0) === 0;
+        const spent = spentForToday(error);
         const say = spent
           ? 'out of exports for today — it resets tomorrow'
-          : `no browser free — try again in ${Math.max(1, wait)}s`;
+          // not known to be the day: say the likely thing, and what it means if it persists
+          : `no browser free — try again in ${Math.max(20, wait)}s (if this keeps happening, today's export time is used up)`;
         return new Response(say, { status: 429, headers: { ...headers, 'Retry-After': String(Math.max(1, wait || 60)) } });
       }
       return new Response('The rendering service is unavailable', { status: 503, headers });
