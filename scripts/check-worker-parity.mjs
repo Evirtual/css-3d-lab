@@ -516,8 +516,14 @@ if (fail.length && couldNotAsk) {
   console.log(`Ask again once it answers${/out of exports for today/i.test(String(fail[0])) ? ' (the daily export budget resets at 00:00 UTC)' : ''}.`);
   process.exitCode = 1;
 } else if (fail.length) {
-  console.log(`check-parity: ${fail.length} disagreement(s) between this machine and the renderer visitors use:`);
-  for (const f of fail) console.log(`  ${f}`);
+  // Drawn and different, apart from asked and refused: on 2026-10-06 a model the Worker never drew
+  // (cardfan, HTTP 429) was counted as the third of "3 disagreement(s)".
+  const refused = fail.filter((f) => COULD_NOT_ASK.test(String(f)));
+  const differ = fail.filter((f) => !COULD_NOT_ASK.test(String(f)));
+  if (differ.length) console.log(`check-parity: ${differ.length} disagreement(s) between this machine and the renderer visitors use:`);
+  for (const f of differ) console.log(`  ${f}`);
+  if (refused.length) console.log(`check-parity: ${refused.length} model(s) not measured -- the Worker refused to draw them, so nothing was compared:`);
+  for (const f of refused) console.log(`  ${f}`);
   console.log(`\nA model whose text names a family the scene does not carry is drawn in whatever the`);
   console.log(`Worker has installed. Name one it carries -- Inter or JetBrains Mono -- as the others do.`);
   process.exitCode = 1;

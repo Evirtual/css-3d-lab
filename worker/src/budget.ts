@@ -70,7 +70,7 @@ export interface BudgetVerdict {
 }
 
 /** The longest an export waits in line for its turn to open a browser before it is told "busy". */
-const MAX_WAIT = 45_000;
+const MAX_WAIT = 40_000; // with a 21 s retry and the drawing, inside the dialog's 70 s watchdog
 
 /** UTC day and month keys. Cloudflare's own counters reset at 00:00 UTC, so these agree. */
 const keysFor = (now: Date) => ({
@@ -132,10 +132,10 @@ export class ExportBudget implements DurableObject {
       month: num(env.MONTHLY_BROWSER_SECONDS, 34_200),
       browsers: num(env.MAX_BROWSERS, 3),
       visitor: num(env.VISITOR_DAILY_SECONDS, Math.round(day / 3)),
-      // Cloudflare's own spacing between NEW browsers: one every 20 s on the free plan (plus half a
-      // second of margin), three a second on a paid one, where it is not worth queueing for.
+      // Cloudflare's own spacing between NEW browsers: one every 20 s on the free plan (plus a
+      // second of margin: at 20.5, cardfan was refused on 2026-10-06), three a second on a paid one.
       launchEvery: env.NEW_BROWSER_SECONDS !== undefined ? Math.max(0, Number(env.NEW_BROWSER_SECONDS) || 0)
-        : (env.PLAN ?? 'free') === 'free' ? 20.5 : 0,
+        : (env.PLAN ?? 'free') === 'free' ? 21 : 0,
     };
   }
 

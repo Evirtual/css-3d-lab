@@ -80,13 +80,15 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * with timeUntilNextAllowedBrowserAcquisition reading 0, so waiting for what it reported waited
  * for nothing. The spacing is therefore kept here, not asked for: the budget (src/budget.ts) gives
  * each export a slot at least 20 s after the last one, and the export waits for it before asking.
- * One more try after 3 s is left for a refusal anyway (another Worker, a clock a little off).
+ * A refusal can still come (a launch that took longer than its slot, a clock a little off), and is
+ * tried once more a whole spacing later: on 2026-10-06 the retry after 3 s was refused as well
+ * and cardfan was never drawn. Queue and retry together stay inside the dialog's own watchdog.
  */
 async function launchBrowser(env: Env) {
   try { return await launch(env.BROWSER); }
   catch (error) {
     if (!atBrowserLimit(error) || spentForToday(error)) throw error;
-    await sleep(3_000);
+    await sleep(21_000);
     return await launch(env.BROWSER);
   }
 }

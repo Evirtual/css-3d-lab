@@ -103,7 +103,7 @@ the browsers-at-once limits are strict, the day and each visitor's share (a salt
 address, kept for that day only) refuse once nothing is left. Scenes past the service's own limits
 (more than 900 frames, 8 MB, 8192 px a side) are refused before anything is reserved, whatever sent
 them. On the free plan, which allows one new browser every 20 s, exports that arrive together
-queue 20 s apart instead of being refused (a queue past 45 s is "busy"). Measured live on
+queue about 20 s apart instead of being refused (a queue past 40 s is "busy"). Measured live on
 2026-10-06: a picture costs about 2-6 s, a 3 s video about 20-45 s.
 [worker/src/budget.ts](worker/src/budget.ts) says why each limit is the shape it is.
 
