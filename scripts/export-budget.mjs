@@ -10,9 +10,9 @@
  *
  * WHAT IT CAN AND CANNOT KNOW. Cloudflare's free plan gives 10 minutes of browser time a day and
  * does not tell the Worker how much of that is left. What the Worker CAN say is its own count: each
- * export's real browser time once it has finished (one browser per export, closed when it is
- * done); a running export is counted when it finishes (the month holds its worst case meanwhile). Close to what Cloudflare counts and never
- * under it; the Cloudflare dashboard (Browser Run) has the exact figure.
+ * export's real browser time, counted when it finishes (one browser per export, closed when it is
+ * done; meanwhile the month holds its worst case). Close to what Cloudflare counts, not the same:
+ * the Cloudflare dashboard (Browser Run) has the exact figure.
  */
 import { pathToFileURL } from 'node:url';
 
