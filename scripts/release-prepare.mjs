@@ -51,6 +51,13 @@ function verdict() {
 
 const first = await needed();
 if (!first) stop(`the board is not answering at ${API}: start it (npm run board) and run this again, or press "Prepare the release" there`);
+// The ledger first, then the question. A board started a moment ago answered from the ledger it
+// had, written before the latest commits, and on 2026-10-06 this said "nothing is open" and 45/45
+// in three seconds while the sign-off, reading the same commits fresh, still had three lines open
+// -- one of them a comparison on record as disagreeing.
+say('rebuilding the ledger');
+run(['scripts/ledger.mjs']);
+await new Promise((r) => setTimeout(r, 3000));
 
 for (let round = 1; round <= ROUNDS; round++) {
   const n = await needed();
