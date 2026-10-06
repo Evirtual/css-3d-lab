@@ -82,8 +82,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * each export a slot at least 20 s after the last one, and the export waits for it before asking.
  * One more try after 3 s is left for a refusal anyway (another Worker, a clock a little off).
  */
-async function launchBrowser(env: Env, waitMs: number) {
-  if (waitMs > 0) await sleep(waitMs);
+async function launchBrowser(env: Env) {
   try { return await launch(env.BROWSER); }
   catch (error) {
     if (!atBrowserLimit(error) || spentForToday(error)) throw error;
@@ -194,8 +193,13 @@ export default {
         // launch() returns and ends a little after close() does
         ctx.waitUntil(settleBrowserTime(env, id, started ? (Date.now() - started) / 1000 + 2 + extra : 0));
       };
-      const browser = await launchBrowser(env, verdict.waitMs ?? 0).catch((error) => { settle(); throw error; });
+      if (verdict.waitMs) await sleep(verdict.waitMs);
+      // From the moment a browser is ASKED for, not from when launch() returns: Cloudflare counts
+      // from handing it over, and the launch was several seconds that this missed (2026-10-06:
+      // three pictures of about 6 s each were counted as 12 s together). A launch that fails was
+      // no browser at all, and is charged nothing.
       started = Date.now();
+      const browser = await launchBrowser(env).catch((error) => { started = 0; settle(); throw error; });
       // renderCapture closes what it is given when the last frame is out, on cancel, or on its
       // deadline. Closing is the moment the billing stops, so it is the moment the time is settled.
       // A close that failed leaves the browser idling until Cloudflare's 60 s timeout: charged too.
