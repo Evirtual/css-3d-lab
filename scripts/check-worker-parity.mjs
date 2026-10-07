@@ -50,6 +50,7 @@ import { createServer } from 'vite';
 import { exportServer } from '../server/dev.mjs';
 import { ROOT, workingSources } from './model-sources.mjs';
 import { readBudget, sayBudget } from './export-budget.mjs';
+import { score, judge, line } from './parity-judge.mjs';
 
 const LOCAL = 'http://127.0.0.1:8787/capture';
 const WORKER_DEFAULT = 'https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture';
@@ -73,55 +74,12 @@ const NAMES_A_FAMILY = /[A-Za-z][\w -]*(?=\s*(?:,|$))/;
 const CSS_WIDE = /^\s*(inherit|initial|unset|revert|revert-layer)\s*$/i;
 
 /** How different two drawings of one scene may be before it is the drawing and not the encoder. */
-const MEAN_TOL = 1.0;   // mean absolute channel difference, both at 400px wide
-const EDGE_TOL = 0.01;  // where the ink sits, as a share of the side
-/**
- * WHAT A MODEL IS EXPECTED TO DIFFER BY, WHEN ONE FLAT LIMIT IS THE WRONG SHAPE OF RULE.
- *
- * MEAN_TOL asks every model the same question, and the answer is not comparable between them.
- * Measured on 2026-09-28, against the deployed Worker:
- *
- *   cube      0.26   the control: no text at all
- *   radar     0.53
- *   perfume   0.65
- *   activity  0.66
- *   treemap   1.36   by far the most small text
- *
- * The number tracks how much small text a model carries, because the two renderers do not
- * rasterise text identically: the Worker draws Inter on Linux with different hinting and gamma,
- * so the white glyph cores never reach full brightness. 42% fewer bright pixels on treemap, with
- * the text in exactly the same box. That is not the font bug the charts had -- their declarations
- * name Inter and the scan is clean -- and it is not something a model can fix: replacing the
- * labels' blurred text-shadow with eight hard-offset copies moved the bright-pixel gap from
- * 42.13% to 42.4% and the mean from 1.36 to 1.47. The shadow was never the cause.
- *
- * So a model listed here is held to the value it was MEASURED at, plus a margin, instead of to
- * the flat limit. That is tighter than MEAN_TOL for that model, not looser: treemap may now sit
- * anywhere under 1.71 and nowhere else, where an exemption would have let it go to anything. A
- * font substitution, a lost label or a shifted box moves it far past that, and EDGE_TOL still
- * applies unless an entry measured its own. MEAN_TOL is untouched for every model not listed.
- *
- * An entry is a measurement with a reason, and it has to be re-earned: change the model and the
- * number moves, which is the point.
- *
- * THREE MORE, from the first comparison of batches M and N (24 models, 2026-10-05; 21 agreed), each
- * measured on two days and each drawn TWICE HERE with a difference of 0.00 -- so the models draw
- * the same every time, and what differs is the Worker's browser:
- *
- *   neonsign  4.16 / ink edge 1.5%, both days. The board, swaying on its chains, comes out about
- *             a degree further round on the Worker: the difference map is the whole sign's
- *             outline, not its glow. Side by side the pictures cannot be told apart. The only
- *             entry with its own edge, because the turn moves the board's side by 1.5%.
- *   coderain  1.08, then 1.15: a screen of small glyphs, like treemap's labels; which glyphs fall
- *             where changes from scene to scene, and the number with it.
- *   campfire  1.04, both days: soft glow and flames, blurred differently.
+/*
+ * How the two pictures are judged lives in scripts/parity-judge.mjs: fine detail and soft areas
+ * held apart, each by its worst 20 px square, both laid over grey first. Until 2026-10-07 it was
+ * one mean over the whole picture under 1.0, with measured allowances for treemap (1.36),
+ * neonsign (4.16), coderain (1.15) and campfire (1.04); that file says what was wrong with it.
  */
-const EXPECTED = new Map([
-  ['treemap', { mean: 1.36, margin: 0.35, why: 'small white labels, rasterised differently on the Worker: 42% fewer bright pixels, same box, and no change to the shadow moves it' }],
-  ['neonsign', { mean: 4.16, margin: 0.6, edge: 0.02, why: 'the swaying board is drawn about a degree further round on the Worker (identical when drawn twice here); the same picture by eye' }],
-  ['coderain', { mean: 1.15, margin: 0.35, why: 'a screen of small glyphs, rasterised differently on the Worker; 1.08 and 1.15 on two days' }],
-  ['campfire', { mean: 1.04, margin: 0.3, why: 'soft glow and flames, blurred differently on the Worker; 1.04 on two days' }],
-]);
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -346,38 +304,8 @@ const browser = await launchChromium();
 const meter = await (await browser.newContext({ viewport: { width: 420, height: 420 } })).newPage();
 await meter.goto('about:blank');
 
-/** Mean difference and each picture's ink box, both drawn to one size so the comparison is fair. */
-const compare = (a, z) => meter.evaluate(async ([A, Z]) => {
-  const load = async (s) => createImageBitmap(await (await fetch('data:image/png;base64,' + s)).blob());
-  const [ia, iz] = await Promise.all([load(A), load(Z)]);
-  const W = 400, H = Math.max(1, Math.round(W * ia.height / ia.width));
-  const draw = (img) => {
-    const c = new OffscreenCanvas(W, H), x = c.getContext('2d', { willReadFrequently: true });
-    x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, W, H);
-    return x.getImageData(0, 0, W, H).data;
-  };
-  const da = draw(ia), dz = draw(iz);
-  let sum = 0, n = 0;
-  for (let i = 0; i < da.length; i += 4) {
-    sum += (Math.abs(da[i] - dz[i]) + Math.abs(da[i + 1] - dz[i + 1]) + Math.abs(da[i + 2] - dz[i + 2])) / 3;
-    n++;
-  }
-  const box = (d) => {
-    const bg = [d[0], d[1], d[2]];
-    let l = 1, r = 0, t = 1, b = 0;
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      const i = (y * W + x) * 4;
-      if (Math.max(Math.abs(d[i] - bg[0]), Math.abs(d[i + 1] - bg[1]), Math.abs(d[i + 2] - bg[2])) > 28) {
-        if (x / W < l) l = x / W;
-        if ((x + 1) / W > r) r = (x + 1) / W;
-        if (y / H < t) t = y / H;
-        if ((y + 1) / H > b) b = (y + 1) / H;
-      }
-    }
-    return [l, r, t, b];
-  };
-  return { diff: sum / n, a: box(da), z: box(dz) };
-}, [a, z]);
+/** Both pictures scored as scripts/parity-judge.mjs says, on the page kept for measuring. */
+const compare = (a, z) => score(meter, a, z);
 
 const tmp = join(saveDir ?? ROOT, '.parity-scene.json');
 for (const id of chosen) {
@@ -419,14 +347,10 @@ for (const id of chosen) {
       writeFileSync(join(saveDir, `${id}-worker.png`), Buffer.from(there, 'base64'));
     }
     const c = await compare(here, there);
-    const edge = Math.max(...[0, 1, 2, 3].map((i) => Math.abs(c.a[i] - c.z[i])));
-    const exp = EXPECTED.get(id);
-    const limit = exp ? exp.mean + exp.margin : MEAN_TOL;
-    const edgeLimit = exp?.edge ?? EDGE_TOL;
-    const ok = c.diff <= limit && edge <= edgeLimit;
-    if (!ok) fail.push(`${id}: mean ${c.diff.toFixed(2)} over ${limit.toFixed(2)}, worst ink edge ${pc(edge)}%`);
-    console.log(`  ${ok ? (exp ? 'as-is' : 'same ') : 'OFF  '} ${id.padEnd(13)} mean ${c.diff.toFixed(2).padStart(5)}  worst ink edge ${pc(edge).padStart(5)}%`
-      + (exp ? `  (measured ${exp.mean.toFixed(2)}, held under ${limit.toFixed(2)}${exp.edge ? ` and an ink edge of ${(exp.edge * 100).toFixed(1)}%` : ''}: ${exp.why})` : '')
+    const v = judge(id, c);
+    const ok = v.ok;
+    if (!ok) fail.push(`${id}: fine ${c.fine.toFixed(1)} of ${v.fineLimit}, soft ${c.soft.toFixed(1)} of ${v.softLimit}`);
+    console.log(line(id, c, v)
       + (ok ? '' : `\n        here  ${pc(c.a[0])}-${pc(c.a[1])} x ${pc(c.a[2])}-${pc(c.a[3])}`
              + `\n        there ${pc(c.z[0])}-${pc(c.z[1])} x ${pc(c.z[2])}-${pc(c.z[3])}`
              + (c.z[1] >= 0.999 || c.z[0] <= 0.001 ? '  — ink on the frame: something is drawn off the picture' : '')));

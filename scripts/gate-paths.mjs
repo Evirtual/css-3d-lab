@@ -125,7 +125,7 @@ export const STEP_PATHS = {
      them by "is the commit HEAD" made a parity pass go red an hour after it was measured, for a
      commit that touched neither the scene nor either renderer. */
   // the scene the dialog posts and the two things that draw it
-  parity: [...BROWSER, 'src/models', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/fonts/capture-fonts.ts', 'server/render.mjs', 'worker/src', 'scripts/check-worker-parity.mjs'],
+  parity: [...BROWSER, 'src/models', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/fonts/capture-fonts.ts', 'server/render.mjs', 'worker/src', 'scripts/check-worker-parity.mjs', 'scripts/parity-judge.mjs'],
   // the full export matrix: the dialog, what it records, and what draws the file
   matrix: [...BROWSER, 'src/models', 'src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs'],
 
