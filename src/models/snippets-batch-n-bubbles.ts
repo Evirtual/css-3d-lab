@@ -148,6 +148,18 @@ export const snippetsBubbles: Record<string, Snippet> = {
   transform: translateZ(calc(-25 * var(--u))) translateY(50%);
 }
 
+/* the star after each rating is drawn, not typed: ★ is in neither font an export carries, so
+   every device, and the export service, drew a star of its own */
+.ticks .y::after {
+  content: '';
+  display: inline-block;
+  width: calc(8 * var(--u));
+  height: calc(7.6 * var(--u));
+  margin-left: calc(1 * var(--u));
+  background: currentColor;
+  clip-path: polygon(50% 0%, 61.2% 34.5%, 97.6% 34.5%, 68.2% 55.9%, 79.4% 90.5%, 50% 69.1%, 20.6% 90.5%, 31.8% 55.9%, 2.4% 34.5%, 38.8% 34.5%);
+}
+
 .title {
   font-weight: 400;
   font-size: calc(10 * var(--u));
@@ -287,7 +299,7 @@ chart.style.setProperty('--ys', y1 - y0);
 const fx = (v) => (v - x0) / (x1 - x0); // a price → a share of the floor's width
 const fy = (v) => (v - y0) / (y1 - y0); // a rating → a share of the wall's height
 const usd = (v) => '$' + v.toFixed(2);
-const text = (d) => \`\${d.label}\\n\${usd(d.x)} · \${d.y.toFixed(1)}★\\n\${d.size} cups a day\`;
+const text = (d) => \`\${d.label}\\n\${usd(d.x)} · \${d.y.toFixed(1)} stars\\n\${d.size} cups a day\`;
 
 // The numbers on the axes. Only text goes in, never HTML.
 function tick(cls, t, words) {
@@ -298,7 +310,7 @@ function tick(cls, t, words) {
   ticks.append(s);
 }
 for (let v = x0; v <= x1; v++) tick('x', fx(v), '$' + v);
-for (let v = y0; v <= y1; v++) tick('y', fy(v), v + '★');
+for (let v = y0; v <= y1; v++) tick('y', fy(v), String(v)); // the star after it is CSS
 
 // A drop line and a sphere per café: three plain numbers each, and CSS draws them. The label goes
 // in as text (an attribute), never as HTML: an API's response is not trusted markup.

@@ -229,7 +229,7 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
   <div class="coin">
     <b>$</b>
 ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
-    <b>★</b>
+    <b><span class="star"></span></b>
   </div>
 </div>`,
     css: `.scene {
@@ -276,6 +276,15 @@ ${lines(24, (i) => `<i style="--i:${i}"></i>`)}
 
 .coin b:last-child {
   transform: rotateY(180deg) translateZ(calc(5 * var(--u)));
+}
+
+/* the star on the back is drawn, not typed: ★ is in neither font an export carries, so every
+   device, and the export service, drew a star of its own */
+.coin .star {
+  width: calc(56 * var(--u));
+  height: calc(54 * var(--u));
+  background: currentColor;
+  clip-path: polygon(50% 0%, 61.2% 34.5%, 97.6% 34.5%, 68.2% 55.9%, 79.4% 90.5%, 50% 69.1%, 20.6% 90.5%, 31.8% 55.9%, 2.4% 34.5%, 38.8% 34.5%);
 }
 
 @keyframes coin-spin {
@@ -898,11 +907,11 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
     ],
     html: `<div class="scene">
   <div class="hand">
-    <i style="--i:-2">A<small>♠</small></i>
-    <i style="--i:-1">K<small>♠</small></i>
-    <i style="--i:0">Q<small>♠</small></i>
-    <i style="--i:1">J<small>♠</small></i>
-    <i style="--i:2">10<small>♠</small></i>
+    <i style="--i:-2">A<small></small></i>
+    <i style="--i:-1">K<small></small></i>
+    <i style="--i:0">Q<small></small></i>
+    <i style="--i:1">J<small></small></i>
+    <i style="--i:2">10<small></small></i>
   </div>
 </div>`,
     css: `.scene {
@@ -939,7 +948,17 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
   animation: fan 3s ease-in-out infinite alternate;
 }
 
-.hand small { display: block; font-size: calc(19 * var(--u)); }
+/* the spade under each index is drawn, not typed: ♠ is in neither font an export carries, so every
+   device, and the export service, drew a spade of its own. One shape, as a mask, in the card's ink */
+.hand small {
+  display: block;
+  width: calc(13 * var(--u));
+  height: calc(14 * var(--u));
+  margin-top: calc(4 * var(--u));
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cpath d='M10 0C6 5 0 8 0 12.5 0 15.6 2.4 17.6 5 17.6c1.8 0 3.3-.8 4.2-2-.3 2.4-1.2 4.2-2.7 5.9h7c-1.5-1.7-2.4-3.5-2.7-5.9.9 1.2 2.4 2 4.2 2 2.6 0 5-2 5-5.1C20 8 14 5 10 0z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cpath d='M10 0C6 5 0 8 0 12.5 0 15.6 2.4 17.6 5 17.6c1.8 0 3.3-.8 4.2-2-.3 2.4-1.2 4.2-2.7 5.9h7c-1.5-1.7-2.4-3.5-2.7-5.9.9 1.2 2.4 2 4.2 2 2.6 0 5-2 5-5.1C20 8 14 5 10 0z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
 
 @keyframes fan {
   /* never closed flat: even the gathered hand is spread 7deg a card, enough to show every corner index, so a paused card shows a fan */

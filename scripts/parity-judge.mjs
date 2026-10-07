@@ -31,14 +31,17 @@
  * SOFT_TOL 10 sit between. (One cut-out passed: it fell in the empty gap between two candles, and
  * changed nothing anybody could see.)
  *
- * The four above the limits are real differences, not noise: coin's star and cardfan's suits are
- * typed characters (★ ♠ ♥) that neither font travelling with the scene has, so each renderer draws
- * them in a font of its own; coderain's falling glyphs are the same; perfume names Georgia, which
- * the Worker does not have (known since 2026-09-27). The font scan reads font names, so it cannot
- * see a character the named font lacks.
+ * The four above the limits are real differences, not noise. Coin's star and cardfan's spades are
+ * typed characters (★ ♠) that neither font travelling with the scene has, so each renderer draws
+ * them in a font of its own; the font scan reads font names, so it cannot see a character the named
+ * font lacks. Perfume names Georgia, which the Worker does not have (known since 2026-09-27).
+ * Coderain is the other kind: plain ASCII in JetBrains Mono 600, which does travel, so it is the
+ * two renderers rasterising a dense field of small bright glyphs differently, as treemap's labels
+ * were -- held to what it measured.
  *
  * The allowances made under the old rule (treemap 1.36, neonsign 4.16, coderain 1.15, campfire
- * 1.04) are gone: under this one, all but coderain are inside the plain limits.
+ * 1.04) are gone: under this one, all but coderain are inside the plain limits, and coderain has a
+ * new one, below.
  */
 import { pathToFileURL } from 'node:url';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -53,6 +56,7 @@ export const SOFT_TOL = 10; // worst 20 px square of what is left: glows, shadin
  */
 export const EXPECTED = new Map([
   ['perfume', { fine: 31, why: 'names Georgia, which the Worker does not carry, so its serif is the renderer\'s own: fine 27.0 on 2026-10-05' }],
+  ['coderain', { fine: 23, why: 'a dense field of small bright glyphs in a face that travels, rasterised differently by the two renderers: fine 19.9 and 17.8 on two scenes' }],
 ]);
 
 /** The two scores of one pair, and where each picture's ink sits (for the message, not the verdict). */
