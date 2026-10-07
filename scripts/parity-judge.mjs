@@ -56,7 +56,7 @@ export const SOFT_TOL = 10; // worst 20 px square of what is left: glows, shadin
  */
 export const EXPECTED = new Map([
   ['perfume', { fine: 31, why: 'names Georgia, which the Worker does not carry, so its serif is the renderer\'s own: fine 27.0 on 2026-10-05' }],
-  ['coderain', { fine: 23, why: 'a dense field of small bright glyphs in a face that travels, rasterised differently by the two renderers: fine 19.9 and 17.8 on two scenes' }],
+  ['coderain', { fine: 25, why: 'a dense field of small bright glyphs in a face that travels, rasterised differently by the two renderers: fine 17.8, 19.9 and 21.4 on three scenes' }],
 ]);
 
 /** The two scores of one pair, and where each picture's ink sits (for the message, not the verdict). */
