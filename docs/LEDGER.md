@@ -252,6 +252,13 @@ If you see **Both renderers** sitting at not-measured, check whether the export 
 before assuming anything is broken. It resets daily, and since 2026-10-05 it can be read instead of
 guessed: `node scripts/export-budget.mjs` (the README's "The export budget" says what it counts).
 
+If it sits at **disagreed**, look before re-running. `scripts/parity-judge.mjs` is how the two
+pictures are judged (fine detail and soft areas apart, each by its worst 20 px square, since
+2026-10-07), and it is part of the step's fingerprint, so changing a limit there asks the Worker
+again. Run the step with `--save <dir>` and the pairs stay on disk;
+`node scripts/parity-judge.mjs <dir>` re-judges them for nothing, which is how a new limit is tried
+against everything already compared instead of against the daily budget.
+
 | what | needs | if it is missing |
 | --- | --- | --- |
 | `check-remote` | the network, `gh` | three checklist lines say so |

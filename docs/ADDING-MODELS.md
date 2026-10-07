@@ -101,6 +101,15 @@ top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
   charts got this wrong and their labels came back up to 7.8% out of place, one of them drawn off
   the edge of the picture — and nothing on this laptop could see it, because here the dialog and
   the render service share a font folder. `npm run check-parity` is what catches it now.
+- **Symbols are drawn, not typed.** A character the two faces do not have (★ ♠ ♥ ♦ ♣ ✓, arrows,
+  most emoji) falls back to whatever font each machine finds, even under `font: … Inter`, so the
+  export's star is not the screen's star. The font scan reads font names and cannot see it; coin,
+  cardfan and coderain were found by comparing pictures (2026-10-07). Draw the shape with CSS or an
+  inline SVG instead.
+- **Keep glows under about 128 px at export size.** The render service draws soft glows weaker
+  (`blur()` keeps about three quarters at large radii) and cuts a very large `box-shadow` (256 px)
+  off in a rectangle. The comparison allows for glows that differ (scripts/parity-judge.mjs); it
+  cannot make a clipped one look right.
 - Plain CSS only (no Sass), hard-coded accent colours (violet `#8b6cff`, teal `#2ee6d6`, pink
   `#ff4d9d`, amber `#ffb547`), generic class names (`.scene`, `.cube`...). Expand any loop by hand
   or, better, drive it with `style="--i:3"` + `calc()` so the CSS stays short.
