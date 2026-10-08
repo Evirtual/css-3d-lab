@@ -423,10 +423,12 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
   width: calc(58 * var(--u));
   height: calc(28 * var(--u));
   /* an inner line plus a soft shade instead of a hard border: treads near eye level are seen
-     almost edge-on, where a hairline breaks up; the shade survives */
+     almost edge-on, where a hairline breaks up; the shade survives. The glow is here, on the 14
+     treads, not on the 140 side strips: a blur on every strip cost four screen refreshes a frame */
   box-shadow:
     inset 0 0 0 calc(1 * var(--u)) hsl(var(--hue) 90% 82%),
-    inset 0 0 calc(8 * var(--u)) hsl(var(--hue) 90% 82% / 0.25);
+    inset 0 0 calc(8 * var(--u)) hsl(var(--hue) 90% 82% / 0.25),
+    0 0 calc(10 * var(--u)) hsl(var(--hue) 85% 64% / 0.6);
   border-radius: 0 calc(6 * var(--u)) calc(6 * var(--u)) 0;
   background: hsl(var(--hue) 85% 64% / 0.62);
   transform-origin: calc(-5 * var(--u)) 50%; /* on the pole's axis */
@@ -447,7 +449,6 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
   width: calc((var(--l) + 0.5) * var(--u)); /* a hair longer, so neighbours overlap: no seams */
   height: calc(8 * var(--u));
   background: hsl(var(--hue) 45% 30% / 0.82); /* less see-through than the top */
-  box-shadow: 0 0 calc(6 * var(--u)) hsl(var(--hue) 85% 64% / 0.35); /* a soft glow */
   transform-origin: 0 0;
   transform: rotate(calc(var(--a) * 1deg)) rotateX(-90deg);
 }
