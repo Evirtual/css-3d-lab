@@ -50,7 +50,8 @@ import { createServer } from 'vite';
 import { exportServer } from '../server/dev.mjs';
 import { ROOT, workingSources } from './model-sources.mjs';
 import { readBudget, sayBudget } from './export-budget.mjs';
-import { score, judge, line } from './parity-judge.mjs';
+import { score, judge, line, staleModels, readModels, writeModels, modelHash } from './parity-judge.mjs';
+import { missingGlyphs, sayGlyphs } from './check-glyphs.mjs';
 
 const LOCAL = 'http://127.0.0.1:8787/capture';
 const WORKER_DEFAULT = 'https://css-3d-lab-capture.social-posts-pinata.workers.dev/capture';
@@ -245,6 +246,34 @@ if (!RENDER) {
  * A previous FAILURE is never reused: a red is a thing to retry, not a thing to cache.
  * --force ignores all of this and asks anyway.
  */
+// Which models to actually draw twice: anything the scan flagged, then the text-heaviest, because
+// a model with no words in it cannot show a font difference however wrong the font is.
+const byText = [...sources.entries()]
+  .map(([id, src]) => {
+    const t = typeof src.snippet === 'string' ? src.snippet : '';
+    return { id, n: [...t.matchAll(/font(?:-family)?:\s*[^;{}]+;/g)].length };
+  })
+  .filter((x) => x.n > 0)
+  .sort((a, b) => b.n - a.n || a.id.localeCompare(b.id));
+const chosen = ids.length ? ids
+  : flag('--all') ? byText.map((x) => x.id)
+  : [...new Set([...loose.map((l) => l.id), ...byText.map((x) => x.id)])].slice(0, TOP);
+/*
+ * --changed: and every model not compared as it is now (scripts/parity-judge.mjs, staleModels) --
+ * new, changed since it was drawn on the Worker, or last seen disagreeing. At most CHANGED_MAX a
+ * run, so one big batch cannot spend the day; the rest are named, and the next run takes them.
+ */
+const CHANGED_MAX = 15;
+let leftOver = [];
+if (flag('--changed')) {
+  const stale = staleModels(sources).filter((id) => !chosen.includes(id));
+  leftOver = stale.slice(CHANGED_MAX);
+  chosen.push(...stale.slice(0, CHANGED_MAX));
+  console.log(stale.length
+    ? `check-parity: ${stale.length} model(s) not yet compared as they are now; drawing ${Math.min(stale.length, CHANGED_MAX)} this run${leftOver.length ? `, ${leftOver.length} left for the next` : ''}`
+    : 'check-parity: every model has been compared as it is now');
+}
+
 const MAX_AGE_DAYS = Number(process.env.C3D_PARITY_MAX_AGE_DAYS || 7);
 const RECORD = join(ROOT, 'docs', 'checks', 'parity.json');
 if (!flag('--force')) {
@@ -258,7 +287,11 @@ if (!flag('--force')) {
   const here = browserId();
   const ageDays = prior?.at ? (Date.now() - new Date(prior.at).getTime()) / 86400000 : Infinity;
   const sameBrowser = prior?.browser?.name === here?.name && prior?.browser?.version === here?.version;
-  if (prior && prior.ok === true && prior.fp?.hash === now?.hash && sameBrowser && ageDays < MAX_AGE_DAYS) {
+  // ...and the record has to be ABOUT these models. Without this, a fresh record of the release's
+  // three skipped a request for 22 others that had never been drawn on the Worker (2026-10-08): it
+  // said "nothing was lost by not asking" about pictures nobody had ever compared.
+  const covered = Array.isArray(prior?.drawn) && chosen.every((id) => prior.drawn.includes(id));
+  if (prior && prior.ok === true && prior.fp?.hash === now?.hash && sameBrowser && covered && ageDays < MAX_AGE_DAYS) {
     const when = new Date(prior.at).toISOString().slice(0, 16).replace('T', ' ');
     console.log('');
     console.log(`check-parity: not asked, and nothing was lost by not asking.`);
@@ -275,6 +308,7 @@ if (!flag('--force')) {
   if (prior) {
     const why = prior.ok !== true ? 'the last run did not end in agreement'
       : prior.fp?.hash !== now?.hash ? 'the files it compares have changed since'
+      : !covered ? `the last run drew ${(prior.drawn ?? []).length} other model(s), not ${chosen.filter((id) => !(prior.drawn ?? []).includes(id)).length} of these`
       : !sameBrowser ? `it was measured on ${prior.browser?.name ?? '?'} ${prior.browser?.version ?? ''}, and this is ${here?.name ?? '?'} ${here?.version ?? ''}`
       : `the last answer is ${Math.floor(ageDays)} day(s) old`;
     console.log(`check-parity: asking the Worker — ${why}.`);
@@ -283,18 +317,7 @@ if (!flag('--force')) {
   }
 }
 
-// Which models to actually draw twice: anything the scan flagged, then the text-heaviest, because
-// a model with no words in it cannot show a font difference however wrong the font is.
-const byText = [...sources.entries()]
-  .map(([id, src]) => {
-    const t = typeof src.snippet === 'string' ? src.snippet : '';
-    return { id, n: [...t.matchAll(/font(?:-family)?:\s*[^;{}]+;/g)].length };
-  })
-  .filter((x) => x.n > 0)
-  .sort((a, b) => b.n - a.n || a.id.localeCompare(b.id));
-const chosen = ids.length ? ids
-  : flag('--all') ? byText.map((x) => x.id)
-  : [...new Set([...loose.map((l) => l.id), ...byText.map((x) => x.id)])].slice(0, TOP);
+
 
 const vite = await createServer({ server: { port: 0 }, logLevel: 'silent' });
 await vite.listen();
@@ -320,6 +343,15 @@ await meter.goto('about:blank');
 /** Both pictures scored as scripts/parity-judge.mjs says, on the page kept for measuring. */
 const compare = (a, z) => score(meter, a, z);
 
+// Every character every model shows, against the faces an export carries (scripts/check-glyphs.mjs).
+// Free -- nothing goes to the Worker -- and a character the export would swap fails the run.
+const glyphs = await missingGlyphs(browser, base);
+for (const l of sayGlyphs(glyphs)) console.log(l);
+for (const m of glyphs.missing) fail.push(`${m.char} ${m.code} is in no face an export carries, and ${m.ids.join(', ')} show${m.ids.length === 1 ? 's' : ''} it`);
+console.log('');
+
+/** What each model drawn this run came to, for the per-model record. */
+const outcomes = new Map();
 const tmp = join(saveDir ?? ROOT, '.parity-scene.json');
 for (const id of chosen) {
   let scene = null;
@@ -362,6 +394,7 @@ for (const id of chosen) {
     const c = await compare(here, there);
     const v = judge(id, c);
     const ok = v.ok;
+    outcomes.set(id, { ok, fine: c.fine, soft: c.soft });
     if (!ok) fail.push(`${id}: fine ${c.fine.toFixed(1)} of ${v.fineLimit}, soft ${c.soft.toFixed(1)} of ${v.softLimit}`);
     console.log(line(id, c, v)
       + (ok ? '' : `\n        here  ${pc(c.a[0])}-${pc(c.a[1])} x ${pc(c.a[2])}-${pc(c.a[3])}`
@@ -422,6 +455,16 @@ if (RENDER && couldNotAsk) {
 check-parity: could not ask -- ${fail.length} model(s) never drew (${String(fail[0]).split(":").slice(1).join(":").trim()}).`);
   console.log(`Whatever was recorded before stands: a run that could not draw says nothing about whether the two renderers agree.`);
 }
+// every model that WAS drawn is recorded, even when others in the run could not be
+if (RENDER && outcomes.size) {
+  // each model drawn, as it is now: what --changed reads to know what is still to compare
+  const models = readModels();
+  const at = new Date().toISOString();
+  for (const [id, o] of outcomes) models[id] = { src: modelHash(sources.get(id)), at, ok: o.ok, fine: +o.fine.toFixed(1), soft: +o.soft.toFixed(1) };
+  writeModels(models);
+}
+if (leftOver.length) console.log(`
+check-parity: ${leftOver.length} changed model(s) not drawn this run (at most ${CHANGED_MAX}): ${leftOver.join(', ')}. The next run asks about them.`);
 if (RENDER && !couldNotAsk) {
   try {
     const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
@@ -449,8 +492,12 @@ if (fail.length && couldNotAsk) {
   // Refused, not compared: calling these "disagreements" and advising a font change sent the
   // reader after a problem nobody had measured (2026-10-04, the daily budget spent). Still a
   // failure, because the line is unanswered, not answered yes.
-  console.log(`check-parity: not measured -- the Worker drew none of the ${fail.length} model(s), so nothing was compared.`);
-  console.log(`Ask again once it answers${/out of exports for today/i.test(String(fail[0])) ? ' (the daily export budget resets at 00:00 UTC)' : ''}.`);
+  // Which half failed, and how many others did not: on 2026-10-08 this said "the Worker drew none
+  // of the 2 model(s)" when the two had failed HERE, before the Worker was asked, and 20 others
+  // had been drawn and agreed.
+  const here = fail.filter((f) => /no scene/.test(String(f))).length;
+  console.log(`check-parity: not measured -- ${fail.length} model(s) were not compared (${here ? `${here} could not be captured here` : ''}${here && here < fail.length ? ', ' : ''}${here < fail.length ? `${fail.length - here} refused by the Worker` : ''})${outcomes.size ? `; the other ${outcomes.size} were drawn on both and agreed` : ''}.`);
+  console.log(`Ask again${here < fail.length ? ' once the Worker answers' : ''}${/out of exports for today/i.test(String(fail[0])) ? ' (the daily export budget resets at 00:00 UTC)' : ''}.`);
   process.exitCode = 1;
 } else if (fail.length) {
   // Drawn and different, apart from asked and refused: on 2026-10-06 a model the Worker never drew

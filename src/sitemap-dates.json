@@ -85,8 +85,8 @@
     "published": "2026-09-18"
   },
   "models/dice/": {
-    "hash": "21fb8c79c0e0c876",
-    "date": "2026-10-07",
+    "hash": "a967927047295462",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/wordcube/": {
@@ -110,8 +110,8 @@
     "published": "2026-09-18"
   },
   "models/vinyl/": {
-    "hash": "0cc0666dd4e6740b",
-    "date": "2026-10-04",
+    "hash": "e8c4a94de3135fd5",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/swipe/": {
@@ -255,8 +255,8 @@
     "published": "2026-09-18"
   },
   "models/scrollspin/": {
-    "hash": "4076dbbc04587eb4",
-    "date": "2026-10-07",
+    "hash": "f580ee9b18bf1221",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/prism/": {
@@ -435,18 +435,18 @@
     "published": "2026-09-18"
   },
   "models/rollbutton/": {
-    "hash": "a529c68217f7aac1",
-    "date": "2026-10-07",
+    "hash": "ab103e0d2ba32edb",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/switch/": {
-    "hash": "384a8cd615f02fbb",
-    "date": "2026-10-07",
+    "hash": "7cafe9c3bcc1e617",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/dropdown/": {
-    "hash": "776841d679ad7f8d",
-    "date": "2026-10-07",
+    "hash": "5cf02a7728ef6dff",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/zones/": {
@@ -520,13 +520,13 @@
     "published": "2026-09-18"
   },
   "models/boxslider/": {
-    "hash": "0d3dc9b10525da5b",
-    "date": "2026-10-07",
+    "hash": "b09591b143fde3ab",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/cardstack/": {
-    "hash": "1d7ce1191e13b8e7",
-    "date": "2026-10-07",
+    "hash": "eec131def7cab3b6",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/cardfan/": {
@@ -600,13 +600,13 @@
     "published": "2026-09-18"
   },
   "models/wavegrid/": {
-    "hash": "2466fe5ccde99ad2",
-    "date": "2026-10-07",
+    "hash": "028c4b6db5dd2143",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/ripple/": {
-    "hash": "c69fdaec5c18ed30",
-    "date": "2026-10-07",
+    "hash": "a5320e93ba2dee81",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/cubeloader/": {
@@ -660,8 +660,8 @@
     "published": "2026-09-18"
   },
   "models/parallax/": {
-    "hash": "bbbc15bf37da9fa8",
-    "date": "2026-10-07",
+    "hash": "afd7950f8717f556",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/door/": {
@@ -690,8 +690,8 @@
     "published": "2026-09-18"
   },
   "models/confetti/": {
-    "hash": "b3f1e0fc5bbb4db6",
-    "date": "2026-10-07",
+    "hash": "1cce0812c6535c13",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/room/": {
@@ -790,8 +790,8 @@
     "published": "2026-09-19"
   },
   "models/funnel/": {
-    "hash": "d6481b0ba06470a0",
-    "date": "2026-10-04",
+    "hash": "8716f6365bc8e65c",
+    "date": "2026-10-08",
     "published": "2026-09-19"
   },
   "models/candles/": {
@@ -800,8 +800,8 @@
     "published": "2026-09-19"
   },
   "models/waterfall/": {
-    "hash": "f9decc8d020972c7",
-    "date": "2026-10-04",
+    "hash": "2bc307a00e219c13",
+    "date": "2026-10-08",
     "published": "2026-09-19"
   },
   "models/treemap/": {

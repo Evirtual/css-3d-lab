@@ -454,13 +454,13 @@ function show(month) {
   const start = rows[0].to;
   const end = rows[rows.length - 1].to;
   const pct = Math.round(((end - start) / start) * 100);
-  out.textContent = \`\${money(start)} → \${money(end)} · \${pct < 0 ? '−' : pct > 0 ? '+' : ''}\${Math.abs(pct)}%\`;
+  out.textContent = \`\${money(start)} to \${money(end)} · \${pct < 0 ? '−' : pct > 0 ? '+' : ''}\${Math.abs(pct)}%\`;
   buttons.forEach((b) => b.setAttribute('aria-pressed', b.dataset.month === month));
   if (active >= 0) place(active); // the tooltip follows its step to the new place
 }
 
 function tipText(r) {
-  return r.kind === 'total' ? \`\${r.label} · \${money(r.to)}\` : \`\${r.label} · \${money(r.value, true)} → \${money(r.to)}\`;
+  return r.kind === 'total' ? \`\${r.label} · \${money(r.to)}\` : \`\${r.label} · \${money(r.value, true)}, to \${money(r.to)}\`;
 }
 
 // One tooltip: JS gives it the top of the step's box, CSS glides it there

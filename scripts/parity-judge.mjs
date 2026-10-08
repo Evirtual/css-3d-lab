@@ -44,8 +44,42 @@
  * new one, below.
  */
 import { pathToFileURL } from 'node:url';
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { readdirSync, readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { createHash } from 'node:crypto';
+import { ROOT } from './model-sources.mjs';
+
+/**
+ * WHICH MODELS HAVE BEEN COMPARED, AS THEY ARE NOW.
+ *
+ * One line per model: a hash of its source (scripts/model-sources.mjs reads it) when it was last
+ * drawn on both renderers, when, and whether the two agreed. A release asks the Worker about the
+ * models whose source has moved since, or that were never drawn there, as well as its usual three
+ * (check-worker-parity --changed), so a new batch is compared on the day it ships instead of when
+ * somebody remembers to (2026-10-08). Local, like the rest of docs/checks: it is this machine's
+ * record of what it asked.
+ */
+export const MODELS_RECORD = join(ROOT, 'docs', 'checks', 'parity-models.json');
+// The model's own content fingerprint (scripts/model-sources.mjs): its text, not where it sits, so
+// editing one model does not make every model below it in the same file look changed.
+export const modelHash = (src) => src?.fingerprint ?? createHash('sha256').update(JSON.stringify(src ?? null)).digest('hex').slice(0, 16);
+export function readModels() {
+  try { return JSON.parse(readFileSync(MODELS_RECORD, 'utf8')).models ?? {}; } catch { return {}; }
+}
+export function writeModels(models) {
+  mkdirSync(dirname(MODELS_RECORD), { recursive: true });
+  writeFileSync(MODELS_RECORD, `${JSON.stringify({
+    note: 'Written by scripts/check-worker-parity.mjs: per model, the hash of its source when it was last drawn on both renderers, and whether they agreed.',
+    models,
+  }, null, 2)}\n`);
+}
+/** The models not compared as they are now: never drawn there, changed since, or last seen disagreeing. */
+export function staleModels(sources, models = readModels()) {
+  return [...sources.entries()].filter(([id, src]) => {
+    const m = models[id];
+    return !m || m.ok !== true || m.src !== modelHash(src);
+  }).map(([id]) => id).sort();
+}
 
 export const FINE_TOL = 12; // worst 20 px square of edges, text and outlines
 export const SOFT_TOL = 10; // worst 20 px square of what is left: glows, shading, gradients
@@ -125,7 +159,7 @@ export function line(id, s, v) {
   return head + (v.exp ? `  (${v.exp.why})` : '');
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [dir, ...only] = process.argv.slice(2);
   if (!dir) { console.log('usage: node scripts/parity-judge.mjs <dir saved by check-worker-parity --save> [id ...]'); process.exit(2); }
   const ids = only.length ? only : readdirSync(dir).map((f) => f.match(/^(.*)-local\.png$/)?.[1]).filter(Boolean)

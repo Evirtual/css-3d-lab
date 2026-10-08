@@ -42,8 +42,19 @@ const posix = (p) => p.split(sep).join('/');
  */
 export function entriesOf(lines) {
   const starts = [];
+  // A `  name: {` line is a model only inside a snippet map (`const x: Record<string, Snippet> = {`,
+  // exported or not). Data in the same files is indented the same: poppyramid's population figures
+  // and chart-data's sales both have `  years: {`, and "years" was read as a 160th model with no
+  // page, which the renderer comparison then tried and failed to open (2026-10-08).
+  let inMap = false;
   for (let i = 0; i < lines.length; i++) {
-    const k = KEY.exec(lines[i]);
+    // From the map's first line on, not back off at a \`};\`: a snippet's own script closes its
+    // functions at column 0 inside the template literal, and resetting there lost map, heatmap and
+    // chartpanel. Data after a map in the same file would still be read; none is. To check a change
+    // here, compare workingSources() before and after: on 2026-10-08 it went from 160 to 159 ids,
+    // "years" the only one gone, and not one fingerprint moved.
+    if (/^(export )?const [A-Za-z0-9_$]+ *: *Record<string, *Snippet> *= *[{]/.test(lines[i])) inMap = true;
+    const k = inMap && KEY.exec(lines[i]);
     if (k) starts.push({ i, id: k[1], kind: 'snippet' });
     else if (OBJ.test(lines[i])) starts.push({ i, id: null, kind: 'demo' });
     else if (END.test(lines[i])) starts.push({ i, id: null, kind: 'end' });

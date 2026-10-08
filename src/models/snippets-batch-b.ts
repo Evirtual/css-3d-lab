@@ -744,7 +744,7 @@ scene.addEventListener('pointercancel', leave);`,
       <i class="back"></i>
       <i class="spine"></i>
       <div class="disc"><i class="label"></i></div>
-      <div class="front"><b>NIGHT<br>DRIVE</b><span>Side A · 33⅓</span></div>
+      <div class="front"><b>NIGHT<br>DRIVE</b><span>Side A · 33 1/3</span></div>
     </div>
   </div>
 </div>`,

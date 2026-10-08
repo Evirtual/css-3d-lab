@@ -150,7 +150,7 @@ Without `npm run export` running, everything works in dev except making a video 
 
 <!-- scripts:start (written by scripts/generate-readme.mjs from each file's opening comment: edit the comment, not this table) -->
 
-73 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
+74 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
 Each file says how to run it, and why it exists, in the comment at its top.
 
 | Run it with | What runs | What it is for |
@@ -192,6 +192,7 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | `node scripts/check-boxsizing.mjs` | `scripts/check-boxsizing.mjs` | No reliance on outside CSS: a model must draw the same whether or not the page around it makes every box border-box. The site's own stylesheet once did (`*, *::before, *::after { box-sizing: border-box }`), and models were written and sized against it; in the model's own frame, and in the file a visitor copies, nothing sets it, so a card with padding and a border drew bigger than its numbers (tilt 320 × 216 for a 280 × 176 card, the hovercards 9 units off their slots). The sweep that found those eight (tilt, hovercards, pricing, polaroid, accordion, magnet, shapeshift, cone) is this check, kept. |
 | `node scripts/check-contrast.mjs` | `scripts/check-contrast.mjs` | Text readable on both stages: every piece of text a model shows reaches WCAG AA contrast against the pixels actually behind it, on the dark stage and on the light one, at rest and in its main interaction states. |
 | `node scripts/check-exports.mjs` | `scripts/check-exports.mjs` | Does the export dialog make what it says, and what the canvas shows? |
+| `node scripts/check-glyphs.mjs` | `scripts/check-glyphs.mjs` | Every character a model shows, checked against the four faces an export carries. |
 | `node scripts/check-motion.mjs` | `scripts/check-motion.mjs` | Watches every model MOVE, not just where it ends up. check-models.mjs measures size and position; this films each model through its animation and through its hover or interaction, and looks for frames that draw wrong on the way. |
 | `node scripts/check-perf.mjs` | `scripts/check-perf.mjs` | What a model costs to run: how much it draws, how long its frames take, how fast it answers the pointer, and whether playing with it over and over makes it grow. |
 | `node scripts/check-remote.mjs` | `scripts/check-remote.mjs` | The release-checklist lines that need a network, asked and written down: whether the remote has anything main lacks, whether the Worker answers the site and refuses a stranger, whether the build variable is set, and whether the Worker was deployed after its code last changed. |

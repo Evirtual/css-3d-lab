@@ -210,15 +210,23 @@ ${sel} { background: none !important; }`;
     document.head.append(s);
     return;
   }
+  // Gradient text is a background clipped to the glyphs, so hiding it means taking that background
+  // away -- on the part that has it. This looked at the element alone: gradient text drawn by its
+  // ::before or ::after stayed in the "no text" picture, so it was in both pictures, differed by
+  // nothing, and passed without being read. And when the element itself was gradient text, its
+  // pseudo-elements lost their backgrounds too, whatever they were. Now each part is marked apart.
   for (const el of document.querySelectorAll('*')) {
-    const cs = getComputedStyle(el);
-    if (/text/.test(cs.backgroundClip) || /text/.test(cs.webkitBackgroundClip ?? '')) el.setAttribute('data-c3d-bgtext', '');
+    const parts = [['self', null], ['before', '::before'], ['after', '::after']].filter(([, p]) => {
+      const cs = getComputedStyle(el, p);
+      return /text/.test(cs.backgroundClip) || /text/.test(cs.webkitBackgroundClip ?? '');
+    }).map(([name]) => name);
+    if (parts.length) el.setAttribute('data-c3d-bgtext', parts.join(' '));
   }
   s = document.createElement('style');
   s.id = 'c3d-nofill';
   s.textContent = `*, *::before, *::after { -webkit-text-fill-color: transparent !important; transition: none !important; }
 text, tspan, textPath { fill-opacity: 0 !important; stroke-opacity: 0 !important; }
-[data-c3d-bgtext], [data-c3d-bgtext]::before, [data-c3d-bgtext]::after { background: none !important; }`;
+[data-c3d-bgtext~="self"], [data-c3d-bgtext~="before"]::before, [data-c3d-bgtext~="after"]::after { background: none !important; }`;
   document.head.append(s);
 };
 

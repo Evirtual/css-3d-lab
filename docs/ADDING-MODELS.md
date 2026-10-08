@@ -103,9 +103,12 @@ top of `src/models/snippets.ts`, and one chart under `src/models/charts/`.
   the render service share a font folder. `npm run check-parity` is what catches it now.
 - **Symbols are drawn, not typed.** A character the two faces do not have (★ ♠ ♥ ♦ ♣ ✓, arrows,
   most emoji) falls back to whatever font each machine finds, even under `font: … Inter`, so the
-  export's star is not the screen's star — and each visitor's own device picks its own too. The font
-  scan reads font names and cannot see it; coin's star and cardfan's spades were found by comparing
-  pictures (2026-10-07). Draw the shape with CSS or an inline SVG instead.
+  export's star is not the screen's star — and each visitor's own device picks its own too. That
+  includes → and ▾ and fractions like ⅓; the punctuation · — • ° – ‹ › − is fine. Draw the shape
+  with CSS or an inline SVG, or write it in words. `node scripts/check-glyphs.mjs` asks the fonts
+  about every character every model shows, and the renderer comparison runs it at every release,
+  so a release cannot ship one: coin, cardfan, vinyl, dropdown, funnel, rollbutton and waterfall
+  were found and fixed that way (2026-10-07/08).
 - **Keep glows under about 128 px at export size.** The render service draws soft glows weaker
   (`blur()` keeps about three quarters at large radii) and cuts a very large `box-shadow` (256 px)
   off in a rectangle. The comparison allows for glows that differ (scripts/parity-judge.mjs); it

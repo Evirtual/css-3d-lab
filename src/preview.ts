@@ -84,7 +84,11 @@ export class Preview {
 
   sync(): void {
     if (!this.ready || !this.frame.isConnected) return;
-    const doc = this.frame.contentDocument!;
+    // Between an edit replacing the frame's page and the new page existing, the frame has no
+    // document (or one with no body yet), and a resize landing in that moment threw a TypeError
+    // here. Nothing is lost by skipping it: loaded() runs update() and sync() once the page is in.
+    const doc = this.frame.contentDocument;
+    if (!doc?.body) return;
     const stage = this.frame.closest<HTMLElement>('.stage');
     const wrap = stage?.closest('.stage-wrap');
     // The frame fills the stage, so inside a model 1vmin is one hundredth of the canvas's short

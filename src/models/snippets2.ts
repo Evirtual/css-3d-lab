@@ -1252,7 +1252,7 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
   <button class="roll" type="button">
     <span class="bar">
       <span>Hover me</span>
-      <span>Let's go →</span>
+      <span>Let's go</span>
     </span>
   </button>
 </div>`,
@@ -1307,6 +1307,21 @@ ${lines(5, () => '<i></i><i></i><i></i><i></i><i></i>')}
 .bar span:first-child {
   background: #8b6cff;
   transform: translateZ(calc(var(--h) / 2));
+}
+
+/* the arrow after "Let's go" is drawn, not typed: → is in neither font an export carries, so
+   every device, and the export service, drew one of its own. Side by side with the words */
+.bar span:last-child {
+  grid-auto-flow: column;
+  justify-content: center;
+  column-gap: 0.4em;
+}
+.bar span:last-child::after {
+  content: '';
+  width: 0.85em;
+  height: 0.7em;
+  background: currentColor;
+  clip-path: polygon(0 40%, 58% 40%, 58% 8%, 100% 50%, 58% 92%, 58% 60%, 0 60%);
 }
 
 /* At rest it is the bottom of the prism, facing down and away from you, so backface-visibility
@@ -1404,7 +1419,7 @@ input:checked ~ em {
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, text included, so the menu is the same share of a gallery card, the editor and a recording canvas. The stage centres the menu by its height, so the bar alone is centred at rest and the whole open menu is centred open: as the rows grow the bar rises by half of what they add, in step with them, with no motion of its own. The list has no gap under the bar (padding, not margin), so the pointer stays on the menu as it rises.',
     ],
     html: `<div class="menu" tabindex="0">
-  <span>Menu ▾</span>
+  <span>Menu</span>
   <ul>
     <li style="--i:0">Profile</li>
     <li style="--i:1">Projects</li>
@@ -1430,6 +1445,18 @@ input:checked ~ em {
   /* the brand gradient deep enough for white words (5.1:1 at its worst end): the bright #8b6cff to
      #ff4d9d was 3.7:1 */
   background: linear-gradient(120deg, #6a45f5, #d1206f);
+}
+
+/* the caret is drawn, not typed: ▾ is in neither font an export carries */
+.menu > span::after {
+  content: '';
+  display: inline-block;
+  width: 0.6em;
+  height: 0.38em;
+  margin-left: 0.4em;
+  vertical-align: 0.12em;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 
 /* the list is in the flow, so the menu is as tall as what is open of it and the stage centres

@@ -424,7 +424,7 @@ function show(name) {
   });
   const a = data[0];
   const z = data[data.length - 1];
-  out.textContent = \`\${fmt(a.value)} \${a.label.toLowerCase()} → \${fmt(z.value)} \${z.label.toLowerCase()} · \${pct(z.value / a.value)} overall\`;
+  out.textContent = \`\${fmt(a.value)} \${a.label.toLowerCase()} to \${fmt(z.value)} \${z.label.toLowerCase()} · \${pct(z.value / a.value)} overall\`;
   buttons.forEach((b) => b.setAttribute('aria-pressed', b.dataset.set === name));
   if (active >= 0) place(active); // the tooltip follows its slab to the new edge
 }

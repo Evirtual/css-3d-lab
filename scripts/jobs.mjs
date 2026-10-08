@@ -57,7 +57,7 @@ export const JOBS = [
     blurb: 'Fetches the real site and asks six things of it. Only true after a deploy, and retires the moment you commit past it.',
   },
   {
-    key: 'parity', name: 'Both renderers', argv: ['scripts/check-worker-parity.mjs', '--render', 'treemap', 'perfume', 'cube'],
+    key: 'parity', name: 'Both renderers', argv: ['scripts/check-worker-parity.mjs', '--render', '--changed', 'treemap', 'perfume', 'cube'],
     minutes: 3, needs: ['browser', 'network', 'quota'], safe: false,
     answers: ['Both renderers draw the same picture'],
     blurb: 'Draws the same scene here and on the Worker visitors export from. Spends the daily export budget, one per model.',

@@ -56,7 +56,7 @@ export function sayBudget(b) {
   ];
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const b = await readBudget();
   if (!b) process.exit(1);
   if (process.argv.includes('--json')) console.log(JSON.stringify(b, null, 2));
