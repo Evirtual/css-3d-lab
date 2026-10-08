@@ -116,6 +116,21 @@ node scripts/export-budget.mjs
 It reads the Worker's `GET /budget`. That is the site's own count; Cloudflare's dashboard (Browser
 Run) has the exact one, and if Cloudflare refuses first, Cloudflare is right.
 
+The project's own checks are not a visitor. `npm run check-parity` sends `X-Release-Key` when
+`release-key.local` exists in the project folder (ignored by git, like every `*.local`), and the
+Worker, holding the same value as its `RELEASE_KEY` secret, skips the per-visitor share for it and
+nothing else: the day, the month and the browsers at once still count. Without the file the checks
+are one visitor, and a release run from a laptop that has already compared models that day is
+refused. On a new machine, make a key and give it to both:
+
+```bash
+node -e "require('fs').writeFileSync('release-key.local', require('crypto').randomBytes(24).toString('base64url') + '\n')"
+```
+
+```bash
+cd worker && npx wrangler secret put RELEASE_KEY < ../release-key.local
+```
+
 ## Develop
 
 ```bash
