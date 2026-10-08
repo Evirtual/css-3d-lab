@@ -188,7 +188,8 @@ export class ExportBudget implements DurableObject {
       this.#used(k.month) + this.#inFlight(k.month) + seconds > lim.month ? 'month'
       : running >= lim.browsers ? 'busy'
       : this.#used(k.day) >= lim.day ? 'day'
-      : this.#used(whoKey) >= lim.visitor ? 'visitor'
+      // the project's own checks (src/index.ts, fromTheChecks) have no visitor's share; everything else counts them
+      : who !== 'checks' && this.#used(whoKey) >= lim.visitor ? 'visitor'
       : null;
     if (hit) return { ok: false, hit, resetsIn: hit === 'month' ? reset.month : hit === 'busy' ? 30 : reset.day };
     // A start time, handed out here so that two exports never ask Cloudflare for a new browser

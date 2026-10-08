@@ -63,11 +63,35 @@ async function settleBrowserTime(env: Env, id: string, used: number) {
  * of the day, not enough to follow anybody from one day to the next. It is never stored past the
  * day it counts in (src/budget.ts deletes it).
  */
-async function visitorKey(request: Request) {
+async function visitorKey(request: Request, env: Env) {
+  if (await fromTheChecks(request, env)) return 'checks';
   const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
   const day = new Date().toISOString().slice(0, 10);
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`css-3d-lab:${day}:${ip}`));
   return [...new Uint8Array(bytes)].slice(0, 12).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * The project's own checks, which are not a visitor and have no share of a visitor's day.
+ *
+ * Every release and comparison runs from one laptop, so it counted as one visitor, used that
+ * visitor's 3 minutes, and then refused the release itself: on 2026-10-06 and 2026-10-07 the share
+ * was raised by hand for each run and put back after. The checks now send X-Release-Key, a secret
+ * held as the Worker's RELEASE_KEY and in release-key.local on the machine that runs them (never
+ * committed). A browser cannot send it: the header is not one this Worker allows across origins.
+ * It skips the per-visitor share and nothing else -- the day, the month and the browsers at once
+ * still count it, so the checks can never spend what the day does not have.
+ */
+async function fromTheChecks(request: Request, env: Env) {
+  const key = (env as any).RELEASE_KEY as string | undefined;
+  const sent = request.headers.get('X-Release-Key');
+  if (!key || !sent) return false;
+  const a = new TextEncoder().encode(key), b = new TextEncoder().encode(sent);
+  if (a.byteLength !== b.byteLength) return false;
+  // every byte compared, whatever the first difference: the time taken says nothing about the key
+  let diff = 0;
+  for (let i = 0; i < a.byteLength; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -184,7 +208,7 @@ export default {
 
     let settle = (_extra = 0) => {};
     try {
-      const verdict = await reserveBrowserTime(env, worstCase(payload.count), await visitorKey(request));
+      const verdict = await reserveBrowserTime(env, worstCase(payload.count), await visitorKey(request, env));
       if (!verdict.ok || !verdict.id) throw new BudgetSpent(verdict.hit, verdict.resetsIn);
       const id = verdict.id;
       let started = 0, settled = false;

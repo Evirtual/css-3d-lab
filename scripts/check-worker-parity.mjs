@@ -45,7 +45,7 @@ import { stepFingerprint } from './gate-paths.mjs';
 // Not playwright's chromium directly: scripts/browser.mjs is where 'which browser do the checks
 // run on' is answered, including the fallback when a policy refuses to start the bundled one.
 // These two bypassed it, so they never got the channel workaround either.
-import { launchChromium, browserId } from './browser.mjs';
+import { launchChromium, browserId, resolveBrowser } from './browser.mjs';
 import { createServer } from 'vite';
 import { exportServer } from '../server/dev.mjs';
 import { ROOT, workingSources } from './model-sources.mjs';
@@ -126,12 +126,21 @@ function unpinned() {
  * reported three "disagreements" that were the script disagreeing with itself (2026-09-30). It had
  * only ever passed with a service somebody else had started. curl is spawned and awaited now.
  */
+/**
+ * The checks' key for the Worker, from a file that is never committed (*.local is ignored). With it
+ * the Worker counts these drawings against the day and the month like any export, but not against
+ * one visitor's share: from one laptop, the checks used to spend that share and then be refused
+ * themselves. worker/src/index.ts, fromTheChecks, says the rest.
+ */
+const RELEASE_KEY = (() => { try { return readFileSync(join(ROOT, 'release-key.local'), 'utf8').trim(); } catch { return ''; } })();
+
 async function render(endpoint, scene, tmp) {
   const origin = endpoint.includes('127.0.0.1') ? LOCAL_ORIGIN : SITE_ORIGIN;
   writeFileSync(tmp, JSON.stringify({ ...scene, count: 1, fps: 30, frame: 'png' }));
   const out = await new Promise((resolve, reject) => {
     execFile('curl', ['-s', '--max-time', '240', '-X', 'POST',
       '-H', 'Content-Type: application/json', '-H', 'Origin: ' + origin,
+      ...(endpoint.includes('127.0.0.1') || !RELEASE_KEY ? [] : ['-H', 'X-Release-Key: ' + RELEASE_KEY]),
       '--data-binary', '@' + tmp, '-w', '\nHTTPSTATUS:%{http_code}', endpoint],
     { maxBuffer: 256 * 1024 * 1024, encoding: 'utf8' },
     (err, stdout, stderr) => (err ? reject(new Error(`curl to ${endpoint} failed (exit ${err.code ?? '?'}${err.code === 28 ? ', timed out after 240 s' : ''})${String(stderr ?? '').trim() ? `: ${String(stderr).trim().split('\n')[0]}` : ''}`)) : resolve(stdout)));
@@ -242,6 +251,10 @@ if (!flag('--force')) {
   let prior = null;
   try { prior = JSON.parse(readFileSync(RECORD, 'utf8')); } catch { /* none yet: ask */ }
   const now = stepFingerprint('parity');
+  // Which browser draws this half, decided BEFORE it is asked: browserId() is null until a browser
+  // has been resolved, and this used to read it first -- so every run looked like a different browser
+  // from the one on record, and the Worker was asked again when nothing had changed (2026-10-08).
+  await resolveBrowser();
   const here = browserId();
   const ageDays = prior?.at ? (Date.now() - new Date(prior.at).getTime()) / 86400000 : Infinity;
   const sameBrowser = prior?.browser?.name === here?.name && prior?.browser?.version === here?.version;
@@ -295,7 +308,7 @@ const serviceAnswers = async () => {
 const external = await serviceAnswers();
 const service = external ? null : await exportServer(8787);
 console.log(`export service: ${external ? 'already running on 127.0.0.1:8787 (used as is)' : 'started in this process'}`);
-console.log(`worker: ${WORKER}`);
+console.log(`worker: ${WORKER}${RELEASE_KEY ? ' (as the checks: release-key.local)' : ' (no release-key.local: counted as one visitor)'}`);
 // what is left before this run spends any of it, so a refusal further down is never a surprise
 for (const l of sayBudget(await readBudget())) console.log(l);
 console.log(`\ndrawing ${chosen.length} model(s) twice, once here and once there:\n`);
