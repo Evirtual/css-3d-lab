@@ -60,6 +60,10 @@ const judged = (file, text) => (file !== 'docs/RELEASE-CHECKLIST.md' ? text
 const BUILD = [
   'src', 'public', 'package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts',
   'scripts/generate-pages.mjs', 'scripts/generate-capture-fonts.mjs',
+  // the home page is the bundler's main input, and the site's name, address and dates are read by
+  // both the generator and vite.config.ts. Neither was here until 2026-10-09, so a change to the
+  // home page's title or structured data left "the build is clean" standing over the old page.
+  'index.html', 'site.config.json',
   // the board's own page: built by vite.ledger.config.ts, excluded by tsconfig.json, and not in
   // dist/. It cannot change what generate, tsc or vite build produce, so it does not stale them.
   '!src/ledger',

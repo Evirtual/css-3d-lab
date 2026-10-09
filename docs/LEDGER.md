@@ -122,6 +122,12 @@ commit is a fact about the repository, not about the check. Editing this file is
 reads it. Before fingerprints, a typo in the README retired a four-hour run and six checklist lines
 with it.
 
+The opposite mistake is quieter: a file a step reads that is on none of its paths. Until 2026-10-09
+the build's list left out `index.html` and `site.config.json`, the home page and the site's name,
+so a change to the home page's structured data would have left "the build is clean" standing over
+a build of the old page. When a step reads a new file, add it to that step's paths in the same
+commit.
+
 Results also record **which browser** produced them, for the same reason. Several checks are
 calibrated against a measured number, and a number measured on one browser cannot be compared with
 one measured on another.
