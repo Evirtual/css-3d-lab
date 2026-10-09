@@ -306,7 +306,9 @@ on the light one (`#f3f4fc`, ink `#14172b`), at rest, with `:hover` forced, with
 middle and after each of up to six controls is clicked. Every text it shows (text nodes, `::before`
 and `::after` content, SVG text) is shot with and without its glyph fill: the pixels behind its
 letters are its background, the model's own panel, glow or 3D face included, and its colour is its
-CSS colour laid over them at its opacity (or the drawn pixels, for gradient or filtered text). It
+CSS colour laid over them at its opacity (or the drawn pixels, for gradient or filtered text,
+including gradient text drawn by a `::before` or `::after`: since 2026-10-08 each part's gradient
+is taken away on its own, so such text is measured and the element's other parts keep theirs). It
 must reach WCAG AA, 4.5:1, or 3:1 for text at least 24px, or bold and 18.66px, at that canvas size.
 Text in a disabled control is exempt, and listed as exempt on the model's line. A word drawn as a
 stack of copies (the layers of an extruded headline) is read from its front copy: a back layer

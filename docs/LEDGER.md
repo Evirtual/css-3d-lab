@@ -259,6 +259,14 @@ again. Run the step with `--save <dir>` and the pairs stay on disk;
 `node scripts/parity-judge.mjs <dir>` re-judges them for nothing, which is how a new limit is tried
 against everything already compared instead of against the daily budget.
 
+Which models it draws, since 2026-10-08: the release job runs it with `--changed`, so it compares
+treemap, perfume and cube every time, plus up to 15 models not yet compared as they are now, read
+from the per-model record in `docs/checks/parity-models.json` (a model's content fingerprint at its
+last comparison). A model that changed is drawn again at the next release; one that did not is not
+paid for twice. Every run also asks the fonts an export carries about every character every model
+shows (`scripts/check-glyphs.mjs`): a character they lack is drawn by a substitute font on each
+side, which is a difference no limit should forgive, so it fails the step by name.
+
 | what | needs | if it is missing |
 | --- | --- | --- |
 | `check-remote` | the network, `gh` | three checklist lines say so |
