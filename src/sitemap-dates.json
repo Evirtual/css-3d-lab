@@ -45,8 +45,8 @@
     "published": "2026-09-18"
   },
   "models/rubik/": {
-    "hash": "83efc91af907fd3e",
-    "date": "2026-10-04",
+    "hash": "02c24744aa687cb3",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/paycard/": {
@@ -275,23 +275,23 @@
     "published": "2026-09-18"
   },
   "models/stairs/": {
-    "hash": "c66ce2f2204dbcd5",
-    "date": "2026-10-04",
+    "hash": "16bd8b72c34472bb",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/cubegrid/": {
-    "hash": "b3acd45b51972824",
-    "date": "2026-10-04",
+    "hash": "200c105acc1d7e27",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/net/": {
-    "hash": "bb5466b0b785553f",
-    "date": "2026-10-04",
+    "hash": "5d3409e0c961ca85",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/shapeshift/": {
-    "hash": "051098ca667e7940",
-    "date": "2026-10-04",
+    "hash": "5842559a49e9f734",
+    "date": "2026-10-08",
     "published": "2026-09-18"
   },
   "models/tetra/": {
