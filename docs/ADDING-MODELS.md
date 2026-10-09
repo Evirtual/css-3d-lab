@@ -190,6 +190,9 @@ is overwritten by the next run, so with several people checking at once it is so
 
 1. **Animate only `transform` and `opacity`.** Never `width/height/top/left/box-shadow/filter`.
    Need a growing bar? `scaleY` with `transform-origin`.
+   And a blurred `box-shadow` on many elements of a turning model is redrawn every frame: stairs
+   had one on each of its 140 side strips and took 33–42ms a frame, over the perf budget. The same
+   glow on its 14 treads costs nothing measurable. Put a glow on the few big pieces, not the many.
 2. **The hovered / pressed element must not be the one that moves.** Put `:hover` on a static
    wrapper and move a child that has `pointer-events: none`, otherwise it flickers at the edges.
 3. **Coplanar elements have no stable hit-test order in 3D.** For a grid of hoverable tiles give
