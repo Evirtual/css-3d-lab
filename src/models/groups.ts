@@ -5,6 +5,7 @@
  */
 import { groupsM } from './batch-m';
 import { groupsN } from './batch-n';
+import { groupsO } from './batch-o';
 
 export const GROUPS = {
   shapes: 'Shapes & solids',
@@ -37,7 +38,7 @@ const MEMBERS: Record<Group, string[]> = {
  * Demos added in batches list their own group, so a new batch never edits this file: each batch
  * exports a `groups` map and it is merged in here.
  */
-const EXTRA: Partial<Record<Group, string[]>>[] = [groupsM, groupsN];
+const EXTRA: Partial<Record<Group, string[]>>[] = [groupsM, groupsN, groupsO];
 for (const extra of EXTRA) {
   for (const [group, ids] of Object.entries(extra)) MEMBERS[group as Group].push(...(ids ?? []));
 }
