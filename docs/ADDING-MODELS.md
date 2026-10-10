@@ -25,7 +25,7 @@ close-up review.
 | --- | --- | --- |
 | **The snippet** | a `Snippet` (`src/models/snippet-utils.ts`) keyed by the id, in one of the maps `src/models/snippets.ts` merges | `{ how, html, css, js? }`: the only thing drawn, and what visitors copy |
 | **The gallery entry** | a `Demo` object (`src/models/types.ts`) in an array under `src/models/`, listed in `src/models/index.ts` | metadata only: `id`, `title`, `added`, `description`, `category`, `tags`, `technique` |
-| **Its group** | `MEMBERS` in `src/models/groups.ts` | where it sits in the gallery; an unassigned id throws |
+| **Its group** | `MEMBERS` in `src/models/groups.ts`, or a batch's own list (`groupsN`, `groupsO`) that `groups.ts` merges in through `EXTRA` | where it sits in the gallery; an unassigned id throws |
 
 The `id` is lowercase letters and digits. The JSON-driven charts keep both halves in one file,
 `src/models/charts/<id>.ts`, exporting `demo` and `snippet`: `src/models/batch-l.ts` imports each
