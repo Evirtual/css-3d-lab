@@ -1,31 +1,43 @@
 import type { Snippet } from './snippet-utils';
 
-/** The typebars: [letter index, fan angle]. Spaces (6 and 9) strike nothing: the space bar dips. */
+/**
+ * The typebars: [start of the strike in seconds on the 7.2 s clock, fan angle]. Line 1, "Hello,",
+ * strikes from 0 s; line 2, "3D world.", from 2.8 s; one letter every 0.3 s. Its space (3.4 s)
+ * strikes nothing: the space bar dips instead.
+ */
 const BARS: [number, number][] = [
-  [0, -42], [1, 30], [2, -6], [3, 66], [4, -66], [5, 18], [7, -30],
-  [8, 54], [10, -78], [11, 6], [12, 42], [13, -18], [14, 78], [15, -54],
+  [0, -42], [0.3, 30], [0.6, -6], [0.9, 66], [1.2, -66], [1.5, 18],
+  [2.8, -30], [3.1, 54], [3.7, -78], [4.0, 6], [4.3, 42], [4.6, -18], [4.9, 78], [5.2, -54],
+];
+
+/** The body is a stack of rounded slices: [height, inset, colour]. The base, bottom up... */
+const BASE: [number, number, string][] = [
+  [-1, 4, '#3a8170'], [-6, 1.5, '#3f8977'], [-11, 0, '#dfe4ec'], [-16, 0, '#46917f'],
+  [-21, 0, '#4b9784'], [-26, 0, '#519d8a'], [-31, 1.2, '#5ea995'], [-36, 3.5, '#8dd2c0'],
+];
+/** ...and the hood behind the keys, that carries the typebars and the carriage. */
+const HOOD: [number, number, string][] = [
+  [-40, 0, '#539f8c'], [-45.6, 0, '#56a38f'], [-51.2, 0, '#5aa793'], [-56.8, 0, '#5eab97'],
+  [-62.4, 0, '#62af9b'], [-68, 1.2, '#6fbaa6'], [-73.6, 3.5, '#97dac9'],
 ];
 
 /** The platen: eight faces round its axis, lit from above (faces 1 and 2 face up). */
-const ROLL = ['#2c2f39', '#454956', '#3b3f4b', '#262830', '#1b1c22', '#16171c', '#18191e', '#202228'];
+const ROLL = ['#30333e', '#4a4e5c', '#3f4350', '#2a2c35', '#1e1f26', '#18191e', '#1a1b21', '#24262e'];
 
 export const snippetsTypewriter: Record<string, Snippet> = {
   typewriter: {
     how: [
-      'The machine is a handful of flat faces placed in 3D: front, sloped key deck, top and one side cut to the body\'s profile with <code>clip-path</code>. The platen is an eight-sided prism (<code>rotateX(k × 45deg) translateZ(apothem)</code>) and the paper a plane standing on its front. Only the faces the camera can see are drawn.',
-      'The whole loop runs on one clock of 7.2 s, with one letter every 0.3 s. Every part gets <code>animation-delay: calc(var(--d) + …)</code>: the typebar for letter <code>--i</code> waits <code>--i × 0.3s</code>, the letters wait the 0.08 s a bar takes to land, the carriage the 0.16 s until the key is let go. <code>--d</code> starts the clock mid-line, so a paused card shows "Hello, 3D" with the carriage in the middle.',
-      'Typing is <code>steps(16, jump-start)</code>. The carriage jumps one character width left per step. The letters are revealed by a window with <code>overflow: hidden</code> that steps right while the text inside steps left by the same amount, so the text stays put on the paper and one more letter shows each step. Only <code>transform</code> moves, never a width.',
-      'Each typebar sits in a fan: <code>rotateY(--a)</code> turns it to its place around the print point, <code>translateZ(40)</code> sets its pivot out on the arc, and a strike is <code>rotateX(90deg → 47deg)</code> about that pivot. That angle is the one whose tip lands right above the fan\'s centre, so all fourteen bars hit the same spot on the paper.',
-      'At the end of the line the carriage slides back, the knobs turn one ridge (30°, so the jump back to 0° cannot be seen) and the typed line rolls up and fades. The window snaps shut while the line is hidden, so the loop ends where it began.',
+      'The body is a stack of flat, rounded slices: eight for the base and seven for the hood, each a rounded rectangle laid flat with <code>rotateX(90deg)</code> a few units above the last. Seen from above, every slice shows a thin band below the one on top of it, so the bands make the wall, shaded darker towards the floor, with round corners and no seam. The top two slices are inset a little, which rounds the top edge; one slice is chrome, which is the trim.',
+      'The typing runs on one clock of 7.2 s, one letter every 0.3 s. Every part gets <code>animation-delay: calc(var(--d) + …)</code>: a typebar waits for its own letter (<code>--t</code>), the letters wait the 0.08 s a bar takes to land, the carriage the 0.16 s until the key is let go. <code>--d</code> starts the clock in the middle of line 2, so a paused card shows the words with the carriage centred.',
+      'Each line is revealed with <code>steps(n, jump-start)</code>: a window with <code>overflow: hidden</code> steps right one character while the text inside steps left as far, so the text holds still on the paper and one more letter shows each step. The carriage jumps left one character on the same steps. Only <code>transform</code> moves.',
+      'At the end of a line the carriage slides back, the knobs turn a ridge and the typed text moves up one line, so it stands on the white sheet above the print line while the next line is typed. After line 2 both lines roll up and fade; the windows snap shut while they are hidden, so the loop ends where it began.',
+      'Each typebar lies in a fan round the print point: <code>rotateY(--a)</code> turns it to its place, <code>translateZ(38)</code> sets its pivot on the arc, and a strike is <code>rotateX(90deg → 36deg)</code> about that pivot, the angle whose tip lands right above the fan&rsquo;s centre, at the print line. A second strip across each bar, on <code>::before</code>, keeps a bar seen edge on from vanishing.',
     ],
     html: `<div class="scene">
-  <div class="tw" role="img" aria-label="A typewriter typing Hello, 3D world. one letter at a time">
+  <div class="tw" role="img" aria-label="A typewriter typing Hello, then 3D world. one letter at a time">
     <i class="ground"></i>
-    <i class="front"></i>
-    <i class="side"></i>
-    <i class="top"></i>
-    <i class="rail"></i>
-    <i class="basket"></i>
+${BASE.map(([y, n, c], i) => `    <i class="slice base${i === BASE.length - 1 ? " top" : ""}" style="--y:${y};--in:${n};--c:${c}"></i>`).join('\n')}
+${HOOD.map(([y, n, c], i) => `    <i class="slice hood${i === HOOD.length - 1 ? " top" : ""}" style="--y:${y};--in:${n};--c:${c}"></i>`).join('\n')}
     <div class="deck">
       <i class="keys" style="--r:0"></i>
       <i class="keys" style="--r:1"></i>
@@ -33,155 +45,162 @@ export const snippetsTypewriter: Record<string, Snippet> = {
       <i class="keys" style="--r:3"></i>
       <i class="spacebar"></i>
     </div>
-${BARS.map(([i, a]) => `    <i class="bar" style="--i:${i};--a:${a}deg"></i>`).join('\n')}
+    <i class="basket"></i>
+    <i class="guide"></i>
+${BARS.map(([t, a]) => `    <i class="bar" style="--t:${t};--a:${a}deg"></i>`).join('\n')}
     <div class="carriage">
 ${ROLL.map((c, k) => `      <i class="roll" style="--k:${k};--c:${c}"></i>`).join('\n')}
-      <i class="plate" style="--x:-111"></i>
-      <i class="plate" style="--x:111"></i>
-      <i class="knob" style="--x:-117"></i>
-      <i class="knob" style="--x:117"></i>
+      <i class="plate" style="--x:-131"></i>
+      <i class="plate" style="--x:131"></i>
+      <i class="knob" style="--x:-137"></i>
+      <i class="knob" style="--x:137"></i>
       <i class="lever"></i>
       <div class="paper">
-        <div class="line"><div class="win"><span class="ink">Hello, 3D world.</span></div></div>
+        <div class="lines">
+          <div class="win one"><span class="ink">Hello,</span></div>
+          <div class="win two"><span class="ink">3D world.</span></div>
+        </div>
       </div>
-      <i class="bail"></i>
     </div>
   </div>
 </div>`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it */
   --u: 0.21vmin;
-  /* where the 7.2 s clock starts: 2.64 s in, between "D" and the space, carriage in the middle */
-  --d: -2.64s;
-  perspective: calc(1100 * var(--u));
+  /* where the 7.2 s clock starts: 4.24 s in, line 2 half typed, the carriage in the middle */
+  --d: -4.24s;
+  perspective: calc(1300 * var(--u));
 }
 
-/* the camera: a little above and to the right of the machine. Model space: x right, y down,
-   z towards you; the top of the body is at y = -10 */
+/* the camera, a little above and to the right. Model space: x right, y down (the floor is
+   y = 0), z towards you */
 .tw {
   position: relative;
   transform-style: preserve-3d;
-  transform: translate(calc(-6 * var(--u)), calc(35 * var(--u))) rotateX(-24deg) rotateY(-26deg);
+  transform: translate(calc(-6 * var(--u)), calc(108 * var(--u))) rotateX(-18deg) rotateY(-16deg);
 }
 .tw :where(i, div) {
   position: absolute;
-  left: 0;
-  top: 0;
   display: block;
   box-sizing: border-box;
 }
 .tw .deck,
-.tw .carriage {
+.tw .carriage,
+.tw .bar {
   transform-style: preserve-3d;
 }
 
-/* a soft shadow on the floor, under the body */
+/* a soft shadow on the floor */
 .ground {
-  left: calc(-190 * var(--u));
-  top: calc(-130 * var(--u));
-  width: calc(380 * var(--u));
-  height: calc(260 * var(--u));
-  background: radial-gradient(closest-side, rgb(0 0 0 / 0.32), rgb(0 0 0 / 0.12) 60%, transparent);
-  transform: translate3d(0, calc(60 * var(--u)), calc(5 * var(--u))) rotateX(90deg);
+  left: calc(-200 * var(--u));
+  top: calc(-125 * var(--u));
+  width: calc(400 * var(--u));
+  height: calc(250 * var(--u));
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.3), rgb(0 0 0 / 0.1) 65%, transparent);
+  transform: translateY(calc(0.5 * var(--u))) rotateX(90deg);
 }
 
-/* ---- the body: four faces, each placed by its top-left corner ---- */
-.front,
-.side,
-.top,
-.deck,
-.basket,
-.rail {
-  transform-origin: 0 0;
+/* ---- the body: rounded slices laid flat, each centred on its footprint and lifted to --y.
+   An inset slice is smaller and rounder, which bevels the edge ---- */
+.slice {
+  border-radius: calc((var(--R) - var(--in)) * var(--u));
+  background: var(--c);
 }
-/* front: 260 wide, 30 high, at z = 100, with a chrome trim */
-.front {
-  width: calc(260 * var(--u));
-  height: calc(30 * var(--u));
-  border-radius: 0 0 calc(4 * var(--u)) calc(4 * var(--u));
-  background:
-    linear-gradient(transparent 22%, #e4e8ef 22% 30%, #8d93a0 30% 34%, transparent 34%),
-    linear-gradient(#56a090, #3f8172);
-  transform: translate3d(calc(-130 * var(--u)), calc(30 * var(--u)), calc(100 * var(--u)));
+.slice.base {
+  --R: 30;
+  left: calc((-150 + var(--in)) * var(--u));
+  top: calc((-95 + var(--in)) * var(--u));
+  width: calc((300 - 2 * var(--in)) * var(--u));
+  height: calc((190 - 2 * var(--in)) * var(--u));
+  transform: translateY(calc(var(--y) * var(--u))) rotateX(90deg);
 }
-/* the key deck rises 40 over a run of 90, back to the top: rotateX(66.04deg) lays it on that slope */
+.slice.hood {
+  --R: 24;
+  left: calc((-140 + var(--in)) * var(--u));
+  top: calc((-47.5 + var(--in)) * var(--u));
+  width: calc((280 - 2 * var(--in)) * var(--u));
+  height: calc((95 - 2 * var(--in)) * var(--u));
+  transform: translate3d(0, calc(var(--y) * var(--u)), calc(-47.5 * var(--u))) rotateX(90deg);
+}
+/* the two top surfaces catch the light along their front edge */
+.slice.top {
+  background: linear-gradient(transparent 70%, rgb(255 255 255 / 0.22)), var(--c);
+}
+
+/* the key well: a dark plate sloping up from the front of the base to the hood, about 23 degrees */
 .deck {
-  width: calc(260 * var(--u));
-  height: calc(98.5 * var(--u));
-  background: linear-gradient(#73bcaa, #62ab99);
-  transform: translate3d(calc(-130 * var(--u)), calc(-10 * var(--u)), calc(10 * var(--u))) rotateX(66.04deg);
+  left: calc(-128 * var(--u));
+  top: 0;
+  width: calc(256 * var(--u));
+  height: calc(82.86 * var(--u));
+  border-radius: calc(12 * var(--u));
+  background: linear-gradient(#1c1e25, #2b2e37);
+  transform-origin: 0 0;
+  transform: translate3d(0, calc(-70 * var(--u)), calc(2 * var(--u))) rotateX(66.53deg);
 }
-/* top: flat, from the back (z = -90) to the deck (z = 10), a dark carriage bed at the back */
-.top {
-  width: calc(260 * var(--u));
-  height: calc(100 * var(--u));
-  background: linear-gradient(#2a2d36 0 14%, #5c9e8f 14% 16%, #86ccbb 16%);
-  transform: translate3d(calc(-130 * var(--u)), calc(-10 * var(--u)), calc(-90 * var(--u))) rotateX(90deg);
-}
-/* the right side, turned to face +x, cut to the profile: low front, sloped deck, flat top */
-.side {
-  width: calc(190 * var(--u));
-  height: calc(70 * var(--u));
-  background: linear-gradient(#468a7b, #356c60);
-  clip-path: polygon(0 57.14%, 47.37% 0, 100% 0, 100% 100%, 0 100%);
-  transform: translate3d(calc(130 * var(--u)), calc(-10 * var(--u)), calc(100 * var(--u))) rotateY(90deg);
-}
-/* the rail the carriage rides on, along the back */
-.rail {
-  width: calc(240 * var(--u));
-  height: calc(5 * var(--u));
-  border-radius: calc(2.5 * var(--u));
-  background: linear-gradient(#f1f3f7, #7d8390);
-  transform: translate3d(calc(-120 * var(--u)), calc(-17 * var(--u)), calc(-74 * var(--u)));
-}
-
-/* the typebar basket: a dark half disc round the print point, with the rest of the fan painted in */
-.basket {
-  width: calc(84 * var(--u));
-  height: calc(42 * var(--u));
-  border-radius: 0 0 calc(42 * var(--u)) calc(42 * var(--u));
-  background:
-    repeating-conic-gradient(from 90deg at 50% 0, rgb(170 178 192 / 0.55) 0 0.7deg, transparent 0.7deg 5deg),
-    radial-gradient(circle at 50% 0, #101116 30%, #1d1f26);
-  transform: translate3d(calc(-42 * var(--u)), calc(-11 * var(--u)), calc(-33 * var(--u))) rotateX(90deg);
-}
-
-/* four staggered rows of round keys, standing 4 units off the deck */
+/* four staggered rows of round keys on their levers, each row stood up 30 degrees towards you
+   so the caps read as circles, not flat ellipses */
 .keys {
-  left: calc((30 + var(--r) * 5) * var(--u));
-  top: calc((10 + var(--r) * 19) * var(--u));
-  width: calc(200 * var(--u));
-  height: calc(18 * var(--u));
-  background: radial-gradient(circle closest-side, #3a3d47 0 50%, #22242b 56% 64%, #e7eaf0 67% 80%, #6f7480 84% 92%, transparent 95%) 0 0 / calc(20 * var(--u)) 100% repeat-x;
-  transform: translateZ(calc(4 * var(--u)));
+  left: calc((16 + var(--r) * 8) * var(--u));
+  top: calc(var(--r) * 18 * var(--u));
+  width: calc(207 * var(--u));
+  height: calc(17 * var(--u));
+  background: radial-gradient(circle closest-side, #fffdf6 0, #ece5d4 50%, #c4bba8 60%, #2c2f38 68%, #3a3e48 74%, #dfe3ea 80%, #8d93a0 90%, rgb(141 147 160 / 0) 99%) 0 0 / calc(23 * var(--u)) 100% repeat-x;
+  transform: translateZ(calc(6 * var(--u))) rotateX(-30deg);
 }
 .spacebar {
-  left: calc(75 * var(--u));
-  top: calc(86 * var(--u));
-  width: calc(110 * var(--u));
-  height: calc(8 * var(--u));
-  border-radius: calc(4 * var(--u));
-  background: linear-gradient(#4a4e5a, #1f2128);
-  transform: translateZ(calc(4 * var(--u)));
+  left: calc(68 * var(--u));
+  top: calc(73 * var(--u));
+  width: calc(120 * var(--u));
+  height: calc(9 * var(--u));
+  border-radius: calc(4.5 * var(--u));
+  background: linear-gradient(#fffdf6, #d9d1bd);
+  box-shadow: inset 0 calc(-1.5 * var(--u)) 0 #b3aa96;
+  transform: translateZ(calc(5 * var(--u))) rotateX(-20deg);
   animation: space 7.2s linear var(--d) infinite;
 }
 
+/* the typebar basket on top of the hood: a dark half disc round the print point, with the rest
+   of the fan painted in */
+.basket {
+  left: calc(-40 * var(--u));
+  top: 0;
+  width: calc(80 * var(--u));
+  height: calc(40 * var(--u));
+  border-radius: 0 0 calc(40 * var(--u)) calc(40 * var(--u));
+  background:
+    repeating-conic-gradient(from 90deg at 50% 0, rgb(170 178 192 / 0.5) 0 0.8deg, transparent 0.8deg 5deg),
+    radial-gradient(circle at 50% 0, #0e0f14 30%, #1d1f26);
+  transform-origin: 50% 0;
+  transform: translate3d(0, calc(-74.6 * var(--u)), calc(-43 * var(--u))) rotateX(90deg);
+}
+/* the ribbon guide: a small chrome plate just under the print line. It belongs to the body, so
+   the paper moves past it */
+.guide {
+  left: calc(-20 * var(--u));
+  top: calc(-113 * var(--u));
+  width: calc(40 * var(--u));
+  height: calc(9 * var(--u));
+  border-radius: calc(4.5 * var(--u)) calc(4.5 * var(--u)) calc(2 * var(--u)) calc(2 * var(--u));
+  background: linear-gradient(#ffffff, #b9bfca 45%, #7a808d);
+  transform: translateZ(calc(-40 * var(--u)));
+}
+
 /* a typebar: its pivot is the bottom of its box, out on the fan's arc; at rest it lies flat
-   pointing back at the print point (rotateX 90deg), a strike swings it up to 47deg */
+   pointing back at the print point (rotateX 90deg), a strike swings it up to 36deg */
 .bar {
   left: calc(-2.5 * var(--u));
-  top: calc(-55 * var(--u));
+  top: calc(-65 * var(--u));
   width: calc(5 * var(--u));
-  height: calc(55 * var(--u));
+  height: calc(65 * var(--u));
   border-radius: calc(2.5 * var(--u));
-  background: linear-gradient(#2a2d36 0 12%, #ffffff 12% 30%, #c3c8d2 60%, #7d8390);
+  background: linear-gradient(#2a2d36 0 10%, #ffffff 10% 28%, #c3c8d2 60%, #7d8390);
   transform-origin: 50% 100%;
-  transform: translate3d(0, calc(-12 * var(--u)), calc(-33 * var(--u))) rotateY(var(--a)) translateZ(calc(40 * var(--u))) rotateX(90deg);
-  transform-style: preserve-3d;
-  animation: strike 7.2s linear calc(var(--d) + var(--i) * 0.3s) infinite;
+  transform: translate3d(0, calc(-75.6 * var(--u)), calc(-43 * var(--u))) rotateY(var(--a)) translateZ(calc(38 * var(--u))) rotateX(90deg);
+  animation: strike 7.2s linear calc(var(--d) + var(--t) * 1s) infinite;
 }
 /* a second strip across the first, turned 90deg about the bar's length: a flat strip seen edge
-   on vanishes, a cross never does, whichever way its bar points in the fan */
+   on vanishes, a cross never does */
 .bar::before {
   content: '';
   position: absolute;
@@ -191,138 +210,158 @@ ${ROLL.map((c, k) => `      <i class="roll" style="--k:${k};--c:${c}"></i>`).joi
   transform: rotateY(90deg);
 }
 
-/* ---- the carriage: platen, knobs, paper; it moves as one ---- */
+/* ---- the carriage: platen, knobs and paper; it moves as one ---- */
 .carriage {
   animation: carriage 7.2s linear calc(var(--d) + 0.16s) infinite;
 }
 .roll {
-  left: calc(-110 * var(--u));
-  top: calc(-6.2 * var(--u));
-  width: calc(220 * var(--u));
-  height: calc(12.4 * var(--u));
+  left: calc(-130 * var(--u));
+  top: calc(-6.9 * var(--u));
+  width: calc(260 * var(--u));
+  height: calc(13.8 * var(--u));
   background: var(--c);
-  transform: translate3d(0, calc(-36 * var(--u)), calc(-50 * var(--u))) rotateX(calc(var(--k) * 45deg)) translateZ(calc(14.8 * var(--u)));
+  transform: translate3d(0, calc(-96 * var(--u)), calc(-62 * var(--u))) rotateX(calc(var(--k) * 45deg)) translateZ(calc(16.6 * var(--u)));
 }
 /* the end plates of the carriage, which also close the ends of the platen */
 .plate {
-  width: calc(42 * var(--u));
-  height: calc(42 * var(--u));
-  border-radius: calc(21 * var(--u)) calc(21 * var(--u)) calc(4 * var(--u)) calc(4 * var(--u));
-  background: linear-gradient(#4c8f80, #366e62);
+  left: 0;
+  top: 0;
+  width: calc(46 * var(--u));
+  height: calc(46 * var(--u));
+  border-radius: calc(23 * var(--u)) calc(23 * var(--u)) calc(6 * var(--u)) calc(6 * var(--u));
+  background: linear-gradient(#5aa694, #3b7d6e);
   transform-origin: 0 0;
-  transform: translate3d(calc(var(--x) * var(--u)), calc(-57 * var(--u)), calc(-29 * var(--u))) rotateY(90deg);
+  transform: translate3d(calc(var(--x) * var(--u)), calc(-119 * var(--u)), calc(-39 * var(--u))) rotateY(90deg);
 }
-/* the knobs: ridged discs; twelve ridges, so a 30deg turn looks like none */
+/* the knobs: ridged discs; twelve ridges, so a turn of 30deg looks like none */
 .knob {
-  left: calc(-16 * var(--u));
-  top: calc(-16 * var(--u));
-  width: calc(32 * var(--u));
-  height: calc(32 * var(--u));
+  left: calc(-20 * var(--u));
+  top: calc(-20 * var(--u));
+  width: calc(40 * var(--u));
+  height: calc(40 * var(--u));
   border-radius: 50%;
   background:
-    radial-gradient(circle, #c9ced8 0 14%, #2c2e36 17% 56%, transparent 58%),
-    repeating-conic-gradient(#17181d 0 15deg, #444855 15deg 30deg);
-  transform: translate3d(calc(var(--x) * var(--u)), calc(-36 * var(--u)), calc(-50 * var(--u))) rotateY(90deg) rotateZ(0deg);
+    radial-gradient(circle, #e2e6ee 0, #a9afbb 13%, #2c2e36 18%, #2c2e36 54%, rgb(44 46 54 / 0) 60%),
+    repeating-conic-gradient(#18191e 0 15deg, #4a4e5b 15deg 30deg);
+  transform: translate3d(calc(var(--x) * var(--u)), calc(-96 * var(--u)), calc(-62 * var(--u))) rotateY(90deg) rotateZ(0deg);
   animation: feed 7.2s linear var(--d) infinite;
 }
 /* the carriage return lever, out to the front left */
 .lever {
-  top: calc(-2.5 * var(--u));
-  width: calc(50 * var(--u));
-  height: calc(5 * var(--u));
-  border-radius: calc(2.5 * var(--u));
-  background: linear-gradient(#f4f6f9, #8a909c);
+  left: 0;
+  top: calc(-3 * var(--u));
+  width: calc(56 * var(--u));
+  height: calc(6 * var(--u));
+  border-radius: calc(3 * var(--u));
+  background: linear-gradient(#ffffff, #a6acb8 50%, #6f7582);
   transform-origin: 0 50%;
-  transform: translate3d(calc(-104 * var(--u)), calc(-50 * var(--u)), calc(-48 * var(--u))) rotateY(-112deg) rotateZ(-14deg);
+  transform: translate3d(calc(-124 * var(--u)), calc(-110 * var(--u)), calc(-58 * var(--u))) rotateY(-114deg) rotateZ(-16deg);
 }
 
-/* the paper stands on the front of the platen; the typed line is just above it */
+/* the paper stands on the front of the platen, facing you. The print line is on the white,
+   just above the ribbon guide */
 .paper {
-  left: calc(-90 * var(--u));
-  top: calc(-166 * var(--u));
-  width: calc(180 * var(--u));
-  height: calc(130 * var(--u));
-  border-radius: calc(2 * var(--u)) calc(2 * var(--u)) 0 0;
-  background: linear-gradient(#fcfaf4 70%, #ece6d8);
-  transform: translateZ(calc(-34 * var(--u)));
+  left: calc(-100 * var(--u));
+  top: calc(-246 * var(--u));
+  width: calc(200 * var(--u));
+  height: calc(150 * var(--u));
+  border-radius: calc(3 * var(--u)) calc(3 * var(--u)) 0 0;
+  background: linear-gradient(#fdfbf6 78%, #ece6d8);
+  transform: translateZ(calc(-44 * var(--u)));
 }
-/* the line rolls up and fades at the end, while the carriage returns */
-.line {
-  left: calc(13.5 * var(--u));
-  top: calc(107 * var(--u));
-  animation: clear 7.2s linear var(--d) infinite;
+/* both lines; at each carriage return they move up one line (28 units) */
+.lines {
+  left: calc(34 * var(--u));
+  top: calc(104 * var(--u));
+  animation: feed-lines 7.2s linear var(--d) infinite;
 }
-/* the reveal: a window 16 characters wide steps right while the text inside steps left as far,
-   so the text holds still and one more letter shows each step. 9 units is one character of
-   JetBrains Mono at 15 */
+/* the reveal: a window as wide as its line steps right while the text inside steps left as far,
+   so the text holds still and one more letter shows each step. 13.2 units is one character of
+   JetBrains Mono at 22 */
 .win {
   position: relative;
-  width: calc(144 * var(--u));
-  height: calc(18 * var(--u));
+  height: calc(28 * var(--u));
   overflow: hidden;
-  animation: reveal 7.2s linear calc(var(--d) + 0.08s) infinite;
+}
+.win.one {
+  width: calc(79.2 * var(--u));
+  animation: reveal-one 7.2s linear calc(var(--d) + 0.08s) infinite;
+}
+.win.two {
+  width: calc(118.8 * var(--u));
+  animation: reveal-two 7.2s linear calc(var(--d) + 0.08s) infinite;
 }
 .ink {
   display: block;
   white-space: pre;
-  color: #1b1d29;
-  font: 600 calc(15 * var(--u)) / calc(18 * var(--u)) 'JetBrains Mono', monospace;
+  color: #191b26;
+  font: 600 calc(22 * var(--u)) / calc(28 * var(--u)) 'JetBrains Mono', monospace;
   letter-spacing: 0;
-  animation: hold 7.2s linear calc(var(--d) + 0.08s) infinite;
 }
-/* the paper bail, a chrome rod with two rubber rollers, above the line */
-.bail {
-  left: calc(-100 * var(--u));
-  top: calc(-74 * var(--u));
-  width: calc(200 * var(--u));
-  height: calc(4 * var(--u));
-  border-radius: calc(2 * var(--u));
-  background:
-    linear-gradient(90deg, transparent 27%, #1f2026 27% 33%, transparent 33% 67%, #1f2026 67% 73%, transparent 73%),
-    linear-gradient(#f4f6f9, #858b97);
-  transform: translateZ(calc(-30 * var(--u)));
-}
+.win.one .ink { animation: hold-one 7.2s linear calc(var(--d) + 0.08s) infinite; }
+.win.two .ink { animation: hold-two 7.2s linear calc(var(--d) + 0.08s) infinite; }
 
-/* ---- one 7.2 s clock: 16 letters at 0.3 s (0 to 66.667%), a pause, the return (77.778 to
-   88.889%), a blank paper ---- */
+/* ---- one 7.2 s clock. Line 1, 6 letters: 0 to 1.8 s (25%). Return: 2.0 to 2.6 s. Line 2,
+   9 letters: 2.8 to 5.5 s (38.889 to 76.389%). Return: 6.0 to 6.6 s. Blank to 7.2 s ---- */
 @keyframes carriage {
-  0% { transform: translateX(calc(72 * var(--u))); animation-timing-function: steps(16, jump-start); }
-  66.667% { transform: translateX(calc(-72 * var(--u))); }
-  77.778% { transform: translateX(calc(-72 * var(--u))); animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1); }
-  88.889%, 100% { transform: translateX(calc(72 * var(--u))); }
+  0% { transform: translateX(calc(59.4 * var(--u))); animation-timing-function: steps(6, jump-start); }
+  25% { transform: translateX(calc(-19.8 * var(--u))); }
+  25.556% { transform: translateX(calc(-19.8 * var(--u))); animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1); }
+  33.889% { transform: translateX(calc(59.4 * var(--u))); }
+  38.889% { transform: translateX(calc(59.4 * var(--u))); animation-timing-function: steps(9, jump-start); }
+  76.389% { transform: translateX(calc(-59.4 * var(--u))); }
+  81.111% { transform: translateX(calc(-59.4 * var(--u))); animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1); }
+  89.444%, 100% { transform: translateX(calc(59.4 * var(--u))); }
 }
-@keyframes reveal {
-  0% { transform: translateX(calc(-144 * var(--u))); animation-timing-function: steps(16, jump-start); }
-  66.667% { transform: translateX(0); }
-  92% { transform: translateX(0); animation-timing-function: steps(1, jump-start); }
-  100% { transform: translateX(calc(-144 * var(--u))); }
+@keyframes reveal-one {
+  0% { transform: translateX(calc(-79.2 * var(--u))); animation-timing-function: steps(6, jump-start); }
+  25% { transform: translateX(0); }
+  93% { transform: translateX(0); animation-timing-function: steps(1, jump-start); }
+  100% { transform: translateX(calc(-79.2 * var(--u))); }
 }
-@keyframes hold {
-  0% { transform: translateX(calc(144 * var(--u))); animation-timing-function: steps(16, jump-start); }
-  66.667% { transform: translateX(0); }
-  92% { transform: translateX(0); animation-timing-function: steps(1, jump-start); }
-  100% { transform: translateX(calc(144 * var(--u))); }
+@keyframes hold-one {
+  0% { transform: translateX(calc(79.2 * var(--u))); animation-timing-function: steps(6, jump-start); }
+  25% { transform: translateX(0); }
+  93% { transform: translateX(0); animation-timing-function: steps(1, jump-start); }
+  100% { transform: translateX(calc(79.2 * var(--u))); }
 }
-@keyframes clear {
-  0%, 77.778% { transform: translateY(0); opacity: 1; }
-  86.111% { transform: translateY(calc(-18 * var(--u))); opacity: 0; }
-  95% { transform: translateY(0); opacity: 0; }
+@keyframes reveal-two {
+  0% { transform: translateX(calc(-118.8 * var(--u))); }
+  38.889% { transform: translateX(calc(-118.8 * var(--u))); animation-timing-function: steps(9, jump-start); }
+  76.389% { transform: translateX(0); }
+  93% { transform: translateX(0); animation-timing-function: steps(1, jump-start); }
+  100% { transform: translateX(calc(-118.8 * var(--u))); }
+}
+@keyframes hold-two {
+  0% { transform: translateX(calc(118.8 * var(--u))); }
+  38.889% { transform: translateX(calc(118.8 * var(--u))); animation-timing-function: steps(9, jump-start); }
+  76.389% { transform: translateX(0); }
+  93% { transform: translateX(0); animation-timing-function: steps(1, jump-start); }
+  100% { transform: translateX(calc(118.8 * var(--u))); }
+}
+@keyframes feed-lines {
+  0%, 27.778% { transform: translateY(0); opacity: 1; }
+  33.333%, 83.333% { transform: translateY(calc(-28 * var(--u))); opacity: 1; }
+  90.278% { transform: translateY(calc(-56 * var(--u))); opacity: 0; }
+  95.833% { transform: translateY(0); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
 /* a strike: up in 0.08 s, back by 0.22 s */
 @keyframes strike {
   0% { animation-timing-function: cubic-bezier(0.5, 0, 1, 1); }
-  1.111% { transform: translate3d(0, calc(-12 * var(--u)), calc(-33 * var(--u))) rotateY(var(--a)) translateZ(calc(40 * var(--u))) rotateX(47deg); animation-timing-function: cubic-bezier(0, 0, 0.4, 1); }
-  3% { transform: translate3d(0, calc(-12 * var(--u)), calc(-33 * var(--u))) rotateY(var(--a)) translateZ(calc(40 * var(--u))) rotateX(90deg); }
+  1.111% { transform: translate3d(0, calc(-75.6 * var(--u)), calc(-43 * var(--u))) rotateY(var(--a)) translateZ(calc(38 * var(--u))) rotateX(36deg); animation-timing-function: cubic-bezier(0, 0, 0.4, 1); }
+  3% { transform: translate3d(0, calc(-75.6 * var(--u)), calc(-43 * var(--u))) rotateY(var(--a)) translateZ(calc(38 * var(--u))) rotateX(90deg); }
 }
-/* the two spaces: letters 6 and 9, at 25% and 37.5% */
+/* the space in line 2, at 3.4 s (47.222%) */
 @keyframes space {
-  0%, 25%, 27.778%, 37.5%, 40.278%, 100% { transform: translateZ(calc(4 * var(--u))); }
-  26.111%, 38.611% { transform: translateZ(calc(1 * var(--u))); }
+  0%, 47.222%, 50%, 100% { transform: translateZ(calc(5 * var(--u))) rotateX(-20deg); }
+  48.333% { transform: translateZ(calc(1.5 * var(--u))) rotateX(-20deg); }
 }
+/* the knobs turn one ridge at each return: 30deg, then 60deg, which looks the same as 0deg */
 @keyframes feed {
-  0%, 77.778% { transform: translate3d(calc(var(--x) * var(--u)), calc(-36 * var(--u)), calc(-50 * var(--u))) rotateY(90deg) rotateZ(0deg); }
-  86.111%, 100% { transform: translate3d(calc(var(--x) * var(--u)), calc(-36 * var(--u)), calc(-50 * var(--u))) rotateY(90deg) rotateZ(30deg); }
+  0%, 27.778% { transform: translate3d(calc(var(--x) * var(--u)), calc(-96 * var(--u)), calc(-62 * var(--u))) rotateY(90deg) rotateZ(0deg); }
+  33.333%, 83.333% { transform: translate3d(calc(var(--x) * var(--u)), calc(-96 * var(--u)), calc(-62 * var(--u))) rotateY(90deg) rotateZ(30deg); }
+  90.278%, 100% { transform: translate3d(calc(var(--x) * var(--u)), calc(-96 * var(--u)), calc(-62 * var(--u))) rotateY(90deg) rotateZ(60deg); }
 }`,
   },
 };
