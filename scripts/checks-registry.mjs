@@ -153,16 +153,20 @@ export const REGISTRY = [
   },
   {
     key: 'access', script: 'check-access.mjs', scope: 'model', name: 'access', short: 'Access',
-    ruleVersion: 1,
-    rules: [{ v: 1, from: null, what: 'as first recorded' }],
+    ruleVersion: 2,
+    rules: [
+      { v: 1, from: null, what: 'as first recorded' },
+      { v: 2, from: null, what: "every control takes the pointer's own hit: elementFromPoint at the middle of where it is drawn in front, and a real click there, reach it, at rest (and at eight moments of the loop of a model that moves), pointed at and clicked twice round, on the card and at 1280 × 900 (Chrome drops 3D content behind its context root's plane from the hit test: the padlock and the controller, 2026-10-11)" },
+    ],
     title: 'Pause and access (check-access)', label: 'pause and access check (check-access)',
-    rule: 'cleared when its latest result is a pass on the model\'s current code: paused by the site, with reduced motion emulated, its picture does not change over 4 seconds (a script\'s timer included), and a model that moved moves again when un-paused; every rendered control has an accessible name; Tab reaches everything a mouse can use, and focus shows',
+    rule: 'cleared when its latest result is a pass on the model\'s current code: paused by the site, with reduced motion emulated, its picture does not change over 4 seconds (a script\'s timer included), and a model that moved moves again when un-paused; every rendered control has an accessible name; Tab reaches everything a mouse can use, and focus shows; and the pointer reaches every control: elementFromPoint at the middle of where it is drawn, and a real click there, land on it, at rest and in the states pointing and clicking leave, on the card and at 1280 × 900',
     steps: [
       { key: 'pause', label: 'pause', proves: 'with the site paused and reduced motion emulated, the picture does not change over 4 seconds, a script\'s slow timer included' },
       { key: 'resume', label: 'resume', proves: 'a model that moved on its own moves again once it is un-paused' },
       { key: 'names', label: 'names', proves: 'every rendered thing a visitor can focus or operate has an accessible name in Chromium\'s own accessibility tree' },
       { key: 'keyboard', label: 'keyboard', proves: 'Tab reaches every control, every element the script listens to for the mouse, and every hover target, and each has the same effect on focus' },
       { key: 'focus', label: 'focus shows', proves: 'every tab stop changes something on screen when Tab reaches it' },
+      { key: 'pointer', label: 'pointer reach', proves: 'every control, tabindex target and element the script listens to for a press is what document.elementFromPoint returns at the middle of where it is drawn, and what a real click there reaches, at rest (and at eight moments of the loop of a model that moves), and pointed at and clicked twice round, on the card and at 1280 × 900' },
     ],
   },
   {

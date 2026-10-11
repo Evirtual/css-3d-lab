@@ -484,8 +484,9 @@ const STEP_READERS = {
       ['names', /has no accessible name|hidden from screen readers|could not be found in the DOM/],
       ['focus', /focus does not show/],
       ['keyboard', /Tab never reaches|answers the mouse|cannot be focused|give it tabindex|no :focus/],
+      ['pointer', /: hit \S+ \(|: the click went to |: covered by |the pointer cannot reach it|could not be pointed at/],
     ]);
-    const out = spread(['pause', 'resume', 'names', 'keyboard', 'focus'], hit);
+    const out = spread(['pause', 'resume', 'names', 'keyboard', 'focus', 'pointer'], hit);
     const m = /(stops when paused, starts again|still on its own, still when paused); (\d+)\/(\d+) named; (\d+) tab stop/.exec(e.summary ?? '');
     if (m) {
       if (!hit.has('resume') && m[1].startsWith('still on its own')) out.resume = SKIP('the model does not move on its own: there was nothing to start again');
@@ -495,6 +496,9 @@ const STEP_READERS = {
         if (!hit.has('keyboard')) out.keyboard = SKIP('the model has no tab stop and nothing a mouse can use');
       }
     }
+    // a result from before rule v2 has no reach count, and is stale by its rule anyway
+    const reach = /; (\d+)\/(\d+) reachable/.exec(e.summary ?? '');
+    if (!hit.has('pointer') && reach && reach[2] === '0') out.pointer = SKIP('the model has no control for the pointer to reach');
     return { ...out, _unattributed: loose };
   },
   boxsizing(e) {

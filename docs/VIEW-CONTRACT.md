@@ -21,6 +21,7 @@ to is these outcomes, and each has a check that measures it:
 | Finished at rest: the paused first moment is a whole pose, and a paused model stops | `check-models` (the resting pose), `check-access` |
 | The same on every surface: card, viewer, page, editor, export, the copied file | `check-stages`, `check-exports`, `check-media` |
 | No reliance on outside CSS: the model draws the same whatever the page around it sets | `check-boxsizing`, and `check-models`' `--u` in vmin |
+| Every control takes its own click: the pointer at the middle of where it is drawn lands on it, at rest and in every state, on a card and a big page | `check-access` |
 
 How a model gets there is free. Claude, who writes the models, must stay free to invent new ones:
 a new idea may need a layout, a unit, a trick or a structure no model has used yet, and nothing here
@@ -165,6 +166,16 @@ so the site refreshes every scroll box in the frame when it lets a stage go. A m
 of its own for that.
 
 Hit areas may be larger than what is drawn, but they stay invisible and stay inside the canvas.
+
+**What is drawn on a control is what takes its click.** In 3D the browser hit-tests by depth, and
+Chrome drops whatever lies behind the plane of the 3D context's root (the first
+`preserve-3d` element under the perspective): a control tipped back behind that plane is still
+drawn, and `elementsFromPoint` still lists it first, but `elementFromPoint` and a real click
+land on whatever flat part is behind it. So every part that is not a control has
+`pointer-events: none`, and the controls are kept in front of the root's plane, by a
+`translateZ` on the rig that holds them, in every pose the model takes. The padlock's wheel 1
+down key and the controller's Y, Home and bumpers were drawn and named and reached by Tab, and could
+not be clicked (2026-10-11). `npm run check-access` points at and clicks every control.
 
 ## What must hold, in every state
 
@@ -329,7 +340,8 @@ thing judged, a state or a surface added or dropped); a change that only reports
 a new version. `npm run capture` records the version with every result, and the ledger marks a
 result judged under another version stale, "rule changed (vN → vM)", so a pass under the old rule
 never counts under the new one. `check-models` is at v3: v2 is this file's 4vmin centring for every
-model (69cae52), v3 adds `--u` in vmin.
+model (69cae52), v3 adds `--u` in vmin. `check-access` is at v2 (2026-10-11): the pointer has to
+reach every control where it is drawn.
 
 ## The rest of the rules, decided up front
 
@@ -359,6 +371,14 @@ These are the things that would otherwise be found one model at a time.
   when it is a picture) and the same effect on `:focus-visible`; a hidden input is hidden visually
   (opacity, clip), never with `display: none`, so Tab still reaches it through its label. Focus
   must show. `npm run check-access` checks all of it.
+- **The pointer reaches every control where it is drawn.** `npm run check-access` aims at the
+  middle of where each control (a hidden input through its label, a `tabindex` part, anything the
+  script listens to for a press) is drawn in front, and `document.elementFromPoint` there must be
+  the control or a part of it: at rest with no pointer (and, for a model that moves on its own, at
+  eight moments of its loop, so a sway that hides a control for part of it fails), then with the
+  pointer resting there, and a real click there must reach it with both its press and its click. It points and clicks round
+  every control twice, so each is also tried in the state the others leave (open and shut, on and
+  off), on the card and on a 1280 × 900 page. A control no state lets the pointer reach fails too.
 - **Controls are usable by a finger.** 8vmin is about 22px on a card and about 30px in the viewer.
   A control that is smaller than 24px anywhere a visitor can tap it is too small, so the height is
   a floor, not a target.

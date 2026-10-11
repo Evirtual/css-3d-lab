@@ -135,7 +135,7 @@ There is no measuring run, no placement file and no override: set the model's ba
 node scripts/check-models.mjs --pass <id>   # sets --u in vmin, lands in the band, clears the corners, in every state
 node scripts/check-contrast.mjs --pass <id> # every text readable on the dark stage and the light one
 node scripts/check-boxsizing.mjs --pass <id> # draws the same whatever box-sizing the page sets
-node scripts/check-access.mjs <id>          # stops when paused, names its controls, reachable by keyboard
+node scripts/check-access.mjs <id>          # stops when paused, names its controls, reachable by keyboard and by the pointer
 node scripts/snippet-check.mjs <id>         # the standalone file runs with no script error
 node scripts/check-stages.mjs <id>          # the same size on every surface and export shape
 node scripts/check-motion.mjs <id>          # no flicker or pop through its animation and interactions
@@ -246,9 +246,19 @@ is overwritten by the next run, so with several people checking at once it is so
     `elementFromPoint` and a real click do not reach it. The padlock's wheel 1 down key went to its
     flat `.hand` wrapper, and the controller's Y, Home and both bumpers went to the pad (both
     2026-10-11), with every check passing. Give every part that is not a control
-    `pointer-events: none`, keep the controls in front of the root's plane (a `translateZ` on the
-    rig), and prove each control with `document.elementFromPoint` at its centre and a real click,
-    at rest and in every state.
+    `pointer-events: none` and keep the controls in front of the root's plane (a `translateZ` on
+    the rig). `check-access` now proves it (rule v2): it aims at the middle of where each control is
+    drawn in front and asks `document.elementFromPoint` there, at rest, with the pointer resting on
+    it and with a real click, round every control twice so the states clicks leave are tried too, on
+    the card and at 1280 × 900. A failure reads `button.roll.down#1 "Wheel 1 down, now 2": hit
+    div.hand (at rest, pointed at, clicked; 360×300 and 1280×900)`, and says when the control is
+    drawn in front there, which is this bug. The padlock before its fix fails exactly so (its
+    3da8883 snippet, tried with `--try`), and so does a rebuilt broken controller (8501a43's with
+    its `translateZ(90)` taken out): both bumpers, Y, B and Home hit its invisible `.zone` halves.
+    A model that moves is aimed at through its loop too, because a sway can hide a control for
+    part of it: the first full run found heatmap's lowest block wholly behind a tall neighbour
+    for about two seconds of every nine; its blocks were cut from 52 units tall to 40, and every
+    roof now keeps at least a quarter of itself in sight all through the sway.
 
 ## How long the checks take, and which ones you actually have to run
 
@@ -266,6 +276,10 @@ Measured on one laptop, over all 135 models, on 2026-09-25:
 | share preview (`media`) | 2m28s | ~1 s |
 | access | 9m12s | ~4 s |
 | **exports, at the dialog's defaults** | **70m48s** | **~31 s** |
+
+Access has grown since: from rule v2 (2026-10-11) it also points at and clicks every control, on
+the card and at 1280 × 900, and all 167 models took 22.8 min (about 8 s a model, three side by side;
+a model with controls takes longer, about 5 s for each of them).
 
 So the nine per-model checks on **one** model come to roughly a minute of measuring, plus a few
 seconds for each browser to start. Run them on your model's id and nothing else:

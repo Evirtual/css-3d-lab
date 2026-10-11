@@ -140,7 +140,9 @@ check went to v4 (ARIA-only controls are clicked), the text check to v3 (a text 
 can turn away is read from its own pixels), and every model was judged again under both; the SEO
 check went to v3 the same day (a model page is weighed with the snippet it fetches, and the
 budget re-measured once every snippet became its own chunk: 154 KB a model page, 151 KB the home
-page, from 314 and 319 when a page carried every snippet).
+page, from 314 and 319 when a page carried every snippet). On 2026-10-11 the access check went
+to v2 (the pointer must reach every control where it is drawn, by `elementFromPoint` and a real
+click), after two models' controls were found drawn, named and reachable by Tab, but not clickable.
 
 ---
 
@@ -229,7 +231,7 @@ and the steps that do not read dist/ still run. Seventeen minutes to refresh fiv
 than four and a half hours to refresh one.
 
 **What each step costs**, roughly, on an idle machine: `exports` 70 min, `stages` 55, `motion` 40,
-`perf` and `models` 15 each, `access` and `media` 10, `boxsizing` 8, `contrast` 5, `compare` 5,
+`perf` and `models` 15 each, `access` 23 (since it clicks every control), `media` 10, `boxsizing` 8, `contrast` 5, `compare` 5,
 `snippets` 4, `qa` 2, `looks` 1.5, and `remote`, `preview`, `parity`, `app`, `seo` in seconds.
 
 Three steps are 80% of the four hours. If you are waiting, you are waiting for `exports`.

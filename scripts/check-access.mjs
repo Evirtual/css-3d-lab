@@ -48,6 +48,30 @@
  *     the stop (its box two cells wider, or its label's when it is a hidden input) and over the
  *     canvas, with check-motion's own measure and thresholds (scripts/pixels.mjs: STILL_NEAR round
  *     the part, STILL over the canvas). A stop that changes neither shows no focus.
+ *  6. POINTER. Every control a mouse is meant to use must take the mouse's own hit: the native
+ *     controls and widget roles of step 5 (a hidden input through its drawn label), every element
+ *     with tabindex ≥ 0, and every element the script listens to for click, press or drag. Chrome
+ *     drops 3D content lying behind the plane of its 3D context's root from the hit test, so a
+ *     control tipped behind a flat wrapper is drawn and listed first by elementsFromPoint, while
+ *     elementFromPoint and a real click land on the wrapper (the padlock's wheel 1 down key and
+ *     the controller's Y, Home and bumpers, 2026-10-11; docs/ADDING-MODELS.md rule 17). So, still
+ *     paused, each control is aimed at the middle of where it is drawn in front (a 9 × 9 grid over
+ *     its box, every 1.5px when that finds nothing in front, the points where elementsFromPoint
+ *     puts it or a part of it first, the one nearest their centre), and:
+ *      - at rest, with no pointer over the model, document.elementFromPoint there must be the
+ *        control or something in it; and the same for a model that moves on its own, with every
+ *        animation seeked to 12.5%, 25% … 87.5% of its loop, so a sway that hides a control for
+ *        part of the loop fails whatever moment the pause landed on (heatmap, 2026-10-11);
+ *      - then, from the resting pose, the mouse moves there and, once whatever it hovers has
+ *        settled, the same must hold at the pointer; and a real click there (held 80ms) must reach
+ *        it: the pointerdown's and the click's target are the control or something in it, or, when
+ *        the script captured the pointer on the press (a knob's drag on its dial), the click went
+ *        to what captured it.
+ *     The pointing and clicking go round every control twice, in order, so a control is also tried
+ *     in the state the others leave behind (open and shut, on and off), and a control that is not
+ *     drawn in one state is tried in the next. All of it runs on the card and again on a fresh
+ *     1280 × 900 page (check-stages' viewer size). A control no state lets the pointer reach at
+ *     all (pointer-events: none on it, or always under another part) fails too.
  *
  * Prints `pass <id> …` or `FAILS <id> …` with each problem indented under it, and a tally.
  * Exits 1 when a model fails (or could not be checked). The three pictures of a model that moved
@@ -81,6 +105,9 @@ const JOBS = Math.max(1, Number(opt('--jobs', 3)));
 const TRY = opt('--try', null);
 const wanted = args.filter((a) => !a.startsWith('-'));
 const VW = 360, VH = 300;
+const BIG = { width: 1280, height: 900 }; // step 6 again at check-stages' viewer size
+const MOMENTS = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]; // shares of its loop a moving model is aimed at in
+const SETTLE = 550; // ms for what a hover or a click sets off to come to rest (most transitions are under 0.5s)
 const CELL = Math.max(4, Math.round(Math.min(VW, VH) / 75)); // check-motion's grain at this size
 const DIFF = 10; // a pixel whose largest channel moved more than this has changed ...
 const TINY = 8; // ... and a model whose picture changed in more pixels than this is not still
@@ -195,6 +222,122 @@ function focusNow() {
   return { n: a.hasAttribute('data-c3d-n') ? Number(a.getAttribute('data-c3d-n')) : -1, name: `${a.tagName.toLowerCase()}${cls}`, box, visible: a.matches(':focus-visible') };
 }
 
+/**
+ * Step 6, in the frame. The controls are marked data-c3d-r="<k>" (by their data-c3d-n on the card,
+ * by the path of child indexes from #c3d-scene on the big page, which survey has not numbered).
+ *   { op: 'mark', ns } / { op: 'mark', paths }  marks them; returns each one's path and words
+ *   { op: 'aim', k }       where the control is drawn in front, and what elementFromPoint hits there
+ *   { op: 'test', k, at }  what elementFromPoint hits at that point now
+ *   { op: 'seek', f }      every running animation to share f of its loop (0: the resting pose)
+ *   { op: 'arm' }          starts recording pointerdown and click targets afresh
+ *   { op: 'judge', k }     whether the first recorded pointerdown and click reached the control
+ * A hidden input is aimed at through its drawn labels; the control, its labels and anything inside
+ * them count as reaching it.
+ */
+function pointer({ op, k, at, ns, paths, f }) {
+  const scene = document.querySelector('#c3d-scene') || document.body;
+  if (op === 'mark') {
+    document.querySelectorAll('[data-c3d-r]').forEach((el) => el.removeAttribute('data-c3d-r'));
+    const pathOf = (el) => { const out = []; for (let x = el; x && x !== scene; x = x.parentElement) out.unshift([...x.parentElement.children].indexOf(x)); return out.join('/'); };
+    const byPath = (p) => p.split('/').reduce((x, i) => x?.children[Number(i)], scene);
+    const els = ns ? ns.map((n) => document.querySelector(`[data-c3d-n="${n}"]`)) : paths.map(byPath);
+    return els.map((el, i) => {
+      if (!el) return null;
+      el.setAttribute('data-c3d-r', String(i));
+      const words = (el.getAttribute('aria-label') || [...(el.labels ?? [])].map((l) => l.innerText).join(' ') || el.innerText || el.title || el.value || '').replace(/\s+/g, ' ').trim().slice(0, 32);
+      return { path: pathOf(el), words };
+    });
+  }
+  if (op === 'seek') {
+    // every running animation to the same share of its own loop (0 is the resting pose the
+    // contract judges): how many there are
+    const anims = document.getAnimations().filter((a) => { const t = a.effect?.getComputedTiming?.(); return t && Number.isFinite(t.duration) && t.duration > 0; });
+    for (const a of anims) {
+      const t = a.effect.getComputedTiming();
+      a.pause();
+      a.currentTime = Math.max(0, t.delay) + f * t.duration;
+    }
+    return anims.length;
+  }
+  if (op === 'arm') {
+    window.__c3dHits = [];
+    if (!window.__c3dArmed) {
+      window.__c3dArmed = true;
+      for (const t of ['pointerdown', 'gotpointercapture', 'click']) window.addEventListener(t, (e) => window.__c3dHits.push({ t, el: e.target }), true);
+      // a click is about where it lands, not where it leads: no link is followed, no form sent
+      window.addEventListener('click', (e) => { if (e.target.closest?.('a[href]')) e.preventDefault(); }, true);
+      window.addEventListener('submit', (e) => e.preventDefault(), true);
+    }
+    return true;
+  }
+  const describe = (x) => {
+    if (!x) return 'nothing';
+    if (x === document.documentElement) return 'html';
+    if (x === document.body) return 'body';
+    const cls = [...x.classList].filter((c) => !c.startsWith('c3d')).slice(0, 2).map((c) => '.' + c).join('');
+    const own = `${x.tagName.toLowerCase()}${x.id ? '#' + x.id : ''}${cls}`;
+    // a part of another control says whose: another block's roof, a neighbouring key's cap
+    const other = x.closest('[data-c3d-r]');
+    // (by its first class only: a state class such as .open would split one failure into two lines)
+    if (other && other !== x) return `${own} in ${other.tagName.toLowerCase()}${other.classList[0] ? '.' + other.classList[0] : ''} "${(other.getAttribute('aria-label') || other.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 32)}"`;
+    if (other) return `${own} "${(other.getAttribute('aria-label') || other.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 32)}"`;
+    return own;
+  };
+  const el = document.querySelector(`[data-c3d-r="${k}"]`);
+  if (!el) return { skip: 'gone' };
+  const shows = (x) => {
+    const cs = getComputedStyle(x);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+    const r = x.getBoundingClientRect();
+    return r.width >= 1 && r.height >= 1;
+  };
+  const own = el.getBoundingClientRect();
+  const hiddenInput = el.matches('input') && (!shows(el) || +getComputedStyle(el).opacity < 0.05 || (own.width <= 2 && own.height <= 2));
+  const parts = hiddenInput ? [...(el.labels ?? [])].filter(shows) : shows(el) ? [el] : [];
+  const within = (x) => !!x && x.nodeType === 1 && (x === el || el.contains(x) || parts.some((p) => p === x || p.contains(x)));
+  if (op === 'judge') {
+    const hits = window.__c3dHits ?? [];
+    const down = hits.find((h) => h.t === 'pointerdown'), click = hits.find((h) => h.t === 'click');
+    // a script that captures the pointer on the press (a knob's drag, on its dial) is sent the
+    // click itself, wherever the release was: that click was reached through the control
+    const captured = hits.some((h) => h.t === 'gotpointercapture' && h.el === click?.el);
+    return { down: down ? describe(down.el) : 'nothing', downOk: within(down?.el), click: click ? describe(click.el) : 'nothing', clickOk: within(click?.el) || (captured && within(down?.el)) };
+  }
+  if (op === 'test') {
+    const hit = document.elementFromPoint(at[0], at[1]);
+    return { ok: within(hit), hit: describe(hit), front: within(document.elementsFromPoint(at[0], at[1])[0]) };
+  }
+  // aim
+  if (!parts.length) return { skip: 'not drawn' };
+  let inShape = [], front = [];
+  const sample = (grid) => {
+    inShape = []; front = [];
+    for (const p of parts) {
+      const r = p.getBoundingClientRect();
+      const gx = grid(r.width), gy = grid(r.height);
+      for (let i = 0; i < gx; i++) for (let j = 0; j < gy; j++) {
+        const x = r.left + ((i + 0.5) * r.width) / gx, y = r.top + ((j + 0.5) * r.height) / gy;
+        if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) continue;
+        const list = document.elementsFromPoint(x, y);
+        if (!list.some(within)) continue;
+        inShape.push([x, y]);
+        if (within(list[0])) front.push([x, y]);
+      }
+    }
+  };
+  sample(() => 9);
+  // nothing in front on a 9 × 9 grid: a sliver may still show past what is in front of it (a low
+  // block behind a tall one shows 5% of its roof), so look again every 1.5px, up to 60 a side
+  if (!front.length) sample((len) => Math.min(60, Math.max(9, Math.ceil(len / 1.5))));
+  if (!inShape.length) return { skip: 'not under the pointer' };
+  const cx = inShape.reduce((s, q) => s + q[0], 0) / inShape.length, cy = inShape.reduce((s, q) => s + q[1], 0) / inShape.length;
+  const pool = front.length ? front : inShape;
+  const pt = pool.reduce((best, q) => (Math.hypot(q[0] - cx, q[1] - cy) < Math.hypot(best[0] - cx, best[1] - cy) ? q : best));
+  const hit = document.elementFromPoint(pt[0], pt[1]);
+  const first = document.elementsFromPoint(pt[0], pt[1])[0];
+  return { at: pt, ok: within(hit), hit: describe(hit), front: within(first), cover: front.length ? null : describe(first) };
+}
+
 // ---- the run ----
 
 const vite = await createVite({ logLevel: 'error', server: { host: '127.0.0.1', port: 0, hmr: false, watch: null } });
@@ -226,7 +369,7 @@ async function checkModel(id, browser) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   try {
-    return await checkOn(id, page, context, errors);
+    return await checkOn(id, page, context, errors, browser);
   } catch (e) {
     if (isBrowserError(e)) throw e; // the browser's, not the model's: scripts/browser-guard.mjs retries it
     return { id, broke: e.message.split('\n')[0] };
@@ -235,11 +378,10 @@ async function checkModel(id, browser) {
   }
 }
 
-async function checkOn(id, page, context, errors) {
-  const problems = [];
-  const facts = {};
+/** The model's embed page in `page`, bare: its frame and the frame's box on the page, or why not. */
+async function mount(id, page) {
   await page.goto(`${base}/embed/${tried ? demos[0].id : id}/`, { waitUntil: 'domcontentloaded' });
-  if (!(await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(unlessBrowser(false)))) return { id, broke: 'never appeared' };
+  if (!(await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(unlessBrowser(false)))) return { broke: 'never appeared' };
   if (tried) {
     // the tried model in place of the page's own, through the same Preview the site mounts with
     await page.evaluate(async (code) => {
@@ -248,19 +390,85 @@ async function checkOn(id, page, context, errors) {
       const p = new Preview('try', code.title, code, code, 'dark');
       stage.replaceChildren(p.frame);
     }, { title: tried.title, html: tried.html, css: tried.css, ...(tried.js ? { js: tried.js } : {}) });
-    if (!(await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(unlessBrowser(false)))) return { id, broke: 'the tried model never appeared' };
+    if (!(await page.waitForSelector('iframe[data-ready="true"]', { timeout: 20_000 }).then(() => true).catch(unlessBrowser(false)))) return { broke: 'the tried model never appeared' };
   }
   await page.addStyleTag({ content: BARE });
   await page.mouse.move(1, 1);
   const frame = await (await page.$('iframe')).contentFrame();
   const clip = await page.locator('iframe').first().boundingBox();
+  return { frame, clip };
+}
+
+/** The site's paused state, set the way the Pause switch sets it, with reduced motion emulated. */
+async function setPausedOn(page, on) {
+  await page.emulateMedia({ reducedMotion: on ? 'reduce' : 'no-preference' });
+  await page.evaluate((on) => document.documentElement.toggleAttribute('data-paused', on), on);
+  await page.waitForFunction((on) => document.querySelector('iframe')?.contentDocument?.documentElement.hasAttribute('data-paused') === on, on, { timeout: 5000 });
+}
+
+/**
+ * Step 6 on one page: every control aimed at at rest, then pointed at and clicked, twice round.
+ * `marked` is pointer()'s mark result. Returns, per control, the states it was reached in and
+ * what it failed in.
+ */
+async function reach(page, frame, clip, marked, size) {
+  const out = marked.map(() => ({ tried: 0, fails: [], skips: [] }));
+  // what: 'hit <el>' (elementFromPoint there, or the press), 'the click went to <el>' (pressed, then lost), 'covered by <el>'
+  const fail = (k, state, round, what, front = false) => out[k].fails.push({ state, round, size, what, front });
+  await frame.evaluate(() => document.activeElement?.blur?.());
+  await page.mouse.move(1, 1);
+  await wait(SETTLE);
+  // at rest, no pointer over it; and, for a model that moves on its own, at seven more moments of
+  // its loop, since a sway can hide a control for part of it (heatmap's low block behind a tall
+  // one, 2026-10-11). Where the pause happened to land would decide it otherwise
+  for (const f of MOMENTS) {
+    if ((await frame.evaluate(pointer, { op: 'seek', f })) === 0 && f > 0) break;
+    for (let k = 0; k < marked.length; k++) {
+      if (!marked[k]) continue;
+      const r = await frame.evaluate(pointer, { op: 'aim', k });
+      if (r.skip) { out[k].skips.push(r.skip); continue; }
+      out[k].tried++;
+      if (!r.ok) fail(k, f ? `at ${Math.round(f * 1000) / 10}% of its loop` : 'at rest', 1, r.cover ? `covered by ${r.cover}` : `hit ${r.hit}`, r.front);
+    }
+  }
+  // pointed at, then clicked, twice round, from the resting pose
+  await frame.evaluate(pointer, { op: 'seek', f: 0 });
+  await frame.evaluate(pointer, { op: 'arm' });
+  for (const round of [1, 2]) {
+    for (let k = 0; k < marked.length; k++) {
+      if (!marked[k]) continue;
+      const r = await frame.evaluate(pointer, { op: 'aim', k });
+      if (r.skip) { out[k].skips.push(r.skip); continue; }
+      out[k].tried++;
+      const x = clip.x + r.at[0], y = clip.y + r.at[1];
+      await page.mouse.move(x, y);
+      await wait(SETTLE);
+      const t = await frame.evaluate(pointer, { op: 'test', k, at: r.at });
+      if (!t.ok) fail(k, 'pointed at', round, `hit ${t.hit}`, t.front);
+      await frame.evaluate(pointer, { op: 'arm' });
+      await page.mouse.down();
+      await wait(80); // held as a finger holds it, so a press that moves the control away shows
+      await page.mouse.up();
+      await wait(60);
+      const j = await frame.evaluate(pointer, { op: 'judge', k });
+      if (!j.downOk) fail(k, 'clicked', round, `hit ${j.down}`);
+      else if (!j.clickOk) fail(k, 'clicked', round, `the click went to ${j.click}`);
+      await wait(SETTLE);
+    }
+  }
+  await page.mouse.move(1, 1);
+  return out;
+}
+
+async function checkOn(id, page, context, errors, browser) {
+  const problems = [];
+  const facts = {};
+  const mounted = await mount(id, page);
+  if (mounted.broke) return { id, broke: mounted.broke };
+  const { frame, clip } = mounted;
   const shot = async () => decode(await page.screenshot({ clip }));
   const save = (name, png) => writeFileSync(join(OUT, `${id.replace(/[:/\\]/g, '_')}-${name}.png`), png);
-  const setPaused = async (on) => {
-    await page.emulateMedia({ reducedMotion: on ? 'reduce' : 'no-preference' });
-    await page.evaluate((on) => document.documentElement.toggleAttribute('data-paused', on), on);
-    await page.waitForFunction((on) => document.querySelector('iframe')?.contentDocument?.documentElement.hasAttribute('data-paused') === on, on, { timeout: 5000 });
-  };
+  const setPaused = (on) => setPausedOn(page, on);
   await wait(1500);
 
   // 1. does it move on its own
@@ -394,6 +602,59 @@ async function checkOn(id, page, context, errors) {
     if (!reach) { problems.push(`${h.name}: has a :hover effect (${h.head}:hover), but Tab never reaches it, anything in it or anything round it; give it tabindex="0"`); continue; }
     if (!h.counterpart) problems.push(`${h.name}: Tab reaches it, but no :focus, :focus-visible or :focus-within rule gives it the effect ${h.head}:hover has`);
   }
+
+  // 6. pointer: every control takes the mouse's own hit, on the card and on a big page
+  const PRESS = /^(click|dblclick|pointerdown|pointerup|mousedown|mouseup|touchstart)$/;
+  const targets = [];
+  const addTarget = (n, name) => { if (!targets.some((t) => t.n === n) && !info.disabled.includes(n)) targets.push({ n, name }); };
+  for (const c of info.controls) addTarget(c.n, c.name);
+  for (const el of info.named) if (el.generic) addTarget(el.n, el.name);
+  for (const l of listened) if (l.types.some((t) => PRESS.test(t))) addTarget(l.n, await frame.evaluate((n) => { const el = document.querySelector(`[data-c3d-n="${n}"]`); const cls = [...el.classList].filter((c) => !c.startsWith('c3d')).slice(0, 2).map((c) => '.' + c).join(''); return `${el.tagName.toLowerCase()}${cls}`; }, l.n));
+  facts.pointer = { targets: targets.length };
+  if (targets.length) {
+    const marked = await frame.evaluate(pointer, { op: 'mark', ns: targets.map((t) => t.n) });
+    const runs = [await reach(page, frame, clip, marked, `${VW}×${VH}`)];
+    // the same on a fresh page at the viewer's size, the controls found again by their place
+    const big = await browser.newContext({ viewport: BIG, deviceScaleFactor: 1, reducedMotion: 'no-preference' });
+    try {
+      const bigPage = await big.newPage();
+      bigPage.on('pageerror', (e) => errors.push(`${e.message} (at ${BIG.width}×${BIG.height})`));
+      const m = await mount(id, bigPage);
+      if (m.broke) problems.push(`could not be pointed at on a ${BIG.width}×${BIG.height} page: it ${m.broke}`);
+      else {
+        await wait(1500);
+        await setPausedOn(bigPage, true);
+        await wait(600);
+        const again = await m.frame.evaluate(pointer, { op: 'mark', paths: marked.map((x) => x?.path ?? '') });
+        runs.push(await reach(bigPage, m.frame, m.clip, again, `${BIG.width}×${BIG.height}`));
+      }
+    } finally {
+      await big.close().catch(() => {});
+    }
+    let reachable = 0;
+    targets.forEach((t, k) => {
+      const tried = runs.reduce((s, r) => s + r[k].tried, 0);
+      const fails = runs.flatMap((r) => r[k].fails);
+      const name = `${t.name}${marked[k]?.words ? ` "${marked[k].words}"` : ''}`;
+      if (!tried) { problems.push(`${name}: the pointer cannot reach it in any state tried (${[...new Set(runs.flatMap((r) => r[k].skips))].join(', ')}): pointer-events: none on it, or it is never drawn`); return; }
+      if (!fails.length) { reachable++; return; }
+      // one line per thing it hit, with the states and sizes it hit it in
+      const by = new Map();
+      for (const f of fails) by.set(f.what, [...(by.get(f.what) ?? []), f]);
+      for (const [what, list] of by) {
+        const loop = [...new Set(list.map((f) => /^at ([\d.]+)% of its loop$/.exec(f.state)?.[1]).filter(Boolean))];
+        const states = [...new Set(list.map((f) => f.state))].filter((st) => !st.endsWith('of its loop')).map((st) =>
+          st === 'at rest' || list.some((f) => f.state === st && f.round === 1) ? st : `${st} (second round only)`);
+        if (loop.length) states.splice(states[0] === 'at rest' ? 1 : 0, 0, loop.length === MOMENTS.length - 1 ? 'all through its loop' : `at ${loop.join('%, ')}% of its loop`);
+        const sizes = [...new Set(list.map((f) => f.size))];
+        const why = list.some((f) => f.front) ? "; elementsFromPoint puts it first there, so it is drawn but lies behind the plane of its 3D context's root, which the hit test drops"
+          : what.startsWith('the click') ? '; the press reached it, but it had moved from under the pointer by the release' : '';
+        problems.push(`${name}: ${what} (${states.join(', ')}; ${sizes.join(' and ')})${why}`);
+      }
+    });
+    facts.pointer.reachable = reachable;
+  }
+  facts.reach = `${facts.pointer.reachable ?? 0}/${targets.length}`;
   // one line per problem that repeats across a row of the same parts
   const seen = new Map();
   for (const p of problems) {
@@ -429,7 +690,7 @@ async function worker() {
     results.push(r);
     const f = r.facts ?? {};
     if (r.broke) console.log(`FAILS ${id} could not be checked: ${r.broke}${also}`);
-    else if (!r.problems.length) console.log(`pass  ${id} ${f.moves ? 'stops when paused, starts again' : 'still on its own, still when paused'}; ${f.named} named; ${f.tabStops} tab stop(s)${also}`);
+    else if (!r.problems.length) console.log(`pass  ${id} ${f.moves ? 'stops when paused, starts again' : 'still on its own, still when paused'}; ${f.named} named; ${f.tabStops} tab stop(s); ${f.reach} reachable${also}`);
     else {
       console.log(`FAILS ${id} ${r.problems.length} problem(s)${also}`);
       for (const p of r.problems) console.log(`          ${p}`);
@@ -444,6 +705,6 @@ try {
 }
 const failed = results.filter((r) => r.broke || r.problems.length);
 writeFileSync(reportFile, JSON.stringify({ at: new Date().toISOString(), tolerance: { DIFF, TINY }, results }, null, 2));
-console.log(`\n${results.length - failed.length} of ${results.length} models pass the access check (pause, names, keyboard) in ${((Date.now() - started) / 60000).toFixed(1)} min.`);
+console.log(`\n${results.length - failed.length} of ${results.length} models pass the access check (pause, names, keyboard, pointer) in ${((Date.now() - started) / 60000).toFixed(1)} min.`);
 if (failed.length) console.log(`failing: ${failed.map((r) => r.id).join(' ')}`);
 process.exit(failed.length ? 1 : 0);
