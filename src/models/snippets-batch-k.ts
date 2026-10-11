@@ -427,9 +427,9 @@ show('${YEARS[0]}');`,
   heatmap: {
     how: [
       'The JSON is a list of weeks, each a list of numbers. JS writes one number per block: <code>--v = value ÷ the largest value</code>, plus its grid position <code>--x</code> / <code>--y</code>.',
-      'A block is three surfaces. Each button is the <b>roof</b>, lifted by <code>translateZ(calc(var(--v) * 52 * var(--u)))</code>, and the <code>&lt;i&gt;</code> inside it is the roof\'s face; its <code>::before</code> and <code>::after</code> are the two walls you can see, hanging down from its edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>. Their height is the same <code>--v × 52</code> units.',
+      'A block is three surfaces. Each button is the <b>roof</b>, lifted by <code>translateZ(calc(var(--v) * 40 * var(--u)))</code>, and the <code>&lt;i&gt;</code> inside it is the roof\'s face; its <code>::before</code> and <code>::after</code> are the two walls you can see, hanging down from its edges with <code>rotateX(-90deg)</code> and <code>rotateY(90deg)</code>. Their height is the same <code>--v × 40</code> units.',
       'The colour follows the value too: <code>color-mix(in srgb, pink calc(var(--v) * 100%), teal)</code> runs from cold to hot with no colour scale in JS.',
-      'Each block sits in a real <code>&lt;button&gt;</code>, so it can be tabbed to and tapped. The button is the lifted roof, not a tile on the floor: a tile on the floor would be hidden under the taller blocks in front of it, and could never be pointed at. The floor has <code>pointer-events: none</code>, so only the blocks are hit, and the view is tilted no steeper than <code>rotateX(48deg)</code> with blocks no taller than 52 units, so no block ever hides a whole roof behind it.',
+      'Each block sits in a real <code>&lt;button&gt;</code>, so it can be tabbed to and tapped. The button is the lifted roof, not a tile on the floor: a tile on the floor would be hidden under the taller blocks in front of it, and could never be pointed at. The floor has <code>pointer-events: none</code>, so only the blocks are hit, and the blocks are no taller than 40 units under a <code>rotateX(48deg)</code> tilt. That limit is what keeps every roof in sight: as the sway passes 45°, each block stands straight in front of its diagonal neighbour, and at 52 units the 14-commit block hid the 3-commit one behind it entirely; at 40, every roof keeps at least a quarter of itself showing all through the sway.',
       'Every length is a multiple of one base unit, <code>--u</code>, so the grid is the same share of a gallery card, the editor and a recording canvas. The line under it that names the pointed-at block is in plain <code>vmin</code>: it is the caption of the same control zone every model has, one line whatever it says (it is never empty and never wraps), so it cannot move the grid.',
     ],
     html: `<div class="heat">
@@ -516,7 +516,7 @@ show('${YEARS[0]}');`,
   background: none;
   outline: none;
   transform-style: preserve-3d;
-  transform: translateZ(calc(var(--v) * 52 * var(--u)));
+  transform: translateZ(calc(var(--v) * 40 * var(--u)));
   pointer-events: auto;
   cursor: pointer;
 }
@@ -543,7 +543,7 @@ show('${YEARS[0]}');`,
   top: 100%;
   left: 0;
   width: 100%;
-  height: calc(var(--v) * 52 * var(--u));
+  height: calc(var(--v) * 40 * var(--u));
   background: color-mix(in srgb, var(--c) 46%, ${SURFACE});
   transform-origin: top;
   transform: rotateX(-90deg);
@@ -553,7 +553,7 @@ show('${YEARS[0]}');`,
 .cell i::after {
   top: 0;
   left: 100%;
-  width: calc(var(--v) * 52 * var(--u));
+  width: calc(var(--v) * 40 * var(--u));
   height: 100%;
   background: color-mix(in srgb, var(--c) 30%, ${SURFACE});
   transform-origin: left;
