@@ -5,7 +5,7 @@
     "published": "2026-09-18"
   },
   "groups/product/": {
-    "hash": "2f3521cff9acaec2",
+    "hash": "19b8678c66d10615",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -40,7 +40,7 @@
     "published": "2026-09-18"
   },
   "models/phone/": {
-    "hash": "b575391530aedbe0",
+    "hash": "cc9187e007aaef3b",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -50,7 +50,7 @@
     "published": "2026-09-18"
   },
   "models/paycard/": {
-    "hash": "6d8aaba87f113ea7",
+    "hash": "02bc6e0e1c6f1354",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -65,7 +65,7 @@
     "published": "2026-09-18"
   },
   "models/package/": {
-    "hash": "d1f6083a6a2536b1",
+    "hash": "18033fc9e9565b5c",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -80,7 +80,7 @@
     "published": "2026-09-18"
   },
   "models/can/": {
-    "hash": "41cbc0a5dbf62c03",
+    "hash": "da43a3d7f3cd469a",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -95,7 +95,7 @@
     "published": "2026-09-18"
   },
   "models/turntable/": {
-    "hash": "af0f2c7ae45ae82b",
+    "hash": "6f0210295d0b9069",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -110,7 +110,7 @@
     "published": "2026-09-18"
   },
   "models/vinyl/": {
-    "hash": "a16326ce4a898bc7",
+    "hash": "67d3f96905844dfb",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -125,7 +125,7 @@
     "published": "2026-09-18"
   },
   "models/logo3d/": {
-    "hash": "919b2f0f0761c796",
+    "hash": "169dc10af1ef475c",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -145,12 +145,12 @@
     "published": "2026-09-18"
   },
   "models/browser/": {
-    "hash": "21bd47dadc4f1eb0",
+    "hash": "37c3548240878070",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/watch/": {
-    "hash": "f3bf49b847121e60",
+    "hash": "4f6625f2293b18f3",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -175,7 +175,7 @@
     "published": "2026-09-18"
   },
   "models/badge/": {
-    "hash": "37a1cc2908cf1dc5",
+    "hash": "8b022ccbde0d8232",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -335,52 +335,52 @@
     "published": "2026-10-10"
   },
   "models/headphones/": {
-    "hash": "ae1ed01a17bb2165",
+    "hash": "a8a6b8958ca2470a",
     "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/perfume/": {
-    "hash": "5fae73daac5c85ad",
+    "hash": "342868b0541843ee",
     "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/businesscard/": {
-    "hash": "5f0087a49995a370",
+    "hash": "d84ad5c83ef26afc",
     "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/camera/": {
-    "hash": "442114127d867b12",
+    "hash": "deee72a00ebc103d",
     "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/coffeecup/": {
-    "hash": "c53a8a03362e7da5",
+    "hash": "cdc87bc76d55a571",
     "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/speaker/": {
-    "hash": "732e31014afaf9c3",
+    "hash": "2d37dd5a9812bba9",
     "date": "2026-10-11",
     "published": "2026-09-30"
   },
   "models/lipstick/": {
-    "hash": "7e5300503876a3ac",
+    "hash": "9b6fae43d728b6b6",
     "date": "2026-10-11",
     "published": "2026-10-04"
   },
   "models/foldphone/": {
-    "hash": "7b79135507b94d67",
+    "hash": "66964f2a1ddafea8",
     "date": "2026-10-11",
     "published": "2026-10-04"
   },
   "models/controller/": {
-    "hash": "9625bd3ca9eacdbb",
+    "hash": "5a6bdd2461c76bc1",
     "date": "2026-10-11",
     "published": "2026-10-10"
   },
   "models/text/": {
-    "hash": "a9bc81cb6a159233",
+    "hash": "6f3d055203e1a397",
     "date": "2026-10-11",
     "published": "2026-09-18"
   },
@@ -875,8 +875,8 @@
     "published": "2026-10-10"
   },
   "": {
-    "hash": "c5f0f37a70683bfe",
-    "date": "2026-10-10",
+    "hash": "05f8dc9c8e415dff",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   }
 }
