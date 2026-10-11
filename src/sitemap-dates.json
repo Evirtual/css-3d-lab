@@ -5,8 +5,8 @@
     "published": "2026-09-18"
   },
   "groups/product/": {
-    "hash": "d813157e5ab8006a",
-    "date": "2026-10-10",
+    "hash": "2f3521cff9acaec2",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "groups/text/": {
@@ -40,8 +40,8 @@
     "published": "2026-09-18"
   },
   "models/phone/": {
-    "hash": "448f6b51a5c601a0",
-    "date": "2026-10-10",
+    "hash": "b575391530aedbe0",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/rubik/": {
@@ -50,8 +50,8 @@
     "published": "2026-09-18"
   },
   "models/paycard/": {
-    "hash": "35cde3db36d3562c",
-    "date": "2026-10-10",
+    "hash": "6d8aaba87f113ea7",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/solar/": {
@@ -65,8 +65,8 @@
     "published": "2026-09-18"
   },
   "models/package/": {
-    "hash": "85b1a8d5f641f628",
-    "date": "2026-10-10",
+    "hash": "d1f6083a6a2536b1",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/city/": {
@@ -80,8 +80,8 @@
     "published": "2026-09-18"
   },
   "models/can/": {
-    "hash": "61c965c51cc3499d",
-    "date": "2026-10-10",
+    "hash": "41cbc0a5dbf62c03",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/dice/": {
@@ -95,8 +95,8 @@
     "published": "2026-09-18"
   },
   "models/turntable/": {
-    "hash": "047d17435aae04de",
-    "date": "2026-10-10",
+    "hash": "af0f2c7ae45ae82b",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/neonbars/": {
@@ -110,8 +110,8 @@
     "published": "2026-09-18"
   },
   "models/vinyl/": {
-    "hash": "d2aa63da7f03cd57",
-    "date": "2026-10-10",
+    "hash": "a16326ce4a898bc7",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/swipe/": {
@@ -125,8 +125,8 @@
     "published": "2026-09-18"
   },
   "models/logo3d/": {
-    "hash": "49605fe1b4cb1734",
-    "date": "2026-10-10",
+    "hash": "919b2f0f0761c796",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/magnet/": {
@@ -145,13 +145,13 @@
     "published": "2026-09-18"
   },
   "models/browser/": {
-    "hash": "d6fb3dade61bf6c8",
-    "date": "2026-10-10",
+    "hash": "21bd47dadc4f1eb0",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/watch/": {
-    "hash": "fe19da2fd5f10292",
-    "date": "2026-10-10",
+    "hash": "f3bf49b847121e60",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/shadowtext/": {
@@ -175,8 +175,8 @@
     "published": "2026-09-18"
   },
   "models/badge/": {
-    "hash": "1318a20645fdfd90",
-    "date": "2026-10-10",
+    "hash": "37a1cc2908cf1dc5",
+    "date": "2026-10-11",
     "published": "2026-09-18"
   },
   "models/torus/": {
@@ -335,47 +335,47 @@
     "published": "2026-10-10"
   },
   "models/headphones/": {
-    "hash": "ebbc473008bfc273",
-    "date": "2026-10-10",
+    "hash": "ae1ed01a17bb2165",
+    "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/perfume/": {
-    "hash": "ed06b744f682a100",
-    "date": "2026-10-10",
+    "hash": "5fae73daac5c85ad",
+    "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/businesscard/": {
-    "hash": "8a59ec5f900bf508",
-    "date": "2026-10-10",
+    "hash": "5f0087a49995a370",
+    "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/camera/": {
-    "hash": "7a5ac9751f4b0b02",
-    "date": "2026-10-10",
+    "hash": "442114127d867b12",
+    "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/coffeecup/": {
-    "hash": "04308e3454bb3328",
-    "date": "2026-10-10",
+    "hash": "c53a8a03362e7da5",
+    "date": "2026-10-11",
     "published": "2026-09-19"
   },
   "models/speaker/": {
-    "hash": "1eeb0490bb221a53",
-    "date": "2026-10-10",
+    "hash": "732e31014afaf9c3",
+    "date": "2026-10-11",
     "published": "2026-09-30"
   },
   "models/lipstick/": {
-    "hash": "d764d1e13af06b43",
-    "date": "2026-10-10",
+    "hash": "7e5300503876a3ac",
+    "date": "2026-10-11",
     "published": "2026-10-04"
   },
   "models/foldphone/": {
-    "hash": "721589d5a2054b32",
-    "date": "2026-10-10",
+    "hash": "7b79135507b94d67",
+    "date": "2026-10-11",
     "published": "2026-10-04"
   },
   "models/controller/": {
-    "hash": "5e33b161603233e3",
+    "hash": "9625bd3ca9eacdbb",
     "date": "2026-10-11",
     "published": "2026-10-10"
   },
