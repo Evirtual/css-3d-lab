@@ -240,6 +240,15 @@ is overwritten by the next run, so with several people checking at once it is so
     model and its zone together. It once allowed 11vmin vertically with a control zone, and models
     with a caption sat visibly high on their cards and passed. A model that lays its own caption
     out (the toggle's "Dark mode" under its track) centres the whole of it, caption included.
+17. **A control tipped behind its container's plane is drawn but not clicked.** Chrome's hit test
+    drops 3D content that lies behind the plane of the 3D context's root, so the click lands on
+    whatever is painted behind: `elementsFromPoint` still lists the button first, while
+    `elementFromPoint` and a real click do not reach it. The padlock's wheel 1 down key went to its
+    flat `.hand` wrapper, and the controller's Y, Home and both bumpers went to the pad (both
+    2026-10-11), with every check passing. Give every part that is not a control
+    `pointer-events: none`, keep the controls in front of the root's plane (a `translateZ` on the
+    rig), and prove each control with `document.elementFromPoint` at its centre and a real click,
+    at rest and in every state.
 
 ## How long the checks take, and which ones you actually have to run
 
