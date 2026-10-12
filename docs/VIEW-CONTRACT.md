@@ -366,6 +366,11 @@ These are the things that would otherwise be found one model at a time.
   clock), it changes without animating. What the visitor does (a click, a drag) still answers while
   paused. `npm run check-access` proves it for every model: paused, with reduced motion emulated,
   the picture must not change over 4 seconds, and un-paused, a model that moved must move again.
+  The share image is taken the same way: `scripts/og-shot.mjs` pauses the frame the moment it is
+  ready, so a model whose script moves it is shown at its resting pose, and `check-media` renders
+  it paused to compare. Unpaused, the split-flap board was shot on whichever word a busy machine
+  reached first (2026-10-12). A clock shows the time it loaded, and `check-media` tells it from an
+  old image by loading it again a second later.
 - **Every control has a name, and the keyboard reaches it.** A button with only an icon gets an
   `aria-label`; a hover-only part gets `tabindex="0"`, a name (`role="img"` with an `aria-label`
   when it is a picture) and the same effect on `:focus-visible`; a hidden input is hidden visually
