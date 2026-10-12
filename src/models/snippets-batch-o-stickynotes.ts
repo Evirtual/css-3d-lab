@@ -10,6 +10,14 @@ const NOTES: [string, string, string, string, number, number, number][] = [
   ['IDEA', 'Peel me,<br>gently', '#dccfff', '#b6a0f4', 2, 3, -2],
 ];
 
+/** The frame's rounded corners, as short strips at 45° steps round each corner's centre:
+    [centre x, centre y, turn from straight up]. Top left, top right, bottom right. */
+const ARCS: [number, number, number][] = [
+  [-4, -4, -67.5], [-4, -4, -22.5],
+  [380, -4, 22.5], [380, -4, 67.5],
+  [380, 260, 112.5], [380, 260, 157.5],
+];
+
 export const snippetsStickynotes: Record<string, Snippet> = {
   stickynotes: {
     how: [
@@ -23,6 +31,7 @@ export const snippetsStickynotes: Record<string, Snippet> = {
   <div class="board">
     <i class="edge top"></i>
     <i class="edge right"></i>
+${ARCS.map(([x, y, a]) => `    <i class="edge arc" style="--x:${x};--y:${y};--a:${a}deg"></i>`).join('\n')}
 ${NOTES.map(([tag, text, c, e, r, dx, dy], i) => `    <div class="note" tabindex="0" role="note" style="--col:${i % 3};--row:${Math.floor(i / 3)};--c:${c};--e:${e};--r:${r}deg;--dx:${dx};--dy:${dy}">
       <i class="shade"></i>
       <div class="glue">${tag}</div>
@@ -54,26 +63,40 @@ ${NOTES.map(([tag, text, c, e, r, dx, dy], i) => `    <div class="note" tabindex
   /* coplanar notes have no stable hit-test order in 3D: the board takes no pointer, the notes do */
   pointer-events: none;
 }
-/* the frame's thickness: the top and right edges, the two the camera can see */
+/* the frame's thickness: the top and right edges, the two the camera can see. Each stops where
+   the board's rounded corner begins (6 units in from either end): a flat strip cannot follow the
+   curve, and one run to the very corner pokes out past it as a square tip. The corners are short
+   strips instead, below */
 .edge {
   position: absolute;
   background: linear-gradient(#7c5129, #5e3b1c);
 }
 .edge.top {
-  left: calc(-10 * var(--u));
+  left: calc(-4 * var(--u));
   top: calc(-24 * var(--u));
-  width: calc(396 * var(--u));
+  width: calc(384 * var(--u));
   height: calc(14 * var(--u));
   transform-origin: 50% 100%;
   transform: rotateX(90deg);
 }
 .edge.right {
   left: calc(100% + 10 * var(--u));
-  top: calc(-10 * var(--u));
+  top: calc(-4 * var(--u));
   width: calc(14 * var(--u));
-  height: calc(276 * var(--u));
+  height: calc(264 * var(--u));
   transform-origin: 0 50%;
   transform: rotateY(90deg);
+}
+/* a rounded corner's thickness: two strips per corner, each a chord of 45° of the 6-unit curve.
+   Each stands on its corner's centre, turns into depth like the top edge, moves out to the curve
+   (6 × cos 22.5° = 5.54 units) and turns round the centre to its place */
+.edge.arc {
+  left: calc((var(--x) - 2.4) * var(--u));
+  top: calc((var(--y) - 14) * var(--u));
+  width: calc(4.8 * var(--u));
+  height: calc(14 * var(--u));
+  transform-origin: 50% 100%;
+  transform: rotate(var(--a)) translateY(calc(-5.54 * var(--u))) rotateX(90deg);
 }
 
 /* a note: the static wrapper that takes the hover, one cell of a 3 × 2 grid, tilted a little */
@@ -143,13 +166,16 @@ ${NOTES.map(([tag, text, c, e, r, dx, dy], i) => `    <div class="note" tabindex
   transform: rotateX(0deg);
   transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.3, 1);
 }
+/* the words sit high on the flap: the middle strip starts 37 units down, under the flap's last
+   3, and paints over anything there, so the lowest descender (the g and y of "gently", at 35
+   units) has to end above it */
 .flap {
   top: calc(22 * var(--u));
   height: calc(40 * var(--u));
-  padding: calc(3 * var(--u)) calc(9 * var(--u)) 0;
+  padding: 0 calc(9 * var(--u));
 }
 .flap p {
-  font: 700 calc(15 * var(--u)) / 1.2 Inter, system-ui, sans-serif;
+  font: 700 calc(15 * var(--u)) / 1.15 Inter, system-ui, sans-serif;
   letter-spacing: calc(-0.2 * var(--u));
 }
 .mid {
