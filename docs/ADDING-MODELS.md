@@ -218,7 +218,7 @@ is overwritten by the next run, so with several people checking at once it is so
     `npm run check-access` proves it, with names and keyboard reach. The share image is shot
     paused too (`scripts/og-shot.mjs`), so a script that honours the pause is pictured at its
     resting pose every time; one that ignores it is pictured wherever it happens to be, and
-    `check-media` fails it when the next render differs.
+    `check-media` can then only compare it with a fresh render at 1/16 scale.
 12. **A negative length is `calc(-N * var(--u))`, never `-calc(...)`.** `-calc(...)` is invalid
     CSS, so the whole declaration is dropped: the candlestick chart lost the `translateY` that
     lifted its wicks off the floor, and the dice's corner plate sat flush with the faces.
