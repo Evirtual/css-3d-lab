@@ -166,21 +166,21 @@ ${NOTES.map(([tag, text, c, e, r, dx, dy], i) => `    <div class="note" tabindex
   transform: rotateX(0deg);
   transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.3, 1);
 }
-/* the words sit high on the flap: the middle strip starts 37 units down, under the flap's last
-   3, and paints over anything there, so the lowest descender (the g and y of "gently", at 35
-   units) has to end above it */
+/* the flap is tall enough for its words: the middle strip starts under the flap's last 3 units
+   and paints over anything there, so the lowest descender (the g and y of "gently", 39 units
+   down) has to end above 41. The middle strip is shorter by as much, so the note is as long */
 .flap {
   top: calc(22 * var(--u));
-  height: calc(40 * var(--u));
-  padding: 0 calc(9 * var(--u));
+  height: calc(44 * var(--u));
+  padding: calc(3 * var(--u)) calc(9 * var(--u)) 0;
 }
 .flap p {
-  font: 700 calc(15 * var(--u)) / 1.15 Inter, system-ui, sans-serif;
+  font: 700 calc(15 * var(--u)) / 1.2 Inter, system-ui, sans-serif;
   letter-spacing: calc(-0.2 * var(--u));
 }
 .mid {
   top: calc(100% - 3 * var(--u));
-  height: calc(21 * var(--u));
+  height: calc(17 * var(--u));
 }
 /* the tip, darker towards its edge where the paper curls */
 .tip {
