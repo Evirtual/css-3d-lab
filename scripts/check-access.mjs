@@ -1,6 +1,7 @@
 /**
- * Pause and access: every model stops when the site pauses it, every control has a name, and the
- * keyboard reaches everything a mouse can use.
+ * Pause and access: every model stops when the site pauses it, every control has a name, the
+ * keyboard reaches everything a mouse can use, and the pointer reaches every control where it is
+ * drawn (`elementFromPoint` and a real click, at rest and in its states, on a card and at 1280 × 900).
  *
  *   node scripts/check-access.mjs                   every model
  *   node scripts/check-access.mjs clock dice        just these
