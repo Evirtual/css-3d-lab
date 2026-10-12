@@ -18,8 +18,10 @@
  *    hold, as the page's own timeline would have them);
  *  - anything that runs a set number of times (an entrance, a hover transition) at its END, so the
  *    picture is never caught half way into a model that assembles itself.
- * Motion driven by script (requestAnimationFrame) cannot be stopped from outside, so a model that
- * moves in script is still caught wherever it is; check-media allows for that and says so.
+ * Motion driven by script cannot be stopped from outside, but the frame is paused the way the
+ * site's Pause switch pauses it as soon as it is ready, and a model's script holds still while it
+ * is (docs/VIEW-CONTRACT.md), so a timer-driven model is shot at its resting pose too. A script
+ * that moves regardless is still caught wherever it is; check-media allows for that and says so.
  *
  * THE POSE IS THE RESTING POSE (MOMENT 0). It was 1.4 s into the loop, and there 13 of 135 models
  * were off centre or under the contract's 40vmin (the folding-square loader 14vmin high, its
@@ -168,6 +170,16 @@ export async function settle(page, base, demo, { frameTimeout = 20_000 } = {}) {
   await page.waitForSelector('html[data-ready]');
   const cover = demo.id === 'cover';
   if (!cover) await page.waitForSelector('iframe[data-ready="true"]', { timeout: frameTimeout });
+  // Paused the way the site's Pause switch pauses it, the moment the frame is ready: a model's
+  // script holds still while the frame's <html data-paused> is set (docs/VIEW-CONTRACT.md, "A
+  // paused model stops its script too"), so the image is its resting pose, the pose the contract
+  // judges. Unpaused, a script on a timer was shot before or after its first step by how busy
+  // the machine was: the split-flap board changes word every 2.6s, and on 2026-10-12 a busy
+  // build shot its second word while check-media, on a quieter machine, rendered its first.
+  if (!cover) {
+    await page.evaluate(() => document.documentElement.setAttribute('data-paused', ''));
+    await page.waitForFunction(() => document.querySelector('iframe')?.contentDocument?.documentElement.hasAttribute('data-paused'), null, { timeout: 5000 });
+  }
   await page.evaluate(() => document.fonts.ready);
   const frame = cover ? null : page.frames().find((f) => f !== page.mainFrame());
   if (frame) await frame.evaluate(() => document.fonts.ready);

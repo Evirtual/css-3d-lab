@@ -47,7 +47,9 @@
  *    - the file is that render: the share of pixels that differ by more than DIFF (of 255, in any
  *      channel) between the JPEG and the fresh render, in the model's area and in the text panel,
  *      is at most MATCH. A model that moves in script (seen by rendering it twice, WOBBLE_GAP ms
- *      apart) cannot be stopped at a moment, so its area is instead compared at 1/16 scale;
+ *      apart, or, when that is still but not the file, by a second load RELOAD_GAP later: a paused
+ *      clock shows the time it loaded) cannot be stopped at a moment, so its area is instead
+ *      compared at 1/16 scale;
  *    - it is not blank: in the JPEG itself, at least VISIBLE of the model's area differs from the
  *      same page rendered with the model hidden;
  *    - centred and full-sized per docs/VIEW-CONTRACT.md, judged on painted pixels as
@@ -96,6 +98,7 @@ const MATCH = 0.006; // at most this share of an area may differ between the fil
 const COARSE = 0.02; // for a model moving in script: at most this mean difference (0..1) at 1/16 scale
 const VISIBLE = 0.005; // at least this share of the model's area must differ from the page without the model
 const WOBBLE_GAP = 350; // ms between the two renders that tell a model moving in script
+const RELOAD_GAP = 1100; // ms before the second load: over a second, so a paused clock shows another time
 const INK = 24, SOLID = 128; // check-models' two alpha thresholds (all ink, solid body)
 const BAND = 70, FLOOR = 40, WIDEST = 92, CENTRED = 4; // docs/VIEW-CONTRACT.md, as check-models reads it
 const WIDE_FLOOR = 80; // a model tagged 'wide' is sized by width: at least this wide, no height floor (check-models)
@@ -455,14 +458,20 @@ async function checkOne(d, cmp, browser) {
       let c = await cmp.evaluate(compare, args);
       // Still for 350ms but not the file: before calling it old, render it once more from a new
       // page. A model that places things at random on load (snow) differs between two loads as
-      // much as from the file, and is then judged as one that moves in script.
+      // much as from the file, and is then judged as one that moves in script. A clock does too,
+      // once the second has turned: the shot pauses the model as it loads (og-shot.mjs), and a
+      // paused clock shows the time it loaded, so the new page is loaded RELOAD_GAP later.
       if (c.model != null && c.model > MATCH && c.wobble <= MATCH / 4) {
+        await new Promise((r) => setTimeout(r, RELOAD_GAP));
         const ctx2 = await shotContext(browser);
         try {
           const p2 = await ctx2.newPage();
           await settle(p2, base, shotOf(d));
           shots.set(`/__mc/${d.id}.again.png`, await p2.screenshot({ type: 'png' }));
-          c = await cmp.evaluate(compare, args);
+          // a new address: the comparing page keeps an image it has loaded by its address, whatever
+          // the server says, so the same one would compare the first render again (it did, until
+          // 2026-10-12, and the second load never counted)
+          c = await cmp.evaluate(compare, { ...args, again: `${args.again}?reload` });
           facts.reloaded = true;
         } finally { await ctx2.close(); }
       }
