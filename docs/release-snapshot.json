@@ -1,7 +1,7 @@
 {
  "what": "One line per model per check, from the ledger, on the commit named below. Not a fresh run: docs/ledger.html shows it as the state at the last release. The raw run records it came from (docs/checks/) are gitignored; capture your own with `npm run capture -- <check>`.",
- "head": "e4d3504",
- "takenAt": "2026-10-13T09:22:24Z",
+ "head": "527edf2",
+ "takenAt": "2026-10-13T11:04:41Z",
  "counts": {
   "models": 167,
   "toCheck": 0,
@@ -1415,15 +1415,15 @@
  "padlock": {
   "status": "approved",
   "checks": {
-   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-13T08:45:03Z"},
-   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-13T08:47:53Z"},
-   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-13T08:46:37Z"},
-   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-13T08:48:54Z"},
-   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T08:44:15Z"},
-   "access": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-13T08:39:53Z"},
-   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T08:38:21Z"},
-   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-13T08:38:51Z"},
-   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T08:44:38Z"}
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-13T10:41:26Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-13T10:43:19Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-13T10:42:36Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-13T10:43:36Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T10:40:49Z"},
+   "access": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-13T10:37:27Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T10:36:07Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-13T10:36:30Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T10:41:08Z"}
   }
  },
  "flip": {
