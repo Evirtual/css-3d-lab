@@ -1,6 +1,7 @@
 /**
  * Which models the export matrix (every shape, size, quality, format and slider stop) still owes a
- * run, and whether what it proved about the export pipeline still stands.
+ * run, and whether what it proved about the export pipeline still stands. Used by check-exports,
+ * release-prepare and the ledger; not run on its own.
  *
  * WHY THIS EXISTS. The matrix ran on a fixed sample of eight models, and its record was stale the
  * moment ANY model changed, since its fingerprint covered all of src/models. So a fix to one model
@@ -45,6 +46,9 @@ export function matrixScope(root, now) {
   if (!run) { pipeline = false; why = 'the sample has never been run at every setting'; }
   else if (!run.sources) { pipeline = false; why = 'the last run at every setting kept no baseline of the models (it predates per-model matrix records)'; }
   else if (!run.ok) { pipeline = false; why = `the sample found ${(run.mismatches ?? []).length} mismatch(es) at every setting`; }
+  // this file is not on the matrix's gate paths (it judges scope, not how anything is drawn), so
+  // what it does decide, the sample, is held here: a run that did not cover today's sample proves nothing
+  else if (!SAMPLE.every((id) => (run.models ?? []).includes(id))) { pipeline = false; why = 'the sample has changed since it last ran at every setting'; }
   else if (!run.fp?.hash || !fpNow || run.fp.hash !== fpNow.hash || (run.fp.pathsHash && run.fp.pathsHash !== fpNow.pathsHash)) { pipeline = false; why = 'the export pipeline has changed since the sample ran at every setting'; }
   // owed: changed since the baseline (or new), and no passing run of its own on the snippet it has now
   const owed = run?.sources ? ids.filter((id) => run.sources[id] !== snip(id) && !(per[id]?.ok && per[id].snippet === snip(id))) : [];

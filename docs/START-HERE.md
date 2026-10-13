@@ -179,8 +179,9 @@ browsers and the laptop had to be restarted.
 
 [`RELEASE-CHECKLIST.md`](RELEASE-CHECKLIST.md) is the list that gates a push, and the ledger draws
 it with a proof beside each item. From the board, a release is two jobs under **Run** with the
-sign-off between them: **Prepare the release** runs what the push is waiting for and stops at the
-sign-off; you say `npm run signoff -- push`, commit the checklist last and push; **After the push**
+sign-off between them: **Prepare the release** runs what the push is waiting for, over only the
+models whose results are stale (a release that changes one model re-checks that one), and stops at
+the sign-off; you say `npm run signoff -- push`, commit the checklist last and push; **After the push**
 waits for the deploy and asks the served site (see LEDGER.md, "Everything runs from the board").
 
 ---

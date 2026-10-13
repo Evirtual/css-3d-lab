@@ -19,7 +19,7 @@ to is these outcomes, and each has a check that measures it:
 | Within the size band: 40 to 70vmin tall (or its shape class's own band), at most 92vmin wide, clear of the edges and the top corners | `check-models` |
 | Text readable on both stages: WCAG AA against the pixels behind it, dark and light | `check-contrast` |
 | Finished at rest: the paused first moment is a whole pose, and a paused model stops | `check-models` (the resting pose), `check-access` |
-| The same on every surface: card, viewer, page, editor, export, the copied file | `check-stages`, `check-exports`, `check-media` |
+| The same on every surface: card, viewer, page, editor, export, the copied file | `check-stages`, `check-exports` (every model at the dialog's defaults; every setting on the sample and on each model changed since), `check-media` |
 | No reliance on outside CSS: the model draws the same whatever the page around it sets | `check-boxsizing`, and `check-models`' `--u` in vmin |
 | Every control takes its own click: the pointer at the middle of where it is drawn lands on it, at rest and in every state, on a card and a big page | `check-access` |
 

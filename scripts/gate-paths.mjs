@@ -134,7 +134,7 @@ export const STEP_PATHS = {
   // shared frame every model is drawn and exported in. The models themselves are not here: each is
   // held on its own snippet fingerprint (scripts/matrix-scope.mjs), so a change to one model owes a
   // matrix run of that model, not of the sample. Until 2026-10-13 this named all of src/models.
-  matrix: [...BROWSER, 'src/models/snippet-utils.ts', 'src/preview.ts', 'src/fonts/capture-fonts.ts', 'src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs', 'scripts/matrix-scope.mjs'],
+  matrix: [...BROWSER, 'src/models/snippet-utils.ts', 'src/preview.ts', 'src/fonts/capture-fonts.ts', 'src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs'],
 
   /* ---- the per-model checks, which had no paths at all until 2026-09-29 ---- */
   boxsizing: [...RENDERS_MODELS, 'scripts/check-boxsizing.mjs', 'scripts/pixels.mjs'],

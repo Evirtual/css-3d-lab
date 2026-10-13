@@ -150,7 +150,7 @@ Without `npm run export` running, everything works in dev except making a video 
 
 <!-- scripts:start (written by scripts/generate-readme.mjs from each file's opening comment: edit the comment, not this table) -->
 
-74 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
+75 rows: the 31 npm scripts in `package.json`, then every other file in `scripts/` and `server/`.
 Each file says how to run it, and why it exists, in the comment at its top.
 
 | Run it with | What runs | What it is for |
@@ -213,6 +213,7 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | `node scripts/generate-pages.mjs` | `scripts/generate-pages.mjs` | Generates one real HTML page per demo and per group, plus sitemap.xml, robots.txt and the "all demos" link list for the home page. Runs before `vite` / `vite build`. |
 | `node scripts/jobs.mjs` | `scripts/jobs.mjs` | EVERY PROCESS THIS PROJECT HAS, IN ONE LIST, SO THE BOARD CAN OFFER THEM. |
 | `node scripts/ledger-server.mjs` | `scripts/ledger-server.mjs` | Serves the ledger page, and runs the checks when the page asks. |
+| imported, not run | `scripts/matrix-scope.mjs` | Which models the export matrix (every shape, size, quality, format and slider stop) still owes a run, and whether what it proved about the export pipeline still stands. Used by check-exports, release-prepare and the ledger; not run on its own. |
 | imported, not run | `scripts/model-sources.mjs` | Where each model's own source text lives, read straight from the files. Shared by scripts/ledger.mjs (what is converted, which commits touched what) and scripts/capture-check.mjs (a fingerprint of each model's source at the moment a check ran). |
 | imported, not run | `scripts/og-shot.mjs` | How a social preview image is shot: shared by scripts/generate-media.mjs, which makes dist/media/<id>.jpg, and scripts/check-media.mjs, which renders the same page again to prove the file is what the site draws now. Not run on its own. |
 | `node scripts/parity-judge.mjs` | `scripts/parity-judge.mjs` | How a picture drawn here and the same scene drawn on the Worker are judged: fine detail strictly, soft areas loosely, and the worst place in the picture, not its average. |
