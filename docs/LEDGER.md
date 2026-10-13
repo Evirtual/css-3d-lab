@@ -286,8 +286,11 @@ The export matrix (every shape, size, quality, format and slider stop) works the
 pipeline and keeps every model's snippet fingerprint as a baseline in `docs/checks/matrix.json`; a
 model whose snippet has changed since owes a run of its own, kept in
 `docs/checks/matrix-models.json`. Prepare the release runs the models owed, and the sample only when
-the pipeline itself changed. Before, any change to any model staled the sample's forty minutes, and
-the model that had changed was never exported at every setting at all.
+the pipeline itself changed. The pipeline is what `scripts/gate-paths.mjs` names under `matrix`: the
+dialog, the recorder, the renderer and the frame every model is drawn in, and no model's own file;
+a run that did not cover today's sample does not count as its proof. Before, any change to any
+model staled the sample's forty minutes, and the model that had changed was never exported at
+every setting at all.
 
 | what | needs | if it is missing |
 | --- | --- | --- |
