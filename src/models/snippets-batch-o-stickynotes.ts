@@ -21,8 +21,8 @@ const ARCS: [number, number, number][] = [
 export const snippetsStickynotes: Record<string, Snippet> = {
   stickynotes: {
     how: [
-      'A real sticky note is glued only along its top, so each note here is four strips of paper, each hinged inside the one above: the <b>glue strip</b> stays flat on the board, and below it the <b>flap</b> with the words, the <b>middle</b> and the <b>tip</b> each turn on their own top edge (<code>transform-origin: 50% 0</code>, <code>rotateX</code>). Turned 20°, 24° and 28°, the angles add up to 72° at the tip: three small bends read as a curl, where one big one would read as a stiff card.',
-      'Positive <code>rotateX</code> about the top edge brings the bottom towards you, so the flap comes off the cork instead of sinking into it. <code>transform-style: preserve-3d</code> on the note and on every strip keeps each child in 3D inside its parent; without it the curl would be painted flat onto the flap. Each strip is only as tall as its own paper and starts three units up under its parent, in the same colour, so no hairline of cork shows at a hinge. The board is seen from a little above (<code>rotateX(-12deg)</code> brings its top towards you), so a note lifting towards you shows as paper hanging out from the cork.',
+      'A real sticky note is glued only along its top, so each note here is four strips of paper, each hinged inside the one above: the <b>glue strip</b> stays flat on the board, and below it the <b>flap</b> with the words, the <b>middle</b> and the <b>tip</b>, each hinged on its own top edge (<code>transform-origin: 50% 0</code>, <code>rotateX</code>). The flap stays flat too, so the words never move; the middle turns 34° and the tip 40° more, 74° at its edge: two bends read as a curl, where one big one would read as a stiff card.',
+      'Positive <code>rotateX</code> about the top edge brings the bottom towards you, so the paper comes off the cork instead of sinking into it. <code>transform-style: preserve-3d</code> on the note and on every strip keeps each child in 3D inside its parent; without it the curl would be painted flat onto the flap. Each strip is only as tall as its own paper and starts three units up under its parent, in the same colour, so no hairline of cork shows at a hinge. The board is seen from a little above (<code>rotateX(-12deg)</code> brings its top towards you), so a note lifting towards you shows as paper hanging out from the cork.',
       'The shadow is its own element lying on the board under the note: a soft radial gradient, faint and tucked under the paper at rest. On hover it darkens with <code>opacity</code> and stretches down with <code>scaleY</code>, so it reads as the gap under the lifted paper. A light layer on the tip fades in too, where the curl catches the light, and each strip starts a moment after its parent, so the paper rolls outwards. Only <code>transform</code> and <code>opacity</code> move.',
       'The note itself takes the hover and never moves; everything inside it has <code>pointer-events: none</code>, so the lifting paper cannot pull itself out from under the pointer. Each note has <code>tabindex="0"</code> and the same peel on <code>:focus-visible</code>, and its own words for a screen reader.',
       'Going in, the transition overshoots a little (<code>cubic-bezier(0.3, 1.45, 0.5, 1)</code>), which reads as paper springing; going back it eases out with no overshoot, because past flat the paper would go into the board. A transition belongs to the state being entered, which is how one note can lift and settle on different curves.',
@@ -198,22 +198,18 @@ ${NOTES.map(([tag, text, c, e, r, dx, dy], i) => `    <div class="note" tabindex
   transition: opacity 0.5s;
 }
 
-/* peeled: each strip turns a little more than the one above it, 20 + 24 + 28 = 72 degrees at
-   the tip, which is a curl; each starts a moment after its parent, so it rolls outwards */
-.note:hover .flap,
-.note:focus-visible .flap {
-  transform: rotateX(20deg);
-  transition: transform 0.5s cubic-bezier(0.3, 1.45, 0.5, 1);
-}
+/* peeled: the paper under the words curls, 34 + 40 = 74 degrees at the tip, and the tip starts a
+   moment after the middle, so it rolls outwards. The flap with the words stays flat: turned, it
+   slid the words a pixel or two up and sideways and back again, which read as the text moving */
 .note:hover .mid,
 .note:focus-visible .mid {
-  transform: rotateX(24deg);
-  transition: transform 0.5s cubic-bezier(0.3, 1.45, 0.5, 1) 0.04s;
+  transform: rotateX(34deg);
+  transition: transform 0.5s cubic-bezier(0.3, 1.45, 0.5, 1);
 }
 .note:hover .tip,
 .note:focus-visible .tip {
-  transform: rotateX(28deg);
-  transition: transform 0.5s cubic-bezier(0.3, 1.45, 0.5, 1) 0.08s;
+  transform: rotateX(40deg);
+  transition: transform 0.5s cubic-bezier(0.3, 1.45, 0.5, 1) 0.05s;
 }
 .note:hover .tip::after,
 .note:focus-visible .tip::after {
