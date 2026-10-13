@@ -27,7 +27,7 @@ const digits = Array.from({ length: 10 }, (_, i) => `<b style="--i:${i}">${i}</b
 export const snippetsPadlock: Record<string, Snippet> = {
   padlock: {
     how: [
-      'Each wheel is a drum of ten faces round a level axis: face <i>i</i> is <code>rotateX(-i × 36deg) translateZ(34 units)</code>, 22.2 units tall, a hair over <code>2 × 34 × tan(18°)</code>, so the ten close into a ring. The drum turns with <code>rotateX(t × 36deg)</code>, which brings face <i>t</i> to the front, and <code>backface-visibility: hidden</code> drops the faces round the back. Its axis is 27 units behind the face plate, so only the reading row stands out whole; the rows above and below it run into the plate, which is opaque and hides the rest.',
+      'Each wheel is a drum of ten faces round a level axis: face <i>i</i> is <code>rotateX(-i × 36deg) translateZ(34 units)</code>, 22.2 units tall, a hair over <code>2 × 34 × tan(18°)</code>, so the ten close into a ring. The drum turns with <code>rotateX(t × 36deg)</code>, which brings face <i>t</i> to the front, and <code>backface-visibility: hidden</code> drops the faces round the back. Its axis is 27 units behind the face plate, so the reading row stands out whole; in front of each wheel a frame with an opening one face tall covers the half digits above and below it, so a wheel shows one number and the numbers roll through the window.',
       'The body is the face plate and six rounded slices behind it, 8 or 9 units apart in depth, each a little smaller toward the back and just behind the plate. Seen from a little above and to the right, their edges stack into a smooth, rounded wall, and the slice just behind the plate shows as a lit rim round it: a body with real thickness and no hard box edges.',
       'The script keeps one number per wheel and never wraps it: from 9, “up” makes 10, and the drum turns one more step forward instead of spinning back through every digit. It writes that number as <code>--t</code> on the wheel and lets the <code>transition</code> roll it, with a little overshoot, like a detent. The digit shown is the number mod 10.',
       'When all three digits match the code, the script adds one class, <code>.open</code>. CSS does the rest: the shackle springs up out of the body, then swings on its long leg; closing, it swings back first and then drops, because each state carries its own <code>transition-delay</code>. The lock sinks by about half of what the shackle rises, so open and shut are both centred.',
@@ -43,6 +43,7 @@ ${SLICES.map(([z, s], k) => `      <i class="slice" style="--z:${z};--s:${s};--k
       <div class="plate">
         <i class="marks"></i>
 ${WHEEL_X.map((x, w) => `        <span class="wheel" style="--x:${x};--t:${START[w]}" aria-hidden="true">${digits}</span>`).join('\n')}
+${WHEEL_X.map((x) => `        <i class="bezel" style="--x:${x}"></i>`).join('\n')}
 ${WHEEL_X.map((x, w) => `        <button class="roll up" style="--x:${x}" data-w="${w}" data-step="1" aria-label="Wheel ${w + 1} up, now ${START[w]}"></button>`).join('\n')}
 ${WHEEL_X.map((x, w) => `        <button class="roll down" style="--x:${x}" data-w="${w}" data-step="-1" aria-label="Wheel ${w + 1} down, now ${START[w]}"></button>`).join('\n')}
       </div>
@@ -185,13 +186,31 @@ ${WHEEL_X.map((x, w) => `        <button class="roll down" style="--x:${x}" data
   height: calc(22.2 * var(--u));
   display: grid;
   place-items: center;
-  border-inline: calc(4 * var(--u)) solid #cfc6a8;
-  background: linear-gradient(#ffffff, #f1ecdf);
+  /* lit across the middle and a little darker toward its edges, as a face on a drum is */
+  background: linear-gradient(#e6dfca, #fffdf8 30% 70%, #e6dfca);
   color: #0c0a18;
   font: 800 calc(20 * var(--u)) / 1 Inter, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   backface-visibility: hidden;
   transform: rotateX(calc(var(--i) * -36deg)) translateZ(calc(34 * var(--u)));
+}
+
+/* ---- the window in front of each wheel: a frame whose opening is one face tall. The faces above
+   and below the reading row still stand out of the plate for half their height, and at a card's
+   size those half digits read as two more rows of numbers; the frame covers them, so each wheel
+   shows one digit, and the digits roll through the window ---- */
+.bezel {
+  /* a little wider than the drum and only slightly rounded: a rounder corner left the square corners
+     of the faces above and below poking out past it */
+  left: calc((var(--x) - 28) * var(--u));
+  top: calc(54 * var(--u));
+  width: calc(56 * var(--u));
+  height: calc(46 * var(--u));
+  border: solid #3a2896;
+  border-width: calc(12.5 * var(--u)) calc(5 * var(--u));
+  border-radius: calc(4 * var(--u));
+  box-shadow: inset 0 calc(1.5 * var(--u)) 0 rgb(0 0 0 / 0.35), 0 calc(1 * var(--u)) 0 rgb(255 255 255 / 0.18);
+  transform: translateZ(calc(8 * var(--u)));
 }
 
 /* ---- the arrows: raised keys on the plate, above and below each wheel ---- */

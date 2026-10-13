@@ -21,6 +21,12 @@ const HOOD: [number, number, string][] = [
   [-62.4, 0, '#62af9b'], [-68, 1.2, '#6fbaa6'], [-73.6, 3.5, '#97dac9'],
 ];
 
+/** The key rows, back to front: how many keys. Each row is centred in the well, and a row one key
+    shorter than the next sits half a key in from it, so the rows interlock as a typewriter's do. */
+const ROWS = [10, 9, 10, 9];
+/** One key to the next across a row, and one row to the next, in units. */
+const PITCH = 22;
+
 /** The platen: eight faces round its axis, lit from above (faces 1 and 2 face up). */
 const ROLL = ['#30333e', '#4a4e5c', '#3f4350', '#2a2c35', '#1e1f26', '#18191e', '#1a1b21', '#24262e'];
 
@@ -39,10 +45,7 @@ export const snippetsTypewriter: Record<string, Snippet> = {
 ${BASE.map(([y, n, c], i) => `    <i class="slice base${i === BASE.length - 1 ? " top" : ""}" style="--y:${y};--in:${n};--c:${c}"></i>`).join('\n')}
 ${HOOD.map(([y, n, c], i) => `    <i class="slice hood${i === HOOD.length - 1 ? " top" : ""}" style="--y:${y};--in:${n};--c:${c}"></i>`).join('\n')}
     <div class="deck">
-      <i class="keys" style="--r:0"></i>
-      <i class="keys" style="--r:1"></i>
-      <i class="keys" style="--r:2"></i>
-      <i class="keys" style="--r:3"></i>
+${ROWS.map((n, r) => `      <i class="keys" style="--r:${r};--n:${n};--l:${(256 - n * PITCH) / 2}"></i>`).join('\n')}
       <i class="spacebar"></i>
     </div>
     <i class="basket"></i>
@@ -138,14 +141,16 @@ ${ROLL.map((c, k) => `      <i class="roll" style="--k:${k};--c:${c}"></i>`).joi
   transform-origin: 0 0;
   transform: translate3d(0, calc(-70 * var(--u)), calc(2 * var(--u))) rotateX(66.53deg);
 }
-/* four staggered rows of round keys on their levers, each row stood up 30 degrees towards you
-   so the caps read as circles, not flat ellipses */
+/* four rows of round keys on their levers, each centred in the well, ten and nine keys long in
+   turn, so each row sits half a key in from its neighbours; each stood up 30 degrees towards you so the
+   caps read as circles, not flat ellipses. A row --n keys long is --n pitches of one key drawn
+   and repeated */
 .keys {
-  left: calc((16 + var(--r) * 8) * var(--u));
-  top: calc(var(--r) * 18 * var(--u));
-  width: calc(207 * var(--u));
-  height: calc(17 * var(--u));
-  background: radial-gradient(circle closest-side, #fffdf6 0, #ece5d4 50%, #c4bba8 60%, #2c2f38 68%, #3a3e48 74%, #dfe3ea 80%, #8d93a0 90%, rgb(141 147 160 / 0) 99%) 0 0 / calc(23 * var(--u)) 100% repeat-x;
+  left: calc(var(--l) * var(--u));
+  top: calc((2 + var(--r) * 17.5) * var(--u));
+  width: calc(var(--n) * 22 * var(--u));
+  height: calc(15 * var(--u));
+  background: radial-gradient(circle closest-side, #fffdf6 0, #ece5d4 50%, #c4bba8 60%, #2c2f38 68%, #3a3e48 74%, #dfe3ea 80%, #8d93a0 90%, rgb(141 147 160 / 0) 99%) 0 0 / calc(22 * var(--u)) 100% repeat-x;
   transform: translateZ(calc(6 * var(--u))) rotateX(-30deg);
 }
 .spacebar {
