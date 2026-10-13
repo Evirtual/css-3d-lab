@@ -157,7 +157,13 @@ A release is two of those jobs with the sign-off between them. **Prepare the rel
 (`scripts/release-prepare.mjs`) runs what the push is waiting for — the same list the dialog shows
 under "What the push needs" — then the jobs that close a line, then the snapshot; it commits the
 two records a run regenerates (the snapshot, the sitemap dates) and stops at the first thing that
-does not hold, or at the sign-off, which it never ticks. **After the push**
+does not hold, or at the sign-off, which it never ticks. A check with a result per model runs over
+only the models whose own result is stale, failed or missing: each result stands on its own
+fingerprint, and the checklist counts them model by model, so the other models have nothing to
+re-earn. Until 2026-10-13 it ran such a check over every model as soon as one was stale, and a
+hover fix to one model cost six and a half hours. The steps with no per-model record (qa, snippets,
+preview, compare) still run whole, since their record cannot say which models a run covered.
+**After the push**
 (`scripts/release-after.mjs`) waits for the deploy of HEAD, builds here the same way, and asks the
 served site. Between them: `npm run signoff -- push`, commit the checklist last, `git push`.
 

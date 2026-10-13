@@ -7,7 +7,8 @@
  * It asks the board what the push needs -- the one answer the Run dialog shows under "What the
  * push needs" (scripts/jobs.mjs, whatIsNeeded, over the ledger's own verdict), kept in one place
  * rather than copied here -- and then does it: the gate steps that are not current, through
- * scripts/verify.mjs --step; the jobs that close a line (both renderers, the export matrix, the
+ * scripts/verify.mjs --step (a check with a result per model, over only the models whose own
+ * result is not a fresh one; see ONLY THE MODELS THAT NEED IT below); the jobs that close a line (both renderers, the export matrix, the
  * snapshot); the two records a run regenerates, committed (docs/release-snapshot.json,
  * src/sitemap-dates.json); the ledger rebuilt; and asks again, up to three rounds. It stops at the
  * first thing that does not hold and says what, in the words of the run that found it.
@@ -26,6 +27,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JOB } from './jobs.mjs';
+import { REGISTRY } from './checks-registry.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const API = `http://127.0.0.1:${process.env.C3D_BOARD_PORT || 5178}/api`;
@@ -37,6 +39,32 @@ const say = (s) => console.log(`${new Date().toISOString().slice(11, 19)}  ${s}`
 const git = (...a) => execFileSync('git', ['-c', 'core.quotepath=off', ...a], { cwd: ROOT, encoding: 'utf8' }).trim();
 const run = (argv) => spawnSync(process.execPath, argv, { cwd: ROOT, stdio: 'inherit', env: { ...process.env, FORCE_COLOR: '0' } }).status ?? 1;
 const stop = (why) => { say(`STOPPED: ${why}`); process.exit(1); };
+
+/*
+ * ONLY THE MODELS THAT NEED IT.
+ *
+ * A check with a result per model was run here over all 167 the moment one of them went stale:
+ * the board names the STEP, and `verify --step` runs a step over every model. So fixing one model
+ * cost the whole gate, six and a half hours, to re-earn 166 verdicts nothing had touched
+ * (2026-10-13, a hover fix to the sticky notes). Each of those verdicts carries its own
+ * fingerprint (scripts/fingerprint.mjs: the model's own sources and the files that draw it), the
+ * ledger already says which ones still stand, and the checklist reads them model by model
+ * (checklist-proofs.mjs, recorded()). So such a step runs over the models whose result is stale,
+ * failed or missing, and no others. A change to a file every model is drawn by, or to a check,
+ * stales every model's result, and then every model runs, as it should.
+ *
+ * The steps with no per-model record (qa, snippets, preview, compare) still run over everything:
+ * their line is proved by the step's own fingerprint, which says nothing about which models a
+ * run covered, so a partial run would be a pass for models it never looked at.
+ */
+const PER_MODEL = new Set(REGISTRY.filter((c) => c.scope === 'model').map((c) => c.key));
+/** The models with no fresh result for `key` in the ledger (a flag on current code is a result), or null if it cannot be read. */
+function notCurrent(key) {
+  let models;
+  try { models = JSON.parse(readFileSync(join(ROOT, 'docs', 'ledger.json'), 'utf8')).models; } catch { return null; }
+  if (!Array.isArray(models) || !models.length) return null;
+  return models.filter((m) => { const c = m.checks?.[key]; return !c || c.stale || !['pass', 'flagged'].includes(c.status); }).map((m) => m.id);
+}
 
 async function needed() {
   let body;
@@ -69,9 +97,21 @@ for (let round = 1; round <= ROUNDS; round++) {
     break;
   }
   say(`round ${round}: ${n.open} line(s) open; to run: ${[...n.steps.map((s) => `step ${s}`), ...jobs.map((j) => `job ${j}`)].join(', ')} (about ${n.minutes} min)`);
-  if (n.steps.length) {
-    say(`verify --step ${n.steps.join(',')}`);
-    if (run(['scripts/verify.mjs', '--step', n.steps.join(',')]) !== 0) stop('a gate step did not hold: the lines marked FAILS above say which, and the board holds the detail per model');
+  const perModel = n.steps.filter((k) => PER_MODEL.has(k));
+  const whole = n.steps.filter((k) => !PER_MODEL.has(k));
+  if (perModel.length) {
+    const lists = perModel.map((k) => notCurrent(k));
+    const ids = lists.includes(null) ? null : [...new Set(lists.flat())];
+    if (ids && !ids.length) say(`${perModel.join(', ')}: every model has a fresh result in the ledger, so there is nothing of them to run`);
+    else {
+      say(ids ? `verify --step ${perModel.join(',')} over the ${ids.length} model(s) without a fresh result: ${ids.length > 12 ? `${ids.slice(0, 12).join(' ')} and ${ids.length - 12} more` : ids.join(' ')}`
+        : `verify --step ${perModel.join(',')} over every model (the ledger could not be read to say which need it)`);
+      if (run(['scripts/verify.mjs', '--step', perModel.join(','), ...(ids ?? [])]) !== 0) stop('a gate step did not hold: the lines marked FAILS above say which, and the board holds the detail per model');
+    }
+  }
+  if (whole.length) {
+    say(`verify --step ${whole.join(',')}`);
+    if (run(['scripts/verify.mjs', '--step', whole.join(',')]) !== 0) stop('a gate step did not hold: the lines marked FAILS above say which, and the board holds the detail per model');
   }
   for (const key of jobs) {
     const job = JOB.get(key);
