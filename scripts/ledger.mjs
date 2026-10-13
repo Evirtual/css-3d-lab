@@ -34,7 +34,8 @@ const { entriesOf, fileOwner, isModelPath, norm, ROOT, sourcesOf, workingSources
 const { evaluateChecklist } = await import(`./checklist-proofs.mjs${new URL(import.meta.url).search}`);
 const { judgeItems, isGreen } = await import(`./push-gate.mjs${new URL(import.meta.url).search}`);
 // staleness: whether each result still describes what it judged (snippet, play, text, render path)
-const { stalenessIndex, STALENESS_TEXT, contains } = await import(`./fingerprint.mjs${new URL(import.meta.url).search}`);
+const { stalenessIndex, STALENESS_TEXT, contains, fingerprintsNow } = await import(`./fingerprint.mjs${new URL(import.meta.url).search}`);
+const { matrixScope } = await import(`./matrix-scope.mjs${new URL(import.meta.url).search}`);
 // the one list of checks: capture-check.mjs runs them, this gates on them, the page draws them
 const { REGISTRY, MODEL_CHECKS, forPage, ruleStale } = await import(`./checks-registry.mjs${new URL(import.meta.url).search}`);
 // the committed state at the last release, for a clone whose own checks have not run
@@ -809,7 +810,10 @@ lap('ledger object');
 // the release checklist: each item's proof run now where it is cheap, local and read-only
 if (ledger.readiness.checklist.exists) {
   const cl = ledger.readiness.checklist;
-  cl.items = evaluateChecklist(cl.items, { ROOT, counts: ledger.counts, models, atRiskList: ledger.readiness.atRisk, head, checkFiles, cache: cache ? (cache.proofs ??= new Map()) : null });
+  // which models the export matrix still owes a run (scripts/matrix-scope.mjs); the fingerprints are the ones staleness was judged by
+  let matrix = null;
+  try { matrix = matrixScope(ROOT, await fingerprintsNow()); } catch (e) { notes.push(`the export matrix's scope could not be worked out: ${String(e?.message ?? e).split(/\r?\n/)[0]}`); }
+  cl.items = evaluateChecklist(cl.items, { ROOT, counts: ledger.counts, models, atRiskList: ledger.readiness.atRisk, head, checkFiles, matrix, cache: cache ? (cache.proofs ??= new Map()) : null });
   /*
    * THREE STAGES, AND ONLY THE MIDDLE ONE IS A PERSON.
    *

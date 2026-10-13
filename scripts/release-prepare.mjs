@@ -28,6 +28,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JOB } from './jobs.mjs';
 import { REGISTRY } from './checks-registry.mjs';
+import { matrixScope } from './matrix-scope.mjs';
+import { fingerprintsNow } from './fingerprint.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const API = `http://127.0.0.1:${process.env.C3D_BOARD_PORT || 5178}/api`;
@@ -116,8 +118,16 @@ for (let round = 1; round <= ROUNDS; round++) {
   for (const key of jobs) {
     const job = JOB.get(key);
     if (!job) stop(`the board asked for a job this list does not have: ${key}`);
-    say(`job ${key}: ${job.name}`);
-    if (run(job.argv) !== 0) stop(`${job.name} did not hold: its output above says why`);
+    let argv = job.argv;
+    // the export matrix runs over the models it owes, not a fixed sample (scripts/matrix-scope.mjs):
+    // the sample only when the pipeline changed or has no baseline, the changed models otherwise
+    if (key === 'matrix') {
+      const scope = matrixScope(ROOT, await fingerprintsNow());
+      if (!scope.toRun.length) { say(`job matrix: the pipeline's proof stands and every model changed since has its own pass at every setting: nothing to run`); continue; }
+      argv = ['scripts/check-exports.mjs', ...scope.toRun];
+      say(`job matrix: ${job.name}, over ${scope.pipeline ? `the ${scope.toRun.length} changed model(s)` : `the sample${scope.toRun.length > 8 ? ` and ${scope.toRun.length - 8} changed model(s)` : ''} (${scope.why})`}: ${scope.toRun.join(' ')}`);
+    } else say(`job ${key}: ${job.name}`);
+    if (run(argv) !== 0) stop(`${job.name} did not hold: its output above says why`);
   }
   // the records a run regenerates, committed; anything else uncommitted is a person's and stops this
   for (const file of RECORDS) {

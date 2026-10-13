@@ -301,13 +301,16 @@ This is the part that confuses people, so: **the matrix is not a separate check.
 | | what it makes | how long | does it gate a model? |
 | --- | --- | --- | --- |
 | `check-exports --defaults <id>` | the dialog's default settings: a 1:1 1600 px PNG, a 9:16 1080p video, one drift take | **~31 s a model** | **Yes.** This is the verdict the ledger counts |
-| `check-exports <id>` (no flag) | *every* shape × size × quality × format, and every stop of the Model size slider | **~6.5 min a model**, twelve times more | **No.** It is no model's verdict; the release checklist runs it on the sample before a push |
+| `check-exports <id>` (no flag) | *every* shape × size × quality × format, and every stop of the Model size slider | **~6.5 min a model**, twelve times more | **No.** It is no model's verdict; Prepare the release runs it before a push, over the models that changed since the sample last ran |
 
-The matrix proves **the export dialog**, not your model. Its job is to catch a bug in the pipeline —
-a format that writes the wrong header, a slider stop that puts the model off centre — and those are
-the same for all 135 models, so it runs on a built-in sample of eight and that is enough. If you
-have added a model and not touched `src/video.ts`, `src/record.ts` or `src/capture-scene.ts`, you
-never need to run it.
+The matrix proves **the export dialog**. Its job is to catch a bug in the pipeline — a format that
+writes the wrong header, a slider stop that puts the model off centre — and those are the same for
+every model, so a built-in sample of eight proves the pipeline. Since 2026-10-13 it also covers what
+changes: a model added or changed after the sample last ran owes a run of its own at every setting,
+and Prepare the release runs exactly those models, or the sample when the pipeline itself
+(`src/video.ts`, `src/record.ts`, `src/capture-scene.ts` and the rest) has changed
+(`scripts/matrix-scope.mjs`). So you never need to run it by hand: a release that changes one model
+exports that model at every setting, about six minutes, instead of the sample's forty.
 
 The ledger says this too, in the check's own title: **"Export at default settings"**, with step 5 of
 what it covers reading *"the rest of the settings matrix … run on a sample of models, and never part

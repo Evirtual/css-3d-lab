@@ -207,7 +207,10 @@ function argsFor(key) {
 
 
 function prepare(key) {
-  const argv = PREPARE[key];
+  // only the models asked for: the share images are what check-media reads and nothing else here
+  // does (the deploy makes its own), so a run over one model needs one image, not all 167, which
+  // was three minutes of every one-model release
+  const argv = PREPARE[key] && [...PREPARE[key], ...models];
   if (!argv) return Promise.resolve(0);
   console.log(`        first: ${argv[0]} (check-${key} reads what it makes)`);
   return new Promise((resolve) => {

@@ -29,7 +29,7 @@ import { snapshotStatus } from './release-snapshot.mjs';
 const { stepFingerprint, whatChanged, fingerprintAt } = await import(`./gate-paths.mjs${new URL(import.meta.url).search}`);
 const { rewritten } = await import(`./generate-readme.mjs${new URL(import.meta.url).search}`);
 
-export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, cache = null }) {
+export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, matrix = null, cache = null }) {
   const mtime = (p) => { try { return statSync(join(ROOT, p)).mtimeMs; } catch { return 0; } };
   // HEAD read straight from .git, as the watcher does: no process to start
   const headNow = () => {
@@ -386,14 +386,18 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
         return F(`the sample was run at every setting ${when} over ${(m.models ?? []).length} model(s) and found ${(m.mismatches ?? []).length} mismatch(es)${one ? `, e.g. ${one.model} ${one.check} ${one.what}: ${one.detail}` : ``}`);
       }
       /* Judged by what it depended on, not by whether a commit happened: this line went red an
-         hour after it was measured because an unrelated commit moved HEAD. */
-      const matrixNow = stepFingerprint('matrix');
-      if (m.fp?.hash && matrixNow) {
-        if (m.fp.hash !== matrixNow.hash) return F(`the sample was run at every setting ${when}, and ${m.fp.files} file(s) it depends on have changed since: run it again`);
-      } else if (!sameCommit(m.commit, head)) {
-        return F(`the sample was run at every setting at ${String(m.commit).slice(0, 7)}, and HEAD is ${String(head).slice(0, 7)}: it recorded no fingerprint, so nothing here can say whether it still applies`);
+         hour after it was measured because an unrelated commit moved HEAD. And by model, since
+         2026-10-13 (scripts/matrix-scope.mjs): the sample proves the export pipeline, and a model
+         changed since then owes a run of its own at every setting, rather than every change to
+         any model owing a re-run of the sample. */
+      if (!matrix) return N(`which models the matrix owes a run could not be worked out (the ledger's notes say why)`);
+      if (!matrix.pipeline) return F(`${matrix.why}: run the matrix (the sample, ${matrix.toRun.length > 8 ? `and ${matrix.toRun.length - 8} changed model(s)` : 'node scripts/check-exports.mjs'})`);
+      if (matrix.owed.length) {
+        const show = matrix.owed.slice(0, 4).join(', ') + (matrix.owed.length > 4 ? ` and ${matrix.owed.length - 4} more` : '');
+        return F(`the sample held at every setting ${when}; ${matrix.owed.length} model(s) changed since and have no passing run of their own at every setting${matrix.failed.length ? ` (${matrix.failed.length} ran and found a mismatch)` : ''}: ${show}`);
       }
-      return T(`every model holds at the dialog's defaults, and the sample held at every setting too: ${(m.models ?? []).length} model(s), ${m.minutes} min, ${when}`);
+      const own = Object.keys((() => { try { return JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'matrix-models.json'), 'utf8')).models ?? {}; } catch { return {}; } })()).length;
+      return T(`every model holds at the dialog's defaults; the sample held at every setting ${when} (${(m.models ?? []).length} model(s), ${m.minutes} min), and every model changed since has a passing run of its own at every setting (${own} model(s) recorded)`);
     }],
     [/^The old implementation is gone/, () => {
       let files = 0; try { files = readdirSync(join(ROOT, 'src/styles/models')).length; } catch {}

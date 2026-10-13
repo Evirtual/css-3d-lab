@@ -281,6 +281,14 @@ paid for twice. Every run also asks the fonts an export carries about every char
 shows (`scripts/check-glyphs.mjs`): a character they lack is drawn by a substitute font on each
 side, which is a difference no limit should forgive, so it fails the step by name.
 
+The export matrix (every shape, size, quality, format and slider stop) works the same way since
+2026-10-13 (`scripts/matrix-scope.mjs`). A run over the eight-model sample proves the export
+pipeline and keeps every model's snippet fingerprint as a baseline in `docs/checks/matrix.json`; a
+model whose snippet has changed since owes a run of its own, kept in
+`docs/checks/matrix-models.json`. Prepare the release runs the models owed, and the sample only when
+the pipeline itself changed. Before, any change to any model staled the sample's forty minutes, and
+the model that had changed was never exported at every setting at all.
+
 | what | needs | if it is missing |
 | --- | --- | --- |
 | `check-remote` | the network, `gh` | three checklist lines say so |

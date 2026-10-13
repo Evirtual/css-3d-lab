@@ -66,7 +66,7 @@ export const JOBS = [
     key: 'matrix', name: 'Exports at every setting', argv: ['scripts/check-exports.mjs'],
     minutes: 40, needs: ['browser'], safe: false,
     answers: ['Recordings and snapshots match the dialog'],
-    blurb: 'The eight-model sample at every shape, size, quality, format and slider stop. The gate only does the defaults.',
+    blurb: 'Every shape, size, quality, format and slider stop. From the board it runs the eight-model sample; Prepare the release runs it over the models changed since the sample last ran (scripts/matrix-scope.mjs). The gate only does the defaults.',
   },
   {
     key: 'looks', name: 'Open the export dialog and look', argv: ['scripts/verify.mjs', '--step', 'looks'],

@@ -89,8 +89,9 @@ import { launchChromium, browserId } from './browser.mjs';
 import { BrowserGuard, crashGuard, isBrowserError, siteOf } from './browser-guard.mjs';
 import { exportServer } from '../server/dev.mjs';
 import { DEFAULTS } from './export-defaults.mjs';
+import { SAMPLE, MATRIX_FILE, MODELS_FILE } from './matrix-scope.mjs';
+import { fingerprintsNow } from './fingerprint.mjs';
 
-const SAMPLE = ['candles', 'dice', 'paycard', 'cube', 'browser', 'coverflow', 'switch', 'starfield'];
 /** Every model the site builds, for the --defaults run. Read the same way the board reads it. */
 const everyModel = () => JSON.parse(readFileSync(new URL('../src/generated/model-ids.json', import.meta.url), 'utf8')).map((d) => d.id);
 const IMAGE_SHAPES = ['1:1', '4:3', '3:2', '16:9', '9:16', 'auto'];
@@ -1251,14 +1252,34 @@ if (untestable.length) { say('\nnot testable here:'); for (const u of [...new Se
  * Only the FULL run records. --defaults is the gate's half of that line (every model at the
  * dialog's defaults) and is already recorded per model in docs/checks/exports.json; --quick is
  * neither, and saying otherwise would let a two-minute run stand in for a forty-minute one.
+ *
+ * Two records (scripts/matrix-scope.mjs says why): each model the run covered, against the snippet
+ * it ran on, in matrix-models.json; and, only when the run covered the whole SAMPLE, the pipeline
+ * proof in matrix.json, with every model's snippet as it is now as the baseline. A run over one
+ * changed model must not stand in for the sample, so it leaves matrix.json alone.
  */
 if (!defaultsOnly && !quick) {
   try {
     const { execFileSync } = await import('node:child_process');
     const HERE = new URL('..', import.meta.url);
     const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: HERE, encoding: 'utf8' }).trim();
-    writeFileSync(new URL('docs/checks/matrix.json', HERE), `${JSON.stringify({
-      note: 'Written by scripts/check-exports.mjs on a FULL run: the sample at every shape, size, quality, format and slider stop. Not the defaults pass the gate runs, which is per model in exports.json.',
+    const now = await fingerprintsNow();
+    const perFile = new URL(MODELS_FILE.join('/'), HERE);
+    let per = {};
+    try { per = JSON.parse(readFileSync(perFile, 'utf8')).models ?? {}; } catch { /* the first per-model run */ }
+    for (const id of models) {
+      const mine = mismatches.filter((m) => m.model === id);
+      per[id] = { snippet: now.models[id]?.snippet ?? null, at: new Date().toISOString(), commit, browser: browserId(), ok: mine.length === 0,
+        mismatches: mine.map((m) => ({ check: m.check, what: m.what, detail: m.detail, fault: m.fault })) };
+    }
+    writeFileSync(perFile, `${JSON.stringify({ note: 'Written by scripts/check-exports.mjs on a FULL run: each model it ran at every setting, against the snippet it ran on (scripts/matrix-scope.mjs).', models: per }, null, 2)}\n`);
+    if (!SAMPLE.every((id) => models.includes(id))) {
+      say(`(matrix-models.json has the ${models.length} model(s) this run covered; matrix.json, the pipeline's record, is written only by a run over the whole sample)`);
+      throw Object.assign(new Error('not the whole sample'), { quiet: true });
+    }
+    writeFileSync(new URL(MATRIX_FILE.join('/'), HERE), `${JSON.stringify({
+      note: 'Written by scripts/check-exports.mjs on a FULL run over the whole sample: every shape, size, quality, format and slider stop. Not the defaults pass the gate runs, which is per model in exports.json. sources is every model\'s snippet at this moment: the baseline scripts/matrix-scope.mjs measures change from.',
+      sources: Object.fromEntries(Object.entries(now.models).map(([id, m]) => [id, m.snippet])),
       at: new Date().toISOString(),
       commit,
       models,
@@ -1273,7 +1294,7 @@ if (!defaultsOnly && !quick) {
       observations: observations.length,
     }, null, 2)}\n`);
   } catch (e) {
-    say(`(could not write docs/checks/matrix.json: ${String(e?.message ?? e).split('\n')[0]})`);
+    if (!e?.quiet) say(`(could not write the matrix records: ${String(e?.message ?? e).split('\n')[0]})`);
   }
 }
 if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ T, INK, TOL, mode: defaultsOnly ? 'defaults' : quick ? 'quick' : 'full', models, results, mismatches, observations, untestable }, null, 2));
