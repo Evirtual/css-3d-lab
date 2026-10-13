@@ -37,7 +37,7 @@ export const snippetsPadlock: Record<string, Snippet> = {
   <div class="lock" role="group" aria-label="Combination padlock">
     <div class="hand"><div class="rig">
       <div class="shackle" aria-hidden="true">
-        <div class="swing">${BARS.map(([w, z, c]) => `<i class="bar" style="--w:${w};--zb:${z};--c:${c}"></i>`).join('')}<i class="leg"></i></div>
+        <div class="swing">${BARS.map(([w, z, c]) => `<i class="bar" style="--w:${w};--zb:${z};--c:${c}"></i><i class="leg" style="--w:${w};--zb:${z};--c:${c}"></i>`).join('')}</div>
       </div>
 ${SLICES.map(([z, s], k) => `      <i class="slice" style="--z:${z};--s:${s};--k:${k}"></i>`).join('\n')}
       <div class="plate">
@@ -290,26 +290,36 @@ ${WHEEL_X.map((x, w) => `        <button class="roll down" style="--x:${x}" data
   transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1) 0.35s;
 }
 /* one U: its centre line runs up the legs at x = 42 and 178 and over an arc of radius 68 whose top
-   is at y = -88; the bar is --w wide about that line, and ends at y = 12, behind the plate */
+   is at y = -88; the bar is --w wide about that line. Its legs end at y = 12, behind the plate,
+   less half of what the layer is narrower than the back one: the narrow bright layers in front
+   stop a little short, so the free end, seen when it opens, tapers like a round bar's end
+   instead of stopping in four steps */
 .bar {
   position: absolute;
   left: calc((42 - var(--w) / 2) * var(--u));
   top: calc((-88 - var(--w) / 2) * var(--u));
   width: calc((136 + var(--w)) * var(--u));
-  height: calc((100 + var(--w) / 2) * var(--u));
+  height: calc((100 + var(--w) / 2 - (16 - var(--w)) / 2) * var(--u));
   border: calc(var(--w) * var(--u)) solid var(--c);
   border-bottom: 0;
   border-radius: calc((68 + var(--w) / 2) * var(--u)) calc((68 + var(--w) / 2) * var(--u)) 0 0;
   transform: translateZ(calc(var(--zb) * var(--u)));
 }
-/* the long leg's lower part: behind the plate while shut, the bit that stays in when it opens */
+/* the long leg's lower part, the bit that stays in the body when it opens: the same four layers,
+   each going on from where its bar's leg ends, so the leg has no joint. It was one flat strip
+   with a painted shine, a different width from the bar above it, and showed as a step when the
+   shackle lifted */
 .leg {
   position: absolute;
-  left: calc(34 * var(--u));
-  top: calc(12 * var(--u));
-  width: calc(16 * var(--u));
-  height: calc(50 * var(--u));
-  background: linear-gradient(90deg, #4b5172, #8e95b4 25%, #ffffff 50%, #8e95b4 75%, #4b5172);
+  left: calc((42 - var(--w) / 2) * var(--u));
+  /* 2 units up into the bar's leg: two edges that only meet show a hairline between them */
+  top: calc((10 - (16 - var(--w)) / 2) * var(--u));
+  height: calc((52 + (16 - var(--w)) / 2) * var(--u));
+  /* drawn as a border, as the bar's leg is: a border's width is snapped to whole pixels and a
+     box's is not, so a box beside the bar's border sat a pixel off it */
+  width: 0;
+  border-left: calc(var(--w) * var(--u)) solid var(--c);
+  transform: translateZ(calc(var(--zb) * var(--u)));
 }
 
 /* ---- the caption under it: the code, in the stage's own ink ---- */
