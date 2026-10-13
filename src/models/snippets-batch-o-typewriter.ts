@@ -21,11 +21,34 @@ const HOOD: [number, number, string][] = [
   [-62.4, 0, '#62af9b'], [-68, 1.2, '#6fbaa6'], [-73.6, 3.5, '#97dac9'],
 ];
 
-/** The key rows, back to front: how many keys. Each row is centred in the well, and a row one key
-    shorter than the next sits half a key in from it, so the rows interlock as a typewriter's do. */
-const ROWS = [10, 9, 10, 9];
-/** One key to the next across a row, and one row to the next, in units. */
-const PITCH = 22;
+/** The keyboard, back row to front: [the keys, how far the row starts in, in keys]. A real one's
+    rows each start a little further right than the row behind (half a key, three quarters, a
+    key and a quarter), which is why its columns lean. */
+const KEYROWS: [string, number][] = [['1234567890', 0], ['QWERTYUIOP', 0.5], ['ASDFGHJKL', 0.75], ['ZXCVBNM,.', 1.25]];
+/** One key to the next across a row, and one row to the next, in units; where the back row's first
+    key starts, which centres the widest row (Q to P) in the 256-unit well; how high each row's caps
+    stand on their levers, back to front: the back rows higher, as on a typewriter's stepped board. */
+const KEY_PITCH = 20.5, ROW_PITCH = 16.5, KEY_LEFT = 20.5;
+const KEY_HEIGHT = [10, 9, 8, 7];
+/** Each key: its letter, where its centre sits on the well, and how high it stands. */
+const KEYCAPS = KEYROWS.flatMap(([keys, start], r) => [...keys].map((ch, i) => ({
+  ch, x: +(KEY_LEFT + (start + i + 0.5) * KEY_PITCH).toFixed(2), y: 13 + r * ROW_PITCH, h: KEY_HEIGHT[r],
+})));
+
+/** What each typebar in BARS types, in the same order. */
+const TYPED = ['H', 'E', 'L', 'L', 'O', ',', '3', 'D', 'W', 'O', 'R', 'L', 'D', '.'];
+/** A key's name in a class or a keyframes name: letters and digits as themselves, the two marks spelled. */
+const keyName = (ch: string) => (ch === ',' ? 'comma' : ch === '.' ? 'stop' : `k${ch}`);
+/** When each typed key goes down, in seconds on the 7.2 s clock: whenever its typebar strikes. */
+const PRESSES = Object.fromEntries([...new Set(TYPED)].map((ch) => [ch, BARS.filter((_, i) => TYPED[i] === ch).map(([t]) => t)]));
+/** A typed key's own keyframes: down 4 units on its lever in 0.06 s as its bar rises, back up by
+    0.2 s as the bar falls back. */
+const pct = (s: number) => `${+((s / 7.2) * 100).toFixed(3)}%`;
+const UP = 'translateZ(calc(var(--h) * var(--u))) rotateX(-28deg)';
+const DOWN = 'translateZ(calc((var(--h) - 4) * var(--u))) rotateX(-28deg)';
+const keyFrames = (ch: string) => `@keyframes press-${keyName(ch)} {\n  0%, 100% { transform: ${UP}; }\n${PRESSES[ch]
+  .map((t) => `  ${pct(t)}, ${pct(t + 0.2)} { transform: ${UP}; }\n  ${pct(t + 0.06)} { transform: ${DOWN}; }`)
+  .join('\n')}\n}`;
 
 /** The platen: eight faces round its axis, lit from above (faces 1 and 2 face up). */
 const ROLL = ['#30333e', '#4a4e5c', '#3f4350', '#2a2c35', '#1e1f26', '#18191e', '#1a1b21', '#24262e'];
@@ -34,7 +57,7 @@ export const snippetsTypewriter: Record<string, Snippet> = {
   typewriter: {
     how: [
       'The body is a stack of flat, rounded slices: eight for the base and seven for the hood, each a rounded rectangle laid flat with <code>rotateX(90deg)</code> a few units above the last. Seen from above, every slice shows a thin band below the one on top of it, so the bands make the wall, shaded darker towards the floor, with round corners and no seam. The top two slices are inset a little, which rounds the top edge; one slice is chrome, which is the trim.',
-      'The typing runs on one clock of 7.2 s, one letter every 0.3 s. Every part gets <code>animation-delay: calc(var(--d) + …)</code>: a typebar waits for its own letter (<code>--t</code>), the letters wait the 0.08 s a bar takes to land, the carriage the 0.16 s until the key is let go. <code>--d</code> starts the clock in the middle of line 2, so a paused card shows the words with the carriage centred.',
+      'The typing runs on one clock of 7.2 s, one letter every 0.3 s. Every part gets <code>animation-delay: calc(var(--d) + …)</code>: a typebar waits for its own letter (<code>--t</code>), the letters wait the 0.08 s a bar takes to land, the carriage the 0.16 s until the key is let go. Every key is its own round cap on a lever, with its letter and a chrome side, and the ten the text uses go down whenever their letter strikes. <code>--d</code> starts the clock in the middle of line 2, so a paused card shows the words with the carriage centred.',
       'Each line is revealed with <code>steps(n, jump-start)</code>: a window with <code>overflow: hidden</code> steps right one character while the text inside steps left as far, so the text holds still on the paper and one more letter shows each step. The carriage jumps left one character on the same steps. Only <code>transform</code> moves.',
       'At the end of a line the carriage slides back, the knobs turn a ridge and the typed text moves up one line, so it stands on the white sheet above the print line while the next line is typed. After line 2 both lines roll up and fade; the windows snap shut while they are hidden, so the loop ends where it began.',
       'Each typebar lies in a fan round the print point: <code>rotateY(--a)</code> turns it to its place, <code>translateZ(38)</code> sets its pivot on the arc, and a strike is <code>rotateX(90deg → 36deg)</code> about that pivot, the angle whose tip lands right above the fan&rsquo;s centre, at the print line. A second strip across each bar, on <code>::before</code>, keeps a bar seen edge on from vanishing.',
@@ -45,7 +68,7 @@ export const snippetsTypewriter: Record<string, Snippet> = {
 ${BASE.map(([y, n, c], i) => `    <i class="slice base${i === BASE.length - 1 ? " top" : ""}" style="--y:${y};--in:${n};--c:${c}"></i>`).join('\n')}
 ${HOOD.map(([y, n, c], i) => `    <i class="slice hood${i === HOOD.length - 1 ? " top" : ""}" style="--y:${y};--in:${n};--c:${c}"></i>`).join('\n')}
     <div class="deck">
-${ROWS.map((n, r) => `      <i class="keys" style="--r:${r};--n:${n};--l:${(256 - n * PITCH) / 2}"></i>`).join('\n')}
+${KEYCAPS.map(({ ch, x, y, h }) => `      <b class="k${PRESSES[ch] ? ` ${keyName(ch)}` : ''}" style="--x:${x};--y:${y};--h:${h}">${ch}</b>`).join('\n')}
       <i class="spacebar"></i>
     </div>
     <i class="basket"></i>
@@ -75,12 +98,13 @@ ${ROLL.map((c, k) => `      <i class="roll" style="--k:${k};--c:${c}"></i>`).joi
   perspective: calc(1300 * var(--u));
 }
 
-/* the camera, a little above and to the right. Model space: x right, y down (the floor is
+/* the camera: nearly in front and a little above, turned 7 degrees, so the sheet faces you and its
+   text renders sharp, and the keys sit in level rows. Model space: x right, y down (the floor is
    y = 0), z towards you */
 .tw {
   position: relative;
   transform-style: preserve-3d;
-  transform: translate(calc(-6 * var(--u)), calc(108 * var(--u))) rotateX(-18deg) rotateY(-16deg);
+  transform: translate(calc(0 * var(--u)), calc(91 * var(--u))) rotateX(-24deg) rotateY(-7deg);
 }
 .tw :where(i, div) {
   position: absolute;
@@ -141,24 +165,52 @@ ${ROLL.map((c, k) => `      <i class="roll" style="--k:${k};--c:${c}"></i>`).joi
   transform-origin: 0 0;
   transform: translate3d(0, calc(-70 * var(--u)), calc(2 * var(--u))) rotateX(66.53deg);
 }
-/* four rows of round keys on their levers, each centred in the well, ten and nine keys long in
-   turn, so each row sits half a key in from its neighbours; each stood up 30 degrees towards you so the
-   caps read as circles, not flat ellipses. A row --n keys long is --n pitches of one key drawn
-   and repeated */
-.keys {
-  left: calc(var(--l) * var(--u));
-  top: calc((2 + var(--r) * 17.5) * var(--u));
-  width: calc(var(--n) * 22 * var(--u));
-  height: calc(15 * var(--u));
-  background: radial-gradient(circle closest-side, #fffdf6 0, #ece5d4 50%, #c4bba8 60%, #2c2f38 68%, #3a3e48 74%, #dfe3ea 80%, #8d93a0 90%, rgb(141 147 160 / 0) 99%) 0 0 / calc(22 * var(--u)) 100% repeat-x;
-  transform: translateZ(calc(6 * var(--u))) rotateX(-30deg);
+/* a key: a round cap with its letter, a cream face dished toward the middle in a chrome ring,
+   standing on its lever --h units above the well (the back rows higher) and tipped 28 degrees
+   toward you, so its face reads as a round key rather than a flat ellipse */
+.tw .k {
+  position: absolute;
+  display: block;
+  left: calc((var(--x) - 6.25) * var(--u));
+  top: calc((var(--y) - 6.25) * var(--u));
+  width: calc(12.5 * var(--u));
+  height: calc(12.5 * var(--u));
+  border-radius: 50%;
+  background: radial-gradient(circle closest-side, #fffdf6 0, #f2ecdc 56%, #d6ccb4 68%, #eef1f6 73%, #b4bac6 86%, #7d8391 100%);
+  color: #2b2620;
+  font: 800 calc(5.4 * var(--u)) / calc(12.5 * var(--u)) 'JetBrains Mono', monospace;
+  text-align: center;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(var(--h) * var(--u))) rotateX(-28deg);
+  animation: none 7.2s linear var(--d) infinite;
 }
+/* the cap's chrome side: two discs under its face, darker as they go down, so each key is a short
+   cylinder with a side you can see, not a dot painted on the well */
+.tw .k::before,
+.tw .k::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+.tw .k::after {
+  background: #9ba1ad;
+  transform: translateZ(calc(-1.6 * var(--u)));
+}
+.tw .k::before {
+  background: #4f5562;
+  transform: translateZ(calc(-3.2 * var(--u)));
+}
+/* the keys the text types go down on their levers whenever their letter strikes, on the typebars'
+   clock: their keyframes are made from the bars' strike times */
+${[...new Set(TYPED)].map((ch) => `.tw .k.${keyName(ch)} { animation-name: press-${keyName(ch)}; }`).join('\n')}
 .spacebar {
+  /* at the well's front edge, clear of the front row of keys */
   left: calc(68 * var(--u));
-  top: calc(73 * var(--u));
+  top: calc(76.5 * var(--u));
   width: calc(120 * var(--u));
-  height: calc(9 * var(--u));
-  border-radius: calc(4.5 * var(--u));
+  height: calc(6.5 * var(--u));
+  border-radius: calc(3.25 * var(--u));
   background: linear-gradient(#fffdf6, #d9d1bd);
   box-shadow: inset 0 calc(-1.5 * var(--u)) 0 #b3aa96;
   transform: translateZ(calc(5 * var(--u))) rotateX(-20deg);
@@ -267,17 +319,17 @@ ${ROLL.map((c, k) => `      <i class="roll" style="--k:${k};--c:${c}"></i>`).joi
    just above the ribbon guide */
 .paper {
   left: calc(-100 * var(--u));
-  top: calc(-246 * var(--u));
+  top: calc(-216 * var(--u));
   width: calc(200 * var(--u));
-  height: calc(150 * var(--u));
+  height: calc(120 * var(--u));
   border-radius: calc(3 * var(--u)) calc(3 * var(--u)) 0 0;
   background: linear-gradient(#fdfbf6 78%, #ece6d8);
-  transform: translateZ(calc(-44 * var(--u)));
+  transform: translateZ(calc(-70 * var(--u)));
 }
 /* both lines; at each carriage return they move up one line (28 units) */
 .lines {
   left: calc(34 * var(--u));
-  top: calc(104 * var(--u));
+  top: calc(74 * var(--u));
   animation: feed-lines 7.2s linear var(--d) infinite;
 }
 /* the reveal: a window as wide as its line steps right while the text inside steps left as far,
@@ -357,6 +409,9 @@ ${ROLL.map((c, k) => `      <i class="roll" style="--k:${k};--c:${c}"></i>`).joi
   1.111% { transform: translate3d(0, calc(-75.6 * var(--u)), calc(-43 * var(--u))) rotateY(var(--a)) translateZ(calc(38 * var(--u))) rotateX(36deg); animation-timing-function: cubic-bezier(0, 0, 0.4, 1); }
   3% { transform: translate3d(0, calc(-75.6 * var(--u)), calc(-43 * var(--u))) rotateY(var(--a)) translateZ(calc(38 * var(--u))) rotateX(90deg); }
 }
+/* the keys the text types, each going down whenever its typebar strikes (the L three times, the
+   O twice) */
+${[...new Set(TYPED)].map(keyFrames).join('\n')}
 /* the space in line 2, at 3.4 s (47.222%) */
 @keyframes space {
   0%, 47.222%, 50%, 100% { transform: translateZ(calc(5 * var(--u))) rotateX(-20deg); }
