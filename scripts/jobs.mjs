@@ -219,11 +219,13 @@ export const closes = (item) => CLOSES.find(([re]) => re.test(item))?.[1] ?? nul
  * What the push is waiting for, as things to run.
  *
  * `open` is the ledger's verdict on stage 1 (scripts/push-gate.mjs); `states` is each gate step's
- * state by key. Returns the steps and jobs that close what is open, what they cost together, and
+ * state by key; `share` is, for a per-model step, the share of models that have no fresh result,
+ * which is all release-prepare runs it over, so its minutes are that share of the whole step's.
+ * Returns the steps and jobs that close what is open, what they cost together, and
  * what no run can close -- a commit to make, a thing for a person -- so the answer to "what do I
  * do now" is complete rather than only the part a machine can do.
  */
-export function whatIsNeeded(open, states = {}) {
+export function whatIsNeeded(open, states = {}, share = {}) {
   const steps = new Set();
   const jobs = new Set();
   const other = [];
@@ -243,7 +245,8 @@ export function whatIsNeeded(open, states = {}) {
   }
   /* a job that is also a gate step is that step: offering both would run it twice */
   for (const j of [...jobs]) if (steps.has(j)) jobs.delete(j);
-  const stepMin = GATE_STEPS.filter((g) => steps.has(g.key)).reduce((a, g) => a + g.minutes, 0);
+  const costOf = (g) => (PER_MODEL.includes(g.key) && Number.isFinite(share[g.key]) ? Math.max(1, Math.ceil(g.minutes * share[g.key])) : g.minutes);
+  const stepMin = GATE_STEPS.filter((g) => steps.has(g.key)).reduce((a, g) => a + costOf(g), 0);
   const jobMin = JOBS.filter((j) => jobs.has(j.key)).reduce((a, j) => a + j.minutes, 0);
   return { steps: GATE_STEPS.filter((g) => steps.has(g.key)).map((g) => g.key), jobs: JOBS.filter((j) => jobs.has(j.key)).map((j) => j.key), minutes: stepMin + jobMin, other, byItem };
 }

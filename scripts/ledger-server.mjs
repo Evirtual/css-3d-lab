@@ -625,7 +625,16 @@ function neededNow() {
     try { rec = JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', 'gate.json'), 'utf8')).steps ?? []; } catch { /* no gate has run */ }
     const by = new Map(rec.map((r) => [r.key, r]));
     const states = Object.fromEntries(GATE_STEPS.map((g) => [g.key, (stepFromResults(g.key) ?? stepState(by.get(g.key))).state]));
-    return { open: open.length, ...whatIsNeeded(open, states) };
+    // the share of models each per-model step will actually run over (release-prepare runs only those)
+    const share = {};
+    try {
+      for (const c of JSON.parse(readFileSync(join(ROOT, 'docs', 'ledger.json'), 'utf8')).checkList ?? []) {
+        if (!c?.tally) continue;
+        const of = c.total ?? Object.values(c.tally).reduce((a, b) => a + b, 0);
+        if (of) share[c.key] = ['stale', 'never', 'fail', 'broke'].reduce((a, k) => a + Number(c.tally[k] ?? 0), 0) / of;
+      }
+    } catch { /* no ledger: the whole steps' minutes stand */ }
+    return { open: open.length, ...whatIsNeeded(open, states, share) };
   } catch { return null; }
 }
 
