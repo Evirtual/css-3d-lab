@@ -1,7 +1,7 @@
 {
  "what": "One line per model per check, from the ledger, on the commit named below. Not a fresh run: docs/ledger.html shows it as the state at the last release. The raw run records it came from (docs/checks/) are gitignored; capture your own with `npm run capture -- <check>`.",
- "head": "dc170f9",
- "takenAt": "2026-10-13T05:38:16Z",
+ "head": "0b1cddf",
+ "takenAt": "2026-10-13T13:52:06Z",
  "counts": {
   "models": 167,
   "toCheck": 0,
@@ -1177,15 +1177,15 @@
  "typewriter": {
   "status": "approved",
   "checks": {
-   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-12T17:50:40Z"},
-   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-12T19:19:44Z"},
-   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-12T18:19:40Z"},
-   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-12T20:36:50Z"},
-   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-12T17:07:12Z"},
-   "access": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-12T16:45:29Z"},
-   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-12T16:20:58Z"},
-   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-12T16:30:54Z"},
-   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-12T17:32:04Z"}
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-13T13:28:04Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-13T13:28:59Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-13T13:28:16Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-13T13:29:13Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T13:27:45Z"},
+   "access": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-13T13:24:34Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T13:24:07Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-13T13:24:15Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T13:27:55Z"}
   }
  },
  "button": {
@@ -1415,15 +1415,15 @@
  "padlock": {
   "status": "approved",
   "checks": {
-   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-12T17:53:01Z"},
-   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-12T19:26:17Z"},
-   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-12T18:26:32Z"},
-   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-12T20:45:07Z"},
-   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-12T17:07:43Z"},
-   "access": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-12T16:48:06Z"},
-   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-12T16:22:02Z"},
-   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-12T16:32:44Z"},
-   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-12T17:34:52Z"}
+   "models": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-13T10:41:26Z"},
+   "stages": {"status":"pass","ruleVersion":3,"ranAt":"2026-10-13T10:43:19Z"},
+   "motion": {"status":"pass","ruleVersion":4,"ranAt":"2026-10-13T10:42:36Z"},
+   "exports": {"status":"pass","ruleVersion":9,"ranAt":"2026-10-13T10:43:36Z"},
+   "media": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T10:40:49Z"},
+   "access": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-13T10:37:27Z"},
+   "boxsizing": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T10:36:07Z"},
+   "contrast": {"status":"pass","ruleVersion":2,"ranAt":"2026-10-13T10:36:30Z"},
+   "perf": {"status":"pass","ruleVersion":1,"ranAt":"2026-10-13T10:41:08Z"}
   }
  },
  "flip": {
