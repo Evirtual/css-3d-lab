@@ -11,6 +11,7 @@ import { snippetsStickynotes } from './snippets-batch-o-stickynotes';
 import { snippetsFlightglobe } from './snippets-batch-o-flightglobe';
 import { snippetsHanoi } from './snippets-batch-o-hanoi';
 import { snippetsPadlock } from './snippets-batch-o-padlock';
+import { snippetsBlackhole } from './snippets-batch-o-blackhole';
 import type { Snippet } from './snippet-utils';
 
-export const snippetsO: Record<string, Snippet> = { ...snippetsController, ...snippetsMenger, ...snippetsAquarium, ...snippetsTypewriter, ...snippetsStickynotes, ...snippetsFlightglobe, ...snippetsHanoi, ...snippetsPadlock };
+export const snippetsO: Record<string, Snippet> = { ...snippetsController, ...snippetsMenger, ...snippetsAquarium, ...snippetsTypewriter, ...snippetsStickynotes, ...snippetsFlightglobe, ...snippetsHanoi, ...snippetsPadlock, ...snippetsBlackhole };
