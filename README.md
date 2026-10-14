@@ -1,4 +1,8 @@
+<p align="center"><img src="public/icon.svg" width="112" alt="CSS 3D Lab cube"></p>
+
 # CSS 3D Lab
+
+[![Deploy to GitHub Pages](https://github.com/Evirtual/css-3d-lab/actions/workflows/deploy.yml/badge.svg)](https://github.com/Evirtual/css-3d-lab/actions/workflows/deploy.yml)
 
 A free gallery of 3D models built with CSS — each one live, with a step-by-step "how it works"
 and copy-paste code you can edit in the page.
