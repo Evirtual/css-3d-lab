@@ -23,6 +23,7 @@
  * it has, which is the list of things to re-capture.
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -83,6 +84,31 @@ if (!existsSync(LEDGER)) {
 }
 const ledger = JSON.parse(readFileSync(LEDGER, 'utf8'));
 
+/*
+ * WHAT TIES THIS SUMMARY TO THE RUNS IT CAME FROM.
+ *
+ * The snapshot drops the fingerprints, arguments and details on purpose: they are megabytes of one
+ * machine's workings. But without anything else, a snapshot that was typed by hand and one written
+ * from a real ledger look the same to anyone who cannot see that machine. So each check carries the
+ * sha256 of the raw record it was read from, and the latest run's id, commit, browser and whether it
+ * finished. Whoever still holds docs/checks/ can show that a file with exactly that hash exists and
+ * says what this summary says; nobody can produce one after the fact.
+ */
+function rawRecord(rel) {
+  const file = join(ROOT, rel);
+  if (!existsSync(file)) return null;
+  const bytes = readFileSync(file);
+  let j = null; try { j = JSON.parse(bytes.toString('utf8')); } catch { /* hashed all the same */ }
+  const run = Array.isArray(j?.runs) ? j.runs[0] : null;
+  return {
+    sha256: createHash('sha256').update(bytes).digest('hex'),
+    updatedAt: when(j?.updatedAt ?? j?.finishedAt ?? j?.at ?? null),
+    ...(run ? { runId: run.runId ?? null, commit: run.commit ?? null, complete: run.complete ?? null, reported: run.reported ?? null, expected: run.expected ?? null } : {}),
+    ...(j?.commit && !run ? { commit: String(j.commit).slice(0, 7) } : {}),
+    ...(j?.browser ? { browser: j.browser } : {}),
+  };
+}
+
 const models = {};
 for (const m of ledger.models) {
   const checks = {};
@@ -106,8 +132,16 @@ const snapshot = {
     approved: ledger.counts.approved,
   },
   // the rule each check was at when the snapshot was taken, so a later run under a newer rule is
-  // not mistaken for the same verdict
-  checks: Object.fromEntries((ledger.checkList ?? []).map((c) => [c.key, { scope: c.scope, ruleVersion: c.ruleVersion ?? null }])),
+  // not mistaken for the same verdict; and the raw record the verdicts were read from, by hash
+  checks: Object.fromEntries((ledger.checkList ?? []).map((c) => [c.key, { scope: c.scope, ruleVersion: c.ruleVersion ?? null, raw: rawRecord(join('docs', 'checks', `${c.key}.json`)) }])),
+  // the records behind the release items that are not per-model checks: the gate's steps, the export
+  // matrix (with the browser it ran on) and both renderers
+  evidence: {
+    gate: rawRecord(join('docs', 'checks', 'gate.json')),
+    matrix: rawRecord(join('docs', 'checks', 'matrix.json')),
+    matrixModels: rawRecord(join('docs', 'checks', 'matrix-models.json')),
+    parity: rawRecord(join('docs', 'checks', 'parity.json')),
+  },
   models,
 };
 

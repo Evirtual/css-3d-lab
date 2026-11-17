@@ -10,13 +10,13 @@ order a new person actually needs them.
 
 ## What this is
 
-**A gallery of 135 CSS 3D models, each one copy-pasteable, and a system that proves all 135 behave
+**A gallery of 168 CSS 3D models, each one copy-pasteable, and a system that proves all of them behave
 identically everywhere they appear.**
 
 The gallery is the visible half. The interesting half is the second one, because a model in this
 project has to look right in **seven places**: a gallery card, the viewer, its own page, the code
-editor, the big stage, full screen, and the video or picture you download. 135 models × 7 places is
-945 chances to be wrong, and no one has time to look at 945 things by hand.
+editor, the big stage, full screen, and the video or picture you download. 168 models × 7 places is
+1,176 chances to be wrong, and no one has time to look at 1,176 things by hand.
 
 So the project is built around three ideas, and they are worth understanding before you change
 anything:
@@ -46,7 +46,7 @@ about a number that has to add up, and a result that has to expire.
 | **You do not get** | `docs/checks/` — the raw run records. They are gitignored: megabytes of one machine's workings, and **someone else's run is not your result** |
 | **You do not get** | somebody else's results. Every verdict on the board is one your own machine measured; a fresh clone starts with none, and the buttons are how you get them |  *your* work, not a log of the last person's |
 
-So on a fresh clone the ledger reads **"not run yet"** for every bar and puts all 135 models under
+So on a fresh clone the ledger reads **"not run yet"** for every bar and puts every model under
 "To check". That is correct, not a fault. Bars fill in as *you* capture checks.
 
 Beside each empty bar sits a dashed pill — *"at the last release"* — which is the committed
@@ -145,7 +145,7 @@ The contract is the thing the checks enforce; if you change the code without cha
 the checks will simply tell you that you are wrong.
 
 Be ready for the consequence: **tightening a rule expires every result judged under the old one.**
-That is deliberate, and it means all 135 models get re-checked. On the week this project was
+That is deliberate, and it means every model gets re-checked. On the week this project was
 written, that cost one day where more lines were deleted than added.
 
 ### …work on the ledger itself
@@ -189,7 +189,7 @@ waits for the deploy and asks the served site (see LEDGER.md, "Everything runs f
 ## Where things are
 
 ```
-src/models/       the 135 models: gallery entry + snippet, one file each
+src/models/       the models (168): gallery entry + snippet, one file each
 src/              the site: the viewer, the stage, the export dialog, the print sheet
 server/, worker/  the render service that draws video and image frames
 scripts/          the checks, the gate, the ledger, and the tools around them

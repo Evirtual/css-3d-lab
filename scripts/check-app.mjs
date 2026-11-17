@@ -1,6 +1,6 @@
 /**
  * What the site itself costs: the gallery, built and served as it is deployed, loaded once and
- * scrolled to the bottom of all 135 models and back.
+ * scrolled to the bottom of every model's card and back.
  *
  *   npm run build && node scripts/check-app.mjs      the built site in dist/
  *   node scripts/check-app.mjs --dist <dir>          another built copy (a deliberately heavy one)
@@ -8,19 +8,19 @@
  *   node scripts/check-app.mjs --json                every reading, no verdict (for setting budgets)
  *   npm run capture -- app                           and record it in the ledger's Site block
  *
- * WHY. check-perf holds each model to what one model may cost. Nothing held the PAGE to what 135
+ * WHY. check-perf holds each model to what one model may cost. Nothing held the PAGE to what all
  * of them together may cost, and that is where it is felt: the gallery reveals a page of cards at
  * a time as you scroll, mounts a model's document as its card comes near and gives it back once
  * the card is two screens away (src/lazy-mount.ts). Whether that actually keeps the page answering
- * over the whole 135 is a thing to measure, not to assume.
+ * over the whole gallery is a thing to measure, not to assume.
  *
  * HOW. dist/ is served over HTTP from a local port, exactly the files a visitor would get, and
  * opened at VIEWPORT in the full Chromium build. Then:
  *
  *   load      the page is opened and waited for until it is idle; `load` is the moment the load
  *             event fires, and `firstCard` the moment the first card is in the DOM.
- *   scroll    the window is scrolled down in STEP px steps, PAUSE ms apart, until all 135 cards
- *             are revealed and the bottom is reached, and then back to the top the same way.
+ *   scroll    the window is scrolled down in STEP px steps, PAUSE ms apart, until every model's card
+ *             is revealed and the bottom is reached, and then back to the top the same way.
  *             Every frame is traced. This Chromium paces frames at about 8.3ms however little
  *             the page does, so that is the floor a gap can reach; above it, a gap is the work
  *             that frame cost. `longtask` entries are collected over the same trip.
@@ -76,7 +76,7 @@
  * gallery: this check judges the site, not a model, so the ledger shows it in its Site block.
  */
 import { createServer } from 'node:http';
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, resolve } from 'node:path';
 import { launchChromium } from './browser.mjs';
 
@@ -90,7 +90,18 @@ const asJson = args.includes('--json');
 const VIEWPORT = { width: 1280, height: 900 };
 const STEP = 700; // px per scroll step: a wheel flick, not a jump
 const PAUSE = 80; // ms between steps
-const MODELS = 135; // every model must be revealed before the trip counts as finished
+/*
+ * Every model must be revealed before the trip counts as finished, and "every" is the gallery's own
+ * list, not a number typed here. This was `const MODELS = 135` until 2026-11-17, by which time the
+ * gallery held 168: a trip that revealed only 135 of them would have passed. The list is the one
+ * scripts/generate-pages.mjs writes on every build, which is the build this check judges.
+ */
+const IDS = join(ROOT, 'src', 'generated', 'model-ids.json');
+if (!existsSync(IDS)) {
+  console.error(`check-app: ${relative(ROOT, IDS)} is not there, so how many cards the gallery should reveal is not known. Run npm run build first.`);
+  process.exit(2);
+}
+const MODELS = JSON.parse(readFileSync(IDS, 'utf8')).length;
 
 /* ---------- the budgets (see the header for where each number comes from) ---------- */
 const MAX_LOAD = 1500; // ms

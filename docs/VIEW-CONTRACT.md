@@ -433,7 +433,7 @@ snippet's HTML, CSS and JS.
 ## Ground rules for writing a model
 
 Be as inventive as you like with what the model IS. These rules are only about how it sits in the
-canvas, and they are what keep 135 unrelated ideas looking like one library.
+canvas, and they are what keep 168 unrelated ideas looking like one library.
 
 **1. One base unit, and every length is a multiple of it.** Put it on the model's root and tie it
 to the canvas. Never write a bare pixel length anywhere else.

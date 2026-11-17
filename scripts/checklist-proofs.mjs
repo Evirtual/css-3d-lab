@@ -14,10 +14,10 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { REGISTRY } from './checks-registry.mjs';
+import { REGISTRY, RULE_NEUTRAL, ruleFilesOf } from './checks-registry.mjs';
 import { workingSources } from './model-sources.mjs';
 // read-only: git's own read commands over the committed snapshot. Importing it writes nothing.
-import { snapshotStatus } from './release-snapshot.mjs';
+import { readSnapshot, snapshotStatus } from './release-snapshot.mjs';
 
 /*
  * Imported at this module's own version, not statically. scripts/ledger.mjs reloads this file as
@@ -29,7 +29,7 @@ import { snapshotStatus } from './release-snapshot.mjs';
 const { stepFingerprint, whatChanged, fingerprintAt } = await import(`./gate-paths.mjs${new URL(import.meta.url).search}`);
 const { rewritten } = await import(`./generate-readme.mjs${new URL(import.meta.url).search}`);
 
-export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, matrix = null, cache = null }) {
+export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, head, checkFiles, matrix = null, stalenessError = null, cache = null }) {
   const mtime = (p) => { try { return statSync(join(ROOT, p)).mtimeMs; } catch { return 0; } };
   // HEAD read straight from .git, as the watcher does: no process to start
   const headNow = () => {
@@ -263,7 +263,44 @@ export function evaluateChecklist(items, { ROOT, counts, models, atRiskList, hea
       const bad = models.flatMap((m) => Object.entries(m.checks)).filter(([, c]) => (c.staleWhy ?? []).some((w) => String(w).startsWith('rule changed')));
       return bad.length ? F(`${bad.length} result(s) judged under an older rule, e.g. ${bad.slice(0, 3).map(([k]) => k).join(', ')}`) : T('no result carries a "rule changed" staleness, over every model and every check');
     }],
-    [/^The built gallery stays answerable over all 135 models/, () => recordedPages('app')],
+    /*
+     * A check whose code changed must say whether its rule did (scripts/checks-registry.mjs,
+     * RULE_NEUTRAL). Judged against the commit the release snapshot was taken on, which is the last
+     * time every check's ruleVersion was written down beside its results: a script that differs from
+     * its text there, with the same ruleVersion the snapshot recorded and no ruling for its exact
+     * content, is a check that changed under results that still count.
+     */
+    [/^Every check whose code changed since the release snapshot has a new rule version/, () => {
+      const snap = readSnapshot();
+      if (!snap?.head) return N('there is no docs/release-snapshot.json to compare the checks against');
+      if (!exits0('cat-file', '-e', `${snap.head}^{commit}`)) return N(`the snapshot names ${snap.head}, which is not a commit in this repository`);
+      const owed = [];
+      for (const c of REGISTRY) {
+        const then = snap.checks?.[c.key]?.ruleVersion ?? null;
+        if (then == null || then !== c.ruleVersion) continue; // new since the snapshot, or already bumped
+        const files = ruleFilesOf(c.key);
+        // against the working tree, so an uncommitted edit to a check counts as much as a committed one
+        const changed = git('diff', '--name-only', snap.head, '--', ...files).split('\n').filter(Boolean);
+        for (const file of changed) {
+          let blob = null;
+          try { blob = git('hash-object', file).trim(); } catch { /* deleted: no ruling can cover it */ }
+          if (!RULE_NEUTRAL.some((r) => r.key === c.key && r.file === file && blob && r.blob === blob)) owed.push(`${c.key} (${file})`);
+        }
+      }
+      return owed.length
+        ? F(`${owed.length} check file(s) changed since the snapshot at ${snap.head} with the rule version it recorded: ${owed.slice(0, 4).join(', ')}${owed.length > 4 ? ` and ${owed.length - 4} more` : ''}. Bump that check's ruleVersion, or add the file's \`git hash-object\` to RULE_NEUTRAL with why it changes no rule`)
+        : T(`no check's code differs from ${snap.head} under the rule version the snapshot recorded for it, unless RULE_NEUTRAL rules that exact content`);
+    }],
+    /*
+     * The staleness rule behind every per-model item above assumes the fingerprints could be worked
+     * out. When they cannot (the models fail to bundle, rolldown is missing), scripts/ledger.mjs falls
+     * back to each model's own source text, which cannot see a shared constant or a render-path file
+     * change, and says so only in a note. A release judged that way is judged by a weaker rule.
+     */
+    [/^Every result's staleness was judged by its fingerprints/, () => (stalenessError
+      ? F(`staleness fell back to each model's own source text, because the fingerprints could not be worked out: ${stalenessError}`)
+      : T('every check result was judged against the fingerprints of what it looked at (scripts/fingerprint.mjs), not the own-source fallback'))],
+    [/^The built gallery stays answerable over every model/, () => recordedPages('app')],
     [/^The built site passes the SEO check/, () => {
       const r = recordedPages('seo');
       const f = checkFiles?.seo;

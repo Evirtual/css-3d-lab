@@ -64,10 +64,18 @@ const git = (args, opts = {}) => execFileSync('git', ['-c', 'core.quotepath=off'
 const P = {
   doc: { file: 'src/models/snippet-utils.ts', decls: ['RESIZE_SNAP', 'standaloneDoc'] },
   preview: { file: 'src/preview.ts' },
+  // how preview.ts gets a model's snippet in the browser: one chunk per model (vite.config.ts,
+  // snippetChunks). On no path until 2026-11-17, so a change to how a snippet is loaded staled nothing
+  loader: { file: 'src/snippet-loader.ts' },
   embed: { file: 'src/embed.ts' },
   fit: { file: 'src/fit.ts' },
   embedCss: { file: 'src/styles/_page.scss', sections: ['// /embed/<id>/'] },
   video: { file: 'src/video.ts' },
+  // imported by video.ts: the Model size slider's limits and how far a model fills the canvas. The
+  // matrix's two mismatches on 2026-09-28 were at the 25% slider stop, and this file was on no path
+  fillLimit: { file: 'src/fill-limit.ts' },
+  // imported by record.ts: the colour description written into every MP4 the dialog makes
+  avc: { file: 'src/avc-colour.ts' },
   lazy: { file: 'src/lazy-mount.ts' },
   scene: { file: 'src/capture-scene.ts' },
   // The faces the scene embeds. Not reachable from capture-scene.ts's own text, and the export is
@@ -86,15 +94,15 @@ const P = {
   ogShot: { file: 'scripts/og-shot.mjs' },
 };
 /** The model in its frame: the page standaloneDoc makes, the frame preview.ts mounts, the embed page around it. */
-const FRAME = [P.doc, P.preview, P.embed, P.fit, P.embedCss];
+const FRAME = [P.doc, P.preview, P.loader, P.embed, P.fit, P.embedCss];
 export const RENDER_PATHS = {
   frame: FRAME,
   models: FRAME,
   motion: FRAME,
   // the card and the export dialog's canvas at every shape, besides the frame
-  stages: [...FRAME, P.video, P.lazy],
+  stages: [...FRAME, P.video, P.fillLimit, P.lazy],
   // the file the dialog makes: the scene captured, sent to the render service, recorded
-  exports: [...FRAME, P.video, P.scene, P.fonts, P.client, P.record, P.render],
+  exports: [...FRAME, P.video, P.fillLimit, P.scene, P.fonts, P.client, P.record, P.avc, P.render],
   // the page standaloneDoc makes, opened on its own (check-boxsizing, check-contrast)
   file: [P.doc],
   // the share image: the og layout on the embed page, shot by generate-media through og-shot

@@ -134,7 +134,9 @@ export const STEP_PATHS = {
   // shared frame every model is drawn and exported in. The models themselves are not here: each is
   // held on its own snippet fingerprint (scripts/matrix-scope.mjs), so a change to one model owes a
   // matrix run of that model, not of the sample. Until 2026-10-13 this named all of src/models.
-  matrix: [...BROWSER, 'src/models/snippet-utils.ts', 'src/preview.ts', 'src/fonts/capture-fonts.ts', 'src/video.ts', 'src/record.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs'],
+  // fill-limit.ts (the slider's limits), avc-colour.ts (the MP4's colour) and snippet-loader.ts were
+  // added on 2026-11-17: each is imported by the pipeline and none was here.
+  matrix: [...BROWSER, 'src/models/snippet-utils.ts', 'src/preview.ts', 'src/snippet-loader.ts', 'src/fonts/capture-fonts.ts', 'src/video.ts', 'src/fill-limit.ts', 'src/record.ts', 'src/avc-colour.ts', 'src/capture-scene.ts', 'src/capture-client.ts', 'src/file-name.ts', 'server/render.mjs', 'scripts/check-exports.mjs'],
 
   /* ---- the per-model checks, which had no paths at all until 2026-09-29 ---- */
   boxsizing: [...RENDERS_MODELS, 'scripts/check-boxsizing.mjs', 'scripts/pixels.mjs'],

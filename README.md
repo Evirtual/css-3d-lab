@@ -192,7 +192,7 @@ Each file says how to run it, and why it exists, in the comment at its top.
 | `npm run board:dev` | `scripts/board-dev.mjs` | The board, with the page served from source instead of from the build. |
 | imported, not run | `scripts/browser-guard.mjs` | Keeps a long browser-driven check going when its browser breaks. Used by check-models, check-stages, check-motion, check-access, check-media, check-exports and qa. Not run on its own. |
 | `node scripts/browser.mjs` | `scripts/browser.mjs` | How every check opens a browser: one place, so the answer to "which Chromium do the checks run on" is written once -- and, since 2026-09-29, so that every result can say which one it was. |
-| `node scripts/check-app.mjs` | `scripts/check-app.mjs` | What the site itself costs: the gallery, built and served as it is deployed, loaded once and scrolled to the bottom of all 135 models and back. |
+| `node scripts/check-app.mjs` | `scripts/check-app.mjs` | What the site itself costs: the gallery, built and served as it is deployed, loaded once and scrolled to the bottom of every model's card and back. |
 | `node scripts/check-boxsizing.mjs` | `scripts/check-boxsizing.mjs` | No reliance on outside CSS: a model must draw the same whether or not the page around it makes every box border-box. The site's own stylesheet once did (`*, *::before, *::after { box-sizing: border-box }`), and models were written and sized against it; in the model's own frame, and in the file a visitor copies, nothing sets it, so a card with padding and a border drew bigger than its numbers (tilt 320 × 216 for a 280 × 176 card, the hovercards 9 units off their slots). The sweep that found those eight (tilt, hovercards, pricing, polaroid, accordion, magnet, shapeshift, cone) is this check, kept. |
 | `node scripts/check-contrast.mjs` | `scripts/check-contrast.mjs` | Text readable on both stages: every piece of text a model shows reaches WCAG AA contrast against the pixels actually behind it, on the dark stage and on the light one, at rest and in its main interaction states. |
 | `node scripts/check-exports.mjs` | `scripts/check-exports.mjs` | Does the export dialog make what it says, and what the canvas shows? |
@@ -393,6 +393,12 @@ While `npm run board` is running, nobody has to remember any of these:
 
 What stays with a person: saying to push, reading a document to judge whether it is right, and
 looking at the models the motion check flags.
+
+**What "approved" means, exactly.** A model is approved when every automated check has cleared on
+its current code. No person is part of that verdict. A motion flag does not hold a model back: it
+counts as cleared (`gateKind()` in `scripts/ledger.mjs`), and whether anyone has watched the flagged
+animation is not recorded anywhere. At the last release 11 of 168 approved models carried a motion
+flag. Design judgement (whether a padlock looks like a padlock) happens by eye, outside the ledger.
 
 A check that was *refused* — an HTTP 4xx or 5xx, a browser that would not start — records no verdict
 at all and leaves the previous measurement standing, because a run that could not ask has learned

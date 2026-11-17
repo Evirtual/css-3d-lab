@@ -2,7 +2,7 @@
 
 A board that says what has been checked, when, and whether the answer still applies.
 
-This project has 135 CSS 3D models. Nobody can look at 135 models on every surface, at every export
+This project has 168 CSS 3D models (the count in `src/generated/model-ids.json`). Nobody can look at 168 models on every surface, at every export
 setting, in both themes, after every change — so scripts do it, and the Ledger is where their
 answers live. Its one job is to never tell you something is fine when it is not, which turns out to
 be harder than checking.
@@ -58,7 +58,7 @@ every other header button follows: a control with nothing to say does not take a
 
 **The columns** are the eleven checks that judge every model one at a time — box sizing, text
 contrast, keyboard access, the share image, performance, the view contract, motion, stages, exports,
-plus the whole app and its SEO. A column reads `135/135` when every model passed it.
+plus the whole app and its SEO. A column reads `168/168` (every model) when every model passed it.
 
 The check's key and the column's label are not always the same word: the step is run as `models` and
 the column says **Contract**; `contrast` is **Text**; `media` is **Share**. Every gate line prints

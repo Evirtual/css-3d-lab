@@ -266,7 +266,7 @@ is overwritten by the next run, so with several people checking at once it is so
 ## How long the checks take, and which ones you actually have to run
 
 **Checking one new model is about a minute of work, not an afternoon.** The hours you will see
-quoted anywhere in this repository are for re-running all 135 at once, which only happens when a
+quoted anywhere in this repository are for re-running every model at once, which only happens when a
 file every model shares has changed. Adding a model changes only that model.
 
 Measured on one laptop, over all 135 models, on 2026-09-25:

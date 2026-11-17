@@ -813,7 +813,7 @@ if (ledger.readiness.checklist.exists) {
   // which models the export matrix still owes a run (scripts/matrix-scope.mjs); the fingerprints are the ones staleness was judged by
   let matrix = null;
   try { matrix = matrixScope(ROOT, await fingerprintsNow()); } catch (e) { notes.push(`the export matrix's scope could not be worked out: ${String(e?.message ?? e).split(/\r?\n/)[0]}`); }
-  cl.items = evaluateChecklist(cl.items, { ROOT, counts: ledger.counts, models, atRiskList: ledger.readiness.atRisk, head, checkFiles, matrix, cache: cache ? (cache.proofs ??= new Map()) : null });
+  cl.items = evaluateChecklist(cl.items, { ROOT, counts: ledger.counts, models, atRiskList: ledger.readiness.atRisk, head, checkFiles, matrix, stalenessError: staleIx.error, cache: cache ? (cache.proofs ??= new Map()) : null });
   /*
    * THREE STAGES, AND ONLY THE MIDDLE ONE IS A PERSON.
    *

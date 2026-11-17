@@ -55,7 +55,7 @@ export const PREPARE = { media: ['scripts/generate-media.mjs'] };
 export const REGISTRY = [
   {
     key: 'models', script: 'check-models.mjs', scope: 'model', name: 'contract', short: 'Contract',
-    ruleVersion: 3,
+    ruleVersion: 4,
     rules: [
       { v: 1, from: null, what: 'the band, the floor, the widest, the edges and the corners, as VIEW-CONTRACT.md had them; centred within 4vmin sideways and 11vmin vertically with a control zone' },
       { v: 2, from: '69cae52', what: 'every model centred within 4vmin both ways, a control zone included: the zone is sized by its content and the whole drawn stack is centred' },
@@ -183,7 +183,7 @@ export const REGISTRY = [
   },
   {
     key: 'contrast', script: 'check-contrast.mjs', scope: 'model', name: 'contrast', short: 'Text',
-    ruleVersion: 2,
+    ruleVersion: 3,
     rules: [
       { v: 1, from: null, what: 'every text, each copy judged on its own' },
       { v: 2, from: null, what: 'a stacked copy of a word (a layer of an extruded headline), lying at least half on a readable copy of the same text, is judged by that front copy' },
@@ -227,16 +227,17 @@ export const REGISTRY = [
   },
   {
     key: 'app', script: 'check-app.mjs', scope: 'site', name: 'app performance', short: 'App',
-    ruleVersion: 1,
-    rules: [{ v: 1, from: null, what: 'as first recorded: the built site served from dist/, the gallery loaded at 1280 × 900 and scrolled to the bottom of all 135 models and back — loaded within 2500ms, frame time at the 95th within 60ms, at most 12 long tasks and none over 200ms, at most 40 model frames still mounted at the bottom, at most 90 MB of JS heap and 60 documents held after collection, no card moving a pixel over the trip, and no console or page error' }],
+    ruleVersion: 2,
+    rules: [{ v: 1, from: null, what: 'as first recorded: the built site served from dist/, the gallery loaded at 1280 × 900 and scrolled to the bottom of all 135 models and back — loaded within 2500ms, frame time at the 95th within 60ms, at most 12 long tasks and none over 200ms, at most 40 model frames still mounted at the bottom, at most 90 MB of JS heap and 60 documents held after collection, no card moving a pixel over the trip, and no console or page error' },
+      { v: 2, from: null, what: 'the trip counts as finished only when every model in src/generated/model-ids.json has its card revealed, not a fixed 135: with 168 models the old threshold passed a gallery that had revealed only 135 of them' }],
     title: 'What the gallery costs to use (check-app)', label: 'app performance check (check-app)',
     rule: 'cleared when its latest run on the built site (after npm run build) reports no FAIL line for the page; it judges the site, not a model, so it gates no model',
     steps: [
       { key: 'load', label: 'first load', proves: 'the gallery loads, and draws its first card, within the budget' },
-      { key: 'scroll', label: 'the whole gallery', proves: 'scrolling reveals all 135 cards and reaches the bottom' },
+      { key: 'scroll', label: 'the whole gallery', proves: 'scrolling reveals every model\'s card (the count in src/generated/model-ids.json) and reaches the bottom' },
       { key: 'frames', label: 'frame time while scrolling', proves: 'the frames of the trip down and back, median and 95th, stay within the budget' },
       { key: 'longtasks', label: 'long tasks', proves: 'the main thread is not held for over 50ms more often, or for longer, than the budget allows' },
-      { key: 'mounted', label: 'model frames still mounted', proves: 'a card far from the viewport has given its document back: at the bottom of all 135, few frames are mounted' },
+      { key: 'mounted', label: 'model frames still mounted', proves: 'a card far from the viewport has given its document back: at the bottom of the gallery, few frames are mounted' },
       { key: 'memory', label: 'memory held', proves: 'the JS heap and the document count, each measured after two forced collections, stay within the budget' },
       { key: 'drift', label: 'nothing moves', proves: 'a card\'s own top on the page is the same pixel after the trip as before it: what an unmounted model leaves behind is the size it was' },
       { key: 'remount', label: 'a model comes back', proves: 'a card scrolled away from and back to has its model mounted and running again' },
@@ -280,6 +281,40 @@ export const REGISTRY = [
 ];
 
 /** The per-model checks, in gate order. */
+/**
+ * A CHECK'S OWN CODE, CHANGED WITHOUT A NEW RULE.
+ *
+ * A check's script is not part of any result's fingerprint (scripts/fingerprint.mjs): a result goes
+ * stale on the check's side only when ruleVersion above moves. That makes the bump a thing someone
+ * has to remember, and on 2026-09-30 (3e5656d) it was forgotten: the commit said "both rule versions
+ * bumped", added the v4 contract rule and the v3 text rule to the histories, and left ruleVersion
+ * at 3 and 2. Every pass under the old code went on counting for two weeks.
+ *
+ * So the release checklist now asks it (scripts/checklist-proofs.mjs): every check whose script, or
+ * a helper on its path (CHECK_HELPERS), differs from what it was at the commit the release snapshot
+ * was taken on must carry a ruleVersion other than the one the snapshot recorded for it -- or be
+ * listed here, which says the change does not change what the check holds a model to.
+ *
+ * An entry names the file's exact content by its git blob hash (`git hash-object <file>`), so the
+ * ruling covers that text and nothing after it: edit the file again and the question comes back.
+ * Only what is listed is ruled; nothing is inferred.
+ *   { key: 'contrast', file: 'scripts/check-contrast.mjs', blob: '<40 hex>', why: 'a message reworded' }
+ */
+export const RULE_NEUTRAL = [];
+/** Helpers whose code decides what more than one check judges (the same lists scripts/gate-paths.mjs names). */
+export const CHECK_HELPERS = {
+  boxsizing: ['scripts/pixels.mjs'],
+  contrast: ['scripts/pixels.mjs'],
+  access: ['scripts/pixels.mjs', 'scripts/css-heads.mjs'],
+  perf: ['scripts/css-heads.mjs'],
+  motion: ['scripts/pixels.mjs', 'scripts/css-heads.mjs'],
+};
+/** The files whose code is a check's rule in practice: its script and the helpers it reads. */
+export const ruleFilesOf = (key) => {
+  const c = byKey(key);
+  return c ? [`scripts/${c.script}`, ...(CHECK_HELPERS[key] ?? [])] : [];
+};
+
 export const MODEL_CHECKS = REGISTRY.filter((c) => c.scope === 'model');
 /** The site-wide checks. */
 export const SITE_CHECKS = REGISTRY.filter((c) => c.scope === 'site');
