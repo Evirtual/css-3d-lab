@@ -10,14 +10,13 @@ export const snippetsAquarium: Record<string, Snippet> = {
       'The tank is a box of four see-through walls plus two flat planes laid with <code>rotateX(90deg)</code>: the sand and the water surface. Each wall is one vertical <code>linear-gradient</code> — dark frame, faint glass, water blue from the waterline down, opaque sand at the foot — so one element draws the frame, the glass, the water and the sand behind it.',
       'A fish swims a racetrack with one keyframe list: <code>translateX(x) rotateY(a) translateZ(d)</code>. While <code>x</code> slides and <code>a</code> holds, it swims a straight lane <code>d</code> in front of the centre; while <code>x</code> holds and <code>a</code> turns 180°, the <code>translateZ</code> swings it round a half circle to the back lane, already facing the new way. Each function is interpolated on its own, which is what makes the turn round.',
       'The straight is 2·L long and the turn π·d, so with <code>L = π·d / 2</code> each of the four legs is a quarter of the loop and the fish keeps one speed all the way round. <code>scaleZ(-1)</code> on a lane mirrors it front to back, so that fish circles the other way and the fish cross in front of and behind each other.',
-      'The fish are flat side views — an ellipse with a notched tail on <code>::before</code> and an eye on <code>::after</code> — so in the turns they go edge-on, as thin as a real fish seen head-on. Nothing is sorted by hand: the glass, the fish, the plants and the bubbles share one <code>preserve-3d</code> space and the browser orders them by depth.',
+      'The fish are flat side views — an ellipse with a notched tail on <code>::before</code> and an eye on <code>::after</code> — so in the turns they go edge-on, as thin as a real fish seen head-on. Inside the tank nothing is sorted by hand: the fish, the plants and the bubbles share one <code>preserve-3d</code> space and the browser orders them by depth. The walls and the water surface are separate layers painted in a fixed order, back wall first and front wall last, which is back to front from every angle the tank sways through.',
       'Only <code>transform</code> and <code>opacity</code> move (bubbles rise and fade, blades sway from their base, tails wag), and every length is a multiple of one base unit, <code>--u</code>, so the tank is the same share of a card, the editor and a recording canvas.',
     ],
-    html: `<div class="scene">
-  <div class="tank" role="img" aria-label="A glass fish tank with sand, swaying plants, rising bubbles and four fish swimming loops">
-    <div class="shadow"></div>
-    <div class="wall back"></div>
-    <div class="wall left"></div>
+    html: `<div class="scene" role="img" aria-label="A glass fish tank with sand, swaying plants, rising bubbles and four fish swimming loops">
+  <div class="tank"><div class="shadow"></div><div class="wall back"></div></div>
+  <div class="tank"><div class="wall left"></div></div>
+  <div class="tank">
     <div class="sand"></div>
     <div class="rock" style="--x:72;--z:-30;--w:46;--h:26"></div>
     <div class="rock" style="--x:226;--z:40;--w:34;--h:20"></div>
@@ -47,19 +46,27 @@ ${fish('tang', '--y:104;--L:63;--d:40;--t:13s;--dl:-6s;--b:2.6s;--m:-1')}
 ${fish('gold', '--y:130;--L:47;--d:30;--t:10s;--dl:-3s;--b:2.2s;--cx:34')}
 ${fish('neon', '--y:52;--L:55;--d:35;--t:9s;--dl:-1s;--b:2.4s;--m:-1;--cx:-30')}
     </div>
-    <div class="water"></div>
-    <div class="wall right"></div>
-    <div class="wall front"></div>
   </div>
+  <div class="tank"><div class="water"></div></div>
+  <div class="tank"><div class="wall right"></div></div>
+  <div class="tank"><div class="wall front"></div></div>
 </div>`,
     css: `.scene {
   /* one base unit: every length below is a multiple of it, so the tank is the same share of a
      gallery card, the editor, a full screen and a recording canvas */
   --u: 0.22vmin;
   perspective: calc(1100 * var(--u));
+  /* the layers below share one grid cell, so they stack exactly on top of each other */
+  display: grid;
 }
 
-/* the tank: 300 wide, 200 tall, 150 deep, seen from a little above and turning gently */
+/* the tank: 300 wide, 200 tall, 150 deep, seen from a little above and turning gently.
+   It is drawn as six layers, each turned the same way: the back wall (with the shadow), the left
+   wall, everything inside, the water surface, the right wall, the front wall. Each layer is its own
+   3D space and they are painted in that order, which is back to front from every angle the tank
+   sways through. The walls are never sorted against the fish and the sand by the browser, because
+   one renderer that draws exports sorted those big see-through faces wrongly and lost most of the
+   front wall */
 .tank {
   --W: calc(300 * var(--u));
   --H: calc(200 * var(--u));
@@ -67,6 +74,7 @@ ${fish('neon', '--y:52;--L:55;--d:35;--t:9s;--dl:-1s;--b:2.4s;--m:-1;--cx:-30')}
   --line: calc(34 * var(--u)); /* the waterline, down from the top rim */
   --bed: calc(36 * var(--u));  /* how deep the sand is */
   position: relative;
+  grid-area: 1 / 1;
   width: var(--W);
   height: var(--H);
   transform-style: preserve-3d;
