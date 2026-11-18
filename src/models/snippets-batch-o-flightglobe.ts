@@ -149,6 +149,11 @@ ${route(133.3, -34, 3.3, 24.8, 96.9, 34, '#ff4d9d', '3.8s', '-1.9s')}<!-- Perth 
   width: calc(var(--w) * var(--u));
   height: calc(var(--h) * var(--u));
   background: var(--c, #4fae62); /* green, unless the piece says desert or ice */
+  /* A piece faces straight out from the globe's centre, so one on the far side faces away from the
+     camera and is not drawn at all. The ocean disc still hides the part of a piece behind it at the
+     rim, but the far side no longer rests on the browser sorting every piece against the disc: one
+     renderer that draws exports drew Australia in front of it from the back of the globe */
+  backface-visibility: hidden;
   transform-origin: 0 0;
   transform:
     rotateY(calc(var(--lon) * 1deg)) rotateX(calc(var(--lat) * 1deg))
@@ -163,6 +168,7 @@ ${route(133.3, -34, 3.3, 24.8, 96.9, 34, '#ff4d9d', '3.8s', '-1.9s')}<!-- Perth 
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 0 0 calc(2 * var(--u)) rgb(255 255 255 / 0.35);
+  backface-visibility: hidden; /* facing out, like the land: hidden on the far side */
   transform: rotateY(calc(var(--lon) * 1deg)) rotateX(calc(var(--lat) * 1deg)) translateZ(calc(101 * var(--u)));
 }
 
