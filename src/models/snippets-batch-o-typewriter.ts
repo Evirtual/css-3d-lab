@@ -62,15 +62,19 @@ export const snippetsTypewriter: Record<string, Snippet> = {
       'At the end of a line the carriage slides back, the knobs turn a ridge and the typed text moves up one line, so it stands on the white sheet above the print line while the next line is typed. After line 2 both lines roll up and fade; the windows snap shut while they are hidden, so the loop ends where it began.',
       'Each typebar lies in a fan round the print point: <code>rotateY(--a)</code> turns it to its place, <code>translateZ(38)</code> sets its pivot on the arc, and a strike is <code>rotateX(90deg → 36deg)</code> about that pivot, the angle whose tip lands right above the fan&rsquo;s centre, at the print line. A second strip across each bar, on <code>::before</code>, keeps a bar seen edge on from vanishing.',
     ],
-    html: `<div class="scene">
-  <div class="tw" role="img" aria-label="A typewriter typing Hello, then 3D world. one letter at a time">
+    html: `<div class="scene" role="img" aria-label="A typewriter typing Hello, then 3D world. one letter at a time">
+  <div class="tw">
     <i class="ground"></i>
 ${BASE.map(([y, n, c], i) => `    <i class="slice base${i === BASE.length - 1 ? " top" : ""}" style="--y:${y};--in:${n};--c:${c}"></i>`).join('\n')}
 ${HOOD.map(([y, n, c], i) => `    <i class="slice hood${i === HOOD.length - 1 ? " top" : ""}" style="--y:${y};--in:${n};--c:${c}"></i>`).join('\n')}
+  </div>
+  <div class="tw">
     <div class="deck">
 ${KEYCAPS.map(({ ch, x, y, h }) => `      <b class="k${PRESSES[ch] ? ` ${keyName(ch)}` : ''}" style="--x:${x};--y:${y};--h:${h}">${ch}</b>`).join('\n')}
       <i class="spacebar"></i>
     </div>
+  </div>
+  <div class="tw">
     <i class="basket"></i>
     <i class="guide"></i>
 ${BARS.map(([t, a]) => `    <i class="bar" style="--t:${t};--a:${a}deg"></i>`).join('\n')}
@@ -96,12 +100,21 @@ ${ROLL.map((c, k) => `      <i class="roll" style="--k:${k};--c:${c}"></i>`).joi
   /* where the 7.2 s clock starts: 4.24 s in, line 2 half typed, the carriage in the middle */
   --d: -4.24s;
   perspective: calc(1300 * var(--u));
+  /* the three layers below share one grid cell, so they stack exactly on top of each other */
+  display: grid;
 }
 
 /* the camera: nearly in front and a little above, turned 7 degrees, so the sheet faces you and its
    text renders sharp, and the keys sit in level rows. Model space: x right, y down (the floor is
    y = 0), z towards you */
+/* The typewriter is drawn as three layers, each turned the same way and each its own 3D space,
+   painted in this order: the body (floor shadow, base and hood slices), then the key well with its
+   keys, then the typebars and the carriage. The camera does not move, and from it that is back to
+   front: the well lies in front of and below the hood, and the bars and carriage stand above the
+   hood's top. In one shared space the browser had to sort the well against the seven hood slices,
+   whose planes cut it into strips, and one renderer that draws exports lost most of the well */
 .tw {
+  grid-area: 1 / 1;
   position: relative;
   transform-style: preserve-3d;
   transform: translate(calc(0 * var(--u)), calc(91 * var(--u))) rotateX(-24deg) rotateY(-7deg);
