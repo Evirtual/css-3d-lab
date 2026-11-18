@@ -240,7 +240,7 @@ ${key('3D', true)}
     html: `<div class="stepper">
   <div class="view">
     <div class="nudge">
-      <div class="cube" aria-hidden="true"><i>3</i><i>4</i><i></i><i>2</i><b></b><b></b></div>
+      <div class="cube" aria-hidden="true"><i>3</i><i>4</i><i></i><i>2</i><b></b><b></b><s></s><s></s><s></s><s></s><s></s><s></s></div>
     </div>
   </div>
   <div class="bar">
@@ -319,7 +319,6 @@ ${key('3D', true)}
   position: absolute;
   inset: 0;
   border-radius: calc(14 * var(--u));
-  transform-style: preserve-3d;
 }
 
 /* the four number faces: front, bottom, back, top */
@@ -360,17 +359,23 @@ ${key('3D', true)}
 .cube b:nth-of-type(1) { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
 .cube b:nth-of-type(2) { transform: rotateY(90deg)  translateZ(calc(var(--s) / 2)); }
 
-/* rounded faces leave holes at the corners: a square plate behind each one plugs them */
-.cube i::before,
-.cube b::before {
-  content: '';
+/* rounded faces leave holes at the corners: a square plate 6 units behind each one plugs them.
+   The plates are elements beside the faces, each turned as its face is, not the faces' children,
+   so every face stays flat: as a face's child a plate made its face a 3D space of its own, and one
+   renderer that draws exports set those faces a little out of line and cut them */
+.cube s {
   position: absolute;
   /* 1 units short of the edge: full size, it would touch the next face and show there as a dotted
      seam; much smaller leaves a channel along each edge you can see into */
   inset: calc(1 * var(--u));
   background: color-mix(in srgb, #8b6cff, #000 45%);
-  transform: translateZ(calc(-6 * var(--u)));
 }
+.cube s:nth-of-type(1) { transform: rotateX(0deg)    translateZ(calc(var(--s) / 2 - 6 * var(--u))); }
+.cube s:nth-of-type(2) { transform: rotateX(-90deg)  translateZ(calc(var(--s) / 2 - 6 * var(--u))); }
+.cube s:nth-of-type(3) { transform: rotateX(-180deg) translateZ(calc(var(--s) / 2 - 6 * var(--u))); }
+.cube s:nth-of-type(4) { transform: rotateX(-270deg) translateZ(calc(var(--s) / 2 - 6 * var(--u))); }
+.cube s:nth-of-type(5) { transform: rotateY(-90deg)  translateZ(calc(var(--s) / 2 - 6 * var(--u))); }
+.cube s:nth-of-type(6) { transform: rotateY(90deg)   translateZ(calc(var(--s) / 2 - 6 * var(--u))); }
 
 /* the dock: the status centred on top, the buttons under it */
 .bar {
