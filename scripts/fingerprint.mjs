@@ -77,6 +77,20 @@ const P = {
   // imported by record.ts: the colour description written into every MP4 the dialog makes
   avc: { file: 'src/avc-colour.ts' },
   lazy: { file: 'src/lazy-mount.ts' },
+  // The surfaces check-stages measures besides the frame and the dialog's canvas, each drawn by its
+  // own module: the gallery card (card-stage, and card-look for its inline controls), the viewer
+  // dialog that card opens (openViewer in main.ts, by name: the rest of main.ts is the gallery and
+  // its search, which no stage result depends on), the model page's stage and its large size
+  // (model-page), the editor's live, reset and saved states (live-edit, editor), and full screen.
+  // On no path until 2026-11-18, so a change to how any of those surfaces draws a model staled
+  // nothing that check-stages had recorded about it.
+  cardStage: { file: 'src/card-stage.ts' },
+  cardLook: { file: 'src/card-look.ts' },
+  viewer: { file: 'src/main.ts', decls: ['openViewer'] },
+  modelPage: { file: 'src/model-page.ts' },
+  liveEdit: { file: 'src/live-edit.ts' },
+  editor: { file: 'src/editor.ts' },
+  fullscreen: { file: 'src/fullscreen.ts' },
   scene: { file: 'src/capture-scene.ts' },
   // The faces the scene embeds. Not reachable from capture-scene.ts's own text, and the export is
   // a picture of text: when these changed from four HTML error pages to four real woff2 files,
@@ -99,8 +113,9 @@ export const RENDER_PATHS = {
   frame: FRAME,
   models: FRAME,
   motion: FRAME,
-  // the card and the export dialog's canvas at every shape, besides the frame
-  stages: [...FRAME, P.video, P.fillLimit, P.lazy],
+  // every surface check-stages compares a model on: the card, the viewer, the model page and its
+  // large stage, the editor's three states, full screen, and the export dialog's canvas at every shape
+  stages: [...FRAME, P.video, P.fillLimit, P.lazy, P.cardStage, P.cardLook, P.viewer, P.modelPage, P.liveEdit, P.editor, P.fullscreen],
   // the file the dialog makes: the scene captured, sent to the render service, recorded
   exports: [...FRAME, P.video, P.fillLimit, P.scene, P.fonts, P.client, P.record, P.avc, P.render],
   // the page standaloneDoc makes, opened on its own (check-boxsizing, check-contrast)
