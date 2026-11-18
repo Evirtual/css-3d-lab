@@ -435,18 +435,29 @@ ${EMBERS.map((e) => `      <i class="ember" style="--x:${e.x};--dx:${e.dx};--z:$
   100% { opacity: 0; transform: translateY(calc(-24 * var(--u))) rotate(45deg) scale(0.3); }
 }
 
-/* an ember: a hot fleck of its own size that rises out of the flame, drifts and goes out */
+/* an ember: a hot fleck of its own size that rises out of the flame, drifts and goes out. The
+   element is a box one fleck-size plus a unit bigger on every side, centred where the fleck is, and
+   draws nothing: the fleck and its glow are its ::before, so the glow is inside the box. As the
+   fleck itself its glow lay outside its box, and one renderer that draws exports cut a layer's
+   drawing off at its box */
 .ember {
+  --g: calc((var(--z) + 1) * var(--u));
   position: absolute;
   left: calc(50% + var(--x) * var(--u));
   bottom: calc(30 * var(--u));
-  width: calc(var(--z) * var(--u));
-  height: calc(var(--z) * var(--u));
+  width: calc(var(--z) * var(--u) + 2 * var(--g));
+  height: calc(var(--z) * var(--u) + 2 * var(--g));
+  margin: 0 0 calc(-1 * var(--g)) calc(-1 * var(--g));
+  opacity: 0;
+  animation: rise var(--d) linear var(--t) infinite;
+}
+.ember::before {
+  content: '';
+  position: absolute;
+  inset: var(--g);
   border-radius: 50%;
   background: radial-gradient(circle, #fff1c4 0 30%, #ffb547 55%, #ff6a3d);
   box-shadow: 0 0 calc(var(--z) * 0.9 * var(--u)) calc(0.4 * var(--u)) rgb(255 120 60 / 0.8);
-  opacity: 0;
-  animation: rise var(--d) linear var(--t) infinite;
 }
 
 @keyframes rise {
