@@ -14,12 +14,14 @@ export const snippetsKnob: Record<string, Snippet> = {
       'Every length is a multiple of one base unit, <code>--u</code>, tied to the canvas, so the knob is the same share of a gallery card, the editor and a recording canvas. The readout inherits the stage’s ink, so it reads on the dark stage and the light one.',
     ],
     html: `<div class="scene">
-  <div class="dial">
+  <div class="dial-under" aria-hidden="true">
     <div class="ticks"></div>
     <div class="arc"></div>
-    <div class="wall" aria-hidden="true">
+    <div class="wall">
 ${Array.from({ length: STRIPS }, (_, i) => `      <i style="--i:${i}"></i>`).join('\n')}
     </div>
+  </div>
+  <div class="dial">
     <div class="knob" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"></div>
   </div>
   <p class="readout"><span>Volume</span><b>40</b></p>
@@ -39,7 +41,6 @@ ${Array.from({ length: STRIPS }, (_, i) => `      <i style="--i:${i}"></i>`).joi
      toward the camera and is magnified), so the gap is what is left after that */
   gap: calc(14 * var(--u));
   perspective: calc(900 * var(--u));
-  transform-style: preserve-3d;
   user-select: none;
 }
 
@@ -47,19 +48,30 @@ ${Array.from({ length: STRIPS }, (_, i) => `      <i style="--i:${i}"></i>`).joi
    plus the perspective), so the drawn stack, dial and readout, is what gets centred. The whole
    thing is tipped back so the knob is seen from a little above, with its side showing at the near
    edge; at 52° the far ticks still show over the cap, at 56° the cap's top edge hid them */
-.dial {
+/* The dial is drawn as two layers tipped the same way, each its own 3D space, in one grid cell:
+   under, the ticks, the arc and the knob's side; over, the cap. From above the cap is never behind
+   the side, so painting it last is always right. In one shared space the 24 side strips' planes
+   cut the cap's square box into pieces to sort, and one renderer that draws exports dropped some:
+   holes in the cap. The scene is not a 3D space of its own any more, so the two stay apart */
+.dial,
+.dial-under {
+  grid-area: 1 / 1;
   position: relative;
   width: calc(220 * var(--u));
   height: calc(137 * var(--u));
   transform-style: preserve-3d;
   transform: rotateX(52deg);
+}
+.dial-under { pointer-events: none; }
+.dial {
   cursor: grab;
   touch-action: none;             /* the drag is ours, not the page's scroll */
 }
 .dial.is-drag { cursor: grabbing; }
 
 /* everything in the dial is centred on the same point, on the floor */
-.dial > * {
+.dial > *,
+.dial-under > * {
   position: absolute;
   top: 50%;
   left: 50%;
