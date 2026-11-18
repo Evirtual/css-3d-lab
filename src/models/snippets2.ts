@@ -835,7 +835,7 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
     ],
     html: `<div class="scene">
   <div class="laptop">
-    <div class="lid"></div>
+    <div class="lid"><i class="halo"></i></div>
   </div>
 </div>`,
     css: `.scene {
@@ -884,8 +884,32 @@ ${lines(10, (i) => `<span style="--i:${i + 1}" aria-hidden="true">GO<br>DEEP</sp
 .lid::after {
   border: calc(7 * var(--u)) solid #14161f;
   background: linear-gradient(135deg, #8b6cff, #2ee6d6);
-  box-shadow: 0 0 calc(30 * var(--u)) #8b6cff;
   transform: rotateY(180deg);
+}
+
+/* The screen's glow, on its own layer a hair behind the screen. The layer reaches 36 units past
+   three sides but stops at the hinge and clips the glow there, so it never passes through the base.
+   As a shadow on the screen itself it spread past the hinge into the base, and one renderer that
+   draws exports cut it off along a slant across the screen */
+.halo {
+  position: absolute;
+  top: 0;
+  left: calc(-36 * var(--u));
+  right: calc(-36 * var(--u));
+  bottom: calc(-36 * var(--u));
+  overflow: hidden;
+  backface-visibility: hidden;
+  transform: rotateY(180deg) translateZ(calc(-0.5 * var(--u)));
+}
+.halo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(36 * var(--u));
+  right: calc(36 * var(--u));
+  bottom: calc(36 * var(--u));
+  border-radius: calc(10 * var(--u));
+  box-shadow: 0 0 calc(30 * var(--u)) #8b6cff;
 }
 
 /* open first: a paused card holds the pose at 0%, and an open laptop is the one that reads as a
