@@ -37,13 +37,20 @@ ${[...word].map((c, i) => `      <span class="slat" style="--i:${l * word.length
 .ribbon {
   display: grid;
   gap: calc(6 * var(--u));
-  transform-style: preserve-3d;
 }
 
+/* Each line is its own perspective, not one 3D space shared by every slat. Slats sit side by side
+   and never need sorting against each other, but in one shared space each slat's neighbours, turned
+   about the same centre line at other angles, cut it in half along that line, and one renderer that
+   draws exports lost the lower halves. The vanishing point stays the scene's centre: half a line
+   plus half the gap, (64 + 6) / 2 = 35 units, below the top line's centre and above the bottom's,
+   so each slat projects exactly as it did in the shared space */
 .ribbon .line {
   display: flex;
-  transform-style: preserve-3d;
+  perspective: calc(800 * var(--u));
 }
+.ribbon .line:first-child { perspective-origin: 50% calc(50% + 35 * var(--u)); }
+.ribbon .line:last-child { perspective-origin: 50% calc(50% - 35 * var(--u)); }
 
 /* a slat is a panel with the letter on it: 32 units wide, 64 tall. Slats butt together with no
    gap, so a line reads as one ribbon rather than a row of cards */
