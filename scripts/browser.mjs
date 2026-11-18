@@ -82,6 +82,16 @@ const versionOf = (exe) => {
   } catch { return null; }
 };
 
+/*
+ * The version the browser itself reports once it is running: Playwright's browser.version(), a
+ * string such as 153.0.8010.12, read from the instance this process just launched. Playwright's own
+ * Chromium has no folder beside its exe to read (versionOf above), so it was recorded as null, and
+ * a record could not say which build drew it. Null if it cannot be read: unknown, never a guess.
+ */
+const versionFrom = (b) => {
+  try { const v = b.version(); return typeof v === 'string' && v.trim() ? v.trim() : null; } catch { return null; }
+};
+
 /** Where a named system browser is, or null. */
 export function findSystemBrowser(name) {
   const entry = SYSTEM.find(([n]) => n === name);
@@ -134,8 +144,12 @@ export async function resolveBrowser() {
   if (seen?.launch) {
     try {
       const b = await chromium.launch(seen.launch);
+      const v = versionFrom(b);
       await b.close().catch(() => {});
-      chosen = { kind: seen.kind, name: seen.name, version: seen.version ?? null, label: seen.name, launch: seen.launch };
+      chosen = { kind: seen.kind, name: seen.name, version: v ?? seen.version ?? null, label: seen.name, launch: seen.launch };
+      // written again on every run, not only when the choice changes: capture-check reads this file
+      // to say which browser drew the results it records, and trusts it only if this run wrote it
+      remember({ kind: chosen.kind, name: chosen.name, version: chosen.version }, seen.launch);
       return chosen;
     } catch { /* it stopped working: fall through and decide again from scratch */ }
   }
@@ -143,9 +157,10 @@ export async function resolveBrowser() {
   const tryLaunch = async (label, opts, id) => {
     try {
       const b = await chromium.launch(opts);
+      const v = versionFrom(b);
       await b.close().catch(() => {});
-      chosen = { ...id, label, launch: opts };
-      remember(id, opts);
+      chosen = { ...id, version: v ?? id.version ?? null, label, launch: opts };
+      remember({ ...id, version: chosen.version }, opts);
       return true;
     } catch (e) {
       tried.push(`${label}: ${String(e?.message ?? e).split('\n')[0]}`);

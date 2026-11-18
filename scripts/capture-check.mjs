@@ -674,6 +674,21 @@ const expected = record ? expectedTotal() : null;
 /* ---------- the result file ---------- */
 const dir = join(ROOT, 'docs', 'checks');
 const file = join(dir, `${check}.json`);
+/*
+ * WHICH BROWSER DREW THIS RUN. The check runs in its own process, and that process decides the
+ * browser (scripts/browser.mjs), which writes what it used to docs/checks/browser.json on every run.
+ * That file is trusted here only if it was written after this run started: an older one says what
+ * drew some earlier run, and recording it would be a guess dressed as a fact. Otherwise null, which
+ * the reader sees as "not known". Every per-model result and every run carries it, and so does the
+ * record itself, which docs/release-snapshot.json copies.
+ */
+function browserOfThisRun() {
+  try {
+    const j = JSON.parse(readFileSync(join(dir, 'browser.json'), 'utf8'));
+    if (!j?.at || Date.parse(j.at) < Date.parse(startedAt)) return null;
+    return { kind: j.kind ?? null, name: j.name ?? null, version: j.version ?? null };
+  } catch { return null; }
+}
 let old = null;
 function readOld() {
   if (old) return old;
@@ -683,6 +698,7 @@ function readOld() {
   delete old.running; delete old.progress;
   return old;
 }
+let drewWith = null; // set when the check has finished: browserOfThisRun()
 function entry(r, printsNow) {
   const extra = r.extra ?? {};
   const id = r.id;
@@ -700,6 +716,7 @@ function entry(r, printsNow) {
     fingerprint: printsBefore[id] ?? null,
     fingerprints: judgedBefore ? recordFor(check, judgedBefore, id) : null,
     sourceChangedDuringRun: (printsBefore[id] ?? null) !== (printsNow[id] ?? null),
+    browser: drewWith,
     ...extra,
   };
 }
@@ -893,12 +910,14 @@ child.on('close', (code, signal) => {
   if (check === 'exports') complete = finishExports();
   if (check === 'stages' && !complete) for (const id of Object.keys(results)) delete results[id];
   const printsAfter = fingerprints();
+  drewWith = browserOfThisRun();
 
   const o = readOld();
   const models = { ...(o.models ?? {}) };
   for (const [id, r] of Object.entries(results)) models[id] = entry({ ...r, id }, printsAfter);
   const run = {
     runId, startedAt, finishedAt, script: `scripts/${CHECKS[check]}`, ruleVersion: ruleVersionOf(check), args, exitCode: code, signal,
+    browser: drewWith,
     commit, uncommittedModelFiles: dirty, reported: Object.keys(results).length,
     expected: expected?.total ?? null, expectedIsEstimate: expected?.totalIsEstimate ?? true,
     summaryLine, warnings, complete: complete && code != null,
@@ -908,6 +927,8 @@ child.on('close', (code, signal) => {
     note: 'Written by scripts/capture-check.mjs from the check\'s own printed output. Do not edit by hand.',
     updatedAt: finishedAt,
     running: false,
+    // the browser of the run that wrote this file last (see browserOfThisRun)
+    browser: drewWith,
     models,
     // the sub-steps every result in this file speaks to, summed (see the header)
     steps: summarizeSteps(models),
