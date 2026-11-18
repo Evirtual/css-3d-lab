@@ -90,7 +90,7 @@ export const snippetsCampfire: Record<string, Snippet> = {
     <div class="heat"></div>
     <div class="heat two"></div>
 ${STONES.map(([a, r, w, h, g, br, tl]) => `    <i class="lump" style="--a:${a}deg;--r:${r};--w:${w};--h:${h};--g:${g};--br:${br};--tl:${tl}deg"></i>`).join('\n')}
-${LOGS.map((g) => `    <div class="log${g.up ? ' up' : ''}" style="--a:${g.a}deg;--r:${g.r};--yw:${g.yw}deg;--z:${g.z};--lean:${g.lean}deg;--roll:${g.roll}deg;--l:${g.l};--w:${g.w};--th:${g.th};--c:${g.c};--k1:${g.k1}%;--k2:${g.k2}%;--tint:${g.tint}${g.d ? `;--d:${g.d}s;--dl:${g.dl}s` : ''}"><i></i>${g.d ? '<b></b>' : ''}</div>`).join('\n')}
+${LOGS.map((g) => `    <div class="log${g.up ? ' up' : ''}" style="--a:${g.a}deg;--r:${g.r};--yw:${g.yw}deg;--z:${g.z};--lean:${g.lean}deg;--roll:${g.roll}deg;--l:${g.l};--w:${g.w};--th:${g.th};--c:${g.c};--k1:${g.k1}%;--k2:${g.k2}%;--tint:${g.tint}${g.d ? `;--d:${g.d}s;--dl:${g.dl}s` : ''}"><u></u><i>${g.up ? '<u></u>' : ''}</i>${g.d ? '<b></b>' : ''}</div>`).join('\n')}
 ${FLAMES.map((f) => `    <i class="flame ${f.k}" style="--x:${f.x};--y:${f.y};--fz:${f.fz};--r:${f.r}deg;--s:${f.s};--sw:${f.sw}deg;--d:${f.d}s;--t:${f.t}s"></i>`).join('\n')}
     <div class="sparks">
       <i class="lick" style="--x:-7;--d:1.6s;--t:-0.4s"></i>
@@ -241,6 +241,13 @@ ${EMBERS.map((e) => `      <i class="ember" style="--x:${e.x};--dx:${e.dx};--z:$
   transform-style: preserve-3d;
   transform-origin: 50% 100%;
   transform: rotateZ(var(--a)) translateY(calc(var(--r) * var(--u))) rotateZ(var(--yw)) translateZ(calc((var(--z) + var(--th)) * var(--u))) rotateX(calc(0deg - var(--lean))) rotateY(var(--roll));
+}
+.log > u,
+.log i > u {
+  position: absolute;
+  inset: 0;
+}
+.log > u {
   /* from the inner end: grey ash on black char, the char fading into bark (ridges along it,
      cracks across it, darker at the edges so it reads round, and its own age on top) */
   background:
@@ -291,7 +298,7 @@ ${EMBERS.map((e) => `      <i class="ember" style="--x:${e.x};--dx:${e.dx};--z:$
   transform: translateZ(calc(var(--th) * -1 * var(--u)));
 }
 
-.log.up i {
+.log.up i > u {
   background:
     linear-gradient(to bottom, #3a1408 0, rgb(220 90 30 / 0.9) calc(var(--c) * 0.3 * var(--u)), #1a0e09 calc(var(--c) * 0.8 * var(--u)), transparent calc((var(--c) + 8) * var(--u))),
     repeating-linear-gradient(90deg, transparent 0 calc(2 * var(--u)), rgb(20 10 6 / 0.5) calc(2 * var(--u)) calc(2.7 * var(--u))),
