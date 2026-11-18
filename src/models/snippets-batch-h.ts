@@ -957,10 +957,10 @@ ${CUBE_FACES}
     ],
     html: `<div class="scene">
   <div class="word" role="img" aria-label="CUBE, rolling over to ROLL">
-    <span class="cube" style="--i:0" aria-hidden="true"><i>C</i><i>R</i><i>C</i><i>R</i><b></b><b></b></span>
-    <span class="cube" style="--i:1" aria-hidden="true"><i>U</i><i>O</i><i>U</i><i>O</i><b></b><b></b></span>
-    <span class="cube" style="--i:2" aria-hidden="true"><i>B</i><i>L</i><i>B</i><i>L</i><b></b><b></b></span>
-    <span class="cube" style="--i:3" aria-hidden="true"><i>E</i><i>L</i><i>E</i><i>L</i><b></b><b></b></span>
+    <span class="cube" style="--i:0" aria-hidden="true"><i>C</i><i>R</i><i>C</i><i>R</i><b></b><b></b><s></s><s></s><s></s><s></s><s></s><s></s></span>
+    <span class="cube" style="--i:1" aria-hidden="true"><i>U</i><i>O</i><i>U</i><i>O</i><b></b><b></b><s></s><s></s><s></s><s></s><s></s><s></s></span>
+    <span class="cube" style="--i:2" aria-hidden="true"><i>B</i><i>L</i><i>B</i><i>L</i><b></b><b></b><s></s><s></s><s></s><s></s><s></s><s></s></span>
+    <span class="cube" style="--i:3" aria-hidden="true"><i>E</i><i>L</i><i>E</i><i>L</i><b></b><b></b><s></s><s></s><s></s><s></s><s></s><s></s></span>
   </div>
 </div>`,
     css: `.scene {
@@ -995,7 +995,6 @@ ${CUBE_FACES}
   position: absolute;
   inset: 0;
   border-radius: calc(8 * var(--u));
-  transform-style: preserve-3d;
 }
 
 /* letter faces: first word violet, second word pink */
@@ -1039,19 +1038,25 @@ ${CUBE_FACES}
 .cube b:nth-of-type(1) { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
 .cube b:nth-of-type(2) { transform: rotateY(90deg)  translateZ(calc(var(--s) / 2)); }
 
-/* rounded faces leave holes at the corners: a square plate behind each one plugs them */
-.cube i::before,
-.cube b::before {
-  content: '';
+/* rounded faces leave holes at the corners: a square plate 5 units behind each one plugs them.
+   The plates are elements beside the faces, each turned as its face is, not the faces' children,
+   so every face stays flat: as a face's child a plate made its face a 3D space of its own, and one
+   renderer that draws exports set those faces a little out of line and showed the cubes' insides */
+.cube s {
   position: absolute;
   /* 1 unit short of the edge: full size, it would touch the next face and show there as a dotted
      seam; much smaller leaves a channel along each edge you can see into */
   inset: calc(1 * var(--u));
   background: color-mix(in srgb, #8b6cff, #000 50%);
-  transform: translateZ(calc(-5 * var(--u)));
 }
-
-.cube i:nth-child(even)::before {
+.cube s:nth-of-type(1) { transform: rotateX(0deg)    translateZ(calc(var(--s) / 2 - 5 * var(--u))); }
+.cube s:nth-of-type(2) { transform: rotateX(-90deg)  translateZ(calc(var(--s) / 2 - 5 * var(--u))); }
+.cube s:nth-of-type(3) { transform: rotateX(-180deg) translateZ(calc(var(--s) / 2 - 5 * var(--u))); }
+.cube s:nth-of-type(4) { transform: rotateX(-270deg) translateZ(calc(var(--s) / 2 - 5 * var(--u))); }
+.cube s:nth-of-type(5) { transform: rotateY(-90deg)  translateZ(calc(var(--s) / 2 - 5 * var(--u))); }
+.cube s:nth-of-type(6) { transform: rotateY(90deg)   translateZ(calc(var(--s) / 2 - 5 * var(--u))); }
+/* behind the second word's faces (2 and 4), pink */
+.cube s:nth-of-type(even):nth-of-type(-n + 4) {
   background: color-mix(in srgb, #ff4d9d, #000 50%);
 }
 
