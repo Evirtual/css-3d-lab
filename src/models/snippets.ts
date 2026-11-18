@@ -455,9 +455,17 @@ ${CUBE_FACES}
   transform-style: preserve-3d;
 }
 
+/* The nucleus: the element is a box 26 units wider than the ball on every side and draws nothing;
+   the ball and its glow are its ::before, inside that box. As the ball itself, its glow lay outside
+   its box, and one renderer that draws exports cut a layer's drawing off at its box */
 .atom b {
   position: absolute;
-  inset: 40%;
+  inset: calc(40% - 26 * var(--u));
+}
+.atom b::before {
+  content: '';
+  position: absolute;
+  inset: calc(26 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff, #8b6cff 60%);
   box-shadow: 0 0 calc(24 * var(--u)) #8b6cff;
@@ -483,10 +491,13 @@ ${CUBE_FACES}
   border-radius: 50%;
 }
 
-/* the arm: turned, and draws nothing — it exists only to carry the electron round */
+/* the arm: turned, and draws nothing — it exists only to carry the electron round. Its box reaches
+   19 units past the ring, round the electron and its glow, so nothing it carries lies outside it
+   (one renderer that draws exports cut the electrons off at the arm's box); it turns about the
+   same centre */
 .arm {
   position: absolute;
-  inset: 0;
+  inset: calc(-19 * var(--u));
   animation: orbit-spin 3s linear infinite;
 }
 
@@ -495,7 +506,7 @@ ${CUBE_FACES}
 
 .arm i {
   position: absolute;
-  top: calc(-7 * var(--u));
+  top: calc(12 * var(--u)); /* 7 above the ring, which is 19 inside the arm's box */
   left: calc(50% - 6 * var(--u));
   width: calc(12 * var(--u));
   height: calc(12 * var(--u));
