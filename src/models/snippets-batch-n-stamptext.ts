@@ -183,6 +183,15 @@ export const snippetsStamptext: Record<string, Snippet> = {
   position: absolute;
   left: 50%;
   top: 50%;
+  /* A box round all three parts: 56 wide, from 106.5 above the point the handle stands on to 14.5
+     below it. It used to be that point alone, with the parts hung outside it, and one renderer
+     that draws exports cuts a turned layer's contents off at its own box: the handle vanished.
+     The parts' bottoms are measured from this box's foot, 14.5 under the point, and the handle
+     turns about the point itself, as it did */
+  width: calc(56 * var(--u));
+  height: calc(121 * var(--u));
+  margin: calc(-106.5 * var(--u)) 0 0 calc(-28 * var(--u));
+  transform-origin: 50% calc(106.5 * var(--u));
   transform: translateZ(calc(37 * var(--u))) rotateZ(calc(-1 * (var(--turn) + var(--skew)))) translate3d(0, calc(14.3 * var(--u)), calc(11.2 * var(--u))) rotateX(calc(-1 * var(--tilt)));
 }
 .handle > i {
@@ -191,7 +200,7 @@ export const snippetsStamptext: Record<string, Snippet> = {
 }
 /* the brass collar, with the round foot as the bottom half of an ellipse */
 .collar {
-  bottom: calc(-14.2 * var(--u));
+  bottom: calc(0.3 * var(--u));
   width: calc(46 * var(--u));
   height: calc(28 * var(--u));
   margin-left: calc(-23 * var(--u));
@@ -211,7 +220,7 @@ export const snippetsStamptext: Record<string, Snippet> = {
 }
 /* the turned wooden neck: a cylinder, so its light runs down it */
 .neck {
-  bottom: calc(10 * var(--u));
+  bottom: calc(24.5 * var(--u));
   width: calc(24 * var(--u));
   height: calc(52 * var(--u));
   margin-left: calc(-12 * var(--u));
@@ -220,7 +229,7 @@ export const snippetsStamptext: Record<string, Snippet> = {
 }
 /* the knob: a violet ball, lit from the upper left */
 .knob {
-  bottom: calc(54 * var(--u));
+  bottom: calc(68.5 * var(--u));
   width: calc(52 * var(--u));
   height: calc(52 * var(--u));
   margin-left: calc(-26 * var(--u));
