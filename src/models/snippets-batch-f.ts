@@ -431,6 +431,15 @@ ${lines(6, (i) => `<i style="--i:${i}"></i>`, '      ')}
   height: var(--tall);
   transform-style: preserve-3d; /* lets the tip fold in 3D */
   transform: rotateY(calc(var(--i) * 60deg)) translateZ(calc(var(--wide) * 0.866));
+}
+
+/* the panel's face, a flat child of the panel. The panel itself only turns and holds its face and
+   tip: painting it there made one element both a picture and a 3D space, and one renderer that
+   draws exports set such elements a little out of line */
+.crystal i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background:
     linear-gradient(90deg, transparent 30%, rgb(255 255 255 / 0.2) 42%, transparent 54%),
     linear-gradient(to top, color-mix(in srgb, var(--c) 62%, transparent), color-mix(in srgb, var(--c) 14%, transparent) 70%, color-mix(in srgb, var(--c) 28%, transparent));
