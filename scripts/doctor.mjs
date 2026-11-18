@@ -69,7 +69,7 @@ try {
 
 /* ---------------- what the checks read ---------------- */
 for (const [what, path, why] of [
-  ['model sources', 'src/models', 'the 135 models the checks judge.'],
+  ['model sources', 'src/models', 'the models the checks judge.'],
   ['generated ids', 'src/generated/model-ids.json', 'run `npm run generate` (or any build) to write it.'],
   ['recorded results', 'docs/checks', 'the board reads each check\'s verdicts from here. An empty folder is not an error: it means nothing has been run yet, and every model will read "not run yet".'],
   ['the checklist', 'docs/RELEASE-CHECKLIST.md', 'the release list the board proves line by line.'],
@@ -77,6 +77,26 @@ for (const [what, path, why] of [
   if (existsSync(join(ROOT, path))) ok(what, path);
   else warn(what, `${path} is missing`, why, path === 'src/generated/model-ids.json' ? 'npm run generate' : null);
 }
+
+/* ---------------- this machine's results, against the last release ---------------- */
+// docs/checks/ is not in git. A fresh clone, a git bundle or a copied repository starts without it,
+// and "the folder is there" said ok over a folder with nothing in it: on 2026-11-17 a checkout
+// cloned from a bundle read "168 never" on every check, and it looked like a run had wiped them.
+// The committed snapshot says which checks the last release had results for, so say which of
+// those this machine has none of, before anything is run.
+try {
+  const snap = JSON.parse(readFileSync(join(ROOT, 'docs', 'release-snapshot.json'), 'utf8'));
+  const keys = Object.entries(snap.checks ?? {}).filter(([, c]) => c?.scope === 'model').map(([k]) => k);
+  const hasResults = (k) => {
+    try { return Object.keys(JSON.parse(readFileSync(join(ROOT, 'docs', 'checks', `${k}.json`), 'utf8')).models ?? {}).length > 0; }
+    catch { return false; }
+  };
+  const missing = keys.filter((k) => !hasResults(k));
+  if (keys.length && missing.length) {
+    warn('results here', `${missing.length} of the ${keys.length} checks the last release recorded have no results on this machine (${missing.slice(0, 4).join(', ')}${missing.length > 4 ? ', …' : ''})`,
+      'docs/checks/ is not in git, so a fresh clone, a bundle or a copied folder starts without it. Those checks read "not run yet", and release-prepare will run them over every model: hours, not minutes. If another machine has the results, copy its docs/checks/ here first.');
+  } else if (keys.length) ok('results here', `all ${keys.length} checks the last release recorded have results here`);
+} catch { /* no snapshot to compare with: nothing to say */ }
 
 /* ---------------- the ports it wants ---------------- */
 const free = (port) => new Promise((resolve) => {
