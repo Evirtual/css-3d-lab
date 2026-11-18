@@ -924,24 +924,42 @@ ${lines(12, (i) => `<i class="${i % 2 ? 'right' : 'left'}" style="--i:${Math.flo
   animation: dash 0.5s linear infinite;
 }
 
+/* A post's box holds all of it: the 5-unit stick in the middle (::after), its glow 8 units round it,
+   and the head (::before), so the box is 21 wide and 54 tall, standing where the stick stands. A
+   negative margin either side widens it about the stick, so the stick, its head and the foot it
+   turns on stay where they were. It was the stick alone, with the head and the glow outside it, and
+   one renderer that draws exports cut a turned layer's contents off at its box: flat-topped posts
+   with no glow. The glow is clipped at the box here too, so every renderer cuts it the same way */
 .road i {
   position: absolute;
+  bottom: 0;
+  width: calc(21 * var(--u));
+  height: calc(54 * var(--u));
+  margin: 0 calc(-8 * var(--u));
+  overflow: hidden;
+  transform-origin: bottom;
+  animation: post 7s linear infinite;
+  animation-delay: calc(var(--i) * -7s / 6);
+}
+
+.road i::after {
+  content: '';
+  position: absolute;
+  left: calc(8 * var(--u));
   bottom: 0;
   width: calc(5 * var(--u));
   height: calc(46 * var(--u));
   border-radius: calc(3 * var(--u));
   background: linear-gradient(${TEAL}, rgb(46 230 214 / 0.15));
   box-shadow: 0 0 calc(8 * var(--u)) rgb(46 230 214 / 0.7);
-  transform-origin: bottom;
-  animation: post 7s linear infinite;
-  animation-delay: calc(var(--i) * -7s / 6);
 }
 
 .road i::before {
   content: '';
   position: absolute;
-  top: calc(-4 * var(--u));
-  left: calc(-3 * var(--u));
+  z-index: 1; /* the head over the stick's top, as when it was the stick's own child */
+  top: calc(4 * var(--u));
+  left: calc(5 * var(--u));
   width: calc(11 * var(--u));
   height: calc(11 * var(--u));
   border-radius: 50%;
