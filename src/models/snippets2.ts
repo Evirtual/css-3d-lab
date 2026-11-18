@@ -1534,7 +1534,7 @@ input:checked ~ em {
       'JS picks a random value, looks up that rotation and adds two more full turns (<code>+720°</code>) on every roll, so it always tumbles instead of taking a shortcut.',
       'It writes two custom properties. The 1.1s <code>transition</code> with an overshoot easing <i>is</i> the roll animation.',
       'A fixed camera tilt comes first in the transform list, so you always see three faces.',
-      'Rounded faces leave see-through holes at the cube’s corners. A square plate 8 units behind every face builds a sharp inner cube that fills them.',
+      'Rounded faces leave see-through holes at the cube’s corners. Six square plates, each 8 units inside a face, build a sharp inner cube that fills them. The plates are elements of their own, beside the faces, and every face is flat: a plate hung on its face made each face a 3D space of its own, and one renderer that draws exports set those faces a little out of line and drew the plates over them.',
       'Every length in the die is a multiple of one base unit, <code>--u</code>, tied to the canvas, so it is the same share of a gallery card, the editor and a recording canvas. The Roll button and its caption are in plain <code>vmin</code> instead: they are the same size in every model.',
     ],
     html: `<div class="table">
@@ -1543,6 +1543,7 @@ input:checked ~ em {
       <div class="cube">
         <div>1</div><div>2</div><div>6</div>
         <div>5</div><div>3</div><div>4</div>
+        <s></s><s></s><s></s><s></s><s></s><s></s>
       </div>
     </div>
   </div>
@@ -1588,7 +1589,7 @@ input:checked ~ em {
   transition: transform 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.15);
 }
 
-.cube > * {
+.cube > div {
   position: absolute;
   inset: 0;
   display: grid;
@@ -1600,18 +1601,24 @@ input:checked ~ em {
   background: radial-gradient(circle at 30% 30%, #fff, #dfe1f0);
   color: #1a1d33;
   font: 900 calc(54 * var(--u)) Inter, system-ui;
-  transform-style: preserve-3d;
 }
 
-/* Rounded faces leave a hole where three corners meet. A square plate just behind each face
-   forms a slightly smaller inner cube that plugs the gaps. */
-.cube > *::before {
-  content: '';
+/* Rounded faces leave a hole where three corners meet. Six square plates, each 8 units inside a
+   face, form a slightly smaller inner cube that plugs the gaps. They are elements beside the faces,
+   not children of them, so a face stays flat: as a face's child the plate needed the face to be a
+   3D space of its own, and one renderer that draws exports set such faces a little out of line and
+   drew the plates over them */
+.cube > s {
   position: absolute;
   inset: calc(8 * var(--u));
   background: #d3d6ea;
-  transform: translateZ(calc(-8 * var(--u)));
 }
+.cube > s:nth-of-type(1) { transform: rotateY(0deg)   translateZ(calc(var(--s) / 2 - 8 * var(--u))); }
+.cube > s:nth-of-type(2) { transform: rotateY(90deg)  translateZ(calc(var(--s) / 2 - 8 * var(--u))); }
+.cube > s:nth-of-type(3) { transform: rotateY(180deg) translateZ(calc(var(--s) / 2 - 8 * var(--u))); }
+.cube > s:nth-of-type(4) { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2 - 8 * var(--u))); }
+.cube > s:nth-of-type(5) { transform: rotateX(90deg)  translateZ(calc(var(--s) / 2 - 8 * var(--u))); }
+.cube > s:nth-of-type(6) { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2 - 8 * var(--u))); }
 
 ${CUBE_FACES}
 
