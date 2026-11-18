@@ -363,11 +363,11 @@ ${EMBERS.map((e) => `      <i class="ember" style="--x:${e.x};--dx:${e.dx};--z:$
    angle, and flickers from its foot on its own uneven keyframes (stretch, squeeze, sway, fade) */
 .flame {
   position: absolute;
-  left: calc(50% - 14 * var(--u));
-  top: calc(50% - 28 * var(--u));
-  width: calc(28 * var(--u));
-  height: calc(28 * var(--u));
-  transform-origin: 50% 100%;
+  left: calc(50% - 21 * var(--u));
+  top: calc(50% - 35 * var(--u));
+  width: calc(42 * var(--u));
+  height: calc(42 * var(--u));
+  transform-origin: 50% calc(100% - 7 * var(--u));
   animation: flick-a var(--d) ease-in-out var(--t) infinite;
 }
 
@@ -390,11 +390,13 @@ ${EMBERS.map((e) => `      <i class="ember" style="--x:${e.x};--dx:${e.dx};--z:$
 }
 
 /* the teardrop: a square with three round corners turned 45°, its point up. Pale at the foot,
-   amber, then orange and a red-pink tip */
+   amber, then orange and a red-pink tip. It sits 7 units inside the plane's box, because the
+   turned square's point reaches 5.8 units past a box its own size, and some renderers clip a
+   3D plane to its box */
 .flame::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: calc(7 * var(--u));
   border-radius: 0 50% 50% 50%;
   background: radial-gradient(circle at 66% 66%, #fffbe8 0, #ffeaa6 10%, #ffc65a 26%, #ff9a3d 44%, #ff6a2e 62%, #f04a3a 80%, rgb(220 50 90 / 0.8) 100%);
   transform: rotate(45deg);

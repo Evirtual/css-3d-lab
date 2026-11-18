@@ -384,10 +384,10 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
 }
 
 .left {
-  left: 0;
-  background-image: linear-gradient(90deg, rgb(0 0 0 / 0.35), rgb(0 0 0 / 0.08));
-  transform-origin: left;
-  transform: translateZ(calc(110 * var(--u))) rotateY(90deg);
+  right: 100%;
+  background-image: linear-gradient(270deg, rgb(0 0 0 / 0.35), rgb(0 0 0 / 0.08));
+  transform-origin: right;
+  transform: translateZ(calc(110 * var(--u))) rotateY(90deg) scaleX(-1);
 }
 
 .right {
@@ -415,10 +415,10 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
 }
 
 .ceil {
-  top: 0;
-  background-image: linear-gradient(rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.1));
-  transform-origin: top;
-  transform: translateZ(calc(110 * var(--u))) rotateX(-90deg);
+  bottom: 100%;
+  background-image: linear-gradient(to top, rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.1));
+  transform-origin: bottom;
+  transform: translateZ(calc(110 * var(--u))) rotateX(-90deg) scaleY(-1);
 }
 
 /* back wall */
@@ -447,10 +447,11 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   background: linear-gradient(160deg, ${TEAL}, ${VIOLET} 55%, ${PINK});
 }
 
-/* left wall: its left end is near the camera */
+/* left wall: laid out to the left of the canvas and mirrored into place, so its RIGHT end is
+   near the camera */
 .poster {
   top: 22%;
-  left: 50%;
+  left: 28%;
   width: 22%;
   height: 38%;
   background:
@@ -492,9 +493,10 @@ ${lines(16, (i) => `<i style="--x:${i % 4};--y:${Math.floor(i / 4)};--h:${CITY_H
   opacity: 0.85;
 }
 
-/* ceiling: its top edge is near the camera */
+/* ceiling: laid out above the canvas and mirrored into place, so its bottom edge is near the
+   camera */
 .lamp {
-  top: 50%;
+  top: calc(50% - calc(90 * var(--u)));
   left: calc(50% - calc(45 * var(--u)));
   width: calc(90 * var(--u));
   height: calc(90 * var(--u));

@@ -437,10 +437,12 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}<u></u></i>`)
    As the tread's own paint it was drawn by an element that was also a 3D space, and one renderer
    that draws exports set such elements a little out of line; and its glow lay outside its box,
    which that renderer cuts off. So this box is 12 units bigger than the tread every way, and the
-   top is its ::before */
+   top is its ::before. It is lifted a hair off the tread, clear of the side strips' top edges:
+   touching them, that renderer sometimes sorted the strips in front of it */
 .stairs u {
   position: absolute;
   inset: calc(-12 * var(--u));
+  transform: translateZ(calc(0.6 * var(--u)));
 }
 .stairs u::before {
   content: '';
