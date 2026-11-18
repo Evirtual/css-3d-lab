@@ -859,11 +859,28 @@ stage.addEventListener('pointercancel', leave);`,
 
 /* a tiny stage of its own for every box, so all three cubes are seen from the same angle */
 .box {
+  position: relative;
   flex: none;
   width: calc(30 * var(--u));
   height: calc(30 * var(--u));
   perspective: calc(160 * var(--u));
   pointer-events: none;
+}
+
+/* The glow round a ticked box, drawn flat behind the cube rather than as a shadow on the turning
+   face: one renderer that draws exports cut a 3D face's shadow off at the face's own box. It
+   comes up with the tick, on the same time as the flip */
+.box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: calc(4 * var(--u));
+  box-shadow: 0 0 calc(16 * var(--u)) rgb(46 230 214 / 0.6);
+  opacity: 0;
+  transition: opacity 0.55s;
+}
+.check-list input:checked + label .box::before {
+  opacity: 1;
 }
 
 .cube {
@@ -900,7 +917,7 @@ stage.addEventListener('pointercancel', leave);`,
   display: grid;
   place-items: center;
   background: #2ee6d6;
-  box-shadow: 0 0 calc(16 * var(--u)) rgb(46 230 214 / 0.6);
+  box-shadow: none; /* its glow is .box::before */
   color: #062b28;
   backface-visibility: hidden; /* looking down into the glass cube you'd see the inside otherwise */
 }
