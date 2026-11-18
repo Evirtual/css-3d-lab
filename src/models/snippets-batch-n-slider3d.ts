@@ -25,7 +25,7 @@ export const snippetsSlider3d: Record<string, Snippet> = {
     <div class="bars" aria-hidden="true">
 ${Array.from({ length: BARS }, (_, i) => `      <i class="bar" style="--i:${i}"><b></b></i>`).join('\n')}
     </div>
-    <div class="groove" aria-hidden="true"><i class="floor"></i><i class="fill"></i><i class="wall"></i><i class="end"></i><i class="end"></i></div>
+    <div class="groove" aria-hidden="true"><i class="floor"><i class="fill"></i></i><i class="wall"></i><i class="end"></i><i class="end"></i></div>
     <input id="level" type="range" min="0" max="100" value="64" />
     <div class="thumb" aria-hidden="true"><i class="shadow"></i><i class="fr"></i><i class="lf"></i><i class="rt"></i><i class="t"></i></div>
   </div>
@@ -196,9 +196,13 @@ ${Array.from({ length: BARS }, (_, i) => `      <i class="bar" style="--i:${i}">
 .floor {
   inset: 0;
   background: #07080f;
+  overflow: hidden; /* the fill's glow stops at the groove's edge, on every renderer alike */
   transform: translateZ(calc(-8 * var(--u)));
 }
-/* the teal fill, from the groove's end to the thumb's centre: 14 units, then 2 per point */
+/* the teal fill, from the groove's end to the thumb's centre: 14 units, then 2 per point. It is
+   drawn on the floor, as the floor's own child, not as a plane half a unit above it: the bars'
+   side faces cut that plane into pieces, and one renderer that draws exports sorted some of them
+   under the floor, so the line broke into dashes */
 .fill {
   left: 0;
   top: calc(5 * var(--u));
@@ -208,7 +212,7 @@ ${Array.from({ length: BARS }, (_, i) => `      <i class="bar" style="--i:${i}">
   background: linear-gradient(90deg, #2ee6d6, #8b6cff);
   box-shadow: 0 0 calc(6 * var(--u)) rgb(46 230 214 / 0.6);
   transform-origin: 0 50%;
-  transform: translateZ(calc(-7.5 * var(--u))) scaleX(calc((14 + var(--v) * 2) / 214));
+  transform: scaleX(calc((14 + var(--v) * 2) / 214));
   transition: transform 0.12s ease-out;
 }
 .wall {
@@ -226,8 +230,8 @@ ${Array.from({ length: BARS }, (_, i) => `      <i class="bar" style="--i:${i}">
   height: 100%;
   background: #1b1e36;
 }
-.end:nth-child(4) { left: 0;  transform-origin: 0 50%;    transform: rotateY(90deg); }
-.end:nth-child(5) { right: 0; transform-origin: 100% 50%; transform: rotateY(-90deg); }
+.end:nth-child(3) { left: 0;  transform-origin: 0 50%;    transform: rotateY(90deg); }
+.end:nth-child(4) { right: 0; transform-origin: 100% 50%; transform: rotateY(-90deg); }
 
 /* the real input, see-through, over the groove in the deck's plane. Its own thumb is as wide as
    the drawn one, so value 0 and 100 put the thumb's centre at the same places as ours */
