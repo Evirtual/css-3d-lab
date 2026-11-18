@@ -132,8 +132,8 @@ export const snippetsHotair: Record<string, Snippet> = {
     ],
     html: `<div class="scene">
   <div class="sky">
-    <i class="cloud far" style="--y:18;--z:-160;--d:40s;--t:-20s"></i>
-    <i class="cloud" style="--y:66;--z:-90;--d:40s;--t:-10s"></i>
+    <i class="cloud far" style="--y:18;--z:-160;--d:40s;--t:-20s"><b></b></i>
+    <i class="cloud" style="--y:66;--z:-90;--d:40s;--t:-10s"><b></b></i>
     <div class="flight">
       <div class="envelope">
         <div class="balloon">
@@ -148,7 +148,7 @@ ${[0, 1, 2, 3].map((k) => `        <b class="rope" style="--k:${k}"></b>`).join(
         <div class="basket"><i></i><i></i><i></i><i></i></div>
       </div>
     </div>
-    <i class="cloud near" style="--y:120;--z:70;--d:20s;--t:-14s"></i>
+    <i class="cloud near" style="--y:120;--z:70;--d:20s;--t:-14s"><b></b></i>
   </div>
 </div>`,
     css: `.scene {
@@ -360,22 +360,36 @@ ${B.map((_, k) => leaf(k)).join('\n\n')}
 /* a cloud: a long base and two puffs, one gradient across all three (sized to the whole cloud and
    shifted by each piece's top), so it reads as one body: bright above, lilac in its belly, which
    keeps it visible on a light stage. It drifts across at its own depth and fades at both ends */
-.cloud,
+.cloud > b,
 .cloud::before,
 .cloud::after {
   background: linear-gradient(#ffffff 22%, #dfe1f7 60%, #a9afe0) 0 var(--gy, calc(-14 * var(--u))) / 100% calc(30 * var(--u));
 }
 
-/* the element is the base, the bottom 16 of the cloud's 30 units */
+/* The element is the whole cloud, 60 by 30, and draws nothing itself: its base and both puffs are
+   inside its box. It used to be the base alone, with the puffs standing up out of it, and a cloud
+   that fades is drawn as one layer: one renderer that draws exports cut that layer to the
+   element's box and drew the near cloud as a bare pill. It scales about the base's middle, 22
+   units down, as it did when it was the base */
 .cloud {
   position: absolute;
   left: calc(50% - calc(30 * var(--u)));
-  top: calc((var(--y) + 14) * var(--u));
+  top: calc(var(--y) * var(--u));
   width: calc(60 * var(--u));
-  height: calc(16 * var(--u));
-  border-radius: 999px;
+  height: calc(30 * var(--u));
+  transform-origin: 50% calc(22 * var(--u));
   opacity: 0;
   animation: drift var(--d) linear var(--t) infinite;
+}
+
+/* the base, the bottom 16 of the cloud's 30 units */
+.cloud > b {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(16 * var(--u));
+  border-radius: 999px;
 }
 
 /* the two puffs on its back, their feet on its bottom edge */
