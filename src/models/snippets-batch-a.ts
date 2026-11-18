@@ -397,7 +397,7 @@ ${lines(16, (i) => `      <i style="--i:${i}"></i>`)}
   <div class="stairs">
     <b></b>
     <b></b>
-${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
+${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}<u></u></i>`)}
   </div>
 </div>`,
     css: `.scene {
@@ -422,15 +422,6 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
   top: calc(98 * var(--u));
   width: calc(58 * var(--u));
   height: calc(28 * var(--u));
-  /* an inner line plus a soft shade instead of a hard border: treads near eye level are seen
-     almost edge-on, where a hairline breaks up; the shade survives. The glow is here, on the 14
-     treads, not on the 140 side strips: a blur on every strip cost four screen refreshes a frame */
-  box-shadow:
-    inset 0 0 0 calc(1 * var(--u)) hsl(var(--hue) 90% 82%),
-    inset 0 0 calc(8 * var(--u)) hsl(var(--hue) 90% 82% / 0.25),
-    0 0 calc(10 * var(--u)) hsl(var(--hue) 85% 64% / 0.6);
-  border-radius: 0 calc(6 * var(--u)) calc(6 * var(--u)) 0;
-  background: hsl(var(--hue) 85% 64% / 0.62);
   transform-origin: calc(-5 * var(--u)) 50%; /* on the pole's axis */
   transform-style: preserve-3d;
   transform:
@@ -442,6 +433,30 @@ ${lines(14, (i) => `    <i style="--i:${i}">${'<s></s>'.repeat(10)}</i>`)}
 /* The sides go all the way round the tread: both long edges, the outer end and the two rounded
    corners (three short facets each), so the side follows the rounding. Each strip starts at a
    point on the edge (--x, --y), turns to run along it (--a), then folds straight down one step. */
+/* The tread's top: a flat child of the tread, which itself only turns and holds the side strips.
+   As the tread's own paint it was drawn by an element that was also a 3D space, and one renderer
+   that draws exports set such elements a little out of line; and its glow lay outside its box,
+   which that renderer cuts off. So this box is 12 units bigger than the tread every way, and the
+   top is its ::before */
+.stairs u {
+  position: absolute;
+  inset: calc(-12 * var(--u));
+}
+.stairs u::before {
+  content: '';
+  position: absolute;
+  inset: calc(12 * var(--u));
+  /* an inner line plus a soft shade instead of a hard border: treads near eye level are seen
+     almost edge-on, where a hairline breaks up; the shade survives. The glow is here, on the 14
+     treads, not on the 140 side strips: a blur on every strip cost four screen refreshes a frame */
+  box-shadow:
+    inset 0 0 0 calc(1 * var(--u)) hsl(var(--hue) 90% 82%),
+    inset 0 0 calc(8 * var(--u)) hsl(var(--hue) 90% 82% / 0.25),
+    0 0 calc(10 * var(--u)) hsl(var(--hue) 85% 64% / 0.6);
+  border-radius: 0 calc(6 * var(--u)) calc(6 * var(--u)) 0;
+  background: hsl(var(--hue) 85% 64% / 0.62);
+}
+
 .stairs s {
   position: absolute;
   left: calc(var(--x) * var(--u));
