@@ -131,26 +131,40 @@ ${LETTERS.map(([c, p]) => `      <span class="letter" style="--p:${p}"><i class=
 }
 
 /* the frame tube, teal, and the light it casts on the board just behind it */
+/* Each is a box 22 units bigger than the tube on every side, and draws nothing itself: the tube
+   and its light are its ::before, so their glow lies inside the box. As a shadow on the tube's own
+   box the glow lay outside it, and one renderer that draws exports cut a turned layer's drawing
+   off at its box: no teal light past the board */
 .frame,
 .frame-cast {
+  inset: calc((14 - 22) * var(--u)) calc((16 - 22) * var(--u));
+}
+.frame::before,
+.frame-cast::before {
+  content: '';
+  position: absolute;
   box-sizing: border-box;
-  inset: calc(14 * var(--u)) calc(16 * var(--u));
+  inset: calc(22 * var(--u));
   border-radius: calc(18 * var(--u));
 }
 .frame {
+  /* a unit behind the letters: two planes at the same depth have no stable order */
+  transform: translateZ(calc((var(--z) - 1) * var(--u)));
+}
+.frame::before {
   border: calc(3 * var(--u)) solid #d8fffb;
   box-shadow:
     0 0 calc(3 * var(--u)) #2ee6d6,
     0 0 calc(10 * var(--u)) rgb(46 230 214 / 0.6),
     inset 0 0 calc(3 * var(--u)) #2ee6d6;
-  /* a unit behind the letters: two planes at the same depth have no stable order */
-  transform: translateZ(calc((var(--z) - 1) * var(--u)));
 }
 .frame-cast {
+  transform: translateZ(calc(0.5 * var(--u)));
+}
+.frame-cast::before {
   box-shadow:
     0 0 calc(18 * var(--u)) rgb(46 230 214 / 0.32),
     inset 0 0 calc(18 * var(--u)) rgb(46 230 214 / 0.32);
-  transform: translateZ(calc(0.5 * var(--u)));
 }
 
 /* the word, centred on the board; each letter is a 3D group of tube, bracket and cast light */
@@ -172,6 +186,10 @@ ${LETTERS.map(([c, p]) => `      <span class="letter" style="--p:${p}"><i class=
 /* the tube: a hot near-white core with a pink glass edge and a halo, out in front of the board */
 .letter b {
   display: block;
+  /* the halo's 20 units inside the box, which grows by as much as it is pulled back: the letter
+     does not move, and a renderer that cuts a layer off at its box cuts nothing */
+  padding: calc(20 * var(--u));
+  margin: calc(-20 * var(--u));
   font-weight: inherit;
   color: #fff4fa;
   -webkit-text-stroke: calc(1 * var(--u)) #ff7ab5;
