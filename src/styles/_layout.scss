@@ -2960,8 +2960,12 @@ body:has(.viewer[open]) :is(.grid .stage, .hero__art, .logo-cube, .aurora) {
     position: relative;
     overflow: hidden;
     container-type: size;
-    width: calc(100% * min(1, var(--aspect, 1)));
-    height: calc(100% * min(1, 1 / var(--aspect, 1)));
+    // the file's shape is the INSIDE of the frame, where the stage sits: the 1px border comes off
+    // both sides first. Sized border and all, a 16:9 frame held a 394×220 stage (1.79:1), so a
+    // scene that fills it was laid out a little wider than the video drawn at 16:9 (road's ground
+    // lines landed two pixels apart at the edges)
+    width: calc((100% - 2px) * min(1, var(--aspect, 1)) + 2px);
+    height: calc((100% - 2px) * min(1, 1 / var(--aspect, 1)) + 2px);
     transition:
       width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
       height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
