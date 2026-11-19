@@ -122,6 +122,11 @@ commit is a fact about the repository, not about the check. Editing this file is
 reads it. Before fingerprints, a typo in the README retired a four-hour run and six checklist lines
 with it.
 
+The stages check's paths take in everything that shows a model on the site, not only the embed:
+the card stage and its look, the viewer (`openViewer` in `src/main.ts`), the model page, live
+editing, the editor and full screen. A change to any of them retires the stages results, as it
+should: each is a place a model can be drawn wrong.
+
 The opposite mistake is quieter: a file a step reads that is on none of its paths. Until 2026-10-09
 the build's list left out `index.html` and `site.config.json`, the home page and the site's name,
 so a change to the home page's structured data would have left "the build is clean" standing over

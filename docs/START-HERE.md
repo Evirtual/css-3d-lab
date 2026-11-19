@@ -119,7 +119,9 @@ The checks write their answers to a board. It is the thing you will actually loo
 rules worth knowing before you trust it: a line can answer three ways rather than two, a result
 dies when the code it judged changes, and a full run takes four hours while a partial one takes
 minutes. [`LEDGER.md`](LEDGER.md) covers all of that, and `npm run doctor` tells you whether this
-machine can run any of it before you find out the hard way.
+machine can run any of it before you find out the hard way. It also says when this machine has
+none of the results the last release recorded (a fresh clone, or a copy without the gitignored
+`docs/checks/`), so an empty board reads as "not run here", not as work that was lost.
 
 ## What do you want to do?
 

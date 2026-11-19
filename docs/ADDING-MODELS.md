@@ -350,7 +350,9 @@ reading "not run yet". Nothing is assumed about it. Then:
 
 1. **To check** — until every automated check above has a pass recorded on the code as it is now.
    The row says which check is missing, and a check you ran without `npm run capture` records
-   nothing: the ledger only reads what was captured.
+   nothing: the ledger only reads what was captured. A captured result also records which browser
+   drew it (`drewWith`, on each model's entry and on the run), so a pass from another Chromium
+   cannot pass for this one unseen.
 2. **Approved** — every check has a pass recorded on the code as it is now. Nothing else: no
    sign-off, no record of anyone having looked.
 
