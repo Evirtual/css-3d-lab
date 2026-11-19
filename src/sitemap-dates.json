@@ -1,42 +1,42 @@
 {
   "groups/shapes/": {
     "hash": "e3ee922d516b9dd7",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "groups/product/": {
     "hash": "7abece0d57285fa4",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "groups/text/": {
     "hash": "2f2e16d9bb6e2b27",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "groups/controls/": {
     "hash": "477c19d50c6d7053",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "groups/cards/": {
     "hash": "1c69981b8030c5df",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "groups/loaders/": {
     "hash": "d909a5f341086139",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "groups/scenes/": {
     "hash": "250bbd986ad3ce04",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "groups/data/": {
     "hash": "f8588e1ac2429b21",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/phone/": {
@@ -45,8 +45,8 @@
     "published": "2026-09-18"
   },
   "models/rubik/": {
-    "hash": "a0abbe34d8b6555e",
-    "date": "2026-10-10",
+    "hash": "d887e8bea1640aaa",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/paycard/": {
@@ -56,7 +56,7 @@
   },
   "models/solar/": {
     "hash": "490b8cf6d62da3e2",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/flaptext/": {
@@ -71,7 +71,7 @@
   },
   "models/city/": {
     "hash": "445503b9ed50d5b0",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/hovercards/": {
@@ -85,8 +85,8 @@
     "published": "2026-09-18"
   },
   "models/dice/": {
-    "hash": "271cd0f797890c8f",
-    "date": "2026-10-10",
+    "hash": "6071f1d6cedf6ed2",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/wordcube/": {
@@ -130,13 +130,13 @@
     "published": "2026-09-18"
   },
   "models/magnet/": {
-    "hash": "cdcf63f3f05c140c",
-    "date": "2026-10-10",
+    "hash": "89cd46873a33b0ab",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/ferris/": {
-    "hash": "ac804dac6577771a",
-    "date": "2026-10-14",
+    "hash": "a0c4f8e7c0818e88",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/pricing/": {
@@ -165,13 +165,13 @@
     "published": "2026-09-18"
   },
   "models/island/": {
-    "hash": "247407a01e3f32b0",
-    "date": "2026-10-14",
+    "hash": "009681cf717e3a9f",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/coverflow/": {
-    "hash": "debf8d19a0122b78",
-    "date": "2026-10-10",
+    "hash": "f50d8e6e543915c3",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/badge/": {
@@ -225,8 +225,8 @@
     "published": "2026-09-18"
   },
   "models/orbit/": {
-    "hash": "b0c9c847fdfc2357",
-    "date": "2026-10-10",
+    "hash": "f475000c61c27584",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/layers/": {
@@ -235,28 +235,28 @@
     "published": "2026-09-18"
   },
   "models/explode/": {
-    "hash": "1048d256d79a720b",
-    "date": "2026-10-10",
+    "hash": "76990d7b876d502a",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/radio/": {
-    "hash": "fa8e832ea939d3cf",
-    "date": "2026-10-10",
+    "hash": "39c051e7f367f5c9",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/drag/": {
-    "hash": "7c360130820f99de",
-    "date": "2026-10-10",
+    "hash": "e9984dbb6d3eb3be",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/sphere/": {
-    "hash": "68a827205421f8d8",
-    "date": "2026-10-10",
+    "hash": "b58597029a3ed5a5",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/scrollspin/": {
-    "hash": "2c2d5874fb02dc0d",
-    "date": "2026-10-10",
+    "hash": "6448089a7e0342a9",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/prism/": {
@@ -275,23 +275,23 @@
     "published": "2026-09-18"
   },
   "models/stairs/": {
-    "hash": "1a61390143f68160",
-    "date": "2026-10-10",
+    "hash": "d329494d9e47332c",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/cubegrid/": {
-    "hash": "eb4a0638880d8692",
-    "date": "2026-10-10",
+    "hash": "f1a1404f0f147c7a",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/net/": {
-    "hash": "8babf8ca2143b2be",
-    "date": "2026-10-10",
+    "hash": "9dfbdb191497da55",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/shapeshift/": {
-    "hash": "ba7c95b04ad01104",
-    "date": "2026-10-10",
+    "hash": "e7dbc4650fe27a25",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/tetra/": {
@@ -305,18 +305,18 @@
     "published": "2026-09-19"
   },
   "models/crystal/": {
-    "hash": "0de22309031e2e37",
-    "date": "2026-10-10",
+    "hash": "16c719a430412ba9",
+    "date": "2026-11-18",
     "published": "2026-09-19"
   },
   "models/lattice/": {
-    "hash": "6e221a5e95268bcc",
-    "date": "2026-10-10",
+    "hash": "fdeccdbeda668905",
+    "date": "2026-11-18",
     "published": "2026-09-19"
   },
   "models/planet/": {
-    "hash": "87e53a2e6175f7f7",
-    "date": "2026-10-10",
+    "hash": "8a3904e123dc1084",
+    "date": "2026-11-18",
     "published": "2026-09-19"
   },
   "models/gear/": {
@@ -390,8 +390,8 @@
     "published": "2026-09-18"
   },
   "models/lit/": {
-    "hash": "4be3c3ec88524310",
-    "date": "2026-10-11",
+    "hash": "471d11ef5a7b787a",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/waveletters/": {
@@ -415,23 +415,23 @@
     "published": "2026-09-18"
   },
   "models/cubeletters/": {
-    "hash": "953d9aaa45544d99",
-    "date": "2026-10-11",
+    "hash": "c891457bcdf0dbee",
+    "date": "2026-11-18",
     "published": "2026-09-19"
   },
   "models/ribbontext/": {
-    "hash": "8d883a03ad49b8d3",
-    "date": "2026-10-11",
+    "hash": "872e5997d9fdf1ae",
+    "date": "2026-11-18",
     "published": "2026-09-30"
   },
   "models/neonsign/": {
-    "hash": "191427493e652fd6",
-    "date": "2026-10-11",
+    "hash": "2ccf67cb0db29419",
+    "date": "2026-11-18",
     "published": "2026-10-04"
   },
   "models/stamptext/": {
-    "hash": "7760a86f5a241b93",
-    "date": "2026-10-11",
+    "hash": "31f87399be2ad08b",
+    "date": "2026-11-18",
     "published": "2026-10-04"
   },
   "models/coderain/": {
@@ -440,8 +440,8 @@
     "published": "2026-10-04"
   },
   "models/typewriter/": {
-    "hash": "598013a89aadb407",
-    "date": "2026-10-13",
+    "hash": "57151e1271149f2c",
+    "date": "2026-11-18",
     "published": "2026-10-10"
   },
   "models/button/": {
@@ -450,43 +450,43 @@
     "published": "2026-09-18"
   },
   "models/rollbutton/": {
-    "hash": "a9d73d0860b847b7",
-    "date": "2026-10-10",
+    "hash": "a68de3121000872b",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/switch/": {
-    "hash": "f6443b028e2ea9db",
-    "date": "2026-10-10",
+    "hash": "5ff979c7b840961f",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/dropdown/": {
-    "hash": "f4027d0992d2b7bd",
-    "date": "2026-10-10",
+    "hash": "9a4c3ff482cb41dd",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/zones/": {
-    "hash": "dea9ccec75bafa15",
-    "date": "2026-10-10",
+    "hash": "33aff941ea20097d",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/tilt/": {
-    "hash": "f1dd9df096d0481b",
-    "date": "2026-10-10",
+    "hash": "6a29e3fc182f1f24",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/check/": {
-    "hash": "3ad50e36cd9d8e49",
-    "date": "2026-10-10",
+    "hash": "8a2d835f02fd998d",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/tabs/": {
-    "hash": "81241d237346e21e",
-    "date": "2026-10-10",
+    "hash": "b49da1b1944d1e34",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/radial/": {
-    "hash": "bff968ccdd8f3781",
-    "date": "2026-10-10",
+    "hash": "67bfb1df85338803",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/keycaps/": {
@@ -495,28 +495,28 @@
     "published": "2026-09-19"
   },
   "models/stepper/": {
-    "hash": "40f3472fd9468a7d",
-    "date": "2026-10-10",
+    "hash": "43edaca2820d4df6",
+    "date": "2026-11-18",
     "published": "2026-09-19"
   },
   "models/rating/": {
-    "hash": "b5dd9b81fa3d5129",
-    "date": "2026-10-10",
+    "hash": "2c277ce5e01abf99",
+    "date": "2026-11-18",
     "published": "2026-09-19"
   },
   "models/toggle/": {
-    "hash": "15eb8d3e358f87d7",
-    "date": "2026-10-10",
+    "hash": "4e7568dd9327eed3",
+    "date": "2026-11-18",
     "published": "2026-09-19"
   },
   "models/knob/": {
-    "hash": "76801265def32259",
-    "date": "2026-10-10",
+    "hash": "1c1fbf8013c17d74",
+    "date": "2026-11-18",
     "published": "2026-09-30"
   },
   "models/slider3d/": {
-    "hash": "320ce488200db7fe",
-    "date": "2026-10-10",
+    "hash": "3480a9b75f761268",
+    "date": "2026-11-18",
     "published": "2026-10-04"
   },
   "models/lever/": {
@@ -540,23 +540,23 @@
     "published": "2026-09-18"
   },
   "models/boxslider/": {
-    "hash": "fa62958bbad3be02",
-    "date": "2026-10-10",
+    "hash": "ec33845803524fbc",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/cardstack/": {
-    "hash": "6b0e2e0698400247",
-    "date": "2026-10-10",
+    "hash": "ed93d24565219f77",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/cardfan/": {
-    "hash": "2f222cd002a7d19a",
-    "date": "2026-10-10",
+    "hash": "f7b412089f69f31d",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/book/": {
-    "hash": "eae512a0b1aea089",
-    "date": "2026-10-10",
+    "hash": "4d8b4e7e292bfaeb",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/flipgrid/": {
@@ -615,23 +615,23 @@
     "published": "2026-09-18"
   },
   "models/helix/": {
-    "hash": "a76f3c8b8c78df37",
-    "date": "2026-10-10",
+    "hash": "f439fe1bd91ea7f2",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/tiles/": {
-    "hash": "714b58f4362eae14",
-    "date": "2026-10-10",
+    "hash": "4f20b9a9356e306e",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/wavegrid/": {
-    "hash": "2a637f0d91834909",
-    "date": "2026-10-10",
+    "hash": "3a56ad2b6e26a652",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/ripple/": {
-    "hash": "cf16495d753eb38e",
-    "date": "2026-10-10",
+    "hash": "8aae5a39d8b8afec",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/cubeloader/": {
@@ -675,138 +675,138 @@
     "published": "2026-10-10"
   },
   "models/grid/": {
-    "hash": "f99eb895989eeaac",
-    "date": "2026-10-14",
+    "hash": "fb09c000f425faaa",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/tunnel/": {
     "hash": "ba7da00aac7b6a92",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/starfield/": {
     "hash": "696d49eeddf044a1",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/parallax/": {
-    "hash": "9b073baa949d2a7e",
-    "date": "2026-10-14",
+    "hash": "4c7656fee32118cb",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/door/": {
-    "hash": "164814e548339a6f",
-    "date": "2026-10-14",
+    "hash": "c6ca14f79ae8fd3e",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/laptop/": {
-    "hash": "fdd72a00047bd6da",
-    "date": "2026-10-14",
+    "hash": "317fb297aceba280",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/sign/": {
     "hash": "38fc986120244ba1",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/fold/": {
     "hash": "1fea564b4195869c",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/isotiles/": {
-    "hash": "066e0f829e3d6910",
-    "date": "2026-10-14",
+    "hash": "c825ce1b3ca95af2",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/confetti/": {
-    "hash": "e6e7f71bd652c5bd",
-    "date": "2026-10-14",
+    "hash": "4a4a037b281425ba",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/room/": {
-    "hash": "d55ac7f07106520a",
-    "date": "2026-10-14",
+    "hash": "c495bbb9c22bb505",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/road/": {
-    "hash": "c2841b2062a1c8ee",
-    "date": "2026-10-14",
+    "hash": "30b60a9f8e31004d",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/snow/": {
-    "hash": "14be2e6968bd8ad0",
-    "date": "2026-10-14",
+    "hash": "addf856a66671dc2",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/map/": {
-    "hash": "4b29bd41224b7907",
-    "date": "2026-10-14",
+    "hash": "6a1955b016e19dc8",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/windmill/": {
     "hash": "14d9be094de3714b",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-19"
   },
   "models/rocket/": {
     "hash": "5f702a46ea3f9098",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-19"
   },
   "models/lighthouse/": {
     "hash": "fb2b44191339f4d5",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-19"
   },
   "models/train/": {
     "hash": "d70fb2cf3ce74852",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-30"
   },
   "models/campfire/": {
-    "hash": "6ed1c48e1384e78d",
-    "date": "2026-10-14",
+    "hash": "8babbd687d2f0d64",
+    "date": "2026-11-19",
     "published": "2026-10-04"
   },
   "models/hotair/": {
-    "hash": "453b27adfd3fb107",
-    "date": "2026-10-14",
+    "hash": "43a34a316db5aafb",
+    "date": "2026-11-19",
     "published": "2026-10-04"
   },
   "models/aquarium/": {
     "hash": "e4c7e42a6c7dd284",
-    "date": "2026-11-18",
+    "date": "2026-11-19",
     "published": "2026-10-10"
   },
   "models/blackhole/": {
     "hash": "475da8f00f4d50c3",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-10-14"
   },
   "models/bars/": {
-    "hash": "2bab43d294296df4",
-    "date": "2026-10-14",
+    "hash": "70a26ed9640c1881",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/clock/": {
-    "hash": "3d7ed1984b53ce22",
-    "date": "2026-10-11",
+    "hash": "788b23e42c28b86d",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/playground/": {
-    "hash": "6584411861eb1efc",
-    "date": "2026-10-11",
+    "hash": "228a25d2e8f984df",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/pie/": {
-    "hash": "f3bb0a83af3bf705",
-    "date": "2026-10-11",
+    "hash": "a654cc19119704c7",
+    "date": "2026-11-18",
     "published": "2026-09-18"
   },
   "models/scatter/": {
-    "hash": "c0fa07c418efe6f2",
-    "date": "2026-10-11",
+    "hash": "dd82559063572d82",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   },
   "models/gauge/": {
@@ -875,13 +875,13 @@
     "published": "2026-10-04"
   },
   "models/flightglobe/": {
-    "hash": "df0632265550c450",
-    "date": "2026-10-11",
+    "hash": "f70d7286714264e7",
+    "date": "2026-11-18",
     "published": "2026-10-10"
   },
   "": {
     "hash": "a4becf0864832168",
-    "date": "2026-10-14",
+    "date": "2026-11-19",
     "published": "2026-09-18"
   }
 }
